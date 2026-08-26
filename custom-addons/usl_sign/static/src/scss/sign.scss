@@ -1,4 +1,6 @@
 .usl_sign_editor {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     min-width: 0;
     min-height: 0;
@@ -79,6 +81,9 @@
 
 .usl_sign_field_inspector {
     border-left: 1px solid var(--border-color, #dee2e6);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .usl_sign_panel_header {
@@ -539,6 +544,42 @@
 .usl_sign_method_wizard {
     .o_form_sheet {
         max-width: 62rem;
+    }
+}
+
+.usl_sign_start_wizard {
+    .o_form_sheet {
+        max-width: 46rem;
+    }
+}
+
+.usl_sign_start_section {
+    margin-top: 1.25rem;
+
+    h3 {
+        margin: 0 0 .25rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    > p {
+        margin-bottom: .75rem;
+    }
+}
+
+.usl_sign_start_input {
+    padding: 1rem;
+    border: 1px solid var(--o-border-color, #dee2e6);
+    border-radius: .5rem;
+    background: var(--o-view-background-color, #fff);
+}
+
+.usl_sign_start_more {
+    margin-top: 1.25rem;
+
+    summary {
+        color: var(--o-gray-600, #6c757d);
+        cursor: pointer;
     }
 }
 

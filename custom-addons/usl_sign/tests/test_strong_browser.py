@@ -50,10 +50,11 @@ class TestSignBrowserJourneys(HttpCase):
         )
 
     @staticmethod
-    def _pdf():
+    def _pdf(pages=1):
         stream = BytesIO()
         writer = PdfWriter()
-        writer.add_blank_page(width=595, height=842)
+        for _index in range(pages):
+            writer.add_blank_page(width=595, height=842)
         writer.write(stream)
         return stream.getvalue()
 
@@ -133,6 +134,9 @@ class TestSignBrowserJourneys(HttpCase):
                     "Request signatures",
                     "Use a template",
                     "Upload a PDF",
+                    "Document",
+                    "People",
+                    "More options",
                 ]) {
                     if (!dialogText.includes(expected)) {
                         throw new Error(`The Start dialog is missing: ${expected}`);
@@ -144,6 +148,142 @@ class TestSignBrowserJourneys(HttpCase):
             ready="document.querySelectorAll('.usl_sign_work_card').length === 5",
             login=self.workspace_user.login,
             timeout=60,
+        )
+
+    def test_template_editor_places_repeats_scrolls_and_deletes_fields(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Browser field editor regression",
+                "filename": "browser-field-editor.pdf",
+                "data": field_value(self._pdf(pages=3)),
+                "company_id": self.company.id,
+            },
+        )
+        action = self.env["ir.actions.client"].create(
+            {
+                "name": template.name,
+                "tag": "usl_sign_template_configure",
+                "params": {
+                    "res_model": template._name,
+                    "res_id": template.id,
+                },
+            },
+        )
+        self.browser_js(
+            f"/odoo/action-{action.id}",
+            """
+            (async () => {
+                const sleep = (milliseconds) => new Promise(
+                    (resolve) => setTimeout(resolve, milliseconds),
+                );
+                const waitFor = async (callback, message) => {
+                    for (let attempt = 0; attempt < 400; attempt++) {
+                        const result = callback();
+                        if (result) {
+                            return result;
+                        }
+                        await sleep(50);
+                    }
+                    throw new Error(message);
+                };
+                const iframe = await waitFor(
+                    () => document.querySelector(".o_sign_oca_iframe"),
+                    "The PDF editor iframe did not render.",
+                );
+                const iframeDocument = await waitFor(
+                    () => iframe.contentDocument?.querySelectorAll(".page").length === 3
+                        ? iframe.contentDocument
+                        : null,
+                    "The three PDF pages did not render.",
+                );
+                const editor = document.querySelector(".usl_sign_editor");
+                const workspace = document.querySelector(".usl_sign_editor_workspace");
+                if (getComputedStyle(editor).display !== "flex" || workspace.clientHeight < 200) {
+                    throw new Error("The editor does not own a usable scrollable viewport.");
+                }
+                const viewer = iframeDocument.getElementById("viewerContainer");
+                if (!viewer || viewer.scrollHeight <= viewer.clientHeight) {
+                    throw new Error("The PDF viewer is not vertically scrollable.");
+                }
+                viewer.scrollTop = Math.min(250, viewer.scrollHeight - viewer.clientHeight);
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+                if (viewer.scrollTop <= 0) {
+                    throw new Error("The PDF viewer did not retain its scroll position.");
+                }
+
+                const initials = Array.from(document.querySelectorAll(
+                    ".usl_sign_field_type",
+                )).find((button) => button.textContent.trim() === "Initials");
+                if (!initials) {
+                    throw new Error("The Initials field type is missing.");
+                }
+                initials.click();
+                const firstPage = iframeDocument.querySelector('.page[data-page-number="1"]');
+                const rectangle = firstPage.getBoundingClientRect();
+                firstPage.dispatchEvent(new MouseEvent("click", {
+                    bubbles: true,
+                    clientX: rectangle.left + rectangle.width * 0.7,
+                    clientY: rectangle.top + rectangle.height * 0.7,
+                }));
+                const firstField = await waitFor(
+                    () => iframeDocument.querySelector(".o_sign_oca_field"),
+                    "Click placement did not create the field.",
+                );
+                firstField.click();
+                const inspector = document.querySelector(".usl_sign_field_inspector");
+                inspector.style.height = "260px";
+                if (getComputedStyle(inspector).overflowY !== "auto") {
+                    throw new Error("The field inspector is not scrollable.");
+                }
+                inspector.scrollTop = inspector.scrollHeight;
+                const deleteButton = await waitFor(
+                    () => Array.from(inspector.querySelectorAll("button")).find(
+                        (button) => button.textContent.includes("Delete field"),
+                    ),
+                    "The field delete action is missing.",
+                );
+                deleteButton.click();
+                await waitFor(
+                    () => iframeDocument.querySelectorAll(".o_sign_oca_field").length === 0,
+                    "The field inspector did not delete the field.",
+                );
+
+                firstPage.dispatchEvent(new MouseEvent("click", {
+                    bubbles: true,
+                    clientX: rectangle.left + rectangle.width * 0.65,
+                    clientY: rectangle.top + rectangle.height * 0.65,
+                }));
+                const source = await waitFor(
+                    () => iframeDocument.querySelector(".o_sign_oca_field"),
+                    "The replacement Initials field was not created.",
+                );
+                source.click();
+                const everyPageButton = await waitFor(
+                    () => Array.from(inspector.querySelectorAll("button")).find(
+                        (button) => button.textContent.includes("Place on every page"),
+                    ),
+                    "The every-page action is missing.",
+                );
+                everyPageButton.click();
+                await waitFor(
+                    () => iframeDocument.querySelectorAll(".o_sign_oca_field").length === 3,
+                    "The Initials field was not copied to every page.",
+                );
+                source.dispatchEvent(new MouseEvent("contextmenu", {
+                    button: 2,
+                    bubbles: true,
+                    cancelable: true,
+                }));
+                await waitFor(
+                    () => iframeDocument.querySelectorAll(".o_sign_oca_field").length === 2,
+                    "Right-click did not delete the selected field.",
+                );
+                console.log("test successful");
+            })();
+            """,
+            ready="Boolean(document.querySelector('.usl_sign_editor'))",
+            login=self.workspace_user.login,
+            timeout=90,
         )
 
     def test_requester_prepares_sends_and_monitors_routine_agreement(self):
@@ -435,6 +575,24 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertIn(
             "publickey-credentials-get=()",
             response.headers["Permissions-Policy"],
+        )
+        self.browser_js(
+            urlsplit(invitation_url).path,
+            """
+            (() => {
+                const enrollment = document.getElementById("usl_strong_enrollment");
+                const button = document.getElementById("usl_enroll_button");
+                if (enrollment?.dataset.ready !== "true" || button?.disabled) {
+                    throw new Error("Pocket ID enrollment is incorrectly blocked on HTTP.");
+                }
+                if (document.body.textContent.includes("A secure browser is required")) {
+                    throw new Error("Enrollment displayed the Strong-signing HTTPS gate.");
+                }
+                console.log("test successful");
+            })();
+            """,
+            ready="document.getElementById('usl_strong_enrollment')?.dataset.ready === 'true'",
+            timeout=60,
         )
 
     def test_strong_signing_page_is_focused_company_facing_and_isolated(self):

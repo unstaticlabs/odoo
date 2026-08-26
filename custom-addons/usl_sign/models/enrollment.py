@@ -7,6 +7,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import INTERNAL_OPERATION
 
+IDENTITY_REVIEW_STANDARD = "usl-identity-review-v1"
+
 
 class SignEnrollment(models.Model):
     _name = "usl.sign.enrollment"
@@ -43,7 +45,8 @@ class SignEnrollment(models.Model):
     relationship_reference = fields.Char(required=True)
     reviewer_id = fields.Many2one("res.users", readonly=True, ondelete="restrict")
     reviewed_at = fields.Datetime(readonly=True)
-    policy_version = fields.Char(required=True, default="1")
+    policy_version = fields.Char(required=True, default=IDENTITY_REVIEW_STANDARD)
+    review_standard_label = fields.Char(compute="_compute_review_standard_label")
     review_note = fields.Text()
     pocket_issuer = fields.Char(readonly=True, copy=False, index=True)
     pocket_subject = fields.Char(readonly=True, copy=False, index=True)
@@ -92,6 +95,29 @@ class SignEnrollment(models.Model):
         if any(not (enrollment.relationship_reference or "").strip() for enrollment in self):
             msg = "Record the employee, contract, partner, or review reference used."
             raise ValidationError(msg)
+
+    @api.model_create_multi
+    def create(self, values_list):
+        for values in values_list:
+            if "relationship_reference" not in values:
+                partner_id = int(values.get("partner_id") or 0)
+                if partner_id:
+                    values["relationship_reference"] = f"res.partner,{partner_id}"
+        return super().create(values_list)
+
+    @api.depends("policy_version")
+    def _compute_review_standard_label(self):
+        for enrollment in self:
+            version = enrollment.policy_version or IDENTITY_REVIEW_STANDARD
+            if version == IDENTITY_REVIEW_STANDARD:
+                enrollment.review_standard_label = _(
+                    "USL identity review checklist · version 1",
+                )
+            else:
+                enrollment.review_standard_label = _(
+                    "Identity review checklist · %(version)s",
+                    version=version,
+                )
 
     @api.depends(
         "invitation_mail_id",
