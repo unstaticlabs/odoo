@@ -7,6 +7,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 
 ## Documents
 
+- [Distribution fork overview](fork-overview.md)
 - [Product vision](product-vision.md)
 - [Experience principles](experience-principles.md)
 - [Structured operational memory](structured-operational-memory.md)

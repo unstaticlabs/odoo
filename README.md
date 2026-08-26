@@ -2,8 +2,8 @@
 
 This repository is Unstatic Labs’ production-oriented Odoo Distribution on
 Odoo Community `saas~19.3`. It extends upstream through isolated modules under
-`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
-unchanged.
+`custom-addons/` and pinned OCA dependencies. Upstream Odoo core remains
+unchanged except for the two documented fiscal-year sequencing patches.
 
 Accounting v1 provides the daily cockpit for journals, invoices, bills,
 expenses, payments, bank transactions and reconciliation, plus assets,
@@ -25,6 +25,8 @@ activation procedure is approved.
 
 Primary entry points:
 
+- [Distribution fork overview](docs/product/fork-overview.md) for the complete
+  feature-to-module, screen, documentation and maturity map;
 - **Accounting > Overview** for daily operational state;
 - **Expenses > Expense Batches** (**Lots de dépenses** in French) for contextual trip, project, event and
   periodic claims with mixed payer review;

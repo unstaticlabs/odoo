@@ -23,6 +23,9 @@ distribution-level core patch and the tradeoff is documented.
   - `docs/operations/`
   - `docs/accounting/`
   - `docs/agents/`
+- Use `docs/product/fork-overview.md` as the canonical feature-to-module map.
+  Update it when a delivered capability, product module, core patch, migration
+  stage, user entry point or maturity classification materially changes.
 - Follow `docs/agents/french-localization.md` for French product terminology
   and translation ownership.
 - Use the existing Docker, Dev Container, and helper workflow documented in `README.md`.
