@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_distribution_access" model="ir.ui.view">
+        <field name="name">res.users.form.distribution.access</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']/group[1]" position="after">
+                <group string="Distribution access" groups="base.group_system">
+                    <field name="usl_access_summary" readonly="1"/>
+                    <field name="usl_is_ai_agent" readonly="1"/>
+                    <field name="usl_has_irreversible_actions" readonly="1"/>
+                    <div class="text-muted" colspan="2">
+                        Application access is separate from irreversible actions. AI Agent identities are always denied irreversible actions by the server.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="base.menu_users" model="ir.ui.menu">
+        <field name="group_ids" eval="[Command.set([ref('base.group_system')])]"/>
+    </record>
+</odoo>
+

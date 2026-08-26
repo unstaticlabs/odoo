@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_distribution_access" model="ir.module.category">
+        <field name="name">USL Distribution</field>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="privilege_distribution_role" model="res.groups.privilege">
+        <field name="name">Distribution Role</field>
+        <field name="category_id" ref="module_category_distribution_access"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="privilege_identity_type" model="res.groups.privilege">
+        <field name="name">Identity Type</field>
+        <field name="category_id" ref="module_category_distribution_access"/>
+        <field name="sequence">20</field>
+    </record>
+    <record id="privilege_special_capabilities" model="res.groups.privilege">
+        <field name="name">Special Capabilities</field>
+        <field name="category_id" ref="module_category_distribution_access"/>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="group_audit_reader" model="res.groups">
+        <field name="name">Distribution Audit Reader</field>
+        <field name="comment">Inspect attributable Agent mutations and protected actions without changing audit history.</field>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_irreversible_actions" model="res.groups">
+        <field name="name">Irreversible Actions</field>
+        <field name="privilege_id" ref="privilege_special_capabilities"/>
+        <field name="comment">Permit permanent deletion, lock changes, authorization changes, destructive technical maintenance, and other protected actions.</field>
+        <field name="implied_ids" eval="[Command.link(ref('group_audit_reader'))]"/>
+    </record>
+
+    <record id="group_ai_agent" model="res.groups">
+        <field name="name">AI Agent</field>
+        <field name="privilege_id" ref="privilege_identity_type"/>
+        <field name="comment">Marks an autonomous identity. Combine with application groups; irreversible actions remain explicitly denied.</field>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_accounting_reviewer" model="res.groups">
+        <field name="name">Accounting Reviewer</field>
+        <field name="privilege_id" ref="privilege_distribution_role"/>
+        <field name="comment">Annual-review Accounting work in unlocked periods, including draft adjustments, posting, reset, and reconciliation; excludes locks and permanent deletion.</field>
+        <field name="implied_ids" eval="[
+            Command.link(ref('account.group_account_user')),
+            Command.link(ref('rebuild_account_migration.group_rebuild_accountant_reviewer')),
+            Command.link(ref('usl_documents.group_documents_accountant'))
+        ]"/>
+    </record>
+
+    <record id="group_technical_administrator" model="res.groups">
+        <field name="name">Technical Administrator</field>
+        <field name="privilege_id" ref="privilege_distribution_role"/>
+        <field name="comment">Operate B2C, Projects and Documents and inspect technical configuration; security, locks, audit deletion and irreversible maintenance remain protected.</field>
+        <field name="implied_ids" eval="[
+            Command.link(ref('base.group_erp_manager')),
+            Command.link(ref('account.group_account_readonly')),
+            Command.link(ref('usl_b2c.group_b2c_operator')),
+            Command.link(ref('usl_b2c.group_b2c_sensitive_evidence')),
+            Command.link(ref('project.group_project_manager')),
+            Command.link(ref('usl_documents.group_documents_manager')),
+            Command.link(ref('group_audit_reader'))
+        ]"/>
+    </record>
+
+    <record id="group_distribution_administrator" model="res.groups">
+        <field name="name">Full Product Administrator</field>
+        <field name="privilege_id" ref="privilege_distribution_role"/>
+        <field name="comment">All Distribution applications and technical administration through an attributable user identity.</field>
+        <field name="implied_ids" eval="[
+            Command.link(ref('base.group_system')),
+            Command.link(ref('account.group_account_manager')),
+            Command.link(ref('hr.group_hr_manager')),
+            Command.link(ref('hr_expense.group_hr_expense_manager')),
+            Command.link(ref('project.group_project_manager')),
+            Command.link(ref('usl_b2c.group_b2c_manager')),
+            Command.link(ref('usl_documents.group_documents_manager')),
+            Command.link(ref('usl_platform_billing.group_platform_billing_manager')),
+            Command.link(ref('group_irreversible_actions'))
+        ]"/>
+        <field name="user_ids" eval="[
+            Command.link(ref('base.user_root')),
+            Command.link(ref('base.user_admin'))
+        ]"/>
+    </record>
+
+    <record id="rule_audit_accounting_reviewer" model="ir.rule">
+        <field name="name">Distribution audit: accounting-review scope</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="groups" eval="[Command.link(ref('group_accounting_reviewer'))]"/>
+        <field name="domain_force">['|', '|', ('model_name', '=like', 'account.%'), ('model_name', '=like', 'rebuild.account.%'), ('model_name', '=like', 'usl.tese.%')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
+

@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_usl_audit_event_reader,usl.audit.event reader,model_usl_audit_event,group_audit_reader,1,0,0,0
+access_usl_audit_event_accounting_reviewer,usl.audit.event accounting reviewer,model_usl_audit_event,group_accounting_reviewer,1,0,0,0
+access_ir_module_module_technical_reader,ir.module.module technical reader,base.model_ir_module_module,group_technical_administrator,1,0,0,0
+access_ir_module_dependency_technical_reader,ir.module.module.dependency technical reader,base.model_ir_module_module_dependency,group_technical_administrator,1,0,0,0
+access_ir_model_technical_reader,ir.model technical reader,base.model_ir_model,group_technical_administrator,1,0,0,0
+access_ir_model_fields_technical_reader,ir.model.fields technical reader,base.model_ir_model_fields,group_technical_administrator,1,0,0,0
+access_ir_ui_view_technical_reader,ir.ui.view technical reader,base.model_ir_ui_view,group_technical_administrator,1,0,0,0
+access_ir_cron_technical_reader,ir.cron technical reader,base.model_ir_cron,group_technical_administrator,1,0,0,0
+access_ir_logging_technical_reader,ir.logging technical reader,base.model_ir_logging,group_technical_administrator,1,0,0,0
+access_ir_actions_server_technical_reader,ir.actions.server technical reader,base.model_ir_actions_server,group_technical_administrator,1,0,0,0
+access_ir_actions_server_history_technical_reader,ir.actions.server.history technical reader,base.model_ir_actions_server_history,group_technical_administrator,1,0,0,0
+

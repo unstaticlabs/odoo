@@ -37,6 +37,7 @@ esac
 # also mutate unrelated native and OCA modules during target finalization.
 product_modules=(
   rebuild_account_migration
+  usl_access_control
   usl_accounting
   usl_b2c
   usl_documents

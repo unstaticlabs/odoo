@@ -259,6 +259,8 @@ The production custom-module boundaries are:
   and record-level authorization;
 - `usl_documents_accounting`: Accounting-specific document links and evidence;
 - `usl_pocketid`: Pocket ID authentication and identity governance;
+- `usl_access_control`: recoverability-based Distribution roles, protected
+  irreversible actions and attributable Agent audit;
 - `usl_platform_billing`: the independent content-platform payout billing
   application;
 - `usl_platform_billing_pocketid`: governed Pocket ID access for Platform
