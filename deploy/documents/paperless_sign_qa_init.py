@@ -1,9 +1,9 @@
+# ruff: noqa: T201 -- stdout is a private protocol consumed by the QA wrapper.
 """Provision the isolated QA identity used for Odoo Sign archival."""
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from rest_framework.authtoken.models import Token
-
 
 username = "odoo-sign-integration"
 User = get_user_model()
@@ -43,7 +43,8 @@ permissions |= Permission.objects.filter(
     codename="view_user",
 )
 if permissions.count() != len(service_codenames) + 1:
-    raise RuntimeError("Paperless Sign integration permissions are incompatible")
+    msg = "Paperless Sign integration permissions are incompatible"
+    raise RuntimeError(msg)
 
 service.user_permissions.set(permissions)
 service.set_unusable_password()

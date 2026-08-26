@@ -1,10 +1,10 @@
+from .binary import base64_text, field_content, field_value
 from .dss import (
     DSSClient,
     DSSRejectedError,
     DSSServiceError,
     DSSUnavailableError,
 )
-from .binary import base64_text, field_content, field_value
 from .opentimestamps import (
     OpenTimestampsClient,
     OpenTimestampsError,
@@ -18,13 +18,13 @@ __all__ = [
     "DSSRejectedError",
     "DSSServiceError",
     "DSSUnavailableError",
-    "base64_text",
-    "field_content",
-    "field_value",
     "OpenTimestampsClient",
     "OpenTimestampsError",
     "OpenTimestampsRejectedError",
     "OpenTimestampsUnavailableError",
     "StepCAClient",
     "StepCAError",
+    "base64_text",
+    "field_content",
+    "field_value",
 ]

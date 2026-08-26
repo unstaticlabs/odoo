@@ -1,23 +1,26 @@
+# ruff: noqa: F821, T201 -- Odoo shell injects env; stdout is wrapper input.
 """Prepare a disposable Pocket-backed Strong enrolment for browser acceptance."""
 
 import json
 import os
 
-
 authenticator = os.environ.get("USL_SIGN_ACCEPTANCE_AUTHENTICATOR", "virtual")
 if authenticator not in {"virtual", "real_platform"}:
-    raise RuntimeError("Strong acceptance authenticator must be virtual or real_platform")
+    msg = "Strong acceptance authenticator must be virtual or real_platform"
+    raise RuntimeError(msg)
 
 partner = env["res.partner"].search(
     [("email", "=", "roger@unstaticlabs.com")],
     limit=1,
 )
 if not partner:
-    raise RuntimeError("The isolated Roger QA partner is missing")
+    msg = "The isolated Roger QA partner is missing"
+    raise RuntimeError(msg)
 partner = partner.commercial_partner_id
 reviewer = env["res.users"].search([("login", "=", "valentin")], limit=1)
 if not reviewer or not reviewer.has_group("usl_sign.group_sign_identity_reviewer"):
-    raise RuntimeError("The isolated Valentin identity reviewer is missing")
+    msg = "The isolated Valentin identity reviewer is missing"
+    raise RuntimeError(msg)
 
 enrollments = env["usl.sign.enrollment"].with_user(reviewer)
 current = enrollments.search(
@@ -54,7 +57,7 @@ invitation = enrollment.action_copy_invitation()
 env.cr.commit()
 payload = {
     "enrollment_id": enrollment.id,
-    "invitation_url": invitation["context"]["default_invitation_url"],
+    "invitation_url": invitation["params"]["url"],
     "partner_id": partner.id,
     "authenticator": authenticator,
     "run_id": os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", ""),

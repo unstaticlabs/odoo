@@ -22,7 +22,8 @@ def field_content(value, *, validate=True):
         try:
             return base64.b64decode(value, validate=validate)
         except (binascii.Error, ValueError) as error:
-            raise ValueError("Binary RPC values must be valid base64 data.") from error
+            msg = "Binary RPC values must be valid base64 data."
+            raise ValueError(msg) from error
     raise TypeError(f"Unsupported binary value: {type(value).__name__}")
 
 

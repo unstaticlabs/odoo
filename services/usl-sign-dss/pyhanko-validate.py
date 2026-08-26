@@ -1,4 +1,3 @@
-#!/opt/pyhanko/bin/python
 """Bounded offline cross-validation invoked only by the mTLS DSS service."""
 
 import base64
@@ -12,7 +11,8 @@ from pyhanko_certvalidator import ValidationContext
 
 def main():
     if len(sys.argv) != 2:
-        raise SystemExit("A PDF path is required.")
+        msg = "A PDF path is required."
+        raise SystemExit(msg)
     with open(sys.argv[1], "rb") as stream:
         reader = PdfFileReader(stream, strict=True)
         signatures = list(reader.embedded_regular_signatures)
@@ -43,7 +43,7 @@ def main():
                         base64.b64encode(certificate.dump()).decode()
                         for certificate in embedded_certificates
                     ],
-                }
+                },
             )
     valid = bool(rows) and all(
         row["intact"] and row["cryptographically_valid"] and row["docmdp_ok"]

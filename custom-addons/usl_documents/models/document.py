@@ -352,7 +352,7 @@ class UslDocument(models.Model):
             document.has_distinct_archive_file = bool(
                 document.archive_checksum
                 and document.checksum
-                and document.archive_checksum != document.checksum
+                and document.archive_checksum != document.checksum,
             )
 
     @api.depends("submitted_at", "paperless_created")
@@ -4361,7 +4361,7 @@ class UslDocumentVersion(models.Model):
             version.has_distinct_archive_file = bool(
                 version.archive_checksum
                 and version.checksum
-                and version.archive_checksum != version.checksum
+                and version.archive_checksum != version.checksum,
             )
 
     _document_version_unique = models.Constraint(

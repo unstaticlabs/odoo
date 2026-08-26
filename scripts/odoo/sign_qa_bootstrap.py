@@ -1,11 +1,13 @@
 import logging
 from io import BytesIO
 
-from odoo import fields
-from odoo.addons.usl_sign.services import field_value
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+
+from odoo import fields
+
+from odoo.addons.usl_sign.services import field_value
 
 _logger = logging.getLogger(__name__)
 
@@ -128,7 +130,6 @@ def _request_from_template(
             "document_category": category,
             "signer_type": signer_type,
             "risk_level": risk,
-            "requires_signed_pdf": True,
             "formal_qes_required": trust == "qualified_external",
             "requested_trust": trust,
             "external_provider_id": provider.id if provider else False,
@@ -148,7 +149,8 @@ def _request_from_template(
 
 def bootstrap(env):
     if env.cr.dbname != "odoo_dev":
-        raise RuntimeError("USL Sign QA fixtures may only be installed in odoo_dev.")
+        msg = "USL Sign QA fixtures may only be installed in odoo_dev."
+        raise RuntimeError(msg)
     company = env.company
     company.write(
         {
@@ -167,7 +169,8 @@ def bootstrap(env):
     requester = users.get("valentin")
     signer = users.get("roger@unstaticlabs.com")
     if not requester or not signer:
-        raise RuntimeError("Pocket ID QA users Valentin and Roger must exist before seeding Sign.")
+        msg = "Pocket ID QA users Valentin and Roger must exist before seeding Sign."
+        raise RuntimeError(msg)
     sign_admin = env.ref("usl_sign.group_sign_admin")
     sign_user = env.ref("usl_sign.group_sign_user")
     requester.write({"group_ids": [(4, sign_admin.id)]})
@@ -254,7 +257,7 @@ def bootstrap(env):
         env,
         name="Sole Shareholder Decision — Timestamp QA",
         description="Self-signing document used to review existence and timestamp proof.",
-        category="internal_decision",
+        category="other",
         policy=routine_policy,
         roles=[employee],
         layout=[[(name_field, 12, 76, 30, 5, True), (date, 52, 76, 18, 5, True), (signature, 12, 85, 36, 8, True)]],
@@ -357,7 +360,7 @@ def bootstrap(env):
     # that current identity state so Roger receives a genuine signing action
     # instead of a stale "waiting for enrolment" example.
     if strong_request.state == "waiting_enrollment" and not strong_request.signer_ids.filtered(
-        lambda row: not row._active_enrollment()
+        lambda row: not row._active_enrollment(),
     ):
         strong_request.action_resume_after_enrollment()
 
@@ -366,7 +369,7 @@ def bootstrap(env):
     env.cr.commit()
     _logger.info(
         "Sign QA ready: templates=%s routine_request=%s strong_request=%s qualified_request=%s",
-        len(env["sign.oca.template"].search([( "company_id", "=", company.id)])),
+        len(env["sign.oca.template"].search([("company_id", "=", company.id)])),
         routine_request.id,
         strong_request.id,
         qualified_request.id,

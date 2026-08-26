@@ -5,9 +5,8 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
-from ..services import DSSClient, OpenTimestampsClient, StepCAClient
 from .constants import INTERNAL_OPERATION
-
+from odoo.addons.usl_sign.services import DSSClient, OpenTimestampsClient, StepCAClient
 
 CAPABILITIES = (
     ("standard", "Standard documents", 10),
@@ -103,7 +102,8 @@ class SignServiceHealth(models.Model):
     @api.model
     def _check_admin(self):
         if not self.env.user.has_group("usl_sign.group_sign_admin"):
-            raise AccessError("Only a Sign administrator can inspect signing services.")
+            msg = "Only a Sign administrator can inspect signing services."
+            raise AccessError(msg)
 
     @api.model
     def _ensure_company(self, company):
@@ -194,7 +194,7 @@ class SignServiceHealth(models.Model):
         return self._cached(
             cache,
             "pocket",
-            lambda: self.env["auth.oauth.provider"]._usl_pocketid_sign_configuration(),
+            self.env["auth.oauth.provider"]._usl_pocketid_sign_configuration,
         )
 
     def _step_ca(self, cache):
@@ -341,13 +341,16 @@ class SignServiceHealth(models.Model):
     @api.model_create_multi
     def create(self, values_list):
         if self.env.context.get("usl_sign_health_write") is not INTERNAL_OPERATION:
-            raise AccessError("Signing capability rows are managed by health checks.")
+            msg = "Signing capability rows are managed by health checks."
+            raise AccessError(msg)
         return super().create(values_list)
 
     def write(self, values):
         if self.env.context.get("usl_sign_health_write") is not INTERNAL_OPERATION:
-            raise AccessError("Signing capability status is read-only.")
+            msg = "Signing capability status is read-only."
+            raise AccessError(msg)
         return super().write(values)
 
     def unlink(self):
-        raise AccessError("Signing capability status rows cannot be deleted.")
+        msg = "Signing capability status rows cannot be deleted."
+        raise AccessError(msg)

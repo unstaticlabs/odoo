@@ -9,7 +9,8 @@ from urllib.parse import quote
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from ..services import (
+from .constants import INTERNAL_OPERATION
+from odoo.addons.usl_sign.services import (
     DSSClient,
     DSSServiceError,
     OpenTimestampsClient,
@@ -19,7 +20,6 @@ from ..services import (
     field_content,
     field_value,
 )
-from .constants import INTERNAL_OPERATION
 
 _logger = logging.getLogger(__name__)
 
@@ -269,7 +269,7 @@ class SignDailyManifest(models.Model):
         return SignDailyManifest._canonical_json(envelope)
 
     @api.model
-    def build_for_day(self, company, manifest_date):
+    def _build_for_day(self, company, manifest_date):
         manifest_date = fields.Date.to_date(manifest_date)
         if manifest_date >= datetime.now(UTC).date():
             msg = "Only a closed UTC day can be manifested."
@@ -437,7 +437,7 @@ class SignDailyManifest(models.Model):
             built = 0
             while current <= closed_day and built < batch_days:
                 try:
-                    manifest = self.sudo().build_for_day(company, current)
+                    manifest = self.sudo()._build_for_day(company, current)
                 except (ValidationError, DSSServiceError):
                     _logger.exception(
                         "Daily Sign evidence manifest failed for company %s on %s",
@@ -995,13 +995,13 @@ class SignDailyManifestEntry(models.Model):
         "UNIQUE(manifest_id, request_id)",
         "A request can occur only once in a daily evidence manifest.",
     )
+
     @api.constrains("record_type", "request_id")
     def _check_record_binding(self):
         for entry in self:
             if entry.record_type != "signature" or not entry.request_id:
-                raise ValidationError(
-                    "A daily evidence entry must identify one signing request.",
-                )
+                msg = "A daily evidence entry must identify one signing request."
+                raise ValidationError(msg)
 
     @api.model_create_multi
     def create(self, vals_list):

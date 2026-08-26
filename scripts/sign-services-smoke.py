@@ -5,7 +5,7 @@ import base64
 import importlib.util
 import json
 import os
-from datetime import timezone
+from datetime import UTC
 from io import BytesIO
 
 import requests
@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 from reportlab.pdfgen import canvas
+
 
 def load_service(name):
     path = os.path.join(
@@ -57,7 +58,7 @@ def certificate_binding(key, document_sha256="1" * 64):
         key.public_key().public_bytes(
             serialization.Encoding.DER,
             serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
+        ),
     ).hexdigest()
     return {
         "usl_signer": "101",
@@ -78,7 +79,7 @@ def main():
     manifest = b'{"format":"usl-sign-smoke-manifest-v1"}'
     manifest_signature = dss.sign_manifest(manifest)
     manifest_certificate = x509.load_der_x509_certificate(
-        base64.b64decode(manifest_signature["certificateChain"][0])
+        base64.b64decode(manifest_signature["certificateChain"][0]),
     )
     assert "USL Sign Evidence Manifest" in manifest_certificate.subject.rfc4514_string()
     manifest_certificate.public_key().verify(
@@ -87,7 +88,7 @@ def main():
         ec.ECDSA(hashes.SHA256()),
     )
     assert manifest_signature["manifestSha256"] == __import__("hashlib").sha256(
-        manifest
+        manifest,
     ).hexdigest()
 
     key, csr_pem = csr_and_key()
@@ -114,9 +115,9 @@ def main():
     assert certificate.public_key().public_numbers() == key.public_key().public_numbers()
     lifetime = certificate.not_valid_after_utc - certificate.not_valid_before_utc
     assert lifetime.total_seconds() <= 630
-    assert certificate.not_valid_after_utc > __import__("datetime").datetime.now(timezone.utc)
+    assert certificate.not_valid_after_utc > __import__("datetime").datetime.now(UTC)
     assert sans == set(
-        certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(x509.UniformResourceIdentifier)
+        certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(x509.UniformResourceIdentifier),
     )
     assert certificate.extensions.get_extension_for_class(x509.KeyUsage).value.digital_signature
 
@@ -133,11 +134,11 @@ def main():
         "notAfter": "10m",
     }
     first = requests.post(
-        f"{ca.base_url}/1.0/sign", json=payload, timeout=ca.timeout, verify=ca.ca_bundle
+        f"{ca.base_url}/1.0/sign", json=payload, timeout=ca.timeout, verify=ca.ca_bundle,
     )
     first.raise_for_status()
     replay = requests.post(
-        f"{ca.base_url}/1.0/sign", json=payload, timeout=ca.timeout, verify=ca.ca_bundle
+        f"{ca.base_url}/1.0/sign", json=payload, timeout=ca.timeout, verify=ca.ca_bundle,
     )
     assert replay.status_code >= 400, "step-ca accepted a reused one-time token"
 
@@ -165,7 +166,7 @@ def main():
         expected_level="strong_personal",
     )
     assert personal_validation["status"] == "valid", json.dumps(
-        personal_validation, indent=2
+        personal_validation, indent=2,
     )[:12000]
     assert personal_validation["achievedTrust"] == "strong_personal"
     personal_cross_validation = dss.cross_validate(personal_pdf)
@@ -213,17 +214,20 @@ def main():
     assert dossier_one == dossier_two, "PDF/A-3 dossier construction is not deterministic"
     dossier_validation = dss.validate_pdfa(dossier_one)
     assert dossier_validation["compliant"], json.dumps(
-        dossier_validation["report"], indent=2
+        dossier_validation["report"], indent=2,
     )[:12000]
     sealed_dossier = base64.b64decode(
-        dss.seal(dossier_one, request_reference="USL-SIGN-DOSSIER-SMOKE")["document"]
+        dss.seal(dossier_one, request_reference="USL-SIGN-DOSSIER-SMOKE")["document"],
     )
     sealed_dossier_validation = dss.validate_pdfa(sealed_dossier)
     assert sealed_dossier_validation["compliant"], json.dumps(
-        sealed_dossier_validation["report"], indent=2
+        sealed_dossier_validation["report"], indent=2,
     )[:12000]
 
-    print("USL Sign CA, DSS, separate manifest signing, pyHanko, deterministic PDF/A-3 dossier, veraPDF, sealing, replay, and alteration checks passed.")
+    print(  # noqa: T201 -- operator-facing smoke result
+        "USL Sign CA, DSS, separate manifest signing, pyHanko, deterministic "
+        "PDF/A-3 dossier, veraPDF, sealing, replay, and alteration checks passed.",
+    )
 
 
 if __name__ == "__main__":

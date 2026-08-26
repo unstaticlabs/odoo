@@ -4,8 +4,8 @@ import json
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
-from ..services import field_content
 from .constants import INTERNAL_OPERATION, TRUST_LEVELS
+from odoo.addons.usl_sign.services import field_content
 
 
 class SignEvidence(models.Model):
@@ -107,7 +107,7 @@ class SignEvent(models.Model):
     )
 
     @api.model
-    def append(
+    def _append(
         self,
         request_record,
         event_type,

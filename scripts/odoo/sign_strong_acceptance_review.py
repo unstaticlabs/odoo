@@ -1,3 +1,4 @@
+# ruff: noqa: F821, T201 -- Odoo shell injects env; stdout is wrapper input.
 """Review the Pocket identity and prepare a real Strong signing session."""
 
 import json
@@ -5,18 +6,21 @@ import os
 from io import BytesIO
 
 from odoo.tools.pdf import PdfWriter
-from odoo.addons.usl_sign.services import field_value
 
+from odoo.addons.usl_sign.services import field_value
 
 enrollment_id = int(os.environ.get("USL_SIGN_ACCEPTANCE_ENROLLMENT_ID", "0"))
 if enrollment_id <= 0:
-    raise RuntimeError("A Strong acceptance enrolment ID is required")
+    msg = "A Strong acceptance enrolment ID is required"
+    raise RuntimeError(msg)
 enrollment = env["usl.sign.enrollment"].browse(enrollment_id).exists()
 if not enrollment or enrollment.state != "pending_review":
-    raise RuntimeError("Pocket ID did not leave the enrolment pending identity review")
+    msg = "Pocket ID did not leave the enrolment pending identity review"
+    raise RuntimeError(msg)
 reviewer = env["res.users"].search([("login", "=", "valentin")], limit=1)
 if not reviewer or not reviewer.has_group("usl_sign.group_sign_admin"):
-    raise RuntimeError("The isolated Valentin Sign administrator is missing")
+    msg = "The isolated Valentin Sign administrator is missing"
+    raise RuntimeError(msg)
 enrollment.with_user(reviewer).action_confirm_identity()
 
 stream = BytesIO()
@@ -75,7 +79,8 @@ sign_request = env["sign.oca.request"].with_user(reviewer).create(
 )
 sign_request.action_mark_ready()
 if sign_request.recommended_trust != "strong_personal":
-    raise RuntimeError("The material recurring-signer policy did not recommend Strong")
+    msg = "The material recurring-signer policy did not recommend Strong"
+    raise RuntimeError(msg)
 send_action = sign_request.action_send()
 if (
     isinstance(send_action, dict)
