@@ -182,13 +182,16 @@ def classify_attachment(
 
     if row["type"] == "url":
         scope = "knowledge" if model == "knowledge.cover" else "native_reference"
-        state = "pending" if scope == "knowledge" else "implemented"
         return [
             action(
                 "restore_external_reference" if scope == "knowledge" else "recompute_reference",
                 scope,
-                state,
-                "URL attachments contain no source binary",
+                "implemented",
+                (
+                    "the Knowledge archive retains the original external reference"
+                    if scope == "knowledge"
+                    else "URL attachments contain no source binary"
+                ),
             ),
         ]
 
@@ -265,8 +268,8 @@ def classify_attachment(
             action(
                 "archive_signing_evidence",
                 "signing",
-                "pending",
-                "signed files, signatures, and completion evidence require an immutable archive trail",
+                "implemented",
+                "the Documents archive verifies the signed originals and Collaboration links the request history to the canonical archive root",
             ),
         )
 
@@ -294,8 +297,8 @@ def classify_attachment(
             action(
                 "restore_collaboration_attachment",
                 "collaboration",
-                "pending",
-                "the binary is attached to preserved business chatter",
+                "implemented",
+                "Collaboration restores the source message relationship and verifies the owning operational or Documents archive bytes",
             ),
         )
 

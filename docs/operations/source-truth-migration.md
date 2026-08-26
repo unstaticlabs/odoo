@@ -154,9 +154,9 @@ Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
 unassigned enterprise evidence file through the supported Paperless API, with
-byte-for-byte read-back and preview checks. Sign, Knowledge, preference, AI,
-and collaboration actions continue to keep the attachment gate blocked until
-their own stages pass.
+byte-for-byte read-back and preview checks. Signing evidence, Knowledge
+references and chatter relationships are completed by the Documents and final
+Collaboration stages. Preference and AI actions remain separately governed.
 
 ## Deterministic reconstruction
 
@@ -164,7 +164,8 @@ their own stages pass.
 package, runs the strict source-wide and attachment gates, creates a clean
 target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
-and Platform Billing, rebuilds the Paperless archive, removes every temporary
+and Platform Billing, rebuilds the Paperless archive, restores source-wide
+Collaboration history, removes every temporary
 migration module and its allow-listed physical provenance columns, then
 applies target-only configuration. It is blocked while any shipped scope is
 incomplete. The strict

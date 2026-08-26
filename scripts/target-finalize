@@ -77,6 +77,9 @@ scripts/b2c-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
 scripts/platform-billing-restore product-validate
+if [[ "$qa_profile" == full ]]; then
+  scripts/collaboration-restore product-validate
+fi
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
 

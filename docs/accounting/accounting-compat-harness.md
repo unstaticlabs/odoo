@@ -373,11 +373,11 @@ Direct expense evidence is part of the blocking gate. Binary files are verified
 against the restored filestore checksum and size; URL attachments retain their
 native type and URL instead of being discarded as non-binary records. Chatter
 attachments retain their source message relationship metadata. Notification
-followers and generated tracking messages are not copied as business records:
-blindly restoring notification subscriptions could send unintended mail, while
-generated tracking logs would duplicate events produced by the native target
-workflow. Those exclusions do not remove original receipts, invoices, uploaded
-files or links from the expense.
+The early Accounting attachment pass creates temporary source-aware file links;
+the final Collaboration stage replaces its generated attachment notes with the
+original source messages, tracking history, mapped internal followers and
+verified attachment relationships. Delivery notifications and sent queue rows
+are deliberately excluded so reconstruction cannot resend historical mail.
 
 The import is safe to repeat. Existing source-traced expenses and evidence are
 revalidated and reused. Payments already linked to expenses and depreciation

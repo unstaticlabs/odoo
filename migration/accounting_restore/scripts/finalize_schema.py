@@ -12,6 +12,7 @@ MIGRATION_MODULES = {
     "usl_product_restore",
     "usl_project_restore",
     "usl_tese_restore",
+    "usl_collaboration_restore",
 }
 MIGRATION_COLUMNS = {
     "rebuild_import_note",

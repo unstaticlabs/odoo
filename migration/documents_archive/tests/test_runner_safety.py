@@ -141,7 +141,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("scripts/accounting-compat dev-validate", script)
         self.assertIn('failed_checks == {"manager_accounting_identity_matches"}', script)
         self.assertIn('manager.get("target") is None', script)
-        self.assertIn("scripts/hr-restore all", script)
+        self.assertIn("scripts/hr-restore install", script)
+        self.assertIn("scripts/hr-restore import", script)
+        self.assertIn("scripts/hr-restore validate", script)
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 
@@ -192,6 +194,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             script.index('run_stage "restore Platform Billing"'),
+            script.index('run_stage "restore Collaboration history"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Collaboration history"'),
             script.index('run_stage "finalize migration boundary"'),
         )
         finalizer = script[
@@ -203,6 +209,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             finalizer,
         )
         self.assertLess(
+            finalizer.index("scripts/collaboration-restore finalize"),
+            finalizer.index("scripts/platform-billing-restore finalize"),
+        )
+        self.assertLess(
             finalizer.index("scripts/platform-billing-restore finalize"),
             finalizer.index("scripts/tese-restore finalize"),
         )
@@ -212,12 +222,27 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             finalizer.index("scripts/project-restore finalize"),
+            finalizer.index("scripts/hr-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/hr-restore finalize"),
+            finalizer.index("scripts/product-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/product-restore finalize"),
+            finalizer.index("scripts/identity-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/identity-restore finalize"),
             finalizer.index("scripts/accounting-restore finalize"),
         )
         self.assertLess(
             finalizer.index("scripts/accounting-restore finalize"),
             finalizer.index("scripts/platform-billing-restore schema-finalize"),
         )
+        self.assertNotIn('run_stage "restore identities" scripts/identity-restore all', script)
+        self.assertNotIn('run_stage "restore product data" scripts/product-restore all', script)
+        self.assertNotIn('run_stage "restore HR" scripts/hr-restore all', script)
 
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
         runner = SCRIPT.read_text(encoding="utf-8")

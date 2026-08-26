@@ -12,6 +12,7 @@ MIGRATION_MODULES = {
     "usl_product_restore",
     "usl_project_restore",
     "usl_tese_restore",
+    "usl_collaboration_restore",
 }
 PRODUCT_MODULES = {
     "rebuild_account_migration",
@@ -37,6 +38,7 @@ FORBIDDEN_MODELS = {
 }
 FORBIDDEN_MODEL_PREFIXES = (
     "usl.b2c.restore",
+    "usl.collaboration.restore",
     "usl.hr.restore",
     "usl.identity.restore",
     "usl.platform.billing.restore",

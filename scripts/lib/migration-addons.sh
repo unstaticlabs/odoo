@@ -5,5 +5,5 @@
 # must therefore be able to load every temporary module that may still be
 # installed in the target registry.  The delivered Odoo service never uses
 # this path.
-USL_MIGRATION_ADDONS_PATH="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons"
+USL_MIGRATION_ADDONS_PATH="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons"
 readonly USL_MIGRATION_ADDONS_PATH
