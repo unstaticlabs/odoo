@@ -8,10 +8,11 @@ Online to production. It complements, but does not replace, the executable
 must point to retained evidence; confidence or a successful older rehearsal is
 not evidence for the final frozen source.
 
-The release is **not ready to cut over yet**. The current baseline and the
-migration-performance work are not the final release until all remaining
-feature branches have been reviewed and merged into `19-usl`, followed by a
-fresh complete qualification.
+The release is **not ready to cut over yet**. The current baseline includes
+the validated upstream catch-up, B2C and monthly bank-statement ingestion, but
+it is not the final release until all remaining feature branches have been
+reviewed and merged into `19-usl` or explicitly rejected, followed by a fresh
+complete qualification.
 
 ### Current local rehearsal input
 
@@ -73,13 +74,15 @@ production candidate.
 The following work must remain independently reviewable. Merge only approved
 final state into `19-usl`; never qualify production from the feature worktree.
 
-| Workstream | Required release outcome | Status on 26 August 2026 |
+| Workstream | Required release outcome | Status on 27 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
+| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
+| Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
 
 For every merge:
@@ -106,14 +109,18 @@ partial `odoo_dev` installation is not final-target evidence.
   validation.
 - [ ] Merge Paperless 3.0 and Native Sign after independent review and
   validation.
+- [ ] Merge Collaboration History and Distribution Access Control after
+  independent review and validation.
 - [ ] Confirm no active release branch contains unmerged product or migration
   final state.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
   migration-boundary checks from clean `19-usl`.
 - [ ] Build the immutable GHCR `distribution` image, verify its revision/OCA
   labels and record the digest.
-- [ ] Install every delivered product module into a fresh empty database; run
-  update and repeated update without migration modules on the runtime path.
+- [x] Install every currently delivered product module into a fresh empty
+  database; run update and repeated update without migration modules on the
+  runtime path. This passed for the current fourteen-module baseline and must
+  be repeated after the remaining merges.
 - [x] Run a fresh full local reconstruction from the most recent available
   Online dump and filestore while Online is still active. The 26 August
   rehearsal passed; it must be repeated after the remaining merges and again
@@ -136,6 +143,15 @@ partial `odoo_dev` installation is not final-target evidence.
   isolated host/tenant. Prove external Pocket state is unchanged.
 - [ ] Resolve every data-loss-, accounting-, security-, privacy- and
   migration-critical discrepancy. No blanket waiver is permitted.
+
+The currently known strict-source blockers are not generic “migration debt.”
+They are the eight named scopes `ai_configuration`, `attachments`,
+`collaboration`, `knowledge`, `preferences`, `sales_marketing`, `signing` and
+`studio`, including 115 pending source attachment IDs. Collaboration and Sign
+have active implementation workstreams; the other scopes still need a
+source-backed product translation or an explicit, reviewed disposition. The
+physical opening-stock count is a separate operational prerequisite because
+the source contains no defensible historical quantity truth.
 
 ## Phase B — production inputs and owners
 

@@ -154,9 +154,10 @@ The Distribution intentionally does **not**:
 - permit probabilistic or autonomous accounting posting;
 - ship source-dump importers or migration diagnostics in the end-user product.
 
-Paperless 3.0 and Native Sign are named release workstreams in the roadmap but
-are not integrated into the current `19-usl` product baseline. Their feature
-branches or archives are not production authority.
+Paperless 3.0, Native Sign, Collaboration History and Distribution Access
+Control are named release workstreams in the roadmap but are not integrated
+into the current `19-usl` product baseline. Their feature branches or archives
+are not production authority.
 
 ## Inspecting the literal fork delta
 
