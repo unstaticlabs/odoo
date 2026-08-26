@@ -11,7 +11,7 @@
                             <p class="text-muted mb-0">Send documents for signature and follow what happens next.</p>
                         </div>
                         <button t-if="state.data.can_start" type="button" class="btn btn-primary" t-on-click="start">
-                            <i class="fa fa-plus me-2"/>Start
+                            <i class="fa fa-file-text-o me-2"/>Request signatures
                         </button>
                     </header>
                     <div t-if="state.loading" class="usl_sign_workspace_state" aria-busy="true">
@@ -25,7 +25,7 @@
                         <t t-foreach="sections" t-as="section" t-key="section[0]">
                             <t t-set="content" t-value="getSection(section[0])"/>
                             <section class="col-12 col-xl-6">
-                                <div class="card h-100 usl_sign_work_card">
+                                <div t-att-class="'card usl_sign_work_card' + (!content.items.length ? ' usl_sign_work_card--empty' : '')">
                                     <div class="card-header bg-transparent d-flex align-items-start justify-content-between gap-3">
                                         <div class="d-flex gap-3">
                                             <span class="usl_sign_section_icon"><i t-att-class="'fa ' + section[3]"/></span>
@@ -64,7 +64,7 @@
                                             </div>
                                             <div t-if="item.next_step" class="small mt-1 text-start"><strong>Next:</strong> <t t-out="item.next_step"/></div>
                                         </button>
-                                        <div t-if="!content.items.length" class="p-4 text-center text-muted small">
+                                        <div t-if="!content.items.length" class="px-3 py-2 text-muted small">
                                             Nothing needs attention here.
                                         </div>
                                     </div>

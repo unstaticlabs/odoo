@@ -77,20 +77,6 @@
         </field>
     </record>
 
-    <record id="sign_enrollment_my_list" model="ir.ui.view">
-        <field name="name">usl.sign.enrollment.list.my.identity</field>
-        <field name="model">usl.sign.enrollment</field>
-        <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" decoration-success="state == 'active'" decoration-danger="state == 'revoked'">
-                <field name="company_id" groups="base.group_multi_company"/>
-                <field name="state" string="Status"/>
-                <field name="pocket_display_name" string="Pocket ID account"/>
-                <field name="reviewer_id" string="Reviewed by"/>
-                <field name="reviewed_at" string="Reviewed on"/>
-            </list>
-        </field>
-    </record>
-
     <record id="sign_enrollment_my_form" model="ir.ui.view">
         <field name="name">usl.sign.enrollment.form.my.identity</field>
         <field name="model">usl.sign.enrollment</field>
@@ -105,8 +91,25 @@
                         <h1><field name="partner_id"/></h1>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
-                        Your setup invitation has not been completed. Ask the sender or identity reviewer for a new email if the link has expired.
+                        <strong>Your Pocket ID account is not connected yet.</strong> Open the personal setup link sent by an identity reviewer. The link connects your account; it does not sign a document.
                     </div>
+                    <section class="row g-3 my-3" aria-label="Strong signing setup" invisible="state not in ['pending_pocket', 'pending_review']">
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <p class="usl_sign_step_label">Step 1</p>
+                                <h2 class="h5">Connect Pocket ID</h2>
+                                <p class="mb-0" invisible="state != 'pending_pocket'">Use the personal link in your setup email. If it has expired or is missing, ask an identity reviewer to send a new one.</p>
+                                <p class="mb-0 text-success" invisible="state != 'pending_review'"><i class="fa fa-check me-1"/>Your Pocket ID account is connected.</p>
+                            </div></div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <p class="usl_sign_step_label">Step 2</p>
+                                <h2 class="h5">Organization review</h2>
+                                <p class="mb-0">An identity reviewer confirms that the connected account belongs to you. After approval, Strong personal requests can be sent to you.</p>
+                            </div></div>
+                        </div>
+                    </section>
                     <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
                         <strong>Your Pocket ID account is connected.</strong> Your organization must now review the identity link. You do not need to register another passkey.
                     </div>
@@ -116,7 +119,7 @@
                     <div class="alert alert-danger" role="status" invisible="state != 'revoked'">
                         This identity link can no longer authorize new strong signatures. Completed documents are unchanged.
                     </div>
-                    <group>
+                    <group invisible="state == 'pending_pocket'">
                         <group string="Connected Pocket ID account">
                             <field name="pocket_display_name" invisible="not pocket_subject"/>
                             <field name="pocket_email" invisible="not pocket_subject"/>
@@ -145,6 +148,7 @@
                 <field name="partner_id" string="Person"/><field name="pocket_display_name" string="Pocket ID name"/><field name="company_id"/>
                 <filter name="needs_connection" string="Waiting for Pocket ID" domain="[('state', '=', 'pending_pocket')]"/>
                 <filter name="needs_review" string="Needs review" domain="[('state', '=', 'pending_review')]"/>
+                <filter name="needs_attention" string="Needs attention" domain="[('state', 'in', ['pending_pocket', 'pending_review'])]"/>
                 <filter name="active" string="Ready" domain="[('state', '=', 'active')]"/>
                 <filter name="revoked" string="Revoked" domain="[('state', '=', 'revoked')]"/>
                 <group><filter name="group_state" string="Stage" context="{'group_by': 'state'}"/><filter name="group_basis" string="Relationship" context="{'group_by': 'relationship_basis'}"/></group>
@@ -192,6 +196,7 @@
         <field name="res_model">usl.sign.enrollment</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="sign_enrollment_search"/>
+        <field name="context">{'search_default_needs_attention': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No signer identities to review</p>
             <p>Create one for an employee, contractor, or recurring partner your organization already knows. Pocket ID manages the account security; your organization reviews the identity link.</p>

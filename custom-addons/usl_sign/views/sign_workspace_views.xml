@@ -13,10 +13,11 @@
                     <field name="company_id" invisible="1"/>
                     <div class="oe_title">
                         <h2>Request signatures</h2>
-                        <p class="text-muted">Choose the document and the people who need to sign it.</p>
+                        <p class="text-muted">Choose a document and its signers. You will place fields and check every detail before anything is sent.</p>
                     </div>
                     <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1" class="mb-3"/>
                     <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
+                        <p class="usl_sign_step_label">Step 1</p>
                         <h3>Document</h3>
                         <p class="text-muted">Upload the PDF you want people to sign.</p>
                         <div class="usl_sign_start_input">
@@ -25,8 +26,9 @@
                         </div>
                     </section>
                     <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
-                        <h3>People</h3>
-                        <p class="text-muted">Add everyone who must sign. You will place each person’s fields next.</p>
+                        <p class="usl_sign_step_label">Step 2</p>
+                        <h3>Signers</h3>
+                        <p class="text-muted">Add everyone who must sign. You will assign and place each person’s fields next.</p>
                         <div class="usl_sign_start_input">
                             <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label fw-semibold d-block mb-1"/>
                             <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
@@ -35,6 +37,7 @@
                         </div>
                     </section>
                     <section class="usl_sign_start_section" invisible="signature_source != 'template'">
+                        <p class="usl_sign_step_label">Step 1</p>
                         <h3>Template</h3>
                         <p class="text-muted">Choose a ready template. You will assign each signing role next.</p>
                         <div class="usl_sign_start_input">
@@ -42,7 +45,7 @@
                         </div>
                     </section>
                     <details class="usl_sign_start_more">
-                        <summary>More options</summary>
+                        <summary>Request name, message and linked record</summary>
                         <group class="mt-2">
                             <field name="name" string="Request name" placeholder="Defaults to the PDF or template name"/>
                             <field name="message" string="Message to signers" placeholder="Optional note shown with the invitation"/>
@@ -59,7 +62,7 @@
         </field>
     </record>
     <record id="sign_start_action" model="ir.actions.act_window">
-        <field name="name">Start</field>
+        <field name="name">Request signatures</field>
         <field name="res_model">usl.sign.start</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
