@@ -17,7 +17,8 @@ authorizations or execute destructive technical maintenance.
 
 Roles do not replace company access. Odoo's allowed-company list and active
 company context remain authoritative for every role. Roger is reconciled to all
-approved product companies; Prosper remains restricted to Unstatic Labs.
+approved product companies; Prosper is explicitly assigned both Unstatic Labs
+and USL MEDIA.
 
 Application groups remain composable for Agents. For example, an Agent may
 receive Accounting User and Project Manager and can then create, update, post,

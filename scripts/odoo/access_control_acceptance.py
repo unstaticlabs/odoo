@@ -29,7 +29,7 @@ expected = {
     },
     "prosper": {
         "role": "usl_access_control.group_accounting_reviewer",
-        "companies": {"Unstatic Labs"},
+        "companies": {"Unstatic Labs", "USL MEDIA"},
         "pocketid": True,
         "irreversible": False,
     },

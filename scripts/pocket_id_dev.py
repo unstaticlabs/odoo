@@ -641,7 +641,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "login": "prosper",
             "name": "Prosper",
             "profile": "accountant_reviewer",
-            "companies": ["Unstatic Labs"],
+            "companies": ["Unstatic Labs", "USL MEDIA"],
             "subject": values["POCKET_ID_PROSPER_ID"],
             "create_if_missing": bool(prosper_odoo_email),
         },

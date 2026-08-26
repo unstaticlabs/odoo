@@ -24,7 +24,7 @@ new record. Immutable Pocket ID subjects remain attached to the same users.
 | `admin` | sealed local `break_glass` / Full Product Administrator | all approved companies |
 | `valentin` | Full Product Administrator | all approved companies |
 | `roger@unstaticlabs.com` | Technical Administrator | all approved companies |
-| `prosper` | Accounting Reviewer | Unstatic Labs only |
+| `prosper` | Accounting Reviewer | Unstatic Labs and USL MEDIA |
 
 The historical `roger@xaic.cat` record remains inactive/historical and is not
 reused as the active Roger identity. It is marked optional: migrated databases
@@ -62,9 +62,9 @@ temporary native manager group. Escalate the individual protected action to
 Valentin or the sealed administrator instead.
 
 Prosper may create or adjust annual-review accounting records, post, reset and
-reconcile in unlocked periods. A lock change or permanent deletion must be
-performed by an authorized human after separate review. Do not widen Prosper's
-company list merely to make a cross-company report convenient.
+reconcile in unlocked periods for both Unstatic Labs and USL MEDIA. A lock
+change or permanent deletion must be performed by an authorized human after
+separate review. Any further company grant still requires explicit approval.
 
 ## Audit review
 

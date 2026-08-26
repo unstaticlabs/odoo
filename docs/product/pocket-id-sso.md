@@ -116,7 +116,7 @@ Odoo's native group graph.
 | --- | --- | --- | --- |
 | `administrator` | Settings, Accounting, HR, Expenses and Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
 | `collaborator` | Internal user and Project user | Explicit list | Randomized and denied while SSO-managed |
-| `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit list, normally Unstatic Labs only | Randomized and denied while SSO-managed |
+| `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit approved company list | Randomized and denied while SSO-managed |
 | `break_glass` | Settings administrator only | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
 | `portal` | Portal only | Explicit list | Pocket ID identity link or approved one-time verified-email link |
 | `historical` | Existing groups retained for attribution | Existing scope retained | User archived; identity disabled |
