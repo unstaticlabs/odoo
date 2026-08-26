@@ -12,6 +12,16 @@ native or rebuilt records and 554 technical, deleted-record or otherwise
 unsupported messages in structured HTML/JSON archives. A changed count or
 unknown model blocks the run.
 
+The 554 archived messages are 350 generated notifications and 204 tracking
+events, all using the internal Note subtype. They contain no email, comment,
+reply, subject, recipient, attachment, reaction or parent relationship. Their
+291 archived threads comprise 371 server-action events, 94 scheduled-action
+events, 60 orphaned partner/Peppol notifications, seven automation events, six
+bank-link events, six depreciation-rule events, three IAP-account events, four
+CRM team/member events, two deleted-product creation notices and one Quality
+team creation notice. This is configuration audit history, not customer or
+operational narrative, so it intentionally remains private.
+
 Run the stage only inside canonical reconstruction:
 
 ```bash
@@ -37,3 +47,13 @@ rendered as a dated internal note on its canonical signed-evidence document.
 Finalization uninstalls the temporary module and drops its binding and run
 tables. Source IDs and restoration metadata remain only in mode-`0600`,
 checksum-sealed private artifacts; native business chatter remains in Odoo.
+
+The Collaboration stage completes all 64 attachment relationships assigned to
+its scope. The source-wide attachment gate nevertheless remains blocked on ten
+separate payloads: nine standard spreadsheet-dashboard definitions and one
+private strategy PDF used as an AI-agent source. The dashboard definitions are
+not personal preferences or historical figures. Three have installed native
+target counterparts and are recomputed; six require unsupported Enterprise
+dashboard modules and remain private evidence. The PDF is genuine business
+content and must become a restricted `usl.document`; its AI indexing and agent
+configuration must not be copied.

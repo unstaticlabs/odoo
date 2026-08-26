@@ -155,8 +155,14 @@ images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
 unassigned enterprise evidence file through the supported Paperless API, with
 byte-for-byte read-back and preview checks. Signing evidence, Knowledge
-references and chatter relationships are completed by the Documents and final
-Collaboration stages. Preference and AI actions remain separately governed.
+articles and chatter relationships are completed by the Documents and final
+Collaboration stages. Ten attachment payloads remain separately governed: nine
+module-owned spreadsheet-dashboard definitions and one private strategy PDF
+used as an AI-agent source. Three dashboard definitions are recomputed from
+installed target modules; six depend on unsupported Enterprise dashboard
+modules and remain private evidence. The PDF remains blocked until it is
+materialized as a restricted `usl.document`; source AI indexing, embeddings and
+agent configuration are not migration targets.
 
 ## Deterministic reconstruction
 
@@ -216,23 +222,29 @@ verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
 Accounting, global identity, Product Master, Inventory/Manufacturing
-configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
-Paperless Documents archive have implemented translation stages. The current
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing,
+Collaboration, Knowledge content, signed evidence and the Paperless Documents
+archive have implemented translation or archive stages. The current
 Distribution-scope gate passes. The strict production gate remains
-blocked—correctly—on collaboration history, remaining attachment actions,
-Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-and source AI configuration. These are explicit gaps, not silently copied or
-represented as full parity. The separate physical opening-stock evidence item
-also remains blocking for B2C operational release even though it is not a fact
-contained in the source database.
+blocked—correctly—on the ten remaining attachment actions, global user
+preferences, sales/marketing configuration, Studio data and source AI
+configuration. These are explicit gaps, not silently copied or represented as
+full parity. The separate physical opening-stock evidence item also remains
+blocking for B2C operational release even though it is not a fact contained in
+the source database.
 
-The strict 26 August rehearsal reports eight incomplete scopes:
-`ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
-`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
-pending source attachment IDs, represented by 1 AI-configuration action, 64
-collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
-actions. Action totals can overlap when one attachment has more than one
-relationship; the 115 source IDs are the file-level count.
+The strict 26 August baseline now has five incomplete scopes:
+`ai_configuration`, `attachments`, `preferences`, `sales_marketing`, and
+`studio`. The attachment ledger reports ten pending source attachment IDs: nine
+standard Odoo spreadsheet-dashboard payloads and one 19-page private business
+strategy PDF indexed by the standard Odoo Agent. The dashboards are module
+configuration rather than historical business data or personal preferences.
+Invoicing, Expenses and Warehouse Metrics already have native target
+replacements and must be recomputed; Accounting, Benchmark, Operation Analysis,
+Warehouse Daily Operations, Purchase & Vendor Analysis and Manufacturing rely
+on unsupported Enterprise dashboard modules and remain private evidence. The
+strategy PDF must be retained byte-for-byte as a restricted `usl.document`
+without copying its obsolete AI index.
 
 ### B2C commerce stage
 

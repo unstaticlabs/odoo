@@ -34,7 +34,7 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, signing evidence, Knowledge references, collaboration files, and unassigned enterprise evidence are restored, while preference and AI actions remain gated"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, signing evidence, Knowledge references, collaboration files, and unassigned enterprise evidence are restored; ten payloads remain gated: nine standard dashboard definitions and one private strategy PDF used as an AI-agent source"
     },
     "documents": {
       "status": "implemented",
@@ -42,14 +42,14 @@
       "evidence": "the dump-bound Paperless 3.0.5/API v10 stage restores every classified Documents identity and unassigned evidence file into checksum-stable archive roots, verifies originals, previews, metadata, links and object permissions, and produces identical evidence on replay"
     },
     "knowledge": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "no Community target and no approved lossless translation are implemented"
+      "status": "implemented",
+      "disposition": "archive",
+      "evidence": "the Documents and Collaboration stages create one deterministic restricted usl.document archive per source article, preserve the article body and chatter, and seal the source-to-document mapping without installing Knowledge functionality"
     },
     "signing": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "archive",
-      "evidence": "signed originals and audit evidence are not yet reconstructed"
+      "evidence": "the Documents and Collaboration stages reuse the 16 canonical signed-evidence roots, verify original and completion-certificate bytes, and preserve Sign request chatter without installing Sign functionality"
     },
     "hr": {
       "status": "implemented",
@@ -74,7 +74,7 @@
     "preferences": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "user filters, exports, dashboards and favorites are not globally reconstructed"
+      "evidence": "user filters, exports and favorites are not globally reconstructed; nine pending attachment payloads are standard module-owned dashboards rather than personal preferences, with three recomputable target counterparts and six unsupported Enterprise definitions retained as private evidence"
     },
     "product_master": {
       "status": "implemented",
@@ -94,7 +94,7 @@
     "ai_configuration": {
       "status": "incomplete",
       "disposition": "translate_or_archive",
-      "evidence": "source AI agents, prompts, topics and automation need an explicit Community treatment"
+      "evidence": "source AI agents, prompts, topics, embeddings and automation need an explicit Community treatment; one private 19-page strategy PDF indexed by the standard Odoo Agent still requires byte-for-byte materialization as a restricted usl.document"
     },
     "credential_state": {
       "status": "implemented",
