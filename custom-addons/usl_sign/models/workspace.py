@@ -55,8 +55,64 @@ class SignWorkspace(models.AbstractModel):
             else False,
             "trust": request.requested_trust_short,
             "archive": request.archive_status,
+            "signers": self._signer_chips(request),
             "action": {"type": "open", "model": request._name, "id": request.id},
         }
+
+    @api.model
+    def _signer_chips(self, request, signer=None):
+        """Return a small, ACL-safe progress summary for dashboard cards."""
+        if signer:
+            signers = signer
+        elif request.managed_by_current_user:
+            signers = request.sudo().signer_ids.sorted(
+                lambda row: (row.sequence, row.id),
+            )
+        else:
+            signers = request.sudo().signer_ids.filtered(
+                lambda row: row.partner_id == self.env.user.partner_id,
+            )
+        presentations = {
+            "signed": (_("Signed"), "signed", "fa-check"),
+            "declined": (_("Declined"), "attention", "fa-times"),
+            "expired": (_("Expired"), "muted", "fa-clock-o"),
+            "cancelled": (_("Cancelled"), "muted", "fa-ban"),
+            "authorized": (_("Confirmed"), "ready", "fa-check"),
+            "viewed": (_("Reviewing"), "ready", "fa-eye"),
+            "notified": (_("Invited"), "ready", "fa-envelope"),
+        }
+        chips = []
+        for row in signers:
+            label, tone, icon = presentations.get(
+                row.state,
+                (
+                    (
+                        _("Identity setup")
+                        if request.state == "waiting_enrollment"
+                        else _("Waiting")
+                    ),
+                    (
+                        "attention"
+                        if request.state == "waiting_enrollment"
+                        else "waiting"
+                    ),
+                    (
+                        "fa-id-card"
+                        if request.state == "waiting_enrollment"
+                        else "fa-clock-o"
+                    ),
+                ),
+            )
+            chips.append(
+                {
+                    "id": row.id,
+                    "name": row.partner_id.display_name,
+                    "label": label,
+                    "tone": tone,
+                    "icon": icon,
+                },
+            )
+        return chips
 
     @api.model
     def _completed_item(self, request):
@@ -110,6 +166,7 @@ class SignWorkspace(models.AbstractModel):
                 if signer.request_id.expires_at
                 else False,
                 "trust": signer.request_id.requested_trust_short,
+                "signers": self._signer_chips(signer.request_id, signer=signer),
                 "action": {
                     "type": "call",
                     "model": signer._name,

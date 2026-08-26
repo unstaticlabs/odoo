@@ -302,19 +302,28 @@ class SignEnrollment(models.Model):
         self.ensure_one()
         link = self._create_invitation_link()
         return {
-            "type": "ir.actions.act_window",
-            "name": _("Copy setup link"),
-            "res_model": "usl.sign.enrollment.invitation",
-            "views": [
-                (
-                    self.env.ref("usl_sign.sign_enrollment_invitation_form").id,
-                    "form",
-                ),
-            ],
-            "target": "new",
-            "context": {
-                "default_enrollment_id": self.id,
-                "default_invitation_url": link,
+            "type": "ir.actions.client",
+            "tag": "usl_sign.copy_setup_link",
+            "params": {
+                "url": link,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Copy setup link"),
+                    "res_model": "usl.sign.enrollment.invitation",
+                    "views": [
+                        (
+                            self.env.ref(
+                                "usl_sign.sign_enrollment_invitation_form",
+                            ).id,
+                            "form",
+                        ),
+                    ],
+                    "target": "new",
+                    "context": {
+                        "default_enrollment_id": self.id,
+                        "default_invitation_url": link,
+                    },
+                },
             },
         }
 

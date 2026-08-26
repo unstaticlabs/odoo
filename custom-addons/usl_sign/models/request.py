@@ -338,6 +338,7 @@ class SignRequest(models.Model):
             lambda sign_request: sign_request.state not in TERMINAL_REQUEST_STATES,
         )
         sign_request = active[:1] or requests[:1]
+
         def content_url(field_name, filename):
             if not filename:
                 return False
@@ -3126,6 +3127,35 @@ class SignRequestSigner(models.Model):
             "res_id": self.request_id.id,
             "views": [
                 (self.env.ref("usl_sign.sign_request_signer_result_form").id, "form"),
+            ],
+            "target": "current",
+        }
+
+    def action_open_my_signature(self):
+        """Open the useful destination directly from a My Signatures row."""
+        self.ensure_one()
+        if self.partner_id != self.env.user.partner_id:
+            msg = _("Only the assigned signer can open this signing journey.")
+            raise AccessError(msg)
+        if self.state == "signed" or self.request_id.state in {
+            "completed",
+            "evidence_incomplete",
+            "validation_failed",
+        }:
+            return self.action_open_request()
+        if self.can_open_signing_identity:
+            return self.action_open_signing_identity()
+        if self.can_open_external_signing:
+            return self.action_open_external_signing()
+        if self.is_allow_signature:
+            return self.sign()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.request_id.name,
+            "res_model": self._name,
+            "res_id": self.id,
+            "views": [
+                (self.env.ref("usl_sign.my_signature_form_usl").id, "form"),
             ],
             "target": "current",
         }

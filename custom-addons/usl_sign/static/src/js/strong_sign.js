@@ -324,7 +324,9 @@
                         ? "Your reviewed identity is active."
                         : `${container.dataset.companyName} will review the account link. You do not need to keep this page open.`,
                 });
-                setButtonBusy(button, true, ready ? "Identity ready" : "Setup complete");
+                setButtonBusy(button, false, ready ? "Identity ready" : "Setup complete");
+                button.hidden = true;
+                container.querySelector(".usl-sign-action-note")?.setAttribute("hidden", "");
             } catch (error) {
                 if (!callbackFailed) {
                     popup?.close();

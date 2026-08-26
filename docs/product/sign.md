@@ -53,7 +53,8 @@ The stable navigation is deliberately small:
 - **Request Signature → Completed** contains only independently validated,
   fully evidenced and durably archived results;
 - **My Signatures** combines documents awaiting the current user with their
-  earlier signed, completed or closed history and native search filters;
+  earlier signed, completed or closed history and native search filters. A
+  completed row opens the signed record and its proof directly;
 - **Configuration** contains identity reviews, trust rules, signer roles,
   provider references, signing readiness, daily timestamp proofs and settings,
   each restricted to the relevant role.
@@ -88,6 +89,12 @@ requirements. The recommendation, business reason and consequence are visible
 before sending. Requested and achieved trust are separate fields. An
 authorized override needs a reason, is recorded in the event chain and never
 silently downgrades the request.
+
+Each signing-method choice presents a concise requirements, ceremony and proof
+summary. Strong requests identify every signer whose personal identity is not
+ready before the request is sent. If an identity later becomes unavailable,
+the public journey stops before any signing action and explains the setup and
+review steps.
 
 ## Lifecycle and completion gate
 
