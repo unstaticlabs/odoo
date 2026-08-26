@@ -61,7 +61,7 @@ class UslDocument(models.Model):
 
     name = fields.Char(required=True, readonly=True, tracking=True)
     all_text = fields.Char(
-        string="Search everywhere — words + meaning",
+        string="Search everywhere",
         compute="_compute_search_helpers",
         search="_search_all_text",
         help=(
@@ -70,7 +70,7 @@ class UslDocument(models.Model):
         ),
     )
     semantic_text = fields.Char(
-        string="Semantic search — meaning only",
+        string="Meaning (Semantic)",
         compute="_compute_search_helpers",
         search="_search_semantic_text",
         help="Search by meaning with the local BGE-M3 semantic index.",

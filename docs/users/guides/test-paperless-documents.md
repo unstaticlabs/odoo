@@ -47,7 +47,7 @@ or a bare `docker compose --profile paperless up` during the tour.
 First exercise progressive exact-first search:
 
 1. In Documents, type `INV-QA-2026-0042`.
-2. Choose **Search everywhere — words + meaning**. The exact Alpine invoice
+2. Choose **Search everywhere**. The exact Alpine invoice
    must appear first, normally in under one second on the local stack.
 3. While the local BGE-M3 index adds meaning-based matches, an **Exact matches
    are ready** banner is visible. The exact invoice must remain first after the
@@ -56,7 +56,7 @@ First exercise progressive exact-first search:
 Then exercise meaning-only search:
 
 1. Remove the first facet and type `heliotrope cobalt compliance evidence`.
-2. Choose **Semantic search — meaning only**.
+2. Choose **Meaning (Semantic)**.
 3. Confirm **Alpine Office Supplies — Invoice SI-2026-0715** is returned, then
    open it and confirm the preview contains the OCR-only sentence.
 
@@ -77,7 +77,7 @@ Open the search dropdown. It must be Odoo's normal three-column menu:
 There is no separate **More filters** form.
 
 The initial suggestions deliberately expose exactly two meaning-based choices:
-**Search everywhere — words + meaning** and **Semantic search — meaning only**.
+**Search everywhere** and **Meaning (Semantic)**.
 Title, Document content, Tags, Correspondent, Type, Company, and Date remain
 lexical. Use **Filters > Add Custom Filter** for archive identity, source,
 privacy, review state, availability, mapped Contact, employee, or a Paperless

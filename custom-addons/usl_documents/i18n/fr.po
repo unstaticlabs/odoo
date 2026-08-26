@@ -4175,8 +4175,8 @@ msgstr "Recherchez par mots ou par sens, ou ajoutez un filtre de société, de d
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__all_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
-msgid "Search everywhere — words + meaning"
-msgstr "Rechercher partout — mots + sens"
+msgid "Search everywhere"
+msgstr "Rechercher partout"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -4187,8 +4187,8 @@ msgstr "La recherche sémantique affine encore ces résultats."
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__semantic_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
-msgid "Semantic search — meaning only"
-msgstr "Recherche sémantique — sens uniquement"
+msgid "Meaning (Semantic)"
+msgstr "Sens (sémantique)"
 
 #. module: usl_documents
 #. odoo-javascript

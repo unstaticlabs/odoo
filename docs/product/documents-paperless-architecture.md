@@ -157,8 +157,8 @@ lexical network call made by the refinement pass. The client also keeps the
 already-loaded workspace catalogs and asks the server to omit their invariant
 payload during later keystroke searches.
 
-**Search everywhere — words + meaning** is the progressive hybrid path.
-**Semantic search — meaning only** is an explicit vector-only path. Exact-only
+**Search everywhere** is the progressive hybrid path. **Meaning (Semantic)**
+is an explicit vector-only path. Exact-only
 and meaning-only modes remain bounded advanced options. If the index or Ollama
 is unavailable, hybrid search keeps the already-visible lexical result plus one
 structured warning; a meaning-only request fails honestly. Search never invokes

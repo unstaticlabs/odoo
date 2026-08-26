@@ -957,11 +957,10 @@ and this rehearsal are intentionally ARM64. The sealed deterministic
 ### 2026-08-26 scoped lexical and progressive search qualification
 
 Documents search now presents exactly two meaning-based paths. **Search
-everywhere — words + meaning** returns the exact lexical result set first and
-then appends new BGE-M3 matches without changing the lexical order. **Semantic
-search — meaning only** goes directly to the local BGE-M3 index. The French
-labels explicitly say `Rechercher partout — mots + sens` and `Recherche
-sémantique — sens uniquement`. Specific title, OCR/archive, tag,
+everywhere** returns the exact lexical result set first and
+then appends new BGE-M3 matches without changing the lexical order. **Meaning
+(Semantic)** goes directly to the local BGE-M3 index. The French labels are
+`Rechercher partout` and `Sens (sémantique)`. Specific title, OCR/archive, tag,
 correspondent, document-type and custom-field suggestions remain lexical; no
 Gemini or other generative model participates in search.
 

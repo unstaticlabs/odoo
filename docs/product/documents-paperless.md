@@ -52,8 +52,8 @@ The detailed integration contract is in
 
 The workspace uses Odoo's native search model and SearchBar rather than a
 Documents-only filter form. Its first two suggestions state their behavior:
-**Search everywhere — words + meaning** is progressive hybrid search, while
-**Semantic search — meaning only** goes directly to the local BGE-M3 vector
+**Search everywhere** is progressive hybrid search, while **Meaning
+(Semantic)** goes directly to the local BGE-M3 vector
 index. The hybrid path sends one authorization-scoped POST to Paperless's
 native Tantivy index across OCR, title, correspondent, type, tags, and all
 accessible custom fields together, adds authorized Odoo link labels, and shows

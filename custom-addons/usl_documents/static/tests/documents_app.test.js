@@ -95,12 +95,12 @@ const searchViewArch = `
 const searchViewFields = {
     all_text: {
         name: "all_text",
-        string: "Search everywhere — words + meaning",
+        string: "Search everywhere",
         type: "char",
     },
     semantic_text: {
         name: "semantic_text",
-        string: "Semantic search — meaning only",
+        string: "Meaning (Semantic)",
         type: "char",
     },
     name: { name: "name", string: "Title", type: "char" },
@@ -944,10 +944,10 @@ test("native search defaults to broad archive search and keeps specialist fields
 
     await contains(".o_searchview_input").fill("heliotrope");
     expect(".o_searchview_autocomplete").toHaveText(
-        /Search everywhere — words \+ meaning/
+        /Search everywhere/
     );
     expect(".o_searchview_autocomplete").toHaveText(
-        /Semantic search — meaning only/
+        /Meaning \(Semantic\)/
     );
     expect(".o_searchview_autocomplete").toHaveText(/Document content/);
     expect(".o_searchview_autocomplete").not.toHaveText(/Additional details/);
