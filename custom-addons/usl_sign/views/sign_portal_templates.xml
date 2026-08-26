@@ -239,6 +239,39 @@
         </html>
     </template>
 
+    <template id="strong_identity_required_page" name="Strong signing identity required">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex,nofollow"/>
+                <title>Set up your signing identity · <t t-out="signer.request_id.company_id.name"/></title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body class="usl-sign-secure-body">
+                <main class="usl-sign-shell usl-sign-shell--compact">
+                    <t t-set="company" t-value="signer.request_id.company_id"/>
+                    <t t-call="usl_sign.secure_company_brand"/>
+                    <section class="usl-sign-public-card__body">
+                        <span class="usl-sign-result-icon usl-sign-result-icon--warning" aria-hidden="true"><i class="fa fa-user-circle"/></span>
+                        <p class="usl-sign-eyebrow">Strong personal signature</p>
+                        <h1>Set up your signing identity first</h1>
+                        <p class="usl-sign-lead">This document needs a reviewed signing identity. Nothing has been signed yet.</p>
+                        <ol class="usl-sign-steps usl-sign-steps--enrollment" aria-label="Identity setup steps">
+                            <li class="is-current"><span>1</span>Ask <t t-out="company.name"/> for your personal setup link</li>
+                            <li><span>2</span>Connect your Pocket ID account</li>
+                            <li><span>3</span>Wait for the identity review, then reopen the signing invitation</li>
+                        </ol>
+                        <div class="usl-sign-inline-status usl-sign-inline-status--warning mt-4" role="status">
+                            <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-info-circle"/></span>
+                            <span><strong>Contact the sender or an identity reviewer</strong><small>They can send the setup link and tell you when the review is complete.</small></span>
+                        </div>
+                    </section>
+                </main>
+            </body>
+        </html>
+    </template>
+
     <template id="strong_enrollment_page" name="Strong signer enrolment">
         <html lang="en">
             <head>

@@ -1,4 +1,4 @@
-from odoo import _, Command, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -202,9 +202,11 @@ class SignTemplateGenerate(models.TransientModel):
             )
             if missing:
                 return (
-                    "Identity setup is still needed for: "
+                    "Strong signing is not ready for: "
                     + ", ".join(missing.mapped("name"))
-                    + "."
+                    + ". An Identity Reviewer must send each person a setup link. "
+                    "They connect Pocket ID, the reviewer approves the identity, "
+                    "and only then can they sign."
                 )
             return "Ready. Every signer has an approved signing identity."
         if self.requested_trust == "qualified_external":
@@ -413,7 +415,9 @@ class SignRequestMethod(models.TransientModel):
                     )
                 elif missing:
                     wizard.selected_method_readiness = _(
-                        "Identity setup is still required for %(names)s.",
+                        "Not ready for %(names)s. An Identity Reviewer must send a "
+                        "personal setup link; each signer connects Pocket ID and is "
+                        "approved before signing.",
                         names=", ".join(missing.mapped("display_name")),
                     )
                 else:
