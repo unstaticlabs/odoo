@@ -10,6 +10,7 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Backup and recovery runbook](backup-and-recovery-runbook.md)
 - [Run imported accounting data in development](run-imported-accounting-dev.md)
 - [Accounting development workflow](accounting-development-workflow.md)
+- [Shine scheduled bank-export runbook](shine-bank-export-runbook.md)
 - [Source-truth migration](source-truth-migration.md)
 - [Identity restoration](identity-restoration.md)
 - [Product master restoration](product-master-restoration.md)

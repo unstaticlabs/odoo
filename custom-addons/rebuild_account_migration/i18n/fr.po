@@ -12914,3 +12914,63 @@ msgstr "Partager entre sociétés de même devise"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_currency_rate_update_wizard__shared_company_ids
 msgid "Companies kept in sync"
 msgstr "Sociétés synchronisées"
+
+#. module: rebuild_account_migration
+msgid "Monthly bank statement"
+msgstr "Relevé bancaire mensuel"
+
+#. module: rebuild_account_migration
+msgid "Open monthly statement"
+msgstr "Ouvrir le relevé mensuel"
+
+#. module: rebuild_account_migration
+msgid "Monthly bank statement evidence"
+msgstr "Justificatif du relevé bancaire mensuel"
+
+#. module: rebuild_account_migration
+msgid "Checks scheduled bank exports, statement evidence, balance agreement and certified continuity."
+msgstr "Contrôle les exports bancaires planifiés, le justificatif du relevé, la concordance des soldes et la continuité certifiée."
+
+#. module: rebuild_account_migration
+msgid "An incomplete checkpoint weakens confidence that every bank movement for the month is present."
+msgstr "Un contrôle incomplet réduit la certitude que tous les mouvements bancaires du mois sont présents."
+
+#. module: rebuild_account_migration
+msgid "Receive the %(period)s bank export"
+msgstr "Recevoir l’export bancaire de %(period)s"
+
+#. module: rebuild_account_migration
+msgid "The scheduled bank export has not been received by its expected delivery date."
+msgstr "L’export bancaire planifié n’a pas été reçu à la date prévue."
+
+#. module: rebuild_account_migration
+msgid "Confirm the scheduled recipient in Shine and the Odoo bank-export address, then recover the export if needed."
+msgstr "Vérifiez le destinataire planifié dans Shine et l’adresse d’export bancaire Odoo, puis récupérez l’export si nécessaire."
+
+#. module: rebuild_account_migration
+msgid "Expected on %(date)s."
+msgstr "Attendu le %(date)s."
+
+#. module: rebuild_account_migration
+msgid "Review the %(period)s bank statement"
+msgstr "Vérifier le relevé bancaire de %(period)s"
+
+#. module: rebuild_account_migration
+msgid "Open the monthly bank statement, resolve the displayed discrepancy or source exception, then certify it."
+msgstr "Ouvrez le relevé bancaire mensuel, résolvez l’écart ou l’exception source affichée, puis certifiez-le."
+
+#. module: rebuild_account_migration
+msgid "%(count)s open source exception(s); balance difference %(difference).2f."
+msgstr "%(count)s exception(s) source ouverte(s) ; écart de solde de %(difference).2f."
+
+#. module: rebuild_account_migration
+msgid "A received export needs accounting review."
+msgstr "Un export reçu nécessite une vérification comptable."
+
+#. module: rebuild_account_migration
+msgid "The bank statement is the monthly evidence that Odoo contains the complete bank movement population."
+msgstr "Le relevé bancaire atteste chaque mois qu’Odoo contient tous les mouvements bancaires."
+
+#. module: rebuild_account_migration
+msgid "This is a bank-completeness checkpoint; it does not imply that every movement is matched to an invoice or payment."
+msgstr "Il s’agit d’un contrôle d’exhaustivité bancaire ; il ne signifie pas que chaque mouvement est rapproché d’une facture ou d’un paiement."

@@ -101,8 +101,32 @@ Representative preview, checksum, permissions, and orphan checks returned
 `integrity_ok=True`, with tombstones reported separately rather than as missing
 evidence.
 
-The optional `usl_documents_accounting` bridge extends the generic relationship
-contract to installed tax declaration and accounting closing-period models. It
-uses the same single contextual smart button: **Upload** when empty and
-**N Documents** when evidence exists. It does not alter posting,
-reconciliation, tax computation, or report semantics.
+The `usl_documents_accounting` bridge extends the generic relationship contract
+to installed tax declaration, accounting closing-period and managed
+bank-statement models. For a managed bank checkpoint, Paperless is the durable
+document source of truth: an accepted bank PDF is queued asynchronously, and a
+later accepted PDF becomes a version of the same archive root while the exact
+Odoo mail attachment remains as provenance and recovery material.
+
+Bank-statement certification requires the accepted PDF to be available in
+Paperless, classified as accounting evidence for the same company, linked to
+the native statement, reviewed in Documents and pinned to a Paperless version
+whose SHA-256 equals the retained PDF. The certification snapshot stores the
+Odoo source checksum plus the Paperless root and version identities. The
+accounting-evidence retention hold is applied before the archive becomes
+certifiable. The bridge also applies the Paperless metadata backing the
+Documents **Banking** workspace; it resolves that stable configuration rather
+than hard-coding an environment-specific Paperless tag ID. An archive or
+permission outage is
+visible and blocks new certification; if an already-certified supporting
+original later becomes unavailable, the checkpoint retains its certification
+history but moves to **Needs attention** until the archive is restored.
+
+Native Accountants and Accounting Managers receive the scoped Documents
+accounting-evidence reader capability through this bridge. It grants read-only
+access only to reviewed accounting evidence for their selected companies;
+ordinary internal users receive no new document access.
+
+The bridge otherwise uses the same contextual Documents entry point and does
+not alter posting, reconciliation, tax computation, report semantics or
+accounting lock dates.

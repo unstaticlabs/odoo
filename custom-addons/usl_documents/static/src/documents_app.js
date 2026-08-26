@@ -62,6 +62,7 @@ for (const key of [
     "uslDocumentId",
     "uslVersionId",
     "uslDocumentsRecordContext",
+    "uslDocumentsRecordBoundary",
     "uslDocumentsReturnRecord",
 ]) {
     router.hideKeyFromUrl(key);
@@ -561,9 +562,16 @@ export class DocumentsWorkspaceView extends Component {
             this.searchModel.applySearch(restored.nativeSearch);
         }
         this.initialDocumentId =
-            urlState.documentId || Number(restored.selectedDocumentId) || null;
+            Number(params.initial_document_id) ||
+            urlState.documentId ||
+            Number(restored.selectedDocumentId) ||
+            null;
         this.initialVersionId =
-            urlState.versionId || this.stringValue(restored.selectedVersionId) || null;
+            this.stringValue(params.initial_version_id) ||
+            urlState.versionId ||
+            this.stringValue(restored.selectedVersionId) ||
+            null;
+        this.hasRecordHistoryBoundary = false;
         this.hasLocalListHistory = false;
         this.closingDetail = false;
         this.recordContextKey = this.recordContext
@@ -1333,8 +1341,22 @@ export class DocumentsWorkspaceView extends Component {
                     ? `${url.href}${url.search ? "&" : "?"}${nativeSearch}`
                     : url.href
             );
+            const routeFromUrl = router.urlToState(navigationUrl);
+            const hostRoute =
+                browser.history.state?.nextState || router.current || {};
+            const isRecordBoundary = Boolean(
+                this.hasRecordHistoryBoundary &&
+                    mode === "replace" &&
+                    !this.hasLocalListHistory
+            );
             const nextState = {
-                ...router.urlToState(navigationUrl),
+                ...hostRoute,
+                ...routeFromUrl,
+                // Query-only rewrites in tests, embedded webviews, and older
+                // /web routes do not reconstruct the controller stack from
+                // the URL. Never discard Odoo's authoritative action stack.
+                actionStack:
+                    routeFromUrl.actionStack || hostRoute.actionStack,
                 usl_document: documentId || undefined,
                 usl_version: versionId || undefined,
                 domain:
@@ -1347,19 +1369,26 @@ export class DocumentsWorkspaceView extends Component {
                 uslDocumentId: documentId || null,
                 uslVersionId: versionId || null,
                 uslDocumentsRecordContext: this.recordContextKey,
+                uslDocumentsRecordBoundary: isRecordBoundary
+                    ? this.recordContextKey
+                    : null,
                 uslDocumentsReturnRecord: null,
             };
             const historyState = {
                 ...(browser.history.state || {}),
                 nextState,
                 // This client action owns its drawer and filter history.
-                // Prevent the webclient from remounting the action on Back;
-                // handlePopState restores the local state instead.
-                skipRouteChange: true,
+                // Its entry from a business-record smart button is the
+                // exception: Odoo must reload that route when the user comes
+                // Forward from the originating record.
+                skipRouteChange: !isRecordBoundary,
                 uslDocumentsWorkspace: true,
                 uslDocumentId: documentId || null,
                 uslVersionId: versionId || null,
                 uslDocumentsRecordContext: this.recordContextKey,
+                uslDocumentsRecordBoundary: isRecordBoundary
+                    ? this.recordContextKey
+                    : null,
                 uslDocumentsReturnRecord: null,
             };
             // The global Odoo router intentionally batches route changes.
@@ -1389,63 +1418,75 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     ensureRecordReturnHistory() {
-        if (
-            !this.recordContext ||
-            (browser.history.state?.uslDocumentsRecordContext ||
-                browser.history.state?.nextState?.uslDocumentsRecordContext) ===
-                this.recordContextKey
-        ) {
+        if (!this.recordContext) {
+            return;
+        }
+        const existingBoundary =
+            browser.history.state?.uslDocumentsRecordBoundary ||
+            browser.history.state?.nextState?.uslDocumentsRecordBoundary;
+        if (existingBoundary === this.recordContextKey) {
+            // Forward navigation remounted the existing route boundary.
+            this.hasRecordHistoryBoundary = true;
             return;
         }
         try {
-            const url = new URL(browser.location.href);
+            const workspaceUrl = new URL(browser.location.href);
             const baseState = { ...(browser.history.state || {}) };
-            const baseRouteState = {
-                ...(baseState.nextState || router.urlToState(url)),
+            const workspaceRoute = {
+                ...(baseState.nextState || router.current),
             };
+            const actionStack = workspaceRoute.actionStack;
+            if (!Array.isArray(actionStack) || actionStack.length < 2) {
+                // A direct/deep link has no originating action to restore.
+                // Keep Odoo's normal breadcrumb behavior in that case.
+                return;
+            }
+            const previousStack = actionStack
+                .slice(0, -1)
+                .map((item) => ({ ...item }));
+            const previousRoute = {
+                actionStack: previousStack,
+                ...previousStack.at(-1),
+            };
+            const previousUrl = new URL(
+                router.stateToUrl(previousRoute),
+                browser.location.origin
+            );
             browser.history.replaceState(
                 {
-                    ...baseState,
-                    nextState: {
-                        ...baseRouteState,
-                        uslDocumentsWorkspace: false,
-                        uslDocumentsReturnRecord: {
-                            resModel: this.recordContext.resModel,
-                            resId: this.recordContext.resId,
-                        },
-                    },
-                    skipRouteChange: true,
-                    uslDocumentsWorkspace: false,
-                    uslDocumentsReturnRecord: {
-                        resModel: this.recordContext.resModel,
-                        resId: this.recordContext.resId,
-                    },
+                    nextState: previousRoute,
                 },
                 "",
-                url
+                previousUrl
             );
+            this.hasRecordHistoryBoundary = true;
+            const documentsRoute = {
+                ...workspaceRoute,
+                uslDocumentsWorkspace: true,
+                uslDocumentId: this.state.selected?.id || null,
+                uslVersionId:
+                    this.state.selected?.selected_version_id || null,
+                uslDocumentsRecordContext: this.recordContextKey,
+                uslDocumentsRecordBoundary: this.recordContextKey,
+                uslDocumentsReturnRecord: null,
+            };
             browser.history.pushState(
                 {
                     ...baseState,
-                    nextState: {
-                        ...baseRouteState,
-                        uslDocumentsWorkspace: true,
-                        uslDocumentId: this.state.selected?.id || null,
-                        uslVersionId:
-                            this.state.selected?.selected_version_id || null,
-                        uslDocumentsRecordContext: this.recordContextKey,
-                        uslDocumentsReturnRecord: null,
-                    },
-                    skipRouteChange: true,
+                    nextState: documentsRoute,
+                    // This is a real Odoo route boundary. Forward navigation
+                    // must remount the Documents client action.
+                    skipRouteChange: false,
                     uslDocumentsWorkspace: true,
                     uslDocumentId: this.state.selected?.id || null,
                     uslVersionId:
                         this.state.selected?.selected_version_id || null,
                     uslDocumentsRecordContext: this.recordContextKey,
+                    uslDocumentsRecordBoundary: this.recordContextKey,
                     uslDocumentsReturnRecord: null,
                 },
                 "",
-                url
+                workspaceUrl
             );
         } catch {
             // Odoo breadcrumbs remain available if a browser blocks History API writes.
@@ -1529,20 +1570,9 @@ export class DocumentsWorkspaceView extends Component {
         let returnRecord =
             historyState.uslDocumentsReturnRecord ||
             routedState.uslDocumentsReturnRecord;
-        if (
-            !returnRecord &&
-            this.recordContext &&
-            !this.state.selected &&
-            !this.closingDetail &&
-            !targetsDocument
-        ) {
-            // The host router may retain the record URL while replacing the
-            // custom return marker with its normalized action state. At the
-            // record-context list level, Back still means return to the record.
-            returnRecord = this.recordContext;
-        }
         if (returnRecord) {
             this.closingDetail = false;
+            this.clearWorkspaceRouteState();
             await this.action.doAction(
                 {
                     type: "ir.actions.act_window",
@@ -1617,6 +1647,53 @@ export class DocumentsWorkspaceView extends Component {
         this.closingDetail = false;
         this.hasLocalListHistory = true;
         await this.openDocumentById(documentId, versionId);
+    }
+
+    clearWorkspaceRouteState() {
+        try {
+            const url = new URL(browser.location.href);
+            for (const key of [
+                "domain",
+                "groupBy",
+                "orderBy",
+                "usl_document",
+                "usl_version",
+                "usl_filters",
+            ]) {
+                url.searchParams.delete(key);
+            }
+            const currentState = { ...(browser.history.state || {}) };
+            const nextState = {
+                ...(currentState.nextState || router.urlToState(url)),
+            };
+            for (const key of [
+                "domain",
+                "groupBy",
+                "orderBy",
+                "usl_document",
+                "usl_version",
+                "usl_filters",
+            ]) {
+                delete nextState[key];
+            }
+            browser.history.replaceState(
+                {
+                    ...currentState,
+                    nextState,
+                    skipRouteChange: true,
+                    uslDocumentsWorkspace: false,
+                    uslDocumentId: null,
+                    uslVersionId: null,
+                    uslDocumentsRecordContext: null,
+                    uslDocumentsRecordBoundary: null,
+                    uslDocumentsReturnRecord: null,
+                },
+                "",
+                url
+            );
+        } catch {
+            // The record action remains a safe fallback if History API is blocked.
+        }
     }
 
     workspaceKwargs() {

@@ -21,6 +21,7 @@ These documents define the accounting truths that implementations and migrations
 - [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)
 - [Bank Matching Rule discovery](bank-matching-rule-discovery.md)
 - [Transactions navigation contract](transaction-navigation.md)
+- [Scheduled bank-statement controls](scheduled-bank-statement-controls.md)
 - [Platform billing accounting design](platform-billing.md)
 - [B2C metric and accounting-link contract](b2c-metrics.md)
 - [USL Accounting add-on architecture](custom-addon-architecture.md)

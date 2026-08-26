@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account.group_account_user" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('usl_documents.group_documents_accountant'))]"/>
+    </record>
+
+    <record id="account.group_account_manager" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('usl_documents.group_documents_accountant'))]"/>
+    </record>
+</odoo>
