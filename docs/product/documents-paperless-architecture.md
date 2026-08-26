@@ -49,7 +49,11 @@ identity, verifies the remote numeric ID/username, upserts the mapping and
 synchronizes object grants. New or manually changed mappings remain pending
 until **Verify identity** confirms the same contract. Only verified, currently
 safe mappings participate in document-object grants or receive Paperless deep
-links.
+links. The five-minute archive reconciler also verifies that every mapped
+Paperless account still exists, keeps the expected username, and remains
+active. Remote identity drift fails the mapping and revokes its object grants;
+the governed user reconciliation is the only path that repairs the remote
+account lifecycle.
 
 Odoo and Paperless have separate Pocket client IDs, secrets, and callbacks.
 Pocket proves identity but does not supply Odoo companies, Documents roles, or

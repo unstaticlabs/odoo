@@ -3832,13 +3832,77 @@ class TestDocuments(TransactionCase):
             patch.object(
                 PaperlessClient,
                 "get_user",
-                return_value={"id": 29, "username": "documents-user"},
+                return_value={
+                    "id": 29,
+                    "username": "documents-user",
+                    "is_active": True,
+                },
             ),
             patch.object(PaperlessClient, "set_document_permissions"),
         ):
             mapping.with_user(self.manager).action_mark_verified()
         self.assertEqual(mapping.sync_state, "synchronized")
         self.assertTrue(mapping.last_verified_at)
+
+    def test_inactive_paperless_user_cannot_be_verified(self):
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 30,
+                "paperless_username": "documents-user",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "get_user",
+            return_value={
+                "id": 30,
+                "username": "documents-user",
+                "is_active": False,
+            },
+        ):
+            action = mapping.with_user(self.manager).action_mark_verified()
+
+        self.assertEqual(mapping.sync_state, "failed")
+        self.assertIn("inactive", mapping.last_error)
+        self.assertEqual(action["params"]["type"], "danger")
+
+    def test_scheduled_reconciliation_revokes_drifted_inactive_identity(self):
+        self._document(1431)
+        mapping = self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 31,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with (
+            patch.object(
+                PaperlessClient,
+                "list_users",
+                return_value=[
+                    {
+                        "id": 31,
+                        "username": "documents-user",
+                        "is_active": False,
+                    },
+                ],
+            ),
+            patch.object(
+                UslDocument,
+                "action_sync_permissions",
+                return_value=True,
+            ) as synchronize_permissions,
+        ):
+            failures = self.env[
+                "usl.paperless.user.mapping"
+            ]._reconcile_remote_identity_state()
+
+        self.assertEqual(failures, 1)
+        self.assertEqual(mapping.sync_state, "failed")
+        self.assertIn("inactive", mapping.last_error)
+        synchronize_permissions.assert_called_once()
 
     def test_pocket_profile_assigns_document_roles_without_copying_idp_groups(self):
         definitions = self.env["res.users"]._usl_pocketid_profile_definitions()
@@ -3886,7 +3950,11 @@ class TestDocuments(TransactionCase):
             patch.object(
                 PaperlessClient,
                 "get_user",
-                return_value={"id": 130, "username": "documents-user"},
+                return_value={
+                    "id": 130,
+                    "username": "documents-user",
+                    "is_active": True,
+                },
             ),
             patch.object(PaperlessClient, "set_document_permissions"),
         ):

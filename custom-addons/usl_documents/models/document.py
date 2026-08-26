@@ -1760,7 +1760,11 @@ class UslDocument(models.Model):
     def cron_sync_from_paperless(self):
         self._require_manager()
         try:
-            return self.sync_from_paperless(limit_pages=20)
+            client = self._paperless()
+            self.env[
+                "usl.paperless.user.mapping"
+            ]._reconcile_remote_identity_state(client=client)
+            return self.sync_from_paperless(limit_pages=20, client=client)
         except PaperlessError:
             _logger.exception("Paperless incremental synchronization failed")
             return False
@@ -4731,6 +4735,62 @@ class UslPaperlessUserMapping(models.Model):
         self.ensure_one()
         return not self._identity_error()
 
+    def _remote_identity_error(self, payload):
+        self.ensure_one()
+        if not payload:
+            return _(
+                "Paperless user %(id)s no longer exists or is not visible.",
+                id=self.paperless_user_id,
+            )
+        remote_username = payload.get("username")
+        if remote_username != self.paperless_username:
+            return _(
+                "Paperless user %(id)s is %(actual)s, not %(expected)s.",
+                id=self.paperless_user_id,
+                actual=remote_username or _("unnamed"),
+                expected=self.paperless_username,
+            )
+        if payload.get("is_active") is not True:
+            return _(
+                "Paperless user %(id)s (%(username)s) is inactive. Run the "
+                "governed Paperless user reconciliation before verifying it again.",
+                id=self.paperless_user_id,
+                username=self.paperless_username,
+            )
+        return False
+
+    @api.model
+    def _reconcile_remote_identity_state(self, *, client=None):
+        """Fail closed when a previously verified Paperless user drifts."""
+        mappings = self.sudo().search(
+            [("active", "=", True), ("sync_state", "=", "synchronized")],
+        )
+        if not mappings:
+            return 0
+        client = client or self.env["usl.document"]._paperless()
+        remote_users = {
+            int(payload["id"]): payload
+            for payload in client.list_users()
+            if isinstance(payload, dict) and payload.get("id") is not None
+        }
+        failures = 0
+        for mapping in mappings:
+            message = mapping._remote_identity_error(
+                remote_users.get(mapping.paperless_user_id),
+            )
+            if not message:
+                continue
+            mapping.with_context(
+                usl_documents_mapping_verification=True,
+            ).write(
+                {
+                    "sync_state": "failed",
+                    "last_error": message,
+                },
+            )
+            failures += 1
+        return failures
+
     @api.model_create_multi
     def create(self, values_list):
         trusted_seed = (
@@ -4959,18 +5019,8 @@ class UslPaperlessUserMapping(models.Model):
                     % {"identity": mapping.display_name, "error": message},
                 )
                 continue
-            remote_username = payload.get("username")
-            if remote_username != mapping.paperless_username:
-                message = (
-                    _(
-                        "Paperless user %(id)s is %(actual)s, not %(expected)s.",
-                    )
-                    % {
-                        "id": mapping.paperless_user_id,
-                        "actual": remote_username or _("unnamed"),
-                        "expected": mapping.paperless_username,
-                    },
-                )
+            message = mapping._remote_identity_error(payload)
+            if message:
                 mapping.sudo().with_context(
                     usl_documents_mapping_verification=True,
                 ).write(

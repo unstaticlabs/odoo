@@ -3533,6 +3533,23 @@ msgid "Paperless user %(id)s is %(actual)s, not %(expected)s."
 msgstr "L'utilisateur Paperless %(id)s est %(actual)s et non %(expected)s."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless user %(id)s no longer exists or is not visible."
+msgstr "L'utilisateur Paperless %(id)s n'existe plus ou n'est pas visible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Paperless user %(id)s (%(username)s) is inactive. Run the governed Paperless "
+"user reconciliation before verifying it again."
+msgstr ""
+"L'utilisateur Paperless %(id)s (%(username)s) est inactif. Exécutez la "
+"synchronisation contrôlée des utilisateurs Paperless avant de le vérifier à "
+"nouveau."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
 msgid ""
 "Paperless user ID for the non-human integration owner. Do not use a person's "
