@@ -2168,6 +2168,12 @@ class TestCleanUslSign(TransactionCase):
             )
             self.assertEqual(request.lifecycle_stage_label, label)
             self.assertNotEqual(request.lifecycle_stage_label, "Done")
+            if state == "evidence_incomplete":
+                self.assertEqual(
+                    request.next_step,
+                    "The signature is recorded. Retry Paperless storage for the signed "
+                    "PDF and proof package.",
+                )
 
     def test_signing_method_is_changed_through_a_focused_permission_gate(self):
         request = self._request(user_id=self.sign_user.id)

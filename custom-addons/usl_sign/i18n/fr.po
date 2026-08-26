@@ -2062,8 +2062,8 @@ msgid "The signed document failed verification. Open Final document for details.
 msgstr "Le document signé n’a pas passé la vérification. Ouvrez Document final pour consulter les détails."
 
 #. module: usl_sign
-msgid "The signed document is safe, but final storage needs attention."
-msgstr "Le document signé est valide, mais son archivage nécessite votre attention."
+msgid "The signature is recorded. Retry Paperless storage for the signed PDF and proof package."
+msgstr "La signature est enregistrée. Relancez l’archivage Paperless du PDF signé et du dossier de preuves."
 
 #. module: usl_sign
 msgid "The document is signed and valid, but its final copy could not be stored. Try again."
