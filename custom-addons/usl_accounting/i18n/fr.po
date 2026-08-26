@@ -3323,8 +3323,8 @@ msgid "Scheduled Bank Export"
 msgstr "Export bancaire planifié"
 
 #. module: usl_accounting
-msgid "Scheduled Bank Export Route"
-msgstr "Route d’export bancaire planifié"
+msgid "Bank Statement Email Setup"
+msgstr "Configuration des e-mails de relevés bancaires"
 
 #. module: usl_accounting
 msgid "Scheduled exports"
@@ -3439,12 +3439,21 @@ msgid "Retry"
 msgstr "Réessayer"
 
 #. module: usl_accounting
-msgid "Bank Statement Emails"
-msgstr "E-mails de relevés bancaires"
-
 #. module: usl_accounting
 msgid "Receive and process emails"
 msgstr "Recevoir et traiter les e-mails"
+
+#. module: usl_accounting
+msgid "Set the complete 'Send bank exports to' email address before enabling email processing."
+msgstr "Renseignez l’adresse complète « Envoyer les exports bancaires à » avant d’activer le traitement des e-mails."
+
+#. module: usl_accounting
+msgid "Add at least one accepted sender address before enabling email processing."
+msgstr "Ajoutez au moins une adresse d’expéditeur acceptée avant d’activer le traitement des e-mails."
+
+#. module: usl_accounting
+msgid "Add Shine's accounting download site before enabling email processing."
+msgstr "Ajoutez le site de téléchargement comptable de Shine avant d’activer le traitement des e-mails."
 
 #. module: usl_accounting
 msgid "When enabled, Odoo accepts bank-export emails sent to this address, imports their OFX transactions, and saves the official PDF in Documents."

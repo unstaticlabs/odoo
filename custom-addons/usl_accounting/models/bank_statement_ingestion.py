@@ -50,7 +50,7 @@ def _month_end(value):
 
 class AccountBankIngestionConfig(models.Model):
     _name = "account.bank.ingestion.config"
-    _description = "Scheduled Bank Export Route"
+    _description = "Bank Statement Email Setup"
     _inherit = ["mail.alias.mixin", "mail.thread", "mail.activity.mixin"]
     _check_company_auto = True
     _order = "company_id, journal_id"
@@ -181,6 +181,37 @@ class AccountBankIngestionConfig(models.Model):
                     raise ValidationError(
                         _("Download hosts must be plain DNS host names."),
                     )
+
+    @api.constrains(
+        "processing_enabled",
+        "alias_name",
+        "alias_domain_id",
+        "allowed_senders",
+        "allowed_download_hosts",
+    )
+    def _check_email_processing_readiness(self):
+        for config in self.filtered("processing_enabled"):
+            if not config.alias_name or not config.alias_domain_id:
+                raise ValidationError(
+                    _(
+                        "Set the complete 'Send bank exports to' email address "
+                        "before enabling email processing.",
+                    ),
+                )
+            if not config._allowed_sender_set():
+                raise ValidationError(
+                    _(
+                        "Add at least one accepted sender address before enabling "
+                        "email processing.",
+                    ),
+                )
+            if config.provider == "shine" and not config._allowed_host_set():
+                raise ValidationError(
+                    _(
+                        "Add Shine's accounting download site before enabling email "
+                        "processing.",
+                    ),
+                )
 
     def _allowed_sender_set(self):
         self.ensure_one()

@@ -9,7 +9,7 @@ from unittest.mock import patch
 from psycopg2 import IntegrityError
 
 from odoo import Command
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools import BinaryBytes, file_open, mute_logger
 
@@ -347,6 +347,46 @@ class TestBankStatementIngestion(TransactionCase):
             attachment_count,
         )
 
+    def test_configured_email_route_is_automatically_processed(self):
+        self.config.processing_enabled = True
+        message = EmailMessage()
+        message["From"] = "Shine <hello@shine.example.invalid>"
+        message["To"] = self.config.alias_full_name
+        message["Subject"] = (
+            "Export comptable Synthetic - du 01/07/2026 au 31/07/2026"
+        )
+        message["Message-ID"] = "<synthetic-automatic-route@example.invalid>"
+        message.set_content("Synthetic scheduled export.")
+        message.add_attachment(
+            self.ofx,
+            maintype="application",
+            subtype="x-ofx",
+            filename="transactions.ofx",
+        )
+        message.add_attachment(
+            self.pdf,
+            maintype="application",
+            subtype="pdf",
+            filename="statement.pdf",
+        )
+
+        ingestion = self.env["mail.thread"].message_process(
+            None,
+            message.as_bytes(),
+        )
+        self.assertEqual(ingestion.state, "received")
+
+        self.env["account.bank.ingestion"]._cron_process_pending()
+
+        self.assertEqual(ingestion.state, "done", ingestion.last_error)
+        self.assertTrue(ingestion.statement_ids.line_ids)
+        self.assertTrue(ingestion.statement_ids.accepted_evidence_id)
+
+    def test_email_processing_requires_a_complete_route(self):
+        self.config.allowed_senders = False
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.config.processing_enabled = True
+
     def test_shine_archive_is_retained_and_safe_members_are_processed(self):
         archive_buffer = BytesIO()
         with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -591,14 +631,31 @@ class TestBankStatementIngestion(TransactionCase):
         )
         self.assertIn('string="Add official PDF"', architecture)
         self.assertIn('string="Resolve"', architecture)
+        statement_list_architecture = self.env.ref(
+            "usl_accounting.view_bank_statement_list_review",
+        ).arch_db
+        self.assertIn("decoration-danger", statement_list_architecture)
+        self.assertIn("decoration-success", statement_list_architecture)
 
         config_architecture = self.env.ref(
             "usl_accounting.view_bank_ingestion_config_form",
         ).arch_db
-        self.assertIn("Bank Statement Emails", config_architecture)
+        self.assertIn("Bank Statement Email Setup", config_architecture)
         self.assertIn("Send bank exports to", config_architecture)
         self.assertIn("Advanced safeguards", config_architecture)
         self.assertNotIn("Scheduled export address", config_architecture)
+        config_list_architecture = self.env.ref(
+            "usl_accounting.view_bank_ingestion_config_list",
+        ).arch_db
+        self.assertIn("decoration-danger", config_list_architecture)
+        self.assertIn("decoration-success", config_list_architecture)
+
+        setup_menu = self.env.ref("usl_accounting.menu_bank_ingestion_config")
+        matching_menu = self.env.ref(
+            "account_reconcile_oca.menu_account_reconcile_model",
+        )
+        self.assertEqual(setup_menu.parent_id, matching_menu.parent_id)
+        self.assertEqual(setup_menu.sequence, matching_menu.sequence + 1)
 
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion("<synthetic-no-pdf@example.invalid>", ofx=self.ofx)

@@ -34,7 +34,12 @@
             <xpath expr="//field[@name='date']" position="after">
                 <field name="period_start" optional="show"/>
                 <field name="period_end" optional="show"/>
-                <field name="review_status" widget="badge" optional="show"/>
+                <field name="review_status" widget="badge" optional="show"
+                    decoration-muted="review_status == 'expected'"
+                    decoration-info="review_status == 'processing'"
+                    decoration-danger="review_status == 'attention'"
+                    decoration-success="review_status in ('ready', 'certified')"
+                    decoration-warning="review_status == 'reopened'"/>
             </xpath>
             <xpath expr="//field[@name='balance_end_real']" position="after">
                 <field name="balance_difference" optional="show"/>

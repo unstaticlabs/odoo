@@ -7,7 +7,9 @@ Keep the configuration paused until cut-over is proven:
 1. deploy and upgrade `usl_accounting`, `usl_documents` and
    `usl_documents_accounting`; Paperless archival is required for the official
    bank statement;
-2. create one **Bank Statement Email** for the company and Shine bank journal;
+2. create one **Bank Statement Email Setup** for the company and Shine bank
+   journal under **Configuration → Accounting**, immediately after **Bank
+   Matching Rules**;
 3. enter the exact bank account, `hello@shine.fr`,
    `accounting.files.shine.fr`, the responsible accountant, start month and
    expected delivery day (default 5);

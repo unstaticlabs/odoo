@@ -10,7 +10,12 @@
                 <field name="journal_id" string="Bank account"/>
                 <field name="alias_full_name" string="Send bank exports to"/>
                 <field name="expected_period_start" string="Month to review"/>
-                <field name="review_status" widget="badge"/>
+                <field name="review_status" widget="badge"
+                    decoration-muted="review_status == 'expected'"
+                    decoration-info="review_status == 'processing'"
+                    decoration-danger="review_status == 'attention'"
+                    decoration-success="review_status in ('ready', 'certified')"
+                    decoration-warning="review_status == 'reopened'"/>
                 <field name="processing_enabled" string="Email processing" widget="boolean_toggle"/>
             </list>
         </field>
@@ -20,7 +25,7 @@
         <field name="name">account.bank.ingestion.config.form</field>
         <field name="model">account.bank.ingestion.config</field>
         <field name="arch" type="xml">
-            <form string="Bank Statement Emails">
+            <form string="Bank Statement Email Setup">
                 <header>
                     <button name="action_open_expected_statement" type="object" string="Open current month" class="btn-primary" title="Open the oldest monthly bank statement that still needs review."/>
                     <field name="review_status" widget="statusbar" statusbar_visible="expected,processing,attention,ready,certified,reopened"/>
@@ -88,7 +93,7 @@
     </record>
 
     <record id="action_bank_ingestion_config" model="ir.actions.act_window">
-        <field name="name">Bank Statement Emails</field>
+        <field name="name">Bank Statement Email Setup</field>
         <field name="res_model">account.bank.ingestion.config</field>
         <field name="view_mode">list,form</field>
     </record>
@@ -228,5 +233,5 @@
     </record>
 
     <menuitem id="menu_bank_statement_reviews" name="Bank Statements" parent="account.menu_finance_entries" action="account.action_bank_statement_tree" sequence="-10" groups="account.group_account_readonly,account.group_account_manager"/>
-    <menuitem id="menu_bank_ingestion_config" name="Bank Statement Emails" parent="account.menu_finance_configuration" action="action_bank_ingestion_config" sequence="45" groups="account.group_account_manager"/>
+    <menuitem id="menu_bank_ingestion_config" name="Bank Statement Email Setup" parent="account.account_account_menu" action="action_bank_ingestion_config" sequence="21" groups="account.group_account_manager"/>
 </odoo>
