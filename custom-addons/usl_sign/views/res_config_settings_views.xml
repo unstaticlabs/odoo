@@ -17,9 +17,6 @@
                     <setting string="Default signing policy">
                         <field name="sign_default_policy_id"/>
                     </setting>
-                    <setting string="Keep completed signing records">
-                        <field name="sign_evidence_retention_years"/> years
-                    </setting>
                     <setting string="Independent signing timestamps" help="Optional. Enable only after a reviewed timestamp service is configured on the server.">
                         <field name="sign_rfc3161_enabled"/>
                     </setting>

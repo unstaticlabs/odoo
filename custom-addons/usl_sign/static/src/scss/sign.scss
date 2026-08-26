@@ -508,6 +508,17 @@
     padding: 1rem 1.125rem;
 }
 
+.usl_sign_service_status_kanban:not(.o_kanban_grouped) {
+    align-content: flex-start;
+
+    .o_kanban_record {
+        flex: 1 1 19rem;
+        width: auto;
+        max-width: 27rem;
+        margin: .5rem;
+    }
+}
+
 .usl_sign_section_icon {
     display: inline-flex;
     width: 2.25rem;
@@ -518,6 +529,57 @@
     color: #714b67;
     background: #f3edf2;
     border-radius: .55rem;
+}
+
+.usl_sign_signer_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
+.usl_sign_signer_chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .5rem;
+    color: #495057;
+    background: #f1f3f5;
+    border-radius: 999px;
+    font-size: .75rem;
+
+    > span {
+        overflow: hidden;
+        max-width: 10rem;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    > small {
+        opacity: .8;
+    }
+
+    &--signed {
+        color: #166534;
+        background: #dcfce7;
+    }
+
+    &--ready {
+        color: #1e40af;
+        background: #dbeafe;
+    }
+
+    &--attention {
+        color: #92400e;
+        background: #fef3c7;
+    }
+
+    &--muted,
+    &--waiting {
+        color: #475569;
+        background: #e2e8f0;
+    }
 }
 
 .usl_sign_library_search {
@@ -585,7 +647,7 @@
 
 .usl_sign_method_radio.o_field_radio .o_horizontal {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .5rem;
     width: 100%;
 
@@ -623,6 +685,12 @@
             box-shadow: 0 0 0 1px var(--o-brand-primary, #714b67);
             background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .06);
         }
+    }
+}
+
+@media (max-width: 991.98px) {
+    .usl_sign_method_radio.o_field_radio .o_horizontal {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

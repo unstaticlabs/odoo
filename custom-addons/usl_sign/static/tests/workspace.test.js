@@ -51,6 +51,15 @@ test("landing renders the five document journeys and routes only the selected ac
                         progress: "0 of 1",
                         due: "2026-08-12",
                         next_step: "Review and sign",
+                        signers: [
+                            {
+                                id: 18,
+                                name: "Roger Example",
+                                label: "Invited",
+                                tone: "ready",
+                                icon: "fa-envelope",
+                            },
+                        ],
                         action: {
                             type: "record",
                             model: "sign.oca.request.signer",
@@ -75,6 +84,8 @@ test("landing renders the five document journeys and routes only the selected ac
     expect("section:nth-child(5) .usl_sign_work_card").toHaveText(/Recently completed/);
     expect(".list-group-item-action").toHaveText(/Routine Agreement/);
     expect(".list-group-item-action").toHaveText(/Next:\s*Review and sign/);
+    expect(".usl_sign_signer_chip--ready").toHaveText(/Roger Example\s*Invited/);
+    expect(".usl_sign_signer_chip--ready .fa-envelope").toHaveCount(1);
 
     await contains("header .btn-primary").click();
     await contains(".list-group-item-action").click();
