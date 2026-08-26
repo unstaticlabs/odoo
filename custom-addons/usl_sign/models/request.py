@@ -416,7 +416,10 @@ class SignRequest(models.Model):
             "waiting_external": _("Waiting for the signed document from the external provider."),
             "signed_to_import": _("Check the imported signed document."),
             "validating": _("Checking the signed document."),
-            "evidence_incomplete": _("The signed document is safe, but final storage needs attention."),
+            "evidence_incomplete": _(
+                "The signature is recorded. Retry Paperless storage for the signed PDF "
+                "and proof package.",
+            ),
             "validation_failed": _(
                 "The signed document did not pass its checks. Review the issue before continuing.",
             ),
