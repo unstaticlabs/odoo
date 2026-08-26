@@ -142,6 +142,13 @@ class SignWorkspace(models.AbstractModel):
         return {"count": count, "items": [item_builder(record) for record in records]}
 
     @api.model
+    def _records_section(self, records, item_builder, *, limit=6):
+        return {
+            "count": len(records),
+            "items": [item_builder(record) for record in records[:limit]],
+        }
+
+    @api.model
     def get_landing(self):
         self._check_access()
         request_model = self.env["sign.oca.request"]
@@ -175,6 +182,37 @@ class SignWorkspace(models.AbstractModel):
                 },
             }
 
+        preparation_candidates = request_model.search(
+            managed + [("state", "in", ["draft", "ready"])],
+            order="write_date desc, id desc",
+        )
+        missing_by_request = (
+            preparation_candidates._missing_strong_enrollments_by_request()
+        )
+        blocked_preparation = preparation_candidates.filtered(
+            lambda request: bool(missing_by_request[request.id]),
+        )
+        preparation = preparation_candidates - blocked_preparation
+        issue_records = request_model.search(
+            managed
+            + [
+                (
+                    "state",
+                    "in",
+                    [
+                        "waiting_enrollment",
+                        "action_required",
+                        "evidence_incomplete",
+                        "validation_failed",
+                    ],
+                ),
+            ],
+            order="write_date desc, id desc",
+        )
+        issues = (blocked_preparation | issue_records).sorted(
+            lambda request: (request.write_date, request.id),
+            reverse=True,
+        )
         sections = {
             "sign_now": self._section(
                 "sign.oca.request.signer",
@@ -182,30 +220,8 @@ class SignWorkspace(models.AbstractModel):
                 signer_item,
                 order="request_id desc, sequence, id",
             ),
-            "prepare": self._section(
-                request_model._name,
-                managed + [("state", "in", ["draft", "ready"])],
-                self._request_item,
-                order="write_date desc, id desc",
-            ),
-            "issues": self._section(
-                request_model._name,
-                managed
-                + [
-                    (
-                        "state",
-                        "in",
-                        [
-                            "waiting_enrollment",
-                            "action_required",
-                            "evidence_incomplete",
-                            "validation_failed",
-                        ],
-                    ),
-                ],
-                self._request_item,
-                order="write_date desc, id desc",
-            ),
+            "prepare": self._records_section(preparation, self._request_item),
+            "issues": self._records_section(issues, self._request_item),
             "waiting": self._section(
                 request_model._name,
                 managed
