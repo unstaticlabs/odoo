@@ -114,7 +114,8 @@ assert_ports_available() {
 
 provision_pocket() {
   "${COMPOSE[@]}" up -d --wait pocket-id
-  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
+  USL_POCKET_ID_ADMIN_API_URL="http://$BIND_ADDRESS:$POCKET_PORT" \
+    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
 }
 
 initialize_odoo() {
