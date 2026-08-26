@@ -356,7 +356,28 @@ def _write_new_env(path: Path) -> None:
 class PocketIDAPI:
     def __init__(self, values: dict[str, str]) -> None:
         public_url = values["POCKET_ID_APP_URL"].rstrip("/")
-        parsed_url = urllib.parse.urlsplit(public_url)
+        admin_url = (
+            os.getenv("USL_POCKET_ID_ADMIN_API_URL", "").strip().rstrip("/")
+        )
+        parsed_url = urllib.parse.urlsplit(admin_url or public_url)
+        if admin_url:
+            hostname = parsed_url.hostname or ""
+            if (
+                parsed_url.scheme not in {"http", "https"}
+                or parsed_url.username
+                or parsed_url.password
+                or parsed_url.path not in {"", "/"}
+                or parsed_url.query
+                or parsed_url.fragment
+                or (
+                    not SAFE_LOCALHOST_PATTERN.fullmatch(hostname)
+                    and not _is_private_qa_hostname(hostname)
+                )
+            ):
+                raise PocketIDError(
+                    "Pocket ID admin API override must use a private or localhost "
+                    "HTTP(S) origin.",
+                )
         # Browsers and curl treat every *.localhost name as loopback, while
         # Python's system resolver does not on every macOS configuration. The
         # administrative API is host-local in development, so use its explicit
@@ -375,7 +396,7 @@ class PocketIDAPI:
                 ),
             )
         else:
-            self.base_url = public_url
+            self.base_url = admin_url or public_url
         self.api_key = values["POCKET_ID_STATIC_API_KEY"]
 
     def request(
