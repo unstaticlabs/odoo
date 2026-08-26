@@ -23,6 +23,7 @@
                     <field name="has_signing_fields" invisible="1"/>
                     <field name="can_coordinate" invisible="1"/>
                     <field name="can_send" invisible="1"/>
+                    <field name="strong_enrollment_missing" invisible="1"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -37,7 +38,7 @@
                         <h1><field name="name" placeholder="Document name" readonly="state != 'draft'"/></h1>
                     </div>
 
-                    <div class="row g-3 my-3 usl_sign_request_summary">
+                    <div class="row g-3 my-3 usl_sign_request_summary" invisible="state == 'ready'">
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">People</div><div class="fw-semibold"><field name="signer_progress" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Deadline</div><div class="fw-semibold"><field name="due_date_summary" readonly="1"/></div></div></div></div>
@@ -65,9 +66,33 @@
                             <field name="blocking_summary" nolabel="1" readonly="1" class="d-block"/>
                         </div>
                     </div>
-                    <div class="alert alert-info" role="status" invisible="state in ['waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed', 'completed', 'cancelled', 'declined', 'expired']">
+                    <div class="alert alert-warning" role="status" invisible="not strong_enrollment_missing or state not in ['draft', 'ready']">
+                        <strong class="d-block mb-1">Signer identity setup is required before sending.</strong>
+                        <field name="strong_enrollment_summary" nolabel="1" readonly="1" class="d-block"/>
+                        <span class="d-block mt-1">An identity reviewer starts setup from <strong>Configuration → Signer Identity Reviews</strong>. Each signer connects Pocket ID, then the reviewer approves the match.</span>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state in ['ready', 'waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed', 'completed', 'cancelled', 'declined', 'expired']">
                         <field name="next_step" nolabel="1" readonly="1"/>
                     </div>
+
+                    <section class="card mb-3 usl_sign_send_review" aria-labelledby="usl_sign_send_review_title" invisible="state != 'ready'">
+                        <div class="card-body">
+                            <h2 id="usl_sign_send_review_title" class="h4 mb-1">Check before you send</h2>
+                            <p class="text-muted mb-3">Confirm the people, method and timing. Nothing is sent until you choose <strong>Send for signature</strong>.</p>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3">Document</dt>
+                                <dd class="col-sm-9"><field name="name" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Signers</dt>
+                                <dd class="col-sm-9"><field name="signer_names_summary" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Signing method</dt>
+                                <dd class="col-sm-9"><div class="fw-semibold"><field name="requested_trust_short" readonly="1" nolabel="1"/></div><div class="text-muted"><field name="signing_method_summary" readonly="1" nolabel="1"/></div></dd>
+                                <dt class="col-sm-3">Deadline</dt>
+                                <dd class="col-sm-9"><field name="due_date_summary" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Message</dt>
+                                <dd class="col-sm-9"><field name="responsible_message" readonly="1" nolabel="1" invisible="not responsible_message"/><span invisible="responsible_message">No message</span></dd>
+                            </dl>
+                        </div>
+                    </section>
 
                     <notebook>
                         <page string="Overview" name="overview">
@@ -612,7 +637,7 @@
         <field name="domain">[('state', 'not in', ['completed', 'declined', 'expired', 'cancelled']), '|', ('user_id', '=', uid), ('coordinator_ids', 'in', [uid])]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No open requests</p>
-            <p>Requests you own or coordinate will appear here until they are completed or closed. Use <strong>Start</strong> on the Sign home page to prepare one.</p>
+            <p>Requests you own or coordinate will appear here until they are completed or closed. Use <strong>Request signatures</strong> on the Sign home page to prepare one.</p>
         </field>
     </record>
     <record id="my_signatures_action" model="ir.actions.act_window">

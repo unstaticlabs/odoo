@@ -30,12 +30,12 @@ without interrupting everyday work.
 - **Persona:** occasional requester.
 - **Goal:** upload an everyday PDF and send it without learning templates or
   signing infrastructure.
-- **Ideal path:** Start → upload PDF → choose signer → place fields → check and
+- **Ideal path:** Request signatures → upload PDF → choose signer → place fields → check and
   send.
-- **Primary actions:** **Start**, **Place signing fields**, **Send for signature**.
+- **Primary actions:** **Request signatures**, **Place signing fields**, **Send for signature**.
 - **Expectation:** the PDF name, Standard method, Customer field group and
-  sensible reminder settings are preselected. Advanced choices stay under
-  **More options**.
+  sensible reminder settings are preselected. Optional request metadata stays
+  under **Request name, message and linked record**.
 - **Release check:** malformed PDF, missing email, unsaved fields and sending
   failure each have a specific recovery message.
 
@@ -168,3 +168,35 @@ The automated and manual results for these journeys belong in
 mockup or code review alone: its relevant model, access, failure-state and UI
 tests must pass, and any remaining real-device or external-provider limitation
 must be stated explicitly.
+
+## Deliberate release scope
+
+The workflow follows Odoo 19 Sign's document-first model and the established
+Adobe Acrobat Sign/Docusign patterns for multiple recipients, ordered or
+parallel signing, reusable templates, reminders, expiration, status tracking,
+decline and final-file retrieval. The final send step uses an explicit
+check-before-you-send summary, and validation errors retain Odoo's field-level
+feedback instead of hiding them behind a generic failure.
+
+This release accepts signers from Odoo contacts that already have an email
+address. Arbitrary email-only recipients, copy-only recipients, scheduled send
+and post-send recipient replacement are deliberately outside the first release;
+they are not represented by partial models, hidden controls or unsupported
+claims. A replacement request remains available for a rejected imported result.
+These narrower boundaries keep contact identity, company access and evidence
+ownership unambiguous while preserving the common one-person and multi-person
+signature journeys.
+
+The interaction review uses the following maintained references rather than
+product folklore:
+
+- [Odoo 19 Sign: request signatures](https://www.odoo.com/documentation/19.0/applications/productivity/sign/request_signatures.html)
+  for the native document, recipient, order, validity and reminder flow;
+- [Adobe Acrobat Sign: request signatures](https://helpx.adobe.com/sign/using/sending/request-signatures-from-others.html)
+  and [Docusign reminders and expiration](https://www.docusign.com/blog/developers/default-api-reminder-and-expiration-settings)
+  for mature multi-recipient and lifecycle patterns;
+- [GOV.UK check answers](https://design-system.service.gov.uk/patterns/check-answers/)
+  and [error summary](https://design-system.service.gov.uk/components/error-summary/)
+  for pre-send error prevention and recoverable validation;
+- [WCAG 2.2](https://www.w3.org/TR/WCAG22/) for keyboard operation, focus,
+  reflow and target-size acceptance.

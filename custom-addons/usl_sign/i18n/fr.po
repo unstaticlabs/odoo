@@ -461,12 +461,6 @@ msgid "Signers"
 msgstr "Signataires"
 
 #. module: usl_sign
-#: model:ir.actions.act_window,name:usl_sign.my_sign_identity_action
-#: model:ir.ui.menu,name:usl_sign.my_sign_identity_menu
-msgid "Signing Identities"
-msgstr "Identités de signature"
-
-#. module: usl_sign
 #: model:ir.actions.act_window,name:usl_sign.sign_policy_action
 #: model:ir.ui.menu,name:usl_sign.sign_policy_menu
 msgid "Signing Policies"
@@ -478,14 +472,6 @@ msgstr "Politiques de signature"
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__default_trust__standard
 msgid "Standard"
 msgstr "Standard"
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/xml/workspace.xml:0
-#: model:ir.actions.act_window,name:usl_sign.sign_start_action
-#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
-msgid "Start"
-msgstr "Démarrer"
 
 #. module: usl_sign
 #. odoo-python
@@ -2383,8 +2369,8 @@ msgid "Request signatures"
 msgstr "Demander des signatures"
 
 #. module: usl_sign
-msgid "Start with a PDF or a reusable template."
-msgstr "Commencez avec un PDF ou un modèle réutilisable."
+msgid "Requests you own or coordinate will appear here until they are completed or closed. Use <strong>Request signatures</strong> on the Sign home page to prepare one."
+msgstr "Les demandes que vous possédez ou coordonnez apparaîtront ici jusqu’à leur achèvement ou leur clôture. Utilisez <strong>Demander des signatures</strong> sur l’accueil Signature pour en préparer une."
 
 #. module: usl_sign
 msgid "1. Choose the document"
@@ -3034,3 +3020,72 @@ msgstr "Référence d’audit Pocket ID"
 #. module: usl_sign
 msgid "Last confirmed on"
 msgstr "Dernière confirmation le"
+
+#. module: usl_sign
+msgid "Choose a document and its signers. You will place fields and check every detail before anything is sent."
+msgstr "Choisissez un document et ses signataires. Vous placerez les champs et vérifierez chaque détail avant tout envoi."
+
+#. module: usl_sign
+msgid "Step 1"
+msgstr "Étape 1"
+
+#. module: usl_sign
+msgid "Step 2"
+msgstr "Étape 2"
+
+#. module: usl_sign
+msgid "Add everyone who must sign. You will assign and place each person’s fields next."
+msgstr "Ajoutez toutes les personnes qui doivent signer. Vous attribuerez et placerez ensuite les champs de chacune."
+
+#. module: usl_sign
+msgid "Request name, message and linked record"
+msgstr "Nom de la demande, message et élément associé"
+
+#. module: usl_sign
+msgid "Your Pocket ID account is not connected yet."
+msgstr "Votre compte Pocket ID n’est pas encore connecté."
+
+#. module: usl_sign
+msgid "Open the personal setup link sent by an identity reviewer. The link connects your account; it does not sign a document."
+msgstr "Ouvrez le lien de configuration personnel envoyé par un vérificateur d’identité. Ce lien connecte votre compte ; il ne signe aucun document."
+
+#. module: usl_sign
+msgid "Connect Pocket ID"
+msgstr "Connecter Pocket ID"
+
+#. module: usl_sign
+msgid "Use the personal link in your setup email. If it has expired or is missing, ask an identity reviewer to send a new one."
+msgstr "Utilisez le lien personnel de votre e-mail de configuration. S’il a expiré ou manque, demandez-en un nouveau à un vérificateur d’identité."
+
+#. module: usl_sign
+msgid "Your Pocket ID account is connected."
+msgstr "Votre compte Pocket ID est connecté."
+
+#. module: usl_sign
+msgid "Organization review"
+msgstr "Vérification par l’organisation"
+
+#. module: usl_sign
+msgid "An identity reviewer confirms that the connected account belongs to you. After approval, Strong personal requests can be sent to you."
+msgstr "Un vérificateur d’identité confirme que le compte connecté vous appartient. Après approbation, vous pourrez recevoir des demandes de signature personnelle renforcée."
+
+#. module: usl_sign
+msgid "Signer identity setup is required before sending."
+msgstr "L’identité des signataires doit être configurée avant l’envoi."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Strong signing cannot start yet. An identity reviewer must send setup instructions and approve: %(names)s."
+msgstr "La signature renforcée ne peut pas encore commencer. Un vérificateur d’identité doit envoyer les instructions de configuration et approuver : %(names)s."
+
+#. module: usl_sign
+msgid "An identity reviewer starts setup from Configuration → Signer Identity Reviews. Each signer connects Pocket ID, then the reviewer approves the match."
+msgstr "Un vérificateur d’identité lance la configuration depuis Configuration → Vérifications d’identité des signataires. Chaque signataire connecte Pocket ID, puis le vérificateur approuve la correspondance."
+
+#. module: usl_sign
+msgid "Check before you send"
+msgstr "Vérifiez avant l’envoi"
+
+#. module: usl_sign
+msgid "Confirm the people, method and timing. Nothing is sent until you choose Send for signature."
+msgstr "Confirmez les personnes, la méthode et l’échéance. Rien n’est envoyé avant de choisir Envoyer pour signature."
