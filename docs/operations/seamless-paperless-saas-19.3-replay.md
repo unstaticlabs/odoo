@@ -130,12 +130,17 @@ Before `8658e0bec4a`, the empty merge list proves that no divergent mainline
 ancestry was introduced during replay. The one final merge has exactly
 `f302ae6cdb43` as its second parent; it is the required current `19-usl`
 fast-forward successor, not the archived saas~19.2 lineage.
-An independent union-of-changed-paths comparison leaves only the intentional
-saas~19.2-to-saas~19.3 migration-directory renames and the old
-`accounting_compat/tests/test_release_identity.py` path. That former assertion
-targeted a Dockerfile stage/layout superseded by the current distribution
-infrastructure; it carries no Documents product state. No old branch-specific
-product path is absent from the replay.
+An independent union-of-changed-paths comparison leaves five paths. The two
+saas~19.2 Documents migrations have byte-identical saas~19.3 successors. The
+old `accounting_compat/tests/test_release_identity.py` edit asserted a
+Dockerfile stage/layout superseded by current distribution infrastructure.
+The old Expense catalog added `Documents`, `to review` and `processing`; those
+same French values are retained in the current Documents catalog instead of
+duplicating obsolete catalog ownership. Finally, the old TESE manifest only
+bumped `saas~19.2.1.3.1` to `saas~19.2.1.4.0`; current mainline is authoritative
+at `saas~19.3.1.4.1` and still declares `usl_documents`. No old
+branch-specific product behavior, bytes or translation is absent from the
+replay.
 The final tree must additionally pass the product/migration boundary, module
 install and repeated-update checks, Documents unit/browser tests,
 multi-company acceptance, deterministic smoke reconstruction, and recovery
