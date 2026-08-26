@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlsplit
 from odoo.exceptions import AccessError
 from odoo.tests import TransactionCase, tagged
 
-from ..controllers.strong import (
+from odoo.addons.usl_sign.controllers.strong import (
     _SESSION_COMPLETIONS,
     _SESSION_TRANSACTIONS,
     StrongSignController,

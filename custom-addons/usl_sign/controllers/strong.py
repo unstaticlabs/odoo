@@ -16,8 +16,12 @@ from odoo import fields, http
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request
 
-from ..models.constants import INTERNAL_OPERATION, SIGN_RESULT_SESSION_KEY
-from ..services import (
+from odoo.addons.usl_pocketid.exceptions import PocketIDAccessDenied
+from odoo.addons.usl_sign.models.constants import (
+    INTERNAL_OPERATION,
+    SIGN_RESULT_SESSION_KEY,
+)
+from odoo.addons.usl_sign.services import (
     DSSClient,
     DSSServiceError,
     StepCAClient,
@@ -25,7 +29,6 @@ from ..services import (
     field_content,
     field_value,
 )
-from odoo.addons.usl_pocketid.exceptions import PocketIDAccessDenied
 
 _logger = logging.getLogger(__name__)
 _TRANSACTION_TTL = 300

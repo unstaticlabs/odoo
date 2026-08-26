@@ -7,8 +7,8 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader
 
-from ..services import field_content, field_value
-from .constants import INTERNAL_OPERATION
+from .constants import DOCUMENT_CATEGORIES, INTERNAL_OPERATION
+from odoo.addons.usl_sign.services import field_content, field_value
 
 EDITOR_ROLE_COLORS = (
     "#E86A8D",
@@ -123,16 +123,7 @@ class SignTemplate(models.Model):
 
     description = fields.Text(translate=True)
     default_document_category = fields.Selection(
-        [
-            ("internal_decision", "Corporate decision document"),
-            ("routine_agreement", "Routine agreement"),
-            ("employment", "Employment document"),
-            ("intellectual_property", "Intellectual property"),
-            ("commercial", "Commercial agreement"),
-            ("finance_guarantee", "Financing or guarantee"),
-            ("mandate", "Mandate"),
-            ("other", "Other"),
-        ],
+        DOCUMENT_CATEGORIES,
         string="Category",
         default="routine_agreement",
         required=True,

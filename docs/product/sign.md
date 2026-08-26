@@ -33,10 +33,8 @@ business decisions are not part of its menus, dashboard, start flow, access
 rights, fixtures, or user guidance. Teams should use the native approval flow
 of the relevant Odoo business application when no signed document is needed.
 
-An earlier `usl.sign.approval` implementation remains dormant in source so it
-can be evaluated as a separate product later. Its views are not loaded and its
-models have no normal-user access. Re-enabling it requires a dedicated product,
-security, and evidence review; it must not be exposed ad hoc from Sign.
+Sign does not contain an approval-only model or UI. Adding one in the future
+requires a separate product, security, and evidence review.
 
 ## End-user workspaces
 
@@ -246,6 +244,10 @@ of the product.
 Odoo exports the exact DSS-prepared frozen PDF, signer information, hashes and
 instructions, then enters `Waiting for external signature`. The returned PDF
 and proof files enter `Signed document to import` and `Validation in progress`.
+Signers may download the frozen document and open the reviewed provider, but
+only the requester, a named coordinator or a Sign administrator may import,
+validate or retry the returned result. These checks are enforced by the model
+methods as well as by the interface.
 DSS reconstructs the revision covered by the first signature and requires it
 to match the exported PDF, then validates the signatures, signer attribution,
 certificate chains, timestamps, qualified trust provider, qualified

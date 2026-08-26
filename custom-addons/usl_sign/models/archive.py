@@ -54,9 +54,8 @@ class SignRequestArchive(models.Model):
                 request.state != "evidence_incomplete"
                 or request.archive_status != "failed"
             ):
-                raise ValidationError(
-                    "Final storage can only be retried after an archival failure.",
-                )
+                msg = "Final storage can only be retried after an archival failure."
+                raise ValidationError(msg)
             request._archive_dossier(force=True)
         return True
 

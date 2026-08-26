@@ -5,9 +5,9 @@ from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.tools.misc import format_datetime
 
-from ..models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
 from .strong import _personal_certificate_subject
 from odoo.addons.sign_oca.controllers.main import PortalSign
+from odoo.addons.usl_sign.models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
 
 STRONG_CSP = (
     "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; "

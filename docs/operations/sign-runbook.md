@@ -106,10 +106,8 @@ The installed Sign application is document-only. Its navigation is:
 - **Configuration** for identity, trust, provider, readiness, timestamp and
   role administration according to group membership.
 
-The dormant internal-decision experiment is not installed. When a signed PDF
-is unnecessary, use the approval mechanism of the relevant Odoo business app.
-Do not expose the dormant model or views from Sign without a separate product
-and security review.
+When a signed PDF is unnecessary, use the approval mechanism of the relevant
+Odoo business app. Sign contains no approval-only workflow.
 
 Configuration entries answer distinct operational questions:
 
