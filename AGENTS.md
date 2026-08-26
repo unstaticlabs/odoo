@@ -33,6 +33,30 @@ distribution-level core patch and the tradeoff is documented.
 - Treat accounting, security, privacy, access control, data integrity, and migration-sensitive changes as risky. Inspect the surrounding model, security, view, migration, and test behavior before changing them.
 - Do not make unrelated refactors, broad rewrites, formatting churn, speculative abstractions, or product changes outside the requested scope.
 
+## UI Design Workflow
+
+- Use the project-local `impeccable` skill for product UI and UX work,
+  including new views, redesigns, layout or typography changes, responsive
+  behavior, accessibility reviews and frontend polish.
+- Load `PRODUCT.md` through the skill before UI work. Existing specifications
+  under `docs/product/`, `docs/accounting/`, `docs/operations/` and
+  `docs/users/` remain the detailed authorities; do not create a competing
+  product or design narrative.
+- Treat Odoo application surfaces as **Operate** interfaces. Preserve native
+  Odoo interaction patterns, semantics, security and familiar components while
+  applying strong hierarchy, clarity, accessibility and responsive behavior.
+- The shared workflow is code-first. For a new or materially redesigned
+  surface, shape the workflow and direction before implementation. For scoped
+  refinements, preserve the incumbent identity and use the narrowest relevant
+  Impeccable command.
+- Keep the Impeccable detector hook enabled. Resolve real findings rather than
+  suppressing them, and document any evidence-backed exception through the
+  skill's governed ignore workflow.
+- Impeccable live variant mode is not configured for this repository because
+  Odoo views and asset bundles are generated through the Odoo runtime rather
+  than a supported HMR or static-source pipeline. Do not introduce a parallel
+  frontend runtime merely to enable live mode.
+
 ## Product and Migration Boundary
 
 - `custom-addons/` is the delivered product add-ons path. Do not put source
