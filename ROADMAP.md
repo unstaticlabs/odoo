@@ -116,8 +116,9 @@ completed on 26 August and published a reusable sanitized QA seed. The run
 proved repeatable Product, Accounting, Identity, B2C, HR, Projects, Documents,
 Paie TESE and Platform Billing restoration, 645 archived Paperless documents,
 636 live authorized document mappings, and a final product-only registry.
-Two independent zero-OCR seed hydrations, current-source performance
-comparison and the production dress rehearsal remain outstanding.
+Two independent isolated seed hydrations then reproduced identical Accounting,
+Documents and Paperless controls with zero OCR submissions. Current-source
+performance comparison and the production dress rehearsal remain outstanding.
 
 The current candidate's isolated clean-install and repeated-update check passes
 for all thirteen presently delivered product modules with no migration registry
@@ -168,9 +169,9 @@ The canonical, evidence-bearing sequence is maintained in the
 5. Review and merge Native Sign with signing evidence and permission gates.
 6. Review and merge monthly bank-statement email ingestion with idempotence,
    failure visibility and a manual-import fallback.
-7. From clean final `19-usl`, run clean install, update, repeated update, full
-   local reconstruction and complete product/migration boundary across every
-   delivered module.
+7. From clean final `19-usl`, repeat clean install, update, repeated update,
+   full local reconstruction and complete product/migration boundary across
+   every delivered module after the remaining workstreams are merged.
 
 The exact merge order may change to resolve dependencies, but each feature
 remains independently reviewed and every merge invalidates earlier release

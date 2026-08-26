@@ -36,8 +36,11 @@ product modules with no migration registry/schema residue. Accounting remained
 balanced at EUR 2,900,936.82 debit and credit; B2C retained 304 canonical
 orders, 457 source lines, 1,821 payment/refund/fee events, 261 fulfilments and
 109 unresolved SKU aliases. Paperless archived 645 documents and synchronized
-636 live authorized mappings. This is current rehearsal evidence, not a final
-frozen-source production candidate.
+636 live authorized mappings. A separate empty-database installation passed
+for all thirteen product modules, and two isolated full-seed hydrations matched
+the sealed Accounting, Documents and Paperless controls with zero OCR
+submissions. This is current rehearsal evidence, not a final frozen-source
+production candidate.
 
 ## Non-negotiable boundaries
 
@@ -114,9 +117,10 @@ partial `odoo_dev` installation is not final-target evidence.
 - [x] Record exact total and stage durations, including Accounting and full
   Paperless reconstruction, for the 26 August rehearsal. Repeat for the final
   candidate.
-- [ ] Publish one schema-compatible full-profile reusable QA seed from the main
+- [x] Publish one schema-compatible full-profile reusable QA seed from the main
   checkout, then hydrate it twice in separate projects with identical controls
-  and zero OCR submissions. Do not call this production evidence.
+  and zero OCR submissions. Completed for the 26 August rehearsal; repeat after
+  the remaining merges and do not call this production evidence.
 - [ ] Complete the browser matrix for administrator, manager, normal user,
   read-only accountant, multi-company isolation and each feature journey.
 - [ ] Complete Accounting Manager acceptance and schedule the required
