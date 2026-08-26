@@ -1,3 +1,4 @@
+# ruff: noqa: F821, T201 -- Odoo shell injects env; stdout is the test result.
 """Verify every completion gate after the browser Strong ceremony."""
 
 import base64
@@ -9,13 +10,14 @@ from datetime import timedelta
 
 from odoo.addons.usl_sign.services import field_content
 
-
 request_id = int(os.environ.get("USL_SIGN_ACCEPTANCE_REQUEST_ID", "0"))
 if request_id <= 0:
-    raise RuntimeError("A Strong acceptance request ID is required")
+    msg = "A Strong acceptance request ID is required"
+    raise RuntimeError(msg)
 sign_request = env["sign.oca.request"].browse(request_id).exists()
 if not sign_request:
-    raise RuntimeError("The Strong acceptance request no longer exists")
+    msg = "The Strong acceptance request no longer exists"
+    raise RuntimeError(msg)
 
 for _attempt in range(30):
     sign_request.invalidate_recordset()
@@ -32,7 +34,8 @@ ceremony = env["usl.sign.ceremony"].search(
     limit=1,
 )
 if not ceremony:
-    raise RuntimeError("The Strong acceptance ceremony is missing")
+    msg = "The Strong acceptance ceremony is missing"
+    raise RuntimeError(msg)
 validation_record = sign_request.validation_ids.sorted("id")[-1:]
 required_evidence = {"authentication", "certificate", "consent", "validation"}
 available_evidence = set(sign_request.evidence_ids.mapped("kind"))
@@ -60,7 +63,7 @@ checks = {
         and validation_record.engine_version == "6.4"
         and validation_record.status == "valid"
         and validation_record.achieved_trust == "strong_personal"
-        and validation_record.report_evidence_id
+        and validation_record.report_evidence_id,
     ),
     "evidence_complete": sign_request.evidence_status == "complete",
     "archive_confirmed": sign_request.archive_status == "archived",
@@ -68,38 +71,38 @@ checks = {
     "signer_signed": all(signer.state == "signed" for signer in sign_request.signer_ids),
     "ceremony_completed": bool(ceremony and ceremony.state == "completed"),
     "ceremony_secret_cleared": bool(
-        ceremony and not ceremony.data_to_sign and not ceremony.dss_signing_context
+        ceremony and not ceremony.data_to_sign and not ceremony.dss_signing_context,
     ),
     "oidc_validated": bool(
         ceremony
-        and ceremony.oidc_validation_result.get("status") == "valid_fresh_passkey"
+        and ceremony.oidc_validation_result.get("status") == "valid_fresh_passkey",
     ),
     "amr_is_fresh_passkey": ceremony.oidc_claims_summary.get("amr") == ["phr"],
     "auth_time_is_fresh": bool(
         auth_time
         and int(ceremony.create_date.timestamp())
         <= int(auth_time.timestamp())
-        <= int(auth_upper_bound.timestamp())
+        <= int(auth_upper_bound.timestamp()),
     ),
     "binding_digest_matches": bool(
         ceremony.challenge_sha256 == binding_digest.hex()
-        and ceremony.oidc_nonce == expected_oidc_nonce
+        and ceremony.oidc_nonce == expected_oidc_nonce,
     ),
     "document_binding_matches": bool(
         ceremony.binding_payload.get("document_sha256") == ceremony.document_sha256
         and ceremony.binding_payload.get("csr_sha256") == ceremony.csr_sha256
         and ceremony.binding_payload.get("public_key_sha256")
         == ceremony.public_key_sha256
-        and ceremony.binding_payload.get("consent_sha256") == ceremony.consent_sha256
+        and ceremony.binding_payload.get("consent_sha256") == ceremony.consent_sha256,
     ),
     "certificate_short_lived": bool(
         timedelta(0) < certificate_lifetime <= timedelta(minutes=10, seconds=5)
-        and ceremony.certificate_not_after > ceremony.authorized_at
+        and ceremony.certificate_not_after > ceremony.authorized_at,
     ),
     "signed_oidc_token_preserved": bool(ceremony.oidc_id_token),
     "event_chain_valid": bool(event_head),
     "signed_manifest_present": bool(
-        sign_request.evidence_ids.filtered(lambda evidence: evidence.kind == "manifest")
+        sign_request.evidence_ids.filtered(lambda evidence: evidence.kind == "manifest"),
     ),
     "required_evidence": required_evidence.issubset(available_evidence),
 }
@@ -115,7 +118,8 @@ validation = sign_request._sign_dss_client().validate(
     expected_level="strong_personal",
 )
 if validation.get("status") != "valid" or validation.get("achievedTrust") != "strong_personal":
-    raise RuntimeError("Independent final DSS validation rejected the Strong PDF")
+    msg = "Independent final DSS validation rejected the Strong PDF"
+    raise RuntimeError(msg)
 
 payload = {
     "archive_document_id": sign_request.archive_document_id.id,

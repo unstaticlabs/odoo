@@ -20,9 +20,16 @@ from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfWriter
 
-from ..controllers.strong import StrongSignController, _personal_certificate_subject
-from ..models.constants import INTERNAL_OPERATION, REQUEST_STATES, TRUST_LEVELS
-from ..services import (
+from odoo.addons.usl_sign.controllers.strong import (
+    StrongSignController,
+    _personal_certificate_subject,
+)
+from odoo.addons.usl_sign.models.constants import (
+    INTERNAL_OPERATION,
+    REQUEST_STATES,
+    TRUST_LEVELS,
+)
+from odoo.addons.usl_sign.services import (
     DSSClient,
     DSSRejectedError,
     DSSServiceError,
@@ -856,14 +863,6 @@ class TestCleanUslSign(TransactionCase):
         request.with_user(self.override_user).action_mark_ready()
         self.assertEqual(request.state, "ready")
 
-    def test_every_sign_request_requires_a_signed_document(self):
-        request = self._request(
-            document_category="internal_decision", requires_signed_pdf=False,
-        )
-        self.assertFalse(request.approval_recommended)
-        with self.assertRaisesRegex(ValidationError, "must produce a signed PDF"):
-            request.action_mark_ready()
-
     def test_freeze_is_deterministic_and_sent_content_is_immutable(self):
         request = self._ready(self._request())
         request._freeze_document()
@@ -1337,6 +1336,66 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(result["res_id"], request.id)
         self.assertFalse(request.completed_at)
 
+    def test_external_signer_cannot_import_validate_or_reconfigure_journey(self):
+        signer_user = new_test_user(
+            self.env,
+            login="usl-sign-external-permission-signer",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        provider = self.env["usl.sign.external.provider"].create(
+            {
+                "name": "Permission-test qualified provider",
+                "territory": "EU",
+                "mobile_url": "https://provider.example.test/mobile",
+                "instructions": "Return the signed PDF and provider proof.",
+                "reviewed_on": fields.Date.today(),
+            },
+        )
+        request = self._request(
+            partners=[signer_user.partner_id],
+            user_id=self.sign_user.id,
+            requested_trust="qualified_external",
+            external_provider_id=provider.id,
+            original_sha256="0" * 64,
+        )
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"state": "waiting_external"},
+        )
+        journey = request._prepare_external_journey().with_user(signer_user)
+
+        self.assertEqual(journey.action_export()["target"], "download")
+        with self.assertRaises(AccessError):
+            journey.action_open_import()
+        with self.assertRaises(AccessError):
+            journey.action_import()
+        with self.assertRaises(AccessError):
+            journey.write({"frozen_sha256": "1" * 64})
+
+        signer_request = request.with_user(signer_user)
+        for action in (
+            signer_request.action_resume_after_enrollment,
+            signer_request.action_validate_external,
+            signer_request.action_send_reminder,
+            signer_request.action_retry_validation,
+        ):
+            with self.assertRaises(AccessError):
+                action()
+
+        wizard = self.env["usl.sign.external.import.wizard"].with_user(
+            signer_user,
+        ).create(
+            {
+                "journey_id": journey.id,
+                "signed_pdf": field_value(self.pdf),
+                "signed_filename": "forbidden.pdf",
+                "proof_package": field_value(b"forbidden proof"),
+                "proof_filename": "forbidden.zip",
+            },
+        )
+        with self.assertRaises(AccessError):
+            wizard.action_import()
+
     def test_external_validation_outage_is_retryable_not_a_rejection(self):
         provider = self.env["usl.sign.external.provider"].create(
             {
@@ -1552,7 +1611,7 @@ class TestCleanUslSign(TransactionCase):
                 return_value=FakeDSS(),
             ),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 fields.Date.today(),
             )
@@ -1718,7 +1777,7 @@ class TestCleanUslSign(TransactionCase):
             "strong_signature_attempt_cancelled",
         )
 
-    def test_decisions_are_not_loaded_into_the_product_registry(self):
+    def test_approval_workflows_are_not_loaded_into_the_product_registry(self):
         self.assertNotIn("usl.sign.approval", self.env.registry)
         self.assertNotIn("usl.sign.approval.event", self.env.registry)
         self.assertFalse(
@@ -2363,7 +2422,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 first_day,
             )
@@ -2387,7 +2446,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            next_manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            next_manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 second_day,
             )
@@ -2434,7 +2493,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(manifests[1].previous_manifest_id, manifests[0])
         self.assertEqual(manifests[2].previous_manifest_id, manifests[1])
         with self.assertRaises(ValidationError):
-            self.env["usl.sign.daily.manifest"].build_for_day(
+            self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 fields.Date.today(),
             )
@@ -2451,7 +2510,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 first_day,
             )
@@ -2496,7 +2555,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 first_day,
             )
@@ -2548,7 +2607,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 first_day,
             )
@@ -2591,7 +2650,7 @@ class TestCleanUslSign(TransactionCase):
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
                 self.company,
                 first_day,
             )

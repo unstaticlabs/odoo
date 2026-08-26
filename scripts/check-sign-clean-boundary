@@ -33,6 +33,9 @@ FORBIDDEN = (
     "sign_webauthn",
     "registration_challenge",
     "verify_authentication_response",
+    "approval_recommended",
+    "internal_decision",
+    "requires_signed_pdf",
 )
 FORBIDDEN_PATHS = (
     ROOT / "migration" / "sign_restore",
@@ -40,6 +43,8 @@ FORBIDDEN_PATHS = (
     ROOT / "docs" / "operations" / "sign-yousign-runbook.md",
     ROOT / "custom-addons" / "usl_sign" / "controllers" / "webhook.py",
     ROOT / "custom-addons" / "usl_sign" / "services" / "yousign.py",
+    ROOT / "custom-addons" / "usl_sign" / "models" / "approval.py",
+    ROOT / "custom-addons" / "usl_sign" / "views" / "sign_approval_views.xml",
 )
 REQUIRED_PURPOSE_SEPARATION = {
     ROOT / "compose.yaml": (

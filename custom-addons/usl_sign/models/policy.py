@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-from .constants import TRUST_LEVELS
+from .constants import DOCUMENT_CATEGORIES, TRUST_LEVELS
 
 
 class SignPolicy(models.Model):
@@ -14,18 +14,7 @@ class SignPolicy(models.Model):
     active = fields.Boolean(default=True)
     company_id = fields.Many2one("res.company", index=True, ondelete="cascade")
     version = fields.Char(required=True, default="1")
-    document_category = fields.Selection(
-        [
-            ("internal_decision", "Corporate decision document"),
-            ("routine_agreement", "Routine agreement"),
-            ("employment", "Employment document"),
-            ("intellectual_property", "Intellectual property"),
-            ("commercial", "Commercial agreement"),
-            ("finance_guarantee", "Financing or guarantee"),
-            ("mandate", "Mandate"),
-            ("other", "Other"),
-        ],
-    )
+    document_category = fields.Selection(DOCUMENT_CATEGORIES)
     signer_type = fields.Selection(
         [
             ("internal", "Internal user"),

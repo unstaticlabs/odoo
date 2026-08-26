@@ -13,7 +13,7 @@ from opentimestamps.core.timestamp import DetachedTimestampFile, Timestamp
 
 from odoo.tests import TransactionCase, tagged
 
-from ..services import (
+from odoo.addons.usl_sign.services import (
     OpenTimestampsClient,
     OpenTimestampsRejectedError,
     OpenTimestampsUnavailableError,

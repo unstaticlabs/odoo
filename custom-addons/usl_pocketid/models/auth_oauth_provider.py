@@ -333,7 +333,10 @@ class AuthOauthProvider(models.Model):
             if "client_secret_basic" in supported_methods
             else "client_secret_post"
         )
-        if token_auth_method not in _SUPPORTED_TOKEN_AUTH_METHODS or token_auth_method not in supported_methods:
+        if (
+            token_auth_method not in _SUPPORTED_TOKEN_AUTH_METHODS
+            or token_auth_method not in supported_methods
+        ):
             raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         strict_required = _env_enabled("USL_POCKET_ID_SIGN_FRESH_REQUIRED")
         strict_supported = discovery["fresh_passkey_reauthentication_supported"]
