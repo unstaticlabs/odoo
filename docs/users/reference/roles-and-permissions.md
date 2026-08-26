@@ -46,6 +46,22 @@ Can inspect the evaluator or engine key, source module and technical boundary
 behind Controls, Reports and Declarations. Business configuration does not
 allow arbitrary Python, SQL or JavaScript execution.
 
+## B2C roles
+
+- **B2C Reviewer:** can inspect structured orders, events, fulfilments,
+  mappings, sessions, analytics and allowed native drill-downs. Cannot change
+  records or inspect restricted raw provider payloads.
+- **B2C Operator:** can verify or reject SKU mappings and evidence links,
+  refresh or review monthly sessions, and lock an approved session.
+- **B2C Manager:** also configures channels, unlocks sessions with an audit
+  note and manages B2C access.
+- **Restricted Provider Evidence:** separately grants access to raw provider
+  payloads that may contain personal data. Grant it only for a documented
+  investigation.
+
+All B2C roles are company-scoped. They do not grant permission to post,
+reconcile or modify the native Accounting records referenced by a B2C link.
+
 ## Company access
 
 The company switcher controls the active company context. A user sees only

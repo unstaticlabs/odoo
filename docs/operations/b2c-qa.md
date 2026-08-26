@@ -57,3 +57,17 @@ the tests. B2C itself is not production-ready until final archive links are
 complete, physical opening stock is supported by an approved dated count, all
 required historical company-currency amounts have evidence, and unresolved
 SKU/accounting relationships have an explicit reviewed disposition.
+
+For the 26 August source-complete rehearsal, the visible queue is:
+
+- 109 pending SKU aliases and no verified or rejected mappings yet;
+- 306 foreign-currency events without complete company-currency amounts;
+- 35 orders without evidenced currency and 304 orders without a verified
+  accounting link;
+- 2,386 event/fulfilment records without a verified accounting relationship;
+- 9 verified and 31 pending B2C archive-attachment links;
+- no approved dated physical opening-stock count.
+
+These counts are source-bound acceptance controls. Resolve them through
+evidence-backed review or an approved explicit disposition; do not make the
+software infer a relationship merely to reduce the queue.

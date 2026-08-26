@@ -225,6 +225,14 @@ represented as full parity. The separate physical opening-stock evidence item
 also remains blocking for B2C operational release even though it is not a fact
 contained in the source database.
 
+The strict 26 August rehearsal reports eight incomplete scopes:
+`ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
+`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
+pending source attachment IDs, represented by 1 AI-configuration action, 64
+collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
+actions. Action totals can overlap when one attachment has more than one
+relationship; the 115 source IDs are the file-level count.
+
 ### B2C commerce stage
 
 B2C runs after Accounting and Product restoration. It parses 39 checksum-locked
@@ -246,14 +254,18 @@ column dispositions live in `migration/b2c_restore/source-field-matrix.md`.
 
 ### Platform Billing stage
 
-Platform Billing runs after Accounting, Projects and Paie TESE and before the
-Documents archive. The temporary importer links source platforms, sessions and
-payouts to the already reconstructed native journal entries. It does not
-recreate those entries or import the source suggestion cache: suggestions are
-recomputed from current bank data. A repeated import must retain the same
-application and ledger digests. Finalization uninstalls the importer and
-removes its allow-listed physical source columns before the ordinary product
-registry is accepted.
+Platform Billing runs after Accounting, Projects, the Documents archive, the
+idempotent post-Documents B2C refresh, and Paie TESE. The temporary importer
+links source platforms, sessions and payouts to the already reconstructed
+native journal entries. It does not recreate those entries or import the
+source suggestion cache: suggestions are recomputed from current bank data. A
+repeated import must retain the same application and ledger digests.
+Finalization uninstalls temporary modules in reverse dependency order, keeps
+the complete temporary add-ons path available until the last uninstall, then
+runs Platform Billing's schema scrub and every product-only boundary check.
+This prevents an ordinary Odoo registry from starting while a temporary module
+is still installed. The final scrub removes allow-listed source columns before
+the ordinary product registry is accepted.
 
 ### Documents archive stage
 

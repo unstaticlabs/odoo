@@ -19,6 +19,7 @@ nav:
       - Guided Accounting Tour: tutorials/accounting-application.md
   - How-To Guides:
       - Record and Reconcile TESE Payroll: guides/paie-tese.md
+      - Review B2C Commerce History: guides/review-b2c-commerce.md
       - Process a Supplier Bill: how-to/process-vendor-bill.md
       - Process an Expense: how-to/process-expense.md
       - Group Expenses into a Batch: guides/expense-batches.md

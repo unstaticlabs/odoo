@@ -59,6 +59,19 @@ side never implies that the other is settled.
 - **Partial** — linked items remain open for a residual amount.
 - **Fully reconciled** — linked items balance and share a full matching reference.
 
+## B2C review
+
+SKU mappings and accounting/evidence links use **Pending**, **Verified** and
+**Rejected**. Pending means no defensible decision has been made. Verified
+means a reviewer confirmed the exact relationship; it does not modify the
+linked product, stock or accounting record. Rejected preserves the original
+evidence and records that the proposed relationship is not valid.
+
+Monthly sessions are **Draft**, **Reviewed** or **Locked**. Reviewed means the
+operator checked the evidenced totals and explained remaining gaps; it is not a
+claim of complete coverage. Locked prevents refreshes and link/mapping changes
+for that session. Only a B2C Manager can unlock it with an audit note.
+
 ## Hygiene
 
 - **Open** — the underlying condition is present.

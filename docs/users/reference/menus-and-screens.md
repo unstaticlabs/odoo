@@ -107,6 +107,20 @@ small line indicator explains the exact missing information, warning or real
 context difference. Accounting entries retain a direct link back to the Batch
 and its expenses.
 
+## B2C application
+
+**Orders** contains canonical historical orders and every retained source row.
+**Operations** separates payments/refunds/fees, fulfilment/COGS and governed
+product/SKU mappings. **Accounting Sessions** contains monthly review sessions
+and links to existing Accounting or bank evidence. **Analytics** deliberately
+separates order revenue, evidenced line revenue, payment events, fulfilment
+costs and native stock so totals from different grains are not multiplied.
+
+**Configuration** is limited to B2C Managers. Restricted provider payloads are
+hidden unless the user also has the sensitive-evidence role because they may
+contain customer personal data. See [Review B2C commerce
+history](../guides/review-b2c-commerce.md) for the complete review workflow.
+
 ## Action explanations
 
 Consequential or non-obvious product buttons provide a concise explanation
