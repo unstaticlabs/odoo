@@ -1807,6 +1807,9 @@ class TestCleanUslSign(TransactionCase):
             set(landing["sections"]),
             {"sign_now", "prepare", "issues", "waiting", "completed"},
         )
+        open_requests = self.env.ref("usl_sign.sign_request_action")
+        self.assertIn("Request signatures", open_requests.help)
+        self.assertNotIn("<strong>Start</strong>", open_requests.help)
 
         my_signatures = self.env.ref("usl_sign.my_signatures_action")
         self.assertNotIn("search_default", my_signatures.context or "")
@@ -1856,6 +1859,47 @@ class TestCleanUslSign(TransactionCase):
         self.assertTrue(item["due"])
         self.assertNotEqual(item["due"], "2026-09-23 20:20:27")
         self.assertNotIn(":27", item["due"])
+
+    def test_strong_requests_surface_identity_setup_before_sending(self):
+        request = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+            user_id=self.sign_user.id,
+            requested_trust="strong_personal",
+        )
+        request.invalidate_recordset()
+
+        self.assertTrue(request.strong_enrollment_missing)
+        self.assertIn(self.partner_one.name, request.strong_enrollment_summary)
+        self.assertIn(self.partner_two.name, request.strong_enrollment_summary)
+        self.assertIn(self.partner_one.name, request.signer_names_summary)
+        self.assertIn(self.role_customer.name, request.signer_names_summary)
+
+        landing = self.env["usl.sign.workspace"].with_user(
+            self.sign_user,
+        ).get_landing()
+        issue_ids = {item["id"] for item in landing["sections"]["issues"]["items"]}
+        prepare_ids = {item["id"] for item in landing["sections"]["prepare"]["items"]}
+        self.assertIn(request.id, issue_ids)
+        self.assertNotIn(request.id, prepare_ids)
+
+        request_form = self.env.ref("usl_sign.sign_request_form_usl").arch
+        self.assertIn("Check before you send", request_form)
+        self.assertIn("Signer identity setup is required before sending", request_form)
+
+    def test_my_identity_has_one_direct_form_journey(self):
+        self.assertFalse(
+            self.env.ref("usl_sign.my_sign_identity_action", raise_if_not_found=False),
+        )
+        self.assertFalse(
+            self.env.ref("usl_sign.sign_enrollment_my_list", raise_if_not_found=False),
+        )
+        identity_form = self.env.ref("usl_sign.sign_enrollment_my_form").arch
+        self.assertIn("Step 1", identity_form)
+        self.assertIn("Connect Pocket ID", identity_form)
+        self.assertIn("Organization review", identity_form)
+        review_action = self.env.ref("usl_sign.sign_enrollment_action")
+        self.assertIn("search_default_needs_attention", review_action.context)
 
     def test_identity_and_external_journeys_use_business_language(self):
         enrollment = self.env["usl.sign.enrollment"].new(

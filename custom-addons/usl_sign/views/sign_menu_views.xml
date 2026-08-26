@@ -42,21 +42,6 @@
             <p>Capability checks are created automatically for each company. Ask a Sign administrator to verify the module installation.</p>
         </field>
     </record>
-    <record id="my_sign_identity_action" model="ir.actions.act_window">
-        <field name="name">My Signing Identity</field>
-        <field name="res_model">usl.sign.enrollment</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_ids" eval="[
-            (5, 0, 0),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('sign_enrollment_my_list')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('sign_enrollment_my_form')})
-        ]"/>
-        <field name="domain">[('partner_id.user_ids', 'in', [uid])]</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">No signing identity yet</p>
-            <p>A reviewed Pocket ID identity link is required before you can use Strong personal signing. Pocket ID manages account security and recovery.</p>
-        </field>
-    </record>
     <record id="my_sign_identity_server_action" model="ir.actions.server">
         <field name="name">My Signing Identity</field>
         <field name="model_id" ref="model_usl_sign_enrollment"/>
