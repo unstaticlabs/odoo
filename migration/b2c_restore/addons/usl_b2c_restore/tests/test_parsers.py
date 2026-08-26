@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from odoo.tests import BaseCase, tagged
 
+from odoo.addons.usl_b2c_restore.models.relationships import accounting_link_type
 from odoo.addons.usl_b2c_restore.parsers import (
     ETSY_STATEMENT_HEADER,
     MEDUSA_ITEMS_HEADER,
@@ -14,7 +15,14 @@ from odoo.addons.usl_b2c_restore.parsers import (
     parse_revolut_events,
     parse_stripe_events,
 )
-from odoo.addons.usl_b2c_restore.source import B2cSourceReader
+from odoo.addons.usl_b2c_restore.source import (
+    SOURCE_FILES,
+    SOURCE_PACKAGE_FILES,
+    SUPPLEMENTAL_SHA256,
+    SUPPLEMENTAL_SOURCE_FILES,
+    SUPPLIER_NAMES,
+    B2cSourceReader,
+)
 
 
 @tagged("b2c_source", "-standard")
@@ -68,6 +76,37 @@ class TestB2cSourceParsers(BaseCase):
                 MEDUSA_ITEMS_HEADER,
                 delimiter=";",
             )
+
+    def test_locked_source_package_has_one_canonical_manifest(self):
+        self.assertEqual(len(SOURCE_FILES), 39)
+        self.assertEqual(len(SUPPLEMENTAL_SOURCE_FILES), 1)
+        self.assertEqual(len(SOURCE_PACKAGE_FILES), 40)
+        self.assertEqual(len({item.name for item in SOURCE_PACKAGE_FILES}), 40)
+        supplemental = SUPPLEMENTAL_SOURCE_FILES[0]
+        self.assertEqual(supplemental.kind, "medusa_items")
+        self.assertEqual(
+            SUPPLEMENTAL_SHA256[supplemental.name],
+            "e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a",
+        )
+        self.assertEqual(len(SUPPLIER_NAMES), 18)
+        self.assertEqual(
+            self.source["supplier_documents"],
+            {
+                "rows": 76,
+                "digest": "6ed09604a5a896cc87699779837d1bcf",
+            },
+        )
+
+    def test_accounting_relationship_types_are_deterministic(self):
+        self.assertEqual(accounting_link_type("stripe:fees:2026-07"), "fee")
+        self.assertEqual(accounting_link_type("etsy:payout:BNK1/25-26/1"), "payout")
+        self.assertEqual(accounting_link_type("medusa:refund:abc"), "refund")
+        self.assertEqual(
+            accounting_link_type("printful:wallet:consumption:2026-07"),
+            "cogs",
+        )
+        self.assertEqual(accounting_link_type("medusa:sales:2026-07"), "revenue")
+        self.assertEqual(accounting_link_type("stripe:conversion:USD"), "clearing")
 
     def test_archive_baseline_and_multicurrency(self):
         self.assertEqual(

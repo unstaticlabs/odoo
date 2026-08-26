@@ -85,6 +85,8 @@
                             <field name="mapping_state"/>
                             <field name="review_state"/>
                             <field name="completeness_state"/>
+                            <field name="accounting_link_state"/>
+                            <field name="accounting_link_note"/>
                         </group>
                     </group>
                     <group>
@@ -241,6 +243,8 @@
                             <field name="destination_country_id"/>
                             <field name="completeness_state"/>
                             <field name="review_state"/>
+                            <field name="accounting_link_state"/>
+                            <field name="accounting_link_note"/>
                         </group>
                     </group>
                     <group>

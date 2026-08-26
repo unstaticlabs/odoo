@@ -115,7 +115,7 @@ class TestB2cFoundation(TransactionCase):
             self.env["b2c.accounting.session"]._fields[
                 "accounting_link_coverage_percent"
             ].string,
-            "Accounting Link Coverage (%)",
+            "Accounting Disposition Coverage (%)",
         )
         for xmlid in (
             "usl_b2c.view_b2c_order_list",
@@ -337,6 +337,7 @@ class TestB2cFoundation(TransactionCase):
                 "attachment_id": attachment.id,
             },
         )
+        order.accounting_link_state = "partial"
         session = self.env["b2c.accounting.session"].create(
             {
                 "company_id": self.company.id,
@@ -354,6 +355,11 @@ class TestB2cFoundation(TransactionCase):
         self.assertEqual(session.gross_margin_company_amount, 72)
         self.assertEqual(session.unallocated_revenue_company_amount, 40)
         self.assertAlmostEqual(session.line_revenue_coverage_percent, 66.6666667)
+        self.assertEqual(session.direct_accounting_link_count, 0)
+        self.assertEqual(session.aggregate_covered_count, 1)
+        self.assertEqual(session.not_applicable_link_count, 0)
+        self.assertAlmostEqual(session.accounting_link_coverage_percent, 100 / 3)
+        self.assertEqual(session.direct_accounting_link_coverage_percent, 0)
         self.assertEqual(session.pending_mapping_count, 1)
         self.assertEqual(session.pending_link_count, 2)
         self.assertEqual(session.pending_conversion_count, 1)

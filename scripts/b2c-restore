@@ -13,7 +13,7 @@ target_database="${B2C_TARGET_DATABASE:-odoo_dev}"
 test_database="${B2C_TEST_DATABASE:-odoo_test_usl_b2c_restore}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
 expected_sha256="0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
-supplemental_dir="${B2C_SUPPLEMENTAL_EVIDENCE_HOST_DIR:-$ROOT/artifacts/b2c-restore/source}"
+supplemental_dir="$source_dump_dir/supplemental/b2c"
 medusa_items_name="medusa-sold-items-2026-08-05.csv"
 medusa_items_sha256="e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
 migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
@@ -48,6 +48,7 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 mkdir -p "$ROOT/artifacts/b2c-restore"
 compose=(docker compose -p "$compose_project")
+export ACCOUNTING_COMPAT_COMPOSE_PROJECT="$compose_project"
 
 validate_supplemental_evidence() {
     local source_file="$supplemental_dir/$medusa_items_name" actual_sha256
@@ -87,13 +88,13 @@ trap restore_product_service EXIT INT TERM
 run_shell() {
     local script_path="$1"
     "${compose[@]}" --profile accounting-compat --profile b2c-migration run --rm -T \
-        --volume "$supplemental_dir:/mnt/b2c-evidence/source:ro" \
         -e B2C_SOURCE_DB_HOST="${B2C_SOURCE_DB_HOST:-accounting-source-db}" \
         -e B2C_SOURCE_DB_PORT="${B2C_SOURCE_DB_PORT:-5432}" \
         -e B2C_SOURCE_DB_USER="${B2C_SOURCE_DB_USER:-odoo}" \
         -e B2C_SOURCE_DB_PASSWORD="${B2C_SOURCE_DB_PASSWORD:-odoo}" \
         -e B2C_SOURCE_DATABASE="${B2C_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
         -e B2C_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e B2C_REQUIRE_FINAL_RELATIONSHIPS="${B2C_REQUIRE_FINAL_RELATIONSHIPS:-0}" \
         b2c-migration odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" --database="$target_database" \
         --shell-interface=python < "$script_path"
@@ -145,13 +146,16 @@ test_parsers() {
             return 2
             ;;
     esac
+    # A parser test must be reproducible with an empty source PostgreSQL volume.
+    # Restoring here also applies the canonical dump checksum/read-only controls;
+    # relying on a prior reconstruction would make this test state-dependent.
+    scripts/accounting-compat source-restore
     "${compose[@]}" --profile accounting-compat up -d --wait db accounting-source-db
     "${compose[@]}" --profile test build test
     cleanup_test_database
     "${compose[@]}" --profile test run --rm -T \
         --volume "$ROOT/migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro" \
         --volume "$source_dump_dir:/mnt/accounting-source:ro" \
-        --volume "$supplemental_dir:/mnt/b2c-supplemental:ro" \
         -e ODOO_INIT_DB="$test_database" \
         -e "ODOO_DB_FILTER=^${test_database}$" \
         -e B2C_SOURCE_DB_HOST="${B2C_SOURCE_DB_HOST:-accounting-source-db}" \
@@ -159,7 +163,8 @@ test_parsers() {
         -e B2C_SOURCE_DB_USER="${B2C_SOURCE_DB_USER:-odoo}" \
         -e B2C_SOURCE_DB_PASSWORD="${B2C_SOURCE_DB_PASSWORD:-odoo}" \
         -e B2C_SOURCE_DATABASE="${B2C_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
-        -e B2C_SUPPLEMENTAL_EVIDENCE_DIR=/mnt/b2c-supplemental \
+        -e B2C_REQUIRE_FINAL_RELATIONSHIPS=0 \
+        -e B2C_SUPPLEMENTAL_EVIDENCE_DIR=/mnt/accounting-source/supplemental/b2c \
         -e USL_EINVOICE_LIVE_ENABLED=0 \
         -e USL_EREPORTING_LIVE_ENABLED=0 \
         test odoo --config=/etc/odoo/odoo.conf \

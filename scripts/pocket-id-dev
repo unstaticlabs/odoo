@@ -255,6 +255,15 @@ configure_odoo() {
   if [[ "$skip_paperless" != 1 ]]; then
     start_paperless_runtime
   fi
+  # ``init-db`` intentionally reuses the delivered Odoo image and has no
+  # independent build definition.  On a completely clean Docker host Compose
+  # otherwise attempts to pull the project-local image, builds the sibling
+  # ``odoo`` service only after that pull fails, and still returns the original
+  # non-zero status.  Materialize the image first so the first governed
+  # configuration run behaves exactly like every later idempotent run.
+  if ! docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1; then
+    "${COMPOSE[@]}" build odoo
+  fi
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   modules_csv="usl_pocketid"
   if [[ "$module" != "usl_pocketid" ]]; then

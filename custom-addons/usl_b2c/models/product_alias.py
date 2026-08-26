@@ -57,7 +57,10 @@ class B2cProductAlias(models.Model):
         string="Suggested Product",
         check_company=True,
         ondelete="restrict",
-        help="Suggestions are advisory only and never verify a mapping automatically.",
+        help=(
+            "Suggestions are advisory. A product is assigned only through a "
+            "governed, evidence-backed verification."
+        ),
     )
     evidence_note = fields.Text()
     evidence_id = fields.Many2one(

@@ -5676,6 +5676,88 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         self.assertEqual(attachment.with_user(reviewer).raw.content, raw)
 
+    def test_attachment_target_prefers_the_governed_native_representation(self):
+        snapshot = "unit-native-attachment-priority"
+        source_move_id = 990024
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Native attachment target priority",
+            "source_snapshot_id": snapshot,
+        })
+        legacy_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        native_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move.native_engine_replay",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+
+        target_model, target = import_run._target_for_attachment(
+            {"res_model": "account.move", "res_id": source_move_id},
+            {
+                "source_snapshot_id": snapshot,
+                "attachment_target_trace_models": {
+                    "account.move": [
+                        "account.move.native_engine_replay",
+                        "account.move",
+                    ],
+                },
+            },
+        )
+
+        self.assertEqual(target_model, "account.move")
+        self.assertEqual(target, native_move)
+        self.assertNotEqual(target, legacy_move)
+
+    def test_final_attachment_repair_rehomes_detached_source_evidence(self):
+        snapshot = "unit-final-attachment-target"
+        source_move_id = 990025
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Final attachment target repair",
+            "source_snapshot_id": snapshot,
+        })
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        attachment = self.env["ir.attachment"].sudo().create({
+            "name": "detached-source-evidence.png",
+            "raw": b"source evidence",
+            "mimetype": "image/png",
+            "res_model": False,
+            "res_id": 0,
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 990026,
+            "rebuild_source_snapshot": snapshot,
+            "rebuild_source_attachment_res_model": "account.move",
+            "rebuild_source_attachment_res_id": source_move_id,
+            "rebuild_source_is_main": True,
+        })
+
+        result = import_run.repair_final_account_move_attachment_targets()
+
+        self.assertEqual(result["checked_attachment_count"], 1)
+        self.assertEqual(result["repaired_attachment_count"], 1)
+        self.assertEqual(result["repaired_main_attachment_count"], 1)
+        self.assertEqual(attachment.res_model, "account.move")
+        self.assertEqual(attachment.res_id, move.id)
+        self.assertEqual(move.message_main_attachment_id, attachment)
+
     def test_native_expense_attachment_preserves_source_url_evidence(self):
         snapshot = "unit-native-expense-url-attachment"
         source_expense_id = 990031

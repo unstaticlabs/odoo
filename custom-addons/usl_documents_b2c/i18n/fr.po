@@ -1,0 +1,23 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_documents_b2c
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Language: fr_FR\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_documents_b2c
+msgid "Archived Source Document"
+msgstr "Document source archivé"
+
+#. module: usl_documents_b2c
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_documents_b2c
+msgid "Upload"
+msgstr "Importer"

@@ -6,15 +6,19 @@ USL B2C provides an auditable bridge between incomplete historical commerce
 evidence and native Odoo Community operations. The delivered `usl_b2c` add-on
 owns stable channels, canonical orders, source lines, payment/refund/fee events,
 fulfilment/COGS events, reviewed SKU aliases, monthly accounting sessions, and
-links to native evidence. It does not own import runs, source database IDs,
-technical row traces, or parity UI.
+links to native evidence. The small delivered `usl_documents_b2c` integration
+adds governed Documents links and smart buttons to those business records. It
+contains no source matching or import logic. Neither product module owns import
+runs, source database IDs, technical row traces, manifests, or parity UI.
 
 Future sales, purchase, delivery, valuation, payment, and margin operations use
 native Community records. Historical exports remain canonical B2C business
 records unless their evidence is complete enough to justify a real native
 workflow. A link may point to an existing native sale order, payment,
 transaction, journal item, bank transaction, picking, move, purchase order, or
-attachment. A missing link stays pending.
+attachment. A relationship is direct only when unique transaction evidence
+supports it. Monthly aggregate Accounting coverage remains visibly separate
+from a direct order or event allocation.
 
 The business semantics are fixed:
 
@@ -63,10 +67,22 @@ Enterprise substitute or core Odoo patch is introduced.
 
 ## Mapping and privacy
 
-An external SKU/listing alias is `pending`, `verified`, or `rejected`. Exact and
-fuzzy suggestions are advisory only. Verification requires a user-selected
-native product, records the reviewer and evidence note, and never overwrites the
-original SKU, item name, variation, or listing ID.
+Coverage and mapping states have precise meanings:
+
+- `verified` means unique evidence supports the exact direct relationship;
+- `partial` means a verified aggregate covers the period, but no individual
+  allocation is claimed;
+- `not_applicable` means the relationship does not apply, including history
+  before the 1 October 2025 Accounting cutoff or a locked source package with
+  no corresponding provider ledger or defensible catalog match;
+- `pending` means an unexplained gap still requires evidence or review;
+- `rejected` means a proposed relationship was disproved.
+
+Exact and fuzzy product suggestions are advisory. Verification requires
+governed evidence and never overwrites the original SKU, item name, variation,
+or listing ID. The one-shot reconstruction may verify only an exact unique
+match to the canonical internal reference; every other historical alias keeps
+its original evidence and receives an explicit disposition.
 
 Every provider row is retained in an immutable restricted evidence object with
 file checksum, schema digest, payload digest, and optional archive attachment.

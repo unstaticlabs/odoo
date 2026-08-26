@@ -56,7 +56,7 @@ if profile != "clean-install":
         "order_lines": 457,
         "payment_events": 1821,
         "fulfilments": 261,
-        "sessions": 80,
+        "sessions": 81,
     }
     if counts != expected:
         raise RuntimeError(f"B2C QA tour baseline changed: {counts!r} != {expected!r}")

@@ -5,6 +5,7 @@ import os
 from decimal import Decimal
 from pathlib import Path
 
+from odoo.addons.usl_b2c_restore.models.relationships import EXPECTED_JOURNALS
 from odoo.addons.usl_b2c_restore.models.restore import UslB2cRestoreRun
 from odoo.addons.usl_b2c_restore.parsers import (
     archive_baseline,
@@ -14,7 +15,11 @@ from odoo.addons.usl_b2c_restore.parsers import (
     parse_revolut_events,
     parse_stripe_events,
 )
-from odoo.addons.usl_b2c_restore.source import B2cSourceReader
+from odoo.addons.usl_b2c_restore.source import (
+    B2cSourceReader,
+    CANONICAL_SUPPLIER_NAMES,
+    supplier_document_fingerprint,
+)
 
 source = B2cSourceReader().read()
 documents = source["documents"]
@@ -107,22 +112,31 @@ assert env["b2c.order"].sudo().search_count(
     domain + [("currency_id", "=", False)],
 ) > 0
 assert env["b2c.order.line"].sudo().search_count(
-    domain + [("mapping_state", "=", "pending"), ("product_id", "=", False)],
-) == 457
+    domain + [("mapping_state", "=", "verified"), ("product_id", "!=", False)],
+) == 59
 assert env["b2c.product.alias"].sudo().search_count(
     domain + [("mapping_state", "=", "verified")],
-) == 0
+) == 9
 assert env["b2c.product.alias"].sudo().search_count(
-    domain + [("mapping_state", "=", "pending")],
-) == 109
+    domain + [("mapping_state", "=", "not_applicable")],
+) == 100
 assert env["b2c.product.alias"].sudo().search_count(
     domain
     + [
         ("source_provider", "=", "medusa"),
         ("suggested_product_id", "!=", False),
-        ("mapping_state", "=", "pending"),
+        ("mapping_state", "=", "verified"),
     ],
 ) == 9
+assert env["b2c.product.alias"].sudo().search_count(
+    domain + [("mapping_state", "=", "pending")],
+) == 0
+assert env["b2c.order.line"].sudo().search_count(
+    domain + [("mapping_state", "=", "not_applicable"), ("product_id", "=", False)],
+) == 398
+assert env["b2c.order.line"].sudo().search_count(
+    domain + [("mapping_state", "=", "pending")],
+) == 0
 assert env["b2c.order.line"].sudo().search_count(
     domain
     + [
@@ -203,12 +217,282 @@ assert env["stock.move.line"].sudo().search_count([]) == 0
 assert env["stock.picking"].sudo().search_count([]) == 0
 assert env["stock.quant"].sudo().search_count([]) == 0
 
+env.cr.execute("SELECT count(*) FROM account_move")
+assert env.cr.fetchone()[0] == 5425
+env.cr.execute("SELECT count(*) FROM account_move_line")
+assert env.cr.fetchone()[0] == 12991
+env.cr.execute("SELECT count(*) FROM account_partial_reconcile")
+assert env.cr.fetchone()[0] == 2861
+
+journal_fingerprint = {}
+for code, (expected_count, expected_total) in EXPECTED_JOURNALS.items():
+    moves = env["account.move"].sudo().search(
+        [
+            ("company_id", "=", company.id),
+            ("state", "=", "posted"),
+            ("journal_id.code", "=", code),
+        ],
+    )
+    debit = sum(Decimal(str(value)) for value in moves.line_ids.mapped("debit"))
+    credit = sum(Decimal(str(value)) for value in moves.line_ids.mapped("credit"))
+    journal_fingerprint[code] = {
+        "count": len(moves),
+        "credit": str(credit),
+        "debit": str(debit),
+    }
+    assert len(moves) == expected_count
+    assert debit == credit == expected_total
+
+env.cr.execute(
+    """
+    SELECT account.code_store ->> %s AS code,
+           currency.name,
+           sum(line.balance),
+           sum(line.amount_currency),
+           sum(line.amount_residual),
+           sum(line.amount_residual_currency)
+      FROM account_move_line AS line
+      JOIN account_move AS move ON move.id = line.move_id
+      JOIN account_account AS account ON account.id = line.account_id
+ LEFT JOIN res_currency AS currency ON currency.id = line.currency_id
+     WHERE move.state = 'posted'
+       AND account.code_store ->> %s IN (
+           '511210', '511220', '511221', '511222',
+           '511230', '511231', '511232'
+       )
+  GROUP BY account.code_store, currency.name
+  ORDER BY code, currency.name
+    """,
+    (str(company.id), str(company.id)),
+)
+clearing_balances = {
+    (code, currency): tuple(Decimal(str(value)) for value in amounts)
+    for code, currency, *amounts in env.cr.fetchall()
+}
+assert clearing_balances == {
+    ("511210", "EUR"): (Decimal("0"),) * 4,
+    ("511220", "EUR"): (Decimal("91.32"),) * 4,
+    ("511221", "GBP"): (Decimal("0"),) * 4,
+    ("511222", "USD"): (Decimal("0"),) * 4,
+    ("511230", "EUR"): (Decimal("0"),) * 4,
+    ("511231", "GBP"): (Decimal("0"),) * 4,
+    ("511232", "USD"): (Decimal("0"),) * 4,
+}
+
+session_move_links = env["b2c.accounting.link"].sudo().search_count(
+    domain
+    + [
+        ("session_id", "!=", False),
+        ("account_move_id", "!=", False),
+        ("bank_statement_line_id", "=", False),
+        ("link_state", "=", "verified"),
+    ],
+)
+bank_links = env["b2c.accounting.link"].sudo().search_count(
+    domain
+    + [
+        ("session_id", "!=", False),
+        ("bank_statement_line_id", "!=", False),
+        ("link_state", "=", "verified"),
+    ],
+)
+direct_links = env["b2c.accounting.link"].sudo().search(
+    domain
+    + [
+        ("payment_event_id", "!=", False),
+        ("account_move_line_id", "!=", False),
+        ("link_state", "=", "verified"),
+    ],
+)
+assert session_move_links == 180
+assert bank_links == 81
+assert len(direct_links) == 14
+assert len(direct_links.payment_event_id) == 10
+
+accounting_dispositions = {}
+for model in ("b2c.order", "b2c.payment.event", "b2c.fulfilment.event"):
+    accounting_dispositions[model] = {
+        state: env[model].sudo().search_count(
+            domain + [("accounting_link_state", "=", state)],
+        )
+        for state in ("verified", "partial", "not_applicable", "pending")
+    }
+    assert accounting_dispositions[model]["pending"] == 0
+
+assert env["product.value"].sudo().search_count([]) == 45
+assert env["product.value"].sudo().search_count(
+    [
+        ("value", "=", 0),
+        ("date", "=", "0001-01-01 00:00:00"),
+        ("user_id", "=", env.ref("base.user_root").id),
+        ("description", "=", "Price update from None to 0.0 by OdooBot"),
+    ],
+) == 0
+
+# Product restoration proves exact parity for all 46 source templates and variants
+# before its temporary module is removed.  The clean rebuilt registry also owns
+# four native templates: three expense helpers and the pre-existing delivery
+# product that must not be mistaken for source-catalog drift.
+all_templates = env["product.template"].sudo().with_context(active_test=False)
+all_variants = env["product.product"].sudo().with_context(active_test=False)
+assert all_templates.search_count([]) == 50
+assert all_variants.search_count([]) == 50
+assert all_templates.search_count([("default_code", "=", "TRANS & ACC")]) == 1
+assert all_templates.search_count([("default_code", "=", "MIL")]) == 1
+assert all_templates.search_count([("default_code", "=", "EXP_GEN")]) == 1
+assert all_templates.search_count([("default_code", "=", "Delivery_007")]) == 2
+expected_costs = {
+    "CHAIN_CM_3MM_AISI404_CNCHO10CHO": Decimal("1.833"),
+    "CHAIN_CM_4MM_AISI404_CNCHO10CHO": Decimal("4.0846"),
+    "CHAIN_CM_6MM_LEROYMERLIN": Decimal("9.1178"),
+    "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED": Decimal("3.495"),
+    "PADLOCK_MASTER_9120EUR_BLACK": Decimal("4.0115"),
+    "PADLOCK_BLACK": Decimal("4.47895"),
+    "PADLOCK_BLUE": Decimal("4.47895"),
+    "PADLOCK_BROWN": Decimal("4.47895"),
+    "PADLOCK_GOLD": Decimal("4.47895"),
+    "PADLOCK_GREEN": Decimal("4.47895"),
+    "PADLOCK_ORANGE": Decimal("4.47895"),
+    "PADLOCK_PURPLE": Decimal("4.47895"),
+    "PADLOCK_RED": Decimal("4.47895"),
+    "PADLOCK_QD40_UNALLOCATED_2026-05": Decimal("4.5003"),
+}
+actual_costs = {}
+for sku, expected_cost in expected_costs.items():
+    products = (
+        env["product.product"]
+        .sudo()
+        .with_context(active_test=False)
+        .search([("default_code", "=", sku)], limit=2)
+    )
+    assert len(products) == 1
+    actual_costs[sku] = Decimal(str(products.with_company(company).standard_price))
+    assert actual_costs[sku] == expected_cost
+
+expected_categories = {
+    "GBC Finished Products",
+    "GBC Raw Materials",
+    "GBC Resale Goods",
+}
+actual_categories = set(
+    env["product.category"]
+    .sudo()
+    .with_context(lang="en_US")
+    .search([("name", "in", sorted(expected_categories))])
+    .mapped("name"),
+)
+assert actual_categories == expected_categories
+expected_locations = {
+    ("WH/Event Transit", "transit"),
+    ("WH/Stock/Finished Goods", "internal"),
+    ("WH/Stock/Quarantine", "internal"),
+    ("WH/Stock/Raw Materials", "internal"),
+    ("WH/Stock/Returns", "internal"),
+    ("WH/Stock/WIP", "internal"),
+}
+locations = (
+    env["stock.location"]
+    .sudo()
+    .with_context(active_test=False, lang="en_US")
+    .search([("company_id", "in", [False, company.id])])
+)
+assert expected_locations.issubset(
+    {(location.complete_name, location.usage) for location in locations},
+)
+
+assert set(
+    env["res.partner"]
+    .sudo()
+    .with_context(active_test=False)
+    .search([("name", "in", list(CANONICAL_SUPPLIER_NAMES))])
+    .mapped("name"),
+) == set(CANONICAL_SUPPLIER_NAMES)
+assert source["supplier_documents"] == {
+    "rows": 76,
+    "digest": "6ed09604a5a896cc87699779837d1bcf",
+}
+target_supplier_documents = supplier_document_fingerprint(
+    env.cr,
+    company.id,
+    canonical=True,
+)
+assert target_supplier_documents == source["supplier_documents"], (
+    target_supplier_documents,
+    source["supplier_documents"],
+)
+quandun = env["res.partner"].sudo().search(
+    [("name", "=", "Zhejiang Quandun Import & Export Co., Ltd.")],
+)
+assert len(quandun) == 1
+quandun_drafts = env["account.move"].sudo().search(
+    [
+        ("company_id", "=", company.id),
+        ("partner_id", "=", quandun.id),
+        ("move_type", "=", "in_invoice"),
+        ("state", "=", "draft"),
+    ],
+    order="amount_total",
+)
+assert [
+    (
+        Decimal(str(move.amount_total)),
+        Decimal(str(move.amount_residual)),
+        move.payment_state,
+    )
+    for move in quandun_drafts
+] == [
+    (Decimal("78.80"), Decimal("0"), "paid"),
+    (Decimal("462.80"), Decimal("0"), "paid"),
+    (Decimal("1034.00"), Decimal("0"), "paid"),
+]
+
+require_documents = os.getenv("B2C_REQUIRE_FINAL_RELATIONSHIPS", "0") == "1"
+document_coverage = {"required": require_documents}
+if require_documents:
+    source_documents = {}
+    b2c_models = {
+        "b2c.order",
+        "b2c.payment.event",
+        "b2c.fulfilment.event",
+        "b2c.accounting.session",
+    }
+    for item in source["files"]:
+        matches = env["usl.document"].sudo().search(
+            [
+                ("availability_state", "=", "available"),
+                "|",
+                ("checksum", "=", item["sha256"]),
+                ("version_ids.checksum", "=", item["sha256"]),
+            ],
+        )
+        assert len(matches) == 1
+        assert matches.link_ids.filtered(
+            lambda link: link.active and link.res_model in b2c_models,
+        )
+        source_documents[item["source"].name] = matches.id
+    assert len(source_documents) == 40
+    assert env["b2c.provider.evidence"].sudo().search_count(
+        domain + [("archived_document_id", "!=", False)],
+    ) == 2893
+    assert env["b2c.order"].sudo().search_count(
+        domain + [("document_link_state", "=", "verified")],
+    ) == 304
+    document_coverage.update(
+        {"archived_files": len(source_documents), "provider_rows": 2893},
+    )
+
 report = {
     "analytic_baseline": {
         "source": source["analytic_baseline"],
         "target": target_analytic_baseline,
     },
     "archive_baseline": baseline,
+    "accounting_dispositions": accounting_dispositions,
+    "clearing_balances": {
+        f"{code}:{currency}": [str(value) for value in values]
+        for (code, currency), values in clearing_balances.items()
+    },
+    "document_coverage": document_coverage,
     "files": [
         {
             "attachment_id": item["source"].attachment_id,
@@ -232,13 +516,12 @@ report = {
         for item in source["files"]
     ],
     "mapping": {
-        "pending_aliases": env["b2c.product.alias"].sudo().search_count(
-            domain + [("mapping_state", "=", "pending")],
-        ),
+        "not_applicable_aliases": 100,
+        "pending_aliases": 0,
         "rejected_aliases": env["b2c.product.alias"].sudo().search_count(
             domain + [("mapping_state", "=", "rejected")],
         ),
-        "verified_aliases": 0,
+        "verified_aliases": 9,
         "unlinked_accounting_records": sum(
             env[model].sudo().search_count(
                 domain + [("accounting_link_state", "=", "pending")],
@@ -251,6 +534,15 @@ report = {
         ),
     },
     "protected_fingerprint": current_protected,
+    "journal_fingerprint": journal_fingerprint,
+    "product_fingerprint": {
+        "categories": sorted(actual_categories),
+        "costs": {sku: str(value) for sku, value in actual_costs.items()},
+        "locations": sorted(expected_locations),
+        "product_values": 45,
+        "products": 46,
+    },
+    "supplier_document_fingerprint": target_supplier_documents,
     "target_counts": counts,
     "unresolved": {
         "foreign_currency_events_without_complete_company_amount": env[
@@ -259,9 +551,7 @@ report = {
         "orders_without_evidenced_currency": env["b2c.order"].sudo().search_count(
             domain + [("currency_id", "=", False)],
         ),
-        "orders_without_verified_accounting_link": env["b2c.order"].sudo().search_count(
-            domain + [("accounting_link_state", "=", "pending")],
-        ),
+        "unexplained_pending_accounting_records": 0,
         "physical_opening_stock": "blocking_not_evidenced",
     },
 }

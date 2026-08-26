@@ -142,6 +142,13 @@ class B2cOrder(models.Model):
         default="pending",
         index=True,
     )
+    accounting_link_note = fields.Char(
+        copy=False,
+        help=(
+            "Explains whether accounting is linked directly, covered by an "
+            "aggregate session, not applicable, or still unresolved."
+        ),
+    )
     bank_link_state = fields.Selection(
         MAPPING_STATES,
         required=True,

@@ -169,6 +169,8 @@
                                     <field name="amount_completeness"/>
                                     <field name="mapping_state"/>
                                     <field name="review_state"/>
+                                    <field name="accounting_link_state"/>
+                                    <field name="accounting_link_note"/>
                                     <field name="line_revenue_company_amount" readonly="1"/>
                                     <field name="unallocated_revenue_company_amount" readonly="1"/>
                                     <field name="line_revenue_coverage_percent" readonly="1"/>

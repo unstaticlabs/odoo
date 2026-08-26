@@ -470,7 +470,11 @@ else
   stop_product
   run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
   stop_product
-  run_stage "restore B2C commerce evidence" scripts/b2c-restore all
+  run_stage "repair final Accounting attachment targets" \
+    scripts/accounting-restore attachment-targets
+  stop_product
+  run_stage "restore B2C commerce evidence" env \
+    B2C_REQUIRE_FINAL_RELATIONSHIPS=0 scripts/b2c-restore all
   stop_product
   run_stage "restore HR" scripts/hr-restore all
   stop_product
@@ -489,7 +493,8 @@ else
     # Documents can materialize a native attachment after the first B2C pass.
     # Repeating the governed importer links that evidence without duplicating
     # business records and independently proves that the restore is rerunnable.
-    run_stage "refresh B2C Documents links" scripts/b2c-restore all
+    run_stage "finalize B2C relationships and Documents links" env \
+      B2C_REQUIRE_FINAL_RELATIONSHIPS=1 scripts/b2c-restore all
     stop_product
   else
     printf 'Documents archive: skipped by explicit no-documents QA profile.\n'

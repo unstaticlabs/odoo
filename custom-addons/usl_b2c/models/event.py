@@ -147,6 +147,13 @@ class B2cPaymentEvent(models.Model):
         default="pending",
         index=True,
     )
+    accounting_link_note = fields.Char(
+        copy=False,
+        help=(
+            "Explains whether accounting is linked directly, covered by an "
+            "aggregate session, not applicable, or still unresolved."
+        ),
+    )
     bank_link_state = fields.Selection(
         MAPPING_STATES,
         required=True,
@@ -311,6 +318,13 @@ class B2cFulfilmentEvent(models.Model):
         required=True,
         default="pending",
         index=True,
+    )
+    accounting_link_note = fields.Char(
+        copy=False,
+        help=(
+            "Explains whether accounting is linked directly, covered by an "
+            "aggregate session, not applicable, or still unresolved."
+        ),
     )
     stock_picking_id = fields.Many2one(
         "stock.picking",

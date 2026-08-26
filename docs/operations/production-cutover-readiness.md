@@ -31,13 +31,17 @@ size and digest observations above do not establish migration completeness.
 
 On 26 August, the B2C-integrated branch completed a fresh full reconstruction
 from this package and published a sanitized reusable QA seed. The finalized
-`odoo_dev` target passed the database boundary for all thirteen delivered
+`odoo_dev` target passed the database boundary for all fourteen delivered
 product modules with no migration registry/schema residue. Accounting remained
 balanced at EUR 2,900,936.82 debit and credit; B2C retained 304 canonical
 orders, 457 source lines, 1,821 payment/refund/fee events, 261 fulfilments and
-109 unresolved SKU aliases. Paperless archived 645 documents and synchronized
-636 live authorized mappings. A separate empty-database installation passed
-for all thirteen product modules, and two isolated full-seed hydrations matched
+109 governed SKU aliases (nine exactly verified and 100 explicitly not
+applicable), with zero unexplained pending mappings. All 180 critical source
+moves have monthly session relationships, and all 40 B2C files plus 2,893
+immutable evidence rows have durable archive links. Paperless archived 645
+source groups and synchronized 638 live authorized mappings. A separate
+empty-database installation passed for all fourteen product modules, and two
+isolated full-seed hydrations matched
 the sealed Accounting, Documents and Paperless controls with zero OCR
 submissions. This is current rehearsal evidence, not a final frozen-source
 production candidate.
@@ -73,7 +77,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
-| B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction passed, governed source gaps remain blocking |
+| B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | active workstream; review and merge pending |
@@ -87,8 +91,9 @@ For every merge:
 5. invalidate any QA seed, evidence or candidate produced by an earlier commit;
 6. verify the complete target module set, not only modules touched by the merge.
 
-The current database boundary expects the thirteen delivered modules listed by
-`scripts/odoo/product_database_boundary.py`, including `usl_b2c`. Pending
+The current database boundary expects the fourteen delivered modules listed by
+`scripts/odoo/product_database_boundary.py`, including `usl_b2c` and
+`usl_documents_b2c`. Pending
 features may extend that set. The script is authoritative after all merges; a
 partial `odoo_dev` installation is not final-target evidence.
 

@@ -48,6 +48,10 @@ finalize_product_schema() {
 }
 
 case "$command_name" in
+    attachment-targets)
+        run_migration_shell \
+            migration/accounting_restore/addons/usl_accounting_restore/scripts/repair_attachment_targets.py
+        ;;
     expense-batch-transition)
         run_migration_shell \
             migration/accounting_restore/addons/usl_accounting_restore/scripts/reapply_expense_batch_transition.py
@@ -74,7 +78,7 @@ case "$command_name" in
         validate_product_boundary
         ;;
     *)
-        echo "Usage: scripts/accounting-restore [expense-batch-transition|finalize|schema-finalize|product-validate|all]"
+        echo "Usage: scripts/accounting-restore [attachment-targets|expense-batch-transition|finalize|schema-finalize|product-validate|all]"
         exit 2
         ;;
 esac

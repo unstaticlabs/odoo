@@ -12,13 +12,16 @@ class B2cOrchestrationTest(unittest.TestCase):
 
         initial_b2c = script.index('run_stage "restore B2C commerce evidence"')
         documents = script.index('run_stage "restore Documents archive"')
-        refresh = script.index('run_stage "refresh B2C Documents links"')
+        refresh = script.index(
+            'run_stage "finalize B2C relationships and Documents links"',
+        )
         finalization = script.index('run_stage "finalize migration boundary"')
 
         self.assertLess(initial_b2c, documents)
         self.assertLess(documents, refresh)
         self.assertLess(refresh, finalization)
         self.assertNotIn("-u all", script)
+        self.assertIn("B2C_REQUIRE_FINAL_RELATIONSHIPS=1", script)
 
     def test_restore_accepts_owned_distribution_projects(self):
         script = B2C_RESTORE.read_text(encoding="utf-8")
@@ -34,6 +37,12 @@ class B2cOrchestrationTest(unittest.TestCase):
             script,
         )
         self.assertNotIn("/Users/", script)
+        self.assertIn(
+            'supplemental_dir="$source_dump_dir/supplemental/b2c"',
+            script,
+        )
+        self.assertNotIn("artifacts/b2c-restore/source", script)
+        self.assertIn("scripts/accounting-compat source-restore", script)
 
 
 if __name__ == "__main__":

@@ -48,14 +48,15 @@ Deposit 20, Fee 1,062, Marketing 2, and Tax 82.
 | `Sale Date`, `Date Paid`, `Date Shipped` | Sale Date types `order_date`; paid/shipped dates remain evidence until a complete event link is reviewed |
 | `Item Name`, `Quantity`, `Price`, `Item Total` | typed line name, quantity, unit price, and evidenced line revenue |
 | `Discount Amount`, `Order Shipping`, `Order Sales Tax` | typed line discount (negative), shipping, and tax |
-| `Transaction ID`, `Listing ID`, `Order ID`, `SKU` | typed durable external identifiers; SKU/listing create a pending alias |
+| `Transaction ID`, `Listing ID`, `Order ID`, `SKU` | typed durable external identifiers; SKU/listing create an alias with an explicit governed disposition |
 | `Variations` | typed original variation |
 | `Currency`, `Ship Country` | typed order/line currency and country where consistent across the order |
 | `Coupon Code`, `Coupon Details`, `Shipping Discount`, `Order Type`, `Listings Type`, `Payment Type`, `InPerson Discount`, `InPerson Location`, `VAT Paid by Buyer` | evidence; no unsupported amount allocation or status inference |
 | `Buyer`, `Ship Name`, `Ship Address1`, `Ship Address2`, `Ship City`, `Ship State`, `Ship Zipcode` | restricted PII evidence only |
 
 All 56 nonblank source SKUs are preserved. None exactly matches the 43 nonblank
-catalog SKUs, so every mapping begins pending.
+catalog SKUs, so those aliases are explicitly not applicable rather than left
+in an unexplained queue.
 
 ## Legacy Goodboys/Medusa schema
 
@@ -87,20 +88,23 @@ supplied provider export `medusa-sold-items-2026-08-05.csv` is therefore
 classified as post-dump supplemental business evidence. Its SHA-256 is
 `e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a`.
 The importer requires that exact private file under
-`artifacts/b2c-restore/source/`; it is ignored by Git and never committed.
+`usl-online-dump/supplemental/b2c/`; it is ignored by Git, included in the
+single canonical private source package, archived in final Documents, and
+never committed.
 
 | Columns | Disposition |
 | --- | --- |
 | `order_number` | exact join to the current Medusa `Display_ID`; an unknown, blank, duplicate or uncovered display ID aborts |
 | `date`, `currency` | must agree with the authoritative Medusa order header; disagreement aborts |
 | `product`, `variant`, `quantity`, `unit_price`, `line_total` | typed original line name/variation, units, unit price and evidenced line amount |
-| `sku` | typed original SKU; a pending alias is created when nonblank; an exact Odoo SKU may be suggested but is never verified automatically |
+| `sku` | typed original SKU; an alias is created when nonblank; a unique exact match to the canonical internal reference is verified, otherwise the alias is explicitly not applicable |
 | `order_status` | restricted provider evidence; it does not override the header-owned canonical state |
 | `customer_email` | restricted PII evidence only |
 
 The locked baseline is 222 rows, 96 orders, 225 units, 138 rows with a
 nonblank SKU and 50 distinct SKUs. Nine SKUs exactly match the restored Odoo
-catalogue and remain pending suggestions. All 222 rows lack immutable provider
+catalogue and are verified by that exact source-locked match; all other aliases
+are explicitly not applicable. All 222 rows lack immutable provider
 line IDs, so idempotency uses the checksum-locked file plus row number and does
 not collapse the one genuine duplicate business row. Line sums are preserved
 as evidenced; they are not forced to equal header totals and never overwrite
@@ -124,7 +128,7 @@ order-level revenue, shipping, discounts or tax.
 | `PaymentIntent ID`, `Checkout Session ID`, `session_id (metadata)` | typed durable identifiers; there are respectively 134, four, and 117 distinct nonblank values |
 | `Created date (UTC)`, `Refunded date (UTC)`, `Status` | created date and original/normalized state are typed; refund date remains evidence until separately evidenced as an event date |
 | `Amount`, `Amount Refunded`, `Currency`, `Fee`, `Taxes On Fee` | typed amount, negative refund component, transaction currency, fee, and tax evidence |
-| `Converted Amount`, `Converted Amount Refunded`, `Converted Currency` | typed company amount/conversion only when processor evidence is complete; otherwise conversion stays pending |
+| `Converted Amount`, `Converted Amount Refunded`, `Converted Currency` | typed company amount/conversion only when processor evidence is complete; otherwise per-event conversion is explicitly not applicable because company-currency truth exists only at verified aggregate session level |
 | `Captured`, `Decline Reason`, `Seller Message`, `Disputed Amount`, `Dispute Date (UTC)`, `Dispute Evidence Due (UTC)`, `Dispute Reason`, `Dispute Status` | evidence and state/review context; no native dispute workflow is manufactured |
 | `Description`, `Statement Descriptor`, `Invoice ID`, `Invoice Number`, `Client Reference ID`, `Payment Link ID` | evidence and reviewed order/accounting link candidates |
 | `Is Link`, `Link Funding`, `Mode`, `Payment Source Type`, `Interchange Costs`, `Merchant Service Charge`, `Application Fee`, `Application ID`, `Destination`, `Transfer`, `Transfer Group` | evidence; fee subcomponents are not double-counted without a proved formula |
@@ -167,12 +171,13 @@ aborts parsing.
 | review | evidence/review context |
 
 Printful evidence is not converted into native purchase orders, receipts,
-deliveries, or valuation moves. Native links remain pending unless those real
-records independently exist.
+deliveries, or valuation moves. A missing historical native operational link is
+not applicable unless such a real record independently exists; verified monthly
+Accounting coverage remains separately visible.
 
 ## Supporting PDFs
 
 The sales report and eight Stripe tax invoices are retained by exact file
-checksum and optional target attachment link. Their binary content is not
-flattened into invented typed amounts. They remain supporting business evidence
-for a human-reviewed accounting link.
+checksum in Documents and linked to the relevant B2C accounting sessions. Their
+binary content is not flattened into invented typed amounts. They remain
+supporting business evidence rather than individual transaction allocations.

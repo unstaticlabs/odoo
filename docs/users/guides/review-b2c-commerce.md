@@ -13,7 +13,10 @@ new business.
    Orders**.
 2. Open an order and compare its channel, external reference, date, currency,
    totals, source rows and events.
-3. Treat **Unknown**, **Pending** and incomplete coverage as real work. A zero
+3. Treat **Unknown**, **Pending** and incomplete coverage as real work. Treat
+   **Partial** as verified monthly aggregate coverage without individual
+   allocation, and **Not applicable** as an explicit decision that no direct
+   relationship exists in the available evidence. A zero
    company-currency amount can mean that conversion evidence is missing; it
    does not mean that the original transaction was zero.
 4. Use **B2C → Analytics** for separate views of revenue/orders, units/SKUs,
@@ -33,7 +36,9 @@ defensible line detail and remain header-only.
 3. If the match is certain, select the native product, record an evidence note
    and choose **Verify Mapping**.
 4. If the proposed relationship is disproved, record why and choose
-   **Reject**. Leave ambiguous rows pending.
+   **Reject**. Use **Not applicable** with a clear note when the available
+   evidence supports no defensible product match; leave only unexplained rows
+   pending.
 
 Never verify a match from a similar name alone. Verification preserves the
 original provider values and does not change historical Accounting or stock.
@@ -43,8 +48,11 @@ original provider values and does not change historical Accounting or stock.
 Open **B2C → Accounting Sessions → Accounting and Bank Links**. Verify a link
 only when the source identifier, amount, date, currency and counterparty jointly
 support it. A verified link points to existing evidence; it does not post,
-cancel, reconcile or modify the linked record. Reject a disproved candidate and
-leave an unknown relationship pending.
+cancel, reconcile or modify the linked record. A partial state means the record
+is covered by a verified monthly aggregate and is not a one-to-one allocation.
+Reject a disproved candidate, use not applicable when the relationship does not
+exist in the locked evidence, and leave only an unexplained relationship
+pending.
 
 ## Complete a monthly review
 

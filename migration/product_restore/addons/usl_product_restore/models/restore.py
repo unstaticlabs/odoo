@@ -358,6 +358,66 @@ class UslProductRestoreRun(models.Model):
             ),
         }
 
+    def _cleanup_generated_zero_product_values(self):
+        generated = (
+            self.env["product.value"]
+            .sudo()
+            .search(
+                [
+                    ("lot_id", "=", False),
+                    ("move_id", "=", False),
+                    ("value", "=", 0),
+                    ("date", "=", "0001-01-01 00:00:00"),
+                    ("user_id", "=", self.env.ref("base.user_root").id),
+                    ("description", "=", "Price update from None to 0.0 by OdooBot"),
+                    ("rebuild_source_model", "=", False),
+                ],
+            )
+        )
+        count = len(generated)
+        generated.unlink()
+        return count
+
+    def _upsert_product_value(self, row, values):
+        """Adopt one exact native history row and remove only exact rerun copies."""
+        domain = [
+            ("product_id", "=", values["product_id"]),
+            ("company_id", "=", values["company_id"]),
+            ("user_id", "=", values["user_id"]),
+            ("description", "=", values["description"]),
+            ("value", "=", values["value"]),
+            ("date", "=", values["date"]),
+            ("lot_id", "=", False),
+            ("move_id", "=", False),
+        ]
+        candidates = self.env["product.value"].sudo().search(domain, order="id")
+        record = self._traced("product.value", row["id"])
+        if record and record.id not in candidates.ids:
+            raise RuntimeError(
+                f"Traced product value {row['id']} differs from locked source truth",
+            )
+        if not record and candidates:
+            record = candidates[:1]
+        duplicates = candidates.filtered(lambda candidate: candidate.id != record.id)
+        removed = len(duplicates)
+        duplicates.unlink()
+        trace_values = self._trace_values("product.value", row["id"])
+        if record:
+            # The exact source-backed business values were already established
+            # by ``domain``.  Rewriting product_id/company_id can retrigger
+            # Product Value's stored company computation for global products,
+            # causing a row adopted on the first run to reject itself on the
+            # second.  Adoption therefore adds trace metadata only.
+            record.write(trace_values)
+        else:
+            record = self.env["product.value"].sudo().create(
+                {
+                    **values,
+                    **trace_values,
+                },
+            )
+        return record, removed
+
     def _traced(self, model, source_id):
         return (
             self.env[model]
@@ -1176,7 +1236,10 @@ class UslProductRestoreRun(models.Model):
             )
             self._write_french(pricelists[row["id"]], row, ("name",))
 
+        generated_zero_value_count = self._cleanup_generated_zero_product_values()
+
         product_values = {}
+        duplicate_product_value_count = 0
         for row in source["product_values"]:
             if row["lot_id"] or row["move_id"]:
                 raise RuntimeError(
@@ -1189,8 +1252,7 @@ class UslProductRestoreRun(models.Model):
                 raise RuntimeError(
                     f"Product value {row['id']} has an unmapped product, company or user",
                 )
-            product_values[row["id"]] = self._upsert(
-                "product.value",
+            product_values[row["id"]], removed = self._upsert_product_value(
                 row,
                 {
                     "product_id": product.id,
@@ -1201,6 +1263,7 @@ class UslProductRestoreRun(models.Model):
                     "date": row["date"],
                 },
             )
+            duplicate_product_value_count += removed
 
         self._stamp_dates("product.category", categories, source["categories"])
         self._stamp_dates("product.attribute", attributes, source["attributes"])
@@ -1231,7 +1294,14 @@ class UslProductRestoreRun(models.Model):
             {
                 "status": "passed",
                 "finished_at": fields.Datetime.now(),
-                "statistics_json": {"source": source["counts"], "target": counts},
+                "statistics_json": {
+                    "cleanup": {
+                        "duplicate_source_values_removed": duplicate_product_value_count,
+                        "generated_zero_values_removed": generated_zero_value_count,
+                    },
+                    "source": source["counts"],
+                    "target": counts,
+                },
             },
         )
         return counts

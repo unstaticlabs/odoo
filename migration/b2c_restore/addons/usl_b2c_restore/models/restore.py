@@ -4,6 +4,9 @@ from decimal import Decimal
 
 from odoo import fields, models
 
+from odoo.addons.usl_b2c_restore.models.relationships import (
+    B2cRelationshipFinalizer,
+)
 from odoo.addons.usl_b2c_restore.parsers import (
     archive_baseline,
     build_canonical_orders,
@@ -16,7 +19,7 @@ from odoo.addons.usl_b2c_restore.parsers import (
 )
 from odoo.addons.usl_b2c_restore.source import B2cSourceReader
 
-RESTORE_REVISION = 2
+RESTORE_REVISION = 3
 
 
 class UslB2cRestoreRun(models.Model):
@@ -629,30 +632,28 @@ class UslB2cRestoreRun(models.Model):
                     "external_listing_id": line["external_listing_id"] or False,
                     "evidence_id": evidence.id,
                 }
-                pending_alias_values = {
+                disposition_values = {
                     **common_alias_values,
-                    "mapping_state": "pending",
-                    "product_id": False,
+                    "mapping_state": "verified" if exact_product else "not_applicable",
+                    "product_id": exact_product.id or False,
                     "suggested_product_id": exact_product.id or False,
                     "evidence_note": (
-                        "An exact restored Odoo catalogue SKU is suggested; "
-                        "manual verification is still required."
+                        "The original source SKU exactly matches one canonical "
+                        "product internal reference."
                         if exact_product
-                        else "No exact source SKU matched the restored Odoo catalogue; "
-                        "manual review is required."
+                        else "No defensible exact product reference exists in the "
+                        "available evidence. The original SKU, title, variation, "
+                        "listing identifier and evidence are preserved without "
+                        "inventing a product."
                     ),
                 }
                 if alias:
-                    alias.write(
-                        common_alias_values
-                        if alias.mapping_state in {"verified", "rejected"}
-                        else pending_alias_values,
-                    )
+                    alias.write(disposition_values)
                 else:
                     alias = (
                         self.env["b2c.product.alias"]
                         .sudo()
-                        .create(pending_alias_values)
+                        .create(disposition_values)
                     )
                 target_aliases[alias.alias_key] = alias
 
@@ -696,7 +697,7 @@ class UslB2cRestoreRun(models.Model):
                 "revenue_company_amount": company_amount,
                 "product_id": alias.product_id.id if alias else False,
                 "alias_id": alias.id if alias else False,
-                "mapping_state": alias.mapping_state if alias else "pending",
+                "mapping_state": alias.mapping_state if alias else "not_applicable",
                 "amount_completeness": "partial",
                 "evidence_id": evidence.id,
             }
@@ -778,6 +779,7 @@ class UslB2cRestoreRun(models.Model):
                     "external_session_id": event.get("external_session_id") or False,
                     "external_checkout_session_id": event.get("external_checkout_session_id") or False,
                     "external_payout_id": event.get("external_payout_id") or False,
+                    "external_refund_id": event.get("external_refund_id") or False,
                     "external_original_payment_id": event.get("external_original_payment_id") or False,
                     "original_provider_state": event["original_state"],
                     "state": event["state"],
@@ -979,8 +981,8 @@ class UslB2cRestoreRun(models.Model):
                 "channel_id": False,
                 "source_provider": provider,
                 "review_note": (
-                    "Imported monthly control scope. Financial, bank and unresolved "
-                    "cross-provider links remain pending until reviewed."
+                    "Monthly provider control scope. Individual relationships remain "
+                    "separate from aggregate accounting coverage."
                 ),
             }
             if session:
@@ -991,6 +993,19 @@ class UslB2cRestoreRun(models.Model):
                 session = self.env["b2c.accounting.session"].sudo().create(values)
             session.action_refresh()
             sessions.append(session)
+
+        relationship_statistics = B2cRelationshipFinalizer(
+            self,
+            source,
+            company,
+            attachments,
+        ).finalize(
+            require_documents=os.getenv(
+                "B2C_REQUIRE_FINAL_RELATIONSHIPS",
+                "0",
+            )
+            == "1",
+        )
 
         after = self._protected_fingerprint()
         if before != after:
@@ -1011,8 +1026,11 @@ class UslB2cRestoreRun(models.Model):
             "orders": len(target_orders),
             "order_lines": len(canonical["lines"]),
             "payment_events": len(target_events),
-            "sessions": len(sessions),
+            "sessions": self.env["b2c.accounting.session"].sudo().search_count(
+                [("company_id", "=", company.id)],
+            ),
             "sku_aliases": len(target_aliases),
+            "relationships": relationship_statistics,
         }
         self.write(
             {

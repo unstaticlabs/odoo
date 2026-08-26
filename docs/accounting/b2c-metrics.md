@@ -47,6 +47,20 @@ records. Import validation fingerprints moves, lines, partial/full
 reconciliations, bank lines, native payments, and all native sale/purchase/stock
 transactions before and after every pass.
 
+Accounting coverage is reported at two different levels. A direct link is
+`verified` only when an immutable provider identifier uniquely matches and the
+date, currency, sign, and amount semantics agree. Aggregate coverage is
+`partial`: the provider's verified monthly session links to the native journal
+moves, but those totals are not allocated back to individual orders. Records
+before 1 October 2025, or records for which the locked source contains no
+corresponding provider ledger, are `not_applicable`. Only an unexplained
+post-cutoff gap is `pending`.
+
+The locked source currently supports 180 verified session-to-move links, 81
+unique bank-transaction links, and 14 direct identifier relationships covering
+10 payment events. The latter is the source-backed result; aggregate coverage
+must never be presented as 180 one-to-one order relationships.
+
 The raw source contains 1,467 `account.full.reconcile` rows. Accounting's
 operational restoration correctly retains the 1,340 IDs referenced by restored
 journal lines; the other 127 rows are empty/unreferenced source records. B2C

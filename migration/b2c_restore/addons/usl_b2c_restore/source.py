@@ -1,6 +1,7 @@
 import hashlib
 import os
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,8 +25,132 @@ SOURCE_FILESTORE = Path(
     os.getenv("B2C_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
 ).resolve()
 SUPPLEMENTAL_EVIDENCE_DIR = Path(
-    os.getenv("B2C_SUPPLEMENTAL_EVIDENCE_DIR", "/mnt/b2c-evidence/source"),
+    os.getenv(
+        "B2C_SUPPLEMENTAL_EVIDENCE_DIR",
+        "/mnt/accounting-source/supplemental/b2c",
+    ),
 ).resolve()
+
+SUPPLIER_NAME_MAP = {
+    "Amazon": "Amazon EU S.à r.l.",
+    "Amazon EU S.a.r.L., succursale française": (
+        "Amazon EU S.à r.l., Succursale Française"
+    ),
+    "Amazon EU Sarl - Italian Branch": (
+        "Amazon EU S.à r.l., Succursale Italiana"
+    ),
+    "Amazon EU Sarl, Spanish Branch": (
+        "Amazon EU S.à r.l., Sucursal en España"
+    ),
+    "Amazon Ireland": "Amazon EU S.à r.l., Irish Branch",
+    "Bosin Hardware Co., Ltd": "Bosin Hardware Co., Ltd",
+    "Chonghong Industries Ltd": "Chonghong Industries Ltd",
+    "FEDEX EXPRESS FR": "FEDEX EXPRESS FR",
+    "Focus Global Sourcing Services Co., Limited (Made-in-China.com)": (
+        "Focus Global Sourcing Services Co., Limited (Made-in-China.com)"
+    ),
+    "GROUPE TVA LA POSTE": "GROUPE TVA LA POSTE",
+    "Heinle Solution GmbH": "Heinle Solution GmbH",
+    "Heinle Solution GmbH - FR": (
+        "Heinle Solution GmbH — immatriculation TVA FR"
+    ),
+    "Heinle Solution GmbH - IT": (
+        "Heinle Solution GmbH — immatriculation TVA IT"
+    ),
+    "LA POSTE": "LA POSTE",
+    "Lockey Safety Products Co": "Lockey Safety Products Co",
+    "MIXAM UK LIMITED": "MIXAM UK LIMITED",
+    "Printful Inc.": "Printful Inc.",
+    "Zhejiang Quandun Import & Export Co., Ltd.": (
+        "Zhejiang Quandun Import & Export Co., Ltd."
+    ),
+}
+SUPPLIER_NAMES = tuple(SUPPLIER_NAME_MAP)
+CANONICAL_SUPPLIER_NAMES = tuple(SUPPLIER_NAME_MAP.values())
+
+SUPPLIER_DOCUMENT_FINGERPRINT_SQL = """
+    WITH selected AS (
+        SELECT CASE
+                   WHEN partner.name = ANY(%(supplier_names)s)
+                   THEN (%(canonical_supplier_names)s::text[])[
+                       array_position(%(supplier_names)s::text[], partner.name)
+                   ]
+                   ELSE partner.name
+               END AS partner_name,
+               COALESCE(NULLIF(move.name, '/'), '/') AS move_name,
+               COALESCE(move.ref, '') AS move_ref,
+               COALESCE(move.move_type, '') AS move_type,
+               COALESCE(move.state, '') AS state,
+               COALESCE(move.payment_state, '') AS payment_state,
+               COALESCE(move.invoice_date::text, '') AS invoice_date,
+               COALESCE(currency.name, '') AS currency,
+               COALESCE(move.amount_untaxed::text, '') AS amount_untaxed,
+               COALESCE(move.amount_tax::text, '') AS amount_tax,
+               COALESCE(move.amount_total::text, '') AS amount_total,
+               COALESCE(move.amount_residual::text, '') AS amount_residual,
+               COALESCE(edges.count, 0) AS reconciliation_edges,
+               COALESCE(
+                   attachments.checksums,
+                   ARRAY[]::text[]
+               ) AS attachment_checksums
+          FROM res_partner AS partner
+     LEFT JOIN account_move AS move
+            ON move.partner_id = partner.id
+           AND move.company_id = %(company_id)s
+           AND move.move_type IN ('in_invoice', 'in_refund', 'in_receipt')
+     LEFT JOIN res_currency AS currency ON currency.id = move.currency_id
+     LEFT JOIN LATERAL (
+               SELECT count(DISTINCT partial.id)::integer AS count
+                 FROM account_move_line AS line
+                 JOIN account_partial_reconcile AS partial
+                   ON partial.debit_move_id = line.id
+                   OR partial.credit_move_id = line.id
+                WHERE line.move_id = move.id
+           ) AS edges ON TRUE
+     LEFT JOIN LATERAL (
+               SELECT array_agg(
+                          DISTINCT attachment.checksum
+                          ORDER BY attachment.checksum
+                      ) FILTER (
+                          WHERE attachment.checksum IS NOT NULL
+                      ) AS checksums
+                 FROM ir_attachment AS attachment
+                WHERE attachment.res_model = 'account.move'
+                  AND attachment.res_id = move.id
+           ) AS attachments ON TRUE
+         WHERE partner.name = ANY(%(selected_names)s)
+    )
+    SELECT count(*)::integer AS rows,
+           md5(
+               jsonb_agg(
+                   to_jsonb(selected)
+                   ORDER BY partner_name, move_name, move_ref,
+                            invoice_date, amount_total
+               )::text
+           ) AS digest
+      FROM selected
+"""
+
+
+def supplier_document_fingerprint(cursor, company_id, *, canonical=False):
+    selected_names = (
+        CANONICAL_SUPPLIER_NAMES
+        if canonical
+        else tuple(dict.fromkeys(SUPPLIER_NAMES + CANONICAL_SUPPLIER_NAMES))
+    )
+    cursor.execute(
+        SUPPLIER_DOCUMENT_FINGERPRINT_SQL,
+        {
+            "canonical_supplier_names": list(CANONICAL_SUPPLIER_NAMES),
+            "company_id": company_id,
+            "selected_names": list(selected_names),
+            "supplier_names": list(SUPPLIER_NAMES),
+        },
+    )
+    row = cursor.fetchone()
+    if isinstance(row, Mapping):
+        return {"rows": row["rows"], "digest": row["digest"]}
+    return {"rows": row[0], "digest": row[1]}
 
 
 @dataclass(frozen=True)
@@ -103,6 +228,13 @@ SUPPLEMENTAL_SHA256 = {
         "e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
     ),
 }
+SOURCE_PACKAGE_FILES = (*SOURCE_FILES, *SUPPLEMENTAL_SOURCE_FILES)
+if len(SOURCE_FILES) != 39 or len(SOURCE_PACKAGE_FILES) != 40:
+    message = "The locked B2C source package must contain 39 dump files and one supplement"
+    raise RuntimeError(message)
+if len({item.name for item in SOURCE_PACKAGE_FILES}) != len(SOURCE_PACKAGE_FILES):
+    message = "The locked B2C source package contains duplicate filenames"
+    raise RuntimeError(message)
 
 CSV_HEADERS = {
     "etsy_statement": ETSY_STATEMENT_HEADER,
@@ -203,6 +335,7 @@ class B2cSourceReader:
                     "WHERE company.id = 1",
                 )
                 source_company = dict(cursor.fetchone() or {})
+                supplier_documents = supplier_document_fingerprint(cursor, 1)
                 cursor.execute(
                     """
                     WITH expanded AS (
@@ -275,7 +408,7 @@ class B2cSourceReader:
 
         files = []
         documents = defaultdict(list)
-        for source_file in (*SOURCE_FILES, *SUPPLEMENTAL_SOURCE_FILES):
+        for source_file in SOURCE_PACKAGE_FILES:
             content = self._content(source_file)
             sha256 = hashlib.sha256(content).hexdigest()
             descriptor = {
@@ -301,4 +434,5 @@ class B2cSourceReader:
             "files": tuple(files),
             "source_company": source_company,
             "source_company_id": 1,
+            "supplier_documents": supplier_documents,
         }

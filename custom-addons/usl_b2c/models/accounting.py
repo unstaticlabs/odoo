@@ -95,9 +95,21 @@ class B2cAccountingSession(models.Model):
         readonly=True,
     )
     accounting_link_coverage_percent = fields.Float(
-        string="Accounting Link Coverage (%)",
+        string="Accounting Disposition Coverage (%)",
+        readonly=True,
+        help=(
+            "Share of scoped records with an honest accounting disposition: "
+            "a verified direct link, verified aggregate coverage, or an explicit "
+            "not-applicable decision."
+        ),
+    )
+    direct_accounting_link_coverage_percent = fields.Float(
+        string="Direct Accounting Link Coverage (%)",
         readonly=True,
     )
+    direct_accounting_link_count = fields.Integer(readonly=True)
+    aggregate_covered_count = fields.Integer(readonly=True)
+    not_applicable_link_count = fields.Integer(readonly=True)
     pending_mapping_count = fields.Integer(readonly=True)
     pending_link_count = fields.Integer(readonly=True)
     pending_conversion_count = fields.Integer(
@@ -188,14 +200,33 @@ class B2cAccountingSession(models.Model):
             cogs = sum(fulfilments.mapped("company_cogs_amount"))
             allocated = sum(lines.mapped("revenue_company_amount"))
             relevant = len(orders) + len(payments) + len(fulfilments)
-            linked = sum(
+            records = tuple(chain(orders, payments, fulfilments))
+            directly_linked = sum(
                 bool(
                     record.accounting_link_ids.filtered(
-                        lambda link: link.link_state == "verified",
+                        lambda link: link.link_state == "verified"
+                        and any(
+                            (
+                                link.account_move_id,
+                                link.account_move_line_id,
+                                link.bank_statement_line_id,
+                                link.account_payment_id,
+                                link.payment_transaction_id,
+                            ),
+                        ),
                     ),
                 )
-                for record in chain(orders, payments, fulfilments)
+                for record in records
             )
+            aggregate_covered = sum(
+                record.accounting_link_state == "partial"
+                for record in records
+            )
+            not_applicable = sum(
+                record.accounting_link_state == "not_applicable"
+                for record in records
+            )
+            disposed = directly_linked + aggregate_covered + not_applicable
             unknown = sum(
                 abs(order.revenue_company_amount)
                 for order in orders
@@ -226,12 +257,22 @@ class B2cAccountingSession(models.Model):
                         else 0.0
                     ),
                     "accounting_link_coverage_percent": (
-                        linked / relevant * 100.0 if relevant else 0.0
+                        min(100.0, disposed / relevant * 100.0)
+                        if relevant
+                        else 0.0
                     ),
+                    "direct_accounting_link_coverage_percent": (
+                        directly_linked / relevant * 100.0
+                        if relevant
+                        else 0.0
+                    ),
+                    "direct_accounting_link_count": directly_linked,
+                    "aggregate_covered_count": aggregate_covered,
+                    "not_applicable_link_count": not_applicable,
                     "pending_mapping_count": len(
                         lines.filtered(lambda line: line.mapping_state == "pending"),
                     ),
-                    "pending_link_count": relevant - linked,
+                    "pending_link_count": max(0, relevant - disposed),
                     "pending_conversion_count": len(
                         orders.filtered(lambda order: order.conversion_state == "pending"),
                     )

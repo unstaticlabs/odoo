@@ -41,12 +41,19 @@ if not module or module.state != "installed":
         "usl_accounting_restore must be installed before finalization.",
     )
 
-latest_run = env["rebuild.account.import.run"].sudo().search([], limit=1)
+latest_run = env["rebuild.account.import.run"].sudo().search(
+    [],
+    order="id desc",
+    limit=1,
+)
 if latest_run and latest_run.status != "passed":
     raise RuntimeError(
         "The latest Accounting restoration must pass before finalization.",
     )
 if latest_run:
+    attachment_target_repair = (
+        latest_run.repair_final_account_move_attachment_targets()
+    )
     blocking = env["rebuild.account.discrepancy"].sudo().search_count([
         ("severity", "in", ["P0", "P1"]),
         ("status", "in", ["open", "investigating"]),
@@ -55,6 +62,12 @@ if latest_run:
         raise RuntimeError(
             f"{blocking} P0/P1 restoration discrepancy record(s) remain open.",
         )
+else:
+    attachment_target_repair = {
+        "checked_attachment_count": 0,
+        "repaired_attachment_count": 0,
+        "repaired_main_attachment_count": 0,
+    }
 
 before = accounting_snapshot()
 run_evidence = (
@@ -82,6 +95,7 @@ if after != before:
 
 print(json.dumps({
     "migration_module": "uninstalled",
+    "attachment_target_repair": attachment_target_repair,
     "business_snapshot_before": before,
     "business_snapshot_after": after,
     "restore_evidence": run_evidence,

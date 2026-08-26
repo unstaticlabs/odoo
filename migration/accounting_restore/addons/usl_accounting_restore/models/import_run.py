@@ -4482,11 +4482,26 @@ class RebuildAccountImportRun(models.Model):
                     "account.move",
                 ],
             )
-            target = self.env["account.move"].with_context(active_test=False).search([
+            targets = self.env["account.move"].with_context(active_test=False).search([
                 ("rebuild_source_model", "in", account_move_trace_models),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
+            ])
+            target = self.env["account.move"]
+            for trace_model in account_move_trace_models:
+                candidates = targets.filtered(
+                    lambda move, model=trace_model: (
+                        move.rebuild_source_model == model
+                    ),
+                )
+                if len(candidates) > 1:
+                    raise ValueError(
+                        "Source account.move %s has multiple %s attachment targets."
+                        % (row["res_id"], trace_model),
+                    )
+                if candidates:
+                    target = candidates
+                    break
             if target:
                 return "account.move", target
             return None, self.env["account.move"]
@@ -4518,6 +4533,97 @@ class RebuildAccountImportRun(models.Model):
             ], limit=1)
             return "rebuild.account.asset", snapshot
         return None, self.env["ir.attachment"]
+
+    def repair_final_account_move_attachment_targets(self):
+        """Attach source evidence to the one surviving native account move.
+
+        Native document materialization can replace an intermediate move after
+        the exact attachment replay.  Odoo deliberately keeps the binary in
+        that case but clears its ``res_model``/``res_id``.  At the end of the
+        one-shot migration the source identity must resolve to exactly one
+        durable move; anything else is unsafe to guess.
+        """
+        self.ensure_one()
+        snapshot = self.source_snapshot_id
+        if not snapshot:
+            raise ValueError("Attachment target repair requires a source snapshot.")
+
+        Attachment = self.env["ir.attachment"].sudo()
+        attachments = Attachment.search([
+            ("rebuild_source_model", "=", "ir.attachment"),
+            ("rebuild_source_snapshot", "=", snapshot),
+            ("rebuild_source_attachment_res_model", "=", "account.move"),
+            ("rebuild_source_attachment_res_id", "!=", False),
+        ])
+        source_move_ids = set(
+            attachments.mapped("rebuild_source_attachment_res_id"),
+        )
+        moves = self.env["account.move"].sudo().with_context(
+            active_test=False,
+        ).search([
+            ("rebuild_source_snapshot", "=", snapshot),
+            ("rebuild_source_id", "in", list(source_move_ids) or [0]),
+        ])
+        moves_by_source = defaultdict(lambda: self.env["account.move"])
+        for move in moves:
+            moves_by_source[move.rebuild_source_id] |= move
+
+        missing = []
+        ambiguous = []
+        repaired = self.env["ir.attachment"]
+        main_repaired = 0
+        for attachment in attachments:
+            source_move_id = attachment.rebuild_source_attachment_res_id
+            candidates = moves_by_source[source_move_id]
+            if not candidates:
+                missing.append(source_move_id)
+                continue
+            if len(candidates) != 1:
+                ambiguous.append({
+                    "source_move_id": source_move_id,
+                    "target_move_ids": candidates.ids,
+                    "target_trace_models": candidates.mapped(
+                        "rebuild_source_model",
+                    ),
+                })
+                continue
+            move = candidates
+            if (
+                attachment.res_model != "account.move"
+                or attachment.res_id != move.id
+            ):
+                attachment.write({
+                    "res_model": "account.move",
+                    "res_id": move.id,
+                })
+                repaired |= attachment
+            if (
+                attachment.rebuild_source_is_main
+                and move.message_main_attachment_id != attachment
+            ):
+                move._message_set_main_attachment_id(
+                    attachment,
+                    force=True,
+                    filter_xml=False,
+                )
+                main_repaired += 1
+
+        if missing or ambiguous:
+            raise ValueError(
+                "Final Accounting attachment targets are incomplete: %s"
+                % json.dumps(
+                    {
+                        "ambiguous": ambiguous[:20],
+                        "missing_source_move_ids": sorted(set(missing))[:20],
+                    },
+                    sort_keys=True,
+                ),
+            )
+        return {
+            "checked_attachment_count": len(attachments),
+            "repaired_attachment_count": len(repaired),
+            "repaired_main_attachment_count": main_repaired,
+        }
 
     def _import_attachments(self, conn, options, companies, rows=None):
         rows = self._attachment_rows(conn, options) if rows is None else rows

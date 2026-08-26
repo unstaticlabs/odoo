@@ -115,21 +115,29 @@ capacity was increased, a fresh full reconstruction of source dump
 completed on 26 August and published a reusable sanitized QA seed. The run
 proved repeatable Product, Accounting, Identity, B2C, HR, Projects, Documents,
 Paie TESE and Platform Billing restoration, 645 archived Paperless documents,
-636 live authorized document mappings, and a final product-only registry.
+638 live authorized document mappings, and a final product-only registry. The
+same canonical run restored all 40 checksum-locked B2C source files and linked
+all 2,893 immutable provider-evidence rows to the searchable archive.
 Two independent isolated seed hydrations then reproduced identical Accounting,
 Documents and Paperless controls with zero OCR submissions. Current-source
 performance comparison and the production dress rehearsal remain outstanding.
 
 The current candidate's isolated clean-install and repeated-update check passes
-for all thirteen presently delivered product modules with no migration registry
+for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
 The rehearsal is not a production admission candidate. The strict whole-source
 gate still identifies eight incomplete scopes, the attachment ledger has 115
-pending source attachment IDs, and B2C still exposes governed mapping,
-currency, accounting-link and physical opening-stock gaps. These are visible
-release blockers, not silently discarded data.
+pending source attachment IDs, and the separately governed physical
+opening-stock count is still not evidenced. B2C itself now has complete honest
+dispositions: nine aliases are exactly verified, 100 are explicitly not
+applicable, all 180 source-ledger moves have monthly session links, all 40
+source files are archived, and no accounting relationship or SKU mapping is
+left unexplained and pending. Aggregate monthly coverage is not presented as
+one-to-one order accounting, and the 35 header-only Medusa orders remain
+visible without invented lines. The remaining whole-source and physical-count
+items are visible release blockers, not silently discarded data.
 
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in
@@ -163,7 +171,8 @@ The canonical, evidence-bearing sequence is maintained in the
    `61580c1704c`**.
 2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 3. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
-   rehearsal passed, with explicit production data decisions still required**.
+   canonical rehearsal passed with complete evidence, relationship and alias
+   dispositions; physical opening stock remains a separate later operation**.
 4. Review and merge Paperless 3.0 and requalify the official export/import and
    zero-OCR paths.
 5. Review and merge Native Sign with signing evidence and permission gates.

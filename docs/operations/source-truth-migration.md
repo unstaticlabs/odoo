@@ -235,22 +235,29 @@ relationship; the 115 source IDs are the file-level count.
 
 ### B2C commerce stage
 
-B2C runs after Accounting and Product restoration. It parses 39 checksum-locked
-archive files directly from the read-only source filestore, creates canonical
-commerce records and immutable restricted evidence, and treats final Documents
-links as independently reviewable coverage. The source has zero native sales,
-payments and stock operations, so the stage does not manufacture any. It
-fingerprints Accounting, reconciliations, bank data, native payment records,
-Sales, Purchase, Stock and product cost history before and after import.
+B2C creates its canonical records after Accounting and Product restoration,
+then finalizes relationships only after Accounting, Product, Projects and full
+Documents restoration. It parses 39 checksum-locked dump files directly from
+the read-only source filestore plus one checksum-locked private Medusa line
+export in the same canonical source package. It creates immutable restricted
+evidence and requires all 40 files in final Documents. The source has zero
+native sales, payments and stock operations, so the stage does not manufacture
+any. It fingerprints Accounting, reconciliations, bank data, native payment
+records, named supplier documents, Sales, Purchase, Stock and product cost
+history before and after import.
 
-The current evidence baseline is 304 canonical orders, 235 Etsy line rows plus
-222 separately checksum-locked Medusa sold-item rows, 1,821
-payment/refund/fee events, 261 fulfilment/COGS rows, 109 pending aliases and 80
-monthly session scopes. The Odoo Online dump and its filestore remain primary;
-the Medusa sold-item file is explicitly post-dump supplemental provider
-evidence and never masquerades as a source-database record. Repeat import must
-preserve those counts and the same protected fingerprint. Detailed file and
-column dispositions live in `migration/b2c_restore/source-field-matrix.md`.
+The current evidence baseline is 304 canonical orders, 457 line rows (235 Etsy
+plus 222 Medusa), 1,821 payment/refund/fee events, 261 fulfilment/COGS rows,
+2,893 immutable evidence rows, 109 aliases and 81 monthly session scopes. Nine
+aliases are verified by exact canonical internal reference and 100 are
+explicitly not applicable; none is unexplained pending. All 180 critical moves
+have verified provider/month session links, 81 have unique bank links, and 14
+direct identifier relationships cover 10 events. The Odoo Online dump and its
+filestore remain primary; the Medusa sold-item file is explicitly post-dump
+supplemental provider evidence and never masquerades as a source-database
+record. Repeat import must preserve those counts and the same protected
+fingerprint. Detailed file and column dispositions live in
+`migration/b2c_restore/source-field-matrix.md`.
 
 ### Platform Billing stage
 

@@ -6,21 +6,24 @@ The Odoo Online dump and filestore remain the primary source and must match the
 locked dump SHA-256. Current Medusa headers exist there, but Medusa sold-item
 detail does not. Before running the stage, place the separately supplied
 provider export at
-`artifacts/b2c-restore/source/medusa-sold-items-2026-08-05.csv`. This private,
-Git-ignored file must match SHA-256
+`usl-online-dump/supplemental/b2c/medusa-sold-items-2026-08-05.csv`. This
+private, Git-ignored file is part of the canonical source package and must
+match SHA-256
 `e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a`.
 Missing or changed supplemental evidence is blocking; it is never silently
-treated as an empty line set.
+treated as an empty line set or read from a competing repository-artifact
+path.
 
 ## Safety and stage order
 
 The one-shot add-on is available only at
-`migration/b2c_restore/addons/usl_b2c_restore`. Run it after Accounting,
-Identity, Product, and the source attachment inventory. It reads the restored
-source with `accounting_source_ro` and a read-only transaction. It parses source
-filestore objects directly, so `no-documents` and `documents-smoke` are valid
-iteration profiles; a release qualification still requires all final archive
-links.
+`migration/b2c_restore/addons/usl_b2c_restore`. Its initial canonical-record
+pass runs after Accounting, Identity, and Product. Relationship finalization
+runs only after Accounting, Product, Projects, and the complete Documents
+archive exist. It reads the restored source with `accounting_source_ro` and a
+read-only transaction. It parses source filestore objects directly, so
+`no-documents` and `documents-smoke` are valid developer iteration profiles; a
+release qualification requires every final archive and business link.
 
 Always use an isolated Compose project and set both electronic-invoice guards
 to zero. Never open `odoo_online_source_saas_19_3` with target Odoo code.
@@ -37,18 +40,20 @@ when requested, uninstalls the temporary add-on, removes its rows/columns/XML
 IDs, and runs the product/migration boundary. `scripts/target-reconstruct`
 places the same stage after Product restoration. Do not use `-u all`.
 
-When Documents is enabled, canonical reconstruction repeats the same idempotent
-B2C pass after archive ingestion and before final migration cleanup. This
-refresh links only exact, unique native attachments materialized by the archive;
-files without such a target remain explicitly pending in the discrepancy
-report.
+When Documents is enabled, canonical reconstruction repeats the idempotent B2C
+pass after full archive ingestion and before final migration cleanup. The
+release pass requires every one of the 40 source-package files to exist by exact
+checksum in Documents and to have at least one durable B2C business link.
+Missing, changed, duplicate, ambiguous, or unlinked source documents and native
+business targets abort the migration.
 
 ## Import contract
 
 The source dump SHA-256 must be
 `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
-The source attachment manifest fixes name, source ID, SHA-1, size, MIME type,
-and filestore path; every CSV additionally fixes its exact ordered header and
+The manifest fixes 39 dump-backed files by name, source ID, SHA-1, size, MIME
+type, and filestore path, plus the separately supplied Medusa line export by
+SHA-1 and SHA-256. Every CSV additionally fixes its exact ordered header and
 SHA-256. Any changed checksum, schema, missing file, extra CSV column, or parser
 baseline aborts the stage.
 
@@ -72,9 +77,16 @@ Validate at least:
   valuation layers;
 - Accounting moves/lines and debit/credit by account, journal and partner;
 - partial/full reconcile and bank-state fingerprints;
-- B2C month/channel totals and order/payment/refund/fulfilment link coverage;
-- every pending SKU, conversion, archive attachment, accounting relationship,
-  and physical opening-stock input.
+- all 180 critical journal moves linked to the correct provider/month session;
+- direct, aggregate, not-applicable, and pending B2C coverage reported
+  separately, with no unexplained post-cutoff gap;
+- 40 exact Documents files and durable links to all 2,893 provider-evidence
+  rows;
+- all 109 SKU aliases either verified by exact internal reference or explicitly
+  not applicable, with no unexplained pending mapping;
+- named supplier-document states, residuals, reconciliation edges and native
+  attachments; and
+- the deliberately separate physical opening-stock input.
 
 Finalization must prove a second import changes no counts or fingerprints, then
 remove the temporary module and all technical provenance. Business identifiers,

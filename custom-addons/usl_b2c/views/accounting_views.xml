@@ -39,6 +39,10 @@
                 <field name="unallocated_revenue_company_amount" sum="Unallocated"/>
                 <field name="line_revenue_coverage_percent"/>
                 <field name="accounting_link_coverage_percent"/>
+                <field name="direct_accounting_link_coverage_percent" optional="show"/>
+                <field name="direct_accounting_link_count" optional="show"/>
+                <field name="aggregate_covered_count" optional="show"/>
+                <field name="not_applicable_link_count" optional="show"/>
                 <field name="pending_mapping_count"/>
                 <field name="pending_link_count"/>
                 <field name="pending_conversion_count"/>
@@ -76,6 +80,10 @@
                         <group string="Coverage Controls">
                             <field name="line_revenue_coverage_percent" readonly="1"/>
                             <field name="accounting_link_coverage_percent" readonly="1"/>
+                            <field name="direct_accounting_link_coverage_percent" readonly="1"/>
+                            <field name="direct_accounting_link_count" readonly="1"/>
+                            <field name="aggregate_covered_count" readonly="1"/>
+                            <field name="not_applicable_link_count" readonly="1"/>
                             <field name="unallocated_revenue_company_amount" readonly="1"/>
                             <field name="unknown_amount_company_amount" readonly="1"/>
                             <field name="pending_mapping_count" readonly="1"/>

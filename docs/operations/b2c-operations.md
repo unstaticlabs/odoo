@@ -12,13 +12,21 @@
 Raw provider evidence may contain customer PII. Grant its separate role only
 for a documented investigation. Do not export it into shared analytical files.
 
+Use the coverage states consistently: **Verified** is an exact direct match;
+**Partial** is honest monthly aggregate coverage without individual allocation;
+**Not applicable** means the relationship does not apply or the locked evidence
+contains no matching ledger/catalog fact; **Pending** is an unexplained gap;
+and **Rejected** is a disproved proposal.
+
 ## SKU review
 
 1. Open **B2C → Operations → Product and SKU Mappings** and filter `Pending`.
 2. Compare the immutable source SKU, listing, name, variation, and restricted
    evidence with the native catalog. Never infer a match from name similarity.
 3. Select the verified product and choose **Verify Mapping**, or record a reason
-   and choose **Reject**. Leave ambiguous evidence pending.
+   and choose **Reject**. Use **Not applicable** with a clear evidence note when
+   no defensible catalog match exists; leave only genuinely unexplained evidence
+   pending.
 4. Confirm affected order lines and the original SKU remain visible.
 
 ## Accounting and bank links
@@ -27,7 +35,10 @@ Create a link only when the source identifier, amount, date, currency, and
 counterparty jointly support it. Choose the appropriate revenue, refund, fee,
 payout, bank, clearing, supplier-cost, COGS, or supporting-evidence type. A
 verified link points to existing Accounting evidence; it never edits that
-evidence. Reject a disproved candidate and leave unknown relationships pending.
+evidence. Reject a disproved candidate, use not applicable where the
+relationship honestly does not exist, and leave only an unexplained
+relationship pending. Never turn monthly aggregate coverage into a direct
+order allocation.
 
 ## Monthly session
 
