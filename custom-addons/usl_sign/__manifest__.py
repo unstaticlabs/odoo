@@ -41,6 +41,7 @@
     "assets": {
         "web.assets_backend": [
             "usl_sign/static/src/js/business_summary.esm.js",
+            "usl_sign/static/src/js/systray_patch.esm.js",
             "usl_sign/static/src/js/workspace.esm.js",
             "usl_sign/static/src/js/template_library.esm.js",
             "usl_sign/static/src/js/editor_utils.esm.js",

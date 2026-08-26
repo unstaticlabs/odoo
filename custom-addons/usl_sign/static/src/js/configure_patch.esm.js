@@ -278,6 +278,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
     postIframeFields() {
         const document = this.iframe.el.contentDocument;
         this.injectIframeAssets(document);
+        this.bindPdfScrolling(document);
         for (const page of document.getElementsByClassName("page")) {
             this.bindPage(page);
         }
@@ -292,6 +293,38 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         document.getElementById("viewer")?.classList.add("sign_oca_ready");
         this.editor.loading = false;
         this.iframeLoaded.resolve();
+    }
+
+    bindPdfScrolling(document) {
+        const viewer = document.getElementById("viewerContainer");
+        if (!viewer || viewer.dataset.uslScrollReady) {
+            return;
+        }
+        viewer.dataset.uslScrollReady = "1";
+        viewer.style.overflow = "auto";
+        viewer.style.overscrollBehavior = "contain";
+        const wheel = (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                return;
+            }
+            const unit = event.deltaMode === 1 ? 32 : event.deltaMode === 2
+                ? viewer.clientHeight : 1;
+            const deltaX = event.deltaX * unit;
+            const deltaY = event.deltaY * unit;
+            const canScrollX = viewer.scrollWidth > viewer.clientWidth && deltaX;
+            const canScrollY = viewer.scrollHeight > viewer.clientHeight && deltaY;
+            if (!canScrollX && !canScrollY) {
+                return;
+            }
+            event.preventDefault();
+            viewer.scrollLeft += deltaX;
+            viewer.scrollTop += deltaY;
+        };
+        document.addEventListener("wheel", wheel, {capture: true, passive: false});
+        this.pageListeners.push(() => {
+            document.removeEventListener("wheel", wheel, {capture: true});
+            delete viewer.dataset.uslScrollReady;
+        });
     }
 
     bindPage(page) {
@@ -406,6 +439,16 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             this.editor.contextPlacement = false;
             this.refreshSelection();
         });
+        if (this.isEditable) {
+            element.addEventListener("contextmenu", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.editor.selectedItemId = item.id;
+                this.editor.contextPlacement = false;
+                this.refreshSelection();
+                this.deleteField(item);
+            });
+        }
         element.addEventListener("keydown", (event) => this.onFieldKeydown(event, item));
         page.append(element);
         this.items[item.id] = element;
@@ -842,6 +885,28 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         return result;
     }
 
+    async copySelectedFieldToEveryPage() {
+        const source = this.selectedItem;
+        if (!source || this.field(source.field_id)?.kind !== "initials") {
+            return;
+        }
+        const result = await this.applyCommand({
+            action: "copy_all_pages",
+            item_id: source.id,
+        });
+        const itemIds = (result.items || []).map((item) => item.id);
+        this.editor.selectedItemId = source.id;
+        this.refreshSelection();
+        if (!itemIds.length) {
+            this.notification.add(_t("These initials are already placed on every page."), {
+                type: "info",
+            });
+            return;
+        }
+        this.pushHistory({kind: "copy_all_pages", itemIds, sourceItemId: source.id});
+        this.notification.add(_t("Initials placed on every page."), {type: "success"});
+    }
+
     async updateField(item, values, inverseValues = false, {recordHistory = true} = {}) {
         const before = inverseValues || Object.fromEntries(
             Object.keys(values).map((key) => [key, item[key]])
@@ -891,7 +956,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 result = await this.updateField(item, entry.before, entry.after, {recordHistory: false});
             } else if (entry.kind === "create") {
                 result = await this.deleteField(this.info.items[String(entry.itemId)], {recordHistory: false});
-            } else if (entry.kind === "create_many") {
+            } else if (entry.kind === "create_many" || entry.kind === "copy_all_pages") {
                 result = await this.deleteFields(entry.itemIds);
             } else if (entry.kind === "delete") {
                 result = await this.createField(entry.values, {recordHistory: false});
@@ -933,6 +998,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                     {recordHistory: false}
                 );
                 if (result.status === "ok") {
+                    entry.itemIds = result.items.map((item) => item.id);
+                }
+            } else if (entry.kind === "copy_all_pages") {
+                result = await this.applyCommand({
+                    action: "copy_all_pages",
+                    item_id: entry.sourceItemId,
+                });
+                if (result?.status === "ok") {
                     entry.itemIds = result.items.map((item) => item.id);
                 }
             } else if (entry.kind === "delete") {

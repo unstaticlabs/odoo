@@ -117,6 +117,41 @@ class SignEnrollment(models.Model):
             msg = "Identity reviewer access is required."
             raise AccessError(msg)
 
+    @api.model
+    def action_open_my_identity(self):
+        """Open the current user's identity directly instead of a technical list."""
+        enrollment = self.search(
+            [
+                ("partner_id", "=", self.env.user.partner_id.id),
+                ("company_id", "=", self.env.company.id),
+                ("state", "!=", "revoked"),
+            ],
+            limit=1,
+        ) or self.search(
+            [
+                ("partner_id", "=", self.env.user.partner_id.id),
+                ("company_id", "=", self.env.company.id),
+            ],
+            order="create_date desc, id desc",
+            limit=1,
+        )
+        if not enrollment:
+            msg = _(
+                "No signing identity has been set up for you in this company. "
+                "Ask an identity reviewer to start the setup."
+            )
+            raise UserError(msg)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("My Signing Identity"),
+            "res_model": self._name,
+            "res_id": enrollment.id,
+            "views": [
+                (self.env.ref("usl_sign.sign_enrollment_my_form").id, "form"),
+            ],
+            "target": "current",
+        }
+
     def _review_assignee(self):
         self.ensure_one()
         reviewers = self.env.ref(
