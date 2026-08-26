@@ -443,7 +443,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("action_sync_permissions", apply_script)
         self.assertIn("USL_PAPERLESS_FORCE_PERMISSION_SYNC", apply_script)
         self.assertIn("stale_mappings_disabled", apply_script)
-
         product_modules = {
             "rebuild_account_migration",
             "usl_accounting",
@@ -462,6 +461,18 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             with self.subTest(module_name=module_name):
                 self.assertIn(module_name, finalizer)
         self.assertNotIn("--update=all", finalizer)
+
+    def test_existing_pocket_environment_file_is_guarded(self):
+        script = (ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("verify_existing_pocket_environment", script)
+        self.assertIn(
+            'com.docker.compose.project.environment_file',
+            script,
+        )
+        self.assertIn("No containers were changed.", script)
 
     def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
         qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
