@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.misc import format_datetime
 
