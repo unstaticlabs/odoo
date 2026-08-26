@@ -4,6 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 source "$repo_root/scripts/lib/compose-scope.sh"
+source "$repo_root/scripts/lib/migration-addons.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-}}"
@@ -13,7 +14,7 @@ test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_rest
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$repo_root/usl-online-dump}"
 source_dump_sha=""
 source_snapshot=""
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/platform-billing-migration-addons"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 
 if [[ -z "$compose_project" ]]; then
     echo "Refusing an unset Compose project."

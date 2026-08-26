@@ -20,28 +20,23 @@ MIGRATION_ADDONS = {
         ROOT / "migration" / "platform_billing_restore" / "addons"
     ),
 }
-MIGRATION_PATHS = {
-    "accounting-migration": ("/mnt/accounting-migration-addons",),
-    "project-migration": (
-        "/mnt/accounting-migration-addons",
-        "/mnt/project-migration-addons",
-        "/mnt/identity-migration-addons",
-        "/mnt/product-migration-addons",
-        "/mnt/hr-migration-addons",
-    ),
-    "b2c-migration": (
-        "/mnt/accounting-migration-addons",
-        "/mnt/b2c-migration-addons",
-    ),
-    "tese-migration": (
-        "/mnt/accounting-migration-addons",
-        "/mnt/tese-migration-addons",
-    ),
-    "platform-billing-migration": (
-        "/mnt/accounting-migration-addons",
-        "/mnt/platform-billing-migration-addons",
-    ),
-}
+MIGRATION_PATHS = (
+    "/mnt/accounting-migration-addons",
+    "/mnt/identity-migration-addons",
+    "/mnt/product-migration-addons",
+    "/mnt/b2c-migration-addons",
+    "/mnt/hr-migration-addons",
+    "/mnt/project-migration-addons",
+    "/mnt/tese-migration-addons",
+    "/mnt/platform-billing-migration-addons",
+)
+MIGRATION_SERVICES = (
+    "accounting-migration",
+    "project-migration",
+    "b2c-migration",
+    "tese-migration",
+    "platform-billing-migration",
+)
 
 
 def manifest(path):
@@ -141,27 +136,24 @@ service_text = {
         compose, "platform-billing-migration", "test",
     ),
 }
-all_migration_paths = {
-    path for paths in MIGRATION_PATHS.values() for path in paths
-}
-for migration_path in sorted(all_migration_paths):
+for migration_path in MIGRATION_PATHS:
     if migration_path in normal_odoo_service:
         errors.append(
             f"The normal Odoo service exposes migration path {migration_path}.",
         )
 
-for service_name, expected_paths in MIGRATION_PATHS.items():
+expected_addons_path = default_addons_path + "," + ",".join(MIGRATION_PATHS)
+for service_name in MIGRATION_SERVICES:
     current_service = service_text[service_name]
-    expected_addons_path = default_addons_path + "," + ",".join(expected_paths)
     if f"--addons-path={expected_addons_path}" not in current_service:
         errors.append(
-            f"The {service_name} service does not expose exactly its required "
-            "temporary add-ons paths.",
+            f"The {service_name} service does not expose the complete staged "
+            "migration add-ons path.",
         )
-    for migration_path in all_migration_paths - set(expected_paths):
-        if migration_path in current_service:
+    for migration_path in MIGRATION_PATHS:
+        if f"{migration_path}:ro" not in current_service:
             errors.append(
-                f"The {service_name} service unexpectedly exposes {migration_path}.",
+                f"The {service_name} service does not mount {migration_path} read-only.",
             )
 
 restore_harnesses = {

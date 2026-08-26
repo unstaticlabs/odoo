@@ -251,7 +251,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         project_script = (REPOSITORY_ROOT / "scripts/project-restore").read_text(
             encoding="utf-8",
         )
-        self.assertIn("/mnt/accounting-migration-addons", project_script)
+        self.assertIn("scripts/lib/migration-addons.sh", project_script)
 
         project_traces = (
             REPOSITORY_ROOT
@@ -273,7 +273,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         tese_script = (REPOSITORY_ROOT / "scripts/tese-restore").read_text(
             encoding="utf-8",
         )
-        self.assertIn("/mnt/accounting-migration-addons", tese_script)
+        self.assertIn("scripts/lib/migration-addons.sh", tese_script)
         self.assertIn("TESE_RESTORE_DEFER_PRODUCT_VALIDATE", tese_script)
         self.assertIn("require_reconstruction_schema", tese_script)
         self.assertIn(
@@ -286,6 +286,83 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         ).read_text()
         self.assertIn("USL_TESE_RECOVER_PARTIAL_RERUN", recovery_script)
         self.assertIn("migration_modules.button_immediate_uninstall()", recovery_script)
+
+    def test_staged_migration_runners_share_the_complete_temporary_registry(self):
+        helper_path = REPOSITORY_ROOT / "scripts/lib/migration-addons.sh"
+        helper = helper_path.read_text(encoding="utf-8")
+        match = re.search(
+            r'^USL_MIGRATION_ADDONS_PATH="([^"]+)"$',
+            helper,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(match)
+        addons_path = match.group(1)
+        temporary_mounts = {
+            "/mnt/accounting-migration-addons",
+            "/mnt/identity-migration-addons",
+            "/mnt/product-migration-addons",
+            "/mnt/b2c-migration-addons",
+            "/mnt/hr-migration-addons",
+            "/mnt/project-migration-addons",
+            "/mnt/tese-migration-addons",
+            "/mnt/platform-billing-migration-addons",
+        }
+        self.assertEqual(
+            {path for path in addons_path.split(",") if path in temporary_mounts},
+            temporary_mounts,
+        )
+
+        for script_name in (
+            "accounting-restore",
+            "b2c-restore",
+            "documents-restore",
+            "hr-restore",
+            "identity-restore",
+            "platform-billing-restore",
+            "product-restore",
+            "project-restore",
+            "tese-restore",
+        ):
+            script = (REPOSITORY_ROOT / "scripts" / script_name).read_text(
+                encoding="utf-8",
+            )
+            self.assertIn("scripts/lib/migration-addons.sh", script, script_name)
+            self.assertIn(
+                'migration_addons_path="$USL_MIGRATION_ADDONS_PATH"',
+                script,
+                script_name,
+            )
+
+        compose = (REPOSITORY_ROOT / "compose.yaml").read_text(encoding="utf-8")
+
+        def service(name):
+            match = re.search(
+                rf"^  {re.escape(name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)",
+                compose,
+                re.MULTILINE | re.DOTALL,
+            )
+            self.assertIsNotNone(match, name)
+            return match.group(1)
+
+        for service_name in (
+            "accounting-migration",
+            "project-migration",
+            "b2c-migration",
+            "tese-migration",
+            "platform-billing-migration",
+        ):
+            section = service(service_name)
+            self.assertIn(f"--addons-path={addons_path}", section, service_name)
+            for mount in temporary_mounts:
+                self.assertIn(f"{mount}:ro", section, service_name)
+
+        test_service = service("test")
+        for mount in temporary_mounts:
+            self.assertIn(f"{mount}:ro", test_service)
+
+        product_service = service("odoo")
+        for mount in temporary_mounts:
+            self.assertNotIn(mount, product_service)
 
 
 if __name__ == "__main__":

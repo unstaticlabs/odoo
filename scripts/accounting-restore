@@ -5,11 +5,12 @@ export COMPOSE_IGNORE_ORPHANS=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
 target_database="${ODOO_DEV_DB:-odoo_dev}"
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0

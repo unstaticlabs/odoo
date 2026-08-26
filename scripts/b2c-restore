@@ -5,6 +5,7 @@ export COMPOSE_IGNORE_ORPHANS=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
@@ -15,7 +16,7 @@ expected_sha256="0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238
 supplemental_dir="${B2C_SUPPLEMENTAL_EVIDENCE_HOST_DIR:-$ROOT/artifacts/b2c-restore/source}"
 medusa_items_name="medusa-sold-items-2026-08-05.csv"
 medusa_items_sha256="e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/b2c-migration-addons"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 usl_verify_compose_scope "$compose_project" "$ROOT" "B2C restoration"
 
 case "$compose_project" in
