@@ -45,30 +45,32 @@
                         <strong>This identity link is revoked.</strong> It cannot authorize new Strong signatures. Completed documents remain valid and unchanged.
                     </div>
                     <group>
-                        <group string="Reviewed relationship">
+                        <group string="Person and relationship">
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="relationship_basis" string="Why we know this person" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="relationship_reference" string="Identity evidence reference" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="For example: employee EMP-1042 or contract C-2026-18" help="Enter a short reference your organization can recognize later, such as an employee number or contract number. This is plain text, not a link and not a Pocket ID identifier."/>
-                            <field name="policy_version" string="Identity policy version" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="review_note" string="Reviewer note" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Record the checks performed; do not attach identity documents by default."/>
+                            <field name="review_note" string="What you checked" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="For example: matched the Pocket ID account to the employee contact." help="Briefly record the relationship check. Do not attach identity documents by default."/>
+                            <field name="reviewer_id" string="Reviewed by" invisible="not reviewer_id"/>
+                            <field name="reviewed_at" string="Reviewed on" invisible="not reviewed_at"/>
                         </group>
                         <group string="Pocket ID connection">
                             <field name="invitation_delivery_state" string="Setup email" invisible="state != 'pending_pocket'"/>
                             <field name="invitation_sent_at" string="Last queued on" invisible="not invitation_sent_at"/>
-                            <field name="reviewer_id"/>
-                            <field name="reviewed_at"/>
-                            <field name="pocket_display_name" invisible="not pocket_subject"/>
-                            <field name="pocket_email" invisible="not pocket_subject"/>
-                            <field name="pocket_subject_fingerprint" invisible="not pocket_subject"/>
-                            <field name="pocket_linked_at" invisible="not pocket_subject"/>
-                            <field name="pocket_last_authorized_at" invisible="not pocket_subject"/>
+                            <field name="pocket_display_name" string="Account name" invisible="not pocket_subject"/>
+                            <field name="pocket_email" string="Account email" invisible="not pocket_subject"/>
+                            <field name="pocket_linked_at" string="Connected on" invisible="not pocket_subject"/>
+                            <field name="pocket_last_authorized_at" string="Last confirmed on" invisible="not pocket_last_authorized_at"/>
                             <field name="revoked_at" invisible="not revoked_at"/>
                             <field name="revocation_reason" invisible="not revocation_reason"/>
                         </group>
                     </group>
                     <details class="text-muted small mt-3">
-                        <summary>How identity data is handled</summary>
-                        Pocket ID manages passkeys and account recovery. The signing application keeps the Pocket ID account link and this review decision; it does not copy the person's passkeys.
+                        <summary>Review and privacy details</summary>
+                        <group class="mt-2">
+                            <field name="review_standard_label" string="Review standard" readonly="1"/>
+                            <field name="pocket_subject_fingerprint" string="Pocket ID audit reference" readonly="1" invisible="not pocket_subject"/>
+                        </group>
+                        <p>The review standard identifies the checklist used for this approval. It is retained as an audit snapshot rather than linked to a record that could later change.</p>
+                        <p>Pocket ID manages passkeys and account recovery. The signing application keeps the Pocket ID account link and this review decision; it does not copy the person's passkeys.</p>
                     </details>
                 </sheet>
             </form>
@@ -115,17 +117,15 @@
                         This identity link can no longer authorize new strong signatures. Completed documents are unchanged.
                     </div>
                     <group>
-                        <group string="Pocket ID account">
+                        <group string="Connected Pocket ID account">
                             <field name="pocket_display_name" invisible="not pocket_subject"/>
                             <field name="pocket_email" invisible="not pocket_subject"/>
                             <field name="pocket_linked_at" string="Connected on" invisible="not pocket_subject"/>
                             <field name="pocket_last_authorized_at" string="Last confirmed on" invisible="not pocket_subject"/>
                         </group>
-                        <group string="Organization review">
+                        <group string="Reviewed by your organization">
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="partner_id" string="Your Odoo contact"/>
                             <field name="relationship_basis" string="Known as"/>
-                            <field name="relationship_reference" string="How the match was checked" help="The short internal reference used to match you to a person the organization already knows. It is explanatory text, not a link."/>
                             <field name="reviewer_id" string="Reviewed by" invisible="not reviewer_id"/>
                             <field name="reviewed_at" string="Reviewed on" invisible="not reviewed_at"/>
                         </group>

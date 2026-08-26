@@ -94,8 +94,8 @@ or a real passkey ceremony.
 
 The installed Sign application is document-only. Its navigation is:
 
-- **Sign Dashboard** for immediate work, blockers, waiting requests and recent
-  results;
+- opening **Sign** shows immediate work, blockers, waiting requests and recent
+  results; there is no duplicate dashboard menu item;
 - **Request Signature → Templates** for reusable documents and the PDF field
   editor;
 - **Request Signature → Open Requests** for non-terminal requests owned or
@@ -113,7 +113,7 @@ and security review.
 
 Configuration entries answer distinct operational questions:
 
-- **My Strong Identity** shows whether the current user has a reviewed Pocket
+- **My Signing Identity** shows whether the current user has a reviewed Pocket
   ID link for Strong personal signing.
 - **Identity Reviews** lets authorized reviewers verify or revoke a recurring
   signer's relationship; Pocket ID continues to own passkeys and recovery.
