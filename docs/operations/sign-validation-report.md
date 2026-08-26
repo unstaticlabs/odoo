@@ -1,15 +1,15 @@
 # Sign validation and release-readiness report
 
-Status date: 2026-08-25
+Status date: 2026-08-26
 
 ## Outcome
 
 This feature delivers a document-first, Odoo-native signing application on the
-local `19-usl` saas-19.3 baseline `e3b64c209ac`. It extends the pinned OCA Sign
-module without modifying its source. Odoo owns the workflow and structured
-evidence, EU DSS owns PAdES construction and validation, Pocket ID owns
-passkeys, `step-ca` issues short-lived document certificates, and Paperless
-stores the signed document plus its durable proof package.
+current `19-usl` saas-19.3 baseline `f302ae6cdb43`. It extends the pinned OCA
+Sign module without modifying its source. Odoo owns the workflow and structured
+evidence, EU DSS owns PAdES construction and validation, Pocket ID owns passkeys,
+`step-ca` issues short-lived document certificates, and Paperless stores the
+signed document plus its durable proof package.
 
 The installed application exposes Standard, Strong personal and Qualified
 external document signing. The earlier internal business-decision experiment
@@ -81,6 +81,17 @@ menus, included in the dashboard, or seeded in QA.
   the current user's archive identity and this document's permission are both
   synchronized. Authorized Odoo preview and download remain available, so a
   user is never sent to an archive page that will reject them.
+- **Identity and signing usability:** obsolete retention configuration is gone;
+  setup-link actions copy immediately with a visible fallback; Strong readiness
+  stops unconfigured signers before the ceremony; method choices use responsive
+  cards with plain-English help; and successful identity setup removes its spent
+  action.
+- **Signer and status usability:** initials use a dedicated adoption dialog and
+  suggestion, the field navigator no longer rebuilds fields or duplicates
+  dialogs, completed My Signatures rows open their result directly, dashboard
+  cards show ACL-safe signer chips, and System Status uses a responsive kanban.
+  Archive failure language consistently requires Paperless confirmation of both
+  the signed PDF and proof package.
 
 ## Trust and evidence behavior
 
@@ -111,10 +122,10 @@ The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
 - the final isolated `scripts/sign-qa-stack test /usl_sign` run installed the
-  module from clean state and completed 82 post-test entries with zero failures
-  and zero errors. Odoo's per-module statistics reported 88 Sign tests plus the
+  module from clean state and completed 84 post-test entries with zero failures
+  and zero errors. Odoo's per-module statistics reported 90 Sign tests plus the
   six web-suite wrappers;
-- desktop and mobile frontend suites each passed 16 tests and 68 assertions.
+- desktop and mobile frontend suites each passed 20 tests and 78 assertions.
   They cover the stale palette-drag regression, whole-field movement, the
   iframe pointer bridge, autosave rollback, template upload, dashboard
   scrolling and action routing;
@@ -160,9 +171,9 @@ lightweight QA database correctly reported unrelated Accounting and Project
 product modules as uninstalled. No canonical database was opened from this
 feature checkout.
 
-The final `usl-sign-0a32-qa` tenant was rebuilt from empty project-scoped
-PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It installed
-`usl_sign` on `odoo_dev` with `--without-demo`, configured the dedicated
+The final `usl-sign-native-sign-2e96-qa` tenant was rebuilt from empty
+project-scoped PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It
+installed `usl_sign` on `odoo_dev` with `--without-demo`, configured the dedicated
 Pocket ID and Paperless service identities, and seeded only focused synthetic
 document-signing examples. No SQL dump or copied filestore was used. All
 containers reached healthy state. The non-biometric service smoke then passed
