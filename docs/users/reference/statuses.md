@@ -59,6 +59,23 @@ side never implies that the other is settled.
 - **Partial** — linked items remain open for a residual amount.
 - **Fully reconciled** — linked items balance and share a full matching reference.
 
+## Monthly bank statements
+
+- **Expected** — the configured month has not arrived; it becomes overdue
+  after the expected delivery day.
+- **Processing** — the retained email or files are waiting for processing.
+- **Needs attention** — an import, identity, evidence, balance or continuity
+  issue must be resolved.
+- **Ready for review** — OFX movements and the official archived PDF are
+  complete enough for an accountant to confirm balances.
+- **Certified** — the reviewed movement population, balances and exact
+  Documents version are recorded in an immutable certification snapshot.
+- **Reopened** — an Accounting Manager recorded why correction is required;
+  the month must be certified again.
+
+Certification proves completeness against the bank statement. It does not
+mean that every movement has been reconciled to an invoice or payment.
+
 ## B2C review
 
 SKU mappings and accounting/evidence links use **Pending**, **Verified** and

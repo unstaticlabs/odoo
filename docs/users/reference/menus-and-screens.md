@@ -68,6 +68,16 @@ after completion it becomes **View matching**. The
 read-only accountant can inspect the same evidence but cannot select or remove
 proposed lines, match, undo or change the partner.
 
+## Bank Statements
+
+The primary monthly completeness screen for configured bank exports. The list
+shows whether each statement **Needs attention**, is **Ready for review**, is
+**Certified**, or was **Reopened**. Open a month to inspect the retained source
+email and files, imported native movements, official Documents version,
+opening/closing balances, continuity and exceptions. Import completeness and
+transaction reconciliation are separate: certifying a complete bank statement
+does not mark its individual movements as matched.
+
 ## Customers and Vendors
 
 Customer invoices, credit notes, payments, supplier bills, refunds and vendor

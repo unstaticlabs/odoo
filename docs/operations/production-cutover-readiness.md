@@ -80,7 +80,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
-| Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | active workstream; review and merge pending |
+| Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
 
 For every merge:
 
@@ -102,8 +102,10 @@ partial `odoo_dev` installation is not final-target evidence.
 - [x] Merge the approved migration-performance candidate into `19-usl`.
 - [x] Merge Expense Analytics after independent review and validation.
 - [x] Merge B2C sales/inventory after independent review and validation.
-- [ ] Merge Paperless 3.0, Native Sign and monthly bank-statement ingestion
-  after independent review and validation.
+- [x] Merge monthly bank-statement ingestion after independent review and
+  validation.
+- [ ] Merge Paperless 3.0 and Native Sign after independent review and
+  validation.
 - [ ] Confirm no active release branch contains unmerged product or migration
   final state.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and

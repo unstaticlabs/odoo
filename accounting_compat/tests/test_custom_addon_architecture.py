@@ -97,6 +97,16 @@ class CustomAddonArchitectureTest(unittest.TestCase):
                 "account_group_compat.py": [
                     "account.group",
                 ],
+                "bank_statement_ingestion.py": [
+                    "account.bank.ingestion.config",
+                    "account.bank.ingestion",
+                    "account.bank.ingestion.file",
+                ],
+                "bank_statement_review.py": [
+                    "account.bank.statement",
+                    "account.bank.statement.certification",
+                    "account.bank.statement.exception",
+                ],
                 "expense_bank_matching.py": [
                     "usl.expense.bank.match.candidate",
                 ],

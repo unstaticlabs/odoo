@@ -16,9 +16,10 @@ Status date: 26 August 2026
 Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
-merge `368812b2868`. Paperless 3.0, Native Sign and monthly bank-statement
-email ingestion remain independently reviewable workstreams. They must be
-reviewed and merged before the final production qualification; no feature
+merge `368812b2868`. Monthly bank-statement email ingestion is integrated
+through merge `64c1f2b1207`. Paperless 3.0 and Native Sign remain independently
+reviewable workstreams. They must be reviewed and merged before the final
+production qualification; no feature
 worktree, old QA seed or rehearsal candidate can be promoted directly.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
@@ -75,6 +76,11 @@ Documents application.
   sales, payments, stock moves or accounting effects. It restores the complete
   46-template catalog, keeps future operations native, and exposes explicit
   SKU, currency, accounting-link and opening-stock coverage controls.
+- Scheduled bank-statement ingestion retains each approved email and original
+  file, imports exact OFX identities into native statements, requires the
+  official PDF in Documents, and provides monthly balance, continuity,
+  certification and controlled-reopening checks without creating a parallel
+  ledger.
 - Paperless-backed Documents provides authorized search, OCR, previews,
   metadata, versions, Trash and links to Accounting, Contacts, Employees and
   Paie TESE records without duplicating originals in Odoo.
@@ -121,6 +127,12 @@ all 2,893 immutable provider-evidence rows to the searchable archive.
 Two independent isolated seed hydrations then reproduced identical Accounting,
 Documents and Paperless controls with zero OCR submissions. Current-source
 performance comparison and the production dress rehearsal remain outstanding.
+The subsequent bank-ingestion merge passed clean installs for all four affected
+product modules, the pinned OCA OFX suite and repeated upgrades of canonical
+`odoo_dev`; its accounting, B2C and stock fingerprints remained unchanged.
+That focused evidence does not promote the earlier full seed to a final
+release candidate. A new full reconstruction is still required after the
+remaining workstreams merge.
 
 The current candidate's isolated clean-install and repeated-update check passes
 for all fourteen presently delivered product modules with no migration registry
@@ -176,8 +188,10 @@ The canonical, evidence-bearing sequence is maintained in the
 4. Review and merge Paperless 3.0 and requalify the official export/import and
    zero-OCR paths.
 5. Review and merge Native Sign with signing evidence and permission gates.
-6. Review and merge monthly bank-statement email ingestion with idempotence,
-   failure visibility and a manual-import fallback.
+6. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
+   product/OCA suites and repeated canonical upgrade passed. Production still
+   requires the private OFX cut-over preview/apply/repeat and a routed synthetic
+   mail test.**
 7. From clean final `19-usl`, repeat clean install, update, repeated update,
    full local reconstruction and complete product/migration boundary across
    every delivered module after the remaining workstreams are merged.
