@@ -254,3 +254,17 @@ index 0000000..76ebb9d
 +++ b/backend/resources/migrations/sqlite/20260806001000_requires_fresh_passkey.up.sql
 @@ -0,0 +1 @@
 +ALTER TABLE oidc_clients ADD COLUMN requires_fresh_passkey BOOLEAN NOT NULL DEFAULT FALSE;
+diff --git a/frontend/src/routes/login/alternative/code/+page.svelte b/frontend/src/routes/login/alternative/code/+page.svelte
+index f099b51..b381282 100644
+--- a/frontend/src/routes/login/alternative/code/+page.svelte
++++ b/frontend/src/routes/login/alternative/code/+page.svelte
+@@ -32 +32 @@
+-		if (e.from?.url.pathname) {
++		if (e.from?.url?.pathname) {
+diff --git a/frontend/package.json b/frontend/package.json
+index 484ee68..4947c38 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -3 +3 @@
+-  "version": "2.12.0",
++  "version": "2.12.0-usl2",

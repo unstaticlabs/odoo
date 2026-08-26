@@ -5,7 +5,7 @@ services:
       dockerfile: services/usl-pocket-id/Dockerfile
       args:
         POCKET_ID_COMMIT: b3fb8de5bc55aa813a27b4e15c1d761026fcceaa
-    image: usl-pocket-id-sign:v2.12.0-fresh-passkey
+    image: usl-pocket-id-sign:v2.12.0-usl2
     environment:
       APP_NAME: USL Sign Pocket ID QA
     ports: !override
