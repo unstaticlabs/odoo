@@ -272,10 +272,16 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn(
-            "local -a init_modules=() requested_modules=() "
-            "update_modules=() module_args=()",
+            "local -a init_modules requested_modules update_modules module_args",
             script,
         )
+        for name in (
+            "init_modules",
+            "requested_modules",
+            "update_modules",
+            "module_args",
+        ):
+            self.assertIn(f"{name}=()", script)
         self.assertIn('module_args+=("--init=', script)
         self.assertIn('module_args+=("--update=', script)
         self.assertIn("init_modules=()", script)
@@ -433,6 +439,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("sync-paperless-users", makefile)
         self.assertIn("scripts/pocket-id-dev configure-odoo", finalizer)
         self.assertIn("_identity_is_safe", apply_script)
+        self.assertIn('remote.get("is_active") is not True', apply_script)
         self.assertIn("action_sync_permissions", apply_script)
         self.assertIn("USL_PAPERLESS_FORCE_PERMISSION_SYNC", apply_script)
         self.assertIn("stale_mappings_disabled", apply_script)
