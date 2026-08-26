@@ -1,5 +1,4 @@
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import api, fields, models
 
 
 class ResCompany(models.Model):
@@ -16,9 +15,6 @@ class ResCompany(models.Model):
 
     sign_default_policy_id = fields.Many2one(
         "usl.sign.policy", string="Default signing policy", ondelete="restrict",
-    )
-    sign_evidence_retention_years = fields.Integer(
-        string="Evidence retention (years)", default=10,
     )
     sign_rfc3161_enabled = fields.Boolean(string="Use independent RFC 3161 timestamping")
     sign_opentimestamps_enabled = fields.Boolean(
@@ -38,22 +34,12 @@ class ResCompany(models.Model):
             self.env["usl.sign.service.health"]._ensure_company(company)
         return companies
 
-    @api.constrains("sign_evidence_retention_years")
-    def _check_retention(self):
-        for company in self:
-            if not 1 <= company.sign_evidence_retention_years <= 100:
-                msg = "Evidence retention must be between 1 and 100 years."
-                raise ValidationError(msg)
-
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     sign_default_policy_id = fields.Many2one(
         related="company_id.sign_default_policy_id", readonly=False,
-    )
-    sign_evidence_retention_years = fields.Integer(
-        related="company_id.sign_evidence_retention_years", readonly=False,
     )
     sign_rfc3161_enabled = fields.Boolean(
         related="company_id.sign_rfc3161_enabled", readonly=False,

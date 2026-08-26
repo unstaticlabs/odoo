@@ -41,6 +41,8 @@
     "assets": {
         "web.assets_backend": [
             "usl_sign/static/src/js/business_summary.esm.js",
+            "usl_sign/static/src/js/enrollment_actions.esm.js",
+            "usl_sign/static/src/js/signing_method_radio.esm.js",
             "usl_sign/static/src/js/systray_patch.esm.js",
             "usl_sign/static/src/js/workspace.esm.js",
             "usl_sign/static/src/js/template_library.esm.js",
@@ -50,9 +52,11 @@
             "usl_sign/static/src/xml/workspace.xml",
             "usl_sign/static/src/xml/template_library.xml",
             "usl_sign/static/src/xml/configure_patch.xml",
+            "usl_sign/static/src/xml/signing_method_radio.xml",
             "usl_sign/static/src/scss/sign.scss",
         ],
         "web.assets_unit_tests": [
+            "usl_sign/static/tests/enrollment_actions.test.js",
             "usl_sign/static/tests/editor_utils.test.js",
             "usl_sign/static/tests/editor_interactions.test.js",
             "usl_sign/static/tests/template_library.test.js",

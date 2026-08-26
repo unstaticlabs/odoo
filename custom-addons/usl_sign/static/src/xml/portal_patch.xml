@@ -23,6 +23,19 @@
             </t>
         </Dialog>
     </t>
+    <t t-name="usl_sign.InitialsDialog">
+        <Dialog title="'Adopt Your Initials'">
+            <div>
+                <p class="text-muted">Use the initials you want placed in this document. Your name is shortened to initials automatically; you can also draw or upload them.</p>
+                <NameAndSignature t-props="this.nameAndSignatureProps"/>
+                <div class="mt16 small">By continuing, I agree to use these initials as my electronic initials on this document.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="this.signature.isSignatureEmpty" t-on-click="this.onClickConfirm">Adopt Initials</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
     <t t-name="usl_sign.SignOcaPdfPortal" t-inherit="sign_oca.SignOcaPdfPortal" t-inherit-mode="extension">
         <xpath expr="//header" position="replace">
             <header class="usl_sign_portal_header">

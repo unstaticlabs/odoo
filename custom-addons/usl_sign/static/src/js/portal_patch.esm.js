@@ -1,9 +1,11 @@
 /** @odoo-module **/
+/* global Event */
 
 import {patch} from "@web/core/utils/patch";
 import {registry} from "@web/core/registry";
 import {Component, useState} from "@odoo/owl";
 import {Dialog} from "@web/core/dialog/dialog";
+import {SignatureDialog} from "@web/core/signature/signature_dialog";
 import {_t} from "@web/core/l10n/translation";
 import {renderToString} from "@web/core/utils/render";
 import {useService} from "@web/core/utils/hooks";
@@ -35,6 +37,10 @@ class DeclineDocumentDialog extends Component {
             this.state.busy = false;
         }
     }
+}
+
+class InitialsDialog extends SignatureDialog {
+    static template = "usl_sign.InitialsDialog";
 }
 
 const signatureField = registry.category("sign_oca").get("signature");
@@ -160,15 +166,51 @@ patch(checkField, {
 
 patch(signatureField, {
     generate(parent, item, signatureItem) {
-        const input = super.generate(...arguments);
+        const input = $(
+            renderToString("sign_oca.sign_iframe_field_signature", {item})
+        )[0];
         if (item.role_id === parent.info.role_id) {
+            const openDialog = () => {
+                const initials = item.kind === "initials";
+                parent.dialogService.add(initials ? InitialsDialog : SignatureDialog, {
+                    nameAndSignatureProps: {
+                        fontColor: "DarkBlue",
+                        ...(initials ? {signatureType: "initial"} : {}),
+                    },
+                    defaultName: parent.info.partner.name,
+                    uploadSignature: (data) =>
+                        this.uploadSignature(parent, item, signatureItem, data),
+                });
+            };
+            signatureItem[0].addEventListener("focus_signature", openDialog);
+            input.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openDialog();
+            });
             input.setAttribute("role", "button");
             input.setAttribute("tabindex", item.tabindex || 0);
             input.setAttribute("aria-label", `Add ${item.name || "signature"}`);
             input.addEventListener("keydown", (event) => {
                 if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    input.click();
+                    openDialog();
+                    return;
+                }
+                if (event.key !== "Tab") {
+                    return;
+                }
+                event.preventDefault();
+                const nextItem = Object.values(parent.info.items)
+                    .filter(
+                        (candidate) =>
+                            candidate.tabindex > item.tabindex &&
+                            candidate.role_id === parent.info.role_id
+                    )
+                    .sort((left, right) => left.tabindex - right.tabindex)[0];
+                input.blur();
+                if (nextItem && parent.items?.[nextItem.id]) {
+                    parent.items[nextItem.id].dispatchEvent(new Event("focus_signature"));
                 }
             });
         }
@@ -185,6 +227,18 @@ patch(SignOcaPdfPortal.prototype, {
     checkToSign() {
         super.checkToSign(...arguments);
         this._syncConsentState();
+    },
+
+    checkSignItemsCompletion() {
+        return Object.values(this.info.items)
+            .filter(
+                (item) =>
+                    item.role_id === this.info.role_id &&
+                    !registry.category("sign_oca").get(item.field_type).check(item)
+            )
+            .sort((left, right) => left.tabindex - right.tabindex)
+            .map((item) => ({data: item, el: this.items[item.id]}))
+            .filter(({el}) => Boolean(el));
     },
 
     _syncConsentState() {

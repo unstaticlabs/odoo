@@ -42,7 +42,7 @@
                     <div class="usl_sign_method_choice">
                         <label for="requested_trust" string="Signing method" class="o_form_label fw-semibold d-block mb-1"/>
                         <p class="small text-muted mb-2">Choose how each signer confirms and what proof is kept.</p>
-                        <field name="requested_trust" widget="radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
+                        <field name="requested_trust" widget="usl_sign_method_radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
                     </div>
                     <div class="card mt-3" invisible="requested_trust != 'qualified_external'"><div class="card-body">
                         <field name="external_provider_id" string="Qualified provider" required="requested_trust == 'qualified_external'"/>
