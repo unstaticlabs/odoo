@@ -105,7 +105,7 @@
                                 <input id="usl_sign_initials_every_page" class="form-check-input" type="checkbox"
                                        t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"
                                        t-att-disabled="!isEditable"/>
-                                <label class="form-check-label fw-semibold" for="usl_sign_initials_every_page">Every page</label>
+                                <label class="form-check-label fw-semibold" for="usl_sign_initials_every_page">Place on every page</label>
                             </div>
                             <div class="small text-muted">Click once to place these initials in the same position on every page.</div>
                         </div>
@@ -155,6 +155,14 @@
                                 <input id="usl_sign_placeholder" class="form-control" type="text" maxlength="500" t-att-value="selectedItem.placeholder || ''" t-on-change="changeItemPlaceholder" t-att-disabled="!isEditable"/>
                             </div>
                         </div>
+                        <div t-if="field(selectedItem.field_id).kind === 'initials'" class="usl_sign_panel_section">
+                            <button type="button" class="btn btn-outline-primary w-100"
+                                    t-on-click="copySelectedFieldToEveryPage"
+                                    t-att-disabled="!isEditable || editor.saveStatus === 'saving'">
+                                <i class="fa fa-copy me-1"/>Place on every page
+                            </button>
+                            <div class="small text-muted mt-2">Copies these initials to the same position on every page that does not already have them.</div>
+                        </div>
                         <div class="usl_sign_panel_section">
                             <div class="small fw-semibold mb-2">Position and size</div>
                             <div class="row g-2">
@@ -166,6 +174,7 @@
                         </div>
                         <div class="usl_sign_panel_section mt-auto">
                             <button type="button" class="btn btn-outline-danger w-100" t-on-click="deleteSelectedField" t-att-disabled="!isEditable"><i class="fa fa-trash me-1"/>Delete field</button>
+                            <div class="small text-muted mt-2 text-center">Tip: right-click a field on the PDF to delete it.</div>
                         </div>
                     </t>
                     <t t-elif="editor.contextPlacement">
@@ -189,7 +198,7 @@
                             <div class="form-check form-switch">
                                 <input id="usl_sign_context_initials_every_page" class="form-check-input" type="checkbox"
                                        t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"/>
-                                <label class="form-check-label fw-semibold" for="usl_sign_context_initials_every_page">Every page</label>
+                                <label class="form-check-label fw-semibold" for="usl_sign_context_initials_every_page">Place on every page</label>
                             </div>
                             <div class="small text-muted mt-1">Repeat at this position throughout the document.</div>
                         </div>

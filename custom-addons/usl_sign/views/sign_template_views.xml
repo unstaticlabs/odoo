@@ -159,7 +159,8 @@
                             invisible="preparation_status != 'ready'"
                             groups="usl_sign.group_sign_template_manager"/>
                         <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
-                            string="Sign myself" context="{'default_sign_now': 1}"
+                            string="Use and sign myself" context="{'default_sign_now': 1}"
+                            title="Starts a request with you as the only signer. You will review the request before signing."
                             class="btn btn-link btn-sm px-1"
                             invisible="preparation_status != 'ready' or signer_role_count != 1"/>
                     </div>

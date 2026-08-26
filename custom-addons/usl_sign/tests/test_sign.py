@@ -1749,7 +1749,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertNotIn('name="expires_at"', completed_list.arch)
 
         template_cards = self.env.ref("usl_sign.sign_template_kanban_usl").arch
-        for label in ["Place fields", "Use template", "New version", "Sign myself"]:
+        for label in ["Place fields", "Use template", "New version", "Use and sign myself"]:
             self.assertIn(f'string="{label}"', template_cards)
         for legacy_label in [">Configure<", ">Send<", ">Sign Now<"]:
             self.assertNotIn(legacy_label, template_cards)
@@ -1839,6 +1839,15 @@ class TestCleanUslSign(TransactionCase):
             internal_signer,
         ).get_landing()
         self.assertEqual(landing["sections"]["sign_now"]["count"], 1)
+        pencil_groups = internal_signer.sign_oca_request_user_count()
+        self.assertEqual(sum(group["total_records"] for group in pencil_groups), 1)
+        pencil_action = internal_signer.action_open_usl_sign_requests()
+        self.assertEqual(
+            self.env["sign.oca.request.signer"].with_user(internal_signer).search_count(
+                pencil_action["domain"],
+            ),
+            1,
+        )
         self.assertEqual(
             landing["sections"]["sign_now"]["items"][0]["progress"],
             "0 of 2 signed",
@@ -1930,12 +1939,12 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.state, "sent")
         self.assertEqual(request.responsible_message, "Please review this agreement.")
 
-    def test_one_off_upload_starts_with_a_signer_and_opens_field_placement(self):
+    def test_one_off_upload_accepts_multiple_signers_and_opens_field_placement(self):
         start = self.env["usl.sign.start"].with_user(self.sign_user).create(
             {
                 "document_data": field_value(self.pdf),
                 "document_filename": "routine_agreement.pdf",
-                "signer_partner_id": self.partner_one.id,
+                "signer_partner_ids": [(6, 0, [self.partner_one.id, self.partner_two.id])],
                 "message": "Please review and sign.",
             },
         )
@@ -1948,8 +1957,15 @@ class TestCleanUslSign(TransactionCase):
         self.assertTrue(request)
         self.assertEqual(action["tag"], "usl_sign_request_configure")
         self.assertEqual(request.requested_trust, "standard")
-        self.assertEqual(request.signer_ids.partner_id, self.partner_one)
-        self.assertEqual(request.signer_ids.role_id, self.role_customer)
+        self.assertEqual(
+            request.signer_ids.mapped("partner_id"),
+            self.partner_one | self.partner_two,
+        )
+        self.assertEqual(
+            request.signer_ids.mapped("role_id.name"),
+            ["Signer 1", "Signer 2"],
+        )
+        self.assertEqual(request.signer_ids.mapped("sequence"), [10, 20])
         self.assertEqual(request.responsible_message, "Please review and sign.")
 
     def test_my_signatures_uses_human_statuses_and_clear_actions(self):
@@ -2022,6 +2038,11 @@ class TestCleanUslSign(TransactionCase):
         identity_action = strong_signer.action_open_signing_identity()
         self.assertEqual(identity_action["res_id"], enrollment.id)
         self.assertEqual(identity_action["res_model"], "usl.sign.enrollment")
+        own_identity_action = self.env["usl.sign.enrollment"].with_user(
+            signer_user,
+        ).action_open_my_identity()
+        self.assertEqual(own_identity_action["res_id"], enrollment.id)
+        self.assertEqual(own_identity_action["views"][0][1], "form")
 
         provider = self.env["usl.sign.external.provider"].create(
             {
