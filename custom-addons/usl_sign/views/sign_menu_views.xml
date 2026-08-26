@@ -57,6 +57,12 @@
             <p>A reviewed Pocket ID identity link is required before you can use Strong personal signing. Pocket ID manages account security and recovery.</p>
         </field>
     </record>
+    <record id="my_sign_identity_server_action" model="ir.actions.server">
+        <field name="name">My Signing Identity</field>
+        <field name="model_id" ref="model_usl_sign_enrollment"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_my_identity()</field>
+    </record>
 
     <menuitem id="sign_dashboard_menu" name="Sign Dashboard" parent="sign_oca.sign_oca_root_menu" action="sign_landing_action" sequence="5" groups="usl_sign.group_sign_user,usl_sign.group_sign_identity_reviewer,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="request_signature_menu" name="Request Signature" parent="sign_oca.sign_oca_root_menu" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
@@ -65,7 +71,7 @@
     <menuitem id="request_signature_completed_menu" name="Completed" parent="request_signature_menu" action="completed_documents_action" sequence="30" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="20" groups="usl_sign.group_sign_user"/>
 
-    <menuitem id="my_sign_identity_menu" name="My Signing Identity" parent="sign_oca.sign_oca_settings_menu" action="my_sign_identity_action" sequence="10" groups="usl_sign.group_sign_user"/>
+    <menuitem id="my_sign_identity_menu" name="My Signing Identity" parent="sign_oca.sign_oca_settings_menu" action="my_sign_identity_server_action" sequence="10" groups="usl_sign.group_sign_user"/>
     <menuitem id="sign_enrollment_menu" name="Signer Identity Reviews" parent="sign_oca.sign_oca_settings_menu" action="sign_enrollment_action" sequence="20" groups="usl_sign.group_sign_identity_reviewer"/>
     <menuitem id="sign_policy_menu" name="Signing Policies" parent="sign_oca.sign_oca_settings_menu" action="sign_policy_action" sequence="30" groups="usl_sign.group_sign_admin"/>
     <menuitem id="sign_external_provider_menu" name="External Providers" parent="sign_oca.sign_oca_settings_menu" action="sign_external_provider_action" sequence="40" groups="usl_sign.group_sign_admin"/>

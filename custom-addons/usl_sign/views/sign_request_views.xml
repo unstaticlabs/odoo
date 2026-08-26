@@ -70,21 +70,13 @@
 
                     <notebook>
                         <page string="Overview" name="overview">
-                            <group>
-                                <group string="Details">
-                                    <field name="user_id" string="Sent by" readonly="state != 'draft'"/>
-                                    <field name="record_ref" string="Linked record" readonly="state != 'draft'"/>
-                                    <field name="template_id" string="Template" readonly="1" invisible="not template_id"/>
-                                    <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
-                                    <field name="expires_at" string="Deadline" readonly="state != 'draft'"/>
-                                    <field name="responsible_message" string="Message to signers" readonly="state != 'draft'" placeholder="Optional note shown with the invitation"/>
-                                </group>
-                                <group string="Signing method">
-                                    <field name="requested_trust_short" string="Requested" readonly="1"/>
-                                    <field name="achieved_trust_short" string="Achieved" readonly="1" invisible="not achieved_trust_short"/>
-                                    <field name="signing_method_summary" nolabel="1" readonly="1"/>
-                                    <button name="action_open_signing_method" type="object" string="Change signing method" class="oe_link" invisible="state != 'draft' or not can_send"/>
-                                </group>
+                            <group string="Details">
+                                <field name="user_id" string="Sent by" readonly="state != 'draft'"/>
+                                <field name="record_ref" string="Linked record" readonly="state != 'draft'"/>
+                                <field name="template_id" string="Template" readonly="1" invisible="not template_id"/>
+                                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                                <field name="expires_at" string="Deadline" readonly="state != 'draft'"/>
+                                <field name="responsible_message" string="Message to signers" readonly="state != 'draft'" placeholder="Optional note shown with the invitation"/>
                             </group>
                             <details class="mt-3">
                                 <summary class="text-muted">More options</summary>
@@ -95,6 +87,28 @@
                                     <field name="reminder_count" string="Reminders sent" readonly="1"/>
                                 </group>
                             </details>
+                        </page>
+                        <page string="Signing method" name="signing_method">
+                            <div class="usl_sign_journey_intro">
+                                <h3 class="h5 mb-1">How signers confirm</h3>
+                                <p class="text-muted mb-0">The method controls the confirmation step and the proof kept with this request.</p>
+                            </div>
+                            <div class="card usl_sign_method_detail">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1">Requested method</div>
+                                        <div class="h5 mb-0"><field name="requested_trust_short" readonly="1"/></div>
+                                    </div>
+                                    <field name="signing_method_summary" nolabel="1" readonly="1" class="d-block"/>
+                                    <div class="mt-3" invisible="not achieved_trust_short">
+                                        <div class="text-muted small mb-1">Method achieved</div>
+                                        <field name="achieved_trust_short" readonly="1" nolabel="1"/>
+                                    </div>
+                                    <div class="mt-3" invisible="state != 'draft' or not can_send">
+                                        <button name="action_open_signing_method" type="object" string="Change signing method" class="btn-secondary"/>
+                                    </div>
+                                </div>
+                            </div>
                         </page>
                         <page string="Signers" name="signers">
                             <div class="border rounded bg-light p-3 mb-3" role="note" invisible="state != 'draft'">
@@ -343,16 +357,16 @@
                                 </div>
                                 <span class="small text-muted"><span class="text-danger" aria-hidden="true">*</span> Required</span>
                             </div>
-                            <div class="row g-3">
-                                <div class="col-12 col-md-4">
+                            <div class="d-grid gap-3">
+                                <div>
                                     <label for="document_category" class="o_form_label fw-semibold">Document type <span class="text-danger" aria-hidden="true">*</span></label>
                                     <field name="document_category" nolabel="1"/>
                                 </div>
-                                <div class="col-12 col-md-4">
+                                <div>
                                     <label for="signer_type" class="o_form_label fw-semibold">Relationship to signer <span class="text-danger" aria-hidden="true">*</span></label>
                                     <field name="signer_type" nolabel="1"/>
                                 </div>
-                                <div class="col-12 col-md-4">
+                                <div>
                                     <label for="risk_level" class="o_form_label fw-semibold">Business risk <span class="text-danger" aria-hidden="true">*</span></label>
                                     <field name="risk_level" nolabel="1"/>
                                 </div>
