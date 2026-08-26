@@ -7,6 +7,16 @@ TRUST_LEVELS = [
     ("qualified_external", "Qualified external signature."),
 ]
 
+DOCUMENT_CATEGORIES = [
+    ("routine_agreement", "Routine agreement"),
+    ("employment", "Employment document"),
+    ("intellectual_property", "Intellectual property"),
+    ("commercial", "Commercial agreement"),
+    ("finance_guarantee", "Financing or guarantee"),
+    ("mandate", "Mandate"),
+    ("other", "Other"),
+]
+
 # An object-identity capability cannot be reproduced by JSON-RPC context input.
 # Every protected Sign mutation must carry this exact in-process sentinel.
 INTERNAL_OPERATION = object()
