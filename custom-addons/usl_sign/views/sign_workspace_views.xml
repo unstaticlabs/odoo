@@ -20,10 +20,18 @@
                         <field name="document_data" filename="document_filename" string="PDF to sign" required="signature_source == 'upload'"/>
                         <field name="document_filename" invisible="1"/>
                     </group>
-                    <group string="2. Choose the signer" invisible="signature_source != 'upload'">
-                        <field name="signer_partner_id" string="Who should sign?" required="signature_source == 'upload'" options="{'no_quick_create': true}" placeholder="Search for a contact or create one"/>
-                        <field name="message" string="Message" placeholder="Optional note shown with the invitation"/>
-                    </group>
+                    <section class="mt-4" invisible="signature_source != 'upload'">
+                        <h3 class="h5 mb-1">2. Add the signers</h3>
+                        <p class="text-muted mb-3">Add everyone who must sign. On the next screen, choose the fields each person completes.</p>
+                        <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label fw-semibold d-block mb-1"/>
+                        <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
+                               required="signature_source == 'upload'" options="{'no_quick_create': true}"
+                               placeholder="Add one or more contacts"/>
+                        <div class="mt-3">
+                            <label for="message" string="Message" class="o_form_label fw-semibold d-block mb-1"/>
+                            <field name="message" nolabel="1" placeholder="Optional note shown with the invitation"/>
+                        </div>
+                    </section>
                     <group string="Choose a template" invisible="signature_source != 'template'">
                         <field name="template_id" required="signature_source == 'template'" options="{'no_create': true}"/>
                     </group>

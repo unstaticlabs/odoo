@@ -91,11 +91,7 @@ class SignWorkspace(models.AbstractModel):
         request_model = self.env["sign.oca.request"]
         partner = self.env.user.partner_id
         managed = self._managed_domain()
-        signer_domain = [
-            ("partner_id", "=", partner.id),
-            ("state", "in", ["notified", "viewed", "authorized"]),
-            ("request_id.state", "in", ["sent", "viewed", "partial"]),
-        ]
+        signer_domain = self.env.user._usl_sign_actionable_signer_domain()
 
         def signer_item(signer):
             return {
@@ -214,9 +210,9 @@ class SignStart(models.TransientModel):
     )
     document_data = fields.Binary(string="PDF")
     document_filename = fields.Char()
-    signer_partner_id = fields.Many2one(
+    signer_partner_ids = fields.Many2many(
         "res.partner",
-        string="Signer",
+        string="Signers",
         domain="[('email', '!=', False)]",
     )
     message = fields.Text(string="Message")
@@ -265,11 +261,15 @@ class SignStart(models.TransientModel):
         if not self.document_data or not self.document_filename:
             msg = "Upload the PDF that needs signatures."
             raise ValidationError(msg)
-        if not self.signer_partner_id:
-            msg = "Choose who should sign this document."
+        if not self.signer_partner_ids:
+            msg = "Add at least one person who should sign this document."
             raise ValidationError(msg)
-        if not self.signer_partner_id.email:
-            msg = "Add an email address for the signer before continuing."
+        missing_email = self.signer_partner_ids.filtered(lambda partner: not partner.email)
+        if missing_email:
+            msg = _(
+                "Add an email address for: %(names)s",
+                names=", ".join(missing_email.mapped("name")),
+            )
             raise ValidationError(msg)
         request_name = (
             self.name
@@ -291,12 +291,21 @@ class SignStart(models.TransientModel):
                         0,
                         0,
                         {
-                            "partner_id": self.signer_partner_id.id,
-                            "role_id": self.env.ref("sign_oca.sign_role_customer").id,
-                            "sequence": 10,
+                            "partner_id": partner.id,
+                            "role_id": self._quick_signer_role(index).id,
+                            "sequence": index * 10,
                         },
-                    ),
+                    )
+                    for index, partner in enumerate(self.signer_partner_ids, start=1)
                 ],
             },
         )
         return request.configure()
+
+    def _quick_signer_role(self, index):
+        """Use stable, distinct roles while keeping Quick Start about people."""
+        role_model = self.env["sign.oca.role"].sudo()
+        name = _("Signer %(number)s", number=index)
+        return role_model.search([("name", "=", name)], limit=1) or role_model.create(
+            {"name": name},
+        )

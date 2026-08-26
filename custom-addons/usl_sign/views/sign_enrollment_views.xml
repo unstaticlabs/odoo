@@ -48,7 +48,7 @@
                         <group string="Reviewed relationship">
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="relationship_basis" string="Why we know this person" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="relationship_reference" string="Review record" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Employee number, contract, partner record, or review note" help="Internal reference used by the reviewer to confirm how the organization knows this person. It is locked after approval; it is not a Pocket ID identifier."/>
+                            <field name="relationship_reference" string="Identity evidence reference" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="For example: employee EMP-1042 or contract C-2026-18" help="Enter a short reference your organization can recognize later, such as an employee number or contract number. This is plain text, not a link and not a Pocket ID identifier."/>
                             <field name="policy_version" string="Identity policy version" readonly="state not in ['pending_pocket', 'pending_review']"/>
                             <field name="review_note" string="Reviewer note" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Record the checks performed; do not attach identity documents by default."/>
                         </group>
@@ -123,8 +123,9 @@
                         </group>
                         <group string="Organization review">
                             <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="partner_id" string="Your Odoo contact"/>
                             <field name="relationship_basis" string="Known as"/>
-                            <field name="relationship_reference" string="Review record" help="Internal record used by the reviewer to confirm how the organization knows you. It is not your Pocket ID identifier."/>
+                            <field name="relationship_reference" string="How the match was checked" help="The short internal reference used to match you to a person the organization already knows. It is explanatory text, not a link."/>
                             <field name="reviewer_id" string="Reviewed by" invisible="not reviewer_id"/>
                             <field name="reviewed_at" string="Reviewed on" invisible="not reviewed_at"/>
                         </group>
