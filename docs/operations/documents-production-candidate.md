@@ -1003,7 +1003,8 @@ paraphrase returned the intended invoice in 1.081 seconds.
 
 The complete final backend gate passed 161 post-test methods (169 tagged
 entries) with zero failures or errors; desktop passed 32 tests/223 assertions
-and mobile passed 29 tests/215 assertions. Seventeen Paperless endpoint tests,
+and mobile passed 29 tests/215 assertions. Twenty Paperless endpoint and
+permission-vector tests,
 module install, module update, unchanged repeated update, manifest/XML/Python/
 JavaScript/shell/static checks, the 12-module product/migration boundary and
 the live cross-system acceptance all passed. The latter created and recovered
@@ -1017,10 +1018,11 @@ and automatic cleanup. The sealed deterministic smoke digest above remains
 the reconstruction baseline because neither migration nor reconstruction
 source changed.
 
-The final Paperless image has local manifest-list digest
-`sha256:bc8687820f2a765b33e7e5cf1e2a9fd8411489366487c16f9b1ad377d129f87b`
-and config digest
-`sha256:ca46caa6fbb62a12dc907e04cd4d52f31fb94b0d55c2473c38843e9381d28a99`.
+The final ARM64 Paperless image is `3.0.5-usl.5`, with locally inspected image
+and repository digest
+`sha256:43a3c471af24fe8241d6d6e47fef8f02f0f3b76094e64a4b40ec3b6225d502fc`
+(ARM64 manifest `sha256:153c89f7b88024e75422210fad00d97d08fa028eaf36aeba8e1fff205421ceb1`,
+config `sha256:98f1b7848bc6b41bd81dfe5c9c7f9694c108126d851b284da1acd0f3d5b1e874`).
 It was recreated in the isolated QA stack, followed by a successful module
 update and unchanged repeated update of the 100-module registry. A live MCP
 exact search then returned one result with a 182-character bounded lexical
@@ -1047,3 +1049,45 @@ evidence intentionally use ARM64. A warm semantic response can make the
 progress banner brief, and an unrelated Pocket profile-page console exception
 was observed immediately after one-time-link login, with no Documents-page
 error observed.
+
+### 2026-08-26 permission-reconciliation hardening
+
+Final deployment inspection found three historical permission-refresh tasks
+that had reached Paperless's 30-minute hard limit and three interrupted tasks
+left by the isolated worker recreation. The root cause was upstream
+`set_permissions`: after correctly writing ownership and object grants, its
+generic bulk refresh also recomputed BGE-M3 vectors for every document even
+though neither permission nor ownership is an embedding input.
+
+Three credible resolutions were compared. Smaller Odoo batches were rejected
+because they would still recompute every unchanged vector, multiply task
+overhead and retain timeout risk. Temporarily disabling AI during identity
+sync was rejected as a stateful operational workaround. A separate custom
+permission endpoint that bypassed the native lifecycle was also rejected. The
+selected exact-source patch keeps the supported Paperless permission API and
+bulk task, including Tantivy, cache and signal updates, but passes an explicit
+`skip_llm_index` marker only from `set_permissions`. The default path is
+covered separately so ordinary metadata/content bulk edits still refresh the
+vector index.
+
+The corrected image passed 20 Django/DRF tests. A complete official identity
+reconciliation then synchronized 869 visible roots for Valentin in 14 bounded
+permission tasks; all 14 succeeded in 0.20–2.09 seconds and made zero Ollama
+embedding requests during their 16:50:04–16:50:17 UTC execution window.
+Valentin is active, all nine governed identities pass with zero unsynchronized
+visible roots, the broker and Paperless nonterminal task count are zero, and a
+deliberate semantic query afterward still returned the intended Alpine invoice
+first. Final Paperless inventory is passed with 874 document/version rows, 872
+live rows, two Trash rows and 860 searchable rows. Vector inventory is passed
+with all 874 rows indexed and 4,344 chunks/vectors; its current SHA-256 is
+`f92b6a047a3c08f9d52f1b5a130a2e6d426e35e434866cca341851a8fc4df110`.
+
+Task history was not hidden. The three 30-minute failures (3421, 3423 and
+3424) remain immutable. Tasks 3430–3432 record that their worker was restarted
+and their permission reconciliation rescheduled; redelivered task 3433
+completed successfully. Fourteen redundant pre-patch queued refreshes
+(3465–3478) were explicitly revoked before the corrected reconciliation.
+There are 21 historical failure rows in total, 66 revoked rows and 3,413
+successful rows. Two scheduled mail polls were revoked during the worker
+transition; subsequent scheduled mail polls succeeded. No failure was
+acknowledged, deleted or relabeled to make the gate pass.

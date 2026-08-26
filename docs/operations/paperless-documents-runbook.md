@@ -177,6 +177,13 @@ metadata synchronization must not invalidate already synchronized object
 permissions. Repeated writes make Paperless schedule avoidable bulk index work
 and can delay normal ingestion behind large OCR documents; increasing worker
 or embedding concurrency is not a substitute for eliminating those writes.
+When a permission or owner change is required, the USL Paperless patch still
+runs the native Tantivy/cache/signal refresh but marks the operation as
+embedding-invariant: permissions are applied to the current document while its
+unchanged BGE-M3 vector is reused. Generic bulk metadata and content edits keep
+the normal vector refresh. A full identity reconciliation should therefore end
+with bounded successful `bulk_update` tasks, no nonterminal task rows and no
+Ollama embedding requests during those permission tasks.
 
 In Paperless, put direct identities in a role that grants model-level read
 access to Documents, Tags, Correspondents, Document types, Custom fields,

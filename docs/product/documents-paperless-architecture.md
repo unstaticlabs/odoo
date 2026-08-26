@@ -72,6 +72,12 @@ first-login race without making Pocket groups an authorization source.
 The non-human Paperless API account remains separate from every interactive
 identity.
 
+Permission and ownership changes do not alter the text embedded by BGE-M3.
+The distribution therefore preserves Paperless's native permission write,
+Tantivy refresh, cache invalidation and document signals while reusing the
+existing vector for permission-only bulk edits. Other metadata or content
+changes retain Paperless's normal embedding refresh.
+
 Local QA retains explicit `username/admin` accounts for repeatable role tests.
 Those mappings carry a QA-only marker that is accepted only when the Odoo
 process has `USL_DEPLOYMENT_ENV=qa`; pre-production cannot enable that path.
