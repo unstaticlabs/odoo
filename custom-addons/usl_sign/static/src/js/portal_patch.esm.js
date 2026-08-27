@@ -132,15 +132,39 @@ class FieldGuide {
     constructor(parent) {
         this.parent = parent;
         this.viewer = parent.iframe.el.contentDocument.getElementById("viewerContainer");
+        this.navigator = parent.iframe.el.contentDocument.querySelector(
+            ".o_sign_sign_item_navigator"
+        );
+        this.navLine = parent.iframe.el.contentDocument.querySelector(
+            ".o_sign_sign_item_navline"
+        );
+        // PDF.js transforms its viewer while zooming. A fixed descendant of that
+        // viewer is therefore positioned against the transformed document instead
+        // of the iframe viewport. Keep the guide beside the scrollbar, independent
+        // of zoom and page transforms.
+        const iframeBody = parent.iframe.el.contentDocument.body;
+        if (iframeBody) {
+            iframeBody.append(...[this.navLine, this.navigator].filter(Boolean));
+        }
         this.currentId = null;
+        this.started = false;
         this.navigationToken = 0;
         this.cancelNavigation = this.cancelNavigation.bind(this);
         this.refresh = this.refresh.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.moveNext = this.moveNext.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
         this.viewer?.addEventListener("wheel", this.cancelNavigation, {passive: true});
         this.viewer?.addEventListener("touchstart", this.cancelNavigation, {passive: true});
         this.viewer?.addEventListener("pointerdown", this.cancelNavigation, {passive: true});
         window.addEventListener("resize", this.handleResize, {passive: true});
+        if (this.navigator) {
+            this.navigator.setAttribute("role", "button");
+            this.navigator.setAttribute("tabindex", "0");
+            this.navigator.setAttribute("aria-label", _t("Start the field guide"));
+            this.navigator.addEventListener("click", this.moveNext);
+            this.navigator.addEventListener("keydown", this.handleKeydown);
+        }
         this.refresh();
     }
 
@@ -149,10 +173,15 @@ class FieldGuide {
         this.viewer?.removeEventListener("touchstart", this.cancelNavigation);
         this.viewer?.removeEventListener("pointerdown", this.cancelNavigation);
         window.removeEventListener("resize", this.handleResize);
+        this.navigator?.removeEventListener("click", this.moveNext);
+        this.navigator?.removeEventListener("keydown", this.handleKeydown);
     }
 
     cancelNavigation() {
         this.navigationToken += 1;
+        for (const field of Object.values(this.parent.items || {})) {
+            field?.classList.remove("usl_sign_field_target");
+        }
         if (this.viewer) {
             this.viewer.scrollTo({top: this.viewer.scrollTop, behavior: "auto"});
         }
@@ -185,13 +214,45 @@ class FieldGuide {
     refresh() {
         const ids = this.incompleteIds();
         if (this.currentId && !ids.includes(this.currentId)) {
+            this.parent.items[this.currentId]?.classList.remove("usl_sign_field_target");
             this.currentId = null;
         }
         this.parent.uslGuide.remaining = ids.length;
         this.parent.uslGuide.current = this.currentId
             ? ids.indexOf(this.currentId) + 1
             : 0;
+        if (this.navigator) {
+            const complete = !ids.length;
+            this.navigator.textContent = complete
+                ? _t("Ready to sign")
+                : this.started
+                  ? _t("Next")
+                  : _t("Click to start");
+            this.navigator.setAttribute(
+                "aria-label",
+                complete
+                    ? _t("All required fields are complete")
+                    : this.started
+                      ? _t("Go to the next required field")
+                      : _t("Start the field guide")
+            );
+            this.navigator.setAttribute("aria-disabled", complete ? "true" : "false");
+        }
+        if (this.navLine) {
+            this.navLine.hidden = !ids.length;
+        }
         return ids;
+    }
+
+    moveNext() {
+        this.move(1);
+    }
+
+    handleKeydown(event) {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.moveNext();
+        }
     }
 
     move(direction) {
@@ -200,6 +261,7 @@ class FieldGuide {
             this.currentId = null;
             return;
         }
+        this.started = true;
         const currentIndex = ids.indexOf(this.currentId);
         const nextIndex =
             currentIndex < 0
@@ -209,7 +271,25 @@ class FieldGuide {
                 : (currentIndex + direction + ids.length) % ids.length;
         this.currentId = ids[nextIndex];
         this.parent.uslGuide.current = nextIndex + 1;
+        this.refresh();
         this.focus(this.currentId);
+    }
+
+    positionAt(field) {
+        if (!this.navigator || !this.viewer) {
+            return;
+        }
+        const fieldBox = field.getBoundingClientRect();
+        const viewerBox = this.viewer.getBoundingClientRect();
+        const navigatorHeight = this.navigator.offsetHeight || 44;
+        const top = Math.min(
+            Math.max(fieldBox.top + fieldBox.height / 2 - navigatorHeight / 2, viewerBox.top + 12),
+            viewerBox.bottom - navigatorHeight - 12
+        );
+        this.navigator.style.top = `${top}px`;
+        if (this.navLine) {
+            this.navLine.style.top = `${top + navigatorHeight / 2}px`;
+        }
     }
 
     focus(itemId) {
@@ -218,14 +298,18 @@ class FieldGuide {
             this.refresh();
             return;
         }
+        for (const renderedField of Object.values(this.parent.items || {})) {
+            renderedField?.classList.remove("usl_sign_field_target");
+        }
         const token = ++this.navigationToken;
         field.classList.add("usl_sign_field_target");
         field.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+        this.positionAt(field);
         window.setTimeout(() => {
-            field.classList.remove("usl_sign_field_target");
             if (token !== this.navigationToken || !field.isConnected) {
                 return;
             }
+            this.positionAt(field);
             field
                 .querySelector('input, button, [role="button"], [tabindex]')
                 ?.focus({preventScroll: true});
@@ -543,14 +627,6 @@ patch(SignOcaPdfPortal.prototype, {
             : _t("%s required fields remaining", this.uslGuide.remaining);
     },
 
-    previousIncompleteField() {
-        this.uslFieldGuide?.move(-1);
-    },
-
-    nextIncompleteField() {
-        this.uslFieldGuide?.move(1);
-    },
-
     _setSubmissionState(button, {busy = true, label, message, complete = false}) {
         const consent = document.getElementById("usl_sign_consent");
         const spinner = document.getElementById("usl_sign_submission_spinner");
@@ -623,6 +699,59 @@ patch(SignOcaPdfPortal.prototype, {
                 }
                 .o_sign_oca_field img { object-fit: contain; }
                 .usl_sign_field_target { outline: 3px solid #714b67 !important; outline-offset: 3px; }
+                .o_sign_sign_item_navigator {
+                    box-sizing: border-box;
+                    position: fixed;
+                    z-index: 100;
+                    right: auto !important;
+                    left: 0 !important;
+                    min-width: 7.5rem;
+                    height: 2.75rem;
+                    margin: 0;
+                    padding: 0 .8rem;
+                    color: #fff;
+                    font: 600 .875rem/2.75rem system-ui, sans-serif;
+                    text-align: center;
+                    text-transform: none;
+                    border: 0;
+                    border-radius: 0 .4rem .4rem 0;
+                    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .22);
+                }
+                .o_sign_sign_item_navline {
+                    position: fixed;
+                    z-index: 80;
+                    left: 0;
+                    width: 100%;
+                    pointer-events: none;
+                }
+                .o_sign_sign_item_navigator::after {
+                    margin-left: .8rem;
+                    border-top-width: 1.375rem;
+                    border-bottom-width: 1.375rem;
+                    border-left-width: 1rem;
+                }
+                .o_sign_sign_item_navigator:focus-visible {
+                    outline: 3px solid #fff;
+                    outline-offset: -5px;
+                }
+                .o_sign_sign_item_navigator[aria-disabled="true"] {
+                    cursor: default;
+                    background: #4f5964;
+                }
+                .o_sign_sign_item_navigator[aria-disabled="true"]::after {
+                    border-left-color: #4f5964;
+                }
+                @media (max-width: 767px) {
+                    .o_sign_sign_item_navigator {
+                        width: 100%;
+                        max-width: 100%;
+                        min-width: 0;
+                        height: 2.5rem;
+                        padding: 0 .75rem;
+                        line-height: 2.5rem;
+                        border-radius: 0;
+                    }
+                }
             `;
             iframeDocument.head.append(style);
         }
@@ -645,9 +774,6 @@ patch(SignOcaPdfPortal.prototype, {
     },
 
     navigate() {
-        const iframeDocument = this.iframe.el.contentDocument;
-        iframeDocument.querySelector(".o_sign_sign_item_navigator")?.remove();
-        iframeDocument.querySelector(".o_sign_sign_item_navline")?.remove();
         this.uslFieldGuide?.destroy();
         this.uslFieldGuide = new FieldGuide(this);
     },
