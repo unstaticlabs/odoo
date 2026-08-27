@@ -124,10 +124,10 @@ PY
 
 build_candidate() {
   local source_argument="${2:-}" output_argument="${3:-}"
-  local source_dir project image release_commit source_sha source_filestore_sha
+  local source_dir project image paperless_image ollama_image release_commit source_sha source_filestore_sha
   local migration_sha
   local run_evidence pending clone_db db_container odoo_volume export_name
-  local paperless_container destination fingerprint timestamp paperless_count
+  local paperless_container ollama_container destination fingerprint timestamp paperless_count
   local module_versions accounting_controls documents_controls
   local accounting_status odoo_sanitation paperless_sanitation qualification
   local cleanup_export=0 identity_json filestore_inventory filestore_evidence
@@ -164,6 +164,15 @@ build_candidate() {
     exit 2
   fi
   docker image inspect "$image" >/dev/null
+  paperless_image="${PAPERLESS_IMAGE:-}"
+  ollama_image="${OLLAMA_IMAGE:-}"
+  for runtime_image in "$paperless_image" "$ollama_image"; do
+    if [[ -z "$runtime_image" || "$runtime_image" != *@sha256:* ]]; then
+      printf 'PAPERLESS_IMAGE and OLLAMA_IMAGE must be immutable registry digests.\n' >&2
+      exit 2
+    fi
+    docker image inspect "$runtime_image" >/dev/null
+  done
   release_commit="$(git rev-parse HEAD)"
   source_sha="$(shasum -a 256 "$source_dir/dump.sql" | awk '{print $1}')"
   migration_sha="$(PYTHONPATH="$ROOT/scripts" python3 -c \
@@ -311,6 +320,16 @@ PY
     "/usr/src/paperless/export/$export_name" \
     --compare-checksums --delete --no-progress-bar
   paperless_container="$("${compose[@]}" ps -q paperless-webserver)"
+  ollama_container="$("${compose[@]}" ps -q paperless-ollama)"
+  if [[ -z "$paperless_container" || -z "$ollama_container" ]]; then
+    printf 'Paperless and Ollama must be running in the qualified reconstruction.\n' >&2
+    exit 2
+  fi
+  if [[ "$(docker inspect "$paperless_container" --format '{{.Config.Image}}')" != "$paperless_image" \
+      || "$(docker inspect "$ollama_container" --format '{{.Config.Image}}')" != "$ollama_image" ]]; then
+    printf 'Running Documents images differ from the immutable candidate images.\n' >&2
+    exit 2
+  fi
   docker cp \
     "$paperless_container:/usr/src/paperless/export/$export_name/." \
     "$pending/paperless-export"
@@ -415,7 +434,8 @@ PY
     "$qualification" "$pending/evidence/reconstruction-run.json" "$accounting_status" \
     "$pending/release-identity.json" "$source_sha" "$source_filestore_sha" \
     "$module_versions" "$accounting_controls" "$documents_controls" \
-    "$paperless_count" "$odoo_sanitation" "$paperless_sanitation" \
+    "$paperless_count" "$paperless_image" "$ollama_image" \
+    "$odoo_sanitation" "$paperless_sanitation" \
     "$filestore_evidence" <<'PY'
 import json
 import sys
@@ -424,7 +444,7 @@ from qa_seed import migration_digest
 
 (output, run_path, accounting_path, identity_path, source_sha,
  source_filestore_sha, module_versions, accounting_controls,
- documents_controls, paperless_count, odoo_log, paperless_path,
+ documents_controls, paperless_count, paperless_image, ollama_image, odoo_log, paperless_path,
  filestore_path) = sys.argv[1:]
 run = json.load(open(run_path, encoding="utf-8"))
 accounting = json.load(open(accounting_path, encoding="utf-8"))
@@ -478,6 +498,8 @@ payload = {
         "status": "passed",
         "controls": json.loads(documents_controls),
         "paperless_document_count": int(paperless_count),
+        "paperless_image_digest": paperless_image,
+        "ollama_image_digest": ollama_image,
         "reconstruction": {
             "downloaded_bytes": run.get("downloaded_bytes"),
             "ocr_submissions": run.get("ocr_submissions"),

@@ -47,16 +47,16 @@ the sealed Accounting, Documents and Paperless controls with zero OCR
 submissions. This is current rehearsal evidence, not a final frozen-source
 production candidate.
 
-The schema-v3 migration-cache and Documents-performance follow-up is currently
-an integration candidate, not part of `origin/19-usl`. On that candidate,
-`usl_documents` passed clean install, upgrade, repeated upgrade, its 107-test
-backend suite, the 13/20/6 query ceilings, asset compilation and desktop/mobile
-Chromium suites. The shared seed is still schema v2 and is correctly rejected;
-a new seed may be published only after the candidate lands on a clean main
-branch. Canonical `odoo_dev` was audited read-only and retained its Accounting,
-B2C, product-history and zero-stock fingerprints, but it also contains the
-pending `usl_access_control` module ahead of current target source. Reconstruct
-the final target cleanly; do not promote or patch that mixed local state.
+The schema-v3 migration-cache/Documents-performance work and Paperless 3.0 are
+now one combined integration candidate, not yet part of `origin/19-usl`. On
+that candidate, all five affected product modules passed clean install,
+upgrade and identical repeated upgrade. `usl_documents` passed 184 Python
+post-tests, the 13/20/6 query ceilings, asset compilation, and desktop/mobile
+Chromium suites (39/268 and 33/248). The merged tree also passed the 114-test
+Documents migration-safety suite. A fresh full reconstruction and schema-v3
+seed publication are in progress; no older seed or feature database is final
+release evidence. Canonical `odoo_dev` must be reconstructed from the eventual
+final `19-usl`, not repaired ad hoc.
 
 ## Non-negotiable boundaries
 
@@ -72,8 +72,10 @@ the final target cleanly; do not promote or patch that mixed local state.
 - Do not import or copy passwords, sessions, API/OAuth/OIDC tokens, Pocket
   subjects, local identity audit events, Paperless integration tokens or
   environment secrets.
-- Production consumes an immutable `distribution` image by digest. It does not
-  run from a mutable checkout or a development bind mount.
+- Production consumes candidate-bound immutable Odoo Distribution, Paperless
+  overlay and Ollama images by digest. It also requires an absolute mode-`0600`
+  Personal Gemini key ring before preflight. It does not run from a mutable
+  checkout, mutable image tag or development bind mount.
 - Pocket ID, ingress, firewall, network and host policies remain externally
   owned. The application deployment may join explicitly approved networks but
   must not create, restore, provision or mutate Pocket ID.
@@ -88,10 +90,10 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Workstream | Required release outcome | Status on 27 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
-| Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | integration candidate from reviewed tip `3d2b2b49382`; affected suites pass, merge and real post-merge v3 cold/warm cycle pending |
+| Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | integrated into the combined Documents candidate from reviewed tip `3d2b2b49382`; affected suites pass, v3 publication/cold-warm evidence and final merge pending |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
-| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
+| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | integrated into the combined Documents candidate from reviewed tip `2ba19d6fa90`; clean suites pass, full archive/browser/AMD64 evidence and final merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
 | Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
@@ -115,15 +117,17 @@ partial `odoo_dev` installation is not final-target evidence.
 ## Phase A — finish the release before freezing Online
 
 - [x] Merge the approved migration-performance candidate into `19-usl`.
-- [ ] Merge the schema-v3 migration-cache/Documents-performance follow-up,
-  refresh the shared seed from clean `19-usl`, run one cold hydration and prove
-  the next verified reuse reports a warm hit with zero download/OCR work.
+- [ ] Finish and merge the combined Paperless/schema-v3 Documents candidate,
+  publish the shared seed from its clean reconstructed tree, run one cold
+  hydration and prove the next verified reuse reports a warm hit with zero
+  download/OCR work.
 - [x] Merge Expense Analytics after independent review and validation.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
   validation.
-- [ ] Merge Paperless 3.0 and Native Sign after independent review and
-  validation.
+- [ ] Complete Paperless 3.0 full-archive, browser and AMD64 qualification;
+  merge the combined Documents candidate and Native Sign after independent
+  review and validation.
 - [ ] Merge Collaboration History and Distribution Access Control after
   independent review and validation.
 - [ ] Confirm no active release branch contains unmerged product or migration
@@ -212,8 +216,8 @@ but their creation, transfer and rotation procedure must be approved.
    checkpoint reuse.
 4. Require strict whole-source and attachment gates, accounting parity,
    migration finalization and all product controls to pass.
-5. Build the sanitized Odoo/Paperless portable candidate with the exact image
-   digest. Independently approve its fingerprint.
+5. Build the sanitized Odoo/Paperless portable candidate with the exact Odoo,
+   Paperless and Ollama image digests. Independently approve its fingerprint.
 6. Transfer the unchanged candidate and private policy files over the approved
    SSH/storage route. Reverify on the production host.
 

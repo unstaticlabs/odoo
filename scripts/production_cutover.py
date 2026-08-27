@@ -55,10 +55,12 @@ REQUIRED = (
     "PAPERLESS_DB_PASSWORD",
     "PAPERLESS_DB_USER",
     "PAPERLESS_HTTP_PORT",
+    "PAPERLESS_IMAGE",
     "PAPERLESS_PUBLIC_BASE_URL",
     "PAPERLESS_PUBLIC_URL",
     "PAPERLESS_SECRET_KEY",
     "PAPERLESS_SSO_BASE_GROUP",
+    "OLLAMA_IMAGE",
     "POCKET_ID_APP_URL",
     "POCKET_ID_CLIENT_ID",
     "POCKET_ID_CLIENT_SECRET",
@@ -72,6 +74,7 @@ REQUIRED = (
     "USL_EINVOICE_LIVE_ENABLED",
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_PRODUCTION_CRON_THREADS",
+    "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
     "POSTGRES_PASSWORD",
     *VOLUME_KEYS,
 )
@@ -193,6 +196,19 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         raise CutoverError("production image differs from the approved candidate")
     if not IMAGE.fullmatch(values["ODOO_IMAGE"]):
         raise CutoverError("production Odoo image is not immutable")
+    candidate_identity = candidate.get("identity") or {}
+    for name, candidate_key in (
+        ("PAPERLESS_IMAGE", "paperless_image_digest"),
+        ("OLLAMA_IMAGE", "ollama_image_digest"),
+    ):
+        if not IMAGE.fullmatch(values[name]):
+            raise CutoverError(f"production {name} is not immutable")
+        if values[name] != candidate_identity.get(candidate_key):
+            raise CutoverError(f"production {name} differs from the approved candidate")
+    key_ring = Path(values["USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"])
+    if not key_ring.is_absolute():
+        raise CutoverError("production Personal AI key ring path must be absolute")
+    private_file(key_ring)
     for name in ("ODOO_PUBLIC_BASE_URL", "PAPERLESS_PUBLIC_URL", "POCKET_ID_APP_URL"):
         _production_url(name, values[name])
     if values.get("PAPERLESS_PUBLIC_BASE_URL") != values["PAPERLESS_PUBLIC_URL"]:
@@ -286,6 +302,16 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
             service_networks,
         ):
             raise CutoverError(f"{name} is not joined to approved external networks")
+    expected_images = {
+        "odoo": values["ODOO_IMAGE"],
+        "paperless-webserver": values["PAPERLESS_IMAGE"],
+        "paperless-ollama": values["OLLAMA_IMAGE"],
+    }
+    for service_name, expected_image in expected_images.items():
+        if (services.get(service_name) or {}).get("image") != expected_image:
+            raise CutoverError(
+                f"{service_name} does not use its candidate-bound image",
+            )
     networks = config.get("networks") or {}
     expected_networks = {
         values["USL_EXTERNAL_IDENTITY_NETWORK"],

@@ -17,19 +17,22 @@ Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
-through merge `64c1f2b1207`. Paperless 3.0 and Native Sign remain independently
-reviewable workstreams. Collaboration History and Distribution Access Control
-are also active, unmerged workstreams. All four must be reviewed and merged or
-explicitly rejected before the final production qualification; no feature
-worktree, old QA seed or rehearsal candidate can be promoted directly.
+through merge `64c1f2b1207`. Paperless 3.0 and the schema-v3
+migration-cache/Documents-performance follow-up are integrated together on the
+current review candidate. Native Sign, Collaboration History and Distribution
+Access Control remain independently reviewable workstreams. Those three must
+be reviewed and merged or explicitly rejected before the final production
+qualification; no feature worktree, old QA seed or rehearsal candidate can be
+promoted directly.
 
-The migration-cache and Documents-performance follow-up is integrated on the
-review candidate `codex/integrate-migration-performance-cache-20260827`, but is
-not yet part of `origin/19-usl`. Its affected module passed clean install,
-upgrade, repeated upgrade, query-budget and desktop/mobile Chromium checks.
-Release qualification still requires merging that candidate, publishing a new
-schema-v3 seed from the clean main branch, and proving one real cold hydration
-followed by a fail-closed warm reuse.
+The combined Documents review candidate preserves the exact reviewed tips of
+both feature branches through explicit merge commits. Its five affected product
+modules passed clean install, upgrade and identical repeated upgrade; Documents
+also passed its query budgets and desktop/mobile Chromium suites. A fresh
+source-dump reconstruction and schema-v3 seed publication are in progress on
+the merged tree. Release qualification still requires the completed seed,
+one real cold hydration followed by fail-closed warm reuse, the signed-in
+browser matrix and merge-commit admission into `19-usl`.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -132,8 +135,8 @@ maturity map is maintained in
 - Content-qualified schema-v3 reconstruction seeds, explicit verified warm
   worktree reuse, batched Documents queries, lazy Documents workspace assets,
   and bounded Odoo worker/connection/memory/request budgets. These are present
-  on the integration candidate and become release evidence only after the
-  post-merge v3 refresh and cold/warm cycle.
+  on the combined Documents integration candidate and become release evidence
+  only after the v3 refresh and cold/warm cycle finish on that exact tree.
 
 These foundations and the B2C work are now part of local `19-usl`. After Docker
 capacity was increased, a fresh full reconstruction of source dump
@@ -220,15 +223,18 @@ The canonical, evidence-bearing sequence is maintained in the
 
 1. Migration-performance/portable-candidate — **merged through
    `61580c1704c`**.
-2. Migration cache/Documents performance follow-up — **integrated on the
-   review candidate from exact feature tip `3d2b2b49382`; merge, schema-v3 seed
-   publication and one real cold/warm cycle remain required**.
+2. Migration cache/Documents performance follow-up — **integrated into the
+   combined Documents review candidate from exact feature tip `3d2b2b49382`;
+   schema-v3 seed publication, one real cold/warm cycle and final merge remain
+   required**.
 3. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 4. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
    canonical rehearsal passed with complete evidence, relationship and alias
    dispositions; physical opening stock remains a separate later operation**.
-5. Review and merge Paperless 3.0 and requalify the official export/import and
-   zero-OCR paths.
+5. Paperless 3.0 — **integrated into the combined Documents review candidate
+   from exact feature tip `2ba19d6fa90`; clean module/install/update/browser
+   suites pass. Complete full archive reconstruction, signed-in manual journeys,
+   AMD64 qualification and final merge remain required**.
 6. Review and merge Native Sign with signing evidence and permission gates.
 7. Review and merge Collaboration History, then close the corresponding
    strict source scope and attachment dispositions without importing

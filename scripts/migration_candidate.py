@@ -303,6 +303,10 @@ def verify_qualification(
         or not documents["controls"]
         or not isinstance(documents.get("paperless_document_count"), int)
         or documents["paperless_document_count"] < 0
+        or not isinstance(documents.get("paperless_image_digest"), str)
+        or not IMAGE_DIGEST.fullmatch(documents["paperless_image_digest"])
+        or not isinstance(documents.get("ollama_image_digest"), str)
+        or not IMAGE_DIGEST.fullmatch(documents["ollama_image_digest"])
         or not isinstance(reconstruction.get("ocr_submissions"), int)
         or reconstruction["ocr_submissions"] < 0
     ):
@@ -374,6 +378,8 @@ def build_payload(
         "created_at": datetime.now(UTC).isoformat(),
         "identity": {
             "image_digest": image_digest,
+            "paperless_image_digest": qualification["documents"]["paperless_image_digest"],
+            "ollama_image_digest": qualification["documents"]["ollama_image_digest"],
             "migration_sha256": migration_sha256,
             "oca_bundle_sha256": (release_identity.get("oca") or {}).get(
                 "bundle_sha256",

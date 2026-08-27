@@ -65,6 +65,14 @@ catalog/UI permissions; Odoo continues to synchronize every document object
 grant. A failed initializer fails the target instead of leaving a newly
 authenticated user with a broken Paperless dashboard.
 
+The same fail-closed startup initializes the local semantic model. When the
+qualified `usl-bge-m3:documents-20260824-rc1` alias is absent, Compose pulls
+the source `bge-m3:latest` manifest, rejects any digest other than the
+repository-qualified SHA-256, copies that exact manifest to the qualified
+alias, and verifies it again before Paperless starts. Existing qualified model
+volumes perform no pull. This bootstrap is for the pinned model artifact, not
+permission to accept an arbitrary `latest` model in a release.
+
 QA-only credentials are intentionally simple:
 
 - Odoo: `admin/admin`, `documents-user/admin`,

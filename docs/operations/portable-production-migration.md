@@ -102,20 +102,23 @@ must report `purpose=production`, `profile=full`, `outcome=passed`,
 
 ## 3. Build the candidate
 
-Use the exact immutable GHCR Distribution digest whose labels match the release
-commit and OCA bundle:
+Use the exact immutable Odoo Distribution, Paperless overlay and Ollama runtime
+digests qualified for the release:
 
 ```bash
 export COMPOSE_PROJECT_NAME=usl-odoo-migration-final-YYYYMMDD
 export USL_CANDIDATE_IMAGE='ghcr.io/unstaticlabs/usl-odoo@sha256:<digest>'
+export PAPERLESS_IMAGE='ghcr.io/unstaticlabs/usl-paperless-ngx@sha256:<digest>'
+export OLLAMA_IMAGE='ollama/ollama@sha256:<digest>'
 make migration-candidate-build SOURCE_DIR="$USL_ONLINE_DUMP_DIR"
 ```
 
 `build` refuses dirty/non-`19-usl` main checkouts, non-production evidence,
-partial source/attachment gates and non-Distribution images. It clones the
-finalized Odoo database, sanitizes only the clone, records the immutable release
-identity, runs the maintained Odoo neutralization SQL for every installed
-module, and removes environment identity/credential state. The filestore
+partial source/attachment gates and mutable or mismatched Odoo/Documents
+runtime images. It clones the finalized Odoo database, sanitizes only the
+clone, records the immutable release identity, runs the maintained Odoo
+neutralization SQL for every installed module, and removes environment
+identity/credential state. The filestore
 archive is rebuilt from the sanitized database's exact `ir.attachment`
 inventory: orphaned files are excluded and every retained file's SHA-1/size is
 verified. It then exports Paperless, captures parity controls, seals checksums
@@ -136,7 +139,10 @@ Do not upload it to CI or a public artifact service.
 
 ## 4. Prepare the production host
 
-Check out the exact release commit and pull the exact candidate image digest.
+Check out the exact release commit and pull all three candidate-bound image
+digests. Provision the Personal Gemini envelope-key ring as a mode-`0600`
+regular file at the absolute path configured by
+`USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH`.
 Copy these templates outside the repository, substitute owner-approved values,
 then set mode `0600`:
 

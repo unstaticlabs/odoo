@@ -114,6 +114,8 @@ class MigrationCandidateManifestTest(unittest.TestCase):
                 "status": "passed",
                 "controls": {"odoo_document_count": 1},
                 "paperless_document_count": 1,
+                "paperless_image_digest": f"ghcr.io/usl/paperless@sha256:{'e' * 64}",
+                "ollama_image_digest": f"docker.io/ollama/ollama@sha256:{'f' * 64}",
                 "reconstruction": {
                     "downloaded_bytes": 100,
                     "ocr_submissions": 1,

@@ -58,10 +58,16 @@ only the path. Do not use a name ending in `_FILE`: Paperless's container entry
 point interprets that suffix and copies file contents into process environment.
 The release check explicitly rejects the legacy inline variables.
 
-For local isolated QA, `scripts/documents_sso_env.py` creates the ignored
-`.documents-personal-ai-keys.json` with mode `0600`. Pre-production and
-production must set `USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH` to a file populated
-by the approved secret manager.
+For local isolated QA, `scripts/qa-environment` asks
+`scripts/documents_sso_env.py` to create and validate an ignored,
+project-scoped `.documents-personal-ai-keys.json` with mode `0600`. The same
+helper is safe to rerun and never prints key material. Development
+reconstruction may create this local file before Paperless starts.
+Pre-production and production must instead set
+`USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH` to an existing file populated by the
+approved secret manager. Production reconstruction fails before resetting the
+target if that explicit key ring is absent or malformed; it never generates a
+production master key.
 
 Run after every deploy and restore:
 
