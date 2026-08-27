@@ -481,7 +481,6 @@
     margin: 0.75rem 1rem 0;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color, #dee2e6);
-    border-left: 4px solid #714b67;
     border-radius: 0.4rem;
     background: var(--body-bg, #fff);
 }
@@ -519,7 +518,8 @@
 }
 
 .usl-sign-business-summary--error {
-    border-left-color: #dc3545;
+    color: var(--o-danger, #dc3545);
+    border-color: color-mix(in srgb, var(--o-danger, #dc3545) 45%, #dee2e6);
 }
 
 .usl_sign_workspace {
