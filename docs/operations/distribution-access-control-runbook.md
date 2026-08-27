@@ -78,6 +78,7 @@ the branch can qualify:
 make action-risk-discover
 # review and edit policy/action_policy.json; add behavioral evidence
 make action-risk-refresh
+# for a policy-only edit: make action-risk-compile-policy
 make action-risk-inventory
 make action-risk-runtime
 ```
@@ -86,6 +87,13 @@ Discovery and refresh are deliberately separate: generation may identify a new
 action but never decides that action's risk. Do not use a wildcard or a
 module-wide default to clear a diff. Trace the action to its final local and
 external sinks and use an explicit stable action key.
+
+`action-risk-refresh` seals the reviewed full-policy digest and regenerates the
+small protected runtime policy. Never edit
+`policy/protected_runtime_policy.json` directly. If the source gate reports a
+stale runtime policy, regenerate it from the reviewed artifacts with
+`make action-risk-compile-policy`; do not reconcile the generated entries by
+hand.
 
 When the runtime check fails after a module update, do not bypass it or edit the
 qualified digest in place. Regenerate from the exact delivered registry,

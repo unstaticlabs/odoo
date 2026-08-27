@@ -66,7 +66,10 @@ surface:
    when the action is protected. Keep ordinary application access in its
    owning module.
 7. Run `make action-risk-refresh`. Refresh accepts only reviewed policy; it
-   must not invent, copy forward or auto-approve classifications.
+   must not invent, copy forward or auto-approve classifications. It seals the
+   canonical digest and derives the compact protected runtime policy. After a
+   policy-only edit that does not refresh the surface, run
+   `make action-risk-compile-policy`.
 8. Run `make action-risk-inventory`, the affected add-on tests, and
    `make action-risk-runtime` against `odoo_dev`, then compile the delivered
    bundles with `make product-assets`. A release also runs the check on a
@@ -80,13 +83,22 @@ review record.
 
 ## Discovery and release gates
 
-`scripts/action_risk_inventory.py` provides `discover`, `refresh`, and
-`check-source`. The checker reports stable action keys, source locations,
-module identity, normalized implementation digest, delegates and detected
-sinks. It fails for an added, removed, changed, multiply classified,
-unclassified or stale action; missing rationale/evidence; a missing reversal,
-target, reachability proof or guard; product-module drift; or a mandatory-risk
-invariant classified below `protected`.
+`scripts/action_risk_inventory.py` provides `discover`, `refresh`,
+`compile-runtime-policy`, and `check-source`. The checker reports stable action
+keys, source locations, module identity, normalized implementation digest,
+delegates and detected sinks. It fails for an added, removed, changed,
+multiply classified, unclassified or stale action; missing rationale/evidence;
+a missing reversal, target, reachability proof or guard; product-module drift;
+a stale or modified runtime policy; or a mandatory-risk invariant classified
+below `protected`.
+
+The complete surface and reviewed classification remain authoritative release
+artifacts. Odoo workers do not parse those large files. They lazily load only
+`protected_runtime_policy.json`, an exact generated projection of protected
+entries bound to both its own digest and the canonical qualified-policy digest.
+The source gate proves that projection is exact, and the Distribution image
+environment binds it to the qualified image label. A regression test keeps the
+worker artifact below 512 KiB.
 
 `scripts/odoo/action_risk_inventory.py` compares the installed module set,
 public model methods, routes, stored view buttons, reports, client actions,

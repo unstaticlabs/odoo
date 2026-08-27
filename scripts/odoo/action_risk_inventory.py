@@ -434,6 +434,15 @@ def modules():
     ]
 
 
+def normalized_module_version(version):
+    """Compare manifest and database versions without Odoo's series prefix."""
+
+    prefix = "saas~19.3."
+    if not isinstance(version, str) or not version:
+        return "1.0"
+    return version.removeprefix(prefix)
+
+
 actions = rpc_actions()
 actions.extend(route_actions())
 actions.extend(ui_action_records())
@@ -483,15 +492,24 @@ def runtime_check(runtime_payload):
     policy = action_policy._read_json(action_policy._POLICY_FILE)
     errors = []
     expected_modules = {
-        module["name"]
+        module["name"]: normalized_module_version(module.get("version", ""))
         for module in surface.get("modules", [])
         if isinstance(module, dict) and isinstance(module.get("name"), str)
     }
-    actual_modules = {module["name"] for module in runtime_payload["modules"]}
-    for name in sorted(actual_modules - expected_modules):
+    actual_modules = {
+        module["name"]: normalized_module_version(module.get("version", ""))
+        for module in runtime_payload["modules"]
+    }
+    for name in sorted(actual_modules.keys() - expected_modules.keys()):
         errors.append(f"Added installed module: {name}")
-    for name in sorted(expected_modules - actual_modules):
+    for name in sorted(expected_modules.keys() - actual_modules.keys()):
         errors.append(f"Removed installed module: {name}")
+    for name in sorted(expected_modules.keys() & actual_modules.keys()):
+        if expected_modules[name] != actual_modules[name]:
+            errors.append(
+                f"Changed installed module identity: {name} "
+                f"({expected_modules[name]!r} != {actual_modules[name]!r})",
+            )
 
     runtime_kinds = {"cron", "route", "rpc", "server_action", "ui"}
     expected_actions = {

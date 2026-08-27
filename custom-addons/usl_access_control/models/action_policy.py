@@ -1,5 +1,8 @@
 import hashlib
 import json
+import os
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -8,17 +11,10 @@ from types import MappingProxyType
 _POLICY_DIRECTORY = Path(__file__).resolve().parent.parent / "policy"
 _SURFACE_FILE = _POLICY_DIRECTORY / "action_surface.json"
 _POLICY_FILE = _POLICY_DIRECTORY / "action_policy.json"
-_SURFACE_SCHEMA = "usl-action-risk-surface-v1"
-_POLICY_SCHEMA = "usl-action-risk-policy-v1"
-_CLASSIFICATIONS = frozenset(
-    {
-        "protected",
-        "read_only",
-        "recoverable",
-        "system_internal",
-        "transport",
-    },
-)
+_RUNTIME_POLICY_FILE = _POLICY_DIRECTORY / "protected_runtime_policy.json"
+_RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v1"
+_RUNTIME_POLICY_MAX_BYTES = 512 * 1024
+_SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
 class ActionPolicyConfigurationError(ValueError):
@@ -30,7 +26,7 @@ class ActionPolicyEntry:
     action_key: str
     classification: str
     action_name: str | None
-    enforcement: dict | None
+    enforcement: Mapping[str, str] | None
 
 
 @dataclass(frozen=True)
@@ -60,8 +56,12 @@ class ActionPolicy:
         return self.model_operation_guards.get((model_name, operation))
 
 
-def _read_json(path):
+def _read_json(path, *, max_bytes=None):
     try:
+        if max_bytes is not None and path.stat().st_size > max_bytes:
+            raise ActionPolicyConfigurationError(
+                f"Qualified action policy file {path} exceeds its runtime size budget.",
+            )
         with path.open(encoding="utf-8") as stream:
             value = json.load(stream)
     except (OSError, json.JSONDecodeError) as error:
@@ -75,16 +75,14 @@ def _read_json(path):
     return value
 
 
-def _canonical_digest(surface, policy):
-    # The generated policy may include its own result. Exclude that field from
-    # the input so the digest is deterministic and non-recursive.
-    policy_payload = {
+def _runtime_policy_digest(runtime_policy):
+    payload = {
         key: value
-        for key, value in policy.items()
-        if key != "qualified_policy_digest"
+        for key, value in runtime_policy.items()
+        if key != "runtime_policy_sha256"
     }
     canonical = json.dumps(
-        {"action_policy": policy_payload, "action_surface": surface},
+        payload,
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
@@ -92,88 +90,39 @@ def _canonical_digest(surface, policy):
     return hashlib.sha256(canonical).hexdigest()
 
 
-def _entry_records(policy):
-    records = policy.get("actions", policy.get("classifications"))
-    if records is None:
-        message = "Qualified action policy must define 'actions' or 'classifications'."
-        raise ActionPolicyConfigurationError(message)
-    if isinstance(records, dict):
-        for action_key, values in records.items():
-            if not isinstance(values, dict):
-                raise ActionPolicyConfigurationError(
-                    f"Policy entry {action_key!r} must be a JSON object.",
-                )
-            yield action_key, values
-        return
+def _load_entries(runtime_policy):
+    records = runtime_policy.get("actions")
     if not isinstance(records, list):
-        message = "Qualified action policy entries must be an object or an array."
+        message = "Protected runtime policy actions must be an array."
         raise ActionPolicyConfigurationError(message)
+    result = {}
+    previous_key = None
+    allowed_fields = {"action_key", "action_name", "classification", "enforcement"}
     for values in records:
         if not isinstance(values, dict):
-            message = "Every policy entry must be a JSON object."
+            message = "Every protected runtime policy entry must be a JSON object."
             raise ActionPolicyConfigurationError(message)
-        action_keys = values.get("action_keys")
-        if action_keys is not None:
-            if not isinstance(action_keys, list) or not all(
-                isinstance(key, str) and key for key in action_keys
-            ):
-                message = (
-                    "A grouped policy entry must contain non-empty string action_keys."
-                )
-                raise ActionPolicyConfigurationError(message)
-            reviewed_digests = values.get("reviewed_digests")
-            overrides = values.get("overrides", {})
-            if not isinstance(reviewed_digests, dict) or set(reviewed_digests) != set(
-                action_keys,
-            ):
-                message = (
-                    "A grouped policy entry must bind every exact action key to its digest."
-                )
-                raise ActionPolicyConfigurationError(message)
-            if not isinstance(overrides, dict) or not set(overrides) <= set(action_keys):
-                message = (
-                    "Grouped policy overrides may only name their exact action keys."
-                )
-                raise ActionPolicyConfigurationError(message)
-            common = {
-                key: value
-                for key, value in values.items()
-                if key not in {"action_keys", "id", "overrides", "reviewed_digests"}
-            }
-            for action_key in action_keys:
-                override = overrides.get(action_key, {})
-                if not isinstance(override, dict):
-                    raise ActionPolicyConfigurationError(
-                        f"Policy override for {action_key!r} must be a JSON object.",
-                    )
-                yield action_key, {
-                    **common,
-                    **override,
-                    "reviewed_digest": reviewed_digests[action_key],
-                }
-            continue
-        action_key = values.get("action_key", values.get("key"))
+        if not set(values) <= allowed_fields:
+            message = "Protected runtime policy entries contain unsupported fields."
+            raise ActionPolicyConfigurationError(message)
+        action_key = values.get("action_key")
         if not isinstance(action_key, str) or not action_key:
-            message = "Every policy entry must contain action_key, key, or action_keys."
+            message = "Every protected runtime policy entry requires an action_key."
             raise ActionPolicyConfigurationError(message)
-        yield action_key, values
-
-
-def _load_entries(policy):
-    result = {}
-    seen = set()
-    for action_key, values in _entry_records(policy):
-        if action_key in seen:
+        if action_key in result:
             raise ActionPolicyConfigurationError(
                 f"Action {action_key!r} has more than one policy classification.",
             )
-        seen.add(action_key)
+        if previous_key is not None and action_key < previous_key:
+            message = "Protected runtime policy actions must be sorted by action_key."
+            raise ActionPolicyConfigurationError(message)
+        previous_key = action_key
         classification = values.get("classification")
-        if classification not in _CLASSIFICATIONS:
+        if classification != "protected":
             raise ActionPolicyConfigurationError(
-                f"Action {action_key!r} has invalid classification {classification!r}.",
+                f"Runtime action {action_key!r} must be classified 'protected'.",
             )
-        action_name = values.get("action_name", values.get("label"))
+        action_name = values.get("action_name")
         if action_name is not None and not isinstance(action_name, str):
             raise ActionPolicyConfigurationError(
                 f"Action {action_key!r} has a non-string action name.",
@@ -183,17 +132,16 @@ def _load_entries(policy):
             raise ActionPolicyConfigurationError(
                 f"Action {action_key!r} has invalid enforcement metadata.",
             )
-        # Runtime enforcement only needs protected entries. The complete
-        # one-to-one classification stays in the reviewed artifact and is
-        # validated by the release gate, avoiding tens of thousands of
-        # long-lived Python objects in every Odoo worker.
-        if classification == "protected":
-            result[action_key] = ActionPolicyEntry(
-                action_key=action_key,
-                classification=classification,
-                action_name=action_name,
-                enforcement=enforcement,
-            )
+        result[action_key] = ActionPolicyEntry(
+            action_key=action_key,
+            classification=classification,
+            action_name=action_name,
+            enforcement=(
+                MappingProxyType(dict(enforcement))
+                if enforcement is not None
+                else None
+            ),
+        )
     return result
 
 
@@ -232,26 +180,38 @@ def _model_operation_guards(entries):
 
 @lru_cache(maxsize=1)
 def load_action_policy():
-    surface = _read_json(_SURFACE_FILE)
-    policy = _read_json(_POLICY_FILE)
-    if surface.get("schema") != _SURFACE_SCHEMA:
+    runtime_policy = _read_json(
+        _RUNTIME_POLICY_FILE,
+        max_bytes=_RUNTIME_POLICY_MAX_BYTES,
+    )
+    if runtime_policy.get("schema") != _RUNTIME_POLICY_SCHEMA:
         raise ActionPolicyConfigurationError(
-            f"Qualified action surface must use schema {_SURFACE_SCHEMA!r}.",
+            f"Protected runtime policy must use schema {_RUNTIME_POLICY_SCHEMA!r}.",
         )
-    if policy.get("schema") != _POLICY_SCHEMA:
-        raise ActionPolicyConfigurationError(
-            f"Qualified action policy must use schema {_POLICY_SCHEMA!r}.",
-        )
-    digest = _canonical_digest(surface, policy)
-    declared_digest = policy.get("qualified_policy_digest")
-    if declared_digest is not None and declared_digest != digest:
+    digest = _runtime_policy_digest(runtime_policy)
+    if runtime_policy.get("runtime_policy_sha256") != digest:
         message = (
-            "The qualified action-policy digest does not match the canonical policy content."
+            "Protected runtime policy digest does not match its canonical content."
         )
         raise ActionPolicyConfigurationError(message)
-    entries = _load_entries(policy)
+    qualified_digest = runtime_policy.get("qualified_policy_digest")
+    if not isinstance(qualified_digest, str) or not _SHA256.fullmatch(
+        qualified_digest,
+    ):
+        message = "Protected runtime policy has no valid qualified policy digest."
+        raise ActionPolicyConfigurationError(message)
+    image_digest = os.environ.get("USL_ACTION_RISK_POLICY_SHA256")
+    if (
+        image_digest not in {None, "", "unverified"}
+        and image_digest != qualified_digest
+    ):
+        message = (
+            "Protected runtime policy does not match the qualified image policy digest."
+        )
+        raise ActionPolicyConfigurationError(message)
+    entries = _load_entries(runtime_policy)
     return ActionPolicy(
         entries=MappingProxyType(entries),
         model_operation_guards=MappingProxyType(_model_operation_guards(entries)),
-        qualified_policy_digest=digest,
+        qualified_policy_digest=qualified_digest,
     )

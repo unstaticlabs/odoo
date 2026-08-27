@@ -695,6 +695,87 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         with self.assertRaises(inventory.DuplicateKeyError):
             inventory.load_json(path)
 
+    def test_compiles_exact_protected_runtime_policy_and_rejects_drift(self):
+        surface, policy = self._valid_inventory()
+        runtime_policy = inventory.build_runtime_policy(surface, policy)
+        expected_keys = sorted(
+            key
+            for key, entry in policy["actions"].items()
+            if entry["classification"] == "protected"
+        )
+        self.assertEqual(
+            [entry["action_key"] for entry in runtime_policy["actions"]],
+            expected_keys,
+        )
+        self.assertEqual(
+            runtime_policy["qualified_policy_digest"],
+            inventory.qualified_policy_digest(surface, policy),
+        )
+        self.assertEqual(
+            runtime_policy["runtime_policy_sha256"],
+            inventory.runtime_policy_digest(runtime_policy),
+        )
+        self.assertEqual(
+            inventory.validate_runtime_policy(surface, policy, runtime_policy),
+            [],
+        )
+
+        runtime_policy["actions"].pop()
+        errors = inventory.validate_runtime_policy(surface, policy, runtime_policy)
+        self.assertTrue(any("digest mismatch" in error for error in errors), errors)
+        self.assertTrue(any("stale" in error for error in errors), errors)
+
+    def test_tracked_runtime_policy_is_compact(self):
+        runtime_policy = inventory.load_json(inventory.DEFAULT_RUNTIME_POLICY)
+        self.assertLess(
+            inventory.DEFAULT_RUNTIME_POLICY.stat().st_size,
+            inventory.MAX_RUNTIME_POLICY_BYTES,
+        )
+        self.assertLessEqual(len(runtime_policy["actions"]), 1_000)
+        self.assertEqual(
+            runtime_policy["runtime_policy_sha256"],
+            inventory.runtime_policy_digest(runtime_policy),
+        )
+
+    def test_refresh_seals_policy_and_compiles_runtime_artifact(self):
+        surface, policy = self._valid_inventory()
+        policy.pop("qualified_policy_digest", None)
+        candidate_path = self.root / "candidate.json"
+        policy_path = self.root / "policy.json"
+        surface_path = self.root / "surface.json"
+        runtime_path = self.root / "runtime.json"
+        inventory.write_json(candidate_path, surface)
+        inventory.write_json(policy_path, policy)
+
+        result = inventory.main(
+            [
+                "refresh",
+                "--candidate",
+                str(candidate_path),
+                "--surface",
+                str(surface_path),
+                "--policy",
+                str(policy_path),
+                "--runtime-policy",
+                str(runtime_path),
+            ],
+        )
+        self.assertEqual(result, 0)
+        sealed_policy = inventory.load_json(policy_path)
+        runtime_policy = inventory.load_json(runtime_path)
+        self.assertEqual(
+            sealed_policy["qualified_policy_digest"],
+            inventory.qualified_policy_digest(surface, sealed_policy),
+        )
+        self.assertEqual(
+            inventory.validate_runtime_policy(
+                surface,
+                sealed_policy,
+                runtime_policy,
+            ),
+            [],
+        )
+
 
 class TestDrift(ActionRiskInventoryTestCase):
     def test_reports_module_and_action_add_remove_change(self):

@@ -45,7 +45,7 @@ endef
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers action-risk-discover action-risk-refresh action-risk-inventory action-risk-runtime product-assets french-translations expense-batch-qa-bootstrap
+.PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy action-risk-inventory action-risk-runtime product-assets french-translations expense-batch-qa-bootstrap
 .PHONY: migration-candidate-build migration-candidate-verify migration-candidate-status production-cutover-preflight production-cutover-stage production-cutover-configure production-cutover-gate production-cutover-admit production-cutover-reset
 
 help:
@@ -113,6 +113,7 @@ help-advanced:
 	  '  make documents-qa-test              Run Documents QA tests' \
 	  '  make action-helpers                  Check guidance on consequential actions' \
 	  '  make action-risk-inventory           Reject unclassified or stale product actions' \
+	  '  make action-risk-compile-policy      Compile the compact protected runtime policy' \
 	  '  make action-risk-runtime             Check the live odoo_dev action registry' \
 	  '  make expense-batch-qa-bootstrap      Seed mixed-payer Expense Batch QA data' \
 	  '  make user-docs-build                Render and validate user documentation' \
@@ -650,6 +651,9 @@ action-risk-discover:
 action-risk-refresh:
 	python3 scripts/action_risk_inventory.py refresh \
 		--candidate "$(ACTION_RISK_CANDIDATE)"
+
+action-risk-compile-policy:
+	python3 scripts/action_risk_inventory.py compile-runtime-policy
 
 action-risk-inventory: action-helpers
 	python3 scripts/action_risk_inventory.py check-source

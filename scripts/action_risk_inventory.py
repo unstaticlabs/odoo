@@ -32,9 +32,18 @@ DEFAULT_SURFACE = (
 DEFAULT_POLICY = (
     ROOT / "custom-addons" / "usl_access_control" / "policy" / "action_policy.json"
 )
+DEFAULT_RUNTIME_POLICY = (
+    ROOT
+    / "custom-addons"
+    / "usl_access_control"
+    / "policy"
+    / "protected_runtime_policy.json"
+)
 SURFACE_SCHEMA = "usl-action-risk-surface-v1"
 POLICY_SCHEMA = "usl-action-risk-policy-v1"
 RUNTIME_SCHEMA = "usl-action-risk-runtime-v1"
+RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v1"
+MAX_RUNTIME_POLICY_BYTES = 512 * 1024
 CLASSIFICATIONS = frozenset(
     {"read_only", "recoverable", "protected", "transport", "system_internal"},
 )
@@ -185,6 +194,84 @@ def qualified_policy_digest(
             "action_surface": dict(surface),
         },
     )
+
+
+def runtime_policy_digest(runtime_policy: Mapping[str, object]) -> str:
+    """Hash the compact enforcement artifact without its self-digest."""
+
+    payload = copy.deepcopy(dict(runtime_policy))
+    payload.pop("runtime_policy_sha256", None)
+    return sha256_json(payload)
+
+
+def build_runtime_policy(
+    surface: Mapping[str, object],
+    policy: Mapping[str, object],
+) -> dict[str, object]:
+    """Compile only protected runtime enforcement facts from the full review."""
+
+    failures: list[str] = []
+    reviewed = normalize_policy_actions(policy, failures)
+    if failures:
+        raise InventoryError("Cannot compile runtime policy: " + "; ".join(failures))
+    actions = []
+    for action_key, entry in sorted(reviewed.items()):
+        if entry.get("classification") != "protected":
+            continue
+        runtime_entry: dict[str, object] = {
+            "action_key": action_key,
+            "classification": "protected",
+        }
+        action_name = entry.get("action_name", entry.get("label"))
+        if action_name is not None:
+            runtime_entry["action_name"] = action_name
+        enforcement = entry.get("enforcement")
+        if enforcement is not None:
+            runtime_entry["enforcement"] = enforcement
+        actions.append(runtime_entry)
+    result: dict[str, object] = {
+        "actions": actions,
+        "qualified_policy_digest": qualified_policy_digest(surface, policy),
+        "schema": RUNTIME_POLICY_SCHEMA,
+    }
+    result["runtime_policy_sha256"] = runtime_policy_digest(result)
+    return result
+
+
+def validate_runtime_policy(
+    surface: Mapping[str, object],
+    policy: Mapping[str, object],
+    runtime_policy: Mapping[str, object],
+) -> list[str]:
+    """Prove the compact runtime artifact is the exact full-policy derivative."""
+
+    errors: list[str] = []
+    runtime_size = len(canonical_json(runtime_policy).encode())
+    if runtime_size > MAX_RUNTIME_POLICY_BYTES:
+        errors.append(
+            "Protected runtime policy exceeds the 512 KiB worker-load budget: "
+            f"{runtime_size} bytes.",
+        )
+    if runtime_policy.get("schema") != RUNTIME_POLICY_SCHEMA:
+        errors.append(f"Runtime policy schema must be {RUNTIME_POLICY_SCHEMA}.")
+    recorded_digest = runtime_policy.get("runtime_policy_sha256")
+    computed_digest = runtime_policy_digest(runtime_policy)
+    if recorded_digest != computed_digest:
+        errors.append(
+            "Runtime policy digest mismatch: "
+            f"recorded {recorded_digest!r}, computed {computed_digest}.",
+        )
+    try:
+        expected = build_runtime_policy(surface, policy)
+    except InventoryError as error:
+        errors.append(str(error))
+        return errors
+    if runtime_policy != expected:
+        errors.append(
+            "Protected runtime policy is stale or was not compiled from the exact "
+            "reviewed surface and policy.",
+        )
+    return errors
 
 
 def surface_digest(surface: Mapping[str, object]) -> str:
@@ -358,7 +445,11 @@ def _module_source_digest(info: ModuleInfo) -> str:
             or ignored_parts.intersection(relative.parts)
             or "static/lib" in relative.as_posix()
             or relative.as_posix()
-            in {"policy/action_policy.json", "policy/action_surface.json"}
+            in {
+                "policy/action_policy.json",
+                "policy/action_surface.json",
+                "policy/protected_runtime_policy.json",
+            }
         ):
             continue
         digest.update(relative.as_posix().encode())
@@ -1938,11 +2029,30 @@ def _parser() -> argparse.ArgumentParser:
     refresh.add_argument("--candidate", type=Path, required=True)
     refresh.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
     refresh.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    refresh.add_argument(
+        "--runtime-policy",
+        type=Path,
+        default=DEFAULT_RUNTIME_POLICY,
+    )
+
+    compile_runtime = subparsers.add_parser("compile-runtime-policy")
+    compile_runtime.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
+    compile_runtime.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    compile_runtime.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_RUNTIME_POLICY,
+    )
 
     check = subparsers.add_parser("check", aliases=["check-source"])
     check.add_argument("--root", type=Path, default=ROOT)
     check.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
     check.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    check.add_argument(
+        "--runtime-policy",
+        type=Path,
+        default=DEFAULT_RUNTIME_POLICY,
+    )
     check.add_argument("--candidate", type=Path)
     check.add_argument("--runtime", type=Path)
     check.add_argument("--skip-source-drift", action="store_true")
@@ -1972,13 +2082,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "refresh":
             candidate = load_json(args.candidate)
             policy = load_json(args.policy)
+            policy["qualified_policy_digest"] = qualified_policy_digest(
+                candidate,
+                policy,
+            )
             errors = validate_inventory(candidate, policy)
             if errors:
                 return _print_errors("Action-risk refresh", errors)
             write_json(args.surface, candidate)
+            write_json(args.policy, policy)
+            write_json(
+                args.runtime_policy,
+                build_runtime_policy(candidate, policy),
+            )
             print(
                 f"Action-risk surface refreshed: {len(candidate.get('actions', []))} actions, "
                 f"digest {qualified_policy_digest(candidate, policy)}",
+            )
+            return 0
+        if args.command == "compile-runtime-policy":
+            surface = load_json(args.surface)
+            policy = load_json(args.policy)
+            errors = validate_inventory(surface, policy)
+            if errors:
+                return _print_errors("Action-risk runtime policy", errors)
+            runtime_policy = build_runtime_policy(surface, policy)
+            write_json(args.output, runtime_policy)
+            print(
+                "Protected runtime policy compiled: "
+                f"{len(runtime_policy['actions'])} actions, "
+                f"{runtime_policy['runtime_policy_sha256']}",
             )
             return 0
         if args.command == "digest":
@@ -2001,6 +2134,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             surface = load_json(args.surface)
             policy = load_json(args.policy)
             errors = validate_inventory(surface, policy)
+            runtime_policy = load_json(args.runtime_policy)
+            errors.extend(validate_runtime_policy(surface, policy, runtime_policy))
             if args.candidate:
                 errors.extend(compare_surfaces(surface, load_json(args.candidate)))
             elif args.runtime:

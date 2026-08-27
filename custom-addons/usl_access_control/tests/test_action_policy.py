@@ -1,8 +1,7 @@
-import hashlib
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from odoo.tests import BaseCase, tagged
 
@@ -15,60 +14,75 @@ class TestActionPolicyLoader(BaseCase):
         super().setUp()
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary_directory.cleanup)
-        directory = Path(self.temporary_directory.name)
-        self.surface_path = directory / "action_surface.json"
-        self.policy_path = directory / "action_policy.json"
-        self.path_patches = (
-            patch.object(action_policy, "_SURFACE_FILE", self.surface_path),
-            patch.object(action_policy, "_POLICY_FILE", self.policy_path),
+        self.runtime_policy_path = (
+            Path(self.temporary_directory.name) / "protected_runtime_policy.json"
         )
-        for path_patch in self.path_patches:
-            path_patch.start()
-            self.addCleanup(path_patch.stop)
+        path_patch = patch.object(
+            action_policy,
+            "_RUNTIME_POLICY_FILE",
+            self.runtime_policy_path,
+        )
+        path_patch.start()
+        self.addCleanup(path_patch.stop)
         action_policy.load_action_policy.cache_clear()
         self.addCleanup(action_policy.load_action_policy.cache_clear)
 
-    def _write_policy(self, *, actions, qualified_policy_digest=None):
-        surface = {
-            "actions": {"rpc:project.task.unlink": {"digest": "source-digest"}},
-            "schema": "usl-action-risk-surface-v1",
-        }
+    def _write_policy(
+        self,
+        *,
+        actions,
+        qualified_policy_digest="a" * 64,
+        runtime_policy_sha256=None,
+        schema="usl-action-risk-protected-runtime-v1",
+    ):
         policy = {
             "actions": actions,
-            "schema": "usl-action-risk-policy-v1",
+            "qualified_policy_digest": qualified_policy_digest,
+            "schema": schema,
         }
-        if qualified_policy_digest is not None:
-            policy["qualified_policy_digest"] = qualified_policy_digest
-        self.surface_path.write_text(json.dumps(surface), encoding="utf-8")
-        self.policy_path.write_text(json.dumps(policy), encoding="utf-8")
-        canonical = json.dumps(
-            {"action_policy": policy, "action_surface": surface},
-            ensure_ascii=False,
-            separators=(",", ":"),
-            sort_keys=True,
-        ).encode()
-        return hashlib.sha256(canonical).hexdigest()
+        policy["runtime_policy_sha256"] = (
+            runtime_policy_sha256 or action_policy._runtime_policy_digest(policy)
+        )
+        self.runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        return policy
 
     def test_loads_semantic_and_model_operation_guards(self):
-        expected_digest = self._write_policy(
-            actions={
-                "guard:accounting.lock.change": {
+        self._write_policy(
+            actions=[
+                {
+                    "action_key": "guard:accounting.lock.change",
+                    "action_name": "change accounting lock dates",
                     "classification": "protected",
-                    "label": "change accounting lock dates",
                 },
-                "rpc:project.task.unlink": {
+                {
+                    "action_key": "rpc:project.task.unlink",
+                    "action_name": "permanently delete project.task",
                     "classification": "protected",
                     "enforcement": {
                         "kind": "model_operation",
                         "model": "project.task",
                         "operation": "unlink",
                     },
-                    "label": "permanently delete project.task",
                 },
-            },
+            ],
         )
-        policy = action_policy.load_action_policy()
-        self.assertEqual(policy.qualified_policy_digest, expected_digest)
+        original_reader = action_policy._read_json
+        with patch.object(
+            action_policy,
+            "_read_json",
+            wraps=original_reader,
+        ) as reader:
+            policy = action_policy.load_action_policy()
+        self.assertEqual(
+            reader.call_args_list,
+            [
+                call(
+                    self.runtime_policy_path,
+                    max_bytes=action_policy._RUNTIME_POLICY_MAX_BYTES,
+                ),
+            ],
+        )
+        self.assertEqual(policy.qualified_policy_digest, "a" * 64)
         self.assertEqual(
             policy.protected_guard("accounting.lock.change").action_key,
             "guard:accounting.lock.change",
@@ -81,72 +95,40 @@ class TestActionPolicyLoader(BaseCase):
         with self.assertRaises(TypeError):
             policy.entries["guard:new"] = None
 
-    def test_loads_compact_exact_key_groups_and_keeps_only_runtime_guards(self):
+    def test_rejects_non_protected_and_duplicate_model_enforcement(self):
+        enforcement = {
+            "kind": "model_operation",
+            "model": "project.task",
+            "operation": "unlink",
+        }
         self._write_policy(
             actions=[
                 {
-                    "id": "protected-project-delete",
-                    "action_keys": ["rpc:project.task.unlink"],
-                    "classification": "protected",
-                    "domain": "projects",
-                    "consequence": "Permanent task deletion.",
-                    "rationale": "Tasks have an archive workflow.",
-                    "evidence_id": "protected-contract",
-                    "reviewed_digests": {
-                        "rpc:project.task.unlink": "source-digest",
-                    },
-                    "overrides": {
-                        "rpc:project.task.unlink": {
-                            "enforcement": {
-                                "kind": "model_operation",
-                                "model": "project.task",
-                                "operation": "unlink",
-                            },
-                        },
-                    },
-                },
-                {
-                    "id": "read-only-metadata",
-                    "action_keys": ["rpc:project.task.fields_get"],
-                    "classification": "read_only",
-                    "domain": "projects",
-                    "consequence": "Returns metadata.",
-                    "rationale": "No mutation sink.",
-                    "evidence_id": "read-only-contract",
-                    "reviewed_digests": {
-                        "rpc:project.task.fields_get": "metadata-digest",
-                    },
+                    "action_key": "guard:accounting.lock.change",
+                    "classification": "recoverable",
                 },
             ],
         )
-        policy = action_policy.load_action_policy()
-        self.assertEqual(
-            policy.model_operation_guard("project.task", "unlink").action_key,
-            "rpc:project.task.unlink",
-        )
-        self.assertNotIn("rpc:project.task.fields_get", policy.entries)
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "must be classified 'protected'",
+        ):
+            action_policy.load_action_policy()
 
-    def test_rejects_non_protected_guard_and_duplicate_model_enforcement(self):
+        action_policy.load_action_policy.cache_clear()
         self._write_policy(
-            actions={
-                "guard:accounting.lock.change": {"classification": "recoverable"},
-                "rpc:project.task.unlink": {
+            actions=[
+                {
+                    "action_key": "guard:duplicate.task.unlink",
                     "classification": "protected",
-                    "enforcement": {
-                        "kind": "model_operation",
-                        "model": "project.task",
-                        "operation": "unlink",
-                    },
+                    "enforcement": enforcement,
                 },
-                "guard:duplicate.task.unlink": {
+                {
+                    "action_key": "rpc:project.task.unlink",
                     "classification": "protected",
-                    "enforcement": {
-                        "kind": "model_operation",
-                        "model": "project.task",
-                        "operation": "unlink",
-                    },
+                    "enforcement": enforcement,
                 },
-            },
+            ],
         )
         with self.assertRaisesRegex(
             action_policy.ActionPolicyConfigurationError,
@@ -154,39 +136,71 @@ class TestActionPolicyLoader(BaseCase):
         ):
             action_policy.load_action_policy()
 
-        action_policy.load_action_policy.cache_clear()
-        self._write_policy(
-            actions={
-                "guard:accounting.lock.change": {"classification": "recoverable"},
-            },
-        )
-        policy = action_policy.load_action_policy()
-        with self.assertRaisesRegex(
-            action_policy.ActionPolicyConfigurationError,
-            "absent from the qualified policy",
-        ):
-            policy.protected_guard("accounting.lock.change")
-
-    def test_rejects_declared_digest_mismatch(self):
-        self._write_policy(
-            actions={
-                "guard:accounting.lock.change": {"classification": "protected"},
-            },
-            qualified_policy_digest="0" * 64,
-        )
+    def test_rejects_runtime_digest_and_schema_mismatch(self):
+        self._write_policy(actions=[], runtime_policy_sha256="0" * 64)
         with self.assertRaisesRegex(
             action_policy.ActionPolicyConfigurationError,
             "digest does not match",
         ):
             action_policy.load_action_policy()
 
-    def test_rejects_unknown_policy_schema(self):
-        self._write_policy(actions={})
-        policy = json.loads(self.policy_path.read_text(encoding="utf-8"))
-        policy["schema"] = "future-policy-schema"
-        self.policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    def test_rejects_runtime_policy_above_worker_budget_before_parsing(self):
+        self.runtime_policy_path.write_bytes(
+            b" " * (action_policy._RUNTIME_POLICY_MAX_BYTES + 1),
+        )
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "exceeds its runtime size budget",
+        ):
+            action_policy.load_action_policy()
+
+        action_policy.load_action_policy.cache_clear()
+        self._write_policy(actions=[], schema="future-runtime-schema")
         with self.assertRaisesRegex(
             action_policy.ActionPolicyConfigurationError,
             "must use schema",
+        ):
+            action_policy.load_action_policy()
+
+    def test_rejects_image_policy_digest_mismatch(self):
+        self._write_policy(actions=[], qualified_policy_digest="a" * 64)
+        with (
+            patch.dict(
+                "os.environ",
+                {"USL_ACTION_RISK_POLICY_SHA256": "b" * 64},
+            ),
+            self.assertRaisesRegex(
+                action_policy.ActionPolicyConfigurationError,
+                "does not match the qualified image",
+            ),
+        ):
+            action_policy.load_action_policy()
+
+    def test_rejects_unsorted_or_unsupported_entries(self):
+        self._write_policy(
+            actions=[
+                {"action_key": "rpc:z.unlink", "classification": "protected"},
+                {"action_key": "rpc:a.unlink", "classification": "protected"},
+            ],
+        )
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "sorted by action_key",
+        ):
+            action_policy.load_action_policy()
+
+        action_policy.load_action_policy.cache_clear()
+        self._write_policy(
+            actions=[
+                {
+                    "action_key": "guard:test",
+                    "classification": "protected",
+                    "unexpected": True,
+                },
+            ],
+        )
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "unsupported fields",
         ):
             action_policy.load_action_policy()

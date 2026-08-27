@@ -463,6 +463,7 @@ scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
 make paperless-users           # reconcile governed users and document access
 make action-risk-inventory     # reject unclassified/changed source actions
+make action-risk-compile-policy # derive the compact protected worker policy
 make action-risk-runtime       # compare the exact installed odoo_dev registry
 make product-assets            # compile every installed-registry asset bundle
 scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
