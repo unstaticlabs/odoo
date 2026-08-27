@@ -132,8 +132,9 @@ maturity map is maintained in
 - Recoverability-based Distribution roles for Valentin, Roger, Prosper and
   Agents, with a separately enforced irreversible-action capability, immutable
   audit evidence and explicit two-company Accounting review for Prosper. The
-  merged candidate qualifies 49,713 reviewed action keys and loads only the
-  compact protected runtime projection in workers.
+  merged candidate qualifies 50,041 reviewed source actions and 42,669 runtime
+  actions while loading only the compact protected runtime projection in
+  workers.
 - French electronic-invoice reception for UBL, CII and Factur-X invoices and
   credit notes, including native draft bills, original evidence,
   duplicate/retry controls, role-aware browser journeys and controlled
@@ -188,7 +189,8 @@ product modules, the pinned OCA OFX suite and repeated upgrades of canonical
 `odoo_dev`; its accounting, B2C and stock fingerprints remained unchanged.
 That focused evidence does not promote the earlier full seed to a final
 release candidate. The current locked-source reconstruction supersedes it,
-but the final frozen-source run is still required after Native Sign is decided.
+but the final frozen-source run is still required after Native Sign and the
+Templating system are decided.
 
 The 27 August Collaboration integration candidate completed another canonical
 reconstruction from the same locked source. Its two Collaboration passes were
@@ -235,8 +237,8 @@ accounting relationship or SKU mapping is left unexplained and pending.
 Aggregate monthly coverage is not presented as one-to-one order accounting,
 and the 35 header-only Medusa orders remain visible without invented lines.
 The rehearsal is still not a production admission candidate: a final
-frozen-source rerun, the Native Sign decision,
-isolated-host dress rehearsal and operational approvals remain required. The
+frozen-source rerun, the Native Sign and Templating decisions, isolated-host
+dress rehearsal and operational approvals remain required. The
 30 September physical opening-stock count is a separate go-live prerequisite;
 the migration correctly creates no unsupported historical stock activity.
 The clean 27 August reconstruction additionally passed final product-boundary,
@@ -296,20 +298,22 @@ The canonical, evidence-bearing sequence is maintained in the
    passed; its source scope and attachment relationships are closed without
    migration-only provenance or outbound delivery state in the product**.
 7. Review and merge Native Sign with signing evidence and permission gates.
-8. Distribution Access Control — **merged into `19-usl`; the final merged
+8. Review and merge the Templating system with rendered-output, permissions,
+   Accounting integration and deployment gates.
+9. Distribution Access Control — **merged into `19-usl`; the final merged
    registry passes the requalified 50,041-action source inventory and
    42,669-action runtime inventory. Signed-in persona acceptance remains.**
-9. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
+10. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
    mail test.**
-10. Dynamic Project task history titles — **merged into `19-usl`
+11. Dynamic Project task history titles — **merged into `19-usl`
    through merge `602df379352`; 77 focused desktop webclient tests and 320
    assertions passed. Actual Projects Back/Forward browser acceptance and
    signed-in Projects acceptance remains pending.**
-11. **Current locked-source reconstruction and complete product/migration
+12. **Current locked-source reconstruction and complete product/migration
    boundary pass.** Repeat them from the final frozen source after Native Sign
-   is merged or explicitly rejected.
+   and Templating are merged or explicitly rejected.
 
 The exact merge order may change to resolve dependencies, but each feature
 remains independently reviewed and every merge invalidates earlier release

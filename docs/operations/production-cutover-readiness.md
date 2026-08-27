@@ -10,9 +10,9 @@ not evidence for the final frozen source.
 
 The release is **not ready to cut over yet**. The current baseline includes
 the validated upstream catch-up, B2C and monthly bank-statement ingestion, but
-it is not the final release until all remaining feature branches have been
-reviewed and merged into `19-usl` or explicitly rejected, followed by a fresh
-complete qualification.
+it is not the final release until Native Sign and the Templating system have
+been reviewed and merged into `19-usl` or explicitly rejected, followed by a
+fresh complete qualification.
 
 ### Current local rehearsal input
 
@@ -67,6 +67,19 @@ zero OCR submissions. Evidence is retained in QA reports
 `usl-odoo-qa-dc187ada-20260827T205300Z.json`. This remains rehearsal evidence;
 no older seed or feature database is final frozen-source release evidence.
 
+On 28 August the clean consolidated baseline at
+`4de70cebe61fd69a21dfd7dd7dbb70fdf0e2f0ee` passed
+[Distribution image workflow run 33120390343](https://github.com/unstaticlabs/odoo/actions/runs/33120390343).
+That run qualified the finalized 150-module registry, the 50,041-action source
+policy, the 42,669-action runtime policy and compiled product assets, then
+published
+`ghcr.io/unstaticlabs/usl-odoo:4de70cebe61fd69a21dfd7dd7dbb70fdf0e2f0ee`.
+The workflow verified the release, OCA, action-risk and Distribution-runtime
+labels plus an immutable repository digest. Copy the final digest from the
+successful workflow summary into the private change record after the two
+remaining feature decisions; this baseline image is qualification evidence,
+not the eventual cut-over image.
+
 ## Non-negotiable boundaries
 
 - Preserve all supported product data and every migration-critical unsupported
@@ -96,7 +109,7 @@ no older seed or feature database is final frozen-source release evidence.
 The following work must remain independently reviewable. Merge only approved
 final state into `19-usl`; never qualify production from the feature worktree.
 
-| Workstream | Required release outcome | Status on 27 August 2026 |
+| Workstream | Required release outcome | Status on 28 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
 | Migration cache and Documents performance | content-qualified schema-v4 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | merged into `19-usl` from reviewed tip `3d2b2b49382`; affected suites, optimized reconstruction, v4 publication, exact-tree cold hydration and zero-download/zero-OCR warm reuse pass |
@@ -104,15 +117,17 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | merged into `19-usl` from reviewed tip `2ba19d6fa90`; clean suites, AMD64 overlay build, full archive and vector parity pass; release-cohort restore and signed-in browser evidence pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
+| Templating system | governed business-document templates and rendered output | active feature worktree; close to merge readiness, but no uncommitted feature state is release evidence |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | merged into `19-usl`; clean reconstruction, repeated import and final product-boundary requalification passed |
 | Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | merged into `19-usl`; 50,041 source actions and 42,669 runtime actions pass on the final reconstructed registry |
 | Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | consolidated into the merged migration-cache/Documents work; no separate active feature remains |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
 | Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | merged into `19-usl` through merge `602df379352`; focused desktop webclient suite passed; signed-in Projects acceptance pending |
 
-Native Sign is the remaining product head to review on this consolidated
-candidate. Feature-branch evidence is not release evidence; its exact reviewed
-tip still requires Lead Developer integration and requalification.
+Native Sign and the Templating system are the remaining product heads to review
+on this consolidated candidate. Feature-worktree evidence is not release
+evidence; each exact reviewed tip still requires Lead Developer integration
+and requalification.
 
 For every merge:
 
@@ -147,6 +162,8 @@ partial `odoo_dev` installation is not final-target evidence.
   vector-parity gate. The separate release-cohort restore remains open.
 - [x] Merge the project/task browser-title fix after independent review.
 - [ ] Merge or explicitly reject Native Sign after independent review.
+- [ ] Merge or explicitly reject the Templating system after independent
+  review.
 - [x] Integrate Collaboration History after independent review and preserve its
   exact reviewed ancestry and archive ref.
 - [x] Reconstruct and finalize canonical `odoo_dev` from the locked source on
@@ -167,13 +184,17 @@ partial `odoo_dev` installation is not final-target evidence.
   Its final merged-registry action inventory is regenerated and passing;
   signed-in named-persona acceptance remains before admission.
 - [x] Confirm no active release branch contains unmerged product or migration
-  final state other than the explicitly preserved Native Sign workstream.
+  final state other than the explicitly preserved Native Sign and Templating
+  workstreams.
 - [x] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
   migration-boundary checks from clean `19-usl`. Focused Ruff/compilation,
   backend and Chromium suites, Impeccable, shell/XML/JSON, all Compose variants,
   15 French catalogues and both product/migration boundaries pass.
-- [ ] Build the immutable GHCR `distribution` image, verify its revision/OCA
-  labels and record the digest.
+- [x] Build the immutable GHCR `distribution` image for the current consolidated
+  baseline and verify its revision/OCA/action-risk/runtime labels and repository
+  digest. Workflow run `33120390343` passed for commit `4de70cebe61`; repeat
+  after Native Sign and Templating are decided and record that final digest in
+  the private change record.
 - [x] Install every currently delivered product module into a fresh empty
   database; run update and repeated update without migration modules on the
   runtime path. This now passes for the 15-module access-control candidate and
