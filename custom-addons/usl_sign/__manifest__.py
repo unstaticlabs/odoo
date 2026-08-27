@@ -56,6 +56,7 @@
             "usl_sign/static/src/xml/template_library.xml",
             "usl_sign/static/src/xml/configure_patch.xml",
             "usl_sign/static/src/xml/signing_method_radio.xml",
+            "usl_sign/static/src/xml/systray_patch.xml",
             "usl_sign/static/src/scss/sign.scss",
         ],
         "web.assets_unit_tests": [

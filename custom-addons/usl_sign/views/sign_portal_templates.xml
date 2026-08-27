@@ -117,7 +117,12 @@
                             <h1>You’re done</h1>
                             <p t-if="result_request_name" class="usl-sign-lead">Your signature has been saved for <strong t-out="result_request_name"/>.</p>
                             <p t-else="" class="usl-sign-lead">Your signature has been saved.</p>
-                            <p class="usl-sign-muted mb-0">You’ll receive the final copy when it is ready.</p>
+                            <p class="usl-sign-muted">You’ll receive the final copy when everyone has signed and the checks are complete.</p>
+                            <a t-if="result_download_url" class="usl-sign-button usl-sign-button--wide" t-att-href="result_download_url" download="download">
+                                <i class="fa fa-download" aria-hidden="true"/>
+                                Download the document as it is now
+                            </a>
+                            <p t-if="result_download_url" class="usl-sign-action-note mb-0">If other people still need to sign, this copy is not the final document.</p>
                         </t>
                         <t t-elif="declined">
                             <span class="usl-sign-result-icon usl-sign-result-icon--neutral" aria-hidden="true"><i class="fa fa-ban"/></span>
