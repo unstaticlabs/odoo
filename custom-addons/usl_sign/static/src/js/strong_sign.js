@@ -350,34 +350,15 @@
         container.dataset.ready = "true";
     }
 
-    function setPortalStatus(title, message, tone = "info") {
-        const status = document.getElementById("usl_sign_submission_status");
-        if (!status) {
-            return;
-        }
-        status.classList.remove("d-none");
-        const icon = status.querySelector(".fa");
-        if (icon) {
-            icon.className = `fa ${
-                tone === "success"
-                    ? "fa-check-circle"
-                    : tone === "danger"
-                      ? "fa-exclamation-circle"
-                      : "fa-circle-o-notch fa-spin"
-            }`;
-        }
-        const text = status.querySelector("span");
-        if (text) {
-            text.textContent = `${title} ${message}`.trim();
-        }
-    }
-
-    async function submitPortalStrongSignature({
-        button,
+    // This adapter owns only the document-bound cryptographic ceremony. The
+    // shared Odoo portal component remains the sole owner of signer fields,
+    // consent, progress, errors, actions and navigation for every method.
+    async function runPortalStrongCeremony({
         items,
         documentSha256,
         location,
         browserContext,
+        onProgress = () => {},
     }) {
         const context = document.getElementById("usl_strong_sign_context");
         if (!context || context.dataset.active === "true") {
@@ -404,8 +385,10 @@
         window.addEventListener("message", onCallback);
         try {
             popup = openPocketID();
-            setButtonBusy(button, true, "Preparing…");
-            setPortalStatus("Preparing your personal signature.", "Keep this tab open.");
+            onProgress({
+                label: "Preparing…",
+                message: "Preparing your personal signature. Keep this tab open.",
+            });
             ceremonyWorker = workerClient();
             const generated = await ceremonyWorker.call("generate", {
                 commonName: context.dataset.certificateSubject,
@@ -420,11 +403,11 @@
             });
             ceremonyId = begin.ceremony_id;
             navigatePocketID(popup, begin.authorization_url);
-            setButtonBusy(button, true, "Waiting for Pocket ID…");
-            setPortalStatus(
-                "Confirm in Pocket ID.",
-                "The document stays here; Pocket ID confirms your account."
-            );
+            onProgress({
+                label: "Waiting for Pocket ID…",
+                message:
+                    "Confirm in Pocket ID. The document stays here; Pocket ID confirms your account.",
+            });
             const authorization = await poll(
                 `${base}/status`,
                 {ceremony_id: ceremonyId},
@@ -438,16 +421,18 @@
                 window.location.assign(authorization.redirect || "/sign/result/success");
                 return;
             }
-            setButtonBusy(button, true, "Applying signature…");
-            setPortalStatus(
-                "Applying your signature.",
-                "The result will be validated before it is accepted."
-            );
+            onProgress({
+                label: "Applying signature…",
+                message:
+                    "Applying your signature. The result will be validated before it is accepted.",
+            });
             const signed = await ceremonyWorker.call("sign", {
                 dataToSign: authorization.data_to_sign,
             });
-            setButtonBusy(button, true, "Validating…");
-            setPortalStatus("Validating the signed revision.", "Please keep this tab open.");
+            onProgress({
+                label: "Validating…",
+                message: "Validating the signed revision. Please keep this tab open.",
+            });
             let result;
             try {
                 result = await rpc(`${base}/finalize`, {
@@ -465,7 +450,11 @@
             }
             await safelyDestroy(ceremonyWorker);
             ceremonyWorker = null;
-            setPortalStatus("Signed.", "Opening your result…", "success");
+            onProgress({
+                label: "Signed",
+                message: "Signature saved. Opening the result…",
+                complete: true,
+            });
             context.dataset.active = "false";
             window.location.assign(result.redirect);
         } catch (error) {
@@ -477,7 +466,6 @@
             }
             await safelyDestroy(ceremonyWorker);
             const failure = friendlyFailure(error, "signing");
-            setPortalStatus(failure.title, failure.message, "danger");
             const publicError = new JourneyError(error.code || "service");
             publicError.message = `${failure.title}. ${failure.message}`;
             throw publicError;
@@ -487,7 +475,7 @@
         }
     }
 
-    window.uslStrongSign = submitPortalStrongSignature;
+    window.uslStrongCeremony = runPortalStrongCeremony;
 
     function initializeCallback(container) {
         const successful = container.dataset.successful === "true";
