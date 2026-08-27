@@ -17,7 +17,7 @@ Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
-through merge `64c1f2b1207`. Paperless 3.0, the schema-v3 migration-cache/
+through merge `64c1f2b1207`. Paperless 3.0, the schema-v4 migration-cache/
 Documents-performance follow-up, Collaboration History, Distribution Access
 Control, and the project/task browser-title fix are merged directly into
 `19-usl` with their reviewed ancestry preserved. Native Sign remains
@@ -31,9 +31,12 @@ modules passed clean install, upgrade and identical repeated upgrade; Documents
 also passed its query budgets and desktop/mobile Chromium suites. The exact
 Paperless overlay also builds successfully for production `linux/amd64`. A
 fresh locked-source reconstruction and finalization now pass on `19-usl`.
-Publishing the schema-v4 seed and proving one cold hydration followed by
-fail-closed warm reuse remain release-evidence work. Release qualification
-also still requires the signed-in browser matrix.
+The content-qualified schema-v4 seed
+`6e3f2120a19f35edc34010054fb2f1162341a7e58cbbfcb3f56be26d7a91ed6a`
+is published locally from that reconstruction. An exact-tree cold hydration
+passed in 393 seconds with zero OCR submissions, followed by a fail-closed
+16-second warm hit with zero downloaded bytes and zero OCR submissions.
+Release qualification still requires the signed-in browser matrix.
 
 The 27 August integrated performance pass additionally reduced the measured
 40-document workspace from 426 to 75 SQL queries and from 432.8 ms to 67.3 ms,
@@ -162,11 +165,11 @@ maturity map is maintained in
   table and stored/manual field under its delivered or blocked scope.
 - A pre-mutation Docker capacity guard and accurate exit-137 resource
   classification, without stopping unrelated feature projects.
-- Content-qualified schema-v3 reconstruction seeds, explicit verified warm
+- Content-qualified schema-v4 reconstruction seeds, explicit verified warm
   worktree reuse, batched Documents queries, lazy Documents workspace assets,
   and bounded Odoo worker/connection/memory/request budgets. These are merged
   into `19-usl`; shared-seed publication and the real cold/warm reuse cycle
-  remain release-evidence gates.
+  pass on the consolidated tree.
 
 These foundations and the B2C work are now part of local `19-usl`. After Docker
 capacity was increased, a fresh full reconstruction of source dump
@@ -279,7 +282,7 @@ The canonical, evidence-bearing sequence is maintained in the
    `61580c1704c`**.
 2. Migration cache/Documents performance follow-up — **merged into `19-usl`
    from exact feature tip `3d2b2b49382`; schema-v4 seed publication and one
-   real cold/warm cycle remain required**.
+   exact-tree cold/warm cycle pass with zero OCR work and zero warm downloads**.
 3. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 4. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
    canonical rehearsal passed with complete evidence, relationship and alias

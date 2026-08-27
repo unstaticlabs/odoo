@@ -47,7 +47,7 @@ the sealed Accounting, Documents and Paperless controls with zero OCR
 submissions. This is current rehearsal evidence, not a final frozen-source
 production candidate.
 
-The schema-v3 migration-cache/Documents-performance work and Paperless 3.0 are
+The schema-v4 migration-cache/Documents-performance work and Paperless 3.0 are
 now merged into local `19-usl`. All five affected product modules passed clean install,
 upgrade and identical repeated upgrade. `usl_documents` passed 187 Python
 post-tests, the 13/20/6 query ceilings, asset compilation, and desktop/mobile
@@ -58,9 +58,14 @@ The exact Paperless overlay built for `linux/amd64` at manifest digest
 the full release-cohort restore remains separate. The fresh locked-source
 reconstruction now finalizes canonical `odoo_dev` with 15 product modules, no
 migration residue, 1,148 live Documents, nine Trash records and 8,654 indexed
-chunks across the same 1,148 live documents. Schema-v4 seed publication and a
-real cold/warm reuse cycle remain required; no older seed or feature database
-is final release evidence.
+chunks across the same 1,148 live documents. The main checkout published seed
+`6e3f2120a19f35edc34010054fb2f1162341a7e58cbbfcb3f56be26d7a91ed6a`.
+The exact committed tree then passed a 393-second cold hydration with zero OCR
+submissions and a 16-second fail-closed warm hit with zero downloaded bytes and
+zero OCR submissions. Evidence is retained in QA reports
+`usl-odoo-qa-dc187ada-20260827T204619Z.json` and
+`usl-odoo-qa-dc187ada-20260827T205300Z.json`. This remains rehearsal evidence;
+no older seed or feature database is final frozen-source release evidence.
 
 ## Non-negotiable boundaries
 
@@ -94,7 +99,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Workstream | Required release outcome | Status on 27 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
-| Migration cache and Documents performance | content-qualified schema-v4 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | merged into `19-usl` from reviewed tip `3d2b2b49382`; affected suites and full optimized reconstruction pass, v4 publication/cold-warm evidence pending |
+| Migration cache and Documents performance | content-qualified schema-v4 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | merged into `19-usl` from reviewed tip `3d2b2b49382`; affected suites, optimized reconstruction, v4 publication, exact-tree cold hydration and zero-download/zero-OCR warm reuse pass |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | merged into `19-usl` from reviewed tip `2ba19d6fa90`; clean suites, AMD64 overlay build, full archive and vector parity pass; release-cohort restore and signed-in browser evidence pending |
@@ -128,11 +133,12 @@ partial `odoo_dev` installation is not final-target evidence.
 ## Phase A — finish the release before freezing Online
 
 - [x] Merge the approved migration-performance candidate into `19-usl`.
-- [x] Merge the combined Paperless/schema-v3 Documents candidate after
+- [x] Merge the combined Paperless/schema-v4 Documents candidate after
   independent review and full optimized reconstruction.
-- [ ] Publish the shared seed from the clean reconstructed tree, run one cold
+- [x] Publish the shared seed from the clean reconstructed tree, run one cold
   hydration and prove the next verified reuse reports a warm hit with zero
-  download/OCR work.
+  download/OCR work. Seed fingerprint and the two retained QA reports are
+  recorded above.
 - [x] Merge Expense Analytics after independent review and validation.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
@@ -162,8 +168,10 @@ partial `odoo_dev` installation is not final-target evidence.
   signed-in named-persona acceptance remains before admission.
 - [x] Confirm no active release branch contains unmerged product or migration
   final state other than the explicitly preserved Native Sign workstream.
-- [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
-  migration-boundary checks from clean `19-usl`.
+- [x] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
+  migration-boundary checks from clean `19-usl`. Focused Ruff/compilation,
+  backend and Chromium suites, Impeccable, shell/XML/JSON, all Compose variants,
+  15 French catalogues and both product/migration boundaries pass.
 - [ ] Build the immutable GHCR `distribution` image, verify its revision/OCA
   labels and record the digest.
 - [x] Install every currently delivered product module into a fresh empty
