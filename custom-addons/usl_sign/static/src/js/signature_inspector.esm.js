@@ -145,6 +145,17 @@ export class SignatureInspector extends Component {
         );
     }
 
+    signatureKindLabel(signature) {
+        const commonName = signature.certificate?.subject.commonName || "";
+        if (commonName.startsWith("USL Sign Personal:")) {
+            return _t("Personal signer PAdES signature");
+        }
+        if (commonName.startsWith("USL Sign Platform Seal")) {
+            return _t("Platform integrity seal");
+        }
+        return signature.signatureKind || _t("Document signature");
+    }
+
     signatureTone(signature) {
         if (signature.cryptoValid === false || !signature.byteRangeValid) {
             return "danger";
