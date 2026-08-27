@@ -37,8 +37,18 @@ class QaSeedManifestTest(unittest.TestCase):
         (self.seed / "odoo-filestore.tgz").write_bytes(b"filestore")
         (self.seed / "paperless-export").mkdir()
         (self.seed / "paperless-export/manifest.json").write_text("{}", encoding="utf-8")
-        self.collaboration = self.seed / "collaboration-disposition.json"
+        (self.seed / "collaboration-evidence").mkdir()
+        self.collaboration = (
+            self.seed / "collaboration-evidence/collaboration-disposition.json"
+        )
         self.collaboration.write_text('{"sealed": true}\n', encoding="utf-8")
+        (self.seed / "collaboration-evidence/collaboration-disposition.json.sha256").write_text(
+            "sealed\n", encoding="utf-8",
+        )
+        (self.seed / "collaboration-evidence/technical-threads").mkdir()
+        (self.seed / "collaboration-evidence/technical-threads/thread.json").write_text(
+            "{}\n", encoding="utf-8",
+        )
         self.runtime = self.seed / "runtime.json"
         self.runtime.write_text('{"images":{"paperless":"qualified"}}', encoding="utf-8")
         self.qualification = Path(self.temporary.name) / "qualification.json"

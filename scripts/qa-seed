@@ -266,8 +266,10 @@ PY
         exit 1
     fi
     collaboration_sha256="$(shasum -a 256 "$collaboration_evidence" | awk '{print $1}')"
-    install -m 600 "$collaboration_evidence" \
-        "$pending_dir/collaboration-disposition.json"
+    mkdir -p "$pending_dir/collaboration-evidence"
+    chmod 700 "$pending_dir/collaboration-evidence"
+    cp -a "$(dirname "$collaboration_evidence")/." \
+        "$pending_dir/collaboration-evidence/"
     python3 - "$qualification_json" "$compose_project" "$module_versions" \
         "$paperless_documents" "$accounting_status" "$accounting_controls" \
         "$documents_controls" "$collaboration_sha256" <<'PY'

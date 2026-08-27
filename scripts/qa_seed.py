@@ -77,7 +77,7 @@ QA_STATE_IGNORED_PARTS = {
 }
 QA_STATE_IGNORED_SUFFIXES = {".pyc", ".log", ".md"}
 REQUIRED_ARTIFACTS = (
-    "collaboration-disposition.json",
+    "collaboration-evidence",
     "odoo.dump",
     "odoo-filestore.tgz",
     "paperless-export",
@@ -335,7 +335,7 @@ def validate_qualification(qualification: dict) -> None:
 
 
 def validate_collaboration_artifact(seed_dir: Path, qualification: dict) -> None:
-    evidence = seed_dir / "collaboration-disposition.json"
+    evidence = seed_dir / "collaboration-evidence/collaboration-disposition.json"
     if sha256_file(evidence) != qualification["collaboration"]["evidence_sha256"]:
         raise SeedError("seed Collaboration evidence differs from qualification")
 

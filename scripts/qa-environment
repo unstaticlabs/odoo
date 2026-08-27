@@ -300,8 +300,7 @@ PY
   collaboration_evidence_dir="$ROOT/artifacts/migration/private/source-${source_sha256:0:12}/collaboration/$COMPOSE_PROJECT_NAME"
   mkdir -p "$collaboration_evidence_dir"
   chmod 700 "$collaboration_evidence_dir"
-  install -m 600 "$qa_seed_dir/collaboration-disposition.json" \
-    "$collaboration_evidence_dir/collaboration-disposition.json"
+  cp -a "$qa_seed_dir/collaboration-evidence/." "$collaboration_evidence_dir/"
 
   "${compose[@]}" up -d --wait db
   "${compose[@]}" exec -T db createdb -U odoo odoo_dev
