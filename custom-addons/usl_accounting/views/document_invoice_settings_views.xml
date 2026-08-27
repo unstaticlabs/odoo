@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_invoice_documents" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.invoice.documents</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="usl_document_templates.res_config_settings_view_form_document_templates"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='usl_document_identity']" position="inside">
+                <setting string="Late-payment penalties"
+                         help="Mandatory wording printed on French customer invoices. Keep the applicable rate or calculation rule current.">
+                    <field name="usl_invoice_late_penalty_text"
+                           placeholder="Three times the legal interest rate"/>
+                </setting>
+                <setting string="Recovery fee"
+                         help="Fixed recovery-cost indemnity printed on French business invoices.">
+                    <field name="usl_invoice_recovery_fee"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

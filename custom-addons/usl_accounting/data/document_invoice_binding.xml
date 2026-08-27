@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account.account_invoices" model="ir.actions.report">
+        <field name="usl_output_policy">latex</field>
+        <field name="usl_document_template_id" ref="usl_document_templates.template_invoice_v1"/>
+    </record>
+    <record id="account.account_invoices_without_payment" model="ir.actions.report">
+        <field name="usl_output_policy">latex</field>
+        <field name="usl_document_template_id" ref="usl_document_templates.template_invoice_v1"/>
+    </record>
+    <record id="account.action_account_original_vendor_bill" model="ir.actions.report">
+        <field name="usl_output_policy">source_passthrough</field>
+    </record>
+</odoo>
+
