@@ -705,7 +705,7 @@ action-risk-runtime: action-risk-inventory
 
 product-assets: document-renderer-check
 	docker compose -p $(COMPOSE_PROJECT) exec -T odoo odoo shell \
-		--config=/etc/odoo/odoo.conf --database=odoo_dev \
+		--config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
 		< scripts/odoo/compile_product_assets.py
 
 french-translations:

@@ -26,6 +26,7 @@ nav:
       - Process Content-Platform Payouts: how-to/process-platform-payouts.md
       - Traiter les encaissements plateformes: how-to/traiter-encaissements-plateformes.md
       - Create and Collect a Customer Invoice: how-to/process-customer-invoice.md
+      - Generate Official Documents: guides/official-documents.md
       - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
       - Settle an Immediate Foreign Payment: how-to/settle-immediate-foreign-payment.md
       - Manage Bank Matching Rules: how-to/manage-bank-matching-rules.md
