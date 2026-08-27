@@ -3933,3 +3933,63 @@ msgstr "Comparez le contrôle du signataire, la signature PDF et les preuves con
 #. module: usl_sign
 msgid "This is guidance, not a restriction."
 msgstr "Il s’agit d’une recommandation, pas d’une restriction."
+
+#. module: usl_sign
+msgid "Recommended"
+msgstr "Recommandé"
+
+#. module: usl_sign
+msgid "For everyday agreements"
+msgstr "Pour les accords courants"
+
+#. module: usl_sign
+msgid "Straightforward signing with a complete evidence trail."
+msgstr "Une signature simple avec une piste de preuves complète."
+
+#. module: usl_sign
+msgid "Actions, consent, validation, and evidence dossier"
+msgstr "Actions, consentement, validation et dossier de preuves"
+
+#. module: usl_sign
+msgid "Strong"
+msgstr "Renforcée"
+
+#. module: usl_sign
+msgid "For higher-assurance agreements"
+msgstr "Pour les accords nécessitant davantage d’assurance"
+
+#. module: usl_sign
+msgid "Each signer confirms with a reviewed identity and passkey."
+msgstr "Chaque signataire confirme avec une identité vérifiée et une clé d’accès."
+
+#. module: usl_sign
+msgid "Reviewed identity and Pocket ID passkey"
+msgstr "Identité vérifiée et clé d’accès Pocket ID"
+
+#. module: usl_sign
+msgid "Personal PAdES per signer, then a platform seal"
+msgstr "Une signature PAdES personnelle par signataire, puis un sceau de plateforme"
+
+#. module: usl_sign
+msgid "Qualified"
+msgstr "Qualifiée"
+
+#. module: usl_sign
+msgid "When qualified signing is required"
+msgstr "Lorsqu’une signature qualifiée est exigée"
+
+#. module: usl_sign
+msgid "Signing is completed by an approved external provider."
+msgstr "La signature est réalisée par un prestataire externe approuvé."
+
+#. module: usl_sign
+msgid "Qualified signature returned for validation"
+msgstr "Signature qualifiée renvoyée pour validation"
+
+#. module: usl_sign
+msgid "Choose this method"
+msgstr "Choisir cette méthode"
+
+#. module: usl_sign
+msgid "Selected"
+msgstr "Sélectionnée"
