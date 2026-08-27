@@ -20,6 +20,14 @@ class UslTesePayslip(models.Model):
     def _document_related_records(self, attachment=None):
         self.ensure_one()
         records = super()._document_related_records(attachment)
+        if self.employee_id:
+            records.append(
+                {
+                    "model": "hr.employee",
+                    "id": self.employee_id.id,
+                    "document_role": "library",
+                },
+            )
         if self.move_id:
             records.append({"model": "account.move", "id": self.move_id.id})
         return records

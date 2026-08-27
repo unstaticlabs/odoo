@@ -222,6 +222,14 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(context["document_role"], "evidence")
         self.assertEqual(context["policy_reason"], "tese_payroll_evidence")
         self.assertIn(
+            {
+                "model": "hr.employee",
+                "id": payslip.employee_id.id,
+                "document_role": "library",
+            },
+            payslip._document_related_records(payslip.attachment_id),
+        )
+        self.assertIn(
             {"model": "account.move", "id": payslip.move_id.id},
             payslip._document_related_records(payslip.attachment_id),
         )
