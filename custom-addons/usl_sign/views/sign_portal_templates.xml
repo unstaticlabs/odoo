@@ -1,5 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--
+        Small, dependency-free vector motion for the public signer journey.
+        The drawings are decorative: adjacent text remains the authoritative
+        description, and strong_sign.scss exposes a static final frame when
+        the reviewer prefers reduced motion.
+    -->
+    <template id="sign_motion" name="Signer journey motion">
+        <span t-att-class="'usl-sign-motion usl-sign-motion--%s' % motion_variant"
+              aria-hidden="true">
+            <svg viewBox="0 0 160 120" focusable="false">
+                <circle class="usl-sign-motion__backdrop" cx="80" cy="60" r="52"/>
+
+                <g t-if="motion_variant == 'review'" class="usl-sign-motion__scene usl-sign-motion__scene--review">
+                    <rect class="usl-sign-motion__paper" x="48" y="24" width="64" height="78" rx="7"/>
+                    <path class="usl-sign-motion__fold" d="M94 24v18h18"/>
+                    <path class="usl-sign-motion__ink usl-sign-motion__ink--one" d="M61 54h38"/>
+                    <path class="usl-sign-motion__ink usl-sign-motion__ink--two" d="M61 66h31"/>
+                    <path class="usl-sign-motion__ink usl-sign-motion__ink--three" d="M61 78h23"/>
+                    <path class="usl-sign-motion__scan" d="M43 72h74"/>
+                </g>
+
+                <g t-elif="motion_variant == 'identity'" class="usl-sign-motion__scene usl-sign-motion__scene--identity">
+                    <circle class="usl-sign-motion__person" cx="49" cy="50" r="9"/>
+                    <path class="usl-sign-motion__person" d="M32 78c2-12 9-18 17-18s15 6 17 18"/>
+                    <path class="usl-sign-motion__connection" d="M67 62h20"/>
+                    <path class="usl-sign-motion__shield" d="M109 31c8 6 15 7 19 8v20c0 19-10 29-19 34-9-5-19-15-19-34V39c4-1 11-2 19-8Z"/>
+                </g>
+
+                <g t-elif="motion_variant == 'complete'" class="usl-sign-motion__scene usl-sign-motion__scene--complete">
+                    <rect class="usl-sign-motion__paper" x="48" y="24" width="64" height="78" rx="7"/>
+                    <path class="usl-sign-motion__fold" d="M94 24v18h18"/>
+                    <path class="usl-sign-motion__ink" d="M61 56h38M61 68h27"/>
+                    <circle class="usl-sign-motion__seal" cx="103" cy="88" r="16"/>
+                    <path class="usl-sign-motion__check" d="m95 88 6 6 11-13"/>
+                </g>
+
+                <g t-else="" class="usl-sign-motion__journey">
+                    <g class="usl-sign-motion__phase usl-sign-motion__phase--review">
+                        <rect class="usl-sign-motion__paper" x="49" y="23" width="62" height="78" rx="7"/>
+                        <path class="usl-sign-motion__fold" d="M94 23v18h17"/>
+                        <path class="usl-sign-motion__ink" d="M61 55h38M61 67h31M61 79h20"/>
+                        <path class="usl-sign-motion__scan" d="M44 74h72"/>
+                    </g>
+                    <g class="usl-sign-motion__phase usl-sign-motion__phase--identity">
+                        <circle class="usl-sign-motion__person" cx="45" cy="53" r="8"/>
+                        <path class="usl-sign-motion__person" d="M30 78c2-11 8-16 15-16s13 5 15 16"/>
+                        <path class="usl-sign-motion__connection" d="M62 62h22"/>
+                        <path class="usl-sign-motion__shield" d="M108 30c8 6 15 7 19 8v21c0 18-10 28-19 33-9-5-19-15-19-33V38c4-1 11-2 19-8Z"/>
+                    </g>
+                    <g class="usl-sign-motion__phase usl-sign-motion__phase--processing">
+                        <rect class="usl-sign-motion__paper" x="51" y="24" width="58" height="74" rx="7"/>
+                        <path class="usl-sign-motion__fold" d="M93 24v17h16"/>
+                        <path class="usl-sign-motion__ink" d="M62 56h35M62 68h28"/>
+                        <circle class="usl-sign-motion__progress" cx="105" cy="87" r="15"/>
+                    </g>
+                    <g class="usl-sign-motion__phase usl-sign-motion__phase--complete">
+                        <rect class="usl-sign-motion__paper" x="49" y="23" width="62" height="78" rx="7"/>
+                        <path class="usl-sign-motion__fold" d="M94 23v18h17"/>
+                        <path class="usl-sign-motion__ink" d="M61 55h38M61 67h29"/>
+                        <circle class="usl-sign-motion__seal" cx="104" cy="88" r="16"/>
+                        <path class="usl-sign-motion__check" d="m96 88 6 6 11-13"/>
+                    </g>
+                    <g class="usl-sign-motion__phase usl-sign-motion__phase--error">
+                        <circle class="usl-sign-motion__error" cx="80" cy="60" r="27"/>
+                        <path class="usl-sign-motion__error-mark" d="M80 44v20M80 75v1"/>
+                    </g>
+                </g>
+            </svg>
+        </span>
+    </template>
+
     <template id="secure_company_brand" name="Secure company signing brand">
         <header class="usl-sign-brand">
             <div class="usl-sign-brand__identity">
@@ -13,7 +84,7 @@
             </div>
             <span class="usl-sign-security-pill">
                 <i class="fa fa-lock" aria-hidden="true"/>
-                Secure signing
+                Private signing session
             </span>
         </header>
     </template>
@@ -58,11 +129,10 @@
         <t t-call="portal.frontend_layout">
             <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
             <main class="usl-sign-public-page">
-                <section class="usl-sign-public-card usl-sign-public-card--compact">
+                <section class="usl-sign-public-card usl-sign-public-card--compact usl-sign-public-card--centered">
                     <span class="usl-sign-result-icon usl-sign-result-icon--warning" aria-hidden="true">
                         <i class="fa fa-link"/>
                     </span>
-                    <p class="usl-sign-eyebrow">Document signing</p>
                     <h1>This link is no longer available</h1>
                     <p class="usl-sign-lead">It may have expired, already been used, or been cancelled.</p>
                     <p class="usl-sign-muted mb-0">Ask the sender for a new invitation if you still need to sign.</p>
@@ -79,11 +149,16 @@
                     <t t-set="company" t-value="signer.request_id.company_id"/>
                     <t t-call="usl_sign.secure_company_brand"/>
                     <div class="usl-sign-public-card__body">
-                        <p class="usl-sign-eyebrow">Signature requested</p>
-                        <h1 t-out="signer.request_id.name"/>
-                        <p class="usl-sign-lead">
-                            <t t-out="signer.request_id.company_id.name"/> has asked you to review and sign this document.
-                        </p>
+                        <div class="usl-sign-intro-layout">
+                            <div>
+                                <h1 t-out="signer.request_id.name"/>
+                                <p class="usl-sign-lead">
+                                    <t t-out="signer.request_id.company_id.name"/> has asked you to review and sign this document.
+                                </p>
+                            </div>
+                            <t t-set="motion_variant" t-value="'review'"/>
+                            <t t-call="usl_sign.sign_motion"/>
+                        </div>
                         <dl class="usl-sign-summary">
                             <div><dt>Signing as</dt><dd t-out="signer.partner_id.name"/></div>
                             <div><dt>Your role</dt><dd t-out="signer.role_id.name"/></div>
@@ -94,7 +169,7 @@
                             Review document
                             <i class="fa fa-arrow-right" aria-hidden="true"/>
                         </a>
-                            <p class="usl-sign-action-note">You can review the whole document before you sign.</p>
+                        <p class="usl-sign-action-note">You can review the whole document before anything is signed.</p>
                     </div>
                 </section>
             </main>
@@ -112,8 +187,8 @@
                     </t>
                     <div class="usl-sign-public-card__body usl-sign-public-card__body--centered">
                         <t t-if="successful">
-                            <span class="usl-sign-result-icon usl-sign-result-icon--success" aria-hidden="true"><i class="fa fa-check"/></span>
-                            <p class="usl-sign-eyebrow">Signed</p>
+                            <t t-set="motion_variant" t-value="'complete'"/>
+                            <t t-call="usl_sign.sign_motion"/>
                             <h1>You’re done</h1>
                             <p t-if="result_request_name" class="usl-sign-lead">Your signature has been saved for <strong t-out="result_request_name"/>.</p>
                             <p t-else="" class="usl-sign-lead">Your signature has been saved.</p>
@@ -126,13 +201,11 @@
                         </t>
                         <t t-elif="declined">
                             <span class="usl-sign-result-icon usl-sign-result-icon--neutral" aria-hidden="true"><i class="fa fa-ban"/></span>
-                            <p class="usl-sign-eyebrow">Response received</p>
                             <h1>You declined this document</h1>
                             <p class="usl-sign-muted mb-0">The sender can see your response.</p>
                         </t>
                         <t t-else="">
                             <span class="usl-sign-result-icon usl-sign-result-icon--danger" aria-hidden="true"><i class="fa fa-exclamation"/></span>
-                            <p class="usl-sign-eyebrow">Not completed</p>
                             <h1>No signature was applied</h1>
                             <p class="usl-sign-muted mb-0">Return to your invitation and try again, or contact the sender.</p>
                         </t>
@@ -150,7 +223,6 @@
                     <t t-set="company" t-value="signer.request_id.company_id"/>
                     <t t-call="usl_sign.secure_company_brand"/>
                     <div class="usl-sign-public-card__body">
-                        <p class="usl-sign-eyebrow">Confirm your email</p>
                         <h1>Check your inbox</h1>
                         <p class="usl-sign-lead">Enter the 8-digit code sent to <strong t-out="signer.partner_id.email"/>.</p>
                         <div t-if="error" class="usl-sign-inline-status usl-sign-inline-status--danger" role="alert" t-out="error"/>
@@ -188,21 +260,26 @@
 
                     <section class="usl-sign-hero">
                         <div>
-                            <p class="usl-sign-eyebrow">Strong personal signature</p>
-                            <h1>Confirm this signature</h1>
-                            <p class="usl-sign-lead">Review the document first. When you’re ready, Pocket ID will ask you to confirm it’s you.</p>
+                            <h1>Review and confirm this signature</h1>
+                            <p class="usl-sign-lead">Review the document first. Pocket ID will then confirm your account before this document-bound signature is applied.</p>
                         </div>
-                        <ol class="usl-sign-steps" aria-label="Signing progress">
-                            <li data-step="review" class="is-current"><span>1</span>Review</li>
-                            <li data-step="identity"><span>2</span>Confirm</li>
-                            <li data-step="complete"><span>3</span>Done</li>
-                        </ol>
+                        <div class="usl-sign-hero__progress">
+                            <t t-set="motion_variant" t-value="'journey'"/>
+                            <t t-call="usl_sign.sign_motion"/>
+                            <ol class="usl-sign-steps" aria-label="Signing progress">
+                                <li data-step="review" class="is-current"><span>1</span>Review</li>
+                                <li data-step="identity"><span>2</span>Confirm</li>
+                                <li data-step="complete">
+                                    <span>3</span>
+                                    <b data-finish-label="" data-finish-pending="Finish" data-finish-complete="Done">Finish</b>
+                                </li>
+                            </ol>
+                        </div>
                     </section>
 
                     <section class="usl-sign-card usl-sign-document-card">
                         <header class="usl-sign-document-card__header">
                             <div>
-                                <p class="usl-sign-eyebrow">Document</p>
                                 <h2 t-out="signer.request_id.name"/>
                                 <p class="usl-sign-document-meta">Signing as <strong t-out="signer.partner_id.name"/> · <span t-out="signer.role_id.name"/></p>
                             </div>
@@ -224,7 +301,7 @@
                             <i class="fa fa-shield" aria-hidden="true"/>
                             <span class="usl-sign-button__label">Confirm and sign</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A secure Pocket ID window will open.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID opens in a separate window to confirm your account. It never receives the document.</p>
                         <div id="usl_strong_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
@@ -235,7 +312,7 @@
                     <details class="usl-sign-technical-details">
                         <summary>Security details</summary>
                         <p><strong>Document fingerprint</strong><code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
-                        <p>This browser creates a one-use signing key for this exact PDF. The key is never sent to <t t-out="signer.request_id.company_id.name"/>, and the result is checked before it is accepted.</p>
+                        <p>This browser creates a one-use signing key for this exact PDF. The private key never leaves this page, and the result is checked before it is accepted.</p>
                         <p>This method is designed for advanced-signature requirements. Formal classification still requires independent legal and security review.</p>
                     </details>
                 </main>
@@ -258,8 +335,8 @@
                     <t t-set="company" t-value="signer.request_id.company_id"/>
                     <t t-call="usl_sign.secure_company_brand"/>
                     <section class="usl-sign-public-card__body">
-                        <span class="usl-sign-result-icon usl-sign-result-icon--warning" aria-hidden="true"><i class="fa fa-user-circle"/></span>
-                        <p class="usl-sign-eyebrow">Strong personal signature</p>
+                        <t t-set="motion_variant" t-value="'identity'"/>
+                        <t t-call="usl_sign.sign_motion"/>
                         <h1>Set up your signing identity first</h1>
                         <p class="usl-sign-lead">This document needs a reviewed signing identity. Nothing has been signed yet.</p>
                         <ol class="usl-sign-steps usl-sign-steps--enrollment" aria-label="Identity setup steps">
@@ -296,9 +373,14 @@
                     <t t-set="company" t-value="enrollment.company_id"/>
                     <t t-call="usl_sign.secure_company_brand"/>
                     <section class="usl-sign-public-card__body">
-                        <p class="usl-sign-eyebrow">Strong signature identity</p>
-                        <h1>Connect your signing identity</h1>
-                        <p class="usl-sign-lead">Connect the Pocket ID account you’ll use for strong personal signatures requested by <t t-out="enrollment.company_id.name"/>.</p>
+                        <div class="usl-sign-intro-layout usl-sign-intro-layout--compact">
+                            <div>
+                                <h1>Connect your signing identity</h1>
+                                <p class="usl-sign-lead">Connect the Pocket ID account you’ll use for strong personal signatures requested by <t t-out="enrollment.company_id.name"/>.</p>
+                            </div>
+                            <t t-set="motion_variant" t-value="'identity'"/>
+                            <t t-call="usl_sign.sign_motion"/>
+                        </div>
                         <dl class="usl-sign-summary">
                             <div><dt>Identity</dt><dd t-out="enrollment.partner_id.name"/></div>
                             <div><dt>Next step</dt><dd>Review by <t t-out="enrollment.company_id.name"/></dd></div>
@@ -313,7 +395,7 @@
                             <i class="fa fa-shield" aria-hidden="true"/>
                             <span class="usl-sign-button__label">Connect Pocket ID</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A secure Pocket ID window will open. This step only connects your account.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID opens in a separate window. This only connects your account; it does not sign a document.</p>
                         <div id="usl_enroll_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
@@ -345,7 +427,6 @@
                       t-att-data-successful="'true' if successful else 'false'">
                     <span t-if="successful" class="usl-sign-result-icon usl-sign-result-icon--success usl-sign-result-icon--animated" aria-hidden="true"><i class="fa fa-check"/></span>
                     <span t-else="" class="usl-sign-result-icon usl-sign-result-icon--danger" aria-hidden="true"><i class="fa fa-exclamation"/></span>
-                    <p class="usl-sign-eyebrow" t-out="company_name or 'Document signing'"/>
                     <t t-if="successful and callback_purpose == 'enrollment'">
                         <h1>Account connected</h1>
                         <p>Your identity is ready for review. Returning you to the setup page…</p>
@@ -362,6 +443,7 @@
                         <h1>Signature not completed</h1>
                         <p>Nothing was signed. Return to the document for a clear next step.</p>
                     </t>
+                    <p t-if="company_name" class="usl-sign-callback-company">Requested by <t t-out="company_name"/></p>
                     <button id="usl_callback_close" class="usl-sign-button usl-sign-button--quiet" type="button">Close this window</button>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
