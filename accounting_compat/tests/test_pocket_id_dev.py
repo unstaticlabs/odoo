@@ -156,6 +156,37 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             test_body,
         )
 
+    def test_sign_qa_reuses_the_canonical_documents_integration_identity(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        integration_access = (
+            ROOT / "deploy" / "documents" / "paperless_integration_access.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            'deploy/documents/paperless_integration_access.py',
+            stack,
+        )
+        self.assertNotIn("paperless_sign_qa_init.py", stack)
+        self.assertIn('username = "odoo-integration"', integration_access)
+        self.assertIn(
+            'legacy_sign_username = "odoo-sign-integration"',
+            integration_access,
+        )
+        self.assertIn(
+            "PaperlessTask.objects.filter(",
+            integration_access,
+        )
+        self.assertIn(
+            "Token.objects.filter(user=legacy_sign_user).delete()",
+            integration_access,
+        )
+        self.assertIn(
+            "legacy_sign_user.is_active = False",
+            integration_access,
+        )
+
     def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"

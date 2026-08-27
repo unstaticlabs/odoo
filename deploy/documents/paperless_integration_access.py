@@ -11,12 +11,13 @@ so this script also claims any remaining migration-owned documents.
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from documents.models import Document
+from documents.models import Document, PaperlessTask
 from rest_framework.authtoken.models import Token
 
 
 username = "odoo-integration"
 migration_username = "odoo-migration"
+legacy_sign_username = "odoo-sign-integration"
 User = get_user_model()
 user, _created = User.objects.get_or_create(username=username)
 user.first_name = "Odoo Integration"
@@ -67,7 +68,28 @@ if migration_user is not None and migration_user.id != user.id:
     # make them invisible to the runtime identity and break recovery parity.
     claimed = Document.global_objects.filter(owner=migration_user).update(owner=user)
 
+# A former Sign-only QA initializer created a second API identity even though
+# Sign and Documents share one governed archive client in Odoo. Consolidate any
+# objects it owned, preserve its completed task records under the canonical
+# runtime owner, and revoke the redundant credential.
+legacy_claimed = 0
+legacy_tasks_claimed = 0
+legacy_sign_user = User.objects.filter(username=legacy_sign_username).first()
+if legacy_sign_user is not None and legacy_sign_user.id != user.id:
+    legacy_claimed = Document.objects.filter(owner=legacy_sign_user).update(
+        owner=user,
+    )
+    legacy_tasks_claimed = PaperlessTask.objects.filter(
+        owner=legacy_sign_user,
+    ).update(owner=user)
+    Token.objects.filter(user=legacy_sign_user).delete()
+    legacy_sign_user.user_permissions.clear()
+    legacy_sign_user.groups.clear()
+    legacy_sign_user.is_active = False
+    legacy_sign_user.save(update_fields=["is_active"])
+
 token, _created = Token.objects.get_or_create(user=user)
 print(f"USL_PAPERLESS_TOKEN={token.key}")
 print(f"USL_PAPERLESS_SERVICE_USER_ID={user.id}")
-print(f"USL_PAPERLESS_OWNERS_CLAIMED={claimed}")
+print(f"USL_PAPERLESS_OWNERS_CLAIMED={claimed + legacy_claimed}")
+print(f"USL_PAPERLESS_TASKS_CLAIMED={legacy_tasks_claimed}")
