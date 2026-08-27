@@ -452,7 +452,15 @@ actions.extend(
         "ir.cron",
         "cron",
         "cron",
-        ("active", "code", "interval_number", "interval_type", "model_id"),
+        # ``target-finalize`` pauses scheduled jobs while it validates the
+        # reconstructed database and restores their governed state only after
+        # every release gate passes.  ``active`` is therefore operational
+        # state, not part of the reviewed action definition.  Including it
+        # made the exact same job fail qualification merely because the gate
+        # was doing its safety pause.  Code, schedule and target model remain
+        # fingerprinted; changing activation is independently protected by
+        # the irreversible-action guard on ``ir.cron`` writes.
+        ("code", "interval_number", "interval_type", "model_id"),
     ),
 )
 actions.extend(

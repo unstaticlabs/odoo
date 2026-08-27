@@ -125854,22 +125854,22 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:account.ir_cron_account_move_send": "0bf30581ec79579363dcaa9303f8a2ec7b68b8de937171acb470c2bb0f3d8317",
-        "cron:account.ir_cron_auto_post_draft_entry": "029694ca2e8ba409924a7a68a2929ff3ba29ef2af8109d0f4ff0aa54a9707ff1",
-        "cron:account_asset_management.ir_cron_assets_generator": "19c349da4277a56daf27b6b03d3365e672da4aa962f6382a3978c6b02520f11e",
-        "cron:account_peppol.ir_cron_peppol_get_message_status": "2cd4b849893e7288d27437b7054ed767f2e235198d69d4b50c00aff6d003c906",
-        "cron:account_peppol.ir_cron_peppol_get_new_documents": "97133c9fe7816ea1215989e9e822196e5d6c2b7963ed7d5d9f97360caaf18391",
-        "cron:account_peppol.ir_cron_peppol_get_participant_status": "2c8a1b602ea228b49de0e44def150eaa577926b81a7f732d264cc91333676116",
-        "cron:account_peppol.ir_cron_peppol_webhook_keepalive": "d7888b038aa50486114f889d5a488e59f708c245df5c0c78aaa556d4213ca339",
-        "cron:account_peppol_response.ir_cron_peppol_auto_register_services": "8de691e762d6a2cf79816df986baa107a231ea5346e69d60ce48c2ee8381bd54",
-        "cron:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows": "ac63a14810709ce7e9afe8843c4db17f38bf25984160f943216c8fe8b4789ea0",
-        "cron:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents": "9db89b9b2f43da54d368f40da32c418c377e9d6f6db8d6c968a101efcc182633",
-        "cron:l10n_fr_pdp.ir_cron_pdp_send_lifecycles": "af561385e779707757acd4281165be3d67d707359b41e237240552d48640d74a",
-        "cron:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider": "aee3f4209e1984150dc35cc726e6901042748c2447848b5e7d26cf683e286b1e",
-        "cron:stock_account.ir_cron_post_stock_valuation": "0288c894f16b25e45c91da3d2ffe1cb06cfbd1fbd7f07fbb2b38d2fc3c1596d0",
-        "cron:usl_accounting.ir_cron_bank_export_expected_activities": "264d519a44b67e466bb089545e685b7ad34a165689533d3a197ae7252ece6051",
-        "cron:usl_accounting.ir_cron_process_bank_exports": "9e8865094d330da47c2daa50b5480bc92b8ff309c81fe73040e8a89e57f7489f",
-        "cron:usl_documents_accounting.ir_cron_archive_bank_statement_evidence": "da6db997e3ce03fc8c5f3cffa6c18d8addf39c924a920853061a9a8efd3f8f62"
+        "cron:account.ir_cron_account_move_send": "e1faa599d3d7fdb6d7b7a71ecabb89512cc4a6ac630a2328c871a11d710ddf2b",
+        "cron:account.ir_cron_auto_post_draft_entry": "823e3a85a1740dadd03edcce95f6480c457b1d33539101f1096123022e890ab4",
+        "cron:account_asset_management.ir_cron_assets_generator": "b4b681a17b439bbf8e5e8ce55ac5b6352e003d8211ad6f7eb73c8330ef7af95d",
+        "cron:account_peppol.ir_cron_peppol_get_message_status": "a0324d91d547bd94c2dd65401be1d9d4208639e56b07c8f56622f832904b1060",
+        "cron:account_peppol.ir_cron_peppol_get_new_documents": "07f6d418d6964b2f03e9ee86309d08dc75ff026c034ad3be3630384baccb6ba5",
+        "cron:account_peppol.ir_cron_peppol_get_participant_status": "00a69825d2035d24bc3e6479e99a904b4b00b2ab82354c445260ba1c93b243cd",
+        "cron:account_peppol.ir_cron_peppol_webhook_keepalive": "f94af463891cf321f98ab71f4fc5df4fc5b29b6b72523ecff8be9ea7c0341283",
+        "cron:account_peppol_response.ir_cron_peppol_auto_register_services": "8347a675f1843e3ebdd3e1d320efa4dbc3850c44924f9b4398cff306a96e34af",
+        "cron:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows": "cf8f3ad881bccdb4c8ea163e6ee70ae2b988b567796df1b32209d8e30e96df88",
+        "cron:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents": "123242fc897f8c0d5b1d26d2fa15e8587bf212766013e8dfe29a805e5a85b93f",
+        "cron:l10n_fr_pdp.ir_cron_pdp_send_lifecycles": "3ccb28e426bc330c31417403dcc697c0a5df90c685ed9b0bcc480f2b04fb5aff",
+        "cron:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider": "efbc3ef5cfcb53f4f737b25a3e71cced630988d3ff1edf42fd7fb717a433a655",
+        "cron:stock_account.ir_cron_post_stock_valuation": "9789b7cc76f336bfa915c3ae982a8f3789584f30f4839542be3f458d9253f50f",
+        "cron:usl_accounting.ir_cron_bank_export_expected_activities": "f18e44c5804c3e7691f002fc6049465ba6a875b888bdc580ac4ed2efc73398af",
+        "cron:usl_accounting.ir_cron_process_bank_exports": "b9468a75cddc3e8554df9bc6c9f3e1f6f5075bc09dafc10033e43c48aae4f70a",
+        "cron:usl_documents_accounting.ir_cron_archive_bank_statement_evidence": "acb8d275e5a6f93d9995ede7a0a8e6433248b05b5e4fe05e9ef4e0b38e3208af"
       }
     },
     {
@@ -137074,10 +137074,10 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:payment.cron_post_process_payment_tx": "9d8d0e535442f473d0ea8b4fba718466934e3b6793111a2f09e1ecf008b2ddb5",
-        "cron:sale.send_invoice_cron": "a342d34b7a2ab9a720ddeb40f48ccda0832785b41210c2612ceb355898d5d852",
-        "cron:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields": "90169664eff429aaca206915c59d1e2f2ff4da905c69f5125edd0589f94f2a29",
-        "cron:stock.ir_cron_scheduler_action": "24945bfaef5165f9b5f8b61a0310c55a68d273b56508ed1cd4e6d838ef16b38e"
+        "cron:payment.cron_post_process_payment_tx": "793f33712f0b5b27dbb940ffe4198a19d94ee638b1e971d2ec2cd4cf81ff1061",
+        "cron:sale.send_invoice_cron": "3bfd806e97f69c40682869c7c5d8c5a1fde57e5acee4e625db815e7adf52f0ba",
+        "cron:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields": "d132739bb262772e79947265ffb44aee311940b2d92d5f2e9d3393774c11f7dc",
+        "cron:stock.ir_cron_scheduler_action": "9e9d033971dbb16f8890e138d3bad11f7bdd462bd6d75c5a38e655af4f84b562"
       }
     },
     {
@@ -144187,20 +144187,20 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:mail.ir_cron_delete_notification": "3f985197751572a0e39f3098728894972dffe194ab40b6cfcf8968edb2baed1a",
-        "cron:mail.ir_cron_discuss_channel_member_unmute": "556c88f720efed2f7bb92ccfa9516c1c8f26c51da177b9e3705a118505a50cb3",
-        "cron:mail.ir_cron_mail_end_polls": "ce86691c7f6c227f63a2a48345927144f07dba92ec6c00576590d022d773b861",
-        "cron:mail.ir_cron_mail_gateway_action": "5a435428dc8f93cc816472ae82ffe43afbc919d200935cb5ef4377bef74b44ef",
-        "cron:mail.ir_cron_mail_scheduler_action": "53d00b33a981b61b4fe753587d2c0394688e27183431973e7a57cf5654f96434",
-        "cron:mail.ir_cron_module_update_notification": "a22e907a8363eae982a4272bbcb29318b0738c7e7d0658d87754ef927c004690",
-        "cron:mail.ir_cron_post_scheduled_message": "12887eeb695707c905ccabcbe506ca06649dfe0bca21becb98f5db6762b4519b",
-        "cron:mail.ir_cron_send_scheduled_message": "49f83470951d064f1c89eda448d5bb66d9f38f7362ab798e9a1f663254a7eb6a",
-        "cron:mail.ir_cron_web_push_notification": "ee72f73337c6dbc04eb34217c00e5e12f34f5d2ca5d8a51860d2719ca5a55192",
-        "cron:purchase.purchase_send_reminder_mail": "cc21bc4f9c5d0510aaf83baf74f5fabaddaff93e17552d40f4202d56569b8c56",
-        "cron:sale.send_pending_emails_cron": "1521a33447e1ae5fb792395d54c6c6477eb89aeb51059d599121c8ea24cd3e4e",
-        "cron:snailmail.snailmail_print": "da7154554d28c6e61216bde4f0a59221096a9a17ac3290f09c659ce5b48ea9d9",
-        "cron:usl_documents.ir_cron_usl_documents_poll": "e13b344bd8aa0b5697855ca25d8c2b6b08b4f0f622207ce39adfa6f47f5de7c1",
-        "cron:usl_documents.ir_cron_usl_documents_sync": "3ffad2e7327124b80528aee65731fd2253b3ce3f7319744bc94be3dd671c89c3"
+        "cron:mail.ir_cron_delete_notification": "7c2ae7bc4080997db5cd6cb400f9167314b9f7f7ee6907f2059881383fd738da",
+        "cron:mail.ir_cron_discuss_channel_member_unmute": "7481bda12a1ced876c0f742c98ae37878d4a5f35b5c7a0769ae15b1a360cdfe1",
+        "cron:mail.ir_cron_mail_end_polls": "0fa1c0c44da7465647fa18119de9ef24800402543aee223f437cc51bb319dd8a",
+        "cron:mail.ir_cron_mail_gateway_action": "fb923c876facfd80df9a7c2616b6ace7a015f6f2410b38e5127dce75f050349e",
+        "cron:mail.ir_cron_mail_scheduler_action": "a7c66da2b72bab18d4cbba2ee97917c6721cc3e267f38ca6e8e577f8b86f1b9c",
+        "cron:mail.ir_cron_module_update_notification": "44f09ea5aec428aa2ec7b8d2cffa9e7d532378e63ebc3cc9cb38befb8bde5ef0",
+        "cron:mail.ir_cron_post_scheduled_message": "b2dc9e62b20a2caa466144dc90adc5af53d19e0d817541f1d7d3cbb97024053c",
+        "cron:mail.ir_cron_send_scheduled_message": "d238f07cfe8f7a14a93ce8c325ea244a457a5b8640323b61788c5ee4c5616fb4",
+        "cron:mail.ir_cron_web_push_notification": "1128395fc4af6141182160c03ba68c5e8841899ca7e57d084ef22e7d9c31d3e9",
+        "cron:purchase.purchase_send_reminder_mail": "49f4c0993de4be9a0e551f0d140b07f55aee3a1677a8dbdcd34dd00f036a61a0",
+        "cron:sale.send_pending_emails_cron": "02c072e83171c33ea25847a70ea924662b33cdf5347bb3c5f100b8a57708f080",
+        "cron:snailmail.snailmail_print": "f5dd103ae258cc27505eb0b3cbabc3d7d1967ebdc09436f52e2f22f802e5d381",
+        "cron:usl_documents.ir_cron_usl_documents_poll": "03b17c898c4139d7b417fddd61bdc2ae801da92a10c138e45ee7ac94e0122231",
+        "cron:usl_documents.ir_cron_usl_documents_sync": "d048c34c7dab064a0a8f026aa560bf1ca09fcf4242e8cf90ea92b3afdb5f9ca9"
       }
     },
     {
@@ -150610,10 +150610,10 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:hr.ir_cron_apply_departure": "fe1324dad74f9f516c1602b6dbf863fc904fbcb9e4e294c528b22d07f06f5600",
-        "cron:hr.ir_cron_data_employee_notify_expiring_contract_work_permit": "dadb47c9116ebfa7f14f1b391293622284826d8eb2f33b7bf3e479e516746193",
-        "cron:hr.ir_cron_data_employee_update_current_version": "27ce8507c695468d3ebbe5ce57cccc286616d3cc38a2bc9cec1abce2e9225034",
-        "cron:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees": "373ecf44273e50ec845ae9191e78d0136e0152c0ae885cd9fb0d9a078758d01b"
+        "cron:hr.ir_cron_apply_departure": "1689d17e04a0c19adb5bc5b08790b517610a2b8f71f9832469de0a6cbcf24cde",
+        "cron:hr.ir_cron_data_employee_notify_expiring_contract_work_permit": "0586c08d1b72949a1df6e88eb1027ef1eed5f8b21620388863dff68e1899288a",
+        "cron:hr.ir_cron_data_employee_update_current_version": "8d3abbad2e3b40163577b0337678ccf0deec79451ee258191d9c218f71603924",
+        "cron:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees": "fa8ee51978cd42d8702fe8aab908adb621520ca7ee0e6b5367b8c113b795f7b1"
       }
     },
     {
@@ -152305,7 +152305,7 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:project.ir_cron_rating_project": "dc507dfc214c725c922651e91ac293a2ff2e1998be9acfdf8799f6715564a8d7"
+        "cron:project.ir_cron_rating_project": "8e3fc58bb68de250b19b91679981f8aba7208a44aec80689810db76895cedc38"
       }
     },
     {
@@ -153643,7 +153643,7 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:auth_signup.ir_cron_auth_signup_send_pending_user_reminder": "d94eb1dcc0ea2853a74acf23625965edaddf2f232b9912a28b3992824d98a0d6"
+        "cron:auth_signup.ir_cron_auth_signup_send_pending_user_reminder": "b1c85c430f7822259d3a790a6ad8fa406a54baf7ff085e04157f5e1a557c4891"
       }
     },
     {
@@ -155535,13 +155535,13 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:base.autovacuum_job": "539a437618844d3abf6125a10dd366a233838d483f9e2512a4edaa71a7ba1ce7",
-        "cron:base.ir_cron_res_users_deletion": "f55ad4f7a2a3e735843a35cb75d98d9043a247a04046c5705868f7ac94164d0b",
-        "cron:base_automation.ir_cron_data_base_automation_check": "ac52c78ea6e11c693d6d9d370e353b470659d3e6b3159cc256be9a9ab10e6e4e",
-        "cron:base_vat.vies_iap_check_update": "9ef144dadc093a51767b5b94e3007743e868c792b38f68375d80a73cf432fc18",
-        "cron:date_range.ir_cron_autocreate": "97cb8b1ca82c89746b1e82ec9118b1d8dca3f7e150102ac38322ed9715061cf9",
-        "cron:digest.ir_cron_digest_scheduler_action": "aa8576500f4fc73a303f458f1949c68e78e7542bc80b5f973d699cf297a80d16",
-        "cron:sms.ir_cron_sms_scheduler_action": "6f4774d36e8bdf1c7beea8b3b33df8f4afe51c09a48aba56ac65eea7c821d0d0"
+        "cron:base.autovacuum_job": "9951c2101283b01113b09f5059e739add545c0af2aba549901bbb00d46987c33",
+        "cron:base.ir_cron_res_users_deletion": "774acbd4c1735910d128ecfa89feeebf70522e361bd89a286cbd18cbca685b53",
+        "cron:base_automation.ir_cron_data_base_automation_check": "bbe093a80572b115b229cd9fdb6e4e55539d911eb1acae8de119d81201235ee4",
+        "cron:base_vat.vies_iap_check_update": "97cf90d3c6137b66f36d124b8516ccc17d2abc73e022b7d875026fd7d695fe7a",
+        "cron:date_range.ir_cron_autocreate": "ee97f50231ee93545f1b8ef0fa5a33ecfcd69c8363f4a4552606d65cd77ed542",
+        "cron:digest.ir_cron_digest_scheduler_action": "98257b7bb655e7d38c460957e7388e0f29878b235d27d7fdd068fdc95e3d4bc1",
+        "cron:sms.ir_cron_sms_scheduler_action": "cd91fe0211b4950d50826d39a7c1afd1afa166e1c259677ace62029d18428947"
       }
     },
     {
@@ -172687,6 +172687,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "9abfe00196c4dbd4f09a922ddf46999b015e3cb643acde9ac0e0965e5ccedf90",
+  "qualified_policy_digest": "1dbeb11683115f2b39f5cac8dbd54652829a7d9b1d14640ae8dcd34eea25aad0",
   "schema": "usl-action-risk-policy-v1"
 }
