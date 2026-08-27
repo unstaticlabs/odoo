@@ -16,6 +16,12 @@ Its first parent is the completed rebuilt feature and its second parent is the
 current mainline tip, so both histories remain directly reviewable and no
 divergent saas~19.2 ancestry was introduced.
 
+Mainline later advanced again by exact fast-forward successor to
+`65b9bd8827060a72cb42c10ef7875a4766a83f67`. Merge commit
+`5e0de5f28c207902b27c8c41ec8e63ff273c4c9d` integrates that tip with the same
+first-parent feature / second-parent mainline structure. That remains the
+authoritative target and merge base at branch closeout.
+
 The rebuild does not merge the feature branch's divergent saas~19.2 ancestry.
 Its product intent is replayed as eight ordered commits:
 
@@ -127,9 +133,9 @@ git diff --check e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621..HEAD
 
 The range comparison accounts for every original branch-specific commit.
 Before `8658e0bec4a`, the empty merge list proves that no divergent mainline
-ancestry was introduced during replay. The one final merge has exactly
-`f302ae6cdb43` as its second parent; it is the required current `19-usl`
-fast-forward successor, not the archived saas~19.2 lineage.
+ancestry was introduced during replay. The two integration merges have exactly
+`f302ae6cdb43` and `65b9bd882706` as their respective second parents; both are
+successive `19-usl` fast-forward tips, not the archived saas~19.2 lineage.
 An independent union-of-changed-paths comparison leaves five paths. The two
 saas~19.2 Documents migrations have byte-identical saas~19.3 successors. The
 old `accounting_compat/tests/test_release_identity.py` edit asserted a
