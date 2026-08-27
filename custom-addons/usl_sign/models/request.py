@@ -273,6 +273,7 @@ class SignRequest(models.Model):
     completed_storage_label = fields.Char(compute="_compute_workspace_presentation")
     blocking_summary = fields.Char(compute="_compute_workspace_presentation")
     signing_method_summary = fields.Char(compute="_compute_workspace_presentation")
+    signature_semantics_summary = fields.Char(compute="_compute_workspace_presentation")
     due_date_summary = fields.Char(compute="_compute_workspace_presentation")
     document_preview_url = fields.Char(
         compute="_compute_document_presentation",
@@ -818,11 +819,29 @@ class SignRequest(models.Model):
                     "A qualified provider signs the document; the result is checked here before completion.",
                 ),
             }.get(request.requested_trust, "")
+            request.signature_semantics_summary = {
+                "standard": _(
+                    "Each signer creates a recorded attestation. The PDF receives one "
+                    "platform integrity seal, not a personal certificate signature.",
+                ),
+                "strong_personal": _(
+                    "Each signer adds a personal PDF signature in order. After the last "
+                    "signer, the platform adds one final integrity seal.",
+                ),
+                "qualified_external": _(
+                    "The external provider determines the PDF signatures. USL retains "
+                    "the provider proof and independently validates the returned file.",
+                ),
+            }.get(request.requested_trust, "")
             if request.record_kind == "external_archive":
                 request.requested_trust_short = _("Odoo Online (External)")
                 request.signing_method_summary = _(
                     "This signed record came from Odoo Online. USL Sign preserved it "
                     "but did not rerun its signing, identity, trust, or revocation checks.",
+                )
+                request.signature_semantics_summary = _(
+                    "Signature claims come from the preserved Odoo Online record and "
+                    "are not reissued or reclassified by USL Sign.",
                 )
             if request.state == "evidence_incomplete" and request.archive_status == "failed":
                 request.blocking_summary = _(
@@ -2078,17 +2097,54 @@ class SignRequest(models.Model):
             },
         )
 
-    def _complete_validated_document(self, final_data, validation, *, report_evidence=None):
+    def _expected_final_signature_count(self):
+        """Return the PDF-signature count required by the selected workflow.
+
+        Standard signers create attestations in the evidence trail; the PDF has
+        one platform integrity seal. Strong signers each append one personal
+        PAdES revision before the platform adds its final integrity seal.
+        External providers own their PDF-signature topology, so no product
+        count is imposed beyond independent validator agreement.
+        """
         self.ensure_one()
-        achieved = validation.get("achievedTrust")
-        if achieved != self.requested_trust:
-            self._record_validation_failure(
-                "The validated trust level does not meet the requested trust level.",
-                validation=validation,
+        if self.requested_trust == "standard":
+            return 1
+        if self.requested_trust == "strong_personal":
+            return len(self.signer_ids) + 1
+        return None
+
+    def _assert_pdf_signature_counts(
+        self,
+        validation,
+        cross_validation,
+        *,
+        expected_count=None,
+        phase="completed document",
+    ):
+        self.ensure_one()
+        dss_count = validation.get("signatureCount")
+        pyhanko_count = cross_validation.get("signature_count")
+        valid_counts = (
+            type(dss_count) is int
+            and dss_count > 0
+            and type(pyhanko_count) is int
+            and pyhanko_count == dss_count
+            and (expected_count is None or dss_count == expected_count)
+        )
+        if cross_validation.get("status") != "valid" or not valid_counts:
+            expected = (
+                f" exactly {expected_count}" if expected_count is not None else " matching"
             )
-            return False
+            msg = (
+                f"EU DSS and pyHanko must report{expected} valid PDF signature(s) "
+                f"for the {phase}."
+            )
+            raise DSSServiceError(msg)
+
+    def _cross_validate_pdf(self, document):
+        self.ensure_one()
         try:
-            cross_validation = self._sign_dss_client().cross_validate(final_data)
+            cross_validation = self._sign_dss_client().cross_validate(document)
         except DSSServiceError as error:
             cross_validation = {
                 "engine": "pyHanko",
@@ -2105,16 +2161,58 @@ class SignRequest(models.Model):
             mimetype="application/json",
             metadata={"engine": "pyHanko", "version": "0.36.2"},
         )
-        dss_signature_count = validation.get("signatureCount")
-        counts_disagree = (
-            isinstance(dss_signature_count, int)
-            and dss_signature_count != cross_validation.get("signature_count")
+        return cross_validation
+
+    def _assert_strong_personal_revision(
+        self,
+        signer,
+        certificate_serial,
+        validation,
+        cross_validation,
+    ):
+        self.ensure_one()
+        if signer.request_id != self or self.requested_trust != "strong_personal":
+            msg = "This personal signature does not belong to the Strong request."
+            raise DSSServiceError(msg)
+        prior_signers = self.signer_ids.filtered(
+            lambda row: row.state == "signed" and row != signer,
         )
-        if cross_validation.get("status") != "valid" or counts_disagree:
+        if (
+            not certificate_serial
+            or certificate_serial in prior_signers.mapped("certificate_serial")
+        ):
+            msg = "Every Strong signer must use a distinct personal certificate."
+            raise DSSServiceError(msg)
+        expected_count = len(prior_signers) + 1
+        self._assert_pdf_signature_counts(
+            validation,
+            cross_validation,
+            expected_count=expected_count,
+            phase="Strong signer revision",
+        )
+        return expected_count
+
+    def _complete_validated_document(self, final_data, validation, *, report_evidence=None):
+        self.ensure_one()
+        achieved = validation.get("achievedTrust")
+        if achieved != self.requested_trust:
+            self._record_validation_failure(
+                "The validated trust level does not meet the requested trust level.",
+                validation=validation,
+            )
+            return False
+        cross_validation = self._cross_validate_pdf(final_data)
+        try:
+            self._assert_pdf_signature_counts(
+                validation,
+                cross_validation,
+                expected_count=self._expected_final_signature_count(),
+            )
+        except DSSServiceError as error:
             self.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
                     "validation_status": "indeterminate",
-                    "last_error": "DSS and pyHanko did not independently agree on the completed PDF.",
+                    "last_error": str(error),
                     "recovery_action": "Have an evidence reviewer inspect both validation reports.",
                 },
             )
@@ -2122,7 +2220,8 @@ class SignRequest(models.Model):
                 "action_required",
                 "cross_validation_disagreement",
                 payload={
-                    "dss_signature_count": dss_signature_count,
+                    "expected_signature_count": self._expected_final_signature_count(),
+                    "dss_signature_count": validation.get("signatureCount"),
                     "pyhanko_signature_count": cross_validation.get("signature_count"),
                     "pyhanko_status": cross_validation.get("status"),
                 },
@@ -2262,6 +2361,20 @@ class SignRequest(models.Model):
             f"Policy version: {self.policy_version}",
             f"Validation: EU DSS 6.4 - {self.validation_status}",
         ]
+        if self.requested_trust == "standard":
+            lines.extend(
+                [
+                    f"Signer attestations: {len(self.signer_ids)}",
+                    "PDF signatures: 1 platform integrity seal",
+                ],
+            )
+        elif self.requested_trust == "strong_personal":
+            lines.extend(
+                [
+                    f"Personal PAdES signatures: {len(self.signer_ids)}",
+                    "Platform signatures: 1 final integrity seal",
+                ],
+            )
         y = height - 95
         for line in lines:
             pdf.drawString(50, y, line)
@@ -2283,16 +2396,18 @@ class SignRequest(models.Model):
             y -= 10
             pdf.drawString(50, y, f"Evidence event head: {head.event_hash}")
         pdf.setFont("Helvetica-Oblique", 8)
-        pdf.drawString(
-            50,
-            50,
-            "Standard evidence and the USL platform seal are not personal, advanced, qualified, certified,",
-        )
-        pdf.drawString(
-            50,
-            40,
-            "or handwritten-equivalent signatures. This certificate summarizes evidence; EU DSS remains authoritative.",
-        )
+        if self.requested_trust == "strong_personal":
+            footer = (
+                "Personal PAdES signatures identify each signer; the final platform seal only protects integrity.",
+                "This certificate summarizes evidence; EU DSS remains authoritative for trust and revocation.",
+            )
+        else:
+            footer = (
+                "Signer attestations and the platform seal are not personal, advanced, qualified, certified,",
+                "or handwritten-equivalent signatures. EU DSS remains authoritative for validation.",
+            )
+        pdf.drawString(50, 50, footer[0])
+        pdf.drawString(50, 40, footer[1])
         pdf.save()
         return stream.getvalue()
 

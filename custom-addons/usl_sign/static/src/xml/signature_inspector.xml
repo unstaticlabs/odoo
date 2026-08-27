@@ -118,7 +118,7 @@
                                                     </span>
                                                     <span class="usl_sign_signature_identity">
                                                         <strong t-out="signatureTitle(signature)"/>
-                                                        <small><t t-out="signature.signatureKind || 'Document signature'"/> · <t t-out="formatDate(signature.signedAt || signature.claimedSigningTime)"/></small>
+                                                        <small><t t-out="signatureKindLabel(signature)"/> · <t t-out="formatDate(signature.signedAt || signature.claimedSigningTime)"/></small>
                                                     </span>
                                                     <span t-attf-class="usl_sign_result_label is-{{ signatureTone(signature) }}" t-out="signatureLabel(signature)"/>
                                                     <i class="fa fa-chevron-down usl_sign_signature_chevron" aria-hidden="true"/>
