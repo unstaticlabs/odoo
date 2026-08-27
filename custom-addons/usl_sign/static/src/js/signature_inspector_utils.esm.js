@@ -249,6 +249,90 @@ export function safeAttachmentName(name) {
     return String(name || "unnamed").split(/[\\/]/).pop().slice(0, 180) || "unnamed";
 }
 
+function artifactCandidates(item, attachments, usedIndexes) {
+    const available = attachments.filter((_attachment, index) => !usedIndexes.has(index));
+    if (item.kind === "authentication") {
+        return available.filter(
+            (attachment) =>
+                attachment.name.startsWith("authentication-summary-") &&
+                attachment.json?.artifact_sha256 === item.sha256
+        );
+    }
+    if (item.kind === "signed") {
+        return available.filter(
+            (attachment) =>
+                attachment.name.startsWith("final-") &&
+                (item.name === "final signed PDF" || attachment.name.endsWith(`-${item.name}`))
+        );
+    }
+    const canonical = available.filter(
+        (attachment) =>
+            attachment.name.startsWith(`${item.kind}-`) &&
+            attachment.name.endsWith(`-${item.name}`)
+    );
+    if (canonical.length) {
+        return canonical;
+    }
+    const exact = available.filter((attachment) => attachment.name === item.name);
+    if (exact.length) {
+        return exact;
+    }
+    // Older third-party dossiers may not include the artifact kind. Accept a
+    // suffix only when it identifies one unused attachment unambiguously.
+    return available.filter((attachment) => attachment.name.endsWith(`-${item.name}`));
+}
+
+/**
+ * Match signed-manifest entries to embedded dossier files without allowing a
+ * source and a frozen revision that share a display filename to collide.
+ */
+export function matchManifestArtifacts(manifest, attachments) {
+    if (!manifest) {
+        return {checked: 0, matched: 0, mismatches: []};
+    }
+    const expected = [...(manifest.artifacts || [])];
+    const finalHash = String(manifest.final_sha256 || "").toLowerCase();
+    if (
+        finalHash &&
+        !expected.some(
+            (item) => item.kind === "signed" && String(item.sha256 || "").toLowerCase() === finalHash
+        )
+    ) {
+        expected.push({kind: "signed", name: "final signed PDF", sha256: finalHash});
+    }
+    const mismatches = [];
+    const usedIndexes = new Set();
+    let matched = 0;
+    for (const item of expected) {
+        const candidates = artifactCandidates(item, attachments, usedIndexes);
+        if (candidates.length !== 1) {
+            mismatches.push(
+                candidates.length
+                    ? `${item.kind} “${item.name}”: more than one embedded file matches`
+                    : `${item.kind} “${item.name}”: not represented in the dossier`
+            );
+            continue;
+        }
+        const candidate = candidates[0];
+        const candidateIndex = attachments.indexOf(candidate);
+        // A manifest entry consumes its uniquely identified attachment even
+        // when the digest is wrong. A later entry must never reuse those
+        // bytes and accidentally turn a corrupt dossier into a partial match.
+        usedIndexes.add(candidateIndex);
+        if (
+            item.kind !== "authentication" &&
+            candidate.sha256 !== String(item.sha256 || "").toLowerCase()
+        ) {
+            mismatches.push(
+                `${item.kind} “${item.name}” (${candidate.name}): SHA-256 does not match the manifest`
+            );
+            continue;
+        }
+        matched++;
+    }
+    return {checked: expected.length, matched, mismatches};
+}
+
 export function overallStatus(signatures, translate = (value) => value) {
     if (!signatures.length) {
         return {
