@@ -52,6 +52,47 @@ def _canonical_json(value):
     ).encode()
 
 
+def _ceremony_signature_appearance(ceremony):
+    item_id = ceremony.binding_payload.get("pades_appearance_item_id")
+    if not item_id:
+        return None
+    item = (ceremony.candidate_layout or {}).get(str(item_id))
+    if not isinstance(item, dict) or item.get("field_type") != "signature":
+        msg = "The bound PAdES appearance field is invalid."
+        raise DSSServiceError(msg)
+    value = item.get("value")
+    prefix = "data:image/png;base64,"
+    if not isinstance(value, str) or not value.startswith(prefix):
+        msg = "The bound PAdES appearance is not a PNG signature."
+        raise DSSServiceError(msg)
+    try:
+        image = base64.b64decode(value[len(prefix) :], validate=True)
+    except (binascii.Error, ValueError) as error:
+        msg = "The bound PAdES appearance is not valid Base64."
+        raise DSSServiceError(msg) from error
+    if not image.startswith(b"\x89PNG\r\n\x1a\n") or len(image) > 2_000_000:
+        msg = "The bound PAdES appearance is not a supported PNG image."
+        raise DSSServiceError(msg)
+    geometry = {
+        key: item.get(key)
+        for key in ("page", "position_x", "position_y", "width", "height")
+    }
+    if (
+        type(geometry["page"]) is not int
+        or any(
+            not isinstance(geometry[key], int | float)
+            or isinstance(geometry[key], bool)
+            for key in ("position_x", "position_y", "width", "height")
+        )
+    ):
+        msg = "The bound PAdES appearance geometry is invalid."
+        raise DSSServiceError(msg)
+    return {
+        "image": base64.b64encode(image).decode(),
+        **geometry,
+    }
+
+
 def _personal_certificate_subject(signer):
     # This prefix is enforced by the pinned step-ca certificate template and
     # classified by DSS as a local personal certificate.  Keep it stable and
@@ -381,6 +422,7 @@ class StrongSignController(http.Controller):
         candidate = signer._prepare_signing_candidate(
             items,
             reviewed_document_sha256=document_sha256,
+            preserve_pdf_signatures=True,
         )
         evidence_context_sha256 = hashlib.sha256(
             _canonical_json(signing_context),
@@ -441,6 +483,7 @@ class StrongSignController(http.Controller):
             "base_document_sha256": candidate["base_document_sha256"],
             "document_sha256": candidate["candidate_document_sha256"],
             "field_values_sha256": candidate["field_values_sha256"],
+            "pades_appearance_item_id": candidate["pades_appearance_item_id"],
             "evidence_context_sha256": evidence_context_sha256,
             "consent_sha256": consent_sha256,
             "csr_sha256": csr_sha256,
@@ -572,6 +615,7 @@ class StrongSignController(http.Controller):
                 certificate_chain=issued["chain"],
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
                 timestamp=signer.request_id.company_id.sign_rfc3161_enabled,
+                appearance=_ceremony_signature_appearance(ceremony),
             )
         except (x509.ExtensionNotFound, TypeError, ValueError) as error:
             msg = "The local certificate authority returned an invalid certificate."
@@ -886,9 +930,42 @@ class StrongSignController(http.Controller):
             if validation.get("status") != "valid" or validation.get(
                 "achievedTrust",
             ) != "strong_personal":
+                _logger.warning(
+                    "Strong signer DSS rejection: %s",
+                    json.dumps(
+                        {
+                            key: value
+                            for key, value in validation.items()
+                            if key != "reports"
+                        },
+                        sort_keys=True,
+                    ),
+                )
                 msg = "DSS rejected the personal PAdES signature."
                 raise DSSServiceError(msg)  # noqa: TRY301 - handled by fail-closed cleanup below
             cross_validation = dss.cross_validate(signed_pdf)
+            if (
+                cross_validation.get("status") != "valid"
+                or cross_validation.get("signature_count")
+                != validation.get("signatureCount")
+            ):
+                _logger.warning(
+                    "Strong signer pyHanko rejection: %s",
+                    json.dumps(
+                        {
+                            **cross_validation,
+                            "signatures": [
+                                {
+                                    key: value
+                                    for key, value in row.items()
+                                    if key != "certificate_chain"
+                                }
+                                for row in cross_validation.get("signatures", [])
+                            ],
+                        },
+                        sort_keys=True,
+                    ),
+                )
             expected_count = signer.request_id._assert_strong_personal_revision(
                 signer,
                 ceremony.certificate_serial,

@@ -92,6 +92,7 @@ class DSSClient:
         certificate_chain=None,
         request_reference,
         timestamp=False,
+        appearance=None,
     ):
         return self._call(
             "pades/data-to-sign",
@@ -101,6 +102,7 @@ class DSSClient:
                 "certificateChain": list(certificate_chain or []),
                 "requestReference": request_reference,
                 "timestamp": bool(timestamp),
+                "appearance": appearance,
             },
         )
 
@@ -123,6 +125,30 @@ class DSSClient:
                 "signingContext": signing_context,
             },
         )
+
+    def apply_incremental_overlays(self, data, overlays):
+        result = self._call(
+            "pdf/overlay-incremental",
+            {
+                "document": self._document(data),
+                "overlays": [
+                    {
+                        "page": overlay["page"],
+                        "document": self._document(overlay["document"]),
+                    }
+                    for overlay in overlays
+                ],
+            },
+        )
+        try:
+            document = base64.b64decode(result["document"], validate=True)
+        except (KeyError, TypeError, ValueError) as error:
+            msg = "The signature service returned an invalid PDF candidate."
+            raise DSSServiceError(msg) from error
+        if not document.startswith(b"%PDF-"):
+            msg = "The signature service returned an invalid PDF candidate."
+            raise DSSServiceError(msg)
+        return document
 
     def validate(self, data, *, expected_level=None, expected_signers=None):
         return self._call(

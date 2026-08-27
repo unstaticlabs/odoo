@@ -284,15 +284,36 @@ each command:
 
 ```bash
 scripts/sign-qa-stack strong-acceptance-prepare touchid-qa real_platform
-# Open invitation_url and connect the same Pocket ID account.
-scripts/sign-qa-stack strong-acceptance-review ENROLMENT_ID touchid-qa
-# Open signing_url, consent, and complete the fresh passkey signature.
+# Open each invitation URL in its named Pocket ID account, then review both identities.
+scripts/sign-qa-stack strong-acceptance-review ROGER_ENROLMENT_ID,VALENTIN_ENROLMENT_ID touchid-qa
+# Complete Roger's signing URL first, then obtain Valentin's ordered session.
+scripts/sign-qa-stack strong-acceptance-next REQUEST_ID
+# Complete Valentin's signing URL and verify the final three-signature PDF.
 scripts/sign-qa-stack strong-acceptance-verify REQUEST_ID
 ```
 
 The prepare command records whether the run used a virtual or real platform
 authenticator. Never label a virtual-credential result as Touch ID, Face ID,
 Windows Hello or another platform product.
+
+The automated release acceptance creates two separate browser contexts and
+virtual platform authenticators, then proves two distinct personal PAdES
+certificates, two intact incremental revisions, the final platform integrity
+seal, evidence manifest v2 and both Paperless archives. Because both synthetic
+browsers share Docker's gateway address, it may disable Pocket ID's third-party
+IP rate bucket only in its dedicated disposable slot:
+
+```bash
+USL_SIGN_QA_SLOT=native-sign-strong-acceptance \
+USL_SIGN_POCKETID_DISABLE_RATE_LIMITING=true \
+USL_EINVOICE_LIVE_ENABLED=0 \
+USL_EREPORTING_LIVE_ENABLED=0 \
+scripts/sign-qa-stack strong-acceptance
+```
+
+Do not use that override in reviewer QA or production. Rate limiting remains
+enabled by default and the acceptance helper refuses to run without the
+explicit isolated-only setting.
 
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, the internal employee/contract/partner review reference and identity
