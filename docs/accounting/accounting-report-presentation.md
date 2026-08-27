@@ -78,17 +78,18 @@ For official-document rendering, three credible options were compared:
 2. OCA QWeb/XLSX report outputs, which remain appropriate for their specialist
    wizards but do not cover the configured USL, French and management
    statements as one product;
-3. the existing deterministic ReportLab/XLSX exporters driven by the same
-   report session and hierarchy as the interactive client.
+3. the governed `accounting_statement.v1` LaTeX renderer driven by the same
+   report session and hierarchy as the interactive client, while preserving
+   the existing XLSX exporter.
 
-The third option remains the canonical exporter. Its visual tokens are no
-longer hardcoded per renderer: the resolved report definition supplies an
-official A4 template key, primary/muted colors, section background/text colors
-and footer label. The defaults follow the supplied USL LaTeX conventions:
-sans-serif typography, restrained black/gray hierarchy, compact tables,
-company legal identity in the repeated header and a quiet document footer.
-Company overrides are validated for six-digit hexadecimal colors and a minimum
-4.5:1 section contrast ratio.
+The third option is the canonical PDF exporter. It receives the report
+session's exact selected rows, hierarchy, filters, display unit and rounding;
+it performs no accounting calculation. The resolved report definition maps
+safe specialist theme overrides into the shared A4 template. The defaults use
+embedded Lato, restrained black/gray hierarchy, compact tables, company legal
+identity in the repeated header and a quiet document footer. Company overrides
+remain validated for six-digit hexadecimal colors and a minimum 4.5:1 section
+contrast ratio. XLSX remains unchanged and consumes the same session truth.
 
 For navigation, retaining Odoo's four broad report families was also compared
 with one flat list and with purpose-based families. A flat list made common

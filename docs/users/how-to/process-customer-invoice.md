@@ -14,3 +14,8 @@
 On a posted invoice, **Pay** records a payment against the document; it does not
 contact the bank. **Credit Note** creates a linked draft correction. Review and
 post it separately so the original invoice and correction remain traceable.
+The generated PDF uses the company's governed legal identity and the pinned
+USL template revision. If Odoo asks for missing legal information, complete
+**Settings > Companies > Document Layout** before retrying. Odoo does not
+silently substitute a different official layout when the renderer is
+unavailable; an already persisted invoice PDF remains downloadable.
