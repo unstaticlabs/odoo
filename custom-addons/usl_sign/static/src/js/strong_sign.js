@@ -386,7 +386,7 @@
         try {
             popup = openPocketID();
             onProgress({
-                label: "Preparing…",
+                phase: "preparing",
             });
             ceremonyWorker = workerClient();
             const generated = await ceremonyWorker.call("generate", {
@@ -403,7 +403,7 @@
             ceremonyId = begin.ceremony_id;
             navigatePocketID(popup, begin.authorization_url);
             onProgress({
-                label: "Waiting for Pocket ID…",
+                phase: "identity",
             });
             const authorization = await poll(
                 `${base}/status`,
@@ -419,13 +419,13 @@
                 return;
             }
             onProgress({
-                label: "Applying signature…",
+                phase: "applying",
             });
             const signed = await ceremonyWorker.call("sign", {
                 dataToSign: authorization.data_to_sign,
             });
             onProgress({
-                label: "Validating…",
+                phase: "validating",
             });
             let result;
             try {
@@ -445,7 +445,7 @@
             await safelyDestroy(ceremonyWorker);
             ceremonyWorker = null;
             onProgress({
-                label: "Signed",
+                phase: "complete",
                 complete: true,
             });
             context.dataset.active = "false";
@@ -500,9 +500,6 @@
         }
         if (enrollment) {
             initializeEnrollment(enrollment);
-        }
-        if (portalSigning) {
-            installUnloadGuard(() => portalSigning.dataset.active === "true");
         }
     }
 
