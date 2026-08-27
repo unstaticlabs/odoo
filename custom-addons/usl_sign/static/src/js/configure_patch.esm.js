@@ -69,6 +69,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         this.undoStack = [];
         this.redoStack = [];
         this.pageListeners = [];
+        this.initialPageApplied = false;
         this.activeManipulation = null;
         this.activePaletteDrag = null;
         this.beforeUnload = (event) => {
@@ -226,6 +227,22 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
     }
 
+    showFirstPageOnStart(document) {
+        if (this.initialPageApplied) {
+            return;
+        }
+        const viewer = this.pdfApplication()?.pdfViewer;
+        if (viewer) {
+            viewer.currentPageNumber = 1;
+        }
+        const container = document.getElementById("viewerContainer");
+        if (container) {
+            container.scrollTop = 0;
+            container.scrollLeft = 0;
+        }
+        this.initialPageApplied = true;
+    }
+
     zoomIn() {
         this.pdfApplication()?.zoomIn();
     }
@@ -279,6 +296,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         const document = this.iframe.el.contentDocument;
         this.injectIframeAssets(document);
         this.bindPdfScrolling(document);
+        this.showFirstPageOnStart(document);
         for (const page of document.getElementsByClassName("page")) {
             this.bindPage(page);
         }
