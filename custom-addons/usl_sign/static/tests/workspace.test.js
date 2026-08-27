@@ -128,3 +128,29 @@ test("landing failure is explicit and retry restores the workspace", async () =>
     expect(".usl_sign_work_card").toHaveCount(5);
     expect("header .btn-primary").toHaveCount(0);
 });
+
+test("recently completed exposes the full completed view only when truncated", async () => {
+    const actions = [];
+    mockService("action", {
+        async doAction(action) {
+            actions.push(action);
+        },
+    });
+    onRpc("usl.sign.workspace", "get_landing", () => ({
+        can_start: false,
+        sections: {
+            ...EMPTY_SECTIONS,
+            completed: {
+                count: 6,
+                items: [],
+                more_action: "usl_sign.completed_documents_action",
+            },
+        },
+    }));
+
+    await mountWithCleanup(SignLanding);
+    expect("section:nth-child(5) .card-footer .btn-link").toHaveText(/Show more/);
+    await contains("section:nth-child(5) .card-footer .btn-link").click();
+
+    expect(actions).toEqual(["usl_sign.completed_documents_action"]);
+});
