@@ -17,6 +17,14 @@ RUNTIME_FINGERPRINT="$({
   git -C "$ROOT" hash-object \
     Dockerfile requirements.txt docker/constraints.txt setup.py
 } | git hash-object --stdin | cut -c1-12)"
+DSS_RUNTIME_FINGERPRINT="$({
+  git -C "$ROOT" hash-object \
+    services/usl-sign-dss/Dockerfile \
+    services/usl-sign-dss/pom.xml \
+    services/usl-sign-dss/pyhanko-requirements.txt \
+    services/usl-sign-dss/pyhanko-validate.py \
+    services/usl-sign-dss/src/main/java/com/unstaticlabs/sign/dss/Application.java
+} | git hash-object --stdin | cut -c1-12)"
 
 export USL_SIGN_POCKETID_PROJECT="${USL_SIGN_POCKETID_PROJECT:-usl-sign-${SLOT}-qa}"
 export USL_SIGN_POCKETID_ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-${SLOT}-qa.env}"
@@ -36,6 +44,7 @@ export USL_POCKET_ID_DEV_REFRESH_PUBLIC_URLS=1
 # image is content-addressed so Python dependency changes trigger one rebuild,
 # while unchanged worktrees reuse the cached image safely.
 export ODOO_IMAGE="${ODOO_IMAGE:-usl-sign-qa-odoo:${RUNTIME_FINGERPRINT}}"
+export USL_SIGN_DSS_IMAGE="${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4-${DSS_RUNTIME_FINGERPRINT}}"
 
 if [[ "${1:-}" == "login-link" ]]; then
   username="${2:?Usage: scripts/sign-qa-stack login-link USER [TTL]}"

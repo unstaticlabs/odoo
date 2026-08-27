@@ -17,6 +17,10 @@ services:
     image: usl-pocket-id-sign:v2.12.0-usl2
     environment:
       APP_NAME: USL Sign Pocket ID QA
+      # Keep protection enabled for reviewer QA. The isolated virtual-
+      # authenticator acceptance may explicitly disable only this third-party
+      # IP bucket because every synthetic browser shares Docker's gateway IP.
+      DISABLE_RATE_LIMITING: ${USL_SIGN_POCKETID_DISABLE_RATE_LIMITING:-false}
     ports: !override
       - "${USL_SIGN_POCKETID_BIND_ADDRESS:-127.0.0.1}:${POCKET_ID_HTTP_PORT:-1411}:1411"
 

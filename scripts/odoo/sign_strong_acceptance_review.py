@@ -9,31 +9,43 @@ from odoo.tools.pdf import PdfWriter
 
 from odoo.addons.usl_sign.services import field_value
 
-enrollment_id = int(os.environ.get("USL_SIGN_ACCEPTANCE_ENROLLMENT_ID", "0"))
-if enrollment_id <= 0:
-    msg = "A Strong acceptance enrolment ID is required"
+raw_enrollment_ids = os.environ.get("USL_SIGN_ACCEPTANCE_ENROLLMENT_IDS") or os.environ.get(
+    "USL_SIGN_ACCEPTANCE_ENROLLMENT_ID",
+    "",
+)
+try:
+    enrollment_ids = [
+        int(value) for value in raw_enrollment_ids.split(",") if value.strip()
+    ]
+except ValueError as error:
+    msg = "Strong acceptance enrolment IDs must be numeric"
+    raise RuntimeError(msg) from error
+if len(enrollment_ids) != 2 or any(enrollment_id <= 0 for enrollment_id in enrollment_ids):
+    msg = "Exactly two Strong acceptance enrolment IDs are required"
     raise RuntimeError(msg)
-enrollment = env["usl.sign.enrollment"].browse(enrollment_id).exists()
-if not enrollment or enrollment.state != "pending_review":
-    msg = "Pocket ID did not leave the enrolment pending identity review"
+enrollments = env["usl.sign.enrollment"].browse(enrollment_ids).exists()
+if len(enrollments) != 2 or any(enrollment.state != "pending_review" for enrollment in enrollments):
+    msg = "Pocket ID did not leave both enrolments pending identity review"
     raise RuntimeError(msg)
 reviewer = env["res.users"].search([("login", "=", "valentin")], limit=1)
 if not reviewer or not reviewer.has_group("usl_sign.group_sign_admin"):
     msg = "The isolated Valentin Sign administrator is missing"
     raise RuntimeError(msg)
-enrollment.with_user(reviewer).action_confirm_identity()
+for enrollment in enrollments:
+    enrollment.with_user(reviewer).action_confirm_identity()
 
 stream = BytesIO()
 writer = PdfWriter()
 writer.add_blank_page(width=595, height=842)
 writer.write(stream)
 pdf = stream.getvalue()
-role = env.ref("sign_oca.sign_role_customer")
+roles = env.ref("sign_oca.sign_role_customer") | env.ref("sign_oca.sign_role_employee")
 field = env.ref("sign_oca.sign_field_signature")
 policy = env.ref("usl_sign.policy_material_recurring_strong")
-layout = {
-    "1": {
-        "id": 1,
+layout = {}
+for sequence, role in enumerate(roles, start=1):
+    layout[str(sequence)] = {
+        "id": sequence,
         "field_id": field.id,
         "field_type": field.field_type,
         "required": True,
@@ -41,14 +53,13 @@ layout = {
         "role_id": role.id,
         "page": 1,
         "position_x": 12,
-        "position_y": 18,
+        "position_y": 12 + sequence * 12,
         "width": 30,
         "height": 8,
         "value": False,
         "default_value": field.default_value,
         "placeholder": "",
-    },
-}
+    }
 run_id = os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", "qa")
 sign_request = env["sign.oca.request"].with_user(reviewer).create(
     {
@@ -71,9 +82,13 @@ sign_request = env["sign.oca.request"].with_user(reviewer).create(
                 {
                     "partner_id": enrollment.partner_id.id,
                     "role_id": role.id,
-                    "sequence": 10,
+                    "sequence": sequence * 10,
                 },
-            ),
+            )
+            for sequence, (enrollment, role) in enumerate(
+                zip(enrollments, roles, strict=True),
+                start=1,
+            )
         ],
     },
 )
@@ -89,15 +104,16 @@ if (
     env["usl.sign.share.confirm"].browse(send_action["res_id"]).action_confirm()
 if sign_request.state != "sent":
     raise RuntimeError(f"The Strong request was not sent: {sign_request.state}")
-signer = sign_request.signer_ids
+signer = sign_request.signer_ids.sorted(lambda row: (row.sequence, row.id))[:1]
 access_token = signer._issue_access_token()
 session_token = signer._exchange_access_token(access_token)
 base_url = env["ir.config_parameter"].sudo().get_str("web.base.url").rstrip("/")
 env.cr.commit()
 payload = {
-    "enrollment_id": enrollment.id,
+    "enrollment_ids": enrollments.ids,
     "request_id": sign_request.id,
     "signer_id": signer.id,
+    "username": "roger",
     "signing_url": f"{base_url}/sign/session/{signer.id}/{session_token}?review=1",
 }
 print("USL_SIGN_STRONG_ACCEPTANCE=" + json.dumps(payload, sort_keys=True))
