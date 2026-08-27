@@ -143,6 +143,63 @@ def _read_env(
     return values
 
 
+def _replace_env_values(path: Path, replacements: dict[str, str]) -> None:
+    """Replace generated non-secret values without disturbing credentials."""
+    remaining = dict(replacements)
+    lines = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        key, separator, _value = raw_line.partition("=")
+        if separator and key in replacements:
+            if key in remaining:
+                lines.append(f"{key}={remaining.pop(key)}")
+            continue
+        lines.append(raw_line)
+    if remaining:
+        lines.append("")
+        lines.append("# Refreshed browser-facing service URLs.")
+        lines.extend(f"{key}={value}" for key, value in remaining.items())
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _paperless_public_settings(
+    public_url: str,
+    *,
+    private_qa: bool = False,
+) -> dict[str, str]:
+    parsed_url = urllib.parse.urlsplit(public_url)
+    hostname = parsed_url.hostname or ""
+    if (
+        parsed_url.scheme not in {"http", "https"}
+        or not hostname
+        or parsed_url.username
+        or parsed_url.password
+        or (
+            not SAFE_LOCALHOST_PATTERN.fullmatch(hostname)
+            and (not private_qa or not _is_private_qa_hostname(hostname))
+        )
+    ):
+        raise PocketIDError(
+            "Paperless public URL must use HTTP(S) on localhost or a private "
+            "QA host.",
+        )
+    allowed_hosts = [
+        "localhost",
+        "127.0.0.1",
+        "paperless-webserver",
+        "paperless.localhost",
+    ]
+    if hostname not in allowed_hosts:
+        allowed_hosts.append(hostname)
+    return {
+        "PAPERLESS_PUBLIC_BASE_URL": public_url,
+        "PAPERLESS_PUBLIC_URL": public_url,
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": parsed_url.scheme,
+        "PAPERLESS_ALLOWED_HOSTS": ",".join(allowed_hosts),
+        "PAPERLESS_CORS_ALLOWED_HOSTS": public_url,
+        "PAPERLESS_CSRF_TRUSTED_ORIGINS": public_url,
+    }
+
+
 def _write_new_env(path: Path) -> None:
     if path.exists():
         values = _read_env(
@@ -155,10 +212,24 @@ def _write_new_env(path: Path) -> None:
             },
         )
         additions = {}
-        paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or os.getenv(
+        requested_paperless_url = os.getenv(
             "USL_POCKET_ID_DEV_PAPERLESS_URL",
-            "http://paperless.localhost:8010",
+            "",
         ).strip()
+        refresh_public_urls = (
+            os.getenv("USL_POCKET_ID_DEV_REFRESH_PUBLIC_URLS") == "1"
+            and requested_paperless_url
+        )
+        if refresh_public_urls:
+            public_settings = _paperless_public_settings(
+                requested_paperless_url,
+                private_qa=os.getenv("USL_POCKET_ID_DEV_PRIVATE_QA") == "1",
+            )
+            _replace_env_values(path, public_settings)
+            values.update(public_settings)
+        paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or (
+            requested_paperless_url or "http://paperless.localhost:8010"
+        )
         if not values.get("PAPERLESS_PUBLIC_BASE_URL"):
             additions["PAPERLESS_PUBLIC_BASE_URL"] = paperless_public_url
         if not values.get("PAPERLESS_PUBLIC_URL"):
@@ -263,30 +334,10 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_DEV_PAPERLESS_URL",
         "http://paperless.localhost:8010",
     ).strip()
-    parsed_paperless_url = urllib.parse.urlsplit(paperless_public_url)
-    paperless_hostname = parsed_paperless_url.hostname or ""
-    if (
-        parsed_paperless_url.scheme not in {"http", "https"}
-        or not paperless_hostname
-        or parsed_paperless_url.username
-        or parsed_paperless_url.password
-        or (
-            not SAFE_LOCALHOST_PATTERN.fullmatch(paperless_hostname)
-            and (not private_qa or not _is_private_qa_hostname(paperless_hostname))
-        )
-    ):
-        raise PocketIDError(
-            "Paperless public URL must use HTTP(S) on localhost or the "
-            "explicit private QA host.",
-        )
-    paperless_allowed_hosts = [
-        "localhost",
-        "127.0.0.1",
-        "paperless-webserver",
-        "paperless.localhost",
-    ]
-    if paperless_hostname not in paperless_allowed_hosts:
-        paperless_allowed_hosts.append(paperless_hostname)
+    paperless_settings = _paperless_public_settings(
+        paperless_public_url,
+        private_qa=private_qa,
+    )
     values = {
         "COMPOSE_PROJECT_NAME": project_name,
         "ODOO_DB_FILTER": f"^{database}$",
@@ -295,12 +346,7 @@ def _write_new_env(path: Path) -> None:
         "ODOO_HTTP_PORT": odoo_port,
         "ODOO_INIT_DB": database,
         "ODOO_PUBLIC_BASE_URL": f"http://{odoo_hostname}:{odoo_port}",
-        "PAPERLESS_PUBLIC_BASE_URL": paperless_public_url,
-        "PAPERLESS_PUBLIC_URL": paperless_public_url,
-        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
-        "PAPERLESS_ALLOWED_HOSTS": ",".join(paperless_allowed_hosts),
-        "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
-        "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
+        **paperless_settings,
         "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
         "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
         "PAPERLESS_HTTP_PORT": paperless_port,
