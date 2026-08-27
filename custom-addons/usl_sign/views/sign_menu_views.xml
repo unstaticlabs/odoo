@@ -56,6 +56,7 @@
     <menuitem id="request_signature_open_menu" name="Open Requests" parent="request_signature_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
     <menuitem id="request_signature_completed_menu" name="Completed" parent="request_signature_menu" action="completed_documents_action" sequence="30" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="20" groups="usl_sign.group_sign_user"/>
+    <menuitem id="signature_inspector_menu" name="Check Signatures" parent="sign_oca.sign_oca_root_menu" action="signature_inspector_action" sequence="30" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
 
     <menuitem id="my_sign_identity_menu" name="My Signing Identity" parent="sign_oca.sign_oca_settings_menu" action="my_sign_identity_server_action" sequence="10" groups="usl_sign.group_sign_user"/>
     <menuitem id="sign_enrollment_menu" name="Signer Identity Reviews" parent="sign_oca.sign_oca_settings_menu" action="sign_enrollment_action" sequence="20" groups="usl_sign.group_sign_identity_reviewer"/>

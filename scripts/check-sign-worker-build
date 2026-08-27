@@ -3,22 +3,32 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 build_dir="$repo_root/custom-addons/usl_sign/static/worker-build"
-bundle="$repo_root/custom-addons/usl_sign/static/lib/strong_sign_worker.js"
+strong_bundle="$repo_root/custom-addons/usl_sign/static/lib/strong_sign_worker.js"
+inspector_bundle="$repo_root/custom-addons/usl_sign/static/lib/signature_inspector_worker.js"
 temporary=$(mktemp -d)
 trap 'rm -rf "$temporary"' EXIT INT TERM
 
 temporary_build="$temporary/custom-addons/usl_sign/static/worker-build"
 temporary_source="$temporary/custom-addons/usl_sign/static/src/worker"
-temporary_bundle="$temporary/custom-addons/usl_sign/static/lib/strong_sign_worker.js"
-mkdir -p "$temporary_build" "$temporary_source" "$(dirname "$temporary_bundle")"
+temporary_strong_bundle="$temporary/custom-addons/usl_sign/static/lib/strong_sign_worker.js"
+temporary_inspector_bundle="$temporary/custom-addons/usl_sign/static/lib/signature_inspector_worker.js"
+mkdir -p \
+    "$temporary_build" \
+    "$temporary_source" \
+    "$(dirname "$temporary_strong_bundle")" \
+    "$temporary/custom-addons/usl_sign/static/src/js"
 cp "$build_dir/package.json" "$build_dir/package-lock.json" "$temporary_build/"
 cp "$repo_root/custom-addons/usl_sign/static/src/worker/strong_sign_worker.js" "$temporary_source/"
+cp "$repo_root/custom-addons/usl_sign/static/src/worker/signature_inspector_worker.js" "$temporary_source/"
+cp "$repo_root/custom-addons/usl_sign/static/src/js/signature_inspector_utils.esm.js" \
+    "$temporary/custom-addons/usl_sign/static/src/js/signature_inspector_utils.esm.js"
 (
     cd "$temporary_build"
     npm_config_cache="$temporary/npm-cache" npm ci --ignore-scripts --no-audit --no-fund
     npm run build
 )
-cmp "$temporary_bundle" "$bundle"
+cmp "$temporary_strong_bundle" "$strong_bundle"
+cmp "$temporary_inspector_bundle" "$inspector_bundle"
 
 if rg -n 'exportKey|privateJwk|private_jwk|seed material|postMessage.*privateKey' \
     "$repo_root/custom-addons/usl_sign/static/src/worker/strong_sign_worker.js"; then
