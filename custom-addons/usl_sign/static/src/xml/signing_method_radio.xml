@@ -15,12 +15,16 @@
                            t-att-id="`${this.id}_${item[0]}`"
                            t-on-change="() => this.onChange(item)"/>
                     <label class="form-check-label o_form_label" t-att-for="`${this.id}_${item[0]}`">
-                        <span t-out="item[1]"/>
-                        <i class="fa fa-info-circle text-muted ms-auto"
-                           tabindex="0"
-                           t-att-title="this.helpFor(item[0])"
-                           t-att-data-tooltip="this.helpFor(item[0])"
-                           t-att-aria-label="this.helpFor(item[0])"/>
+                        <span class="usl_sign_method_card_header">
+                            <strong t-out="item[1]"/>
+                            <span t-if="this.detailsFor(item[0]).recommendation" class="badge rounded-pill text-bg-light border" t-out="this.detailsFor(item[0]).recommendation"/>
+                        </span>
+                        <span class="usl_sign_method_card_summary" t-out="this.detailsFor(item[0]).summary"/>
+                        <dl class="usl_sign_method_facts">
+                            <div><dt>Signer check</dt><dd t-out="this.detailsFor(item[0]).authentication"/></div>
+                            <div><dt>Signed PDF</dt><dd t-out="this.detailsFor(item[0]).pdf"/></div>
+                            <div><dt>Proof kept</dt><dd t-out="this.detailsFor(item[0]).evidence"/></div>
+                        </dl>
                     </label>
                 </div>
             </t>
