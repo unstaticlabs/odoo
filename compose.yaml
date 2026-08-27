@@ -41,7 +41,14 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
+      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+      PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
+      PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+      PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.35}
@@ -66,10 +73,17 @@ services:
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+      USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys
+    secrets:
+      - source: usl_personal_ai_master_keys
+        target: usl_personal_ai_master_keys
     command:
       - /bin/sh
       - -ec
       - |
+        [ -s "$${USL_PERSONAL_AI_MASTER_KEYS_PATH}" ] || {
+          echo "The personal AI master-key secret is required"; exit 1;
+        }
         if [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ]; then
           [ -n "$${POCKET_ID_CLIENT_ID}" ] || { echo "The Odoo Pocket client ID is required"; exit 1; }
           [ -n "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "The Paperless Pocket client ID is required"; exit 1; }
@@ -106,6 +120,7 @@ services:
             "$${PAPERLESS_BROKER_IMAGE}" \
             "$${PAPERLESS_GOTENBERG_IMAGE}" \
             "$${PAPERLESS_TIKA_IMAGE}" \
+            "$${OLLAMA_IMAGE}" \
             "$${POCKET_ID_IMAGE}"
           do
             case "$${image}" in
@@ -114,6 +129,14 @@ services:
               *) echo "Image must include an exact tag or digest: $${image}"; exit 1;;
             esac
           done
+          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" ] || {
+            echo "Paperless distribution base digest is not qualified"; exit 1;
+          }
+          [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
+          [ "$${PAPERLESS_USL_DEFER_SEMANTIC_INDEX}" = "false" ] || { echo "Deferred semantic indexing is migration-only"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_BACKEND}" = "ollama" ] || { echo "Paperless embeddings must use Ollama"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" = "usl-bge-m3:documents-20260824-rc1" ] || { echo "Paperless BGE-M3 alias is not qualified"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
           case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
@@ -158,6 +181,71 @@ services:
     volumes:
       - paperless-broker-data:/data
 
+  paperless-ollama:
+    profiles: ["paperless"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
+    volumes:
+      - paperless-ollama-data:/root/.ollama
+
+  paperless-model-preflight:
+    profiles: ["paperless"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+    restart: "no"
+    depends_on:
+      paperless-model-init:
+        condition: service_completed_successfully
+    environment:
+      OLLAMA_HOST: http://paperless-ollama:11434
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        ollama show "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" >/dev/null
+
+  paperless-model-init:
+    profiles: ["paperless"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+    restart: "no"
+    depends_on:
+      paperless-ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://paperless-ollama:11434
+      USL_BGE_SOURCE_MODEL: bge-m3:latest
+      USL_BGE_TARGET_MODEL: usl-bge-m3:documents-20260824-rc1
+      USL_BGE_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        source_manifest=/root/.ollama/models/manifests/registry.ollama.ai/library/bge-m3/latest
+        target_manifest=/root/.ollama/models/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1
+        if [ ! -f "$$target_manifest" ]; then
+          ollama pull "$$USL_BGE_SOURCE_MODEL"
+          actual="$$(sha256sum "$$source_manifest" | awk '{print $$1}')"
+          [ "$$actual" = "$$USL_BGE_MANIFEST_SHA256" ] || {
+            echo "Downloaded BGE-M3 manifest is not the qualified release" >&2
+            exit 1
+          }
+          ollama cp "$$USL_BGE_SOURCE_MODEL" "$$USL_BGE_TARGET_MODEL"
+        fi
+        actual="$$(sha256sum "$$target_manifest" | awk '{print $$1}')"
+        [ "$$actual" = "$$USL_BGE_MANIFEST_SHA256" ] || {
+          echo "Installed BGE-M3 manifest is not the qualified release" >&2
+          exit 1
+        }
+    volumes:
+      - paperless-ollama-data:/root/.ollama
+
   paperless-trash-init:
     profiles: ["paperless"]
     image: alpine:3.24.1
@@ -168,7 +256,12 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+    build:
+      context: .
+      dockerfile: deploy/documents/paperless-ngx/Dockerfile
+      args:
+        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
     restart: unless-stopped
     depends_on:
       paperless-preflight:
@@ -177,6 +270,8 @@ services:
         condition: service_healthy
       paperless-broker:
         condition: service_healthy
+      paperless-model-preflight:
+        condition: service_completed_successfully
       paperless-trash-init:
         condition: service_completed_successfully
       paperless-gotenberg:
@@ -206,8 +301,24 @@ services:
       PAPERLESS_TIKA_ENABLED: "1"
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://paperless-tika:9998
+      PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
+      PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+      PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: http://paperless-ollama:11434
+      PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
+      PAPERLESS_AI_LLM_CONTEXT_SIZE: ${PAPERLESS_AI_LLM_CONTEXT_SIZE:-8192}
+      PAPERLESS_AI_LLM_REQUEST_TIMEOUT: ${PAPERLESS_AI_LLM_REQUEST_TIMEOUT:-300}
+      PAPERLESS_AI_LLM_ALLOW_INTERNAL_ENDPOINTS: "true"
+      PAPERLESS_LLM_INDEX_TASK_CRON: ${PAPERLESS_LLM_INDEX_TASK_CRON:-10 2 * * *}
+      PAPERLESS_USL_SCOPED_SERVICE_USERS: ${PAPERLESS_USL_SCOPED_SERVICE_USERS:-odoo-integration}
+      PAPERLESS_APPS: paperless_personal_ai
+      USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys
     ports:
       - "127.0.0.1:${PAPERLESS_HTTP_PORT:-8010}:8000"
+    secrets:
+      - source: usl_personal_ai_master_keys
+        target: usl_personal_ai_master_keys
     healthcheck:
       test:
         - CMD-SHELL
@@ -229,7 +340,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -250,7 +361,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -325,6 +436,10 @@ services:
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
+      ODOO_DB_MAXCONN: ${ODOO_DB_MAXCONN:-32}
+      ODOO_LIMIT_MEMORY_SOFT: ${ODOO_LIMIT_MEMORY_SOFT:-1073741824}
+      ODOO_LIMIT_MEMORY_HARD: ${ODOO_LIMIT_MEMORY_HARD:-1342177280}
+      ODOO_LIMIT_REQUEST: ${ODOO_LIMIT_REQUEST:-8192}
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
@@ -407,6 +522,7 @@ services:
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence:ro
 
   accounting-migration:
     profiles: ["accounting-migration"]
@@ -432,7 +548,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -448,6 +564,7 @@ services:
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -477,7 +594,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -493,11 +610,14 @@ services:
       - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./migration/documents_archive:/mnt/documents-archive-migration:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+      - ./accounting_compat/private:/mnt/accounting-private:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence
 
   b2c-migration:
     profiles: ["b2c-migration"]
@@ -527,7 +647,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -543,6 +663,7 @@ services:
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -574,7 +695,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -590,6 +711,7 @@ services:
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -618,7 +740,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -634,6 +756,7 @@ services:
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -689,6 +812,7 @@ services:
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -747,3 +871,8 @@ volumes:
   paperless-export:
   paperless-consume:
   paperless-trash:
+  paperless-ollama-data:
+
+secrets:
+  usl_personal_ai_master_keys:
+    file: ${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-.documents-personal-ai-keys.json}

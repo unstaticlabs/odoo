@@ -1,6 +1,10 @@
+import copy
+import hashlib
 import json
 import logging
 import re
+import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -36,6 +40,14 @@ class PaperlessClient:
     API_VERSION = "10"
     SUPPORTED_SERVER_MAJOR = 3
     FAIL_CLOSED_WORKFLOW_NAME = "USL Odoo fail-closed ingestion"
+    _SCOPED_SEARCH_CACHE_TTL = 5.0
+    _SCOPED_SEARCH_CACHE_LIMIT = 128
+    _scoped_search_cache = {}
+    _scoped_search_cache_lock = threading.Lock()
+    _SEMANTIC_SEARCH_CACHE_TTL = 30.0
+    _SEMANTIC_SEARCH_CACHE_LIMIT = 64
+    _semantic_search_cache = {}
+    _semantic_search_cache_lock = threading.Lock()
 
     def __init__(self, env):
         self.env = env
@@ -89,6 +101,11 @@ class PaperlessClient:
             return value
         return "application/octet-stream"
 
+    @staticmethod
+    def _multipart_text(value):
+        """Keep scalar metadata inside one multipart form value."""
+        return str(value or "").replace("\r", " ").replace("\n", " ")
+
     def _request(
         self,
         method,
@@ -133,6 +150,10 @@ class PaperlessClient:
                 raise PaperlessCompatibilityError(
                     _("Paperless does not support required API version %s.")
                     % self.API_VERSION,
+                ) from error
+            if error.code == 503:
+                raise PaperlessUnavailable(
+                    _("Paperless search is temporarily unavailable."),
                 ) from error
             raise PaperlessError(
                 _("Paperless request failed (%(status)s): %(detail)s")
@@ -370,6 +391,193 @@ class PaperlessClient:
         query.update(filters or {})
         return self._request("GET", "/api/documents/", query=query)[0]
 
+    def scoped_search(
+        self,
+        text,
+        *,
+        document_ids,
+        limit=10000,
+        fields="all",
+        custom_field_query=None,
+        include_excerpt=False,
+    ):
+        """Run one bounded lexical request inside an explicit Odoo scope."""
+        scope = sorted({int(document_id) for document_id in document_ids})
+        if not scope:
+            return {"results": [], "truncated": False}
+        if fields not in {"all", "content", "custom_fields"}:
+            raise PaperlessError(_("Unsupported scoped search field set."))
+        body = {
+            "query": str(text or ""),
+            "document_ids": scope,
+            "fields": fields,
+            "limit": min(10000, max(1, int(limit))),
+            "include_excerpt": bool(include_excerpt),
+        }
+        if custom_field_query:
+            body["custom_field_query"] = custom_field_query
+        cache_material = json.dumps(
+            {
+                "base_url": self.base_url,
+                "token": hashlib.sha256(self.token.encode()).hexdigest(),
+                "body": body,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+        cache_key = hashlib.sha256(cache_material).digest()
+        now = time.monotonic()
+        with self._scoped_search_cache_lock:
+            cached = self._scoped_search_cache.get(cache_key)
+            if cached and now - cached[0] <= self._SCOPED_SEARCH_CACHE_TTL:
+                return copy.deepcopy(cached[1])
+            self._scoped_search_cache.pop(cache_key, None)
+        payload = self._request(
+            "POST",
+            "/api/documents/scoped_search/",
+            body=body,
+        )[0]
+        with self._scoped_search_cache_lock:
+            if len(self._scoped_search_cache) >= self._SCOPED_SEARCH_CACHE_LIMIT:
+                oldest_key = min(
+                    self._scoped_search_cache,
+                    key=lambda key: self._scoped_search_cache[key][0],
+                )
+                self._scoped_search_cache.pop(oldest_key, None)
+            self._scoped_search_cache[cache_key] = (now, copy.deepcopy(payload))
+        return payload
+
+    def semantic_search(self, text, *, document_ids, limit=50, facets=None):
+        """Search Paperless vectors inside an explicit Odoo-authorized scope."""
+        return self._semantic_search(
+            query=str(text or ""),
+            document_id=None,
+            document_ids=document_ids,
+            limit=limit,
+            facets=facets,
+        )
+
+    def semantic_search_by_document(
+        self,
+        document_id,
+        *,
+        document_ids,
+        limit=50,
+        facets=None,
+    ):
+        """Find similar roots without moving source OCR across the API boundary."""
+        return self._semantic_search(
+            query=None,
+            document_id=int(document_id),
+            document_ids=document_ids,
+            limit=limit,
+            facets=facets,
+        )
+
+    def _semantic_search(
+        self,
+        *,
+        query,
+        document_id,
+        document_ids,
+        limit,
+        facets,
+    ):
+        scope = sorted({int(document_id) for document_id in document_ids})
+        if not scope:
+            return {"results": [], "warnings": []}
+        if document_id is not None and document_id not in scope:
+            raise PaperlessError(
+                _("The similar-document source is outside the authorized scope."),
+            )
+        allowed_facets = {
+            "tag_ids",
+            "correspondent_ids",
+            "document_type_ids",
+            "created_after",
+            "created_before",
+        }
+        unsupported_facets = set(facets or {}) - allowed_facets
+        if unsupported_facets:
+            raise PaperlessError(_("Unsupported semantic search facet."))
+        bounded_limit = min(50, max(1, int(limit)))
+        cache_material = json.dumps(
+            {
+                "base_url": self.base_url,
+                "token": hashlib.sha256(self.token.encode()).hexdigest(),
+                "query": query,
+                "document_id": document_id,
+                "document_ids": scope,
+                "limit": bounded_limit,
+                "facets": facets or {},
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+        cache_key = hashlib.sha256(cache_material).digest()
+        now = time.monotonic()
+        with self._semantic_search_cache_lock:
+            cached = self._semantic_search_cache.get(cache_key)
+            if cached and now - cached[0] <= self._SEMANTIC_SEARCH_CACHE_TTL:
+                return copy.deepcopy(cached[1])
+            self._semantic_search_cache.pop(cache_key, None)
+        candidates = {}
+        warnings = []
+        # The distribution endpoint caps one explicit service scope at 10,000
+        # roots. Chunk larger authorized populations and merge comparable cosine
+        # similarities; no request ever widens to an unscoped service search.
+        chunk_size = 9999 if document_id is not None else 10000
+        scoped_candidates = (
+            [item for item in scope if item != document_id]
+            if document_id is not None
+            else scope
+        )
+        for offset in range(0, len(scoped_candidates), chunk_size):
+            chunk = scoped_candidates[offset : offset + chunk_size]
+            if document_id is not None:
+                chunk = [document_id, *chunk]
+            body = {
+                "limit": bounded_limit,
+                "document_ids": chunk,
+            }
+            if document_id is None:
+                body["query"] = query
+            else:
+                body["document_id"] = document_id
+            body.update(facets or {})
+            payload = self._request(
+                "POST",
+                "/api/documents/semantic_search/",
+                body=body,
+            )[0]
+            warnings.extend(payload.get("warnings") or [])
+            for item in payload.get("results") or []:
+                candidate_id = int(item["id"])
+                existing = candidates.get(candidate_id)
+                if existing is None or float(item.get("similarity") or 0) > float(
+                    existing.get("similarity") or 0,
+                ):
+                    candidates[candidate_id] = item
+        results = sorted(
+            candidates.values(),
+            key=lambda item: (-float(item.get("similarity") or 0), int(item["id"])),
+        )[:bounded_limit]
+        for rank, item in enumerate(results, start=1):
+            item["rank"] = rank
+        result = {"results": results, "warnings": warnings}
+        with self._semantic_search_cache_lock:
+            if len(self._semantic_search_cache) >= self._SEMANTIC_SEARCH_CACHE_LIMIT:
+                oldest_key = min(
+                    self._semantic_search_cache,
+                    key=lambda key: self._semantic_search_cache[key][0],
+                )
+                self._semantic_search_cache.pop(oldest_key, None)
+            self._semantic_search_cache[cache_key] = (
+                time.monotonic(),
+                copy.deepcopy(result),
+            )
+        return result
+
     def get_document(self, document_id, *, version_id=None):
         query = {"version": version_id} if version_id else None
         return self._request(
@@ -460,16 +668,43 @@ class PaperlessClient:
             None,
         )
         if existing:
-            result = self._request(
-                "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload,
-            )[0]
             created = False
+            triggers = existing.get("triggers") or []
+            actions = existing.get("actions") or []
+            trigger = triggers[0] if len(triggers) == 1 else {}
+            action = actions[0] if len(actions) == 1 else {}
+            matches = (
+                existing.get("name") == payload["name"]
+                and existing.get("order") == payload["order"]
+                and existing.get("enabled") is True
+                and len(triggers) == 1
+                and trigger.get("type") == 1
+                and sorted(trigger.get("sources") or []) == [1, 2, 3, 4]
+                and trigger.get("filter_filename") == "*"
+                and len(actions) == 1
+                and action.get("type") == 1
+                and action.get("assign_owner") == self.owner_user_id
+                and not (action.get("assign_view_users") or [])
+                and not (action.get("assign_view_groups") or [])
+                and not (action.get("assign_change_users") or [])
+                and not (action.get("assign_change_groups") or [])
+            )
+            if matches:
+                result = existing
+                updated = False
+            else:
+                result = self._request(
+                    "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload,
+                )[0]
+                updated = True
         else:
             result = self._request("POST", "/api/workflows/", body=payload)[0]
             created = True
+            updated = False
         return {
             "ok": True,
             "created": created,
+            "updated": updated,
             "workflow_id": result.get("id"),
             "workflow_name": result.get("name", self.FAIL_CLOSED_WORKFLOW_NAME),
             "owner_user_id": self.owner_user_id,
@@ -502,21 +737,44 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/thumb/", raw=True,
         )
 
-    def upload_multipart(self, content, filename, content_type, *, title=None):
+    def upload_multipart(
+        self,
+        content,
+        filename,
+        content_type,
+        *,
+        title=None,
+        created=None,
+        correspondent_id=None,
+        document_type_id=None,
+        tag_ids=None,
+    ):
         if not self.configured:
             raise PaperlessUnavailable(
                 _("Paperless is not configured. Ask a Documents administrator."),
             )
         boundary = f"----usl-{uuid.uuid4().hex}"
         chunks = []
-        if title:
+
+        def append_field(name, value):
             chunks.append(
                 (
                     f"--{boundary}\r\n"
-                    'Content-Disposition: form-data; name="title"\r\n\r\n'
-                    f"{title}\r\n"
+                    f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                    f"{self._multipart_text(value)}\r\n"
                 ).encode(),
             )
+
+        if title:
+            append_field("title", title)
+        if created:
+            append_field("created", created)
+        if correspondent_id:
+            append_field("correspondent", int(correspondent_id))
+        if document_type_id:
+            append_field("document_type", int(document_type_id))
+        for tag_id in sorted({int(tag_id) for tag_id in (tag_ids or [])}):
+            append_field("tags", tag_id)
         safe_filename = self._multipart_filename(filename)
         safe_content_type = self._multipart_content_type(content_type)
         chunks.extend([
@@ -637,6 +895,19 @@ class PaperlessClient:
         return results[0] if results else None
 
     def set_document_permissions(self, document_id, *, view_users, change_users):
+        return self.set_documents_permissions(
+            [document_id],
+            view_users=view_users,
+            change_users=change_users,
+        )
+
+    def set_documents_permissions(
+        self,
+        document_ids,
+        *,
+        view_users,
+        change_users,
+    ):
         if not self.owner_user_id:
             raise PaperlessCompatibilityError(
                 _(
@@ -644,6 +915,9 @@ class PaperlessClient:
                     "permission synchronization is blocked.",
                 ),
             )
+        document_ids = sorted({int(document_id) for document_id in document_ids})
+        if not document_ids:
+            return {"result": "OK"}
         permissions = {
             "view": {"users": sorted(set(view_users)), "groups": []},
             "change": {"users": sorted(set(change_users)), "groups": []},
@@ -652,7 +926,7 @@ class PaperlessClient:
             "POST",
             "/api/documents/bulk_edit/",
             body={
-                "documents": [int(document_id)],
+                "documents": document_ids,
                 "method": "set_permissions",
                 "parameters": {
                     "set_permissions": permissions,

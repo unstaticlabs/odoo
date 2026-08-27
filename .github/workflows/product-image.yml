@@ -4,6 +4,9 @@
 name: Distribution image
 
 on:
+  pull_request:
+    branches:
+      - 19-usl
   push:
     branches:
       - 19-usl
@@ -18,7 +21,61 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      USL_EINVOICE_LIVE_ENABLED: "0"
+      USL_EREPORTING_LIVE_ENABLED: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync pinned OCA add-ons
+        run: scripts/sync-oca-addons
+
+      - name: Check reviewed source action inventory
+        run: make action-risk-inventory
+
+      - name: Run access-control suite on the delivered product registry
+        env:
+          COMPOSE_PROJECT_NAME: usl-odoo-action-risk-${{ github.run_id }}-${{ github.run_attempt }}
+          TEST_DATABASE: odoo_action_risk_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+          docker compose --profile test run --rm \
+            -e ODOO_INIT_DB="$TEST_DATABASE" \
+            test odoo --config=/etc/odoo/odoo.conf \
+            --database="$TEST_DATABASE" \
+            --init="$product_modules" \
+            --without-demo=true \
+            --test-enable \
+            --test-tags=/usl_access_control \
+            --stop-after-init \
+            --log-level=warn
+          docker compose --profile test run --rm -T \
+            -e ODOO_INIT_DB="$TEST_DATABASE" \
+            -e ACTION_RISK_MODE=check \
+            test odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$TEST_DATABASE" \
+            --shell-interface=python \
+            < scripts/odoo/action_risk_inventory.py
+          docker compose --profile test run --rm -T \
+            -e ODOO_INIT_DB="$TEST_DATABASE" \
+            test odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$TEST_DATABASE" \
+            --shell-interface=python \
+            < scripts/odoo/compile_product_assets.py
+
+      - name: Remove qualification services and volumes
+        if: always()
+        env:
+          COMPOSE_PROJECT_NAME: usl-odoo-action-risk-${{ github.run_id }}-${{ github.run_attempt }}
+        run: docker compose --profile test down --volumes --remove-orphans
+
   build-and-push:
+    needs: qualify
+    if: github.ref == 'refs/heads/19-usl' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,7 +88,9 @@ jobs:
         id: release
         run: |
           digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+          action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
           echo "oca_digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
           echo "release_commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -64,6 +123,7 @@ jobs:
           build-args: |
             USL_RELEASE_COMMIT=${{ steps.release.outputs.release_commit }}
             USL_OCA_BUNDLE_SHA256=${{ steps.release.outputs.oca_digest }}
+            USL_ACTION_RISK_POLICY_SHA256=${{ steps.release.outputs.action_risk_digest }}
           provenance: mode=max
           sbom: true
           cache-from: type=gha
@@ -74,10 +134,12 @@ jobs:
           IMAGE: ghcr.io/unstaticlabs/usl-odoo:${{ github.sha }}
           EXPECTED_COMMIT: ${{ github.sha }}
           EXPECTED_OCA: ${{ steps.release.outputs.oca_digest }}
+          EXPECTED_ACTION_RISK: ${{ steps.release.outputs.action_risk_digest }}
         run: |
           docker pull "$IMAGE"
           test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
           test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
+          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
           test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
           repo_digest="$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
           case "$repo_digest" in *@sha256:*) : ;; *) echo "Missing immutable repo digest" >&2; exit 1 ;; esac

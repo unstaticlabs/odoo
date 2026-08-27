@@ -1,11 +1,14 @@
 .o_usl_documents {
     --usl-sidebar-width: 232px;
+    position: relative;
+    overflow: hidden;
 
     .o_usl_documents_sidebar {
         width: var(--usl-sidebar-width);
         flex: 0 0 var(--usl-sidebar-width);
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
         background: var(--o-view-background-color, #fff);
 
         .nav-link {
@@ -48,8 +51,13 @@
         z-index: 2;
     }
 
+    .o_usl_documents_toolbar_row {
+        min-width: 0;
+        flex-wrap: nowrap;
+    }
+
     .o_usl_documents_search {
-        min-width: 340px;
+        min-width: 0;
         max-width: 860px;
 
         .o_cp_searchview {
@@ -62,10 +70,55 @@
         min-width: 148px;
     }
 
+    .o_usl_sort_icon {
+        position: relative;
+        display: none;
+        width: 2.375rem;
+        height: 2.375rem;
+        flex: 0 0 2.375rem;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        overflow: hidden;
+
+        &:focus-within {
+            outline: 3px solid #2b6cb0;
+            outline-offset: 2px;
+        }
+    }
+
+    .o_usl_sort_compact_select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        opacity: 0;
+    }
+
+    .o_usl_archive_search_controls {
+        .form-select {
+            width: auto;
+            min-width: 9.5rem;
+        }
+    }
+
     .o_usl_filter_shortcuts {
         max-width: 100%;
         padding-bottom: 0.2rem;
         flex-wrap: wrap;
+    }
+
+    .o_usl_favorites_filter {
+        width: 2rem;
+        height: 2rem;
+        flex: 0 0 2rem;
+        padding: 0;
+
+        &:focus-visible {
+            outline: 3px solid #2b6cb0;
+            outline-offset: 2px;
+        }
     }
 
     .o_usl_filter_shortcut_divider {
@@ -273,6 +326,67 @@
         }
     }
 
+    .o_usl_star_button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        z-index: 2;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        color: #475569;
+        border: 1px solid rgba(15, 23, 42, 0.2);
+
+        &.is-starred {
+            color: #9a6700;
+            background: #fff7cc;
+        }
+
+        &:disabled {
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            outline: 3px solid #2b6cb0;
+            outline-offset: 2px;
+        }
+    }
+
+    .o_usl_semantic_match {
+        position: absolute;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.22rem 0.48rem;
+        color: #78350f;
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        line-height: 1;
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 999px;
+
+        &.is-medium {
+            color: #1e3a8a;
+            background: #dbeafe;
+            border-color: #60a5fa;
+        }
+
+        &.is-strong {
+            color: #14532d;
+            background: #dcfce7;
+            border-color: #4ade80;
+        }
+
+        &.is-inline {
+            position: static;
+            margin-top: 0.25rem;
+        }
+    }
+
     .o_usl_document_list_thumb {
         width: 40px;
         height: 52px;
@@ -391,11 +505,22 @@
         overflow: hidden;
     }
 
+    .o_usl_documents_detail_backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: rgba(15, 23, 42, 0.12);
+    }
+
     .o_usl_documents_detail {
+        position: absolute;
+        inset: 0 0 0 auto;
         width: 46vw;
+        height: 100%;
         max-width: 720px;
-        flex: 0 0 46vw;
-        z-index: 3;
+        flex: none;
+        z-index: 6;
+        box-shadow: -0.5rem 0 1.25rem rgba(15, 23, 42, 0.16);
 
         .o_usl_document_preview {
             display: block;
@@ -510,12 +635,28 @@
 @media (max-width: 992px) {
     .o_usl_documents {
         .o_usl_documents_detail {
-            position: absolute;
-            inset: 0 0 0 auto;
             width: 92vw;
             max-width: 680px;
-            z-index: 5;
-            box-shadow: -0.5rem 0 1rem rgba(0, 0, 0, 0.12);
+        }
+    }
+}
+
+@media (max-width: 1200px) {
+    .o_usl_documents {
+        .o_usl_sort_select_full {
+            display: none;
+        }
+
+        .o_usl_sort_icon {
+            display: inline-flex;
+        }
+
+        .o_usl_upload_label {
+            display: none;
+        }
+
+        .o_usl_upload_icon {
+            margin-right: 0 !important;
         }
     }
 }
@@ -553,7 +694,20 @@
         }
 
         .o_usl_documents_search {
-            min-width: 100%;
+            min-width: 0;
+        }
+
+        .o_usl_archive_search_controls {
+            align-items: stretch !important;
+
+            label,
+            .form-select {
+                width: 100%;
+            }
+
+            label {
+                flex-wrap: wrap;
+            }
         }
 
         .o_usl_documents_grid {

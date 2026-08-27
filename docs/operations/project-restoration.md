@@ -46,11 +46,8 @@ The inspected snapshot contains:
 | Task assignees / tags / parents / dependencies | 417 / 3,196 / 1,234 / 227 |
 | Project stage / tag / favourite links | 106 / 16 / 13 |
 | Task milestone / recurrence links | 66 / 10 |
-| Chatter messages / tracking values | 19,127 / 7,720 |
-| Message parents / recipients / attachment links | 15,032 / 48 / 13 |
-| Followers / activities | 2,109 / 700 |
-| Binary attachments | 38 (15,433,661 bytes) |
-| Project aliases / named local parts | 18 / 11 |
+| Chatter messages / tracking values | 20,945 / 8,328 |
+| Followers / activities | 2,224 / 871 |
 | Analytic projects / linked expenses | 2 / 117 |
 
 During migration, temporary source bindings carry the source database, model,

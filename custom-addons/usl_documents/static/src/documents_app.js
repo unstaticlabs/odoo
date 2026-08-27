@@ -21,6 +21,7 @@ import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import { Dialog } from "@web/core/dialog/dialog";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { deserializeDate, serializeDate } from "@web/core/l10n/dates";
+import { _t } from "@web/core/l10n/translation";
 import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
@@ -34,7 +35,6 @@ import {
     useSelectCreate,
 } from "@web/views/fields/relational_utils";
 import { getDefaultConfig } from "@web/views/view";
-import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 const FILTER_DEFAULTS = {
@@ -56,6 +56,8 @@ const FILTER_DEFAULTS = {
     customFieldId: "",
     customFieldValue: "",
 };
+const DEFAULT_PAGE_SIZE = 24;
+const MAX_PAGE_SIZE = 500;
 
 for (const key of [
     "uslDocumentsWorkspace",
@@ -276,33 +278,6 @@ export class DocumentPreview extends Component {
             this.renderedPdfKey = null;
             this.state.page += 1;
         }
-    }
-}
-
-export class OpenDocumentsField extends Component {
-    static template = "usl_documents.OpenDocumentsField";
-    static props = { ...standardFieldProps };
-
-    setup() {
-        this.orm = useService("orm");
-        this.action = useService("action");
-    }
-
-    get count() {
-        return Number(this.props.record.data[this.props.name]) || 0;
-    }
-
-    get label() {
-        return `Open ${this.count} document${this.count === 1 ? "" : "s"}`;
-    }
-
-    async open() {
-        const action = await this.orm.call(
-            this.props.record.resModel,
-            "action_open_documents",
-            [[this.props.record.resId]]
-        );
-        return this.action.doAction(action);
     }
 }
 
@@ -536,7 +511,7 @@ export class DocumentsWorkspaceView extends Component {
                 restored.selectedVersionId = null;
             }
             if (params.linked_filter) {
-                restored.workspace = "all";
+                restored.workspace = "archive_search";
                 restored.page = 1;
             }
             restored.linkedRecord = params.linked_filter
@@ -588,9 +563,21 @@ export class DocumentsWorkspaceView extends Component {
             searchInput: typeof restored.query === "string" ? restored.query : "",
             searchFocused: false,
             workspace:
-                typeof restored.workspace === "string" ? restored.workspace : "recent",
+                typeof restored.workspace === "string" ? restored.workspace : "home",
+            searchMode: ["hybrid", "exact", "semantic"].includes(
+                restored.searchMode
+            )
+                ? restored.searchMode
+                : "hybrid",
+            backgroundMode: ["include", "exclude", "only"].includes(
+                restored.backgroundMode
+            )
+                ? restored.backgroundMode
+                : "include",
             view: ["cards", "list"].includes(restored.view) ? restored.view : "cards",
-            sort: ["recent", "ingested", "date", "title"].includes(restored.sort)
+            sort: ["recent", "ingested", "date", "title", "semantic"].includes(
+                restored.sort
+            )
                 ? restored.sort
                 : "recent",
             orderBy: Array.isArray(restored.orderBy)
@@ -616,7 +603,12 @@ export class DocumentsWorkspaceView extends Component {
                     ? restored.page
                     : 1,
             count: 0,
-            pageSize: 24,
+            pageSize:
+                Number.isInteger(restored.pageSize) &&
+                restored.pageSize > 0 &&
+                restored.pageSize <= MAX_PAGE_SIZE
+                    ? restored.pageSize
+                    : DEFAULT_PAGE_SIZE,
             documents: [],
             selected: null,
             selectedLoading: false,
@@ -627,8 +619,18 @@ export class DocumentsWorkspaceView extends Component {
             failedOperations: [],
             canUpload: false,
             truncated: false,
+            warnings: [],
+            semanticRefining: false,
+            semanticScoresLoaded: false,
+            starring: {},
+            changingLibrary: false,
         });
         this.searchReady = false;
+        this.workspaceLoadToken = 0;
+        this.workspaceMetadataLoaded = false;
+        this.resultWindow = [];
+        this.resultWindowOffset = 0;
+        this.resultWindowComplete = false;
         this.metadataSaveQueue = Promise.resolve();
         useSetupAction({
             getOrderBy: () => this.state.orderBy,
@@ -753,6 +755,49 @@ export class DocumentsWorkspaceView extends Component {
     get activeSmartView() {
         return this.state.smartViews.find(
             (view) => view.key === this.state.workspace
+        );
+    }
+
+    get isArchiveSearchEmpty() {
+        return (
+            this.state.workspace === "archive_search" &&
+            !this.searchModel.facets.length
+        );
+    }
+
+    get selectedRelationshipRole() {
+        if (!this.state.selected) {
+            return null;
+        }
+        if (this.recordContext) {
+            return this.state.selected.links?.find(
+                (link) =>
+                    link.model === this.recordContext.resModel &&
+                    link.res_id === this.recordContext.resId
+            )?.document_role;
+        }
+        const mutableLinks = (this.state.selected.links || []).filter((link) =>
+            ["background", "library"].includes(link.document_role)
+        );
+        if (mutableLinks.length === 1) {
+            return mutableLinks[0].document_role;
+        }
+        return this.state.selected.intake_role;
+    }
+
+    get canPromoteSelected() {
+        return (
+            this.state.selected?.can_edit &&
+            this.state.selected.availability_state === "available" &&
+            this.selectedRelationshipRole === "background"
+        );
+    }
+
+    get canDemoteSelected() {
+        return (
+            this.state.selected?.can_edit &&
+            this.state.selected.availability_state === "available" &&
+            this.selectedRelationshipRole === "library"
         );
     }
 
@@ -1212,11 +1257,43 @@ export class DocumentsWorkspaceView extends Component {
             offset: (this.state.page - 1) * this.state.pageSize,
             limit: this.state.pageSize,
             total: this.state.count,
-            onUpdate: ({ offset }) => {
-                this.state.page = Math.floor(offset / this.state.pageSize) + 1;
+            onUpdate: ({ offset, limit }) => {
+                const pageSize = Math.min(
+                    MAX_PAGE_SIZE,
+                    Math.max(1, Number(limit) || this.state.pageSize)
+                );
+                this.state.pageSize = pageSize;
+                this.state.page = Math.floor(offset / pageSize) + 1;
+                const windowStart = Number(offset) - this.resultWindowOffset;
+                const requestedEnd = Math.min(
+                    Number(offset) + pageSize,
+                    this.state.count
+                );
+                const windowEnd = requestedEnd - this.resultWindowOffset;
+                if (
+                    this.resultWindow.length &&
+                    windowStart >= 0 &&
+                    windowEnd <= this.resultWindow.length
+                ) {
+                    this.state.documents = this.resultWindow.slice(
+                        windowStart,
+                        windowEnd
+                    );
+                    this.persistState();
+                    this.replaceNavigationState();
+                    return Promise.resolve();
+                }
                 return this.load();
             },
         };
+    }
+
+    get canSortBySemantic() {
+        return (
+            this.state.semanticScoresLoaded ||
+            this.state.semanticRefining ||
+            this.state.sort === "semantic"
+        );
     }
 
     get cardSort() {
@@ -1236,6 +1313,41 @@ export class DocumentsWorkspaceView extends Component {
             }
         }
         return "custom";
+    }
+
+    semanticMatchPercent(document) {
+        const suppliedValue = document?.semantic_match_percent;
+        const supplied = Number(suppliedValue);
+        if (
+            suppliedValue !== null &&
+            suppliedValue !== undefined &&
+            Number.isFinite(supplied)
+        ) {
+            return Math.min(100, Math.max(0, Math.round(supplied)));
+        }
+        const similarityValue = document?.semantic_similarity;
+        const similarity = Number(similarityValue);
+        return similarityValue !== null &&
+            similarityValue !== undefined &&
+            Number.isFinite(similarity)
+            ? Math.min(100, Math.max(0, Math.round(similarity * 100)))
+            : null;
+    }
+
+    semanticMatchTone(document) {
+        const percent = this.semanticMatchPercent(document);
+        if (percent >= 75) {
+            return "is-strong";
+        }
+        if (percent >= 50) {
+            return "is-medium";
+        }
+        return "is-light";
+    }
+
+    semanticMatchLabel(document) {
+        const percent = this.semanticMatchPercent(document);
+        return percent === null ? "" : _t("Semantic similarity: %s%%", percent);
     }
 
     get currentVersion() {
@@ -1269,8 +1381,11 @@ export class DocumentsWorkspaceView extends Component {
             workspace: this.state.workspace,
             view: this.state.view,
             sort: this.state.sort,
+            searchMode: this.state.searchMode,
+            backgroundMode: this.state.backgroundMode,
             orderBy: this.state.orderBy,
             page: this.state.page,
+            pageSize: this.state.pageSize,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
@@ -1292,6 +1407,7 @@ export class DocumentsWorkspaceView extends Component {
             sort: this.state.sort,
             orderBy: this.state.orderBy,
             page: this.state.page,
+            pageSize: this.state.pageSize,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
@@ -1696,7 +1812,10 @@ export class DocumentsWorkspaceView extends Component {
         }
     }
 
-    workspaceKwargs() {
+    workspaceKwargs({
+        searchMode = this.state.searchMode,
+        includeWorkspaceMetadata = !this.workspaceMetadataLoaded,
+    } = {}) {
         const linkedRecordIsActive =
             this.recordContext &&
             this.domainContains(
@@ -1712,6 +1831,9 @@ export class DocumentsWorkspaceView extends Component {
             sort: this.state.sort,
             order_by: this.state.orderBy,
             search_domain: this.searchModel.domain,
+            search_mode: searchMode,
+            include_workspace_metadata: includeWorkspaceMetadata,
+            background_mode: this.state.backgroundMode,
             // Legacy state is migrated into the native SearchModel before the
             // second load. Never apply a second hidden tag condition.
             shortcut_tag_ids: [],
@@ -1826,56 +1948,149 @@ export class DocumentsWorkspaceView extends Component {
         ];
     }
 
+    hasProgressiveSemanticSearch() {
+        return (
+            this.state.searchMode === "hybrid" &&
+            this.domainLeaves(this.searchModel.domain).some(
+                (leaf) => leaf[0] === "all_text" && leaf[2]
+            )
+        );
+    }
+
+    hasSemanticSearch() {
+        return this.domainLeaves(this.searchModel.domain).some(
+            (leaf) =>
+                (leaf[0] === "semantic_text" ||
+                    (leaf[0] === "all_text" && this.state.searchMode !== "exact")) &&
+                leaf[2]
+        );
+    }
+
+    applyWorkspaceResult(result) {
+        if (Array.isArray(result.result_window)) {
+            this.resultWindow = result.result_window;
+            this.resultWindowOffset = Number(result.result_window_offset) || 0;
+            this.resultWindowComplete = Boolean(result.result_window_complete);
+        } else {
+            this.resultWindow = [];
+            this.resultWindowOffset = 0;
+            this.resultWindowComplete = false;
+        }
+        this.state.documents = result.documents;
+        this.state.count = result.count;
+        this.state.page = Number(result.page) || this.state.page;
+        this.state.pageSize = Math.min(
+            MAX_PAGE_SIZE,
+            Math.max(1, Number(result.page_size) || this.state.pageSize)
+        );
+        this.state.semanticScoresLoaded = Boolean(result.semantic_scores_loaded);
+        this.state.degraded = result.degraded;
+        if (result.metadata_included) {
+            this.state.smartViews = result.smart_views || [];
+            this.state.tags = result.tags || [];
+            this.state.correspondents = result.correspondents || [];
+            this.state.documentTypes = result.document_types || [];
+            this.state.companies = result.companies || [];
+            this.state.customFields = result.custom_fields || [];
+            this.state.linkFacets = result.link_facets || [];
+            this.workspaceMetadataLoaded = true;
+        }
+        this.state.canUpload = Boolean(result.can_upload);
+        this.state.failedOperations = result.failed_operations || [];
+        if (!this.state.operation && result.active_operation) {
+            this.state.operation = result.active_operation;
+            this.pollOperation(result.active_operation.id);
+        }
+        this.state.truncated = Boolean(result.truncated);
+        this.state.warnings = (result.warnings || []).map((warning) =>
+            typeof warning === "string"
+                ? warning
+                : warning.message || warning.code || "Search is partially unavailable."
+        );
+        this.state.error = result.error || "";
+        this.state.workspace = result.selected_workspace || this.state.workspace;
+        if (this.state.selected) {
+            const refreshed = result.documents.find(
+                (item) => item.id === this.state.selected.id
+            );
+            if (refreshed) {
+                this.state.selected = { ...this.state.selected, ...refreshed };
+            }
+        }
+    }
+
     async load() {
+        if (this.state.sort === "semantic" && !this.hasSemanticSearch()) {
+            this.state.sort = "recent";
+        }
+        const loadToken = ++this.workspaceLoadToken;
+        const progressive = this.hasProgressiveSemanticSearch();
+        const includeWorkspaceMetadata = !this.workspaceMetadataLoaded;
         this.state.loading = true;
+        this.state.semanticRefining = false;
         this.state.error = "";
         try {
             const result = await this.orm.call(
                 "usl.document",
                 "workspace_data",
                 [],
-                this.workspaceKwargs()
+                this.workspaceKwargs({
+                    searchMode: progressive ? "exact" : this.state.searchMode,
+                    includeWorkspaceMetadata,
+                })
             );
-            this.state.documents = result.documents;
-            this.state.count = result.count;
-            this.state.degraded = result.degraded;
-            this.state.smartViews = result.smart_views || this.state.smartViews;
-            this.state.tags = result.tags || this.state.tags;
-            this.state.correspondents =
-                result.correspondents || this.state.correspondents;
-            this.state.documentTypes =
-                result.document_types || this.state.documentTypes;
-            this.state.companies = result.companies || this.state.companies;
-            this.state.customFields =
-                result.custom_fields || this.state.customFields;
-            this.state.linkFacets = result.link_facets || this.state.linkFacets;
-            this.state.canUpload = Boolean(result.can_upload);
-            this.state.failedOperations = result.failed_operations || [];
-            if (!this.state.operation && result.active_operation) {
-                this.state.operation = result.active_operation;
-                this.pollOperation(result.active_operation.id);
+            if (loadToken !== this.workspaceLoadToken) {
+                return;
             }
-            this.state.truncated = Boolean(result.truncated);
-            this.state.error = result.error || "";
-            this.state.workspace = result.selected_workspace || this.state.workspace;
-            if (this.state.selected) {
-                const refreshed = result.documents.find(
-                    (item) => item.id === this.state.selected.id
-                );
-                if (refreshed) {
-                    this.state.selected = { ...this.state.selected, ...refreshed };
+            this.applyWorkspaceResult(result);
+            this.state.loading = false;
+            if (progressive && !result.degraded && !result.error) {
+                this.state.semanticRefining = true;
+                try {
+                    const refined = await this.orm.call(
+                        "usl.document",
+                        "workspace_data",
+                        [],
+                        this.workspaceKwargs({
+                            searchMode: "hybrid",
+                            includeWorkspaceMetadata: false,
+                        })
+                    );
+                    if (loadToken !== this.workspaceLoadToken) {
+                        return;
+                    }
+                    this.applyWorkspaceResult(refined);
+                } catch (_error) {
+                    if (loadToken === this.workspaceLoadToken) {
+                        this.state.warnings = [
+                            ...this.state.warnings,
+                            _t(
+                                "Exact matches are shown; semantic refinement is temporarily unavailable."
+                            ),
+                        ];
+                    }
+                } finally {
+                    if (loadToken === this.workspaceLoadToken) {
+                        this.state.semanticRefining = false;
+                    }
                 }
             }
         } catch (error) {
+            if (loadToken !== this.workspaceLoadToken) {
+                return;
+            }
             this.state.degraded = true;
             this.state.error =
                 error.data?.message ||
                 error.message ||
                 "The archive could not be loaded.";
         } finally {
-            this.state.loading = false;
-            this.persistState();
-            this.replaceNavigationState();
+            if (loadToken === this.workspaceLoadToken) {
+                this.state.loading = false;
+                this.state.semanticRefining = false;
+                this.persistState();
+                this.replaceNavigationState();
+            }
         }
     }
 
@@ -2324,7 +2539,7 @@ export class DocumentsWorkspaceView extends Component {
             (item) => item.id !== view.id
         );
         if (this.state.workspace === view.key) {
-            this.state.workspace = "recent";
+            this.state.workspace = "home";
             await this.load();
         }
     }
@@ -2369,6 +2584,16 @@ export class DocumentsWorkspaceView extends Component {
                     ...detail,
                     preview_url: this.documentPreviewUrl(detail),
                 };
+                try {
+                    await this.orm.call(
+                        "usl.document",
+                        "action_mark_opened",
+                        [[document.id]]
+                    );
+                } catch {
+                    // Personal recency is a convenience. It must never block
+                    // authorized archive access or document preview.
+                }
                 this.state.degraded = detail.archive_available === false;
                 if (versionId) {
                     const version = detail.versions?.find(
@@ -2391,6 +2616,97 @@ export class DocumentsWorkspaceView extends Component {
             );
         } finally {
             this.state.selectedLoading = false;
+        }
+    }
+
+    async toggleStar(document) {
+        if (!document?.id || this.state.starring[document.id]) {
+            return;
+        }
+        this.state.starring[document.id] = true;
+        const starred = !document.is_starred;
+        const setStarred = (value) => {
+            for (const item of [...this.state.documents, ...this.resultWindow]) {
+                if (item.id === document.id) {
+                    item.is_starred = value;
+                }
+            }
+            if (this.state.selected?.id === document.id) {
+                this.state.selected.is_starred = value;
+            }
+        };
+        setStarred(starred);
+        try {
+            await this.orm.call("usl.document", "action_set_starred", [
+                [document.id],
+                starred,
+            ]);
+            this.notification.add(
+                starred ? "Added to your starred documents." : "Removed from your starred documents.",
+                { type: "success" }
+            );
+            const favoriteShortcut = this.smartViewShortcuts.find(
+                (shortcut) => shortcut.key === "starred"
+            );
+            if (
+                !starred &&
+                favoriteShortcut &&
+                this.isSmartShortcutActive(favoriteShortcut)
+            ) {
+                this.state.documents = this.state.documents.filter(
+                    (item) => item.id !== document.id
+                );
+                this.state.count = Math.max(0, this.state.count - 1);
+            }
+        } catch (error) {
+            setStarred(!starred);
+            this.notification.add(
+                error.data?.message || error.message || "Your star was not saved.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.starring[document.id] = false;
+        }
+    }
+
+    async setLibraryVisibility(promote) {
+        const selected = this.state.selected;
+        if (!selected || this.state.changingLibrary) {
+            return;
+        }
+        this.state.changingLibrary = true;
+        try {
+            const detail = await this.orm.call(
+                "usl.document",
+                "action_set_library_visibility",
+                [[selected.id], promote],
+                this.recordContext
+                    ? {
+                          res_model: this.recordContext.resModel,
+                          res_id: this.recordContext.resId,
+                      }
+                    : {}
+            );
+            this.state.selected = {
+                ...detail,
+                preview_url: this.documentPreviewUrl(detail),
+            };
+            this.notification.add(
+                promote
+                    ? "Added to My library. The archived file was reused."
+                    : "Removed from My library. The archive and business links were kept.",
+                { type: "success" }
+            );
+            await this.load();
+        } catch (error) {
+            this.notification.add(
+                error.data?.message ||
+                    error.message ||
+                    "Library visibility could not be changed.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.changingLibrary = false;
         }
     }
 
@@ -3218,9 +3534,6 @@ export class DocumentsWorkspace extends Component {
 
 registry.category("actions").add(
     "usl_documents.workspace",
-    DocumentsWorkspace
+    DocumentsWorkspace,
+    { force: true }
 );
-registry.category("fields").add("usl_open_documents", {
-    component: OpenDocumentsField,
-    supportedTypes: ["integer"],
-});

@@ -109,6 +109,7 @@ verify_seed() {
 
 capture() {
     local accounting_controls accounting_status documents_controls
+    local collaboration_evidence collaboration_sha256 source_sha256
     local runtime_json export_name odoo_volume commit qualification_json module_versions
     local paperless_documents
     require_source
@@ -176,9 +177,9 @@ capture() {
             'from documents.models import Document; print(Document.objects.count())' \
             | tail -n 1
     )"
-    "${compose[@]}" exec -T paperless-webserver \
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
         mkdir -p "/usr/src/paperless/export/$export_name"
-    "${compose[@]}" exec -T paperless-webserver \
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
         python manage.py document_exporter \
         "/usr/src/paperless/export/$export_name" \
         --compare-checksums --delete --no-progress-bar
@@ -240,9 +241,33 @@ PY
             'odoo_document_count', (SELECT count(*) FROM usl_document),
             'active_link_count', (SELECT count(*) FROM usl_document_link WHERE active)
         )::text")"
+    source_sha256="$(shasum -a 256 "$source_dump" | awk '{print $1}')"
+    collaboration_evidence="$ROOT/artifacts/migration/private/source-${source_sha256:0:12}/collaboration/$compose_project/collaboration-disposition.json"
+    if [[ ! -f "$collaboration_evidence" ]] \
+        || ! python3 - "$collaboration_evidence" "$source_sha256" <<'PY'
+import json
+import sys
+
+value = json.load(open(sys.argv[1], encoding="utf-8"))
+valid = (
+    value.get("source_dump_sha256") == sys.argv[2]
+    and value.get("visible_message_count") == 49451
+    and value.get("external_message_count") == 554
+    and len(value.get("dispositions", {}).get("messages", [])) == 50005
+    and len(value.get("dispositions", {}).get("tracking", [])) == 36946
+    and len(value.get("dispositions", {}).get("followers", [])) == 5862
+    and len(value.get("dispositions", {}).get("activities", [])) == 895
+)
+raise SystemExit(0 if valid else 1)
+PY
+    then
+        printf 'The sealed Collaboration disposition evidence is missing or incomplete; refusing seed capture.\n' >&2
+        exit 1
+    fi
+    collaboration_sha256="$(shasum -a 256 "$collaboration_evidence" | awk '{print $1}')"
     python3 - "$qualification_json" "$compose_project" "$module_versions" \
         "$paperless_documents" "$accounting_status" "$accounting_controls" \
-        "$documents_controls" <<'PY'
+        "$documents_controls" "$collaboration_sha256" <<'PY'
 import json
 import sys
 from datetime import UTC, datetime
@@ -257,6 +282,12 @@ with open(sys.argv[1], "w", encoding="utf-8") as stream:
                 "status": accounting["status"],
             },
             "captured_at": datetime.now(UTC).isoformat(),
+            "collaboration": {
+                "evidence_sha256": sys.argv[8],
+                "external_message_count": 554,
+                "status": "passed",
+                "visible_message_count": 49451,
+            },
             "compose_project": sys.argv[2],
             "documents": {
                 "controls": json.loads(sys.argv[7]),

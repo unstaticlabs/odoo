@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Create the ignored Pocket ID secrets for the isolated Documents QA stack."""
+"""Create ignored identity and personal-AI secrets for Documents QA."""
+
+# ruff: noqa: EM101, T201
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import secrets
 import stat
 import uuid
 from pathlib import Path
-
 
 REQUIRED_KEYS = {
     "COMPOSE_PROJECT_NAME",
@@ -52,6 +54,53 @@ LEGACY_REQUIRED_KEYS = REQUIRED_KEYS - {
 }
 QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"
 LEGACY_QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:8010"
+PERSONAL_AI_SECRET_NAME = ".documents-personal-ai-keys.json"
+PERSONAL_AI_SECRET_FORMAT = "usl-paperless-personal-ai-keys-v1"
+
+
+def ensure_personal_ai_master_keys(path: Path) -> None:
+    if path.exists():
+        mode = stat.S_IMODE(path.stat().st_mode)
+        if mode & 0o077:
+            raise RuntimeError(f"{path} must have mode 0600")
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            active = (payload["active_key_id"], payload["active_key_version"])
+            keys = {
+                (item["id"], item["version"]): base64.b64decode(
+                    item["key"],
+                    validate=True,
+                )
+                for item in payload["keys"]
+            }
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("invalid personal AI master-key file") from error
+        if (
+            payload.get("format") != PERSONAL_AI_SECRET_FORMAT
+            or active not in keys
+            or not keys
+            or any(len(key) != 32 for key in keys.values())
+        ):
+            raise RuntimeError("invalid personal AI master-key file")
+        return
+
+    key_id = "qa-personal-ai-2026-08"
+    payload = {
+        "format": PERSONAL_AI_SECRET_FORMAT,
+        "active_key_id": key_id,
+        "active_key_version": 1,
+        "keys": [
+            {
+                "id": key_id,
+                "version": 1,
+                "key": base64.b64encode(secrets.token_bytes(32)).decode("ascii"),
+            },
+        ],
+    }
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(payload, stream, separators=(",", ":"))
+        stream.write("\n")
 
 
 def read_env(
@@ -81,6 +130,7 @@ def read_env(
 
 
 def ensure_env(path: Path) -> None:
+    ensure_personal_ai_master_keys(path.parent / PERSONAL_AI_SECRET_NAME)
     if path.exists():
         values = read_env(path, required_keys=LEGACY_REQUIRED_KEYS)
         extra_users = json.loads(values["POCKET_ID_EXTRA_USERS_JSON"])
@@ -115,7 +165,7 @@ def ensure_env(path: Path) -> None:
             changed = True
         elif public_base_url != QA_PAPERLESS_PUBLIC_BASE_URL:
             raise RuntimeError(
-                "QA Paperless public base URL must use isolated port 18010"
+                "QA Paperless public base URL must use isolated port 18010",
             )
         if changed:
             upgraded_lines = [
@@ -131,7 +181,7 @@ def ensure_env(path: Path) -> None:
             ]
             if additions:
                 upgraded_lines.extend(
-                    ["", "# Generated Paperless QA service configuration."]
+                    ["", "# Generated Paperless QA service configuration."],
                 )
                 upgraded_lines.extend(
                     f"{key}={value}" for key, value in additions.items()
@@ -206,10 +256,22 @@ def ensure_env(path: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", type=Path)
+    parser.add_argument(
+        "--personal-ai-key-file",
+        type=Path,
+        help="create or validate only the Personal AI master-key file",
+    )
+    parser.add_argument("path", nargs="?", type=Path)
     arguments = parser.parse_args()
     try:
-        ensure_env(arguments.path)
+        if arguments.personal_ai_key_file:
+            if arguments.path:
+                parser.error("path cannot be used with --personal-ai-key-file")
+            ensure_personal_ai_master_keys(arguments.personal_ai_key_file)
+        elif arguments.path:
+            ensure_env(arguments.path)
+        else:
+            parser.error("path or --personal-ai-key-file is required")
     except RuntimeError as error:
         print(f"error: {error}", file=__import__("sys").stderr)
         return 1

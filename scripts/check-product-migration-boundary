@@ -19,6 +19,9 @@ MIGRATION_ADDONS = {
     "usl_platform_billing_restore": (
         ROOT / "migration" / "platform_billing_restore" / "addons"
     ),
+    "usl_collaboration_restore": (
+        ROOT / "migration" / "collaboration_restore" / "addons"
+    ),
 }
 MIGRATION_PATHS = (
     "/mnt/accounting-migration-addons",
@@ -37,6 +40,7 @@ MIGRATION_SERVICES = (
     "tese-migration",
     "platform-billing-migration",
 )
+COLLABORATION_MIGRATION_PATH = "/mnt/collaboration-migration-addons"
 
 
 def manifest(path):
@@ -141,6 +145,10 @@ for migration_path in MIGRATION_PATHS:
         errors.append(
             f"The normal Odoo service exposes migration path {migration_path}.",
         )
+if COLLABORATION_MIGRATION_PATH in normal_odoo_service:
+    errors.append(
+        f"The normal Odoo service exposes migration path {COLLABORATION_MIGRATION_PATH}.",
+    )
 
 expected_addons_path = default_addons_path + "," + ",".join(MIGRATION_PATHS)
 for service_name in MIGRATION_SERVICES:
@@ -155,6 +163,8 @@ for service_name in MIGRATION_SERVICES:
             errors.append(
                 f"The {service_name} service does not mount {migration_path} read-only.",
             )
+if COLLABORATION_MIGRATION_PATH not in service_text["project-migration"]:
+    errors.append("The project-migration service does not expose Collaboration restoration.")
 
 restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",
@@ -165,6 +175,7 @@ restore_harnesses = {
     "HR": ROOT / "scripts" / "hr-restore",
     "TESE": ROOT / "scripts" / "tese-restore",
     "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
+    "Collaboration": ROOT / "scripts" / "collaboration-restore",
 }
 for perimeter, harness_path in restore_harnesses.items():
     harness = harness_path.read_text()

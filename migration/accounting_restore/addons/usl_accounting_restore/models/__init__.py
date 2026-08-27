@@ -6,6 +6,7 @@ from . import source_report_structure
 from . import discrepancy
 from . import import_run
 from . import review_evidence
+from . import res_users
 from . import native_expense_settlement
 from . import native_document_settlement
 from . import native_general_reconciliation

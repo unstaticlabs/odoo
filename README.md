@@ -15,7 +15,9 @@ configuring or locking records.
 Documents provides a native Odoo workspace backed by Paperless-ngx for
 search, OCR, previews, metadata, versions and originals. Odoo remains the
 authority for companies, business links and access; every file operation is
-authorized through Odoo.
+authorized through Odoo. Files attached to supported business records remain
+immediately usable in Odoo and are archived asynchronously with their record,
+company and safe classification context.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
@@ -92,8 +94,9 @@ The root `Dockerfile` uses purpose-specific stages:
   it. The test-only `usl_bootstrap` fixture is excluded. The
   `.github/workflows/product-image.yml` workflow publishes it to
   `ghcr.io/unstaticlabs/usl-odoo` pinned by commit SHA;
-- `distribution` extends that product image with the exact release identity
-  used by the qualified pre-production and production gates;
+- `distribution` extends that product image with the exact release identity,
+  including the canonical reviewed action-risk policy digest, used by the
+  qualified pre-production and production gates;
 - `test` adds Chromium only for browser-capable automated tests;
 - `dev` adds developer tools but uses the repository bind mount instead of
   embedding a second copy of the source tree.
@@ -118,6 +121,11 @@ make rebuild   # Dockerfile, requirements, system packages or upstream core
 Keep BuildKit enabled (the default in current Docker Engine and Docker
 Desktop). The Dockerfile uses cache and bind mounts that do not become image
 layers.
+
+Pinned OCA synchronization also reuses the main checkout's already-fetched
+commits when a linked worktree has no local checkout. Each worktree still gets
+an independent patched tree; subsequent syncs avoid network fetches while the
+exact pinned commits are already present.
 
 ### Dependency updates
 
@@ -261,6 +269,8 @@ The production custom-module boundaries are:
   and record-level authorization;
 - `usl_documents_accounting`: Accounting-specific document links and evidence;
 - `usl_pocketid`: Pocket ID authentication and identity governance;
+- `usl_access_control`: recoverability-based Distribution roles, protected
+  irreversible actions and attributable Agent audit;
 - `usl_platform_billing`: the independent content-platform payout billing
   application;
 - `usl_platform_billing_pocketid`: governed Pocket ID access for Platform
@@ -418,6 +428,8 @@ For branch and worktree QA, choose the smallest honest data profile:
 
 ```bash
 make qa                              # complete cached production-shaped state
+make qa-reuse                        # revalidate an unchanged worktree target in place
+make qa-clean CONFIRM=qa-volumes     # retire only this worktree's QA volumes
 make qa PROFILE=no-documents         # complete Odoo ledger; no Documents runtime
 make qa PROFILE=documents-smoke      # deterministic source-derived document sample
 make qa PROFILE=clean-install        # clean product plus self-contained fixtures
@@ -435,6 +447,20 @@ immediately instead of silently starting a long source ingestion. Partial
 profiles are stamped in the database and cannot pass a pre-production gate.
 Arbitrary partial accounting ledgers are intentionally unsupported.
 Seed pruning is never automatic and requires the explicit confirmation above.
+
+`make qa` remains the deterministic cold path: it deletes only that worktree's
+isolated QA volumes and hydrates the shared qualified seed. After it passes,
+`make qa-reuse` can restart and revalidate the same target without another
+restore, module upgrade or fixture replay. Reuse is refused unless the seed
+manifest, migration digest, full-profile stamp, project identity and required
+volumes still match. Because the target is intentionally writable, use plain
+`make qa` after manual business-data changes or whenever a pristine baseline
+is required.
+
+When a worktree no longer needs its warm QA target, `make qa-clean
+CONFIRM=qa-volumes` removes only that checkout's computed `usl-odoo-qa-*`
+containers, network and writable volumes. It preserves the shared seed,
+source package, images, BuildKit cache and project-bound identity environment.
 
 The underlying scripts remain stable automation interfaces:
 
@@ -461,6 +487,10 @@ make repair-pocket-id                 # repair and verify this project's SSO
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
 make paperless-users           # reconcile governed users and document access
+make action-risk-inventory     # reject unclassified/changed source actions
+make action-risk-compile-policy # derive the compact protected worker policy
+make action-risk-runtime       # compare the exact installed odoo_dev registry
+make product-assets            # compile every installed-registry asset bundle
 scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 make documents-restore                # isolated Documents migration rehearsal
@@ -517,8 +547,9 @@ scripts/preprod-release all /absolute/path/to/usl-online-dump
 
 It synchronizes the pinned OCA commits, builds a commit-tagged self-contained
 image, reconstructs `odoo_dev`, records the dump/image/module identity in the
-database, starts the no-bind-mount runtime and runs the source, database,
-schema, image, service and direct-Paperless-identity gates. Both regulatory live
+database, starts the no-bind-mount runtime and runs the source, exact action
+registry, database, schema, image, service and direct-Paperless-identity gates.
+Both regulatory live
 guards remain `0`. Target finalization provisions and verifies the individual
 Paperless identities and synchronizes document permissions without importing
 source credentials or relying on first login. The final gate checks that state;

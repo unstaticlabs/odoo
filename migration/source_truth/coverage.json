@@ -27,14 +27,14 @@
       "evidence": "temporary identity restore imports all contacts, original contact images, users, companies, industries, categories, banks and relations with digest parity; authentication is re-enrolled"
     },
     "collaboration": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "Accounting and Projects currently import only scoped chatter and activity history"
+      "evidence": "the final temporary Collaboration stage classifies all 50,005 messages, 36,946 tracking values, 5,862 followers and 895 activities; restores 49,385 business messages to native or rebuilt successors, explicitly does not copy 66 approved demo Knowledge messages and 554 generated configuration-only messages, restores Discuss and reactions, and rejects all delivery/device state and reconstruction-created outbound queues"
     },
     "attachments": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, signing evidence, collaboration files and unassigned enterprise evidence are restored; nine packaged sample-dashboard payloads are explicitly not copied and the genuine strategy PDF is archived byte-for-byte as restricted business evidence"
     },
     "documents": {
       "status": "implemented",
@@ -42,14 +42,14 @@
       "evidence": "the dump-bound Paperless 3.0.5/API v10 stage restores every classified Documents identity and unassigned evidence file into checksum-stable archive roots, verifies originals, previews, metadata, links and object permissions, and produces identical evidence on replay"
     },
     "knowledge": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "no Community target and no approved lossless translation are implemented"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "the locked dump contains only approved demo/default Knowledge material; its 66 articles, chatter and cover references receive checksum-sealed not-copied dispositions and create no product records or Knowledge runtime dependency"
     },
     "signing": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "archive",
-      "evidence": "signed originals and audit evidence are not yet reconstructed"
+      "evidence": "the Documents and Collaboration stages reuse the 16 canonical signed-evidence roots, verify original and completion-certificate bytes, and preserve Sign request chatter without installing Sign functionality"
     },
     "hr": {
       "status": "implemented",
@@ -67,14 +67,14 @@
       "evidence": "the temporary Platform Billing stage restores four platforms, three sessions, 31 payouts and all 51 generated Accounting links with stable application and ledger digests; transient legacy candidates are regenerated"
     },
     "studio": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "populated Studio models require explicit business mappings"
+      "status": "implemented",
+      "disposition": "recomputed",
+      "evidence": "the 14 x_sl_expense_bank_candidate cache rows are superseded by the native usl.expense.bank.match.candidate implementation; candidates are deterministically recomputed from restored expense and bank data and no Studio model or customization is copied"
     },
     "preferences": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "user filters, exports, dashboards and favorites are not globally reconstructed"
+      "evidence": "the temporary Identity stage migrates seven source-backed Accounting/Project/activity filters with exact user, action and translated record references; six native filters and two native exports are recomputed by installed modules; four marketing filters and two marketing exports are explicitly dropped; seven ExportGPT definitions are discarded as AI experiments; import caches, digest tips, user UI state and nine packaged sample dashboards are recomputed or deliberately not copied"
     },
     "product_master": {
       "status": "implemented",
@@ -87,14 +87,14 @@
       "evidence": "the product stage restores the one warehouse, 23 locations, six routes, seven rules and 11 operation types and validates exact zero source stock moves, move lines, pickings, quants, valuation layers, BOMs, manufacturing orders and quality records; physical opening stock remains a separately governed not-evidenced release blocker rather than an inferred source fact"
     },
     "sales_marketing": {
-      "status": "incomplete",
-      "disposition": "translated",
-      "evidence": "sales-team and UTM business configuration is not globally reconstructed"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "the source CRM team, UTM, sale-PDF and content-planning configuration is approved experimental/default setup and is deliberately not copied; current Sales behavior comes from installed native modules and USL Distribution, while migrated accounting, partners, projects and B2C business history remain intact"
     },
     "ai_configuration": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "source AI agents, prompts, topics and automation need an explicit Community treatment"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "AI agents, prompts, topics, embeddings, automation and ExportGPT definitions are approved experiments and are deliberately not copied; the sole genuine business payload, the 19-page strategy PDF, is independently archived byte-for-byte as manager-only Documents evidence"
     },
     "credential_state": {
       "status": "implemented",

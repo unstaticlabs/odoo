@@ -234,12 +234,16 @@ class UslProjectRestoreRun(models.Model):
                 tracking_disable=True,
                 mail_create_nolog=True,
                 mail_create_nosubscribe=True,
+                mail_auto_subscribe_no_notify=True,
             )
         )
         if record:
             if self._is_current_revision(record, snapshot):
                 return record
-            record.with_context(tracking_disable=True).write(values)
+            record.with_context(
+                tracking_disable=True,
+                mail_auto_subscribe_no_notify=True,
+            ).write(values)
         else:
             record = model.create(values)
         if (
@@ -248,7 +252,10 @@ class UslProjectRestoreRun(models.Model):
             or record.rebuild_source_snapshot != snapshot
             or record.rebuild_import_note != trace_values["rebuild_import_note"]
         ):
-            record.with_context(tracking_disable=True).write(trace_values)
+            record.with_context(
+                tracking_disable=True,
+                mail_auto_subscribe_no_notify=True,
+            ).write(trace_values)
         for field_name in translation_fields:
             translated = self._source_translation(row.get(field_name), "fr_FR")
             if translated and translated != self._source_text(row.get(field_name)):
@@ -1528,9 +1535,19 @@ class UslProjectRestoreRun(models.Model):
             activity = activities.get(row["id"])
             if activity:
                 if not self._is_current_revision(activity, snapshot):
-                    activity.sudo().write(values)
+                    activity.sudo().with_context(
+                        mail_activity_quick_update=True,
+                    ).write(values)
             else:
-                activity = self.env["mail.activity"].sudo().create(values)
+                # Historical assignments must become visible activities, but
+                # must not generate a new "assigned to you" email/notification
+                # during the one-shot reconstruction.
+                activity = (
+                    self.env["mail.activity"]
+                    .sudo()
+                    .with_context(mail_activity_quick_update=True)
+                    .create(values)
+                )
                 activities[row["id"]] = activity
             self._stamp_audit("mail.activity", activity, row, users)
             if not row["active"] and self._written_this_run(activity):
@@ -2432,7 +2449,7 @@ class ProjectSourceReader:
             "activity_types": self._rows(
                 cursor,
                 """
-                    SELECT id, name, active, category, summary, icon,
+                    SELECT id, name, res_model, active, category, summary, icon,
                            decoration_type, delay_count, delay_unit, delay_from
                       FROM mail_activity_type
                      WHERE id IN (

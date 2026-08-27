@@ -4805,6 +4805,9 @@ class RebuildAccountImportRun(models.Model):
                 ].append(attachment)
             imported_ids.append(attachment.id)
 
+        if options.get("defer_attachment_chatter_to_collaboration"):
+            chatter_groups.clear()
+
         for (
             target_model,
             target_id,
@@ -4981,6 +4984,11 @@ class RebuildAccountImportRun(models.Model):
             ),
             "imported_chatter_attachment_count": (
                 imported_chatter_attachment_count
+            ),
+            "deferred_chatter_attachment_count": (
+                sum(bool(row.get("source_message_id")) for row in rows)
+                if options.get("defer_attachment_chatter_to_collaboration")
+                else 0
             ),
         }
 
@@ -7006,7 +7014,6 @@ class RebuildAccountImportRun(models.Model):
                     ("login", "=", row["login"]),
                 ], limit=1)
             values = {
-                "login": row["login"],
                 "partner_id": partner.id,
                 "active": bool(row["active"]),
                 "share": False,
@@ -7014,8 +7021,13 @@ class RebuildAccountImportRun(models.Model):
                 "company_ids": [Command.set(allowed_companies.ids)],
             }
             if user:
+                # Identity restoration owns the canonical target login.  Do
+                # not rewrite it while merely resolving an expense user: even
+                # an unchanged ``login`` in ``vals`` triggers Odoo's security
+                # notification email and makes a migration replay observable.
                 user.write(values)
             else:
+                values["login"] = row["login"]
                 values["group_ids"] = [
                     Command.set((
                         base_group | expense_manager_group

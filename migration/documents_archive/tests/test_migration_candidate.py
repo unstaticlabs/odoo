@@ -78,6 +78,7 @@ class MigrationCandidateManifestTest(unittest.TestCase):
             "upstream_saas_19_3_commit": "b" * 40,
             "source": {"dump_sha256": source_dump_sha},
             "oca": {"bundle_sha256": "c" * 64},
+            "action_risk_policy_sha256": "e" * 64,
             "product_module_versions": {"usl_accounting": "19.0.1.0.0"},
             "image": {
                 "reference": f"ghcr.io/usl/odoo@sha256:{'d' * 64}",
@@ -85,6 +86,7 @@ class MigrationCandidateManifestTest(unittest.TestCase):
                 "labels": {
                     "org.opencontainers.image.revision": "a" * 40,
                     "com.unstaticlabs.odoo.oca-bundle-sha256": "c" * 64,
+                    "com.unstaticlabs.odoo.action-risk-policy-sha256": "e" * 64,
                     "com.unstaticlabs.odoo.runtime": "distribution",
                 },
             },
@@ -101,6 +103,10 @@ class MigrationCandidateManifestTest(unittest.TestCase):
             "source_filestore_sha256": source_filestore_sha,
             "migration_sha256": migration_sha,
             "module_versions": self.release["product_module_versions"],
+            "action_risk": {
+                "status": "passed",
+                "policy_sha256": self.release["action_risk_policy_sha256"],
+            },
             "accounting": {
                 "status": "passed",
                 "controls": {"move_count": 1},
@@ -114,6 +120,8 @@ class MigrationCandidateManifestTest(unittest.TestCase):
                 "status": "passed",
                 "controls": {"odoo_document_count": 1},
                 "paperless_document_count": 1,
+                "paperless_image_digest": f"ghcr.io/usl/paperless@sha256:{'e' * 64}",
+                "ollama_image_digest": f"docker.io/ollama/ollama@sha256:{'f' * 64}",
                 "reconstruction": {
                     "downloaded_bytes": 100,
                     "ocr_submissions": 1,
@@ -182,6 +190,14 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         )
 
     def test_seal_and_verify_with_independent_fingerprint(self):
+        self.assertEqual(
+            migration_candidate.SCHEMA,
+            "usl-production-migration-candidate-v2",
+        )
+        self.assertEqual(
+            migration_candidate.QUALIFICATION_SCHEMA,
+            "usl-production-candidate-qualification-v2",
+        )
         manifest = migration_candidate.seal(self.args())
         verified = migration_candidate.verify(self.args(manifest["fingerprint"]))
 
@@ -286,6 +302,7 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         invalid_cases = (
             ("upstream_saas_19_3_commit", None, "saas-19.3 base"),
             ("oca", {"bundle_sha256": "bad"}, "OCA bundle digest"),
+            ("action_risk_policy_sha256", "bad", "action-risk policy digest"),
             ("product_module_versions", {}, "module versions"),
         )
         for key, value, message in invalid_cases:
@@ -303,10 +320,23 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         self._refresh_release_digest()
         self._write_json("release-identity.json", self.release)
 
-    def test_release_image_labels_must_match_commit_and_oca(self):
+    def test_release_image_labels_must_match_qualified_identity(self):
         self.release["image"]["labels"]["org.opencontainers.image.revision"] = (
             "e" * 40
         )
+        self._refresh_release_digest()
+        self._write_json("release-identity.json", self.release)
+
+        with self.assertRaisesRegex(
+            migration_candidate.CandidateError,
+            "Distribution image",
+        ):
+            migration_candidate.seal(self.args())
+
+    def test_release_image_action_risk_label_must_match_policy(self):
+        self.release["image"]["labels"][
+            "com.unstaticlabs.odoo.action-risk-policy-sha256"
+        ] = "f" * 64
         self._refresh_release_digest()
         self._write_json("release-identity.json", self.release)
 

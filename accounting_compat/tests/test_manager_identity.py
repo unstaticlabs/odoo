@@ -193,6 +193,7 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
             ).read_text(encoding="utf-8")
 
         ast.parse(generated)
+        self.assertIn("usl_governed_identity_provisioning=True", generated)
         self.assertIn("values['partner_id'] = partner.id", generated)
         self.assertIn(
             "Users.search([('partner_id', '=', partner.id)], limit=1)",

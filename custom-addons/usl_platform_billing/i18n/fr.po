@@ -2813,3 +2813,18 @@ msgstr "Lie les transactions bancaires sélectionnées aux versements ouverts s�
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
 msgid "Post the generated documents despite the missing active platform."
 msgstr "Comptabilise les documents générés malgré l’absence de la plateforme active."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "processing"
+msgstr "en cours"

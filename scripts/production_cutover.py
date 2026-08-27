@@ -35,9 +35,13 @@ VOLUME_KEYS = (
 REQUIRED = (
     "COMPOSE_PROJECT_NAME",
     "ODOO_ADMIN_PASSWORD",
+    "ODOO_DB_MAXCONN",
     "ODOO_DB_FILTER",
     "ODOO_INIT_DB",
     "ODOO_LIST_DB",
+    "ODOO_LIMIT_MEMORY_HARD",
+    "ODOO_LIMIT_MEMORY_SOFT",
+    "ODOO_LIMIT_REQUEST",
     "ODOO_MAX_CRON_THREADS",
     "ODOO_DB_NAME",
     "ODOO_DB_PASSWORD",
@@ -45,15 +49,18 @@ REQUIRED = (
     "ODOO_HTTP_PORT",
     "ODOO_IMAGE",
     "ODOO_PUBLIC_BASE_URL",
+    "ODOO_WORKERS",
     "PAPERLESS_ALLOWED_HOSTS",
     "PAPERLESS_DB_NAME",
     "PAPERLESS_DB_PASSWORD",
     "PAPERLESS_DB_USER",
     "PAPERLESS_HTTP_PORT",
+    "PAPERLESS_IMAGE",
     "PAPERLESS_PUBLIC_BASE_URL",
     "PAPERLESS_PUBLIC_URL",
     "PAPERLESS_SECRET_KEY",
     "PAPERLESS_SSO_BASE_GROUP",
+    "OLLAMA_IMAGE",
     "POCKET_ID_APP_URL",
     "POCKET_ID_CLIENT_ID",
     "POCKET_ID_CLIENT_SECRET",
@@ -67,6 +74,7 @@ REQUIRED = (
     "USL_EINVOICE_LIVE_ENABLED",
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_PRODUCTION_CRON_THREADS",
+    "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
     "POSTGRES_PASSWORD",
     *VOLUME_KEYS,
 )
@@ -133,6 +141,33 @@ def _production_url(name: str, value: str) -> None:
         raise CutoverError(f"{name} is not an approved production HTTPS origin")
 
 
+def validate_odoo_resources(values: dict[str, str]) -> None:
+    """Keep Odoo workers inside explicit memory and PostgreSQL budgets."""
+    try:
+        workers = int(values["ODOO_WORKERS"])
+        cron_threads = int(values["USL_PRODUCTION_CRON_THREADS"])
+        db_maxconn = int(values["ODOO_DB_MAXCONN"])
+        memory_soft = int(values["ODOO_LIMIT_MEMORY_SOFT"])
+        memory_hard = int(values["ODOO_LIMIT_MEMORY_HARD"])
+        limit_request = int(values["ODOO_LIMIT_REQUEST"])
+    except ValueError as error:
+        raise CutoverError("Odoo resource policies must be integers") from error
+    if not 1 <= workers <= 8:
+        raise CutoverError("Odoo HTTP workers must be between 1 and 8")
+    if not 1 <= cron_threads <= 4:
+        raise CutoverError("production cron worker policy must be between 1 and 4")
+    if not 4 <= db_maxconn <= 32:
+        raise CutoverError("Odoo database pool must be between 4 and 32 per process")
+    if (workers + cron_threads + 1) * db_maxconn > 80:
+        raise CutoverError("Odoo worker pools can exceed PostgreSQL's connection budget")
+    if not 512 * 1024**2 <= memory_soft < memory_hard <= 3 * 1024**3:
+        raise CutoverError("Odoo worker memory limits are unsafe or inconsistent")
+    if memory_hard - memory_soft < 128 * 1024**2:
+        raise CutoverError("Odoo hard memory limit needs at least 128 MiB headroom")
+    if not 1024 <= limit_request <= 32768:
+        raise CutoverError("Odoo worker request recycling must be between 1024 and 32768")
+
+
 def validate_environment(values: dict[str, str], candidate: dict) -> None:
     project = values["COMPOSE_PROJECT_NAME"]
     if not SAFE_PROJECT.fullmatch(project):
@@ -148,8 +183,7 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         raise CutoverError("public Odoo database manager must be disabled")
     if values.get("ODOO_MAX_CRON_THREADS") != "0":
         raise CutoverError("staging Odoo cron must be paused")
-    if not re.fullmatch(r"[1-4]", values["USL_PRODUCTION_CRON_THREADS"]):
-        raise CutoverError("production cron worker policy must be between 1 and 4")
+    validate_odoo_resources(values)
     database = values["ODOO_DB_NAME"]
     if (
         not SAFE_DATABASE.fullmatch(database)
@@ -162,6 +196,19 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         raise CutoverError("production image differs from the approved candidate")
     if not IMAGE.fullmatch(values["ODOO_IMAGE"]):
         raise CutoverError("production Odoo image is not immutable")
+    candidate_identity = candidate.get("identity") or {}
+    for name, candidate_key in (
+        ("PAPERLESS_IMAGE", "paperless_image_digest"),
+        ("OLLAMA_IMAGE", "ollama_image_digest"),
+    ):
+        if not IMAGE.fullmatch(values[name]):
+            raise CutoverError(f"production {name} is not immutable")
+        if values[name] != candidate_identity.get(candidate_key):
+            raise CutoverError(f"production {name} differs from the approved candidate")
+    key_ring = Path(values["USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"])
+    if not key_ring.is_absolute():
+        raise CutoverError("production Personal AI key ring path must be absolute")
+    private_file(key_ring)
     for name in ("ODOO_PUBLIC_BASE_URL", "PAPERLESS_PUBLIC_URL", "POCKET_ID_APP_URL"):
         _production_url(name, values[name])
     if values.get("PAPERLESS_PUBLIC_BASE_URL") != values["PAPERLESS_PUBLIC_URL"]:
@@ -255,6 +302,16 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
             service_networks,
         ):
             raise CutoverError(f"{name} is not joined to approved external networks")
+    expected_images = {
+        "odoo": values["ODOO_IMAGE"],
+        "paperless-webserver": values["PAPERLESS_IMAGE"],
+        "paperless-ollama": values["OLLAMA_IMAGE"],
+    }
+    for service_name, expected_image in expected_images.items():
+        if (services.get(service_name) or {}).get("image") != expected_image:
+            raise CutoverError(
+                f"{service_name} does not use its candidate-bound image",
+            )
     networks = config.get("networks") or {}
     expected_networks = {
         values["USL_EXTERNAL_IDENTITY_NETWORK"],

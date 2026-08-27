@@ -39,7 +39,9 @@ const emptyWorkspace = {
     page: 1,
     page_size: 24,
     degraded: false,
+    metadata_included: true,
     truncated: false,
+    semantic_scores_loaded: false,
     can_upload: true,
     active_operation: false,
     failed_operations: [],
@@ -73,6 +75,7 @@ const emptyWorkspace = {
 const searchViewArch = `
     <search>
         <field name="all_text"/>
+        <field name="semantic_text"/>
         <field name="name"/>
         <field name="archive_text"/>
         <field name="tag_ids"/>
@@ -91,7 +94,16 @@ const searchViewArch = `
 `;
 
 const searchViewFields = {
-    all_text: { name: "all_text", string: "Search everywhere", type: "char" },
+    all_text: {
+        name: "all_text",
+        string: "Everywhere",
+        type: "char",
+    },
+    semantic_text: {
+        name: "semantic_text",
+        string: "Meaning (Semantic)",
+        type: "char",
+    },
     name: { name: "name", string: "Title", type: "char" },
     archive_text: { name: "archive_text", string: "Document content", type: "char" },
     custom_field_text: {
@@ -193,7 +205,7 @@ test("empty archive state is explicit and supports zero-filing upload", async ()
     });
 
     expect(".o_usl_documents_empty").toHaveText(/No documents found/);
-    expect("label.btn-primary").toHaveText(/Upload/);
+    expect("label.btn-primary").toHaveAttribute("aria-label", "Upload document");
     expect("input[type=file]").toHaveCount(1);
 });
 
@@ -346,7 +358,7 @@ test("native search facets survive a linked-record round trip", async () => {
                 facets: [
                     {
                         type: "field",
-                        title: "Search everywhere",
+                        title: "Everywhere",
                         values: ["embedded cobalt phrase"],
                         separator: "or",
                         domain: '[("all_text", "ilike", "embedded cobalt phrase")]',
@@ -370,7 +382,7 @@ test("native search facets survive a linked-record round trip", async () => {
     expect(searchDomain).toEqual([
         ["all_text", "ilike", "embedded cobalt phrase"],
     ]);
-    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
+    expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/embedded cobalt phrase/);
 });
 
@@ -384,7 +396,7 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
         })
     );
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
-        expect(kwargs.workspace).toBe("all");
+        expect(kwargs.workspace).toBe("archive_search");
         expect(kwargs.query).toBe("");
         expect(kwargs.shortcut_tag_ids).toEqual([]);
         expect(kwargs.search_domain).toEqual([
@@ -655,6 +667,53 @@ test("review banner completes review without opening the technical record", asyn
     expect(".o_notification").toHaveText(
         /“Quarterly tax pack” marked as reviewed/
     );
+});
+
+test("clicking outside the document panel closes it", async () => {
+    const document = {
+        id: 73,
+        name: "Outside-click contract",
+        paperless_id: 173,
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: false,
+        document_type: "Contract",
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        archive_available: true,
+        links: [],
+        versions: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_documents_detail").toHaveCount(1);
+    expect("[data-testid='document-detail-backdrop']").toHaveCount(1);
+    await contains("#usl_document_title").click();
+    expect(".o_usl_documents_detail").toHaveCount(1);
+
+    await contains("[data-testid='document-detail-backdrop']").click();
+
+    expect(".o_usl_documents_detail").toHaveCount(0);
+    expect("[data-testid='document-detail-backdrop']").toHaveCount(0);
 });
 
 test("review banner explains a blocking decision without a technical detour", async () => {
@@ -1044,7 +1103,12 @@ test("native search defaults to broad archive search and keeps specialist fields
     });
 
     await contains(".o_searchview_input").fill("heliotrope");
-    expect(".o_searchview_autocomplete").toHaveText(/Search everywhere/);
+    expect(".o_searchview_autocomplete").toHaveText(
+        /Everywhere/
+    );
+    expect(".o_searchview_autocomplete").toHaveText(
+        /Meaning \(Semantic\)/
+    );
     expect(".o_searchview_autocomplete").toHaveText(/Document content/);
     expect(".o_searchview_autocomplete").not.toHaveText(/Additional details/);
     await contains(".o_searchview_autocomplete .o-dropdown-item").click();
@@ -1052,7 +1116,7 @@ test("native search defaults to broad archive search and keeps specialist fields
     expect(lastDomain).toEqual([
         ["all_text", "ilike", "heliotrope"],
     ]);
-    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
+    expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/heliotrope/);
     const encodedDomain = browser.location.href
         .split("domain=")[1]
@@ -1061,6 +1125,159 @@ test("native search defaults to broad archive search and keeps specialist fields
     expect(decodeURIComponent(encodedDomain)).toBe(
         '[("all_text", "ilike", "heliotrope")]'
     );
+});
+
+test("broad search shows exact results before semantic refinement", async () => {
+    const calls = [];
+    let releaseSemantic;
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        const isBroadSearch = JSON.stringify(kwargs.search_domain).includes(
+            "all_text"
+        );
+        if (isBroadSearch && kwargs.search_mode === "hybrid") {
+            return new Promise((resolve) => {
+                releaseSemantic = () =>
+                    resolve({
+                        ...emptyWorkspace,
+                        metadata_included: false,
+                        count: 2,
+                        documents: [
+                            { id: 1, name: "Exact match", tags: [] },
+                            { id: 2, name: "Meaning match", tags: [] },
+                        ],
+                });
+            });
+        }
+        if (!isBroadSearch) {
+            return emptyWorkspace;
+        }
+        return {
+            ...emptyWorkspace,
+            count: 1,
+            documents: [{ id: 1, name: "Exact match", tags: [] }],
+        };
+    });
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_searchview_input").fill("renewal obligation");
+    await contains(".o_searchview_autocomplete .o-dropdown-item").click();
+    expect(calls.at(-1).search_mode).toBe("hybrid");
+    expect(calls.at(-2).search_mode).toBe("exact");
+    expect(calls.at(-1).include_workspace_metadata).toBe(false);
+    expect(".o_usl_document_card").toHaveCount(1);
+    expect(".alert-info").toHaveText(/Exact matches are ready/);
+
+    releaseSemantic();
+    await animationFrame();
+    expect(".o_usl_document_card").toHaveCount(2);
+    expect(".alert-info").toHaveCount(0);
+});
+
+test("semantic results show rounded match chips and enable closeness sorting", async () => {
+    const calls = [];
+    const documents = [
+        {
+            id: 3,
+            name: "Closest match",
+            date: "2026-08-26",
+            review_state: "classified",
+            availability_state: "available",
+            access_error: false,
+            correspondent: "Example",
+            document_type: "Agreement",
+            tags: [],
+            primary_link: false,
+            semantic_similarity: 0.876,
+            semantic_match_percent: 88,
+        },
+        {
+            id: 4,
+            name: "Possible match",
+            date: "2026-08-25",
+            review_state: "classified",
+            availability_state: "available",
+            access_error: false,
+            correspondent: "Example",
+            document_type: "Note",
+            tags: [],
+            primary_link: false,
+            semantic_similarity: 0.514,
+            semantic_match_percent: 51,
+        },
+    ];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            documents,
+            count: documents.length,
+            semantic_scores_loaded: true,
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_searchview_input").fill("renewal obligation");
+    await contains(
+        ".o_searchview_autocomplete .o-dropdown-item:nth-child(2)"
+    ).click();
+
+    expect(".o_usl_semantic_match").toHaveCount(2);
+    expect(".o_usl_semantic_match:first").toHaveText("88%");
+    expect(".o_usl_semantic_match:first").toHaveClass("is-strong");
+    expect(".o_usl_semantic_match:last").toHaveText("51%");
+    expect(".o_usl_semantic_match:last").toHaveClass("is-medium");
+    expect("select[aria-label='Sort documents'] option[value='semantic']").toHaveText(
+        "Semantic closeness"
+    );
+
+    const fullSort = document.querySelector(".o_usl_sort_select_full");
+    const sortSelector =
+        getComputedStyle(fullSort).display === "none"
+            ? ".o_usl_sort_compact_select"
+            : ".o_usl_sort_select_full";
+    await contains(sortSelector, { visible: false }).select("semantic");
+    expect(calls.at(-1).sort).toBe("semantic");
+});
+
+test.tags("desktop");
+test("editing a searched pager range reuses the loaded result window", async () => {
+    const calls = [];
+    const resultWindow = Array.from({ length: 120 }, (_, index) => ({
+        id: index + 1,
+        name: `Document ${index + 1}`,
+        tags: [],
+    }));
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            documents: resultWindow.slice(0, 24),
+            result_window: resultWindow,
+            result_window_offset: 0,
+            result_window_complete: true,
+            count: 120,
+            page: kwargs.page,
+            page_size: kwargs.page_size,
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_pager_value").click();
+    await contains("input.o_pager_value").edit("1-96");
+    await contains(".o_usl_documents_toolbar").click();
+    await animationFrame();
+
+    expect(calls).toHaveLength(1);
+    expect(".o_usl_document_card").toHaveCount(96);
+    expect(".o_pager_counter .o_pager_value").toHaveText("1-96");
 });
 
 test.tags("desktop");
@@ -1655,10 +1872,16 @@ test("workspace and open document detail do not overflow their viewport", async 
         props: { action: action() },
     });
     const workspace = document.querySelector(".o_usl_documents");
+    const main = workspace.querySelector("main");
+    const mainWidth = main.clientWidth;
     expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
     await contains(".o_usl_document_card").click();
     await animationFrame();
     expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
+    expect(main.clientWidth).toBe(mainWidth);
+    expect(getComputedStyle(document.querySelector(".o_usl_documents_detail")).position).toBe(
+        "absolute"
+    );
     expect(".o_usl_documents_detail footer .btn-primary").toHaveText(
         /Download original/
     );
@@ -1709,4 +1932,213 @@ test("permission failures are actionable while healthy state stays quiet", async
     expect(".o_usl_documents_detail").not.toHaveText(/Download original/i);
     expect(".o_usl_document_card img").toHaveCount(0);
     expect(".o_usl_document_thumb_placeholder").toHaveCount(1);
+});
+
+test("archive search starts empty and exposes human search controls", async () => {
+    const calls = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            selected_workspace: "archive_search",
+            smart_views: [
+                {
+                    id: 1,
+                    key: "home",
+                    name: "Home",
+                    icon: "fa-home",
+                    personal: false,
+                    filters: {},
+                },
+                {
+                    id: 2,
+                    key: "archive_search",
+                    name: "Archive search",
+                    icon: "fa-search",
+                    personal: false,
+                    filters: {},
+                },
+            ],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action({ initial_workspace: "archive_search" }) },
+    });
+
+    expect(calls[0].workspace).toBe("archive_search");
+    expect(calls[0].search_mode).toBe("hybrid");
+    expect(calls[0].background_mode).toBe("include");
+    expect(".o_usl_documents_empty").toHaveText(/Search the archive/);
+    expect(".o_usl_documents_empty").toHaveText(/company, date, type/);
+    expect("[aria-label='Archive search matching']").toHaveValue("hybrid");
+    expect("[aria-label='Background document visibility']").toHaveValue(
+        "include"
+    );
+
+    await contains("[aria-label='Archive search matching']").select("exact");
+    expect(calls.at(-1).search_mode).toBe("exact");
+    await contains("[aria-label='Background document visibility']").select(
+        "exclude"
+    );
+    expect(calls.at(-1).background_mode).toBe("exclude");
+});
+
+test("background relationship is promoted without an upload journey", async () => {
+    let role = "background";
+    const calls = [];
+    const document = {
+        id: 91,
+        name: "Project brief",
+        paperless_id: 191,
+        date: "2026-08-25",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "Brief",
+        tags: [],
+        link_count: 1,
+        intake_role: "background",
+        is_starred: false,
+        primary_link: { name: "Search UX project", model: "project.project" },
+    };
+    const detail = () => ({
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: false,
+        can_trash: true,
+        archive_available: true,
+        versions: [],
+        links: [
+            {
+                id: 8,
+                model: "project.project",
+                res_id: 12,
+                record_name: "Search UX project",
+                model_label: "Project",
+                document_role: role,
+            },
+        ],
+    });
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        selected_workspace: "archive_search",
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail());
+    onRpc("usl.document", "action_set_library_visibility", ({ args, kwargs }) => {
+        expect(args).toEqual([[91], true]);
+        expect(kwargs.res_model).toBe("project.project");
+        expect(kwargs.res_id).toBe(12);
+        calls.push(true);
+        role = args[1] ? "library" : "background";
+        return detail();
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                initial_workspace: "archive_search",
+                res_model: "project.project",
+                res_id: 12,
+            }),
+        },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    expect(".o_usl_detail_header_actions").toHaveText(/Add to My library/);
+    await contains("button", { text: "Add to My library" }).click();
+    await animationFrame();
+
+    expect(calls).toEqual([true]);
+    expect(".o_notification").toHaveText(/archived file was reused/);
+    expect(".o_usl_detail_header_actions").toHaveText(/Remove from My library/);
+});
+
+test("stars are personal workspace controls", async () => {
+    let starred = false;
+    let workspaceCalls = 0;
+    const document = {
+        id: 92,
+        name: "Reference note",
+        paperless_id: 192,
+        date: "2026-08-25",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "Note",
+        tags: [],
+        link_count: 0,
+        is_starred: starred,
+        primary_link: false,
+    };
+    onRpc("usl.document", "workspace_data", () => {
+        workspaceCalls++;
+        return {
+            ...emptyWorkspace,
+            documents: [{ ...document, is_starred: starred }],
+            count: 1,
+        };
+    });
+    onRpc("usl.document", "action_set_starred", ({ args }) => {
+        expect(args).toEqual([[92], true]);
+        starred = true;
+        return { document_id: 92, is_starred: true };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_star_button").click();
+    await animationFrame();
+
+    expect(".o_notification").toHaveText(/Added to your starred documents/);
+    expect(".o_usl_star_button").toHaveClass("is-starred");
+    expect(workspaceCalls).toBe(1);
+});
+
+test("the permanent favorites shortcut filters the active result set", async () => {
+    const calls = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            smart_views: emptyWorkspace.smart_views.map((view) => ({
+                ...view,
+                quick_filters: [
+                    {
+                        id: 0,
+                        key: "starred",
+                        name: "Starred documents",
+                        icon: "fa-star",
+                        kind: "filter",
+                        group_by: [],
+                        order_by: [],
+                        domain: [["is_starred", "=", true]],
+                    },
+                ],
+            })),
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(".o_usl_filter_shortcuts button:first").toHaveAttribute(
+        "aria-label",
+        "Starred documents"
+    );
+    expect(".o_usl_filter_shortcuts button:first").toHaveText("");
+    expect(".o_usl_filter_shortcuts button:first i").toHaveClass("fa-star");
+    await contains(".o_usl_filter_shortcuts button:first").click();
+    await animationFrame();
+
+    expect(calls.at(-1).search_domain).toEqual([["is_starred", "=", true]]);
 });

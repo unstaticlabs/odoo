@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -87,6 +88,23 @@ case "$migration_purpose" in
     exit 2
     ;;
 esac
+
+prepare_personal_ai_keyring() {
+  local configured_path="${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-}"
+  if [[ "$migration_purpose" == production && -z "$configured_path" ]]; then
+    printf 'Production migration requires USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH.\n' >&2
+    return 2
+  fi
+  configured_path="${configured_path:-$ROOT/.documents-personal-ai-keys.json}"
+  if [[ "$migration_purpose" == production && ! -f "$configured_path" ]]; then
+    printf 'Production Personal AI master-key file is missing: %s\n' \
+      "$configured_path" >&2
+    return 2
+  fi
+  python3 "$ROOT/scripts/documents_sso_env.py" \
+    --personal-ai-key-file "$configured_path" >/dev/null
+  export USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH="$configured_path"
+}
 
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
 if [[ ! -d "$source_dump_dir" ]]; then
@@ -276,6 +294,35 @@ if ledger_path.is_file():
         "evidence_sha256": sha256(ledger_path),
         "summary": ledger.get("summary", {}),
     }
+collaboration_path = (
+    source_evidence
+    / "collaboration"
+    / sys.argv[12]
+    / "collaboration-disposition.json"
+)
+if collaboration_path.is_file() and collaboration_path.stat().st_mtime >= int(sys.argv[5]):
+    collaboration = json.loads(collaboration_path.read_text(encoding="utf-8"))
+    collaboration_summary = collaboration.get("summary") or {
+        "complete": (
+            collaboration.get("visible_message_count") == 49385
+            and collaboration.get("external_message_count") == 0
+            and collaboration.get("deliberately_not_copied_message_count") == 620
+            and len(collaboration.get("dispositions", {}).get("messages", [])) == 50005
+            and len(collaboration.get("dispositions", {}).get("tracking", [])) == 36946
+            and len(collaboration.get("dispositions", {}).get("followers", [])) == 5862
+            and len(collaboration.get("dispositions", {}).get("activities", [])) == 895
+            and not any(collaboration.get("outbound_side_effect_delta", {}).values())
+        ),
+        "external_messages": collaboration.get("external_message_count"),
+        "visible_messages": collaboration.get("visible_message_count"),
+    }
+    payload["collaboration_coverage"] = {
+        "complete": collaboration_summary["complete"],
+        "evidence": str(collaboration_path),
+        "evidence_sha256": sha256(collaboration_path),
+        "source_dump_sha256": collaboration.get("source_dump_sha256"),
+        "summary": collaboration_summary,
+    }
 evidence = sorted(
     Path(sys.argv[7]).glob("accounting_compat/private/snapshots/*/evidence/documents-restore-*.json"),
     key=lambda path: path.stat().st_mtime,
@@ -380,7 +427,9 @@ PY
     'Accounting ledger parity passed, but a downstream stage detached the manager HR identity.' \
     'Replaying the idempotent HR restore before one strict revalidation.'
   stop_product
-  scripts/hr-restore all
+  scripts/hr-restore install
+  scripts/hr-restore import
+  scripts/hr-restore validate
   stop_product
   scripts/accounting-compat dev-validate
 }
@@ -409,10 +458,16 @@ finalize_migration_boundary() {
   # Keep downstream source identities until every fallible restore has passed.
   # A Documents interruption can then replay Projects, TESE, and Platform
   # Billing by exact source identity instead of guessing from business names.
+  if [[ "$qa_profile" == full ]]; then
+    scripts/collaboration-restore finalize
+  fi
   PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1 \
     scripts/platform-billing-restore finalize
   TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore finalize
   PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore finalize
+  scripts/hr-restore finalize
+  scripts/product-restore finalize
+  scripts/identity-restore finalize
   scripts/accounting-restore finalize
   # Platform Billing has an additional schema scrub. Run it only after every
   # temporary module has been removed, so this product-only registry check
@@ -433,6 +488,7 @@ revalidate_finalized_qa_cache() {
 }
 
 run_stage "Docker resource preflight" scripts/migration-resource-preflight
+run_stage "Personal AI key preflight" prepare_personal_ai_keyring
 run_stage "target identity preflight" preflight_target_identity
 start_target_database
 stop_product
@@ -459,14 +515,20 @@ else
   fi
   accounting_validated=1
   stop_product
+  run_stage "verify empty outbound queues after Accounting" \
+    scripts/migration-outbound-safety post-accounting
   run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
     DOCUMENTS_TARGET_DATABASE=odoo_dev \
     COMPOSE_PROJECT_NAME="$compose_project" \
     scripts/documents-restore prepare-target
   stop_product
-  run_stage "restore identities" scripts/identity-restore all
+  run_stage "install identity restoration" scripts/identity-restore install
+  run_stage "restore identities" scripts/identity-restore import
+  run_stage "validate identities" scripts/identity-restore validate
   stop_product
-  run_stage "restore product data" scripts/product-restore all
+  run_stage "install product restoration" scripts/product-restore install
+  run_stage "restore product data" scripts/product-restore import
+  run_stage "validate product data" scripts/product-restore validate
   stop_product
   run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
   stop_product
@@ -476,9 +538,14 @@ else
   run_stage "restore B2C commerce evidence" env \
     B2C_REQUIRE_FINAL_RELATIONSHIPS=0 scripts/b2c-restore all
   stop_product
-  run_stage "restore HR" scripts/hr-restore all
+  run_stage "install HR restoration" scripts/hr-restore install
+  run_stage "restore HR" scripts/hr-restore import
+  run_stage "validate HR" scripts/hr-restore validate
   stop_product
   run_stage "restore Projects" restore_projects_for_reconstruction
+  stop_product
+  run_stage "finalize source-backed saved preferences" \
+    scripts/identity-restore preferences
   stop_product
   if [[ "$documents_enabled" == 1 ]]; then
     run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
@@ -503,6 +570,27 @@ else
   stop_product
   run_stage "restore Platform Billing" restore_platform_billing_for_reconstruction
   stop_product
+  if [[ "$qa_profile" == full ]]; then
+    run_stage "restore Collaboration history" scripts/collaboration-restore all
+    stop_product
+  else
+    printf 'Collaboration restoration: skipped by partial QA profile %s.\n' "$qa_profile"
+  fi
+  if [[ "$documents_enabled" == 1 ]]; then
+    # B2C archives its locked provider files and Collaboration archives
+    # retained legacy Documents/folder evidence after the source Documents
+    # stage. Approved demo Knowledge content is deliberately not copied.
+    # Seal only after every governed archive producer has finished.
+    run_stage "seal final Documents archive checkpoint" env \
+      DOCUMENTS_CANONICAL_TARGET=1 \
+      DOCUMENTS_RESTORE_PROFILE=full \
+      DOCUMENTS_TARGET_DATABASE=odoo_dev \
+      COMPOSE_PROJECT_NAME="$compose_project" \
+      scripts/documents-restore seal-checkpoint
+    stop_product
+  fi
+  run_stage "verify empty outbound queues after source restoration" \
+    scripts/migration-outbound-safety post-source-restoration
   run_stage "finalize migration boundary" finalize_migration_boundary
   migration_finalized=1
 fi
@@ -523,6 +611,8 @@ case "$seed_refresh" in
 esac
 
 run_stage "apply target configuration" env USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+run_stage "verify empty outbound queues after target configuration" \
+  scripts/migration-outbound-safety post-target-configuration
 if [[ "$seed_refresh" == 1 ]]; then
   # Arm cleanup before capture: failures after the pending directory is created
   # must never leave an ambiguous partial seed that blocks the next retry.
@@ -538,6 +628,8 @@ if [[ "$qa_profile" == full ]]; then
   run_stage "multi-company acceptance" make \
     COMPOSE_PROJECT="$compose_project" accounting-multicompany-acceptance
 fi
+run_stage "verify final empty outbound queues" \
+  scripts/migration-outbound-safety final-reconstruction
 if [[ "$seed_refresh" == 1 ]]; then
   run_stage "publish qualified QA seed" scripts/qa-seed publish
   seed_pending=0

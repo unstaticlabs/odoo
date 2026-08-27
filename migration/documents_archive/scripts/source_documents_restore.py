@@ -35,6 +35,7 @@ from classification import (  # noqa: E402
 from classification import (
     TAG_COLORS as CLASSIFICATION_TAG_COLORS,
 )
+from role_backfill import resolve_link_role, resolve_root_role  # noqa: E402
 from selection import resolve_company_scope, select_groups  # noqa: E402
 
 SOURCE_FILESTORE = Path(
@@ -71,6 +72,12 @@ QUALIFIED_SEARCHABLE_DERIVATIVES = {
         "mime_type": "application/pdf",
         "kind": "corrupt base64-wrapped supplier invoice",
     },
+}
+GOVERNED_POST_DOCUMENTS_LINK_MODELS = {
+    "b2c.accounting.session",
+    "b2c.fulfilment.event",
+    "b2c.order",
+    "b2c.payment.event",
 }
 
 
@@ -166,9 +173,13 @@ def read_source():
             SELECT attachment.id AS attachment_id, attachment.name AS filename,
                    attachment.store_fname, attachment.checksum,
                    attachment.file_size, attachment.mimetype,
-                   attachment.create_uid, attachment.create_date AS attachment_create_date
+                   attachment.create_uid, attachment.create_date AS attachment_create_date,
+                   COALESCE(attachment.res_model, '') AS source_res_model
               FROM ir_attachment attachment
-             WHERE COALESCE(attachment.res_model, '') = ''
+             WHERE (
+                    COALESCE(attachment.res_model, '') = ''
+                    OR attachment.res_model = 'ai.agent.source'
+                   )
                AND attachment.type = 'binary'
                AND attachment.name != 'res.company.scss'
                AND NOT EXISTS (
@@ -371,6 +382,9 @@ def group_source(source):
         document["kind"] = "document"
         grouped[document["checksum"]].append(document)
     for attachment in source["unassigned"]:
+        restricted_business_evidence = (
+            attachment.get("source_res_model") == "ai.agent.source"
+        )
         grouped[attachment["checksum"]].append(
             {
                 **attachment,
@@ -381,7 +395,13 @@ def group_source(source):
                 "owner_id": None,
                 "res_model": None,
                 "res_id": 0,
-                "access_internal": "edit",
+                # The strategy PDF attached to the discarded experimental AI
+                # setup is genuine private business content. Preserve its
+                # bytes without recreating the AI model or exposing it to
+                # ordinary Documents users.
+                "access_internal": (
+                    "none" if restricted_business_evidence else "edit"
+                ),
                 "access_via_link": "none",
                 "is_access_via_link_hidden": True,
                 "document_token": "",
@@ -394,7 +414,11 @@ def group_source(source):
                 "access_rows": [],
                 "folder_path": "",
                 "folder_company_id": None,
-                "kind": "unassigned_evidence",
+                "kind": (
+                    "restricted_unassigned_evidence"
+                    if restricted_business_evidence
+                    else "unassigned_evidence"
+                ),
             },
         )
     return sorted(
@@ -433,6 +457,7 @@ def source_truth_payload(group):
                 "owner_id": item["owner_id"],
                 "res_model": item["res_model"],
                 "res_id": item["res_id"],
+                "source_res_model": item.get("source_res_model") or "",
                 "folder_path": item["folder_path"],
                 "folder_company_id": item.get("folder_company_id"),
                 "tag_ids": item["tag_ids"],
@@ -1355,8 +1380,30 @@ for item in completed:
             ),
         },
     )
+    root_policy = resolve_root_role(
+        record_models=(model_name for model_name, _target_id in target_links),
+        tags=classification["tags"],
+        accounting_evidence=classification["accounting_evidence"],
+        confidentiality=confidentiality,
+        explicit_documents_record=bool(group[0].get("document_id")),
+    )
+    if document.intake_role != root_policy["document_role"]:
+        document.sudo().with_context(usl_documents_policy_write=True).write(
+            {"intake_role": root_policy["document_role"]},
+        )
     for (model_name, _target_id), target in sorted(target_links.items()):
-        document.link_to_record(model_name, target.id)
+        link_policy = resolve_link_role(
+            res_model=model_name,
+            root_policy=root_policy,
+        )
+        document.link_to_record(
+            model_name,
+            target.id,
+            archive_mode=link_policy["archive_mode"],
+            policy_role=link_policy["document_role"],
+            attachment_origin="migration",
+            policy_reason=link_policy["policy_reason"],
+        )
         link = document.sudo().link_ids.filtered(
             lambda candidate: (
                 candidate.res_model == model_name
@@ -1729,11 +1776,20 @@ actual_relationships = {
         [("document_id", "in", migrated_document_ids), ("active", "=", True)],
     )
 }
-if actual_relationships != expected_relationships:
+unexpected_relationships = actual_relationships - expected_relationships
+governed_extension_relationships = {
+    relationship
+    for relationship in unexpected_relationships
+    if relationship[1] in GOVERNED_POST_DOCUMENTS_LINK_MODELS
+}
+unsupported_relationships = (
+    unexpected_relationships - governed_extension_relationships
+)
+if expected_relationships - actual_relationships or unsupported_relationships:
     fail(
         "the finalized business relationship set is not deterministic; "
         f"missing={sorted(expected_relationships - actual_relationships)}, "
-        f"unexpected={sorted(actual_relationships - expected_relationships)}",
+        f"unexpected={sorted(unsupported_relationships)}",
     )
 relationships_by_model = {
     model_name: sum(
@@ -1766,6 +1822,10 @@ classification_type_counts = {
         key=str.casefold,
     )
 }
+classification_reconciliation = env[
+    "usl.document"
+].reconcile_linked_classification(limit=0)
+env.cr.commit()
 
 after_attachment_count = all_attachments.search_count([])
 expected_source_documents = sum(
@@ -1811,7 +1871,7 @@ result = {
     "source_profile_is_full": SOURCE_PROFILE == "full" and not SOURCE_LIMIT,
     "source_document_identities": expected_source_documents,
     "source_unassigned_evidence": sum(
-        entry["kind"] == "unassigned_evidence"
+        entry["kind"] in {"unassigned_evidence", "restricted_unassigned_evidence"}
         for group in groups
         for entry in group
     ),
@@ -1849,8 +1909,19 @@ result = {
     "excluded_empty_source_document_types": excluded_empty_source_document_types,
     "restored_relationship_count": len(expected_relationships),
     "restored_relationships_by_model": relationships_by_model,
+    "preserved_governed_extension_relationship_count": len(
+        governed_extension_relationships,
+    ),
+    "preserved_governed_extension_relationships_by_model": {
+        model_name: sum(
+            relationship[1] == model_name
+            for relationship in governed_extension_relationships
+        )
+        for model_name in sorted(GOVERNED_POST_DOCUMENTS_LINK_MODELS)
+    },
     "classification_tag_counts": classification_tag_counts,
     "classification_type_counts": classification_type_counts,
+    "classification_reconciliation": classification_reconciliation,
     "source_added_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,

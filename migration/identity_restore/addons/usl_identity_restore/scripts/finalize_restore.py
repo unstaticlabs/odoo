@@ -5,6 +5,13 @@ import json
 
 run = env["usl.identity.restore.run"].sudo().search([], order="id desc", limit=1)
 assert run and run.status == "passed", "Identity restoration must pass before finalization."
+preference_dispositions = run.statistics_json.get("preference_dispositions", {})
+assert preference_dispositions.get("status") != "deferred", (
+    "Saved preferences must be finalized after Projects before Identity cleanup."
+)
+assert len(preference_dispositions.get("filters", {}).get("target_ids", [])) == 7, (
+    "All seven approved saved filters must exist before Identity cleanup."
+)
 before = {
     "companies": env["res.company"].sudo().with_context(active_test=False).search_count([]),
     "partners": env["res.partner"].sudo().with_context(active_test=False).search_count([]),

@@ -46,6 +46,8 @@ Before normal use resumes, verify:
 - core records are readable;
 - attachments are accessible;
 - scheduled work is controlled;
+- Odoo worker, database-pool, memory and request-recycling budgets match the
+  approved [product performance policy](product-performance.md);
 - critical integrations are healthy or visibly paused;
 - accounting entries remain balanced;
 - key reports and control totals remain consistent;

@@ -20,8 +20,8 @@ from pathlib import Path, PurePosixPath
 import portable_filestore
 import qa_seed
 
-SCHEMA = "usl-production-migration-candidate-v1"
-QUALIFICATION_SCHEMA = "usl-production-candidate-qualification-v1"
+SCHEMA = "usl-production-migration-candidate-v2"
+QUALIFICATION_SCHEMA = "usl-production-candidate-qualification-v2"
 REQUIRED_ARTIFACTS = (
     "odoo.dump",
     "odoo-filestore.tgz",
@@ -203,6 +203,11 @@ def verify_release_identity(identity: dict) -> str:
     oca_digest = (identity.get("oca") or {}).get("bundle_sha256")
     if not isinstance(oca_digest, str) or not SHA256.fullmatch(oca_digest):
         raise CandidateError("release identity has no exact OCA bundle digest")
+    action_risk_digest = identity.get("action_risk_policy_sha256")
+    if not isinstance(action_risk_digest, str) or not SHA256.fullmatch(
+        action_risk_digest,
+    ):
+        raise CandidateError("release identity has no exact action-risk policy digest")
     module_versions = identity.get("product_module_versions")
     if (
         not isinstance(module_versions, dict)
@@ -221,6 +226,7 @@ def verify_release_identity(identity: dict) -> str:
     expected_labels = {
         "org.opencontainers.image.revision": commit,
         "com.unstaticlabs.odoo.oca-bundle-sha256": oca_digest,
+        "com.unstaticlabs.odoo.action-risk-policy-sha256": action_risk_digest,
         "com.unstaticlabs.odoo.runtime": "distribution",
     }
     if any(labels.get(key) != value for key, value in expected_labels.items()):
@@ -246,6 +252,7 @@ def verify_qualification(
     migration_sha256: str,
 ) -> None:
     required_passes = (
+        "action_risk",
         "accounting",
         "attachment_gate",
         "documents",
@@ -285,6 +292,10 @@ def verify_qualification(
         "product_module_versions",
     ):
         raise CandidateError("candidate module versions differ from the release")
+    if (qualification.get("action_risk") or {}).get(
+        "policy_sha256",
+    ) != release_identity.get("action_risk_policy_sha256"):
+        raise CandidateError("candidate action-risk policy differs from the release")
     accounting = qualification.get("accounting") or {}
     accounting_performance = accounting.get("performance") or {}
     if (
@@ -303,6 +314,10 @@ def verify_qualification(
         or not documents["controls"]
         or not isinstance(documents.get("paperless_document_count"), int)
         or documents["paperless_document_count"] < 0
+        or not isinstance(documents.get("paperless_image_digest"), str)
+        or not IMAGE_DIGEST.fullmatch(documents["paperless_image_digest"])
+        or not isinstance(documents.get("ollama_image_digest"), str)
+        or not IMAGE_DIGEST.fullmatch(documents["ollama_image_digest"])
         or not isinstance(reconstruction.get("ocr_submissions"), int)
         or reconstruction["ocr_submissions"] < 0
     ):
@@ -374,9 +389,14 @@ def build_payload(
         "created_at": datetime.now(UTC).isoformat(),
         "identity": {
             "image_digest": image_digest,
+            "paperless_image_digest": qualification["documents"]["paperless_image_digest"],
+            "ollama_image_digest": qualification["documents"]["ollama_image_digest"],
             "migration_sha256": migration_sha256,
             "oca_bundle_sha256": (release_identity.get("oca") or {}).get(
                 "bundle_sha256",
+            ),
+            "action_risk_policy_sha256": release_identity.get(
+                "action_risk_policy_sha256",
             ),
             "release_commit": release_identity["release_commit"],
             "source_dump_sha256": source_dump_sha256,

@@ -3068,17 +3068,24 @@ def extract(args: argparse.Namespace) -> dict[str, Any]:
         copy_sql = f"COPY ({sql}) TO STDOUT WITH CSV HEADER"
         data = psql(SOURCE_DB, copy_sql, set_readonly_role=True)
         out.write_text(data + ("\n" if data and not data.endswith("\n") else ""), encoding="utf-8")
-        exported.append({"path": str(out.relative_to(ROOT)), "table": table, "bytes": out.stat().st_size})
+        exported.append(
+            {
+                "path": str(out.relative_to(ROOT)),
+                "table": table,
+                "bytes": out.stat().st_size,
+                "sha256": sha256_file(out),
+            },
+        )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
         "snapshot_id": snapshot_id,
         "snapshot_dir": str(snapshot_dir.relative_to(ROOT)),
-        "serialization": "csv_private_interim",
-        "parquet_status": "pending_pyarrow_or_equivalent_runtime",
+        "serialization": "csv_v1",
+        "transfer_contract_status": "accepted",
+        "integrity": "source dump SHA-256 plus per-file SHA-256",
         "exported": exported,
         "skipped": skipped,
-        "warning": "This is the first accounting-only private extract. Parquet is still required before final transfer contract acceptance.",
     }
     write_json(snapshot_dir / "controls" / "extraction-status.json", status)
     write_json(PRIVATE_ARTIFACTS / "source-extract-status.json", status)
@@ -3994,6 +4001,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    no_reset_password=True,",
             "    mail_create_nosubscribe=True,",
             "    tracking_disable=True,",
+            "    usl_governed_identity_provisioning=True,",
             ")",
             "companies = env['res.company'].search([",
             "    ('rebuild_source_id', 'in', [1, 8]),",

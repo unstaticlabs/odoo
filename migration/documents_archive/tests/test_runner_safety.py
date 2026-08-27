@@ -1,3 +1,4 @@
+import ast
 import os
 import subprocess
 import unittest
@@ -6,8 +7,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/documents-restore"
 QA_SCRIPT = ROOT / "scripts/qa-environment"
+QA_CLEAN_SCRIPT = ROOT / "scripts/qa-clean"
 SEED_SCRIPT = ROOT / "scripts/qa-seed"
 TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
+NATIVE_BRIDGE_SCRIPT = (
+    ROOT / "migration/documents_archive/scripts/reconcile_native_attachments.py"
+)
+PAPERLESS_MIGRATION_ACCESS = (
+    ROOT / "migration/documents_archive/scripts/paperless_migration_access.py"
+)
+PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
+    ROOT
+    / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
+)
+RELEASE_INVENTORY = ROOT / "scripts/odoo/documents_release_inventory.py"
+RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
+RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
+MIGRATION_CANDIDATE_SCRIPT = ROOT / "scripts/migration-candidate"
+PRODUCTION_CUTOVER_SCRIPT = ROOT / "scripts/production-cutover"
+EXPENSE_BATCH_MANIFEST = (
+    ROOT / "custom-addons/usl_expense_batch/__manifest__.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -36,6 +56,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
                 self.assertEqual(completed.returncode, 2)
                 self.assertIn("Refusing unsafe", completed.stderr)
 
+    def test_rejects_invalid_restore_timeout(self):
+        for value in ("", "0", "later"):
+            with self.subTest(value=value):
+                completed = self.run_runner(
+                    COMPOSE_PROJECT_NAME="codex-migration-safety-test",
+                    DOCUMENTS_RESTORE_TIMEOUT=value,
+                )
+                self.assertEqual(completed.returncode, 2)
+                self.assertIn("positive number of seconds", completed.stderr)
+
     def test_rejects_reserved_main_and_feature_ports(self):
         for variable, port in (
             ("DOCUMENTS_MIGRATION_PAPERLESS_PORT", "8010"),
@@ -57,9 +87,76 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         script = SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn(
-            "--update=rebuild_account_migration,usl_documents,usl_documents_accounting",
+            "--update=rebuild_account_migration,usl_documents,usl_expense_batch,"
+            "usl_platform_billing,usl_tese_payroll,usl_documents_accounting",
             script,
         )
+
+    def test_expense_batch_declares_its_documents_adapter_dependency(self):
+        manifest = ast.literal_eval(
+            EXPENSE_BATCH_MANIFEST.read_text(encoding="utf-8"),
+        )
+
+        self.assertIn("usl_documents", manifest["depends"])
+
+    def test_native_bridge_checkpoints_progress_before_final_gate(self):
+        script = NATIVE_BRIDGE_SCRIPT.read_text(encoding="utf-8")
+
+        guard = script.index("if blocking_operations or unaccounted:")
+        failure = script.index("raise RuntimeError", guard)
+        final_commit = script.index("env.cr.commit()", failure)
+        self.assertLess(guard, failure)
+        self.assertLess(failure, final_commit)
+        self.assertIn(
+            "Document.sync_from_paperless(full=True, client=migration_client)",
+            script,
+        )
+        self.assertIn("bounded resumable queue checkpoint", script)
+        self.assertIn("Commit every bounded worker pass", script)
+        self.assertIn("usl_documents_trusted_backfill_access=True", script)
+        self.assertIn('(\"res_field\", \"=\", False)', script)
+        self.assertIn('(\"res_field\", \"!=\", False)', script)
+        runner = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            '-e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token"',
+            runner,
+        )
+
+    def test_archive_migration_identity_is_temporary_and_fail_closed(self):
+        access = PAPERLESS_MIGRATION_ACCESS.read_text(encoding="utf-8")
+        cleanup = PAPERLESS_MIGRATION_ACCESS_CLEANUP.read_text(encoding="utf-8")
+        runner = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("user.is_superuser = True", access)
+        self.assertIn("Token.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("UserObjectPermission.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("assign_owner=runtime_user", cleanup)
+        self.assertIn("workflows.update(enabled=False)", cleanup)
+        self.assertIn("user.is_active = False", cleanup)
+        self.assertIn("user.is_superuser = False", cleanup)
+        self.assertIn("trap cleanup_documents_restore EXIT", runner)
+        self.assertIn("deprovision_archive_identity || cleanup_status=$?", runner)
+        self.assertIn("restore_semantic_runtime || cleanup_status=$?", runner)
+
+    def test_release_inventory_fails_closed_on_every_queue_and_boundary_counter(self):
+        inventory = RELEASE_INVENTORY.read_text(encoding="utf-8")
+
+        for name in (
+            "eligible_attachment_pending",
+            "eligible_attachment_unresolved",
+            "odoo_operations_failed",
+            "odoo_operations_pending",
+            "odoo_operations_processing",
+            "permission_failures",
+            "migration_module_residue",
+        ):
+            self.assertIn(name, inventory)
+        self.assertIn('USL_RELEASE_REQUIRE_COMPLETE") == "1"', inventory)
+        self.assertIn("operation_failure_counts", inventory)
+        self.assertIn("operation.acknowledged", inventory)
+        self.assertIn("attachment.usl_documents_ledger_state", inventory)
+        self.assertIn("resolved_or_acknowledged", inventory)
+        self.assertNotIn("paperless_token\"", inventory.split("print(", 1)[-1])
 
     def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -75,10 +172,65 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "A Documents run cannot reset and reuse the Paperless archive together.",
             script,
         )
+        self.assertIn("seal-checkpoint)", script)
+        self.assertIn(
+            "Final archive checkpoint sealing requires the canonical full target.",
+            script,
+        )
         checkpoint = (
             ROOT / "migration/documents_archive/checkpoint.py"
         ).read_text(encoding="utf-8")
         self.assertIn("Run the normal fresh reconstruction", checkpoint)
+
+    def test_bulk_restore_defers_then_verifies_semantic_index(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+
+        self.assertIn('DOCUMENTS_DEFER_SEMANTIC_INDEX:-1', script)
+        self.assertIn("enable_semantic_index_deferral", script)
+        self.assertIn("finalize_semantic_index", script)
+        self.assertLess(
+            script.index("run_restore\n        finalize_semantic_index"),
+            script.index("run_native_attachment_bridge", script.index("case \"$command_name\"")),
+        )
+        for command in (
+            "document_llmindex migrate",
+            "document_llmindex update",
+            "document_llmindex compact",
+            "scripts/paperless_release_inventory.py",
+        ):
+            self.assertIn(command, script)
+        self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true", script)
+        self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=false", script)
+        self.assertIn("--force-recreate --no-deps paperless-webserver", script)
+        self.assertIn("wait_for_archive_tasks", script)
+        self.assertIn("documents_paperlesstask", script)
+        self.assertIn(
+            "Deferred semantic indexing is migration-only",
+            compose,
+        )
+
+    def test_reconstruction_reseals_checkpoint_after_all_document_producers(self):
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        b2c_stage = target.index(
+            'run_stage "finalize B2C relationships and Documents links"',
+        )
+        collaboration_stage = target.index(
+            'run_stage "restore Collaboration history"',
+        )
+        checkpoint_stage = target.index(
+            'run_stage "seal final Documents archive checkpoint"',
+        )
+        self.assertLess(b2c_stage, collaboration_stage)
+        self.assertLess(collaboration_stage, checkpoint_stage)
+        checkpoint = (
+            ROOT / "migration/documents_archive/checkpoint.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            '"migration/collaboration_restore/addons/usl_collaboration_restore"',
+            checkpoint,
+        )
 
     def test_canonical_reset_clears_target_mirror_before_archive_volumes(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -95,6 +247,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('env["usl.document.operation"]', reset)
         self.assertIn('env["usl.document.link"]', reset)
         self.assertIn('env["usl.document"]', reset)
+        self.assertIn('env.get("b2c.provider.evidence")', reset)
+        self.assertIn("with_context(b2c_evidence_import=True).write", reset)
+        self.assertLess(
+            reset.index("with_context(b2c_evidence_import=True).write"),
+            reset.index('Document.with_context(active_test=False).search([]).unlink()'),
+        )
 
     def test_restore_uses_all_mapped_companies_for_archive_policy(self):
         restore = (
@@ -109,6 +267,17 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertNotIn("QUALIFIED_SOURCE", restore)
         self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
         self.assertIn("source contains unsupported Documents URL references", restore)
+        self.assertIn("attachment.res_model = 'ai.agent.source'", restore)
+        self.assertIn('"restricted_unassigned_evidence"', restore)
+        for model_name in (
+            "b2c.accounting.session",
+            "b2c.fulfilment.event",
+            "b2c.order",
+            "b2c.payment.event",
+        ):
+            self.assertIn(f'"{model_name}"', restore)
+        self.assertIn("unsupported_relationships", restore)
+        self.assertIn("preserved_governed_extension_relationship_count", restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -117,7 +286,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("migration source bindings are absent", script)
         self.assertIn("make qa-cache-refresh", script)
         self.assertLess(
-            script.index("require_source_bindings\n        start_archive"),
+            script.index(
+                "require_source_bindings\n        enable_semantic_index_deferral",
+            ),
             script.index("verify_checkpoint\n        run_restore"),
         )
 
@@ -141,7 +312,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("scripts/accounting-compat dev-validate", script)
         self.assertIn('failed_checks == {"manager_accounting_identity_matches"}', script)
         self.assertIn('manager.get("target") is None', script)
-        self.assertIn("scripts/hr-restore all", script)
+        self.assertIn("scripts/hr-restore install", script)
+        self.assertIn("scripts/hr-restore import", script)
+        self.assertIn("scripts/hr-restore validate", script)
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 
@@ -175,6 +348,36 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('run_stage "multi-company acceptance"'),
         )
 
+    def test_qa_reuses_only_an_exact_verified_worktree_state(self):
+        script = QA_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("usl-worktree-qa-state-v1", script)
+        self.assertIn("seed_manifest_sha256", script)
+        self.assertIn("migration_sha256", script)
+        self.assertIn("pocket_environment_sha256", script)
+        self.assertIn("worktree_state_sha256", script)
+        self.assertIn("qa_state_digest", script)
+        self.assertIn("qa_volumes_present", script)
+        self.assertIn('reuse_requested="${USL_QA_REUSE_EXISTING:-0}"', script)
+        self.assertIn('cache_result="warm-hit"', script)
+        self.assertLess(
+            script.index("qa_state_matches && qa_volumes_present"),
+            script.index('stage "reset isolated QA project"'),
+        )
+        self.assertIn('stage "reuse and verify existing QA target"', script)
+        self.assertIn("scripts/check-product-database-boundary", script)
+
+    def test_qa_cleanup_is_worktree_scoped_and_confirmation_gated(self):
+        script = QA_CLEAN_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("usl-odoo-qa-?*", script)
+        self.assertIn("USL_QA_CLEAN_CONFIRM", script)
+        self.assertIn("qa-volumes", script)
+        self.assertIn("usl_verify_compose_scope", script)
+        self.assertIn("usl_compose_active_unsafe_resources", script)
+        self.assertIn("down --volumes --remove-orphans", script)
+        self.assertNotIn("docker system prune", script)
+
     def test_downstream_source_bindings_survive_until_global_finalization(self):
         script = TARGET_SCRIPT.read_text(encoding="utf-8")
 
@@ -192,6 +395,18 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             script.index('run_stage "restore Platform Billing"'),
+            script.index('run_stage "restore Collaboration history"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Projects"'),
+            script.index('run_stage "finalize source-backed saved preferences"'),
+        )
+        self.assertLess(
+            script.index('run_stage "finalize source-backed saved preferences"'),
+            script.index('run_stage "finalize migration boundary"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Collaboration history"'),
             script.index('run_stage "finalize migration boundary"'),
         )
         finalizer = script[
@@ -203,6 +418,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             finalizer,
         )
         self.assertLess(
+            finalizer.index("scripts/collaboration-restore finalize"),
+            finalizer.index("scripts/platform-billing-restore finalize"),
+        )
+        self.assertLess(
             finalizer.index("scripts/platform-billing-restore finalize"),
             finalizer.index("scripts/tese-restore finalize"),
         )
@@ -212,12 +431,27 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             finalizer.index("scripts/project-restore finalize"),
+            finalizer.index("scripts/hr-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/hr-restore finalize"),
+            finalizer.index("scripts/product-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/product-restore finalize"),
+            finalizer.index("scripts/identity-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/identity-restore finalize"),
             finalizer.index("scripts/accounting-restore finalize"),
         )
         self.assertLess(
             finalizer.index("scripts/accounting-restore finalize"),
             finalizer.index("scripts/platform-billing-restore schema-finalize"),
         )
+        self.assertNotIn('run_stage "restore identities" scripts/identity-restore all', script)
+        self.assertNotIn('run_stage "restore product data" scripts/product-restore all', script)
+        self.assertNotIn('run_stage "restore HR" scripts/hr-restore all', script)
 
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
         runner = SCRIPT.read_text(encoding="utf-8")
@@ -249,6 +483,85 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("manage.py document_importer --no-progress-bar", script)
         self.assertIn("verify_hydrated_controls", script)
 
+    def test_paperless_file_writers_run_as_the_runtime_user(self):
+        release = RELEASE_BUNDLE_SCRIPT.read_text(encoding="utf-8")
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+        candidate = MIGRATION_CANDIDATE_SCRIPT.read_text(encoding="utf-8")
+        cutover = PRODUCTION_CUTOVER_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertGreaterEqual(
+            release.count("exec -T --user paperless paperless-webserver"),
+            9,
+        )
+        for command in (
+            "document_index reindex",
+            "document_index optimize",
+            "document_llmindex migrate",
+            "document_llmindex update",
+            "document_llmindex compact",
+            "document_exporter",
+        ):
+            self.assertIn(command, release)
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            recovery,
+        )
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            seed,
+        )
+        self.assertGreaterEqual(
+            candidate.count("exec -T --user paperless paperless-webserver"),
+            3,
+        )
+        self.assertIn(
+            "--user paperless --entrypoint python paperless-webserver",
+            cutover,
+        )
+
+    def test_local_recovery_accepts_only_explicit_isolated_odoo_dev_scopes(self):
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+
+        for script in (recovery, stack):
+            self.assertIn("USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY", script)
+            self.assertIn("USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY", script)
+            self.assertIn("usl-odoo-preprod-*", script)
+            self.assertIn("usl-odoo-paperless-*", script)
+            self.assertNotIn('"$PROJECT" = "*"', script)
+        self.assertIn("LOCAL_DEV_RECOVERY", recovery)
+        self.assertIn("SOURCE_OVERRIDE=()", recovery)
+        self.assertIn("COMPOSE_OVERRIDE=()", stack)
+        self.assertIn("SOURCE_PAPERLESS_OLLAMA_VOLUME", recovery)
+        self.assertIn("paperless-ollama-data.tgz", recovery)
+
+    def test_clean_paperless_bootstrap_is_digest_pinned(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("paperless-model-init:", compose)
+        self.assertIn('ollama pull "$$USL_BGE_SOURCE_MODEL"', compose)
+        self.assertIn(
+            'ollama cp "$$USL_BGE_SOURCE_MODEL" "$$USL_BGE_TARGET_MODEL"',
+            compose,
+        )
+        self.assertGreaterEqual(
+            compose.count(
+                "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+            ),
+            1,
+        )
+        self.assertIn("paperless-model-init", stack)
+        self.assertIn("Paperless BGE-M3 bootstrap digest is not pinned", stack)
+        self.assertIn("prepare_personal_ai_keyring", target)
+        self.assertIn(
+            "Production migration requires USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
+            target,
+        )
+        self.assertIn('run_stage "Personal AI key preflight"', target)
+
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
 
@@ -268,6 +581,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("attachment_gate=gate", target)
         self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
         self.assertIn('export USL_ONLINE_DUMP_DIR="$source_dump_dir"', target)
+        for phase in (
+            "post-accounting",
+            "post-source-restoration",
+            "post-target-configuration",
+            "final-reconstruction",
+        ):
+            self.assertIn(
+                f"scripts/migration-outbound-safety {phase}",
+                target,
+            )
         self.assertLess(
             target.index('export USL_ONLINE_DUMP_DIR="$source_dump_dir"'),
             target.index('scripts/migration-source-truth "$source_gate"'),

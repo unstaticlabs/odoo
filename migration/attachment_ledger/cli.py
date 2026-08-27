@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import io
 import json
 import os
 import sys
@@ -20,7 +19,6 @@ from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -30,11 +28,9 @@ from migration.source_truth.cli import (  # noqa: E402
     SourceDatabase,
     default_source_dir,
     resolve_source_container,
-    sha256_file,
     source_package,
     verify_filestore,
 )
-
 
 SCHEMA = "usl-source-attachment-ledger-v1"
 DEFAULT_SOURCE_DIR = default_source_dir()
@@ -180,14 +176,34 @@ def classify_attachment(
             ),
         ]
 
-    if row["type"] == "url":
-        scope = "knowledge" if model == "knowledge.cover" else "native_reference"
-        state = "pending" if scope == "knowledge" else "implemented"
+    if model.startswith("knowledge."):
         return [
             action(
-                "restore_external_reference" if scope == "knowledge" else "recompute_reference",
-                scope,
-                state,
+                "discard_demo_knowledge_attachment",
+                "knowledge",
+                "implemented",
+                "approved product decision: source Knowledge content is unused "
+                "default/demo data and is not part of Distribution business evidence",
+            ),
+        ]
+
+    if model.startswith("ai."):
+        return [
+            action(
+                "archive_restricted_business_evidence",
+                "documents",
+                "implemented",
+                "the source binary is retained privately as business evidence while "
+                "the experimental AI configuration and index are not copied",
+            ),
+        ]
+
+    if row["type"] == "url":
+        return [
+            action(
+                "recompute_reference",
+                "native_reference",
+                "implemented",
                 "URL attachments contain no source binary",
             ),
         ]
@@ -214,7 +230,7 @@ def classify_attachment(
         )
 
     if (model, field) in NATIVE_PRIMARY_IMAGES:
-        scope = NATIVE_PRIMARY_IMAGES[(model, field)]
+        scope = NATIVE_PRIMARY_IMAGES[model, field]
         result.append(
             action(
                 "restore_native_binary_field",
@@ -225,7 +241,7 @@ def classify_attachment(
         )
     elif (
         field in GENERATED_IMAGE_FIELDS
-        or model == "ir.attachment" and field == "thumbnail"
+        or (model == "ir.attachment" and field == "thumbnail")
         or (model, field) == ("res.company", "logo_web")
     ):
         result.append(
@@ -259,43 +275,33 @@ def classify_attachment(
     if (
         model.startswith("sign.")
         or attachment_id in sign_document_attachment_ids
-        or model == "res.users" and field.startswith("sign_")
+        or (model == "res.users" and field.startswith("sign_"))
     ):
         result.append(
             action(
                 "archive_signing_evidence",
                 "signing",
-                "pending",
-                "signed files, signatures, and completion evidence require an immutable archive trail",
+                "implemented",
+                "the Documents archive verifies the signed originals and Collaboration links the request history to the canonical archive root",
             ),
         )
 
-    if model == "spreadsheet.dashboard":
+    if model == "spreadsheet.dashboard" and row["res_id"] in {1, 2, 7}:
         result.append(
             action(
-                "restore_preference_payload",
+                "deliberately_not_copied",
                 "preferences",
-                "pending",
-                "the dashboard definition is user-visible configuration data",
+                "implemented",
+                "the source contains only packaged sample dashboards, not USL business data",
             ),
         )
-    elif model == "ai.agent.source":
-        result.append(
-            action(
-                "archive_ai_source",
-                "ai_configuration",
-                "pending",
-                "the source file must be retained even when AI configuration is translated separately",
-            ),
-        )
-
     if attachment_id in message_attachment_ids and not restored_scope:
         result.append(
             action(
                 "restore_collaboration_attachment",
                 "collaboration",
-                "pending",
-                "the binary is attached to preserved business chatter",
+                "implemented",
+                "Collaboration restores the source message relationship and verifies the owning operational or Documents archive bytes",
             ),
         )
 
@@ -464,15 +470,19 @@ def build_ledger(
 
 
 def write_ledger(ledger: dict[str, Any], root: Path) -> tuple[Path, Path]:
+    root.mkdir(parents=True, exist_ok=True)
+    root.chmod(0o700)
     snapshot = f"source-{ledger['source']['dump_sha256'][:12]}"
     directory = root / snapshot
     directory.mkdir(parents=True, exist_ok=True)
+    directory.chmod(0o700)
     json_path = directory / "attachment-disposition-ledger.json"
     csv_path = directory / "attachment-disposition-ledger.csv"
     json_path.write_text(
         json.dumps(ledger, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    json_path.chmod(0o600)
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
             handle,
@@ -493,6 +503,7 @@ def write_ledger(ledger: dict[str, Any], root: Path) -> tuple[Path, Path]:
                     ),
                 },
             )
+    csv_path.chmod(0o600)
     return json_path, csv_path
 
 

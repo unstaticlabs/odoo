@@ -32,8 +32,8 @@ size and digest observations above do not establish migration completeness.
 
 On 26 August, the B2C-integrated branch completed a fresh full reconstruction
 from this package and published a sanitized reusable QA seed. The finalized
-`odoo_dev` target passed the database boundary for all fourteen delivered
-product modules with no migration registry/schema residue. Accounting remained
+`odoo_dev` target passed the database boundary for the then-current fourteen
+delivered product modules with no migration registry/schema residue. Accounting remained
 balanced at EUR 2,900,936.82 debit and credit; B2C retained 304 canonical
 orders, 457 source lines, 1,821 payment/refund/fee events, 261 fulfilments and
 109 governed SKU aliases (nine exactly verified and 100 explicitly not
@@ -41,11 +41,26 @@ applicable), with zero unexplained pending mappings. All 180 critical source
 moves have monthly session relationships, and all 40 B2C files plus 2,893
 immutable evidence rows have durable archive links. Paperless archived 645
 source groups and synchronized 638 live authorized mappings. A separate
-empty-database installation passed for all fourteen product modules, and two
+empty-database installation passed for those fourteen product modules, and two
 isolated full-seed hydrations matched
 the sealed Accounting, Documents and Paperless controls with zero OCR
 submissions. This is current rehearsal evidence, not a final frozen-source
 production candidate.
+
+The schema-v3 migration-cache/Documents-performance work and Paperless 3.0 are
+now one combined integration candidate, not yet part of `origin/19-usl`. On
+that candidate, all five affected product modules passed clean install,
+upgrade and identical repeated upgrade. `usl_documents` passed 184 Python
+post-tests, the 13/20/6 query ceilings, asset compilation, and desktop/mobile
+Chromium suites (39/268 and 33/248). The merged tree also passed the 114-test
+Documents migration-safety suite, subsequently extended to 116 passing tests.
+The exact Paperless overlay built for `linux/amd64` at manifest digest
+`sha256:a30e826e471f097df1cb941b69d7379ebb800f4bf07a1daff45f2359d5cb079d`;
+the full release-cohort restore remains separate. A fresh full reconstruction
+is in progress. Schema-v3 seed publication is intentionally restricted to a
+clean `19-usl` checkout and therefore follows the merge; no older seed or
+feature database is final release evidence. Canonical `odoo_dev` must be
+reconstructed from the eventual final `19-usl`, not repaired ad hoc.
 
 ## Non-negotiable boundaries
 
@@ -61,8 +76,10 @@ production candidate.
 - Do not import or copy passwords, sessions, API/OAuth/OIDC tokens, Pocket
   subjects, local identity audit events, Paperless integration tokens or
   environment secrets.
-- Production consumes an immutable `distribution` image by digest. It does not
-  run from a mutable checkout or a development bind mount.
+- Production consumes candidate-bound immutable Odoo Distribution, Paperless
+  overlay and Ollama images by digest. It also requires an absolute mode-`0600`
+  Personal Gemini key ring before preflight. It does not run from a mutable
+  checkout, mutable image tag or development bind mount.
 - Pocket ID, ingress, firewall, network and host policies remain externally
   owned. The application deployment may join explicitly approved networks but
   must not create, restore, provision or mutate Pocket ID.
@@ -77,13 +94,20 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Workstream | Required release outcome | Status on 27 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
+| Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | integrated into the combined Documents candidate from reviewed tip `3d2b2b49382`; affected suites pass, v3 publication/cold-warm evidence and final merge pending |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
-| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
+| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | integrated into the combined Documents candidate from reviewed tip `2ba19d6fa90`; clean suites and AMD64 overlay build pass, full archive/release-cohort restore/signed-in browser evidence and final merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
-| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
-| Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
+| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | integrated on the current release candidate; clean reconstruction, repeated import and final product-boundary requalification passed |
+| Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | integrated on the current consolidated candidate; action inventory regeneration and final merged-registry acceptance remain |
+| Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | active feature branch; review and merge or explicit rejection pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
+| Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | integrated on the review candidate through merge `602df379352`; focused desktop webclient suite passed; actual Projects browser acceptance and required branch CI pending |
+
+Native Sign is the remaining product head to review on this consolidated
+candidate. Feature-branch evidence is not release evidence; its exact reviewed
+tip still requires Lead Developer integration and requalification.
 
 For every merge:
 
@@ -94,8 +118,9 @@ For every merge:
 5. invalidate any QA seed, evidence or candidate produced by an earlier commit;
 6. verify the complete target module set, not only modules touched by the merge.
 
-The current database boundary expects the fourteen delivered modules listed by
-`scripts/odoo/product_database_boundary.py`, including `usl_b2c` and
+The current integration-candidate database boundary expects the fifteen
+delivered modules listed by `scripts/odoo/product_database_boundary.py`,
+including `usl_b2c` and
 `usl_documents_b2c`. Pending
 features may extend that set. The script is authoritative after all merges; a
 partial `odoo_dev` installation is not final-target evidence.
@@ -103,14 +128,38 @@ partial `odoo_dev` installation is not final-target evidence.
 ## Phase A — finish the release before freezing Online
 
 - [x] Merge the approved migration-performance candidate into `19-usl`.
+- [ ] Finish and merge the combined Paperless/schema-v3 Documents candidate,
+  publish the shared seed from its clean reconstructed tree, run one cold
+  hydration and prove the next verified reuse reports a warm hit with zero
+  download/OCR work.
 - [x] Merge Expense Analytics after independent review and validation.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
   validation.
-- [ ] Merge Paperless 3.0 and Native Sign after independent review and
-  validation.
-- [ ] Merge Collaboration History and Distribution Access Control after
+- [ ] Complete the optimized Paperless 3.0 full-archive and release-cohort
+  restore, then merge the combined Documents candidate after independent
+  review and validation.
+- [ ] Merge Native Sign and the project/task browser-title fix after
   independent review and validation.
+- [x] Integrate Collaboration History after independent review and preserve its
+  exact reviewed ancestry and archive ref.
+- [x] Reconstruct and finalize canonical `odoo_dev` from the locked source on
+  the integrated Collaboration candidate. The second Collaboration import was
+  identical, the final database retained 14 product modules with no migration
+  registry/schema residue, and 733 live Documents records remained stable with
+  zero changes on repeated identity synchronization. The reduction from the
+  earlier 798-document rehearsal is the approved removal of 66 demo Knowledge
+  records plus retention of the genuine restricted strategy document. Shared
+  QA-seed publication was intentionally not performed from the integration
+  branch; publication remains restricted to a clean `19-usl` checkout.
+  A second clean run on 27 August completed from the same locked source with
+  the same 733 Documents, exact Accounting/B2C/Collaboration controls, passing
+  multi-company acceptance and zero records in every outbound delivery queue.
+  Timing evidence is sealed in
+  `artifacts/migration/private/runs/usl-odoo-saas-19-3-reconstruct-20260827T065753Z.json`.
+- [x] Integrate Distribution Access Control with reviewed ancestry preserved.
+  Regenerate its action inventory against the final merged registry and repeat
+  named-persona and multi-company backend acceptance before admission.
 - [ ] Confirm no active release branch contains unmerged product or migration
   final state.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
@@ -119,15 +168,18 @@ partial `odoo_dev` installation is not final-target evidence.
   labels and record the digest.
 - [x] Install every currently delivered product module into a fresh empty
   database; run update and repeated update without migration modules on the
-  runtime path. This passed for the current fourteen-module baseline and must
-  be repeated after the remaining merges.
+  runtime path. This now passes for the 15-module access-control candidate and
+  must be repeated after the remaining merges.
 - [x] Run a fresh full local reconstruction from the most recent available
   Online dump and filestore while Online is still active. The 26 August
   rehearsal passed; it must be repeated after the remaining merges and again
   from the frozen source.
-- [ ] Compare whole-source model/field dispositions, attachments, users,
+- [x] Compare whole-source model/field dispositions, attachments, users,
   Projects, Accounting, Expenses, B2C, inventory, Paperless, Sign, payroll and
-  Platform Billing against the source.
+  Platform Billing against the source. The 27 August gate covered all 19
+  scopes and 226,836 records with zero blocked records, relation rows or stored
+  fields; the attachment gate covered all 2,601 rows and 1,996 stored
+  checksums.
 - [x] Record exact total and stage durations, including Accounting and full
   Paperless reconstruction, for the 26 August rehearsal. Repeat for the final
   candidate.
@@ -144,14 +196,34 @@ partial `odoo_dev` installation is not final-target evidence.
 - [ ] Resolve every data-loss-, accounting-, security-, privacy- and
   migration-critical discrepancy. No blanket waiver is permitted.
 
-The currently known strict-source blockers are not generic “migration debt.”
-They are the eight named scopes `ai_configuration`, `attachments`,
-`collaboration`, `knowledge`, `preferences`, `sales_marketing`, `signing` and
-`studio`, including 115 pending source attachment IDs. Collaboration and Sign
-have active implementation workstreams; the other scopes still need a
-source-backed product translation or an explicit, reviewed disposition. The
-physical opening-stock count is a separate operational prerequisite because
-the source contains no defensible historical quantity truth.
+The locked 24 August source now has explicit dispositions for all 19 audited
+scopes: 226,836 source records, with zero blocked records, relation rows or
+stored fields. The former five source blockers are closed by reviewed product
+decisions and tested translations:
+
+- AI configuration and Sales/Marketing configuration are discarded as
+  experiments or default setup, not business history.
+- Studio customizations are discarded because their business behaviour is
+  rebuilt and owned by the Distribution.
+- Seven source-backed saved filters are migrated; native filters and exports
+  are recomputed, while AI/marketing exports are explicitly discarded.
+- Nine standard dashboard definitions are recomputed where the Distribution
+  has a native replacement or explicitly rejected where their Enterprise
+  module is unsupported. The genuine strategy PDF is retained byte-for-byte as
+  a restricted manager-only Document.
+- Sixty-six default/demo Knowledge messages and 554 generated technical
+  configuration events are deliberately not copied. Their exact source
+  disposition is checksum-sealed outside the delivered product.
+- Eighteen historical expenses retain exact dates, states, amounts, accounts,
+  analytics and accounting links but point to the maintained expense-nature
+  products instead of four retired trip-category products. Finalization accepts
+  only this locked-snapshot, product-field-only transition; any other mismatch
+  remains fatal.
+
+These are no longer data-completeness blockers. The physical opening-stock
+count remains a separate operational prerequisite because the source contains
+no defensible historical quantity truth and the migration deliberately creates
+no historical stock moves, quants or valuation layers.
 
 ## Phase B — production inputs and owners
 
@@ -168,6 +240,7 @@ Record values in the private change record, never in Git.
 | Pocket ID | existing issuer, separate Odoo/Paperless clients, redirect URIs and before/after read-only state hashes | Identity owner | [ ] |
 | Secrets | non-default DB/master/app secrets and client secrets supplied from approved storage, all files mode 0600 | Security/Operations | [ ] |
 | Identity policy | every Odoo/Paperless identity, companies, roles, object grants, break-glass decision and cron allowlist | Product/Security | [ ] |
+| Action-risk policy | zero unclassified/stale actions; source, clean-install and reconstructed-registry checks pass; candidate/image digest agrees | Product/Security | [ ] |
 | Backups | RPO/RTO, schedule, retention, separate failure domain, encryption/access, alerts and restore-test owner | Operations | [ ] |
 | Email | outbound SMTP and inbound aliases, SPF/DKIM/DMARC ownership, catch-all/bounce policy and activation test | Operations | [ ] |
 | Scheduled jobs | reviewed allowlist, cadence, company/timezone, idempotency, timeout/retry and failure owner | Product/Operations | [ ] |
@@ -190,8 +263,8 @@ but their creation, transfer and rotation procedure must be approved.
    checkpoint reuse.
 4. Require strict whole-source and attachment gates, accounting parity,
    migration finalization and all product controls to pass.
-5. Build the sanitized Odoo/Paperless portable candidate with the exact image
-   digest. Independently approve its fingerprint.
+5. Build the sanitized Odoo/Paperless portable candidate with the exact Odoo,
+   Paperless and Ollama image digests. Independently approve its fingerprint.
 6. Transfer the unchanged candidate and private policy files over the approved
    SSH/storage route. Reverify on the production host.
 
@@ -210,8 +283,9 @@ Run the commands and stop conditions in
    dry-run/apply/dry-run and no Pocket mutation API;
 4. verify loopback/staging health and complete all required role/browser
    journeys;
-5. `gate` release identity, complete product/migration boundary, source parity,
-   Accounting, multi-company, Documents checksums/permissions and journeys;
+5. `gate` release identity, complete product/migration boundary, exact action
+   registry, source parity, Accounting, multi-company, Documents
+   checksums/permissions and journeys;
 6. take a coordinated pre-admission recovery point and prove its isolated
    restoration if the approved infrastructure backup implementation differs
    from the rehearsed one;

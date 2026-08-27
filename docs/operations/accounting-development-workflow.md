@@ -17,7 +17,7 @@ same dump. Never trade parity for an artificial wall-clock target, disable
 PostgreSQL durability, insert ledger rows with SQL, or modify the read-only
 source database.
 
-Last updated: 2026-07-30
+Last updated: 2026-08-27
 
 Audience: implementation agents and developers working on Milestone 13.
 
@@ -87,6 +87,31 @@ reconstruction of all currently shipped product scopes and target finalization
 pass. The manifest binds the seed
 to source dump and filestore digests, migration code, resolved image IDs, OCR
 settings, archive digests and product module versions.
+The publication commit is audit provenance, not a cache key. A different
+commit may consume the seed only when the content-derived migration identity,
+source package, resolved runtime images and sealed artifacts still match. OCA
+patch content is part of that migration identity.
+
+This cache contract uses manifest schema `usl-qa-reconstruction-seed-v3`.
+Existing v2 seeds are intentionally rejected; after first deploying this
+tooling, run `make qa-cache-refresh` once from the main checkout to publish a
+qualified v3 seed before worktrees use `make qa` or `make qa-reuse`. Do not
+replace that shared seed from a feature worktree.
+
+After a cold `make qa` succeeds, use `make qa-reuse` for the unchanged
+worktree's tight validation loop. It reuses only that worktree's independent
+writable volumes and reruns product boundaries and multi-company acceptance.
+It never shares a live PostgreSQL or Paperless volume with another checkout.
+The state stamp binds the exact seed manifest and migration digest; missing
+volumes, a new seed, or relevant code changes force the normal cold path. Its
+separate worktree-state digest includes product views, translations and static
+assets even though those upgradeable files do not invalidate the portable
+seed itself.
+Because QA data is writable, plain `make qa` remains mandatory after manual
+data mutation and whenever a pristine baseline is part of the test contract.
+Retire a finished worktree's writable QA state with `make qa-clean
+CONFIRM=qa-volumes`; the confirmation-gated command preserves every shared
+cache and refuses foreign projects or active one-shot migration containers.
 
 Use `PROFILE=no-documents` when Documents is irrelevant,
 `PROFILE=documents-smoke` for a deterministic relationship-complete source
@@ -162,6 +187,46 @@ contain its models, source fields, metadata, XML IDs or views.
 | native validation analytic changes | Run every posting stage through assets, deferrals and external bank replay, then `accounting-validation-native-analytics`; repeat analytics for idempotence and run the manager/reviewer/native-report browser journeys | source restore, extraction, exact-validation reset/import |
 | Source dump or restore script changes | full source restore and downstream stages | none |
 | Closing/report parity milestone proof | full `make accounting-compat` rehearsal | partial validation |
+
+## Performance audit and cache boundaries
+
+The 2026-08-27 audit used the private timing records emitted by the
+orchestrators plus Docker's read-only resource inventory. Recent successful
+cold reconstructions took 862–1,886 seconds. Documents restoration accounted
+for as much as 906 seconds; source database restore was only 12–17 seconds.
+Qualified-seed QA reduced the run to 313–599 seconds, with seed hydration at
+74–127 seconds and branch finalization at 182–353 seconds. Docker reported 199
+local volumes (35.23 GB) and 41.55 GB of build cache, so automatically copying
+another database image or retaining a second shared live database would worsen
+the resource problem.
+
+The selected design has three cache levels:
+
+1. BuildKit retains system, wheel, Node, core-source and product-image layers.
+2. One private, immutable, content-addressed QA seed is shared across
+   worktrees; every hydrated project receives independent writable volumes.
+3. An explicit worktree-local warm state avoids hydration and finalization only
+   for an unchanged, already-qualified target.
+
+A database baked into a Docker image was rejected because the private source
+would enter image layers and builder caches, image transfer would duplicate
+hundreds of megabytes, and database state is not an application build input. A
+single writable PostgreSQL/Paperless volume shared by worktrees was rejected
+because concurrent servers and mutable QA activity would break isolation and
+data integrity. A physical source-volume clone was also not selected: it would
+optimize a 12–17 second stage while increasing retained volume storage; the
+portable final-state seed eliminates the much larger import and OCR costs.
+
+Pinned OCA repositories use a separate safe optimization. A new worktree seeds
+its independent checkout from the main checkout when the exact commit is
+already available, avoiding network transfer. Repeated synchronization checks
+out and reapplies the tracked patches locally and fetches only if a required
+object is absent. On the audited worktree this reduced the repeated sync from
+the recorded 14–16 seconds to 1.62 seconds. Excluding tests, translations,
+static assets, views and Markdown from the reconstruction identity reduced its
+local digest calculation to 0.07 seconds; those product surfaces are upgraded
+and validated after seed hydration, while runtime migration code, data,
+security, manifests and OCA patches remain cache-invalidating inputs.
 
 ## Normal UI/report development loop
 

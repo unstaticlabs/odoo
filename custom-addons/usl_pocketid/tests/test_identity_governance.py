@@ -422,6 +422,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             ],
         )
         unconfigured.write({"active": False})
+        mail_count = self.env["mail.mail"].sudo().search_count([])
         with patch.dict(
             "os.environ",
             {"USL_POCKET_ID_LOGIN_POLICY": "sso_only"},
@@ -436,6 +437,10 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             second = self.env["res.users"]._usl_pocketid_apply_login_policy()
         self.assertEqual(first, LOGIN_POLICY_SSO_ONLY)
         self.assertEqual(second, LOGIN_POLICY_SSO_ONLY)
+        self.assertEqual(
+            self.env["mail.mail"].sudo().search_count([]),
+            mail_count,
+        )
         self.env.cr.execute(
             "SELECT password FROM res_users WHERE id = %s",
             [self.user.id],
@@ -468,6 +473,8 @@ class TestPocketIDIdentityGovernance(TransactionCase):
 
     def test_named_profiles_are_least_privilege_and_idempotent(self):
         configuration = self._governed_user_configuration()
+        mails_before = self.env["mail.mail"].sudo().search_count([])
+        notifications_before = self.env["mail.notification"].sudo().search_count([])
         summary = self.env[
             "res.users"
         ]._usl_pocketid_apply_user_configuration(
@@ -509,6 +516,31 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 active_test=False,
             ).search_count([]),
             user_count,
+        )
+        self.assertEqual(
+            self.env["mail.mail"].sudo().search_count([]),
+            mails_before,
+        )
+        self.assertEqual(
+            self.env["mail.notification"].sudo().search_count([]),
+            notifications_before,
+        )
+
+    def test_optional_historical_profile_does_not_create_a_clean_install_user(self):
+        prepared = self.env["res.users"]._usl_pocketid_prepare_user_configuration(
+            [
+                {
+                    "login": "absent.historical@example.invalid",
+                    "profile": "historical",
+                    "optional_if_missing": True,
+                },
+            ],
+        )
+        self.assertFalse(prepared)
+        self.assertFalse(
+            self.env["res.users"].with_context(active_test=False).search(
+                [("login", "=", "absent.historical@example.invalid")],
+            ),
         )
 
     def test_strict_configuration_refuses_unclassified_human_users(self):

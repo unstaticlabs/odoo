@@ -25,7 +25,6 @@ GLOSSARY = {
     "Approved Platform": "Plateforme agréée",
     "Bank and Cash Balance": "Solde de trésorerie",
     "Bank Matching": "Rapprochement bancaire",
-    "Best match": "Meilleur rapprochement",
     "BIC/IS Normal": "BIC/IS — régime réel normal",
     "BIC/IS Simplified": "BIC/IS — régime réel simplifié",
     "BIC/IS Simplified (RSI)": "BIC/IS — régime réel simplifié (RSI)",
@@ -87,6 +86,10 @@ GLOSSARY = {
     "<strong>TESE and HR differ</strong>": (
         "<strong>Écart entre TESE et les données RH</strong>"
     ),
+}
+MODULE_GLOSSARY = {
+    ("usl_accounting", "Best match"): "Meilleur rapprochement",
+    ("usl_documents", "Best match"): "Meilleure correspondance",
 }
 BAD_TRANSLATION_PATTERNS = {
     re.compile(r"\bVAT\b"): "use the French abbreviation 'TVA'",
@@ -220,6 +223,14 @@ def main() -> int:
                 errors.append(
                     f"{path}: {source!r} must use the product term {expected!r}, "
                     f"not {translation!r}",
+                )
+
+    for (module_name, source), expected in MODULE_GLOSSARY.items():
+        for path, translation in entries_by_source.get(source, []):
+            if path.parent.parent.name == module_name and translation != expected:
+                errors.append(
+                    f"{path}: {source!r} must use the contextual product term "
+                    f"{expected!r}, not {translation!r}",
                 )
 
     for source, occurrence in REQUIRED_OCCURRENCES.items():

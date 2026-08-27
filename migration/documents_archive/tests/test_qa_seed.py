@@ -19,7 +19,7 @@ class QaSeedManifestTest(unittest.TestCase):
         self.root.mkdir()
         self.seed.mkdir()
         self.source.mkdir()
-        for relative in qa_seed.MIGRATION_INPUTS:
+        for relative in set(qa_seed.MIGRATION_INPUTS + qa_seed.QA_STATE_INPUTS):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             if Path(relative).suffix:
@@ -53,6 +53,12 @@ class QaSeedManifestTest(unittest.TestCase):
                     "paperless_document_count": 1,
                     "status": "passed"
                 },
+                "collaboration": {
+                    "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "external_message_count": 554,
+                    "status": "passed",
+                    "visible_message_count": 49451
+                },
                 "migration_boundary": "passed",
                 "product_database_boundary": "passed",
                 "profile": "full",
@@ -81,7 +87,7 @@ class QaSeedManifestTest(unittest.TestCase):
         manifest = qa_seed.verify(self.args())
 
         self.assertEqual(manifest["qualification"]["status"], "passed")
-        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v2")
+        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v3")
         self.assertIn("source_filestore_sha256", manifest["identity"])
         self.assertEqual((self.seed / "manifest.json").stat().st_mode & 0o777, 0o600)
 
@@ -91,6 +97,25 @@ class QaSeedManifestTest(unittest.TestCase):
 
         with self.assertRaisesRegex(qa_seed.SeedError, "source_filestore_sha256"):
             qa_seed.verify(self.args())
+
+    def test_non_runtime_product_files_do_not_invalidate_seed(self):
+        before = qa_seed.migration_digest(self.root)
+        state_before = qa_seed.qa_state_digest(self.root)
+        ignored = self.root / "custom-addons" / "module" / "views" / "form.xml"
+        ignored.parent.mkdir(parents=True)
+        ignored.write_text("<form/>", encoding="utf-8")
+        (self.root / "migration" / "notes.md").write_text("docs", encoding="utf-8")
+
+        self.assertEqual(qa_seed.migration_digest(self.root), before)
+        self.assertNotEqual(qa_seed.qa_state_digest(self.root), state_before)
+
+    def test_runtime_migration_file_invalidates_seed(self):
+        before = qa_seed.migration_digest(self.root)
+        runtime = self.root / "migration" / "scope" / "models" / "restore.py"
+        runtime.parent.mkdir(parents=True)
+        runtime.write_text("value = 1\n", encoding="utf-8")
+
+        self.assertNotEqual(qa_seed.migration_digest(self.root), before)
 
     def test_changed_artifact_is_rejected(self):
         qa_seed.seal(self.args())
@@ -106,13 +131,14 @@ class QaSeedManifestTest(unittest.TestCase):
         with self.assertRaisesRegex(qa_seed.SeedError, "runtime"):
             qa_seed.verify(self.args())
 
-    def test_changed_release_commit_is_rejected(self):
+    def test_compatible_seed_is_reusable_from_another_commit(self):
         qa_seed.seal(self.args())
         arguments = self.args()
         arguments.commit = "different"
 
-        with self.assertRaisesRegex(qa_seed.SeedError, "release commit"):
-            qa_seed.verify(arguments)
+        manifest = qa_seed.verify(arguments)
+
+        self.assertEqual(manifest["created_from_commit"], "abc123")
 
     def test_runtime_uses_resolved_compose_images(self):
         config = {

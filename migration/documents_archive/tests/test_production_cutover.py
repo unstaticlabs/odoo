@@ -20,8 +20,19 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.fingerprint = "a" * 64
         self.image = f"ghcr.io/usl/odoo@sha256:{'b' * 64}"
+        self.paperless_image = f"ghcr.io/usl/paperless@sha256:{'c' * 64}"
+        self.ollama_image = f"docker.io/ollama/ollama@sha256:{'d' * 64}"
         self.project = "usl-odoo-production-main"
-        self.candidate = {"identity": {"image_digest": self.image}}
+        self.candidate = {
+            "identity": {
+                "image_digest": self.image,
+                "paperless_image_digest": self.paperless_image,
+                "ollama_image_digest": self.ollama_image,
+            },
+        }
+        self.key_ring = self.root / "personal-ai-keys.json"
+        self.key_ring.write_text("{}\n", encoding="utf-8")
+        self.key_ring.chmod(0o600)
         self.values = {
             "COMPOSE_PROJECT_NAME": self.project,
             "USL_DEPLOYMENT_ENV": "production",
@@ -29,23 +40,30 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_ADMIN_PASSWORD": "a" * 32,
             "ODOO_DB_PASSWORD": "p" * 32,
             "ODOO_DB_NAME": "odoo_production",
+            "ODOO_DB_MAXCONN": "12",
             "ODOO_INIT_DB": "odoo_production",
             "ODOO_DB_FILTER": "^odoo_production$",
             "ODOO_GEVENT_PORT": "18072",
             "ODOO_HTTP_PORT": "18069",
             "ODOO_IMAGE": self.image,
             "ODOO_LIST_DB": "False",
+            "ODOO_LIMIT_MEMORY_HARD": "1342177280",
+            "ODOO_LIMIT_MEMORY_SOFT": "1073741824",
+            "ODOO_LIMIT_REQUEST": "8192",
             "ODOO_MAX_CRON_THREADS": "0",
             "ODOO_PUBLIC_BASE_URL": "https://odoo.usl.example",
+            "ODOO_WORKERS": "4",
             "PAPERLESS_ALLOWED_HOSTS": "documents.usl.example,paperless-webserver",
             "PAPERLESS_DB_NAME": "paperless",
             "PAPERLESS_DB_PASSWORD": "d" * 32,
             "PAPERLESS_DB_USER": "paperless",
             "PAPERLESS_HTTP_PORT": "18010",
+            "PAPERLESS_IMAGE": self.paperless_image,
             "PAPERLESS_SECRET_KEY": "s" * 64,
             "PAPERLESS_PUBLIC_URL": "https://documents.usl.example",
             "PAPERLESS_PUBLIC_BASE_URL": "https://documents.usl.example",
             "PAPERLESS_SSO_BASE_GROUP": "USL Odoo document users",
+            "OLLAMA_IMAGE": self.ollama_image,
             "POCKET_ID_APP_URL": "https://identity.usl.example",
             "POCKET_ID_CLIENT_ID": "usl-odoo-production",
             "POCKET_ID_CLIENT_SECRET": "o" * 32,
@@ -58,6 +76,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "USL_EXTERNAL_INGRESS_NETWORK": "ingress-production",
             "USL_POCKET_ID_BREAK_GLASS_PASSWORD": "g" * 32,
             "USL_PRODUCTION_CRON_THREADS": "1",
+            "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": str(self.key_ring),
         }
         for key in cutover.VOLUME_KEYS:
             suffix = key.lower().removeprefix("usl_").replace("_volume", "").replace("_", "-")
@@ -92,17 +111,66 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 with self.assertRaisesRegex(cutover.CutoverError, message):
                     cutover.validate_environment(changed, self.candidate)
 
+    def test_documents_runtime_and_private_key_are_candidate_bound(self):
+        for key, value, message in (
+            (
+                "PAPERLESS_IMAGE",
+                f"ghcr.io/usl/paperless@sha256:{'e' * 64}",
+                "approved candidate",
+            ),
+            ("OLLAMA_IMAGE", "ollama/ollama:latest", "not immutable"),
+            (
+                "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
+                "relative-key-ring.json",
+                "must be absolute",
+            ),
+        ):
+            with self.subTest(key=key):
+                changed = dict(self.values)
+                changed[key] = value
+                with self.assertRaisesRegex(cutover.CutoverError, message):
+                    cutover.validate_environment(changed, self.candidate)
+
+        self.key_ring.chmod(0o640)
+        with self.assertRaisesRegex(cutover.CutoverError, "0600"):
+            cutover.validate_environment(self.values, self.candidate)
+
+    def test_unsafe_odoo_resource_budgets_are_rejected(self):
+        for key, value, message in (
+            ("ODOO_WORKERS", "0", "HTTP workers"),
+            ("ODOO_DB_MAXCONN", "33", "database pool"),
+            ("ODOO_DB_MAXCONN", "14", "connection budget"),
+            ("ODOO_LIMIT_MEMORY_SOFT", "536870911", "memory limits"),
+            ("ODOO_LIMIT_MEMORY_HARD", "1140850688", "128 MiB headroom"),
+            ("ODOO_LIMIT_REQUEST", "999", "request recycling"),
+        ):
+            with self.subTest(key=key, value=value):
+                changed = dict(self.values)
+                changed[key] = value
+                with self.assertRaisesRegex(cutover.CutoverError, message):
+                    cutover.validate_environment(changed, self.candidate)
+
+    def test_non_integer_odoo_resource_budget_is_rejected(self):
+        changed = dict(self.values)
+        changed["ODOO_DB_MAXCONN"] = "many"
+
+        with self.assertRaisesRegex(cutover.CutoverError, "must be integers"):
+            cutover.validate_environment(changed, self.candidate)
+
     def test_compose_rejects_managed_pocket_and_public_staging_ports(self):
         config = {
             "services": {
                 "odoo": {
+                    "image": self.image,
                     "ports": [{"host_ip": "127.0.0.1"}],
                     "networks": {"external-identity": None, "external-ingress": None},
                 },
                 "paperless-webserver": {
+                    "image": self.paperless_image,
                     "ports": [{"host_ip": "127.0.0.1"}],
                     "networks": {"external-identity": None, "external-ingress": None},
                 },
+                "paperless-ollama": {"image": self.ollama_image},
             },
             "networks": {
                 "identity": {"name": "identity-production", "external": True},

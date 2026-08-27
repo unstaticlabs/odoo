@@ -23,6 +23,8 @@ ENV_FILE ?=
 IDENTITY_POLICY ?=
 JOURNEY_EVIDENCE ?=
 OUTPUT_ROOT ?=
+ACTION_RISK_CANDIDATE ?= artifacts/action-risk/action_surface.candidate.json
+ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 
 define require_cutover_inputs
 if [ -z "$(strip $(ENV_FILE))" ] || [ -z "$(strip $(CANDIDATE))" ] || [ -z "$(strip $(FINGERPRINT))" ]; then \
@@ -32,10 +34,11 @@ fi
 endef
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
-.PHONY: migration-source-inventory migration-source-report migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
+.PHONY: migration-source-inventory migration-source-report migration-source-gate migration-outbound-safety attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
+.PHONY: documents-release-build documents-release-verify documents-release-restore documents-release-accept documents-release-publish
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
 .PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
 .PHONY: platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test
@@ -43,7 +46,7 @@ endef
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers french-translations expense-batch-qa-bootstrap
+.PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy action-risk-inventory action-risk-runtime product-assets french-translations expense-batch-qa-bootstrap
 .PHONY: migration-candidate-build migration-candidate-verify migration-candidate-status production-cutover-preflight production-cutover-stage production-cutover-configure production-cutover-gate production-cutover-admit production-cutover-reset
 
 help:
@@ -69,6 +72,8 @@ help:
 	  '' \
 	  'Data reconstruction' \
 	  '  make qa [PROFILE=full]              Fast isolated QA from qualified cache' \
+	  '  make qa-reuse                       Revalidate this worktree QA target in place' \
+	  '  make qa-clean CONFIRM=qa-volumes    Remove this worktree QA volumes' \
 	  '  make qa PROFILE=no-documents        Full Odoo data without Documents runtime' \
 	  '  make qa PROFILE=documents-smoke     Deterministic Documents sample' \
 	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
@@ -110,6 +115,9 @@ help-advanced:
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make documents-qa-test              Run Documents QA tests' \
 	  '  make action-helpers                  Check guidance on consequential actions' \
+	  '  make action-risk-inventory           Reject unclassified or stale product actions' \
+	  '  make action-risk-compile-policy      Compile the compact protected runtime policy' \
+	  '  make action-risk-runtime             Check the live odoo_dev action registry' \
 	  '  make expense-batch-qa-bootstrap      Seed mixed-payer Expense Batch QA data' \
 	  '  make user-docs-build                Render and validate user documentation' \
 	  '  make qa-cache-prune CONFIRM=qa-seeds' \
@@ -184,6 +192,12 @@ disable-tours:
 
 qa:
 	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
+
+qa-reuse:
+	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 PROFILE=full scripts/qa-environment full
+
+qa-clean:
+	@COMPOSE_PROJECT_NAME= USL_QA_CLEAN_CONFIRM="$(CONFIRM)" scripts/qa-clean
 
 qa-cache-status:
 	@COMPOSE_PROJECT_NAME= scripts/qa-seed status
@@ -276,6 +290,9 @@ migration-source-report:
 
 migration-source-gate:
 	scripts/migration-source-truth gate
+
+migration-outbound-safety:
+	scripts/migration-outbound-safety manual-check
 
 attachment-ledger:
 	scripts/attachment-ledger inventory
@@ -396,6 +413,21 @@ documents-acceptance:
 
 documents-recovery-test:
 	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
+
+documents-release-build:
+	scripts/documents-release-bundle build "$(SOURCE_DIR)"
+
+documents-release-verify:
+	scripts/documents-release-bundle verify "$(BUNDLE)"
+
+documents-release-restore:
+	scripts/documents-release-bundle restore "$(BUNDLE)" --project "$(PROJECT)"
+
+documents-release-accept:
+	scripts/documents-release-bundle accept "$(BUNDLE)"
+
+documents-release-publish:
+	scripts/documents-release-bundle publish "$(BUNDLE)" "$(DESTINATION)"
 
 oca-addons-sync:
 	scripts/sync-oca-addons
@@ -628,6 +660,44 @@ user-docs-build: user-docs-deps
 
 action-helpers:
 	python3 scripts/check_action_helpers.py custom-addons
+
+action-risk-discover:
+	mkdir -p "$(dir $(ACTION_RISK_CANDIDATE))" "$(dir $(ACTION_RISK_RUNTIME_CANDIDATE))"
+	docker compose -p $(COMPOSE_PROJECT) exec -T \
+		-e ACTION_RISK_MODE=discover \
+		-e USL_EINVOICE_LIVE_ENABLED=0 \
+		-e USL_EREPORTING_LIVE_ENABLED=0 \
+		odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+		< scripts/odoo/action_risk_inventory.py \
+		> "$(ACTION_RISK_RUNTIME_CANDIDATE)"
+	python3 scripts/action_risk_inventory.py discover \
+		--runtime "$(ACTION_RISK_RUNTIME_CANDIDATE)" \
+		--output "$(ACTION_RISK_CANDIDATE)"
+	@printf 'Candidate written to %s\n' "$(ACTION_RISK_CANDIDATE)"
+
+action-risk-refresh:
+	python3 scripts/action_risk_inventory.py refresh \
+		--candidate "$(ACTION_RISK_CANDIDATE)"
+
+action-risk-compile-policy:
+	python3 scripts/action_risk_inventory.py compile-runtime-policy
+
+action-risk-inventory: action-helpers
+	python3 scripts/action_risk_inventory.py check-source
+
+action-risk-runtime: action-risk-inventory
+	docker compose -p $(COMPOSE_PROJECT) exec -T \
+		-e ACTION_RISK_MODE=check \
+		-e USL_EINVOICE_LIVE_ENABLED=0 \
+		-e USL_EREPORTING_LIVE_ENABLED=0 \
+		odoo odoo shell \
+		--config=/etc/odoo/odoo.conf --database=odoo_dev \
+		< scripts/odoo/action_risk_inventory.py
+
+product-assets:
+	docker compose -p $(COMPOSE_PROJECT) exec -T odoo odoo shell \
+		--config=/etc/odoo/odoo.conf --database=odoo_dev \
+		< scripts/odoo/compile_product_assets.py
 
 french-translations:
 	docker compose -p $(COMPOSE_PROJECT) exec -T odoo \

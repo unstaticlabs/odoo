@@ -917,6 +917,16 @@ msgid "Documents"
 msgstr "Documents"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_usl_tese_payslip_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_usl_tese_payslip_form
+msgid "processing"
+msgstr "en cours"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__draft
 msgid "Draft"
 msgstr "Brouillon"
@@ -3607,3 +3617,32 @@ msgid ""
 "the journal entry is not balanced (%(debit).2f debit / %(credit).2f credit)"
 msgstr ""
 "la pièce comptable n’est pas équilibrée (débit %(debit).2f / crédit %(credit).2f)"
+
+#. module: usl_tese_payroll
+#: model:ir.cron,name:usl_tese_payroll.ir_cron_tese_reconcile_documents
+msgid "TESE: link payroll PDFs to Documents"
+msgstr "TESE : lier les PDF de paie à Documents"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The payroll PDF could not be archived. Next: open Documents issues and retry it."
+msgstr "Le PDF de paie n’a pas pu être archivé. Étape suivante : ouvrez les anomalies Documents et relancez-le."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The payroll PDF is still being linked to Documents. The original remains attached to this payroll record."
+msgstr "Le PDF de paie est encore en cours de liaison à Documents. L’original reste joint à cet enregistrement de paie."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The payroll PDF is archived and its latest update is still being processed in Documents."
+msgstr "Le PDF de paie est archivé et sa dernière mise à jour est encore en cours de traitement dans Documents."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The official payroll PDF is archived in Documents and linked to this payroll record and the employee library."
+msgstr "Le PDF de paie officiel est archivé dans Documents et lié à cet enregistrement de paie ainsi qu’à la bibliothèque de l’employé."

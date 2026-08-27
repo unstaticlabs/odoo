@@ -606,8 +606,28 @@ source_activity_by_id = {
     row["id"]: row
     for row in source["activities"]
 }
+source_activity_type_by_id = {
+    row["id"]: row
+    for row in source["activity_types"]
+}
 for row in source["activities"]:
     activity = activity_map[row["id"]]
+    collaboration_fallback_note = (
+        (row["note"] or "")
+        + "<p><em>The source activity had no assignee. It is assigned to Roger, "
+        "its source creator, for review.</em></p>"
+    )
+    expected_note = row["note"]
+    if (
+        not row["user_id"]
+        and row["res_model"] == "project.task"
+        and str(activity.note or "") == collaboration_fallback_note
+    ):
+        # The terminal Collaboration stage gives otherwise ownerless Project
+        # work to its source creator and records that exact semantic
+        # translation in the note. A resumed final-state Project validation
+        # must accept only this documented value, not arbitrary note drift.
+        expected_note = collaboration_fallback_note
     expected_activity_type = source["xmlids"].get(
         ("mail.activity.type", row["activity_type_id"]),
     ) or row["activity_type_id"]
@@ -615,6 +635,23 @@ for row in source["activities"]:
         external_id(activity.activity_type_id)
         or source_id(activity.activity_type_id)
     )
+    source_activity_type = source_activity_type_by_id[row["activity_type_id"]]
+    semantic_activity_type = (
+        not actual_activity_type
+        and source_text(source_activity_type["name"])
+        == source_text(activity.activity_type_id.name)
+        and (source_activity_type["res_model"] or False)
+        == (activity.activity_type_id.res_model or False)
+        and source_activity_type["category"]
+        == activity.activity_type_id.category
+    )
+    if semantic_activity_type:
+        # Collaboration is source-wide and may replace a Project importer's
+        # generic traced type with an exact native model-specific type. Keep
+        # parity strict on name, model and category while representing that
+        # intentional semantic recompute identically on both sides.
+        expected_activity_type = f"semantic:{row['activity_type_id']}"
+        actual_activity_type = expected_activity_type
     source_activity_rows.append(
         (
             row["id"],
@@ -630,7 +667,7 @@ for row in source["activities"]:
                 "summary": row["summary"],
                 "deadline": row["date_deadline"],
                 "done": row["date_done"],
-                "note": row["note"],
+                "note": expected_note,
                 "feedback": row["feedback"],
                 "automated": row["automated"],
                 "active": bool(row["active"]),

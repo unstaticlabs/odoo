@@ -335,10 +335,18 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             "/mnt/project-migration-addons",
             "/mnt/tese-migration-addons",
             "/mnt/platform-billing-migration-addons",
+            "/mnt/collaboration-migration-addons",
         }
         self.assertEqual(
             {path for path in addons_path.split(",") if path in temporary_mounts},
             temporary_mounts,
+        )
+        collaboration_script = (
+            REPOSITORY_ROOT / "scripts/collaboration-restore"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'migration_addons_path="$USL_MIGRATION_ADDONS_PATH"',
+            collaboration_script,
         )
 
         for script_name in (
@@ -388,6 +396,9 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         test_service = service("test")
         for mount in temporary_mounts:
             self.assertIn(f"{mount}:ro", test_service)
+
+        project_service = service("project-migration")
+        self.assertIn("/mnt/collaboration-migration-addons:ro", project_service)
 
         product_service = service("odoo")
         for mount in temporary_mounts:

@@ -277,6 +277,17 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('POCKET_ID_LOGIN_HINT_USER="$username"', script)
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
+        self.assertIn(
+            "local -a init_modules requested_modules update_modules module_args",
+            script,
+        )
+        for name in (
+            "init_modules",
+            "requested_modules",
+            "update_modules",
+            "module_args",
+        ):
+            self.assertIn(f"{name}=()", script)
         self.assertIn('module_args+=("--init=', script)
         self.assertIn('module_args+=("--update=', script)
         self.assertIn("init_modules=()", script)
@@ -370,6 +381,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:",
             pocket_overlay,
         )
+        self.assertEqual(
+            pocket_overlay.count("POCKET_ID_EXTRA_USERS_JSON: >-"),
+            2,
+        )
         self.assertIn(
             'run --rm --no-deps paperless-access-init',
             stack,
@@ -412,7 +427,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('username = "odoo-integration"', integration_access)
         self.assertIn('migration_username = "odoo-migration"', integration_access)
         self.assertIn(
-            "Document.objects.filter(owner=migration_user).update(owner=user)",
+            "Document.global_objects.filter(owner=migration_user).update(owner=user)",
             integration_access,
         )
         self.assertIn("USL_PAPERLESS_OWNERS_CLAIMED=", integration_access)
@@ -430,10 +445,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("sync-paperless-users", makefile)
         self.assertIn("scripts/pocket-id-dev configure-odoo", finalizer)
         self.assertIn("_identity_is_safe", apply_script)
+        self.assertIn('remote.get("is_active") is not True', apply_script)
         self.assertIn("action_sync_permissions", apply_script)
         self.assertIn("USL_PAPERLESS_FORCE_PERMISSION_SYNC", apply_script)
         self.assertIn("stale_mappings_disabled", apply_script)
-
         product_modules = {
             "rebuild_account_migration",
             "usl_accounting",
@@ -452,6 +467,18 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             with self.subTest(module_name=module_name):
                 self.assertIn(module_name, finalizer)
         self.assertNotIn("--update=all", finalizer)
+
+    def test_existing_pocket_environment_file_is_guarded(self):
+        script = (ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("verify_existing_pocket_environment", script)
+        self.assertIn(
+            'com.docker.compose.project.environment_file',
+            script,
+        )
+        self.assertIn("No containers were changed.", script)
 
     def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
         qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
@@ -478,6 +505,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('qa_paperless_port" = "18010"', stack)
         self.assertEqual(stack.count("sync_odoo_runtime_config"), 3)
         self.assertIn("usl_documents.paperless_public_url", runtime_config)
+        self.assertIn("ensure_fail_closed_ingestion_policy", runtime_config)
 
     def test_documents_recovery_restores_the_source_callback_environment(self):
         recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
@@ -498,6 +526,29 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         )
         self.assertNotIn("|| true", restore_source)
         self.assertIn("if ! restore_source; then", recovery)
+        self.assertIn('ODOO_DB_NAME="$SOURCE_DATABASE"', restore_source)
+        self.assertIn('export ODOO_DB_NAME="$RESTORED_DATABASE"', recovery)
+
+    def test_documents_qa_scope_overrides_are_explicit_and_shared(self):
+        stack = (ROOT / "scripts" / "documents-stack").read_text(
+            encoding="utf-8",
+        )
+        recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
+            encoding="utf-8",
+        )
+
+        for script in (stack, recovery):
+            with self.subTest(script=script[:40]):
+                self.assertIn("USL_DOCUMENTS_QA_ISOLATED_OVERRIDE", script)
+                self.assertIn("USL_DOCUMENTS_QA_ENV", script)
+                self.assertIn("USL_DOCUMENTS_QA_SSO_ENV", script)
+                self.assertIn("USL_DOCUMENTS_QA_PROJECT", script)
+                self.assertIn("USL_DOCUMENTS_QA_DB", script)
+                self.assertIn(
+                    "QA scope overrides require "
+                    "USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.",
+                    script,
+                )
 
 
 if __name__ == "__main__":

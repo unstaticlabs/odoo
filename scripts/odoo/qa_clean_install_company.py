@@ -130,6 +130,15 @@ if not company:
         "country_id": env.ref("base.fr").id,  # noqa: F821
         "currency_id": env.ref("base.EUR").id,  # noqa: F821
     })
+media_company = env["res.company"].sudo().search([("name", "=", "USL MEDIA")])  # noqa: F821
+if len(media_company) > 1:
+    raise RuntimeError("Clean QA has duplicate USL MEDIA companies")
+if not media_company:
+    media_company = env["res.company"].sudo().create({  # noqa: F821
+        "name": "USL MEDIA",
+        "country_id": env.ref("base.fr").id,  # noqa: F821
+        "currency_id": env.ref("base.EUR").id,  # noqa: F821
+    })
 historical = env["res.users"].sudo().with_context(active_test=False).search(  # noqa: F821
     [("login", "=", "roger@xaic.cat")],
     limit=1,
@@ -161,5 +170,6 @@ if not reviewer:
 env.cr.commit()  # noqa: F821
 print(
     "Clean QA companies: "
-    f"operations={operations.display_name}, identity={company.display_name}",
+    f"operations={operations.display_name}, identity={company.display_name}, "
+    f"review={media_company.display_name}",
 )

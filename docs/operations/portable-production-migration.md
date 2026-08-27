@@ -102,24 +102,30 @@ must report `purpose=production`, `profile=full`, `outcome=passed`,
 
 ## 3. Build the candidate
 
-Use the exact immutable GHCR Distribution digest whose labels match the release
-commit and OCA bundle:
+Use the exact immutable Odoo Distribution, Paperless overlay and Ollama runtime
+digests qualified for the release. The Distribution image labels must match the
+release commit, OCA bundle and qualified action-risk policy:
 
 ```bash
 export COMPOSE_PROJECT_NAME=usl-odoo-migration-final-YYYYMMDD
 export USL_CANDIDATE_IMAGE='ghcr.io/unstaticlabs/usl-odoo@sha256:<digest>'
+export PAPERLESS_IMAGE='ghcr.io/unstaticlabs/usl-paperless-ngx@sha256:<digest>'
+export OLLAMA_IMAGE='ollama/ollama@sha256:<digest>'
 make migration-candidate-build SOURCE_DIR="$USL_ONLINE_DUMP_DIR"
 ```
 
 `build` refuses dirty/non-`19-usl` main checkouts, non-production evidence,
-partial source/attachment gates and non-Distribution images. It clones the
-finalized Odoo database, sanitizes only the clone, records the immutable release
-identity, runs the maintained Odoo neutralization SQL for every installed
-module, and removes environment identity/credential state. The filestore
+partial source/attachment gates and mutable or mismatched Odoo/Documents
+runtime images. It clones the finalized Odoo database, sanitizes only the
+clone, records the immutable release identity, runs the maintained Odoo
+neutralization SQL for every installed module, and removes environment
+identity/credential state. The filestore
 archive is rebuilt from the sanitized database's exact `ir.attachment`
 inventory: orphaned files are excluded and every retained file's SHA-1/size is
 verified. It then exports Paperless, captures parity controls, seals checksums
 and publishes atomically. It never runs OCR or calls a Pocket mutation API.
+This is the v2 candidate contract; v1 candidates that bound only the Odoo image
+are deliberately incompatible and must be rebuilt from the frozen source.
 
 Record the printed fingerprint in the change record. Have the independent
 approver verify locally:
@@ -136,7 +142,10 @@ Do not upload it to CI or a public artifact service.
 
 ## 4. Prepare the production host
 
-Check out the exact release commit and pull the exact candidate image digest.
+Check out the exact release commit and pull all three candidate-bound image
+digests. Provision the Personal Gemini envelope-key ring as a mode-`0600`
+regular file at the absolute path configured by
+`USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH`.
 Copy these templates outside the repository, substitute owner-approved values,
 then set mode `0600`:
 
@@ -178,7 +187,8 @@ Preflight is read-only with respect to application/Pocket data. It rejects
 changed files/fingerprints, wrong commit/image/OCA/modules/source, unsafe DB
 names or URLs, public database manager, default secrets, live regulatory flags,
 missing external networks, existing target data, foreign volumes and any
-managed Pocket service.
+managed Pocket service. It also rejects a checkout, candidate or image whose
+canonical action-risk policy digest differs from the qualified release.
 
 Stage uses `pg_restore --jobs=4`, analyses the committed Odoo database, restores
 the exact filestore and official Paperless export, rechecks every stored Odoo
@@ -214,8 +224,9 @@ make production-cutover-admit \
 ```
 
 Gate rechecks product/migration boundaries, database/image release identity,
-Accounting totals/reconciliation, multi-company roles, Paperless sanity,
-links/checksums/object permissions, service health and journey evidence.
+the exact installed action registry, Accounting totals/reconciliation,
+multi-company roles, Paperless sanity, links/checksums/object permissions,
+service health and journey evidence.
 
 Admission records the fingerprint in Odoo and private cut-over state before
 starting the approved cron worker policy. It permanently disables candidate

@@ -429,6 +429,8 @@ class TestProjectRestore(TransactionCase):
 
     def test_restore_preserves_relationships_and_is_idempotent(self):
         payload = self._payload()
+        mail_count = self.env["mail.mail"].sudo().search_count([])
+        notification_count = self.env["mail.notification"].sudo().search_count([])
         first = self._run(deepcopy(payload))
         self.assertEqual(
             first.status,
@@ -513,6 +515,11 @@ class TestProjectRestore(TransactionCase):
             ),
             1,
         )
+        self.assertEqual(self.env["mail.mail"].sudo().search_count([]), mail_count)
+        self.assertEqual(
+            self.env["mail.notification"].sudo().search_count([]),
+            notification_count,
+        )
 
         second = self._run(deepcopy(payload))
         self.assertEqual(second.status, "passed")
@@ -563,6 +570,11 @@ class TestProjectRestore(TransactionCase):
                 tracking_domain,
             ),
             1,
+        )
+        self.assertEqual(self.env["mail.mail"].sudo().search_count([]), mail_count)
+        self.assertEqual(
+            self.env["mail.notification"].sudo().search_count([]),
+            notification_count,
         )
 
     def test_closed_recurrence_does_not_generate_target_only_task(self):

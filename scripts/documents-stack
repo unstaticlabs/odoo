@@ -20,12 +20,39 @@ shift $(( $# >= 2 ? 2 : $# ))
 
 case "$ENVIRONMENT" in
   qa)
-    ENV_FILE="$ROOT/deploy/documents/qa.env"
-    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
-    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    qa_override="${USL_DOCUMENTS_QA_ISOLATED_OVERRIDE:-0}"
+    case "$qa_override" in
+      0|1) ;;
+      *)
+        printf 'USL_DOCUMENTS_QA_ISOLATED_OVERRIDE must be 0 or 1.\n' >&2
+        exit 2
+        ;;
+    esac
+    if [[ "$qa_override" = 0 ]] \
+      && [[ -n "${USL_DOCUMENTS_QA_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_PROJECT:-}" \
+        || -n "${USL_DOCUMENTS_QA_DB:-}" ]]; then
+      printf 'QA scope overrides require USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.\n' >&2
+      exit 2
+    fi
+    ENV_FILE="${USL_DOCUMENTS_QA_ENV:-$ROOT/deploy/documents/qa.env}"
+    SSO_ENV_FILE="${USL_DOCUMENTS_QA_SSO_ENV:-$ROOT/.documents-qa-sso.env}"
+    [[ -f "$ENV_FILE" ]] || {
+      printf 'Documents QA environment is missing: %s\n' "$ENV_FILE" >&2
+      exit 2
+    }
+    if [[ -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" ]]; then
+      [[ -f "$SSO_ENV_FILE" ]] || {
+        printf 'Documents QA SSO environment is missing: %s\n' "$SSO_ENV_FILE" >&2
+        exit 2
+      }
+    else
+      python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    fi
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
-    PROJECT="codex-paperless-docs"
-    DATABASE="odoo_usl_documents_test"
+    PROJECT="${USL_DOCUMENTS_QA_PROJECT:-codex-paperless-docs}"
+    DATABASE="${USL_DOCUMENTS_QA_DB:-odoo_usl_documents_test}"
     ;;
   preprod)
     ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
@@ -57,7 +84,9 @@ case "$DATABASE" in
   odoo_dev)
     if [[ "$ENVIRONMENT" != "preprod" \
         || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
-        || "$PROJECT" != usl-odoo-preprod-* ]]; then
+        || "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" != "1" \
+        || ( "$PROJECT" != usl-odoo-preprod-* \
+          && "$PROJECT" != usl-odoo-paperless-* ) ]]; then
       printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
       exit 2
     fi
@@ -69,13 +98,19 @@ ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
   ENV_FILES+=(--env-file "$SSO_ENV_FILE")
 fi
+COMPOSE_OVERRIDE=(-f "$OVERRIDE")
+if [[ "$ENVIRONMENT" = "preprod" \
+    && "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
+    && "$PROJECT" = usl-odoo-paperless-* ]]; then
+  COMPOSE_OVERRIDE=()
+fi
 COMPOSE=(
   docker compose
   "${ENV_FILES[@]}"
   -p "$PROJECT"
   -f "$ROOT/compose.yaml"
   -f "$ROOT/compose.pocket-id.yaml"
-  -f "$OVERRIDE"
+  "${COMPOSE_OVERRIDE[@]}"
   --profile paperless
 )
 SERVICES=(
@@ -84,6 +119,9 @@ SERVICES=(
   paperless-preflight
   paperless-db
   paperless-broker
+  paperless-ollama
+  paperless-model-init
+  paperless-model-preflight
   paperless-trash-init
   paperless-gotenberg
   paperless-tika
@@ -119,16 +157,40 @@ validate_config() {
     printf 'E-reporting live safety flag is not disabled.\n' >&2
     return 1
   }
-  grep -Fq "ghcr.io/paperless-ngx/paperless-ngx:3.0.5" <<<"$config" || {
-    printf 'Paperless 3.0.5 is not exactly pinned.\n' >&2
+  grep -Fq "PAPERLESS_BASE_IMAGE: ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" <<<"$config" || {
+    printf 'Paperless 3.0.5 base image is not pinned by qualified digest.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_MODEL: usl-bge-m3:documents-20260824-rc1" <<<"$config" || {
+    printf 'Paperless BGE-M3 release alias is not pinned.\n' >&2
+    return 1
+  }
+  grep -Fq "USL_BGE_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab" <<<"$config" || {
+    printf 'Paperless BGE-M3 bootstrap digest is not pinned.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ollama" <<<"$config" || {
+    printf 'Paperless embeddings are not local Ollama embeddings.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: \"512\"" <<<"$config" || {
+    printf 'Paperless embedding chunk size is not frozen at 512.\n' >&2
+    return 1
+  }
+  grep -Fq "ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca" <<<"$config" || {
+    printf 'Ollama 0.30.11 is not pinned by qualified digest.\n' >&2
     return 1
   }
   grep -Fq "ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1" <<<"$config" || {
     printf 'Pocket ID v2.13.0 is not pinned by digest.\n' >&2
     return 1
   }
-  grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect" <<<"$config" || {
-    printf 'Paperless OpenID Connect support is not enabled.\n' >&2
+  grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai" <<<"$config" || {
+    printf 'Paperless OpenID Connect and personal AI apps are not enabled.\n' >&2
+    return 1
+  }
+  grep -Fq "USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys" <<<"$config" || {
+    printf 'Paperless personal AI master-key secret is not mounted.\n' >&2
     return 1
   }
   grep -Fq "PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: \"false\"" <<<"$config" || {
@@ -156,23 +218,36 @@ validate_config() {
     qa_paperless_port="$(
       sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
     )"
-    [[ "$qa_odoo_port" = "18080" \
-      && "$qa_gevent_port" = "18072" \
-      && "$qa_paperless_port" = "18010" ]] || {
-      printf '%s\n' \
-        'Documents QA must use its isolated ports: Odoo 18080/18072 and Paperless 18010.' >&2
-      return 1
-    }
-    grep -Fqx 'PAPERLESS_PUBLIC_BASE_URL=http://127.0.0.1:18010' \
-      "$SSO_ENV_FILE" || {
-      printf 'Documents QA Paperless SSO callback must use isolated port 18010.\n' >&2
-      return 1
-    }
+    if [[ "${USL_DOCUMENTS_QA_ISOLATED_OVERRIDE:-0}" = 1 ]]; then
+      [[ "$qa_odoo_port" =~ ^[0-9]+$ \
+        && "$qa_gevent_port" =~ ^[0-9]+$ \
+        && "$qa_paperless_port" =~ ^[0-9]+$ \
+        && "$qa_odoo_port" = "${ODOO_HTTP_PORT:-$qa_odoo_port}" \
+        && "$qa_gevent_port" = "${ODOO_GEVENT_PORT:-$qa_gevent_port}" \
+        && "$qa_paperless_port" = "${PAPERLESS_HTTP_PORT:-$qa_paperless_port}" ]] || {
+        printf 'Overridden Documents QA ports must be explicit, numeric, and scope-matched.\n' >&2
+        return 1
+      }
+    else
+      [[ "$qa_odoo_port" = "18080" \
+        && "$qa_gevent_port" = "18072" \
+        && "$qa_paperless_port" = "18010" ]] || {
+        printf '%s\n' \
+          'Documents QA must use its isolated ports: Odoo 18080/18072 and Paperless 18010.' >&2
+        return 1
+      }
+      grep -Fqx 'PAPERLESS_PUBLIC_BASE_URL=http://127.0.0.1:18010' \
+        "$SSO_ENV_FILE" || {
+        printf 'Documents QA Paperless SSO callback must use isolated port 18010.\n' >&2
+        return 1
+      }
+    fi
   fi
   if [[ "$ENVIRONMENT" = "preprod" ]]; then
     if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
         && "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" = "1" \
-        && "$PROJECT" = usl-odoo-preprod-* ]]; then
+        && ( "$PROJECT" = usl-odoo-preprod-* \
+          || "$PROJECT" = usl-odoo-paperless-* ) ]]; then
       grep -Fq "USL_DEPLOYMENT_ENV: qa" <<<"$config" || {
         printf 'Local pre-production recovery must keep QA live guards.\n' >&2
         return 1
@@ -218,6 +293,11 @@ ensure_paperless_access() {
   "${COMPOSE[@]}" run --rm --no-deps paperless-access-init
 }
 
+ensure_personal_ai_release() {
+  "${COMPOSE[@]}" exec -T paperless-webserver \
+    python manage.py check_personal_ai_release
+}
+
 sync_odoo_runtime_config() {
   local paperless_public_url
   paperless_public_url="$(
@@ -250,13 +330,14 @@ case "$COMMAND" in
       exit 2
     }
     validate_config
-    "${COMPOSE[@]}" build odoo
+    "${COMPOSE[@]}" build odoo paperless-webserver
     ;;
   up)
     validate_config
     provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
     ensure_paperless_access
+    ensure_personal_ai_release
     runtime_status
     sync_odoo_runtime_config
     ;;
@@ -274,9 +355,11 @@ case "$COMMAND" in
       --stop-after-init \
       --log-level=warn
     "${COMPOSE[@]}" up -d --wait --pull never \
-      db paperless-preflight paperless-db paperless-broker \
+      db paperless-preflight paperless-db paperless-broker paperless-ollama \
+      paperless-model-preflight \
       paperless-gotenberg paperless-tika paperless-webserver
     ensure_paperless_access
+    ensure_personal_ai_release
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
     runtime_status
     sync_odoo_runtime_config
@@ -290,6 +373,7 @@ case "$COMMAND" in
     provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
     ensure_paperless_access
+    ensure_personal_ai_release
     paperless_setup="$(
       "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell -c '
 from django.contrib.auth import get_user_model
@@ -511,37 +595,44 @@ print(
     ;;
   test-js)
     validate_config
-    provision_qa_sso
-    test_modules="$(
-      "${COMPOSE[@]}" exec -T db psql \
-        -U odoo -d "$DATABASE" -Atqc \
-        "SELECT name || ':' || state FROM ir_module_module WHERE name IN ('usl_documents', 'usl_locale') ORDER BY name"
-    )"
-    [[ "$test_modules" = $'usl_documents:installed\nusl_locale:installed' ]] || {
-      printf '%s\n' \
-        "Documents frontend tests require installed usl_documents and usl_locale modules." \
-        "Run: scripts/documents-stack $ENVIRONMENT update" \
-        "Current module states:" \
-        "${test_modules:-<missing>}" >&2
-      exit 2
+    TEST_DATABASE="${1:-odoo_test_usl_documents_js}"
+    case "$TEST_DATABASE" in
+      ""|"$DATABASE"|odoo_dev|*[!A-Za-z0-9_]*)
+        printf 'Refusing unsafe Documents frontend test database: %s\n' \
+          "$TEST_DATABASE" >&2
+        exit 2
+        ;;
+    esac
+    cleanup_js_test() {
+      "${COMPOSE[@]}" exec -T \
+        -e TEST_DATABASE="$TEST_DATABASE" db sh -c \
+        'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"' \
+        >/dev/null
+      "${COMPOSE[@]}" --profile init run --rm --no-deps \
+        --entrypoint sh -e TEST_DATABASE="$TEST_DATABASE" init-db -c '
+          directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+          if [ -d "$directory" ]; then
+            find "$directory" -mindepth 1 -delete
+            rmdir "$directory"
+          fi
+        ' >/dev/null
     }
+    trap cleanup_js_test EXIT
+    "${COMPOSE[@]}" up -d --wait --pull never db
     "${COMPOSE[@]}" --profile test build test
-    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-    restore_qa_odoo() {
-      "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo >/dev/null 2>&1 || true
-    }
-    trap restore_qa_odoo EXIT INT TERM
-    js_status=0
-    "${COMPOSE[@]}" --profile test run --rm test odoo \
+    cleanup_js_test
+    "${COMPOSE[@]}" --profile test run --rm \
+      -e "ODOO_DB_FILTER=^${TEST_DATABASE}$" test odoo \
       --config=/etc/odoo/odoo.conf \
-      --database="$DATABASE" \
+      --database="$TEST_DATABASE" \
+      --init=usl_documents,usl_locale \
+      --without-demo=true \
+      --test-enable \
       --test-tags="/usl_documents:WebSuite.test_unit_desktop,/usl_documents:MobileWebSuite.test_unit_mobile" \
       --stop-after-init \
-      --log-level=test \
-      || js_status=$?
-    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
-    trap - EXIT INT TERM
-    ((js_status == 0)) || exit "$js_status"
+      --log-level=test
+    trap - EXIT
+    cleanup_js_test
     ;;
   *)
     usage

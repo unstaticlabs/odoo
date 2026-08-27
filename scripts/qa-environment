@@ -37,6 +37,7 @@ export USL_EREPORTING_LIVE_ENABLED=0
 export PAPERLESS_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
 export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}"
 export POCKET_ID_ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id-qa-$root_hash.env}"
+export USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH="${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-$ROOT/.documents-personal-ai-keys.json}"
 export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"
 export USL_POCKET_ID_DEV_ODOO_DB=odoo_dev
 export USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"
@@ -51,6 +52,14 @@ requested_gevent_port="$ODOO_GEVENT_PORT"
 requested_pocket_port="$POCKET_ID_HTTP_PORT"
 requested_paperless_port="$PAPERLESS_HTTP_PORT"
 requested_odoo_image="$ODOO_IMAGE"
+reuse_requested="${USL_QA_REUSE_EXISTING:-0}"
+case "$reuse_requested" in
+  0|1) ;;
+  *)
+    printf 'USL_QA_REUSE_EXISTING must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
 
 case "$COMPOSE_PROJECT_NAME" in
   usl-odoo-qa-?*) ;;
@@ -62,6 +71,8 @@ esac
 usl_verify_compose_scope "$COMPOSE_PROJECT_NAME" "$ROOT" "QA provisioning"
 
 scripts/pocket-id-dev bootstrap >/dev/null
+python3 "$ROOT/scripts/documents_sso_env.py" \
+  --personal-ai-key-file "$USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH" >/dev/null
 set -a
 # shellcheck disable=SC1090
 source "$POCKET_ID_ENV_FILE"
@@ -84,6 +95,8 @@ mkdir -p "$timing_dir"
 timing_file="$timing_dir/${COMPOSE_PROJECT_NAME}-$(date -u +%Y%m%dT%H%M%SZ).tsv"
 report_file="${timing_file%.tsv}.json"
 hydration_controls_file="${timing_file%.tsv}-hydration.json"
+qa_state_dir="$ROOT/artifacts/migration/private/qa-state"
+qa_state_file="$qa_state_dir/$COMPOSE_PROJECT_NAME.json"
 run_started="$(date +%s)"
 cache_result="not-applicable"
 : > "$timing_file"
@@ -126,10 +139,16 @@ payload = {
 if sys.argv[7]:
     manifest = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8"))
     payload.update({
-        "downloaded_bytes": sum(item["size"] for item in manifest["artifacts"].values()),
+        "downloaded_bytes": (
+            0
+            if sys.argv[8] == "warm-hit"
+            else sum(item["size"] for item in manifest["artifacts"].values())
+        ),
         "reused_document_roots": manifest["qualification"]["paperless_documents"],
         "seed_fingerprint": manifest["fingerprint"],
     })
+    if sys.argv[8] == "warm-hit":
+        payload["ocr_submissions"] = 0
 if Path(sys.argv[9]).is_file():
     hydration = json.loads(Path(sys.argv[9]).read_text(encoding="utf-8"))
     payload["hydration_controls"] = hydration
@@ -137,7 +156,7 @@ if Path(sys.argv[9]).is_file():
 Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
-trap 'write_report failed' EXIT
+trap 'rm -f "$qa_state_file"; write_report failed' EXIT
 
 reset_project() {
   local unsafe
@@ -148,10 +167,11 @@ reset_project() {
       "$(usl_format_compose_resources "$unsafe")" >&2
     return 2
   fi
+  rm -f "$qa_state_file"
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
-product_modules='rebuild_account_migration,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
 
 verify_seed() {
   local runtime_json
@@ -169,6 +189,101 @@ verify_seed() {
     return 2
   fi
   rm -f "$runtime_json"
+}
+
+qa_state_matches() {
+  [[ -f "$qa_state_file" ]] || return 1
+  python3 - "$qa_state_file" "$qa_seed_manifest" "$COMPOSE_PROJECT_NAME" \
+    "$POCKET_ID_ENV_FILE" "$qa_state_sha256" <<'PY'
+import hashlib
+import json
+import sys
+
+try:
+    state = json.load(open(sys.argv[1], encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    raise SystemExit(1)
+manifest_path = sys.argv[2]
+manifest = json.load(open(manifest_path, encoding="utf-8"))
+manifest_sha = hashlib.sha256(open(manifest_path, "rb").read()).hexdigest()
+expected = {
+    "compose_project": sys.argv[3],
+    "migration_sha256": manifest["identity"]["migration_sha256"],
+    "pocket_environment_sha256": hashlib.sha256(open(sys.argv[4], "rb").read()).hexdigest(),
+    "profile": "full",
+    "schema": "usl-worktree-qa-state-v1",
+    "seed_fingerprint": manifest["fingerprint"],
+    "seed_manifest_sha256": manifest_sha,
+    "worktree_state_sha256": sys.argv[5],
+}
+raise SystemExit(0 if state == expected else 1)
+PY
+}
+
+qa_volumes_present() {
+  local suffix
+  for suffix in \
+    postgres-data odoo-data paperless-postgres-data paperless-broker-data \
+    paperless-data paperless-media paperless-export paperless-consume \
+    paperless-trash pocket-id-data
+  do
+    docker volume inspect "$COMPOSE_PROJECT_NAME-$suffix" >/dev/null 2>&1 \
+      || docker volume inspect "${COMPOSE_PROJECT_NAME}_$suffix" >/dev/null 2>&1 \
+      || return 1
+  done
+}
+
+reuse_qa_target() {
+  "${compose[@]}" up -d --wait db
+  "${compose[@]}" --profile paperless up -d --wait --pull never \
+    paperless-webserver
+  "${compose[@]}" up -d --wait --pull never odoo
+  if [[ "$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev \
+      -c "SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'")" != full ]]; then
+    printf 'The cached QA target is not stamped with the full profile.\n' >&2
+    return 1
+  fi
+  scripts/check-product-migration-boundary
+  scripts/check-product-database-boundary
+}
+
+write_qa_state() {
+  mkdir -p "$qa_state_dir"
+  chmod 700 "$qa_state_dir"
+  python3 - "$qa_state_file" "$qa_seed_manifest" "$COMPOSE_PROJECT_NAME" \
+    "$POCKET_ID_ENV_FILE" "$qa_state_sha256" <<'PY'
+import hashlib
+import json
+import os
+import sys
+import tempfile
+
+path = sys.argv[1]
+manifest_path = sys.argv[2]
+manifest = json.load(open(manifest_path, encoding="utf-8"))
+payload = {
+    "compose_project": sys.argv[3],
+    "migration_sha256": manifest["identity"]["migration_sha256"],
+    "pocket_environment_sha256": hashlib.sha256(open(sys.argv[4], "rb").read()).hexdigest(),
+    "profile": "full",
+    "schema": "usl-worktree-qa-state-v1",
+    "seed_fingerprint": manifest["fingerprint"],
+    "seed_manifest_sha256": hashlib.sha256(open(manifest_path, "rb").read()).hexdigest(),
+    "worktree_state_sha256": sys.argv[5],
+}
+descriptor, temporary = tempfile.mkstemp(prefix=".qa-state-", dir=os.path.dirname(path))
+try:
+    os.fchmod(descriptor, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(payload, stream, indent=2, sort_keys=True)
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+finally:
+    if os.path.exists(temporary):
+        os.unlink(temporary)
+PY
 }
 
 hydrate_seed() {
@@ -315,6 +430,13 @@ clean_install() {
     -e ODOO_INIT_DB=odoo_dev init-db odoo \
     --config=/etc/odoo/odoo.conf --database=odoo_dev \
     --init="$product_modules" --without-demo=true --stop-after-init --log-level=warn
+  # Odoo's auto-install fixed point includes optional demo/marketing products
+  # that are not part of Distribution. Remove only the reviewed exact set and
+  # abort if a supported installed module has acquired a dependency on it.
+  "${compose[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/enforce_product_module_scope.py"
   "${compose[@]}" --profile init run --rm -T \
     -e ODOO_INIT_DB=odoo_dev \
     init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
@@ -330,6 +452,14 @@ clean_install() {
   scripts/odoo-dev disable-tours
   scripts/check-product-migration-boundary
   scripts/check-product-database-boundary
+  "${compose[@]}" exec -T -e ACTION_RISK_MODE=check \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/action_risk_inventory.py"
+  "${compose[@]}" exec -T \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/compile_product_assets.py"
 }
 
 b2c_qa_bootstrap() {
@@ -360,16 +490,30 @@ if [[ "$profile" == full ]]; then
   fi
   qa_seed_manifest="$qa_seed_dir/manifest.json"
   stage "verify qualified seed (read only)" verify_seed
+  qa_state_sha256="$(PYTHONPATH="$ROOT" python3 -c \
+    'from pathlib import Path; from scripts.qa_seed import qa_state_digest; print(qa_state_digest(Path.cwd()))')"
   cache_result="hit"
 fi
-stage "reset isolated QA project" reset_project
+reuse_existing=0
+if [[ "$profile" == full && "$reuse_requested" == 1 ]] \
+    && qa_state_matches && qa_volumes_present; then
+  reuse_existing=1
+  cache_result="warm-hit"
+fi
+if [[ "$reuse_existing" == 0 ]]; then
+  stage "reset isolated QA project" reset_project
+fi
 case "$profile" in
   full)
-    stage "hydrate qualified seed" hydrate_seed
-    stage "upgrade and finalize current branch" \
-      env USL_QA_DATA_PROFILE=full scripts/target-finalize
-    stage "verify sealed hydration controls and zero OCR" \
-      verify_hydrated_controls
+    if [[ "$reuse_existing" == 1 ]]; then
+      stage "reuse and verify existing QA target" reuse_qa_target
+    else
+      stage "hydrate qualified seed" hydrate_seed
+      stage "upgrade and finalize current branch" \
+        env USL_QA_DATA_PROFILE=full scripts/target-finalize
+      stage "verify sealed hydration controls and zero OCR" \
+        verify_hydrated_controls
+    fi
     stage "multi-company acceptance" make \
       COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME" accounting-multicompany-acceptance
     ;;
@@ -382,7 +526,12 @@ case "$profile" in
     stage "clean product installation" clean_install
     ;;
 esac
-stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
+if [[ "$reuse_existing" == 0 ]]; then
+  stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
+fi
+if [[ "$profile" == full ]]; then
+  write_qa_state
+fi
 
 write_report passed
 trap - EXIT

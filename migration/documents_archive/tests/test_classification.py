@@ -27,7 +27,7 @@ class DocumentsClassificationTest(unittest.TestCase):
     def test_source_tag_aliases_remove_copy_and_legacy_labels(self):
         self.assertEqual(
             normalized_source_tag("Notes de frais employés (copie)"),
-            "Employee expenses",
+            "Expenses",
         )
         self.assertEqual(normalized_source_tag("Banque Revolut"), "Revolut")
 

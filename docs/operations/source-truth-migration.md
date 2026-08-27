@@ -154,9 +154,15 @@ Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
 unassigned enterprise evidence file through the supported Paperless API, with
-byte-for-byte read-back and preview checks. Sign, Knowledge, preference, AI,
-and collaboration actions continue to keep the attachment gate blocked until
-their own stages pass.
+byte-for-byte read-back and preview checks. The genuine strategy PDF referenced
+by an experimental AI source record is added to that archive as private,
+needs-review business evidence; the AI index and configuration are not copied.
+The final Collaboration and Preferences stages close signing, chatter, saved-
+filter, and dashboard dispositions. Knowledge attachments are explicitly
+discarded with the approved demo-content disposition. Three dashboard
+definitions are recomputed from installed target modules and six unsupported
+Enterprise dashboard payloads receive explicit not-copied evidence. No source
+attachment action remains pending.
 
 ## Deterministic reconstruction
 
@@ -164,7 +170,8 @@ their own stages pass.
 package, runs the strict source-wide and attachment gates, creates a clean
 target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
-and Platform Billing, rebuilds the Paperless archive, removes every temporary
+and Platform Billing, rebuilds the Paperless archive, restores source-wide
+Collaboration history, removes every temporary
 migration module and its allow-listed physical provenance columns, then
 applies target-only configuration. It is blocked while any shipped scope is
 incomplete. The strict
@@ -215,23 +222,36 @@ verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
 Accounting, global identity, Product Master, Inventory/Manufacturing
-configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
-Paperless Documents archive have implemented translation stages. The current
-Distribution-scope gate passes. The strict production gate remains
-blocked—correctly—on collaboration history, remaining attachment actions,
-Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-and source AI configuration. These are explicit gaps, not silently copied or
-represented as full parity. The separate physical opening-stock evidence item
-also remains blocking for B2C operational release even though it is not a fact
-contained in the source database.
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing,
+Collaboration, signed evidence and the Paperless Documents archive have
+implemented translation or archive stages. The strict gate covers all 19
+audited scopes and dispositions 226,836 source records with zero blocked
+records, relation rows or stored fields.
 
-The strict 26 August rehearsal reports eight incomplete scopes:
-`ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
-`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
-pending source attachment IDs, represented by 1 AI-configuration action, 64
-collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
-actions. Action totals can overlap when one attachment has more than one
-relationship; the 115 source IDs are the file-level count.
+The former incomplete scopes are now closed explicitly. AI configuration and
+Sales/Marketing configuration are discarded as experiments or default setup.
+Studio implementation metadata is not copied; its maintained Distribution
+behavior and expense-matching candidates are recomputed. Seven source-backed
+saved filters are migrated;
+six native filters and two exports are recomputed, and AI/marketing exports are
+discarded. Nine standard spreadsheet-dashboard payloads are recomputed where a
+native target exists or rejected where the Enterprise dashboard module is not
+part of the Distribution. The one genuine private strategy PDF is retained
+byte-for-byte as a restricted manager-only `usl.document`, without copying its
+obsolete AI index, embeddings or agent configuration. There are no pending
+attachment actions.
+
+Knowledge is not a Distribution product. Its 66 source messages are default or
+demo content and are deliberately not copied. The 554 additional deliberately
+omitted Collaboration messages are generated technical configuration notes
+without customer or operational narrative. Both decisions are represented in
+the checksum-sealed source disposition evidence, not by permanent compatibility
+models or a shadow archive inside Odoo.
+
+The separate physical opening-stock evidence item remains a B2C operational
+go-live prerequisite even though it is not a fact contained in the source
+database. The migration correctly creates no unsupported historical stock
+moves, quants or valuation layers.
 
 ### B2C commerce stage
 
@@ -278,7 +298,7 @@ the ordinary product registry is accepted.
 
 `make documents-restore` installs the delivered Documents modules and replays
 the complete source Documents perimeter into a separately managed Paperless
-3.0.4 archive. On an existing reconstructed target, it first upgrades the
+3.0.5 archive. On an existing reconstructed target, it first upgrades the
 accounting parent module so stored business views are current before the
 Documents accounting extension is revalidated. It is not a filestore copy:
 
@@ -307,12 +327,25 @@ Documents accounting extension is revalidated. It is not a filestore copy:
   supported formats must return a non-empty typed preview; API v10 and actual
   permission read-back must pass, and successful
   runs may not add an Odoo binary attachment;
+- incremental BGE-M3 work is deferred only during governed bulk replay. Normal
+  runtime is restored before one supported migrate/update/compact pass, and
+  both the Paperless task inventory and vector/document parity must pass before
+  the stage can seal its checkpoint;
 - the three qualified text containers rejected by Paperless 3.0.5—the generated
   FEC ZIP, an accounting XML, and calendar evidence—remain byte-for-byte Odoo
   operational attachments and are checksum-linked to deterministic, searchable
   PDF archive representations;
 - unsupported files are retained byte-for-byte in a visible failed migration
   quarantine and keep the stage blocked.
+
+After the legacy Documents archive is restored, the migration service runs the
+delivered native-attachment bridge once across the final business records. It
+reuses Paperless roots by checksum, adds missing task/project, accounting,
+expense, TESE and Platform Billing relationships and classification, and emits
+an external result classifying every durable attachment as archived or
+explicitly excluded. Pending, failed, duplicate or unaccounted eligible files
+block full reconstruction. Repeating the pass creates neither another archive
+root nor another business consequence.
 
 The standalone runner defaults to the isolated `codex-migration-full` project
 and Paperless port `28010`; it refuses development/QA projects and reserved

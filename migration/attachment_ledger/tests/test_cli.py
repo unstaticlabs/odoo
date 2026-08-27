@@ -74,6 +74,58 @@ class AttachmentClassificationTest(unittest.TestCase):
         self.assertEqual(actions[0]["kind"], "revoke_and_reenroll")
         self.assertEqual(actions[0]["state"], "implemented")
 
+    def test_demo_knowledge_attachment_is_explicitly_discarded(self):
+        actions = self.classify(
+            {"res_model": "knowledge.article", "res_field": "cover_image"},
+            messages={1},
+        )
+        self.assertEqual(actions[0]["kind"], "discard_demo_knowledge_attachment")
+        self.assertEqual(actions[0]["scope"], "knowledge")
+        self.assertEqual(actions[0]["state"], "implemented")
+
+    def test_sample_dashboard_payload_is_explicitly_dropped(self):
+        actions = self.classify(
+            {
+                "res_model": "spreadsheet.dashboard",
+                "res_id": 1,
+                "res_field": "spreadsheet_binary_data",
+            },
+        )
+        disposition = next(
+            item for item in actions if item["kind"] == "deliberately_not_copied"
+        )
+        self.assertEqual(disposition["scope"], "preferences")
+        self.assertEqual(disposition["state"], "implemented")
+
+    def test_ai_source_pdf_becomes_restricted_business_evidence(self):
+        actions = self.classify({"res_model": "ai.agent.source"})
+        disposition = next(
+            item
+            for item in actions
+            if item["kind"] == "archive_restricted_business_evidence"
+        )
+        self.assertEqual(disposition["scope"], "documents")
+        self.assertEqual(disposition["state"], "implemented")
+
+    def test_knowledge_url_is_explicitly_dropped(self):
+        actions = self.classify(
+            {"type": "url", "res_model": "knowledge.cover", "store_fname": ""},
+        )
+        self.assertEqual(actions[0]["kind"], "discard_demo_knowledge_attachment")
+        self.assertEqual(actions[0]["scope"], "knowledge")
+
+    def test_sign_and_ownerless_chatter_evidence_are_implemented(self):
+        sign = self.classify({"id": 8, "res_model": "sign.request"}, sign={8})
+        chatter = self.classify({"id": 9}, messages={9})
+        signing_action = next(
+            item for item in sign if item["kind"] == "archive_signing_evidence"
+        )
+        self.assertEqual(signing_action["state"], "implemented")
+        self.assertEqual(
+            next(item for item in chatter if item["kind"] == "restore_collaboration_attachment")["state"],
+            "implemented",
+        )
+
     def test_file_integrity_is_checked(self):
         with tempfile.TemporaryDirectory() as directory:
             filestore = Path(directory)

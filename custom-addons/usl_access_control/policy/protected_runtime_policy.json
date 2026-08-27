@@ -1,0 +1,2942 @@
+{
+  "actions": [
+    {
+      "action_key": "guard:accounting.b2c_session.unlock",
+      "action_name": "unlock a governed B2C accounting session",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:accounting.lock.change",
+      "action_name": "change accounting lock dates",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:authorization.company.create",
+      "action_name": "create a company security boundary",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:authorization.user.change",
+      "action_name": "change user identity or authorization",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:authorization.user.create",
+      "action_name": "create a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:authorization.user.delete",
+      "action_name": "delete a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:automation.cron.run_manual",
+      "action_name": "run a scheduled action manually",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:automation.server_action.execute",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.permanent_delete",
+      "action_name": "permanently delete a document",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.permanent_deletion.approve",
+      "action_name": "approve permanent document deletion",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.pdp.deregister",
+      "action_name": "deregister from an electronic-invoice platform",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.pdp.register",
+      "action_name": "register with an electronic-invoice platform",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.branch.disconnect",
+      "action_name": "disconnect a branch from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.configuration.change",
+      "action_name": "change Peppol provider configuration",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.database.disconnect",
+      "action_name": "disconnect this database from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.database.reconnect",
+      "action_name": "reconnect this database to Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.deregister",
+      "action_name": "deregister from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.register",
+      "action_name": "register with Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.reregister",
+      "action_name": "reregister with Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:einvoice.peppol.unregister",
+      "action_name": "unregister from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:module.install",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:module.uninstall",
+      "action_name": "uninstall a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:module.upgrade",
+      "action_name": "upgrade a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:account.account.reconcile.unlink",
+      "action_name": "permanently delete account.account.reconcile",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.account.reconcile",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.account.tag.unlink",
+      "action_name": "permanently delete account.account.tag",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.account.tag",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.account.unlink",
+      "action_name": "permanently delete account.account",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.account",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.analytic.account.unlink",
+      "action_name": "permanently delete account.analytic.account",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.analytic.account",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.asset.profile.unlink",
+      "action_name": "permanently delete account.asset.profile",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.asset.profile",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.asset.unlink",
+      "action_name": "permanently delete account.asset",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.asset",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.config.unlink",
+      "action_name": "permanently delete account.bank.ingestion.config",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.config",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.file.unlink",
+      "action_name": "permanently delete account.bank.ingestion.file",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.file",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.unlink",
+      "action_name": "permanently delete account.bank.ingestion",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.upload.unlink",
+      "action_name": "permanently delete account.bank.ingestion.upload",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.upload",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.certification.unlink",
+      "action_name": "permanently delete account.bank.statement.certification",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.certification",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.confirm.unlink",
+      "action_name": "permanently delete account.bank.statement.confirm",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.confirm",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.exception.unlink",
+      "action_name": "permanently delete account.bank.statement.exception",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.exception",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.reopen.unlink",
+      "action_name": "permanently delete account.bank.statement.reopen",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.reopen",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.fiscal.position.action_create_foreign_taxes",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:account.fiscal.position.unlink",
+      "action_name": "permanently delete account.fiscal.position",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.fiscal.position",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.incoterms.unlink",
+      "action_name": "permanently delete account.incoterms",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.incoterms",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.journal.unlink",
+      "action_name": "permanently delete account.journal",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.journal",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.lock_exception.unlink",
+      "action_name": "permanently delete account.lock_exception",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.lock_exception",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.move.unlink",
+      "action_name": "permanently delete account.move",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.move",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.payment.term.unlink",
+      "action_name": "permanently delete account.payment.term",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.payment.term",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.payment.unlink",
+      "action_name": "permanently delete account.payment",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.payment",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.reconcile.model.unlink",
+      "action_name": "permanently delete account.reconcile.model",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.reconcile.model",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.report.unlink",
+      "action_name": "permanently delete account.report",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.report",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.tax.unlink",
+      "action_name": "permanently delete account.tax",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.tax",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account_edi_proxy_client.user.unlink",
+      "action_name": "permanently delete account_edi_proxy_client.user",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account_edi_proxy_client.user",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:auth.oauth.provider.create",
+      "action_name": "create auth.oauth.provider",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "auth.oauth.provider",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:auth.oauth.provider.unlink",
+      "action_name": "permanently delete auth.oauth.provider",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "auth.oauth.provider",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:auth.oauth.provider.write",
+      "action_name": "modify auth.oauth.provider",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "auth.oauth.provider",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.accounting.session.action_unlock",
+      "action_name": "unlock a governed B2C accounting session",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:b2c.accounting.session.unlink",
+      "action_name": "permanently delete b2c.accounting.session",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.accounting.session",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.channel.unlink",
+      "action_name": "permanently delete b2c.channel",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.channel",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.fulfilment.event.unlink",
+      "action_name": "permanently delete b2c.fulfilment.event",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.fulfilment.event",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.order.unlink",
+      "action_name": "permanently delete b2c.order",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.order",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.payment.event.unlink",
+      "action_name": "permanently delete b2c.payment.event",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.payment.event",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.provider.evidence.unlink",
+      "action_name": "permanently delete b2c.provider.evidence",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.provider.evidence",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:base.automation.create",
+      "action_name": "create base.automation",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "base.automation",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:base.automation.unlink",
+      "action_name": "permanently delete base.automation",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "base.automation",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:base.automation.write",
+      "action_name": "modify base.automation",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "base.automation",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:base.module.install.review.action_install_module",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:base.module.uninstall.action_uninstall",
+      "action_name": "uninstall a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:certificate.certificate.unlink",
+      "action_name": "permanently delete certificate.certificate",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "certificate.certificate",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:certificate.key.unlink",
+      "action_name": "permanently delete certificate.key",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "certificate.key",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:crm.team.member.unlink",
+      "action_name": "permanently delete crm.team.member",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "crm.team.member",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:crm.team.unlink",
+      "action_name": "permanently delete crm.team",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "crm.team",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:date.range.type.unlink",
+      "action_name": "permanently delete date.range.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "date.range.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:date.range.unlink",
+      "action_name": "permanently delete date.range",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "date.range",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:delivery.carrier.unlink",
+      "action_name": "permanently delete delivery.carrier",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "delivery.carrier",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:discuss.channel.unlink",
+      "action_name": "permanently delete discuss.channel",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "discuss.channel",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:fetchmail.server.unlink",
+      "action_name": "permanently delete fetchmail.server",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "fetchmail.server",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:google.gmail.mixin.unlink",
+      "action_name": "permanently delete google.gmail.mixin",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "google.gmail.mixin",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.department.unlink",
+      "action_name": "permanently delete hr.department",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.department",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.departure.reason.unlink",
+      "action_name": "permanently delete hr.departure.reason",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.departure.reason",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.employee.public.unlink",
+      "action_name": "permanently delete hr.employee.public",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.employee.public",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.employee.skill.report.unlink",
+      "action_name": "permanently delete hr.employee.skill.report",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.employee.skill.report",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.employee.unlink",
+      "action_name": "permanently delete hr.employee",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.employee",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.job.unlink",
+      "action_name": "permanently delete hr.job",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.job",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.skill.type.unlink",
+      "action_name": "permanently delete hr.skill.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.skill.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.version.unlink",
+      "action_name": "permanently delete hr.version",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.version",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:hr.work.location.unlink",
+      "action_name": "permanently delete hr.work.location",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "hr.work.location",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.actions.server.create",
+      "action_name": "create ir.actions.server",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.actions.server",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.actions.server.run",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.actions.server.unlink",
+      "action_name": "permanently delete ir.actions.server",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.actions.server",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.actions.server.write",
+      "action_name": "modify ir.actions.server",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.actions.server",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.asset.unlink",
+      "action_name": "permanently delete ir.asset",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.asset",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.attachment.unlink",
+      "action_name": "permanently delete ir.attachment",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.attachment",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.config_parameter.create",
+      "action_name": "create ir.config_parameter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.config_parameter",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.config_parameter.unlink",
+      "action_name": "permanently delete ir.config_parameter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.config_parameter",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.config_parameter.write",
+      "action_name": "modify ir.config_parameter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.config_parameter",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.cron.create",
+      "action_name": "create ir.cron",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.cron",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.cron.method_direct_trigger",
+      "action_name": "run a scheduled action manually",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.cron.unlink",
+      "action_name": "permanently delete ir.cron",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.cron",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.cron.write",
+      "action_name": "modify ir.cron",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.cron",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.default.create",
+      "action_name": "create ir.default",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.default",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.default.unlink",
+      "action_name": "permanently delete ir.default",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.default",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.default.write",
+      "action_name": "modify ir.default",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.default",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.filters.unlink",
+      "action_name": "permanently delete ir.filters",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.filters",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.logging.create",
+      "action_name": "create ir.logging",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.logging",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.logging.unlink",
+      "action_name": "permanently delete ir.logging",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.logging",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.logging.write",
+      "action_name": "modify ir.logging",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.logging",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.mail_server.unlink",
+      "action_name": "permanently delete ir.mail_server",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.mail_server",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.access.create",
+      "action_name": "create ir.model.access",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.access",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.access.unlink",
+      "action_name": "permanently delete ir.model.access",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.access",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.access.write",
+      "action_name": "modify ir.model.access",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.access",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.create",
+      "action_name": "create ir.model",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.data.create",
+      "action_name": "create ir.model.data",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.data",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.data.unlink",
+      "action_name": "permanently delete ir.model.data",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.data",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.data.write",
+      "action_name": "modify ir.model.data",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.data",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.create",
+      "action_name": "create ir.model.fields",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.selection.create",
+      "action_name": "create ir.model.fields.selection",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields.selection",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.selection.unlink",
+      "action_name": "permanently delete ir.model.fields.selection",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields.selection",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.selection.write",
+      "action_name": "modify ir.model.fields.selection",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields.selection",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.unlink",
+      "action_name": "permanently delete ir.model.fields",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.fields.write",
+      "action_name": "modify ir.model.fields",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model.fields",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.unlink",
+      "action_name": "permanently delete ir.model",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.model.write",
+      "action_name": "modify ir.model",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.model",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_immediate_install",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_immediate_install_app",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_immediate_uninstall",
+      "action_name": "uninstall a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_immediate_upgrade",
+      "action_name": "upgrade a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_install",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_uninstall",
+      "action_name": "uninstall a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.button_upgrade",
+      "action_name": "upgrade a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.create",
+      "action_name": "create ir.module.module",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.module.module",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.module.module.module_uninstall",
+      "action_name": "uninstall a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:ir.module.module.unlink",
+      "action_name": "permanently delete ir.module.module",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.module.module",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.module.module.write",
+      "action_name": "modify ir.module.module",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.module.module",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.rule.create",
+      "action_name": "create ir.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.rule",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.rule.unlink",
+      "action_name": "permanently delete ir.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.rule",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.rule.write",
+      "action_name": "modify ir.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.rule",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.sequence.unlink",
+      "action_name": "permanently delete ir.sequence",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.sequence",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.menu.create",
+      "action_name": "create ir.ui.menu",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.menu",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.menu.unlink",
+      "action_name": "permanently delete ir.ui.menu",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.menu",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.menu.write",
+      "action_name": "modify ir.ui.menu",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.menu",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.view.create",
+      "action_name": "create ir.ui.view",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.view",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.view.unlink",
+      "action_name": "permanently delete ir.ui.view",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.view",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:ir.ui.view.write",
+      "action_name": "modify ir.ui.view",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "ir.ui.view",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:mail.activity.plan.unlink",
+      "action_name": "permanently delete mail.activity.plan",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.activity.plan",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.activity.type.unlink",
+      "action_name": "permanently delete mail.activity.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.activity.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.activity.unlink",
+      "action_name": "permanently delete mail.activity",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.activity",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.blacklist.unlink",
+      "action_name": "permanently delete mail.blacklist",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.blacklist",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.message.unlink",
+      "action_name": "permanently delete mail.message",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.message",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.message.write",
+      "action_name": "modify mail.message",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.message",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:mail.template.unlink",
+      "action_name": "permanently delete mail.template",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.template",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.tracking.value.unlink",
+      "action_name": "permanently delete mail.tracking.value",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.tracking.value",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mail.tracking.value.write",
+      "action_name": "modify mail.tracking.value",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mail.tracking.value",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:microsoft.outlook.mixin.unlink",
+      "action_name": "permanently delete microsoft.outlook.mixin",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "microsoft.outlook.mixin",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mrp.bom.unlink",
+      "action_name": "permanently delete mrp.bom",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mrp.bom",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mrp.routing.workcenter.unlink",
+      "action_name": "permanently delete mrp.routing.workcenter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mrp.routing.workcenter",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:mrp.workcenter.unlink",
+      "action_name": "permanently delete mrp.workcenter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "mrp.workcenter",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:payment.method.unlink",
+      "action_name": "permanently delete payment.method",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "payment.method",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:payment.provider.button_immediate_install",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:payment.token.unlink",
+      "action_name": "permanently delete payment.token",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "payment.token",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:pdp.config.wizard.button_peppol_unregister",
+      "action_name": "unregister from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:pdp.config.wizard.button_sync_form_with_peppol_proxy",
+      "action_name": "change Peppol provider configuration",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:pdp.registration.button_deregister_pdp_participant",
+      "action_name": "deregister from an electronic-invoice platform",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:pdp.registration.button_register_pdp_participant",
+      "action_name": "register with an electronic-invoice platform",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:peppol.registration.button_register_peppol_participant",
+      "action_name": "register with Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:phone.blacklist.unlink",
+      "action_name": "permanently delete phone.blacklist",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "phone.blacklist",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.attribute.unlink",
+      "action_name": "permanently delete product.attribute",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.attribute",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.attribute.value.unlink",
+      "action_name": "permanently delete product.attribute.value",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.attribute.value",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.document.unlink",
+      "action_name": "permanently delete product.document",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.document",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.pricelist.unlink",
+      "action_name": "permanently delete product.pricelist",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.pricelist",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.product.unlink",
+      "action_name": "permanently delete product.product",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.product",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.template.attribute.line.unlink",
+      "action_name": "permanently delete product.template.attribute.line",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.template.attribute.line",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:product.template.unlink",
+      "action_name": "permanently delete product.template",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "product.template",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:project.project.stage.unlink",
+      "action_name": "permanently delete project.project.stage",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "project.project.stage",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:project.project.unlink",
+      "action_name": "permanently delete project.project",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "project.project",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:project.role.unlink",
+      "action_name": "permanently delete project.role",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "project.role",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:project.task.type.unlink",
+      "action_name": "permanently delete project.task.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "project.task.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:project.task.unlink",
+      "action_name": "permanently delete project.task",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "project.task",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:purchase.order.unlink",
+      "action_name": "permanently delete purchase.order",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "purchase.order",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:quotation.document.unlink",
+      "action_name": "permanently delete quotation.document",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "quotation.document",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates",
+      "action_name": "change accounting lock dates",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:rebuild.account.declaration.rule.unlink",
+      "action_name": "permanently delete rebuild.account.declaration.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "rebuild.account.declaration.rule",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:rebuild.account.external.report.value.unlink",
+      "action_name": "permanently delete rebuild.account.external.report.value",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "rebuild.account.external.report.value",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:rebuild.account.report.account.presentation.unlink",
+      "action_name": "permanently delete rebuild.account.report.account.presentation",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "rebuild.account.report.account.presentation",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:rebuild.account.report.definition.unlink",
+      "action_name": "permanently delete rebuild.account.report.definition",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "rebuild.account.report.definition",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.company.create",
+      "action_name": "create a company security boundary",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.company.install_l10n_modules",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.company.unlink",
+      "action_name": "permanently delete res.company",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.company",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.company.write",
+      "action_name": "change accounting lock dates",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.action_eu_oss_tax_mapping",
+      "action_name": "install or import module code",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.button_disconnect_this_database",
+      "action_name": "disconnect this database from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.button_peppol_deregister",
+      "action_name": "deregister from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.button_peppol_disconnect_branch_from_parent",
+      "action_name": "disconnect a branch from Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.button_peppol_reregister",
+      "action_name": "reregister with Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.config.settings.button_reconnect_this_database",
+      "action_name": "reconnect this database to Peppol",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.currency.unlink",
+      "action_name": "permanently delete res.currency",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.currency",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.create",
+      "action_name": "create res.groups",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.privilege.create",
+      "action_name": "create res.groups.privilege",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups.privilege",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.privilege.unlink",
+      "action_name": "permanently delete res.groups.privilege",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups.privilege",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.privilege.write",
+      "action_name": "modify res.groups.privilege",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups.privilege",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.unlink",
+      "action_name": "permanently delete res.groups",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.groups.write",
+      "action_name": "modify res.groups",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.groups",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:res.lang.unlink",
+      "action_name": "permanently delete res.lang",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.lang",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.partner.bank.unlink",
+      "action_name": "permanently delete res.partner.bank",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.partner.bank",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.partner.category.unlink",
+      "action_name": "permanently delete res.partner.category",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.partner.category",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.partner.industry.unlink",
+      "action_name": "permanently delete res.partner.industry",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.partner.industry",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.partner.unlink",
+      "action_name": "permanently delete res.partner",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "res.partner",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:res.users.create",
+      "action_name": "create a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.users.unlink",
+      "action_name": "delete a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:res.users.write",
+      "action_name": "change user identity or authorization",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:resource.calendar.unlink",
+      "action_name": "permanently delete resource.calendar",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "resource.calendar",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:resource.resource.unlink",
+      "action_name": "permanently delete resource.resource",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "resource.resource",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:sale.order.template.unlink",
+      "action_name": "permanently delete sale.order.template",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "sale.order.template",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:sale.order.unlink",
+      "action_name": "permanently delete sale.order",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "sale.order",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:spreadsheet.dashboard.share.unlink",
+      "action_name": "permanently delete spreadsheet.dashboard.share",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "spreadsheet.dashboard.share",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.location.unlink",
+      "action_name": "permanently delete stock.location",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.location",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.picking.type.unlink",
+      "action_name": "permanently delete stock.picking.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.picking.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.picking.unlink",
+      "action_name": "permanently delete stock.picking",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.picking",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.putaway.rule.unlink",
+      "action_name": "permanently delete stock.putaway.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.putaway.rule",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.route.unlink",
+      "action_name": "permanently delete stock.route",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.route",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.rule.unlink",
+      "action_name": "permanently delete stock.rule",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.rule",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.warehouse.orderpoint.unlink",
+      "action_name": "permanently delete stock.warehouse.orderpoint",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.warehouse.orderpoint",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:stock.warehouse.unlink",
+      "action_name": "permanently delete stock.warehouse",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.warehouse",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:uom.uom.unlink",
+      "action_name": "permanently delete uom.uom",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "uom.uom",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.audit.event.unlink",
+      "action_name": "permanently delete usl.audit.event",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.audit.event",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.audit.event.write",
+      "action_name": "modify usl.audit.event",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.audit.event",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.action_approve_permanent_deletion",
+      "action_name": "approve permanent document deletion",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.action_permanently_delete_from_trash",
+      "action_name": "permanently delete a document",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.approve_permanent_deletion",
+      "action_name": "approve permanent document deletion",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.link.unlink",
+      "action_name": "permanently delete usl.document.link",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.link",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.permanently_delete_from_trash",
+      "action_name": "permanently delete a document",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.quick.filter.unlink",
+      "action_name": "permanently delete usl.document.quick.filter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.quick.filter",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.smart.view.unlink",
+      "action_name": "permanently delete usl.document.smart.view",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.smart.view",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.unlink",
+      "action_name": "permanently delete usl.document",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.oidc.identity.create",
+      "action_name": "create usl.oidc.identity",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.oidc.identity",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:usl.oidc.identity.unlink",
+      "action_name": "permanently delete usl.oidc.identity",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.oidc.identity",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.oidc.identity.write",
+      "action_name": "modify usl.oidc.identity",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.oidc.identity",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:usl.paperless.correspondent.unlink",
+      "action_name": "permanently delete usl.paperless.correspondent",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.paperless.correspondent",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.paperless.document.type.unlink",
+      "action_name": "permanently delete usl.paperless.document.type",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.paperless.document.type",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.paperless.metadata.mixin.unlink",
+      "action_name": "permanently delete usl.paperless.metadata.mixin",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.paperless.metadata.mixin",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.paperless.tag.unlink",
+      "action_name": "permanently delete usl.paperless.tag",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.paperless.tag",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.paperless.user.mapping.unlink",
+      "action_name": "permanently delete usl.paperless.user.mapping",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.paperless.user.mapping",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.platform.billing.payout.unlink",
+      "action_name": "permanently delete usl.platform.billing.payout",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.platform.billing.payout",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.platform.billing.platform.unlink",
+      "action_name": "permanently delete usl.platform.billing.platform",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.platform.billing.platform",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.platform.billing.session.unlink",
+      "action_name": "permanently delete usl.platform.billing.session",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.platform.billing.session",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.tese.diagnostic.issue.unlink",
+      "action_name": "permanently delete usl.tese.diagnostic.issue",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.tese.diagnostic.issue",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.tese.payslip.unlink",
+      "action_name": "permanently delete usl.tese.payslip",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.tese.payslip",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.tese.profile.unlink",
+      "action_name": "permanently delete usl.tese.profile",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.tese.profile",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:utm.campaign.unlink",
+      "action_name": "permanently delete utm.campaign",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "utm.campaign",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:utm.medium.unlink",
+      "action_name": "permanently delete utm.medium",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "utm.medium",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "server_action:account.accountant_reset_to_draft_entries_action",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_account_confirm_payments",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_account_unreconcile",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_automatic_entry_change_account",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_automatic_entry_change_period",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_check_hash_integrity",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_mark_payment_as_reconciled",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_move_block_payment",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_move_force_register_payment",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_move_switch_move_type",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_server_payment_receipt",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_unmerge_accounts",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.action_validate_account_moves",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.ir_cron_account_move_send_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account.model_account_move_action_share",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol.partner_action_verify_peppol",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_reconcile_oca.action_reconcile",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_signup.action_send_password_reset_instructions",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_totp.action_disable_totp",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_totp_mail.action_activate_two_factor_authentication",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_totp_mail.action_invite_totp",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.action_run_ir_action_todo",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.autovacuum_job_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.demo_failure_action",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.ir_actions_server_change_password_wizard",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.ir_cron_res_users_deletion_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base_vat.vies_iap_check_update_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:date_range.ir_cron_autocreate_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_create_users",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_create_users_confirmation",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_departure",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_load_demo_data",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_apply_departure_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_open_skills_log_department",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_print_employees_cv",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_server_hr_employee_skill_certification",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_delete_notification_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_end_polls_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_module_update_notification_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_open_bom_lines",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_pause_workorders",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_plan_at_date",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_plan_workorders",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_print_labels",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_lock_unlock",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_mark_done",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_merge",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_scrap",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_split",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_start_workorders",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.action_unplan_workorders",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp.mrp_production_action_unreserve_tree",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp_account.action_compute_price_bom_product",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:mrp_account.action_compute_price_bom_template",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:payment.action_start_payment_onboarding",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:payment.cron_post_process_payment_tx_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:portal.partner_wizard_action_create_and_open",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_actions_server_archive_all",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_actions_server_unlink_all",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:product.action_product_price_list_report",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:product.action_product_print_labels",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:product.action_product_template_price_list_report",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:product.action_product_template_print_labels",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_project_to_template",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_to_subtask",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_to_template",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.action_server_share_project",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.action_server_share_task",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.ir_cron_rating_project_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.unlink_project_stage_action",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.unlink_task_type_action",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.action_confirm_rfqs",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.action_merger",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.action_purchase_send_reminder",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.model_purchase_order_action_share",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.purchase_send_reminder_mail_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_close_invoicing",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_quotation_confirm",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_quotation_sent",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_share",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_send_mail",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.send_invoice_cron_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale.send_pending_emails_cron_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sale_project.model_sale_order_action_create_project",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sms.ir_actions_server_sms_sms_resend",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:snailmail.snailmail_print_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_install_barcode",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_open_routes",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_print_labels",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_product_replenishment",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_product_template_replenishment",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_replenishment",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_revert_move_line",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_scrap_lot",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_scrap_picking",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_stock_quant_relocate",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_unreserve_picking",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_validate_picking",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_view_inventory_tree",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_view_quants",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_view_set_quants_tree",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.action_view_set_to_zero_quants_tree",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.click_dashboard_graph",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.ir_cron_scheduler_action_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_incoming",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_internal",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_outgoing",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock.stock_split_picking",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:stock_account.stock_move_action_adjust_valuation",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.action_open_tese_settings",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.action_run_tese_diagnostics",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:web.download_contact",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:web_tour.tour_export_js_action",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1",
+      "action_name": "create a company security boundary",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1",
+      "action_name": "change accounting lock dates",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1",
+      "action_name": "create a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1",
+      "action_name": "delete a user identity",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1",
+      "action_name": "change user identity or authorization",
+      "classification": "protected"
+    }
+  ],
+  "qualified_policy_digest": "1dbeb11683115f2b39f5cac8dbd54652829a7d9b1d14640ae8dcd34eea25aad0",
+  "runtime_policy_sha256": "e6556994361e16df04936a5086024a87401177ce1db91b5a9f3bf47401893cad",
+  "schema": "usl-action-risk-protected-runtime-v1"
+}

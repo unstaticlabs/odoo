@@ -14,6 +14,7 @@ migration_modules = env["ir.module.module"].sudo().search(
                 "usl_hr_restore",
                 "usl_product_restore",
                 "usl_project_restore",
+                "usl_collaboration_restore",
             ],
         ),
     ],
@@ -29,6 +30,8 @@ if active_migration_modules:
 
 forbidden_models = {
     "usl.b2c.restore.run",
+    "usl.collaboration.restore.mapping",
+    "usl.collaboration.restore.run",
     "usl.identity.restore.run",
     "usl.hr.restore.run",
     "usl.product.restore.run",
@@ -119,6 +122,7 @@ technical_xmlids = env["ir.model.data"].sudo().search_count(
             "in",
             [
                 "usl_identity_restore",
+                "usl_collaboration_restore",
                 "usl_hr_restore",
                 "usl_product_restore",
                 "usl_project_restore",

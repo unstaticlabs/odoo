@@ -278,7 +278,7 @@ value with owner-confirmed data:
     "name": "Prosper",
     "email": "<owner-confirmed-prosper-email>",
     "profile": "accountant_reviewer",
-    "companies": ["Unstatic Labs"],
+    "companies": ["Unstatic Labs", "USL MEDIA"],
     "subject": "<prosper-pocket-id-sub>",
     "create_if_missing": true
   }
@@ -362,10 +362,10 @@ record passkey screens, secrets, tokens or raw subjects.
    collaborator, can use assigned projects, and cannot open Settings,
    Accounting, expense administration, HR private records, sales management,
    Documents administration or Signing administration.
-3. Prosper authenticates the same way, sees only Unstatic Labs and the
-   existing USL accountant-review screens, reports and exports. Attempted
-   accounting create, edit, post, reconcile, configuration or approval actions
-   are denied.
+3. Prosper authenticates the same way, can switch between Unstatic Labs and
+   USL MEDIA, and reaches the accountant-review screens, reports and exports in
+   both company contexts. Protected configuration, lock and permanent-delete
+   actions remain denied.
 4. A Pocket ID user with the required group but no identity link is denied;
    the Odoo user count remains unchanged.
 5. Confirm the login page shows only **Continue with Pocket ID**. Password,

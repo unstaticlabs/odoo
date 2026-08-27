@@ -174,7 +174,10 @@ class ResCompany(models.Model):
 class RebuildAccountDeclarationRule(models.Model):
     _name = "rebuild.account.declaration.rule"
     _description = "USL French Declaration Rule"
-    _inherit = ["rebuild.account.configurable.definition.mixin"]
+    _inherit = [
+        "rebuild.account.configurable.definition.mixin",
+        "mail.thread",
+    ]
     _order = "sequence, code, effective_from desc"
 
     _unique_rule_version = models.Constraint(
@@ -208,6 +211,7 @@ class RebuildAccountDeclarationRule(models.Model):
             ("vat", "VAT"),
             ("tax_credit", "Tax Credits and Reductions"),
             ("dividend", "Dividends / RCM"),
+            ("legacy", "Legacy / Retired Workflow"),
         ],
         required=True,
         index=True,
@@ -428,6 +432,7 @@ class RebuildAccountDeclarationRule(models.Model):
 class RebuildAccountDeclaration(models.Model):
     _name = "rebuild.account.declaration"
     _description = "USL French Declaration Obligation"
+    _inherit = ["mail.thread"]
     _order = "deadline_date, company_id, rule_id, instalment_number"
 
     _unique_declaration_instance = models.Constraint(
@@ -452,7 +457,7 @@ class RebuildAccountDeclaration(models.Model):
     fiscalyear_end = fields.Date(required=True, index=True)
     instalment_number = fields.Integer(default=0)
     deadline_window_start = fields.Date()
-    deadline_date = fields.Date(required=True, index=True)
+    deadline_date = fields.Date(required=True, index=True, tracking=True)
     deadline_basis = fields.Text(required=True)
     applicability = fields.Selection(
         [("applicable", "Applicable"), ("conditional", "Conditional Review"), ("not_applicable", "Not Applicable")],
@@ -478,12 +483,14 @@ class RebuildAccountDeclaration(models.Model):
         required=True,
         default="to_prepare",
         index=True,
+        tracking=True,
     )
     validation_status = fields.Selection(
         [("not_run", "Not Run"), ("ready", "Ready"), ("warning", "Warning"), ("blocked", "Blocked")],
         required=True,
         default="not_run",
         index=True,
+        tracking=True,
     )
     review_status = fields.Selection(
         [
@@ -496,6 +503,7 @@ class RebuildAccountDeclaration(models.Model):
         ],
         required=True,
         default="not_started",
+        tracking=True,
     )
     filing_status = fields.Selection(
         [
@@ -507,6 +515,7 @@ class RebuildAccountDeclaration(models.Model):
         ],
         required=True,
         default="not_started",
+        tracking=True,
     )
     payment_status = fields.Selection(
         [
@@ -521,6 +530,7 @@ class RebuildAccountDeclaration(models.Model):
         ],
         required=True,
         default="not_assessed",
+        tracking=True,
     )
     acceptance_status = fields.Selection(
         [
@@ -531,18 +541,19 @@ class RebuildAccountDeclaration(models.Model):
         ],
         required=True,
         default="not_submitted",
+        tracking=True,
     )
-    amount_due = fields.Monetary(currency_field="currency_id")
-    amount_paid = fields.Monetary(currency_field="currency_id")
-    credit_amount = fields.Monetary(currency_field="currency_id")
-    refund_amount = fields.Monetary(currency_field="currency_id")
+    amount_due = fields.Monetary(currency_field="currency_id", tracking=True)
+    amount_paid = fields.Monetary(currency_field="currency_id", tracking=True)
+    credit_amount = fields.Monetary(currency_field="currency_id", tracking=True)
+    refund_amount = fields.Monetary(currency_field="currency_id", tracking=True)
     field_line_ids = fields.One2many("rebuild.account.declaration.field", "declaration_id", string="Prefilled Fields")
     prefilled_line_count = fields.Integer(compute="_compute_counts")
     unresolved_count = fields.Integer(compute="_compute_counts")
     validation_summary = fields.Text()
     unresolved_information = fields.Text()
     portal_entry_guidance = fields.Text()
-    external_filing_reference = fields.Char()
+    external_filing_reference = fields.Char(tracking=True)
     evidence_reference = fields.Char()
     evidence_attachment_ids = fields.Many2many(
         "ir.attachment",

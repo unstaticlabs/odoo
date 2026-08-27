@@ -54,11 +54,11 @@ class TestAccountingDocumentContexts(TransactionCase):
             "usl_documents_accounting.view_rebuild_account_closing_documents",
         ):
             arch = self.env.ref(xmlid).arch_db
-            self.assertEqual(arch.count('name="action_open_documents_workspace"'), 2)
-            self.assertIn('string="Upload"', arch)
-            self.assertIn('string="Documents"', arch)
-            self.assertIn('invisible="archived_document_count != 0"', arch)
-            self.assertIn('invisible="archived_document_count == 0"', arch)
+            self.assertEqual(arch.count('name="action_open_documents_workspace"'), 1)
+            self.assertNotIn('string="Upload"', arch)
+            self.assertIn('<span class="o_stat_text">Documents</span>', arch)
+            self.assertIn("document_archive_failure_count", arch)
+            self.assertIn("document_archive_pending_count", arch)
             self.assertNotIn("Find / upload", arch)
             self.assertNotIn("Evidence", arch)
             self.assertNotIn("action_open_archived_documents", arch)

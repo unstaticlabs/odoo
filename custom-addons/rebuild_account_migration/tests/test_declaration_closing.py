@@ -49,6 +49,19 @@ class TestDeclarationAndClosing(TransactionCase):
             })
         return self.env["res.company"].create(vals)
 
+    def test_declarations_support_chatter_and_retired_workflow_category(self):
+        Rule = self.env["rebuild.account.declaration.rule"]
+        Declaration = self.env["rebuild.account.declaration"]
+
+        self.assertIn("message_ids", Rule._fields)
+        self.assertIn("message_ids", Declaration._fields)
+        self.assertIn("legacy", dict(Rule._fields["category"].selection))
+        for field_name in (
+            "deadline_date", "status", "validation_status", "review_status",
+            "filing_status", "payment_status", "acceptance_status", "amount_due",
+        ):
+            self.assertTrue(Declaration._fields[field_name].tracking)
+
     def _declaration(self, company, rule_xmlid="declaration_rule_3517_2026"):
         rule = self.env.ref(f"rebuild_account_migration.{rule_xmlid}")
         return self.env["rebuild.account.declaration"].with_company(company).create({

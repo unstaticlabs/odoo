@@ -81,6 +81,7 @@ usl-online-dump/
 /tmp/
 /.pocket-id.env
 /.pocket-id-*.env
+/.documents-personal-ai-keys.json
 
 # impeccable-ignore-start
 # Keep the shared Impeccable configuration and review records, but ignore
