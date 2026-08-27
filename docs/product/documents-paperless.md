@@ -126,6 +126,11 @@ and returns to the same list position; Forward reopens it. A reload or deep
 link restores the selection. Session state is isolated by Odoo user so one
 person's search is not inherited when another person signs in on the same
 browser.
+The detail panel is an anchored overlay at every desktop and mobile width, so
+opening a result never recomputes or narrows the document grid beneath it. A
+modal was rejected because document detail supports deep links, Back/Forward,
+preview work, and long-form metadata rather than a short interrupting task;
+resizing the list was rejected because it caused disruptive layout shifts.
 
 The primary navigation starts with **Home** and **My library**, then the useful
 business scopes **Accounting**, **Projects**, **Contracts & legal**,

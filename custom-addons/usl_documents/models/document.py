@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import logging
+import math
 import os
 from datetime import UTC, datetime, timedelta
 
@@ -718,6 +719,7 @@ class UslDocument(models.Model):
         scope=None,
         authorized_documents=None,
         local_documents=None,
+        return_semantic_metadata=False,
     ):
         if mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
@@ -737,6 +739,8 @@ class UslDocument(models.Model):
                 local_documents=local_documents,
             )
         semantic_ids = []
+        semantic_scores = {}
+        semantic_scores_loaded = False
         if mode != "exact":
             try:
                 payload = self._paperless().semantic_search(
@@ -745,11 +749,21 @@ class UslDocument(models.Model):
                     limit=200,
                 )
                 allowed = set(scope)
-                semantic_ids = [
-                    int(item["id"])
-                    for item in payload.get("results") or []
-                    if int(item["id"]) in allowed
-                ]
+                semantic_scores_loaded = True
+                for item in payload.get("results") or []:
+                    paperless_id = int(item["id"])
+                    if paperless_id not in allowed:
+                        continue
+                    semantic_ids.append(paperless_id)
+                    try:
+                        similarity = float(item.get("similarity"))
+                    except (TypeError, ValueError):
+                        continue
+                    if math.isfinite(similarity):
+                        semantic_scores[paperless_id] = min(
+                            1.0,
+                            max(0.0, similarity),
+                        )
                 warnings.extend(payload.get("warnings") or [])
             except PaperlessError:
                 if mode == "semantic":
@@ -764,14 +778,18 @@ class UslDocument(models.Model):
                     },
                 )
         if mode == "exact":
-            return lexical_ids, truncated, warnings
-        if mode == "semantic":
-            return semantic_ids, False, warnings
-        return (
-            self._fuse_search_rankings(lexical_ids, semantic_ids),
-            truncated,
-            warnings,
-        )
+            result = (lexical_ids, truncated, warnings)
+        elif mode == "semantic":
+            result = (semantic_ids, False, warnings)
+        else:
+            result = (
+                self._fuse_search_rankings(lexical_ids, semantic_ids),
+                truncated,
+                warnings,
+            )
+        if return_semantic_metadata:
+            return (*result, semantic_scores, semantic_scores_loaded)
+        return result
 
     @api.model
     def _search_all_text(self, operator, value):
@@ -1936,7 +1954,8 @@ class UslDocument(models.Model):
         return ", ".join(clauses)
 
     @api.model
-    def _workspace_document_values(self, item):
+    def _workspace_document_values(self, item, semantic_scores=None):
+        semantic_similarity = (semantic_scores or {}).get(item.paperless_id)
         active_links = item._accessible_active_links()
         employee_link = active_links.filtered(
             lambda link: link.res_model == "hr.employee",
@@ -1956,6 +1975,12 @@ class UslDocument(models.Model):
             "id": item.id,
             "name": item.name,
             "paperless_id": item.paperless_id,
+            "semantic_similarity": semantic_similarity,
+            "semantic_match_percent": (
+                round(semantic_similarity * 100)
+                if semantic_similarity is not None
+                else None
+            ),
             "date": item.document_date,
             "ingested_at": item.archive_added_at,
             "company": item.company_id.display_name,
@@ -2055,7 +2080,7 @@ class UslDocument(models.Model):
         include_workspace_metadata=True,
     ):
         page = max(1, int(page))
-        page_size = min(100, max(1, int(page_size)))
+        page_size = min(500, max(1, int(page_size)))
         if search_mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
         if background_mode not in ("include", "exclude", "only"):
@@ -2091,16 +2116,33 @@ class UslDocument(models.Model):
         broad_terms = self._broad_search_terms(search_domain)
         resolved_ids = {}
         relevance_paperless_ids = []
+        semantic_scores = {}
+        semantic_scores_loaded = False
         search_warnings = []
         truncated = False
         for field_name, term in broad_terms:
-            ids, term_truncated, term_warnings = self._hybrid_search_ids(
+            (
+                ids,
+                term_truncated,
+                term_warnings,
+                term_semantic_scores,
+                term_semantic_scores_loaded,
+            ) = self._hybrid_search_ids(
                 term,
                 mode="semantic" if field_name == "semantic_text" else search_mode,
                 scope=authorized_scope,
                 authorized_documents=authorized_documents,
                 local_documents=accessible_documents,
+                return_semantic_metadata=True,
             )
+            semantic_scores_loaded = (
+                semantic_scores_loaded or term_semantic_scores_loaded
+            )
+            for paperless_document_id, score in term_semantic_scores.items():
+                semantic_scores[paperless_document_id] = max(
+                    score,
+                    semantic_scores.get(paperless_document_id, 0.0),
+                )
             resolved_ids[field_name, term] = ids
             truncated = truncated or term_truncated
             search_warnings.extend(term_warnings)
@@ -2323,7 +2365,32 @@ class UslDocument(models.Model):
         domain = Domain.AND([Domain(domain), native_domain])
         order = self._workspace_order(order_by, sort)
         try:
-            if relevance_paperless_ids and not order_by and not query:
+            if sort == "semantic" and semantic_scores_loaded and not order_by:
+                matching = self.search(domain)
+                relevance_position = {
+                    paperless_id: position
+                    for position, paperless_id in enumerate(relevance_paperless_ids)
+                }
+                ordered_ids = [
+                    document.id
+                    for document in sorted(
+                        matching,
+                        key=lambda document: (
+                            -semantic_scores.get(document.paperless_id, -1.0),
+                            relevance_position.get(
+                                document.paperless_id,
+                                len(relevance_position),
+                            ),
+                            -document.id,
+                        ),
+                    )
+                ]
+                count = len(ordered_ids)
+                page_ids = ordered_ids[
+                    (page - 1) * page_size : page * page_size
+                ]
+                documents = self.browse(page_ids)
+            elif relevance_paperless_ids and not order_by and not query:
                 matching = self.search(domain)
                 by_paperless_id = {
                     document.paperless_id: document.id
@@ -2389,7 +2456,10 @@ class UslDocument(models.Model):
                 if len(link_facets) >= 200:
                     break
         result = {
-            "documents": [self._workspace_document_values(item) for item in documents],
+            "documents": [
+                self._workspace_document_values(item, semantic_scores)
+                for item in documents
+            ],
             "count": count,
             "page": page,
             "page_size": page_size,
@@ -2401,6 +2471,7 @@ class UslDocument(models.Model):
             "degraded": False,
             "warnings": search_warnings,
             "search_mode": search_mode,
+            "semantic_scores_loaded": semantic_scores_loaded,
             "background_mode": background_mode,
             "truncated": truncated,
             "metadata_included": include_workspace_metadata,

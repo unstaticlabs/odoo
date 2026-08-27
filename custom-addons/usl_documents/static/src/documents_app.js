@@ -57,6 +57,8 @@ const FILTER_DEFAULTS = {
     customFieldId: "",
     customFieldValue: "",
 };
+const DEFAULT_PAGE_SIZE = 24;
+const MAX_PAGE_SIZE = 500;
 
 for (const key of [
     "uslDocumentsWorkspace",
@@ -601,7 +603,9 @@ export class DocumentsWorkspaceView extends Component {
                 ? restored.backgroundMode
                 : "include",
             view: ["cards", "list"].includes(restored.view) ? restored.view : "cards",
-            sort: ["recent", "ingested", "date", "title"].includes(restored.sort)
+            sort: ["recent", "ingested", "date", "title", "semantic"].includes(
+                restored.sort
+            )
                 ? restored.sort
                 : "recent",
             orderBy: Array.isArray(restored.orderBy)
@@ -627,7 +631,12 @@ export class DocumentsWorkspaceView extends Component {
                     ? restored.page
                     : 1,
             count: 0,
-            pageSize: 24,
+            pageSize:
+                Number.isInteger(restored.pageSize) &&
+                restored.pageSize > 0 &&
+                restored.pageSize <= MAX_PAGE_SIZE
+                    ? restored.pageSize
+                    : DEFAULT_PAGE_SIZE,
             documents: [],
             selected: null,
             selectedLoading: false,
@@ -640,6 +649,7 @@ export class DocumentsWorkspaceView extends Component {
             truncated: false,
             warnings: [],
             semanticRefining: false,
+            semanticScoresLoaded: false,
             starring: {},
             changingLibrary: false,
         });
@@ -1272,11 +1282,24 @@ export class DocumentsWorkspaceView extends Component {
             offset: (this.state.page - 1) * this.state.pageSize,
             limit: this.state.pageSize,
             total: this.state.count,
-            onUpdate: ({ offset }) => {
-                this.state.page = Math.floor(offset / this.state.pageSize) + 1;
+            onUpdate: ({ offset, limit }) => {
+                const pageSize = Math.min(
+                    MAX_PAGE_SIZE,
+                    Math.max(1, Number(limit) || this.state.pageSize)
+                );
+                this.state.pageSize = pageSize;
+                this.state.page = Math.floor(offset / pageSize) + 1;
                 return this.load();
             },
         };
+    }
+
+    get canSortBySemantic() {
+        return (
+            this.state.semanticScoresLoaded ||
+            this.state.semanticRefining ||
+            this.state.sort === "semantic"
+        );
     }
 
     get cardSort() {
@@ -1296,6 +1319,41 @@ export class DocumentsWorkspaceView extends Component {
             }
         }
         return "custom";
+    }
+
+    semanticMatchPercent(document) {
+        const suppliedValue = document?.semantic_match_percent;
+        const supplied = Number(suppliedValue);
+        if (
+            suppliedValue !== null &&
+            suppliedValue !== undefined &&
+            Number.isFinite(supplied)
+        ) {
+            return Math.min(100, Math.max(0, Math.round(supplied)));
+        }
+        const similarityValue = document?.semantic_similarity;
+        const similarity = Number(similarityValue);
+        return similarityValue !== null &&
+            similarityValue !== undefined &&
+            Number.isFinite(similarity)
+            ? Math.min(100, Math.max(0, Math.round(similarity * 100)))
+            : null;
+    }
+
+    semanticMatchTone(document) {
+        const percent = this.semanticMatchPercent(document);
+        if (percent >= 75) {
+            return "is-strong";
+        }
+        if (percent >= 50) {
+            return "is-medium";
+        }
+        return "is-light";
+    }
+
+    semanticMatchLabel(document) {
+        const percent = this.semanticMatchPercent(document);
+        return percent === null ? "" : _t("Semantic similarity: %s%%", percent);
     }
 
     get currentVersion() {
@@ -1333,6 +1391,7 @@ export class DocumentsWorkspaceView extends Component {
             backgroundMode: this.state.backgroundMode,
             orderBy: this.state.orderBy,
             page: this.state.page,
+            pageSize: this.state.pageSize,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
@@ -1354,6 +1413,7 @@ export class DocumentsWorkspaceView extends Component {
             sort: this.state.sort,
             orderBy: this.state.orderBy,
             page: this.state.page,
+            pageSize: this.state.pageSize,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
@@ -1903,9 +1963,24 @@ export class DocumentsWorkspaceView extends Component {
         );
     }
 
+    hasSemanticSearch() {
+        return this.domainLeaves(this.searchModel.domain).some(
+            (leaf) =>
+                (leaf[0] === "semantic_text" ||
+                    (leaf[0] === "all_text" && this.state.searchMode !== "exact")) &&
+                leaf[2]
+        );
+    }
+
     applyWorkspaceResult(result) {
         this.state.documents = result.documents;
         this.state.count = result.count;
+        this.state.page = Number(result.page) || this.state.page;
+        this.state.pageSize = Math.min(
+            MAX_PAGE_SIZE,
+            Math.max(1, Number(result.page_size) || this.state.pageSize)
+        );
+        this.state.semanticScoresLoaded = Boolean(result.semantic_scores_loaded);
         this.state.degraded = result.degraded;
         if (result.metadata_included) {
             this.state.smartViews = result.smart_views || [];
@@ -1942,6 +2017,9 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     async load() {
+        if (this.state.sort === "semantic" && !this.hasSemanticSearch()) {
+            this.state.sort = "recent";
+        }
         const loadToken = ++this.workspaceLoadToken;
         const progressive = this.hasProgressiveSemanticSearch();
         const includeWorkspaceMetadata = !this.workspaceMetadataLoaded;
@@ -2544,27 +2622,41 @@ export class DocumentsWorkspaceView extends Component {
         }
         this.state.starring[document.id] = true;
         const starred = !document.is_starred;
+        const setStarred = (value) => {
+            for (const item of this.state.documents) {
+                if (item.id === document.id) {
+                    item.is_starred = value;
+                }
+            }
+            if (this.state.selected?.id === document.id) {
+                this.state.selected.is_starred = value;
+            }
+        };
+        setStarred(starred);
         try {
             await this.orm.call("usl.document", "action_set_starred", [
                 [document.id],
                 starred,
             ]);
-            for (const item of this.state.documents) {
-                if (item.id === document.id) {
-                    item.is_starred = starred;
-                }
-            }
-            if (this.state.selected?.id === document.id) {
-                this.state.selected.is_starred = starred;
-            }
             this.notification.add(
                 starred ? "Added to your starred documents." : "Removed from your starred documents.",
                 { type: "success" }
             );
-            if (["home", "library"].includes(this.state.workspace)) {
-                await this.load();
+            const favoriteShortcut = this.smartViewShortcuts.find(
+                (shortcut) => shortcut.key === "starred"
+            );
+            if (
+                !starred &&
+                favoriteShortcut &&
+                this.isSmartShortcutActive(favoriteShortcut)
+            ) {
+                this.state.documents = this.state.documents.filter(
+                    (item) => item.id !== document.id
+                );
+                this.state.count = Math.max(0, this.state.count - 1);
             }
         } catch (error) {
+            setStarred(!starred);
             this.notification.add(
                 error.data?.message || error.message || "Your star was not saved.",
                 { type: "danger", sticky: true }

@@ -135,6 +135,10 @@ archive-native Smart View—not a transient shortcut state—is the definition
 synchronized to a Paperless Saved View. Remote OCR and custom-field conditions
 are resolved once before Odoo runs count and page queries, avoiding duplicate
 Paperless requests or inconsistent pagination.
+Every Smart View prepends one permanent, icon-only starred-document shortcut.
+It is a normal additive `is_starred` SearchModel facet, so it filters the
+currently active search and never replaces its company, privacy, text, or
+relationship constraints.
 
 `all_text` is a virtual search field. Odoo first derives the stable Paperless
 root IDs permitted by current Documents record rules and allowed companies.
@@ -173,6 +177,13 @@ is unavailable, hybrid search keeps the already-visible lexical result plus one
 structured warning; a meaning-only request fails honestly. Search never invokes
 a generative model. When no explicit list order is selected, this exact-first
 relevance is preserved.
+Once vector retrieval completes, each scored result carries its bounded cosine
+similarity in that workspace response. The client renders the clamped, rounded
+percentage as a color-coded semantic-similarity chip and offers explicit
+semantic-closeness ordering. The score is query-dependent transient metadata;
+persisting it on `usl.document` was rejected because a later query would make
+that stored value stale and misleading. Semantic ordering was also kept
+opt-in so the default hybrid path continues to put exact lexical matches first.
 Explicit compact-list ordering is accepted only through a server allowlist of
 synchronized stored fields.
 
@@ -250,6 +261,13 @@ The action passes the exact authorized `usl.document` identity to the client
 workspace; it does not send a raw Paperless URL to the browser. New on-request
 operations fail before queue creation when the required attachment or polling
 scheduler is inactive.
+
+TESE payslip archiving keeps the root's mandatory HR/accounting evidence role
+and adds three explicit business relationships where available: the payslip,
+its accounting move, and a `library`-role relationship to the attached
+employee. Changing the root intake role to library was rejected because it
+would weaken the payroll evidence classification; the relationship makes the
+same root appear in the employee's accessible Library without another upload.
 
 Content-only reuse was rejected because the same bytes can carry different
 company, HR or accounting meaning. Including target record IDs in the metadata

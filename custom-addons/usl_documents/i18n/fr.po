@@ -4185,6 +4185,18 @@ msgid "Semantic search is still refining these results."
 msgstr "La recherche sémantique affine encore ces résultats."
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Semantic closeness"
+msgstr "Proximité sémantique"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Semantic similarity: %s%%"
+msgstr "Similarité sémantique : %s %%"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__semantic_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Meaning (Semantic)"
@@ -4407,6 +4419,12 @@ msgstr "Marqué d’une étoile"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__is_starred
 msgid "Starred for me"
 msgstr "Marqué d’une étoile pour moi"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/metadata.py:0
+msgid "Starred documents"
+msgstr "Documents favoris"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__state

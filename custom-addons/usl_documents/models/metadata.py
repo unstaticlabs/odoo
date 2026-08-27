@@ -1590,6 +1590,16 @@ class UslDocumentSmartView(models.Model):
             quick_filters = self.env["usl.document.quick.filter"].search(
                 [("key", "in", defaults.get(self.system_rule, []))],
             )
+        favorite_filter = {
+            "id": 0,
+            "key": "starred",
+            "name": _("Starred documents"),
+            "icon": "fa-star",
+            "kind": "filter",
+            "domain": [["is_starred", "=", True]],
+            "group_by": [],
+            "order_by": [],
+        }
         return {
             "id": self.id,
             "key": self.key or f"view:{self.id}",
@@ -1600,8 +1610,13 @@ class UslDocumentSmartView(models.Model):
             "archive_native": self.archive_native,
             "needs_attention": self.paperless_sync_state == "failed",
             "quick_filters": [
-                item.workspace_values()
-                for item in quick_filters.sorted("sequence")
+                favorite_filter,
+                *[
+                    item.workspace_values()
+                    for item in quick_filters.filtered(
+                        lambda shortcut: shortcut.key != "starred",
+                    ).sorted("sequence")
+                ],
             ],
         }
 

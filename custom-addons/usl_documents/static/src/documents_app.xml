@@ -219,12 +219,12 @@
                         Upload a document or choose one from the archive to link it to
                         this record.
                     </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="o_usl_documents_toolbar_row d-flex align-items-center gap-2">
                         <div class="flex-grow-1 o_usl_documents_search">
                             <SearchBar/>
                         </div>
                         <select t-if="state.view === 'cards'"
-                                class="form-select o_usl_sort_select"
+                                class="form-select o_usl_sort_select o_usl_sort_select_full"
                                 t-on-change="setCardSort"
                                 aria-label="Sort documents">
                             <option t-if="cardSort === 'custom'" value="custom"
@@ -243,8 +243,42 @@
                                     t-att-selected="cardSort === 'title'">
                                 Title
                             </option>
+                            <option t-if="canSortBySemantic" value="semantic"
+                                    t-att-selected="cardSort === 'semantic'">
+                                Semantic closeness
+                            </option>
                         </select>
-                        <div class="btn-group">
+                        <label t-if="state.view === 'cards'"
+                               class="o_usl_sort_icon btn btn-outline-secondary mb-0"
+                               title="Sort documents">
+                            <i class="fa fa-sort-amount-desc" aria-hidden="true"/>
+                            <span class="visually-hidden">Sort documents</span>
+                            <select class="o_usl_sort_compact_select"
+                                    t-on-change="setCardSort"
+                                    aria-label="Sort documents">
+                                <option t-if="cardSort === 'custom'" value="custom"
+                                        disabled="disabled" selected="selected">
+                                    Custom sorting
+                                </option>
+                                <option value="recent"
+                                        t-att-selected="cardSort === 'recent'">
+                                    Document date
+                                </option>
+                                <option value="ingested"
+                                        t-att-selected="cardSort === 'ingested'">
+                                    Recently added
+                                </option>
+                                <option value="title"
+                                        t-att-selected="cardSort === 'title'">
+                                    Title
+                                </option>
+                                <option t-if="canSortBySemantic" value="semantic"
+                                        t-att-selected="cardSort === 'semantic'">
+                                    Semantic closeness
+                                </option>
+                            </select>
+                        </label>
+                        <div class="o_usl_view_switch btn-group">
                             <button type="button"
                                     t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
                                     t-on-click="() => this.setView('cards')" title="Card view">
@@ -257,10 +291,14 @@
                             </button>
                         </div>
                         <label t-if="state.canUpload"
-                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')">
-                            <i class="fa fa-upload me-1"/>
-                            <t t-if="state.uploading">Uploading…</t>
-                            <t t-else="">Upload</t>
+                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')"
+                               t-att-title="state.uploading ? 'Uploading document' : 'Upload document'"
+                               t-att-aria-label="state.uploading ? 'Uploading document' : 'Upload document'">
+                            <i class="fa fa-upload o_usl_upload_icon me-1"/>
+                            <span class="o_usl_upload_label">
+                                <t t-if="state.uploading">Uploading…</t>
+                                <t t-else="">Upload</t>
+                            </span>
                             <input type="file" class="d-none" t-on-change="onFileChange"
                                    t-att-disabled="state.uploading"/>
                         </label>
@@ -299,11 +337,12 @@
                                 t-key="'shortcut:' + shortcut.id"
                                 type="button"
                                 t-att-data-shortcut-key="shortcut.key"
-                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (shortcut.key === 'starred' ? 'o_usl_favorites_filter ' : '') + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
                                 t-att-title="shortcut.name"
+                                t-att-aria-label="shortcut.name"
                                 t-on-click="() => this.toggleSmartShortcut(shortcut)">
-                            <i t-att-class="'fa ' + shortcut.icon + ' me-1'"/>
-                            <t t-esc="shortcut.name"/>
+                            <i t-att-class="'fa ' + shortcut.icon + (shortcut.key === 'starred' ? '' : ' me-1')"/>
+                            <t t-if="shortcut.key !== 'starred'" t-esc="shortcut.name"/>
                         </button>
                         <span t-if="smartViewShortcuts.length &amp;&amp; visibleTagShortcuts.length"
                               class="o_usl_filter_shortcut_divider" aria-hidden="true"/>
@@ -513,6 +552,13 @@
                                           class="badge text-bg-danger">Unavailable</span>
                                     <span t-if="document.access_error"
                                           class="badge text-bg-danger">Access needs attention</span>
+                                    <span t-if="this.semanticMatchPercent(document) !== null"
+                                          t-att-class="'o_usl_semantic_match ' + this.semanticMatchTone(document)"
+                                          t-att-title="this.semanticMatchLabel(document)"
+                                          t-att-aria-label="this.semanticMatchLabel(document)">
+                                        <i class="fa fa-bullseye" aria-hidden="true"/>
+                                        <t t-esc="this.semanticMatchPercent(document)"/>%
+                                    </span>
                                 </div>
                                 <div class="card-body">
                                     <h6 class="card-title o_usl_document_title mb-1"
@@ -615,6 +661,13 @@
                                                         <i class="fa fa-link me-1"/>
                                                         <t t-esc="document.primary_link.name"/>
                                                     </small>
+                                                    <span t-if="this.semanticMatchPercent(document) !== null"
+                                                          t-att-class="'o_usl_semantic_match is-inline ' + this.semanticMatchTone(document)"
+                                                          t-att-title="this.semanticMatchLabel(document)"
+                                                          t-att-aria-label="this.semanticMatchLabel(document)">
+                                                        <i class="fa fa-bullseye" aria-hidden="true"/>
+                                                        <t t-esc="this.semanticMatchPercent(document)"/>%
+                                                    </span>
                                                 </div>
                                             </div>
                                         </td>
@@ -663,7 +716,7 @@
             </main>
 
             <aside t-if="state.selected"
-                   class="o_usl_documents_detail border-start bg-white d-flex flex-column"
+                   class="o_usl_documents_detail o_usl_documents_detail_overlay border-start bg-white d-flex flex-column"
                    aria-label="Document details">
                 <header class="p-3 border-bottom">
                     <div class="d-flex justify-content-between align-items-start">

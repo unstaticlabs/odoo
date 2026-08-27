@@ -41,6 +41,7 @@ const emptyWorkspace = {
     degraded: false,
     metadata_included: true,
     truncated: false,
+    semantic_scores_loaded: false,
     can_upload: true,
     active_operation: false,
     failed_operations: [],
@@ -204,7 +205,7 @@ test("empty archive state is explicit and supports zero-filing upload", async ()
     });
 
     expect(".o_usl_documents_empty").toHaveText(/No documents found/);
-    expect("label.btn-primary").toHaveText(/Upload/);
+    expect("label.btn-primary").toHaveAttribute("aria-label", "Upload document");
     expect("input[type=file]").toHaveCount(1);
 });
 
@@ -1128,6 +1129,106 @@ test("broad search shows exact results before semantic refinement", async () => 
     expect(".alert-info").toHaveCount(0);
 });
 
+test("semantic results show rounded match chips and enable closeness sorting", async () => {
+    const calls = [];
+    const documents = [
+        {
+            id: 3,
+            name: "Closest match",
+            date: "2026-08-26",
+            review_state: "classified",
+            availability_state: "available",
+            access_error: false,
+            correspondent: "Example",
+            document_type: "Agreement",
+            tags: [],
+            primary_link: false,
+            semantic_similarity: 0.876,
+            semantic_match_percent: 88,
+        },
+        {
+            id: 4,
+            name: "Possible match",
+            date: "2026-08-25",
+            review_state: "classified",
+            availability_state: "available",
+            access_error: false,
+            correspondent: "Example",
+            document_type: "Note",
+            tags: [],
+            primary_link: false,
+            semantic_similarity: 0.514,
+            semantic_match_percent: 51,
+        },
+    ];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            documents,
+            count: documents.length,
+            semantic_scores_loaded: true,
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_searchview_input").fill("renewal obligation");
+    await contains(
+        ".o_searchview_autocomplete .o-dropdown-item:nth-child(2)"
+    ).click();
+
+    expect(".o_usl_semantic_match").toHaveCount(2);
+    expect(".o_usl_semantic_match:first").toHaveText("88%");
+    expect(".o_usl_semantic_match:first").toHaveClass("is-strong");
+    expect(".o_usl_semantic_match:last").toHaveText("51%");
+    expect(".o_usl_semantic_match:last").toHaveClass("is-medium");
+    expect("select[aria-label='Sort documents'] option[value='semantic']").toHaveText(
+        "Semantic closeness"
+    );
+
+    const fullSort = document.querySelector(".o_usl_sort_select_full");
+    const sortSelector =
+        getComputedStyle(fullSort).display === "none"
+            ? ".o_usl_sort_compact_select"
+            : ".o_usl_sort_select_full";
+    await contains(sortSelector, { visible: false }).select("semantic");
+    expect(calls.at(-1).sort).toBe("semantic");
+});
+
+test.tags("desktop");
+test("manually editing the pager range applies the requested page size", async () => {
+    const calls = [];
+    const documents = Array.from({ length: 24 }, (_, index) => ({
+        id: index + 1,
+        name: `Document ${index + 1}`,
+        tags: [],
+    }));
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            documents,
+            count: 200,
+            page: kwargs.page,
+            page_size: kwargs.page_size,
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_pager_value").click();
+    await contains("input.o_pager_value").edit("1-96");
+    await contains(".o_usl_documents_toolbar").click();
+    await animationFrame();
+
+    expect(calls.at(-1).page_size).toBe(96);
+    expect(".o_pager_counter .o_pager_value").toHaveText("1-96");
+});
+
 test.tags("desktop");
 test("tags are searchable, removable, and creatable from document details", async () => {
     const existingTag = {
@@ -1720,10 +1821,16 @@ test("workspace and open document detail do not overflow their viewport", async 
         props: { action: action() },
     });
     const workspace = document.querySelector(".o_usl_documents");
+    const main = workspace.querySelector("main");
+    const mainWidth = main.clientWidth;
     expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
     await contains(".o_usl_document_card").click();
     await animationFrame();
     expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
+    expect(main.clientWidth).toBe(mainWidth);
+    expect(getComputedStyle(document.querySelector(".o_usl_documents_detail")).position).toBe(
+        "absolute"
+    );
     expect(".o_usl_documents_detail footer .btn-primary").toHaveText(
         /Download original/
     );
@@ -1903,6 +2010,7 @@ test("background relationship is promoted without an upload journey", async () =
 
 test("stars are personal workspace controls", async () => {
     let starred = false;
+    let workspaceCalls = 0;
     const document = {
         id: 92,
         name: "Reference note",
@@ -1919,11 +2027,14 @@ test("stars are personal workspace controls", async () => {
         is_starred: starred,
         primary_link: false,
     };
-    onRpc("usl.document", "workspace_data", () => ({
-        ...emptyWorkspace,
-        documents: [{ ...document, is_starred: starred }],
-        count: 1,
-    }));
+    onRpc("usl.document", "workspace_data", () => {
+        workspaceCalls++;
+        return {
+            ...emptyWorkspace,
+            documents: [{ ...document, is_starred: starred }],
+            count: 1,
+        };
+    });
     onRpc("usl.document", "action_set_starred", ({ args }) => {
         expect(args).toEqual([[92], true]);
         starred = true;
@@ -1938,4 +2049,45 @@ test("stars are personal workspace controls", async () => {
 
     expect(".o_notification").toHaveText(/Added to your starred documents/);
     expect(".o_usl_star_button").toHaveClass("is-starred");
+    expect(workspaceCalls).toBe(1);
+});
+
+test("the permanent favorites shortcut filters the active result set", async () => {
+    const calls = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            smart_views: emptyWorkspace.smart_views.map((view) => ({
+                ...view,
+                quick_filters: [
+                    {
+                        id: 0,
+                        key: "starred",
+                        name: "Starred documents",
+                        icon: "fa-star",
+                        kind: "filter",
+                        group_by: [],
+                        order_by: [],
+                        domain: [["is_starred", "=", true]],
+                    },
+                ],
+            })),
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(".o_usl_filter_shortcuts button:first").toHaveAttribute(
+        "aria-label",
+        "Starred documents"
+    );
+    expect(".o_usl_filter_shortcuts button:first").toHaveText("");
+    expect(".o_usl_filter_shortcuts button:first i").toHaveClass("fa-star");
+    await contains(".o_usl_filter_shortcuts button:first").click();
+    await animationFrame();
+
+    expect(calls.at(-1).search_domain).toEqual([["is_starred", "=", true]]);
 });

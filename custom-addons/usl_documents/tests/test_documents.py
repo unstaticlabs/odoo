@@ -65,6 +65,16 @@ class TestDocuments(TransactionCase):
             "usl_documents,static/description/icon.png",
         )
         self.assertTrue(menu.web_icon_data)
+        self.assertEqual(
+            menu.action,
+            self.env.ref("usl_documents.action_documents_workspace"),
+        )
+        self.assertFalse(
+            self.env.ref(
+                "usl_documents.menu_usl_documents_workspace",
+                raise_if_not_found=False,
+            ),
+        )
 
     def test_french_navigation_and_matching_terms_are_contextual(self):
         smart_view = self.env.ref(
@@ -2491,6 +2501,17 @@ class TestDocuments(TransactionCase):
             [{"rule_type": 6, "value": str(base_tag.paperless_id)}],
         )
 
+    def test_starred_shortcut_is_permanent_and_first_in_every_workspace(self):
+        for view in self.env["usl.document.smart.view"].accessible_views():
+            shortcuts = view.workspace_values()["quick_filters"]
+            self.assertTrue(shortcuts)
+            self.assertEqual(shortcuts[0]["key"], "starred")
+            self.assertEqual(shortcuts[0]["icon"], "fa-star")
+            self.assertEqual(
+                shortcuts[0]["domain"],
+                [["is_starred", "=", True]],
+            )
+
     def test_native_shortcut_capture_preserves_domain_grouping_order_and_permissions(self):
         view = self.env.ref("usl_documents.smart_view_accounting")
         values = {
@@ -3193,6 +3214,57 @@ class TestDocuments(TransactionCase):
         )
         lexical_search.assert_not_called()
         semantic_search.assert_called_once()
+
+    def test_semantic_scores_are_returned_and_can_order_workspace_results(self):
+        lower = self._document(2323, name="Lower semantic match")
+        higher = self._document(2324, name="Higher semantic match")
+        with (
+            patch.object(
+                PaperlessClient,
+                "scoped_search",
+                return_value={
+                    "results": [
+                        {"id": lower.paperless_id},
+                        {"id": higher.paperless_id},
+                    ],
+                    "truncated": False,
+                },
+            ),
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                return_value={
+                    "results": [
+                        {"id": higher.paperless_id, "similarity": 0.876},
+                        {"id": lower.paperless_id, "similarity": 0.514},
+                    ],
+                    "warnings": [],
+                },
+            ),
+        ):
+            result = self.env["usl.document"].workspace_data(
+                workspace="all",
+                search_domain=[
+                    ["all_text", "ilike", "renewal obligation"],
+                ],
+                sort="semantic",
+                page_size=400,
+            )
+
+        self.assertTrue(result["semantic_scores_loaded"])
+        self.assertEqual(result["page_size"], 400)
+        self.assertEqual(
+            [item["id"] for item in result["documents"]],
+            [higher.id, lower.id],
+        )
+        self.assertEqual(
+            [item["semantic_match_percent"] for item in result["documents"]],
+            [88, 51],
+        )
+        self.assertEqual(
+            [item["semantic_similarity"] for item in result["documents"]],
+            [0.876, 0.514],
+        )
 
     def test_workspace_validates_and_applies_every_native_list_order(self):
         tag_a = self._tag(2190, "Alpha")
