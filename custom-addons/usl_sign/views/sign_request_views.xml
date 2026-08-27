@@ -8,11 +8,11 @@
             <form create="0" delete="0">
                 <header>
                     <button name="configure" type="object" string="Add signing fields" class="btn-primary" invisible="state != 'draft' or has_signing_fields or not can_coordinate"/>
-                    <button name="action_mark_ready" type="object" string="Check and continue" class="btn-primary" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
+                    <button name="action_mark_ready" type="object" string="Check and continue" class="btn-primary" invisible="state != 'draft' or not has_signing_fields or not can_coordinate" help="Freeze the document setup and review the signing method before sending."/>
                     <button name="action_send" type="object" string="Send for signature" class="btn-primary" invisible="state != 'ready' or not can_send"/>
                     <button name="action_resume_after_enrollment" type="object" string="Continue" class="btn-primary" invisible="state != 'waiting_enrollment' or not can_coordinate"/>
                     <button name="action_validate_external" type="object" string="Check imported document" class="btn-primary" invisible="state != 'signed_to_import' or not can_coordinate"/>
-                    <button name="action_create_replacement" type="object" string="Create replacement" class="btn-primary" invisible="state != 'validation_failed' or not can_send"/>
+                    <button name="action_create_replacement" type="object" string="Create replacement" class="btn-primary" invisible="state != 'validation_failed' or not can_send" help="Create a new draft from this request. The rejected record and its evidence stay unchanged."/>
                     <button name="action_retry_validation" type="object" string="Try again" class="btn-primary" invisible="state != 'action_required' or not can_coordinate"/>
                     <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
                     <button name="action_send_reminder" type="object" string="Remind signers" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders or not can_coordinate"/>
@@ -78,7 +78,7 @@
                                 <strong class="d-block mb-1">Final storage is in progress.</strong>
                                 <span class="d-block">The signed PDF and proof package are safe in Odoo while Paperless finishes storing both archive copies.</span>
                             </div>
-                            <button name="action_refresh_archive" type="object" string="Check storage status" class="btn-secondary flex-shrink-0" invisible="not can_coordinate"/>
+                            <button name="action_refresh_archive" type="object" string="Check storage status" class="btn-secondary flex-shrink-0" invisible="not can_coordinate" help="Ask Paperless for the latest status of the signed PDF and proof package."/>
                         </div>
                     </div>
                     <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'validation_failed']">
@@ -418,7 +418,7 @@
                     </p>
                 </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Share and send" class="btn-primary"/>
+                    <button name="action_confirm" type="object" string="Share and send" class="btn-primary" help="Send the request and share each invited Odoo user's own signing assignment."/>
                     <button string="Go back" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
@@ -511,7 +511,7 @@
                     </section>
                 </sheet>
                 <footer>
-                    <button name="action_apply" type="object" string="Apply signing method" class="btn-primary" invisible="requested_trust != recommended_trust and not can_override_trust"/>
+                    <button name="action_apply" type="object" string="Apply signing method" class="btn-primary" invisible="requested_trust != recommended_trust and not can_override_trust" help="Save this method on the draft request, then continue to field placement."/>
                     <span class="text-muted align-self-center" invisible="requested_trust == recommended_trust or can_override_trust">Select the recommended method to continue.</span>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>

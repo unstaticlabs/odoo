@@ -9,10 +9,10 @@
                 <button name="action_view_signature_requests" type="object" class="oe_stat_button" icon="fa-pencil-square-o" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer" invisible="signature_request_count == 0">
                     <field name="signature_request_count" widget="statinfo" string="Signatures"/>
                 </button>
-                <button name="action_request_signature" type="object" class="oe_stat_button" icon="fa-paper-plane" groups="usl_sign.group_sign_user">
+                <button name="action_request_signature" type="object" class="oe_stat_button" icon="fa-paper-plane" groups="usl_sign.group_sign_user" help="Start a new signature request for this contact.">
                     <div class="o_stat_info"><span class="o_stat_text">Request</span><span class="o_stat_text">signature</span></div>
                 </button>
-                <button name="action_start_sign_enrollment" type="object" class="oe_stat_button" icon="fa-key" groups="usl_sign.group_sign_identity_reviewer">
+                <button name="action_start_sign_enrollment" type="object" class="oe_stat_button" icon="fa-key" groups="usl_sign.group_sign_identity_reviewer" help="Start the reviewed Pocket ID setup required for Strong personal signatures.">
                     <div class="o_stat_info"><span class="o_stat_text">Strong signer</span><span class="o_stat_text">enrolment</span></div>
                 </button>
             </xpath>
