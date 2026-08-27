@@ -5,6 +5,7 @@ import {
     encapsulatedSha1Matches,
     formatBytes,
     isPdf,
+    matchManifestArtifacts,
     overallStatus,
     parsePdfSignatures,
     signatureVerificationMode,
@@ -134,4 +135,46 @@ test("file helpers recognize PDFs and present bounded readable sizes", () => {
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(1536)).toBe("1.5 KB");
     expect(formatBytes(2 * 1024 * 1024)).toBe("2.0 MB");
+});
+
+test("manifest matching distinguishes source and frozen files with the same name", () => {
+    const sourceHash = "1".repeat(64);
+    const frozenHash = "2".repeat(64);
+    const signedHash = "3".repeat(64);
+    const result = matchManifestArtifacts(
+        {
+            artifacts: [
+                {kind: "source", name: "agreement.pdf", sha256: sourceHash},
+                {kind: "frozen", name: "agreement.pdf", sha256: frozenHash},
+                {kind: "signed", name: "agreement-signed.pdf", sha256: signedHash},
+            ],
+            final_sha256: signedHash,
+        },
+        [
+            {name: "frozen-162-agreement.pdf", sha256: frozenHash},
+            {name: "source-161-agreement.pdf", sha256: sourceHash},
+            {name: "final-agreement-signed.pdf", sha256: signedHash},
+        ]
+    );
+
+    expect(result).toEqual({checked: 3, matched: 3, mismatches: []});
+});
+
+test("manifest matching never reuses one embedded file for two artifacts", () => {
+    const hash = "a".repeat(64);
+    const result = matchManifestArtifacts(
+        {
+            artifacts: [
+                {kind: "source", name: "agreement.pdf", sha256: hash},
+                {kind: "source", name: "agreement.pdf", sha256: hash},
+            ],
+        },
+        [{name: "source-1-agreement.pdf", sha256: hash}]
+    );
+
+    expect(result.checked).toBe(2);
+    expect(result.matched).toBe(1);
+    expect(result.mismatches).toEqual([
+        "source “agreement.pdf”: not represented in the dossier",
+    ]);
 });
