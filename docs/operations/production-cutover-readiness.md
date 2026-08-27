@@ -80,6 +80,22 @@ successful workflow summary into the private change record after the two
 remaining feature decisions; this baseline image is qualification evidence,
 not the eventual cut-over image.
 
+The same consolidated runtime was then requalified on finalized `odoo_dev` at
+commit `e8772f2b4be533082f2624d237f290f7860a5d73`. Accounting, B2C,
+Projects, TESE, Platform Billing, Collaboration, multi-company acceptance,
+identity reconciliation, assets, outbound-safety and the product/migration
+boundary all passed without replaying unchanged source extraction. This
+published schema-v4 seed
+`302bb448494fab08162303cbac26ae007db657d49daa5df23f9733abfc20df29`.
+An isolated full hydration from that seed passed in 391 seconds with exact
+sealed controls and zero OCR submissions; its immediate fail-closed warm reuse
+passed in 15 seconds with zero downloaded bytes and zero OCR submissions.
+Evidence is retained in QA reports
+`usl-odoo-qa-dc187ada-20260827T222548Z.json` and
+`usl-odoo-qa-dc187ada-20260827T223250Z.json`. The disposable QA containers and
+writable volumes were removed after capture. This evidence is invalidated by
+either remaining feature merge and is not a final frozen-source candidate.
+
 ## Non-negotiable boundaries
 
 - Preserve all supported product data and every migration-critical unsupported

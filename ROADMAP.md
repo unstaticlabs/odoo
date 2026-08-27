@@ -6,7 +6,7 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Distribution production candidate
 
-Status date: 27 August 2026
+Status date: 28 August 2026
 
 - Branch: `19-usl`
 - Upstream baseline: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`
@@ -20,10 +20,10 @@ merge `368812b2868`. Monthly bank-statement email ingestion is integrated
 through merge `64c1f2b1207`. Paperless 3.0, the schema-v4 migration-cache/
 Documents-performance follow-up, Collaboration History, Distribution Access
 Control, and the project/task browser-title fix are merged directly into
-`19-usl` with their reviewed ancestry preserved. Native Sign remains
-the final independently reviewable product workstream. It must be merged or
-explicitly rejected before final production qualification; no feature worktree,
-old QA seed, or rehearsal candidate can be promoted directly.
+`19-usl` with their reviewed ancestry preserved. Native Sign and the Templating
+system remain the final independently reviewable product workstreams. Both must
+be merged or explicitly rejected before final production qualification; no
+feature worktree, old QA seed, or rehearsal candidate can be promoted directly.
 
 The combined Documents implementation preserves the exact reviewed tips of
 both feature branches through explicit merge commits. Its five affected product
@@ -31,12 +31,15 @@ modules passed clean install, upgrade and identical repeated upgrade; Documents
 also passed its query budgets and desktop/mobile Chromium suites. The exact
 Paperless overlay also builds successfully for production `linux/amd64`. A
 fresh locked-source reconstruction and finalization now pass on `19-usl`.
-The content-qualified schema-v4 seed
-`6e3f2120a19f35edc34010054fb2f1162341a7e58cbbfcb3f56be26d7a91ed6a`
-is published locally from that reconstruction. An exact-tree cold hydration
-passed in 393 seconds with zero OCR submissions, followed by a fail-closed
-16-second warm hit with zero downloaded bytes and zero OCR submissions.
-Release qualification still requires the signed-in browser matrix.
+The finalized target was requalified after the final service-image pinning and
+published content-qualified schema-v4 seed
+`302bb448494fab08162303cbac26ae007db657d49daa5df23f9733abfc20df29`.
+Its isolated cold hydration passed in 391 seconds, including current-branch
+upgrade/finalization, with exact sealed controls and zero OCR submissions. The
+immediate fail-closed warm reuse passed in 15 seconds with zero downloaded bytes
+and zero OCR submissions. This is reusable rehearsal evidence only: merging
+Sign or Templating invalidates it and requires a new qualification. Release
+qualification still requires the signed-in browser matrix.
 
 The 27 August integrated performance pass additionally reduced the measured
 40-document workspace from 426 to 75 SQL queries and from 432.8 ms to 67.3 ms,
