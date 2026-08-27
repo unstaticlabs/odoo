@@ -36,6 +36,7 @@ REQUEST_STATES = [
     ("signed_to_import", "Signed document to import"),
     ("validating", "Validation in progress"),
     ("completed", "Completed"),
+    ("external_archived", "Archived external signing record"),
     ("evidence_incomplete", "Evidence incomplete"),
     ("validation_failed", "Validation failed"),
     ("declined", "Declined"),
@@ -50,6 +51,7 @@ SIGNER_STATES = [
     ("viewed", "Viewed"),
     ("authorized", "Authorized"),
     ("signed", "Signed"),
+    ("external_recorded", "Recorded as signed externally"),
     ("declined", "Declined"),
     ("expired", "Expired"),
     ("cancelled", "Cancelled"),
@@ -62,6 +64,7 @@ AUTHENTICATION_METHODS = [
     ("portal", "Odoo portal account"),
     ("pocket_id_passkey", "Fresh Pocket ID passkey"),
     ("external_provider", "External qualified-signature provider"),
+    ("external_record", "Recorded by an external signing system"),
 ]
 
 ACTIVE_REQUEST_STATES = {
@@ -99,6 +102,7 @@ CANCELLABLE_REQUEST_STATES = {
 
 TERMINAL_REQUEST_STATES = {
     "completed",
+    "external_archived",
     "validation_failed",
     "declined",
     "expired",

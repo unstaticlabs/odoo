@@ -48,9 +48,10 @@ The stable navigation is deliberately small:
   its upload/drop authoring journey. Each template card previews the PDF;
 - **Request Signature → Open Requests** contains non-terminal requests owned or
   explicitly coordinated by the current user, in a preview-first card view;
-- **Request Signature → Completed** contains only independently validated,
-  fully evidenced and durably archived results. Its cards reuse the Documents
-  preview language and open the corresponding archived file when authorized;
+- **Request Signature → Completed** contains independently validated, fully
+  evidenced and durably archived USL results, plus clearly separated archived
+  external records described below. Its cards reuse the Documents preview
+  language and open the corresponding archived file when authorized;
 - **My Signatures** combines documents awaiting the current user with their
   earlier signed, completed or closed history and native search filters. Cards
   preview the document and a completed card opens the signed record and its
@@ -71,6 +72,29 @@ Paperless thumbnail when available; drafts and in-progress requests fall back
 to a lazy, access-checked rendering of the current Odoo PDF. This keeps the
 same visual language without prematurely filing unsigned documents in
 Paperless.
+
+## Archived external signing records
+
+`Odoo Online (External)` is a preservation type, not a fourth signing method.
+It exists for completed records produced before USL Sign controlled the
+ceremony. These records appear in Completed Documents and My Signatures because
+that is where users retrieve historical signed documents, but they use the
+separate terminal state **Archived external signing record**. Participants are
+shown as **Recorded externally**, not as having signed through USL Sign.
+
+An external record keeps the exact signed PDF, original source-system
+certificate, source document and preserved business history in Paperless. Its
+banner and neutral proof badge explain that USL Sign did not rerun the signing,
+identity, certificate, trust-list, revocation or evidence checks. It has no
+requested, recommended or achieved USL trust level, no native validation or
+evidence status, no USL policy snapshot, no USL completion certificate and no
+USL proof dossier. The normal `completed` conjunction remains unchanged.
+
+External records can be created only through an in-process controlled archive
+operation after both primary Paperless artifacts exist. They are immutable,
+not signable, excluded from reminders and daily completion timestamps, and
+remain subject to the same company, requester, participant and Documents
+permissions as native results.
 
 ## Trust guidance
 
