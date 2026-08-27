@@ -55,9 +55,12 @@ first start. The initial start creates `odoo_dev --without-demo` and runs the
 focused synthetic bootstrap; it never imports an SQL dump, filestore or shared
 volume. Custom add-ons remain bind-mounted, while the Odoo runtime image is
 content-addressed from its dependency inputs so unchanged images are reused.
-Use `upgrade` after changing `usl_sign`: it updates the module in place and
-restarts only Odoo, preserving the disposable QA records and isolated service
-volumes. Use `start` for a complete service/configuration refresh.
+Use `upgrade` after changing Sign: it updates `usl_documents`, `usl_pocketid`
+and `usl_sign` in dependency order, then restarts only Odoo while preserving
+the QA records and isolated service volumes. A full-product tenant can extend
+the validated list, for example
+`USL_SIGN_QA_UPDATE_MODULES=usl_documents,usl_pocketid,rebuild_account_migration,usl_sign`.
+Use `start` for a complete service/configuration refresh.
 
 Paperless ingestion is asynchronous. A freshly validated request may briefly
 show **Final storage is in progress** while both upload tasks finish. Use
