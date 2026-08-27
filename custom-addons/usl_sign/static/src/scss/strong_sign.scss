@@ -22,7 +22,6 @@ $usl-sign-warning: #9a6a13;
     background:
         radial-gradient(circle at 50% -10rem, rgba(113, 75, 103, .1), transparent 28rem),
         $usl-sign-background;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -324,7 +323,7 @@ $usl-sign-warning: #9a6a13;
 }
 
 .usl-sign-motion--complete .usl-sign-motion__seal {
-    animation: usl-sign-motion-pop .4s .98s cubic-bezier(.2, .9, .3, 1.25) both;
+    animation: usl-sign-motion-pop .4s .98s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .usl-sign-motion--complete .usl-sign-motion__check {
@@ -338,7 +337,7 @@ $usl-sign-warning: #9a6a13;
 }
 
 .usl-sign-motion--identity .usl-sign-motion__shield {
-    animation: usl-sign-motion-pop .44s .52s cubic-bezier(.2, .9, .3, 1.2) both;
+    animation: usl-sign-motion-pop .44s .52s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .usl-sign-motion__phase {
@@ -941,7 +940,7 @@ $usl-sign-warning: #9a6a13;
 }
 
 .usl-sign-result-icon--animated {
-    animation: usl-sign-success-pop .42s cubic-bezier(.2, .9, .3, 1.25) both;
+    animation: usl-sign-success-pop .42s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .usl-sign-callback-body {
