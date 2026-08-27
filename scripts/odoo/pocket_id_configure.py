@@ -28,7 +28,14 @@ def configure(env):
     apply_changes = _is_enabled("USL_POCKET_ID_APPLY")
     try:
         env["auth.oauth.provider"]._usl_pocketid_apply_environment()
-        summary = env["res.users"]._usl_pocketid_apply_user_configuration(
+        # Identity reconciliation changes several users and role groups in one
+        # governed transaction.  Defer Paperless grants to the dedicated
+        # identity synchronization stage that immediately follows this script;
+        # otherwise every individual write performs the same remote archive
+        # sweep and can make a safe dry-run take minutes.
+        summary = env["res.users"].with_context(
+            usl_documents_user_access_no_sync=True,
+        )._usl_pocketid_apply_user_configuration(
             user_configuration,
             break_glass_password=break_glass_password,
             strict=True,
