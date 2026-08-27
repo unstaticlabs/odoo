@@ -14,7 +14,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-SCHEMA = "usl-qa-reconstruction-seed-v3"
+SCHEMA = "usl-qa-reconstruction-seed-v4"
 MIGRATION_INPUTS = (
     "Dockerfile",
     "accounting_compat",
@@ -77,6 +77,7 @@ QA_STATE_IGNORED_PARTS = {
 }
 QA_STATE_IGNORED_SUFFIXES = {".pyc", ".log", ".md"}
 REQUIRED_ARTIFACTS = (
+    "collaboration-disposition.json",
     "odoo.dump",
     "odoo-filestore.tgz",
     "paperless-export",
@@ -333,12 +334,19 @@ def validate_qualification(qualification: dict) -> None:
         raise SeedError("seed qualification has incomplete Collaboration evidence")
 
 
+def validate_collaboration_artifact(seed_dir: Path, qualification: dict) -> None:
+    evidence = seed_dir / "collaboration-disposition.json"
+    if sha256_file(evidence) != qualification["collaboration"]["evidence_sha256"]:
+        raise SeedError("seed Collaboration evidence differs from qualification")
+
+
 def seal(args: argparse.Namespace) -> None:
     seed_dir = args.seed_dir.resolve()
     runtime = read_json(args.runtime_json)
     seed_identity = identity(args.root.resolve(), args.source_dump.resolve(), runtime)
     qualification = read_json(args.qualification_json)
     validate_qualification(qualification)
+    validate_collaboration_artifact(seed_dir, qualification)
     payload = {
         "schema": SCHEMA,
         "created_at": datetime.now(UTC).isoformat(),
@@ -379,6 +387,8 @@ def verify(args: argparse.Namespace) -> dict:
             if manifest.get("artifacts", {}).get(name) != value
         )
         raise SeedError("seed artifacts differ: " + ", ".join(changed))
+    validate_qualification(manifest["qualification"])
+    validate_collaboration_artifact(seed_dir, manifest["qualification"])
     qualification = manifest.get("qualification") or {}
     validate_qualification(qualification)
     return manifest

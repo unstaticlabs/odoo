@@ -31,7 +31,7 @@ modules passed clean install, upgrade and identical repeated upgrade; Documents
 also passed its query budgets and desktop/mobile Chromium suites. The exact
 Paperless overlay also builds successfully for production `linux/amd64`. A
 fresh locked-source reconstruction and finalization now pass on `19-usl`.
-Publishing the schema-v3 seed and proving one cold hydration followed by
+Publishing the schema-v4 seed and proving one cold hydration followed by
 fail-closed warm reuse remain release-evidence work. Release qualification
 also still requires the signed-in browser matrix.
 
@@ -278,7 +278,7 @@ The canonical, evidence-bearing sequence is maintained in the
 1. Migration-performance/portable-candidate — **merged through
    `61580c1704c`**.
 2. Migration cache/Documents performance follow-up — **merged into `19-usl`
-   from exact feature tip `3d2b2b49382`; schema-v3 seed publication and one
+   from exact feature tip `3d2b2b49382`; schema-v4 seed publication and one
    real cold/warm cycle remain required**.
 3. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 4. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full

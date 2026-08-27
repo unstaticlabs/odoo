@@ -1,4 +1,6 @@
+import hashlib
 import importlib.util
+import json
 import tempfile
 import unittest
 from argparse import Namespace
@@ -35,38 +37,41 @@ class QaSeedManifestTest(unittest.TestCase):
         (self.seed / "odoo-filestore.tgz").write_bytes(b"filestore")
         (self.seed / "paperless-export").mkdir()
         (self.seed / "paperless-export/manifest.json").write_text("{}", encoding="utf-8")
+        self.collaboration = self.seed / "collaboration-disposition.json"
+        self.collaboration.write_text('{"sealed": true}\n', encoding="utf-8")
         self.runtime = self.seed / "runtime.json"
         self.runtime.write_text('{"images":{"paperless":"qualified"}}', encoding="utf-8")
         self.qualification = Path(self.temporary.name) / "qualification.json"
+        collaboration_sha256 = hashlib.sha256(self.collaboration.read_bytes()).hexdigest()
         self.qualification.write_text(
-            """{
+            json.dumps({
                 "accounting": {
                     "controls": {"move_count": 1},
                     "performance": {
                         "schema": "timing-v1",
-                        "stages": [{"name": "moves", "duration_seconds": 1}]
+                        "stages": [{"name": "moves", "duration_seconds": 1}],
                     },
-                    "status": "passed"
+                    "status": "passed",
                 },
                 "documents": {
                     "controls": {"odoo_document_count": 1},
                     "paperless_document_count": 1,
-                    "status": "passed"
+                    "status": "passed",
                 },
                 "collaboration": {
                     "deliberately_not_copied_message_count": 620,
-                    "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "evidence_sha256": collaboration_sha256,
                     "external_message_count": 0,
                     "status": "passed",
-                    "visible_message_count": 49385
+                    "visible_message_count": 49385,
                 },
                 "migration_boundary": "passed",
                 "product_database_boundary": "passed",
                 "profile": "full",
                 "regulatory_live_guards": "disabled",
                 "module_versions": {"usl_accounting": "19.0.1.0.0"},
-                "status": "passed"
-            }""",
+                "status": "passed",
+            }),
             encoding="utf-8",
         )
 
@@ -88,7 +93,7 @@ class QaSeedManifestTest(unittest.TestCase):
         manifest = qa_seed.verify(self.args())
 
         self.assertEqual(manifest["qualification"]["status"], "passed")
-        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v3")
+        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v4")
         self.assertIn("source_filestore_sha256", manifest["identity"])
         self.assertEqual((self.seed / "manifest.json").stat().st_mode & 0o777, 0o600)
 
@@ -121,6 +126,13 @@ class QaSeedManifestTest(unittest.TestCase):
     def test_changed_artifact_is_rejected(self):
         qa_seed.seal(self.args())
         (self.seed / "odoo.dump").write_bytes(b"tampered")
+
+        with self.assertRaisesRegex(qa_seed.SeedError, "seed artifacts differ"):
+            qa_seed.verify(self.args())
+
+    def test_changed_collaboration_evidence_is_rejected(self):
+        qa_seed.seal(self.args())
+        self.collaboration.write_text('{"sealed": false}\n', encoding="utf-8")
 
         with self.assertRaisesRegex(qa_seed.SeedError, "seed artifacts differ"):
             qa_seed.verify(self.args())

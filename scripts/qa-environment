@@ -288,7 +288,20 @@ PY
 
 hydrate_seed() {
   local after_queue after_tasks before_queue before_tasks db_container
-  local odoo_volume paperless_export_volume restore_jobs
+  local collaboration_evidence_dir odoo_volume paperless_export_volume restore_jobs
+  local source_sha256
+
+  source_sha256="$(python3 - "$qa_seed_manifest" <<'PY'
+import json
+import sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["identity"]["source_dump_sha256"])
+PY
+)"
+  collaboration_evidence_dir="$ROOT/artifacts/migration/private/source-${source_sha256:0:12}/collaboration/$COMPOSE_PROJECT_NAME"
+  mkdir -p "$collaboration_evidence_dir"
+  chmod 700 "$collaboration_evidence_dir"
+  install -m 600 "$qa_seed_dir/collaboration-disposition.json" \
+    "$collaboration_evidence_dir/collaboration-disposition.json"
 
   "${compose[@]}" up -d --wait db
   "${compose[@]}" exec -T db createdb -U odoo odoo_dev
