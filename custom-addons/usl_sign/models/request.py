@@ -14,6 +14,7 @@ from reportlab.pdfgen import canvas
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request as http_request
+from odoo.tools import config
 from odoo.tools.misc import format_datetime
 from odoo.tools.pdf import PdfReader, PdfWriter
 
@@ -1040,9 +1041,10 @@ class SignRequest(models.Model):
         ip_address = values.pop("ip_address", None)
         user_agent = values.pop("user_agent", None)
         if http_request and hasattr(http_request, "httprequest"):
+            route = list(http_request.httprequest.access_route or [])
             ip_address = ip_address or (
-                http_request.httprequest.access_route[-1]
-                if http_request.httprequest.access_route
+                route[0]
+                if config["proxy_mode"] and route
                 else http_request.httprequest.remote_addr
             )
             user_agent = user_agent or http_request.httprequest.headers.get(
@@ -1055,6 +1057,26 @@ class SignRequest(models.Model):
             user_agent=user_agent,
             **values,
         )
+
+    @staticmethod
+    def _server_network_context():
+        if not http_request or not hasattr(http_request, "httprequest"):
+            return {
+                "observed": False,
+                "source": "server_context_unavailable",
+            }
+        request = http_request.httprequest
+        route = [str(address) for address in (request.access_route or [])]
+        proxy_mode = bool(config["proxy_mode"])
+        return {
+            "observed": True,
+            "source": "trusted_proxy_route" if proxy_mode else "direct_peer",
+            "client_address": (
+                route[0] if proxy_mode and route else request.remote_addr
+            ),
+            "peer_address": request.remote_addr,
+            "proxy_chain": route[1:] if proxy_mode else [],
+        }
 
     def _transition(self, new_state, event_type, *, payload=None, signer=None):
         self.ensure_one()
@@ -4062,6 +4084,8 @@ class SignRequestSigner(models.Model):
         latitude=False,
         longitude=False,
         consent=False,
+        location=None,
+        browser_context=None,
     ):
         self.ensure_one()
         # Serialize Standard submissions on the request. Without this lock, two
@@ -4082,33 +4106,139 @@ class SignRequestSigner(models.Model):
         if not consent:
             msg = "Explicit electronic-signature consent is required."
             raise ValidationError(msg)
-        current_sha256 = hashlib.sha256(field_content(self.request_id.data)).hexdigest()
+        context = self._normalized_signing_context(
+            location=location,
+            browser_context=browser_context,
+            latitude=latitude,
+            longitude=longitude,
+        )
+        return self._apply_standard_signature(
+            items,
+            reviewed_document_sha256=document_sha256,
+            signing_context=context,
+        )
+
+    @api.model
+    def _normalized_signing_context(
+        self,
+        *,
+        location=None,
+        browser_context=None,
+        latitude=False,
+        longitude=False,
+    ):
+        """Validate bounded browser evidence without claiming a fingerprint."""
+        allowed_location_states = {
+            "granted",
+            "refused",
+            "unavailable",
+            "unsupported",
+            "timeout",
+        }
+        raw_location = location if isinstance(location, dict) else {}
+        status = raw_location.get("status")
+        if not status and latitude is not False and longitude is not False:
+            status = "granted"
+            raw_location = {
+                "status": status,
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+        status = status if status in allowed_location_states else "unavailable"
+        normalized_location = {"status": status}
+        if status == "granted":
+            try:
+                normalized_latitude = float(raw_location["latitude"])
+                normalized_longitude = float(raw_location["longitude"])
+                accuracy = float(raw_location.get("accuracy") or 0)
+            except (KeyError, TypeError, ValueError) as error:
+                msg = "The browser location payload is invalid."
+                raise ValidationError(msg) from error
+            if (
+                not -90 <= normalized_latitude <= 90
+                or not -180 <= normalized_longitude <= 180
+                or not 0 <= accuracy <= 10_000_000
+            ):
+                msg = "The browser location payload is outside accepted bounds."
+                raise ValidationError(msg)
+            normalized_location.update(
+                {
+                    "latitude": normalized_latitude,
+                    "longitude": normalized_longitude,
+                    "accuracy_metres": accuracy,
+                },
+            )
+
+        if browser_context is None:
+            browser_context = {}
+        if not isinstance(browser_context, dict):
+            msg = "The browser context payload is invalid."
+            raise ValidationError(msg)
+        allowed_string_keys = {
+            "language",
+            "platform",
+            "timezone",
+            "user_agent",
+        }
+        normalized_browser = {}
+        for key in allowed_string_keys:
+            value = browser_context.get(key)
+            if value in (None, False, ""):
+                continue
+            if not isinstance(value, str) or len(value) > 512:
+                msg = "The browser context payload is invalid."
+                raise ValidationError(msg)
+            normalized_browser[key] = value
+        languages = browser_context.get("languages")
+        if languages not in (None, False):
+            if (
+                not isinstance(languages, list)
+                or len(languages) > 20
+                or any(not isinstance(value, str) or len(value) > 64 for value in languages)
+            ):
+                msg = "The browser language payload is invalid."
+                raise ValidationError(msg)
+            normalized_browser["languages"] = languages
+        for key in ("hardware_concurrency", "device_memory", "max_touch_points"):
+            value = browser_context.get(key)
+            if value in (None, False):
+                continue
+            if not isinstance(value, int | float) or not 0 <= value <= 1_000_000:
+                msg = "The browser capability payload is invalid."
+                raise ValidationError(msg)
+            normalized_browser[key] = value
+        for key in ("screen", "viewport", "client_hints"):
+            value = browser_context.get(key)
+            if value in (None, False):
+                continue
+            serialized = json.dumps(value, sort_keys=True, separators=(",", ":"))
+            if not isinstance(value, dict) or len(serialized) > 4_096:
+                msg = "The browser display payload is invalid."
+                raise ValidationError(msg)
+            normalized_browser[key] = value
+        return {
+            "format": "usl-sign-observed-context-v1",
+            "browser": normalized_browser,
+            "location": normalized_location,
+            "network": self.env["sign.oca.request"]._server_network_context(),
+        }
+
+    def _prepare_signing_candidate(self, items, *, reviewed_document_sha256):
+        """Render one signer's frozen fields without mutating the live request."""
+        self.ensure_one()
+        request = self.request_id
+        current_document = field_content(request.data)
+        current_sha256 = hashlib.sha256(current_document).hexdigest()
         if (
-            not isinstance(document_sha256, str)
-            or len(document_sha256) != 64
-            or not secrets.compare_digest(document_sha256, current_sha256)
+            not isinstance(reviewed_document_sha256, str)
+            or len(reviewed_document_sha256) != 64
+            or not secrets.compare_digest(reviewed_document_sha256, current_sha256)
         ):
             msg = _(
                 "The document changed after you reviewed it. Reload it, review the "
                 "latest revision, and sign again.",
             )
             raise ValidationError(msg)
-        return self._apply_standard_signature(
-            items,
-            reviewed_document_sha256=current_sha256,
-            latitude=latitude,
-            longitude=longitude,
-        )
-
-    def _apply_standard_signature(
-        self,
-        items,
-        *,
-        reviewed_document_sha256,
-        latitude=False,
-        longitude=False,
-    ):
-        request = self.request_id
         frozen_layout = json.loads(json.dumps(request.frozen_layout or {}))
         completed_layout = json.loads(
             json.dumps(request.signatory_data or request.frozen_layout or {}),
@@ -4116,9 +4246,10 @@ class SignRequestSigner(models.Model):
         if not isinstance(items, dict):
             msg = "The signing payload is invalid."
             raise ValidationError(msg)
-        reader = PdfReader(BytesIO(field_content(request.data)))
+        reader = PdfReader(BytesIO(current_document))
         writer = PdfWriter()
         pages = dict(enumerate(reader.pages, start=1))
+        signer_fields = {}
         for key, configured in frozen_layout.items():
             if int(configured["role_id"]) != self.role_id.id:
                 continue
@@ -4155,11 +4286,60 @@ class SignRequestSigner(models.Model):
                 merge(overlay)
             pages[page_number] = page
             completed_layout[str(key)] = item
+            signer_fields[str(key)] = item
         for page in pages.values():
             _add_page(writer, page)
         stream = BytesIO()
         writer.write(stream)
-        signed_pdf = stream.getvalue()
+        candidate = stream.getvalue()
+        serialized_fields = json.dumps(
+            signer_fields,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode()
+        return {
+            "base_document_sha256": current_sha256,
+            "candidate_data": candidate,
+            "candidate_document_sha256": hashlib.sha256(candidate).hexdigest(),
+            "completed_layout": completed_layout,
+            "field_values_sha256": hashlib.sha256(serialized_fields).hexdigest(),
+        }
+
+    def _store_signing_context_evidence(self, signing_context):
+        self.ensure_one()
+        raw = json.dumps(
+            signing_context,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode()
+        return self.request_id._create_evidence(
+            "authentication",
+            f"{self.request_id.name}-{self.id}-observed-context.json",
+            raw,
+            mimetype="application/json",
+            signer=self,
+            metadata={
+                "format": signing_context["format"],
+                "location_status": signing_context["location"]["status"],
+            },
+        )
+
+    def _apply_standard_signature(
+        self,
+        items,
+        *,
+        reviewed_document_sha256,
+        signing_context,
+    ):
+        request = self.request_id
+        candidate = self._prepare_signing_candidate(
+            items,
+            reviewed_document_sha256=reviewed_document_sha256,
+        )
+        completed_layout = candidate["completed_layout"]
+        signed_pdf = candidate["candidate_data"]
         digest = hashlib.sha256(signed_pdf).hexdigest()
         now = fields.Datetime.now()
         consent_text = request.consent_text_snapshot
@@ -4176,8 +4356,8 @@ class SignRequestSigner(models.Model):
                 "signature_hash": digest,
                 "signed_document_sha256": digest,
                 "state": "signed",
-                "latitude": latitude,
-                "longitude": longitude,
+                "latitude": signing_context["location"].get("latitude") or 0,
+                "longitude": signing_context["location"].get("longitude") or 0,
                 "authentication_method": request.authentication_method or "secure_link",
                 "consent_text": consent_text,
                 "consent_version": "1",
@@ -4196,18 +4376,7 @@ class SignRequestSigner(models.Model):
             "reviewed_document_sha256": reviewed_document_sha256,
             "signed_document_sha256": digest,
             "authentication_method": self.authentication_method,
-            "field_values_sha256": hashlib.sha256(
-                json.dumps(
-                    {
-                        key: value
-                        for key, value in completed_layout.items()
-                        if int(value.get("role_id") or 0) == self.role_id.id
-                    },
-                    sort_keys=True,
-                    separators=(",", ":"),
-                    ensure_ascii=False,
-                ).encode(),
-            ).hexdigest(),
+            "field_values_sha256": candidate["field_values_sha256"],
         }
         request._create_evidence(
             "consent",
@@ -4216,6 +4385,7 @@ class SignRequestSigner(models.Model):
             mimetype="application/json",
             signer=self,
         )
+        context_evidence = self._store_signing_context_evidence(signing_context)
         request._append_event(
             "standard_signature_applied",
             signer=self,
@@ -4224,6 +4394,8 @@ class SignRequestSigner(models.Model):
                 "reviewed_document_sha256": reviewed_document_sha256,
                 "signed_document_sha256": digest,
                 "consent_version": "1",
+                "evidence_context_sha256": context_evidence.sha256,
+                "location_status": signing_context["location"]["status"],
             },
         )
         self._close_internal_signing_activities()
@@ -4323,8 +4495,15 @@ class SignRequestSigner(models.Model):
                 "email": self.partner_id.email,
                 "phone": self.partner_id.phone,
             },
+            "requested_trust": self.request_id.requested_trust,
             "trust_label": dict(TRUST_LEVELS)[self.request_id.requested_trust],
             "consent_text": self.request_id.consent_text_snapshot,
+            "proof_notice": _(
+                "Odoo records the network address observed by the server and "
+                "basic browser and device context. When you consent, your browser "
+                "will also ask whether you want to share an approximate location. "
+                "Declining location does not prevent signing.",
+            ),
             "document_sha256": hashlib.sha256(
                 field_content(self.request_id.data),
             ).hexdigest(),

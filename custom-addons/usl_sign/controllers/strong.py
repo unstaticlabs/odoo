@@ -1,4 +1,5 @@
 import base64
+import binascii
 import hashlib
 import json
 import logging
@@ -319,7 +320,17 @@ class StrongSignController(http.Controller):
         auth="public",
         csrf=False,
     )
-    def strong_begin(self, signer_id, token, csr_pem, consent):
+    def strong_begin(
+        self,
+        signer_id,
+        token,
+        csr_pem,
+        consent,
+        items,
+        document_sha256,
+        location=None,
+        browser_context=None,
+    ):
         signer = self._signer(signer_id, token)
         if signer.request_id.requested_trust != "strong_personal":
             msg = "This is not a strong personal signature request."
@@ -351,14 +362,31 @@ class StrongSignController(http.Controller):
         if not enrollment or not enrollment.pocket_subject:
             msg = "Complete Pocket ID strong-signer enrolment first."
             raise ValidationError(msg)
-        # Serialize attempts for this signer before creating any one-use key or
-        # certificate state. Expired abandoned attempts are closed here so a
-        # refresh can recover without an administrator; a genuinely live tab
-        # remains protected from being silently replaced by another tab.
+        # Lock the request before the signer everywhere that may prepare or
+        # publish a PDF revision. This fixed order prevents two tabs or two
+        # sequential signers from deriving candidates from different live data.
+        request.env.cr.execute(
+            "SELECT id FROM sign_oca_request WHERE id = %s FOR UPDATE",
+            [signer.request_id.id],
+        )
         request.env.cr.execute(
             "SELECT id FROM sign_oca_request_signer WHERE id = %s FOR UPDATE",
             [signer.id],
         )
+        signer.request_id.invalidate_recordset(["data", "current_hash", "signatory_data"])
+        signing_context = signer._normalized_signing_context(
+            location=location,
+            browser_context=browser_context,
+        )
+        candidate = signer._prepare_signing_candidate(
+            items,
+            reviewed_document_sha256=document_sha256,
+        )
+        evidence_context_sha256 = hashlib.sha256(
+            _canonical_json(signing_context),
+        ).hexdigest()
+        # Expired abandoned attempts are closed here so a refresh can recover
+        # without an administrator; a genuinely live tab remains protected.
         live_ceremonies = request.env["usl.sign.ceremony"].sudo().search(
             [
                 ("signer_id", "=", signer.id),
@@ -369,15 +397,21 @@ class StrongSignController(http.Controller):
             lambda row: row.expires_at < fields.Datetime.now(),
         )
         expired.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-            {"state": "expired", "failure_code": "authorization_timeout"},
+            {
+                "state": "expired",
+                "failure_code": "authorization_timeout",
+                "candidate_data": False,
+                "candidate_layout": False,
+                "evidence_context": False,
+                "data_to_sign": False,
+                "dss_signing_context": False,
+            },
         )
         if live_ceremonies - expired:
             msg = "A protected signing attempt is already open for this document."
             raise ValidationError(
                 msg,
             )
-        document = field_content(signer.request_id.data)
-        document_sha256 = hashlib.sha256(document).hexdigest()
         csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
         public_key_sha256 = hashlib.sha256(
             public_key.public_bytes(
@@ -398,13 +432,16 @@ class StrongSignController(http.Controller):
         ).hexdigest()
         expiry = fields.Datetime.now() + timedelta(minutes=5)
         binding = {
-            "format": "usl-strong-pocketid-binding-v1",
+            "format": "usl-strong-pocketid-binding-v2",
             "request_id": signer.request_id.id,
             "signer_id": signer.id,
             "enrollment_id": enrollment.id,
             "role_id": signer.role_id.id,
             "original_sha256": signer.request_id.original_sha256,
-            "document_sha256": document_sha256,
+            "base_document_sha256": candidate["base_document_sha256"],
+            "document_sha256": candidate["candidate_document_sha256"],
+            "field_values_sha256": candidate["field_values_sha256"],
+            "evidence_context_sha256": evidence_context_sha256,
             "consent_sha256": consent_sha256,
             "csr_sha256": csr_sha256,
             "public_key_sha256": public_key_sha256,
@@ -422,7 +459,13 @@ class StrongSignController(http.Controller):
                 "enrollment_id": enrollment.id,
                 "challenge": field_value(binding_digest),
                 "challenge_sha256": binding_digest.hex(),
-                "document_sha256": document_sha256,
+                "base_document_sha256": candidate["base_document_sha256"],
+                "document_sha256": candidate["candidate_document_sha256"],
+                "candidate_data": field_value(candidate["candidate_data"]),
+                "candidate_layout": candidate["completed_layout"],
+                "field_values_sha256": candidate["field_values_sha256"],
+                "evidence_context_sha256": evidence_context_sha256,
+                "evidence_context": signing_context,
                 "consent_sha256": consent_sha256,
                 "csr_sha256": csr_sha256,
                 "public_key_sha256": public_key_sha256,
@@ -457,7 +500,10 @@ class StrongSignController(http.Controller):
         ).hexdigest()
         if (
             ceremony.expires_at < fields.Datetime.now()
-            or current_document_hash != ceremony.document_sha256
+            or current_document_hash != ceremony.base_document_sha256
+            or not ceremony.candidate_data
+            or hashlib.sha256(field_content(ceremony.candidate_data)).hexdigest()
+            != ceremony.document_sha256
             or enrollment.state != "active"
             or enrollment.pocket_issuer != configuration.issuer
             or not secrets.compare_digest(enrollment.pocket_subject, claims["sub"])
@@ -521,7 +567,7 @@ class StrongSignController(http.Controller):
                     msg,
                 )
             data_to_sign = DSSClient().data_to_sign(
-                field_content(signer.request_id.data),
+                field_content(ceremony.candidate_data),
                 issued["certificate"],
                 certificate_chain=issued["chain"],
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
@@ -532,7 +578,11 @@ class StrongSignController(http.Controller):
             raise StepCAError(
                 msg,
             ) from error
-        raw_to_sign = base64.b64decode(data_to_sign["dataToSign"], validate=True)
+        try:
+            raw_to_sign = base64.b64decode(data_to_sign["dataToSign"], validate=True)
+        except (binascii.Error, KeyError, TypeError, ValueError) as error:
+            msg = "The signature service returned invalid data to sign."
+            raise DSSServiceError(msg) from error
         auth_time = datetime.fromtimestamp(int(claims["auth_time"]), tz=UTC).replace(tzinfo=None)
         ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
@@ -644,7 +694,15 @@ class StrongSignController(http.Controller):
                 ).exists()
                 if ceremony and ceremony.state == "authorizing":
                     ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-                        {"state": "failed", "failure_code": failure_code},
+                        {
+                            "state": "failed",
+                            "failure_code": failure_code,
+                            "candidate_data": False,
+                            "candidate_layout": False,
+                            "evidence_context": False,
+                            "data_to_sign": False,
+                            "dss_signing_context": False,
+                        },
                     )
             elif transaction and transaction.get("enrollment_id"):
                 failures = dict(request.session.get(_SESSION_ENROLLMENT_FAILURES, {}))
@@ -699,7 +757,15 @@ class StrongSignController(http.Controller):
             raise AccessError(msg)
         if ceremony.state in {"challenge", "authorizing"} and ceremony.expires_at < fields.Datetime.now():
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-                {"state": "expired", "failure_code": "authorization_timeout"},
+                {
+                    "state": "expired",
+                    "failure_code": "authorization_timeout",
+                    "candidate_data": False,
+                    "candidate_layout": False,
+                    "evidence_context": False,
+                    "data_to_sign": False,
+                    "dss_signing_context": False,
+                },
             )
         result = {"state": ceremony.state, "failure_code": ceremony.failure_code or None}
         if ceremony.state == "authorized":
@@ -728,6 +794,9 @@ class StrongSignController(http.Controller):
                 {
                     "state": "revoked",
                     "failure_code": "signer_restarted",
+                    "candidate_data": False,
+                    "candidate_layout": False,
+                    "evidence_context": False,
                     "data_to_sign": False,
                     "dss_signing_context": False,
                 },
@@ -748,24 +817,64 @@ class StrongSignController(http.Controller):
     )
     def strong_finalize(self, signer_id, token, ceremony_id, signature):
         signer = self._signer(signer_id, token)
+        request.env.cr.execute(
+            "SELECT id FROM sign_oca_request WHERE id = %s FOR UPDATE",
+            [signer.request_id.id],
+        )
+        signer.request_id.invalidate_recordset(["data", "current_hash", "signatory_data"])
         ceremony = self._lock_ceremony(ceremony_id, "authorized").exists()
         enrollment = signer._active_enrollment()
         if (
             not ceremony
             or ceremony.signer_id != signer
             or ceremony.expires_at < fields.Datetime.now()
-            or ceremony.document_sha256
+            or ceremony.base_document_sha256
             != hashlib.sha256(field_content(signer.request_id.data)).hexdigest()
+            or not ceremony.candidate_data
+            or hashlib.sha256(field_content(ceremony.candidate_data)).hexdigest()
+            != ceremony.document_sha256
+            or not ceremony.candidate_layout
+            or not ceremony.evidence_context
             or not enrollment
             or enrollment != ceremony.enrollment_id
             or enrollment.pocket_subject != ceremony.oidc_subject
         ):
+            if ceremony:
+                ceremony.with_context(
+                    usl_sign_ceremony_transition=INTERNAL_OPERATION,
+                ).write(
+                    {
+                        "state": "failed",
+                        "failure_code": "stale_candidate",
+                        "candidate_data": False,
+                        "candidate_layout": False,
+                        "evidence_context": False,
+                        "data_to_sign": False,
+                        "dss_signing_context": False,
+                    },
+                )
             msg = "The strong-signature authorization is no longer valid."
             raise ValidationError(msg)
-        signature_bytes = base64.b64decode(signature, validate=True)
+        signing_context = json.loads(json.dumps(ceremony.evidence_context))
+        try:
+            signature_bytes = base64.b64decode(signature, validate=True)
+        except (binascii.Error, TypeError, ValueError) as error:
+            ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+                {
+                    "state": "failed",
+                    "failure_code": "invalid_browser_signature",
+                    "candidate_data": False,
+                    "candidate_layout": False,
+                    "evidence_context": False,
+                    "data_to_sign": False,
+                    "dss_signing_context": False,
+                },
+            )
+            msg = "The browser signature payload is invalid."
+            raise ValidationError(msg) from error
         try:
             embedded = DSSClient().embed_signature(
-                field_content(signer.request_id.data),
+                field_content(ceremony.candidate_data),
                 ceremony.certificate_pem,
                 signature_bytes,
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
@@ -779,20 +888,32 @@ class StrongSignController(http.Controller):
                 msg = "DSS rejected the personal PAdES signature."
                 raise DSSServiceError(msg)  # noqa: TRY301 - handled by fail-closed cleanup below
             signer.request_id._store_dss_reports(validation)
-        except DSSServiceError as error:
+        except (DSSServiceError, binascii.Error, KeyError, TypeError, ValueError) as error:
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
                 {
                     "state": "failed",
                     "failure_code": type(error).__name__,
+                    "candidate_data": False,
+                    "candidate_layout": False,
+                    "evidence_context": False,
                     "data_to_sign": False,
                     "dss_signing_context": False,
                 },
             )
-            raise UserError(str(error)) from error
+            msg = (
+                str(error)
+                if isinstance(error, DSSServiceError)
+                else "The signature service returned an invalid signed document."
+            )
+            raise UserError(msg) from error
         digest = hashlib.sha256(signed_pdf).hexdigest()
         now = fields.Datetime.now()
         signer.request_id.with_context(usl_sign_working_pdf=INTERNAL_OPERATION).write(
-            {"data": field_value(signed_pdf), "current_hash": digest},
+            {
+                "data": field_value(signed_pdf),
+                "current_hash": digest,
+                "signatory_data": ceremony.candidate_layout,
+            },
         )
         signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
             {
@@ -805,6 +926,8 @@ class StrongSignController(http.Controller):
                 "consent_text": signer.request_id.consent_text_snapshot,
                 "consent_version": "1",
                 "consented_at": now,
+                "latitude": signing_context["location"].get("latitude") or 0,
+                "longitude": signing_context["location"].get("longitude") or 0,
                 "access_revoked": True,
                 "session_token_sha256": False,
                 "session_expires_at": False,
@@ -814,6 +937,8 @@ class StrongSignController(http.Controller):
             {
                 "state": "completed",
                 "completed_at": now,
+                "candidate_data": False,
+                "candidate_layout": False,
                 "data_to_sign": False,
                 "dss_signing_context": False,
                 "pades_level": embedded.get("padesLevel") or ceremony.pades_level,
@@ -865,11 +990,28 @@ class StrongSignController(http.Controller):
             mimetype="application/json",
             signer=signer,
         )
+        context_evidence = signer._store_signing_context_evidence(
+            signing_context,
+        )
+        if not secrets.compare_digest(
+            ceremony.evidence_context_sha256,
+            context_evidence.sha256,
+        ):
+            msg = "The stored signer context no longer matches the authorized ceremony."
+            raise ValidationError(msg)
         signer.request_id._append_event(
             "strong_personal_signature_applied",
             signer=signer,
             authentication_method="pocket_id_passkey",
-            payload={"ceremony_id": ceremony.id, "document_sha256": digest},
+            payload={
+                "ceremony_id": ceremony.id,
+                "base_document_sha256": ceremony.base_document_sha256,
+                "candidate_document_sha256": ceremony.document_sha256,
+                "document_sha256": digest,
+                "field_values_sha256": ceremony.field_values_sha256,
+                "evidence_context_sha256": context_evidence.sha256,
+                "location_status": signing_context["location"]["status"],
+            },
         )
         signer._close_internal_signing_activities()
         signer._activate_next_signer_or_finish()

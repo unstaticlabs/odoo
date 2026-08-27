@@ -521,7 +521,26 @@ class SignCeremony(models.Model):
     )
     challenge = fields.Binary(required=True, readonly=True)
     challenge_sha256 = fields.Char(required=True, readonly=True, index=True)
+    base_document_sha256 = fields.Char(required=True, readonly=True)
     document_sha256 = fields.Char(required=True, readonly=True)
+    candidate_data = fields.Binary(
+        readonly=True,
+        copy=False,
+        attachment=False,
+        groups="usl_sign.group_sign_evidence_reviewer",
+    )
+    candidate_layout = fields.Json(
+        readonly=True,
+        copy=False,
+        groups="usl_sign.group_sign_evidence_reviewer",
+    )
+    field_values_sha256 = fields.Char(required=True, readonly=True)
+    evidence_context_sha256 = fields.Char(required=True, readonly=True)
+    evidence_context = fields.Json(
+        readonly=True,
+        copy=False,
+        groups="usl_sign.group_sign_evidence_reviewer",
+    )
     consent_sha256 = fields.Char(required=True, readonly=True)
     csr_sha256 = fields.Char(required=True, readonly=True)
     public_key_sha256 = fields.Char(required=True, readonly=True)
