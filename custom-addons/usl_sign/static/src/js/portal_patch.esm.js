@@ -537,6 +537,12 @@ patch(SignOcaPdfPortal.prototype, {
         return LOCATION_MESSAGES[this.uslLocation.status] || LOCATION_MESSAGES.unavailable;
     },
 
+    get requiredFieldsRemainingLabel() {
+        return this.uslGuide.remaining === 1
+            ? _t("%s required field remaining", this.uslGuide.remaining)
+            : _t("%s required fields remaining", this.uslGuide.remaining);
+    },
+
     previousIncompleteField() {
         this.uslFieldGuide?.move(-1);
     },
