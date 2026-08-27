@@ -119,7 +119,10 @@ def smoke_groups(groups):
     include_first("duplicate", lambda group: len(group) > 1)
     include_first(
         "unassigned",
-        lambda group: any(item["kind"] == "unassigned_evidence" for item in group),
+        lambda group: any(
+            item["kind"] in {"unassigned_evidence", "restricted_unassigned_evidence"}
+            for item in group
+        ),
     )
     include_first(
         "permissions",

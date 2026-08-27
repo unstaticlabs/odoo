@@ -180,14 +180,34 @@ def classify_attachment(
             ),
         ]
 
-    if row["type"] == "url":
-        scope = "knowledge" if model == "knowledge.cover" else "native_reference"
-        state = "pending" if scope == "knowledge" else "implemented"
+    if model.startswith("knowledge."):
         return [
             action(
-                "restore_external_reference" if scope == "knowledge" else "recompute_reference",
-                scope,
-                state,
+                "discard_demo_knowledge_attachment",
+                "knowledge",
+                "implemented",
+                "approved product decision: source Knowledge content is unused "
+                "default/demo data and is not part of Distribution business evidence",
+            ),
+        ]
+
+    if model.startswith("ai."):
+        return [
+            action(
+                "archive_restricted_business_evidence",
+                "documents",
+                "implemented",
+                "the source binary is retained privately as business evidence while "
+                "the experimental AI configuration and index are not copied",
+            ),
+        ]
+
+    if row["type"] == "url":
+        return [
+            action(
+                "recompute_reference",
+                "native_reference",
+                "implemented",
                 "URL attachments contain no source binary",
             ),
         ]
@@ -279,16 +299,6 @@ def classify_attachment(
                 "the dashboard definition is user-visible configuration data",
             ),
         )
-    elif model == "ai.agent.source":
-        result.append(
-            action(
-                "archive_ai_source",
-                "ai_configuration",
-                "pending",
-                "the source file must be retained even when AI configuration is translated separately",
-            ),
-        )
-
     if attachment_id in message_attachment_ids and not restored_scope:
         result.append(
             action(

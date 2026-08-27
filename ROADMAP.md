@@ -23,6 +23,14 @@ are also active, unmerged workstreams. All four must be reviewed and merged or
 explicitly rejected before the final production qualification; no feature
 worktree, old QA seed or rehearsal candidate can be promoted directly.
 
+The migration-cache and Documents-performance follow-up is integrated on the
+review candidate `codex/integrate-migration-performance-cache-20260827`, but is
+not yet part of `origin/19-usl`. Its affected module passed clean install,
+upgrade, repeated upgrade, query-budget and desktop/mobile Chromium checks.
+Release qualification still requires merging that candidate, publishing a new
+schema-v3 seed from the clean main branch, and proving one real cold hydration
+followed by a fail-closed warm reuse.
+
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
 Odoo Online `saas~19.3.1.3` accounting state while keeping
@@ -121,6 +129,11 @@ maturity map is maintained in
   table and stored/manual field under its delivered or blocked scope.
 - A pre-mutation Docker capacity guard and accurate exit-137 resource
   classification, without stopping unrelated feature projects.
+- Content-qualified schema-v3 reconstruction seeds, explicit verified warm
+  worktree reuse, batched Documents queries, lazy Documents workspace assets,
+  and bounded Odoo worker/connection/memory/request budgets. These are present
+  on the integration candidate and become release evidence only after the
+  post-merge v3 refresh and cold/warm cycle.
 
 These foundations and the B2C work are now part of local `19-usl`. After Docker
 capacity was increased, a fresh full reconstruction of source dump
@@ -146,10 +159,23 @@ for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
-The rehearsal is not a production admission candidate. The strict whole-source
-gate still identifies eight incomplete scopes, the attachment ledger has 115
-pending source attachment IDs, and the separately governed physical
-opening-stock count is still not evidenced. B2C itself now has complete honest
+The 27 August performance-candidate audit rechecked canonical `odoo_dev`
+without mutating it: 5,425 moves, 12,991 move lines, 2,861 partial
+reconciliations, balanced posted debit/credit of EUR 2,900,936.82, all five
+source-journal move counts, 304 B2C orders, 457 lines, 1,821 payment events,
+261 fulfilments, 2,893 evidence rows, 45 source product-value rows and zero
+stock moves/quants remain intact. That database still has the pending
+`usl_access_control` module installed while its source is not in the current
+`origin/19-usl`; it must be replaced by the final clean reconstruction rather
+than treated as final release evidence or repaired ad hoc.
+
+The rehearsal is not a production admission candidate. Four earlier source
+scopes now have explicit approved dispositions: default/demo Knowledge,
+experimental AI configuration, unused Sales/Marketing configuration and
+superseded Studio implementation metadata are deliberately not copied. The
+strict whole-source gate still identifies the genuinely open Attachments,
+Collaboration, Preferences and Signing scopes, and the separately governed
+physical opening-stock count is still not evidenced. B2C itself now has complete honest
 dispositions: nine aliases are exactly verified, 100 are explicitly not
 applicable, all 180 source-ledger moves have monthly session links, all 40
 source files are archived, and no accounting relationship or SKU mapping is
@@ -157,6 +183,12 @@ left unexplained and pending. Aggregate monthly coverage is not presented as
 one-to-one order accounting, and the 35 header-only Medusa orders remain
 visible without invented lines. The remaining whole-source and physical-count
 items are visible release blockers, not silently discarded data.
+
+The current attachment ledger contains 107 pending source IDs: 64
+Collaboration, 9 Preferences and 50 Sign actions, with overlaps where one file
+has more than one required relationship. The genuine strategy PDF referenced
+by experimental AI remains selected for private Documents archival; only the
+AI configuration and index are deliberately omitted.
 
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in
@@ -188,23 +220,26 @@ The canonical, evidence-bearing sequence is maintained in the
 
 1. Migration-performance/portable-candidate — **merged through
    `61580c1704c`**.
-2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
-3. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
+2. Migration cache/Documents performance follow-up — **integrated on the
+   review candidate from exact feature tip `3d2b2b49382`; merge, schema-v3 seed
+   publication and one real cold/warm cycle remain required**.
+3. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
+4. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
    canonical rehearsal passed with complete evidence, relationship and alias
    dispositions; physical opening stock remains a separate later operation**.
-4. Review and merge Paperless 3.0 and requalify the official export/import and
+5. Review and merge Paperless 3.0 and requalify the official export/import and
    zero-OCR paths.
-5. Review and merge Native Sign with signing evidence and permission gates.
-6. Review and merge Collaboration History, then close the corresponding
+6. Review and merge Native Sign with signing evidence and permission gates.
+7. Review and merge Collaboration History, then close the corresponding
    strict source scope and attachment dispositions without importing
    migration-only provenance into the product.
-7. Review and merge Distribution Access Control and repeat named-persona,
+8. Review and merge Distribution Access Control and repeat named-persona,
    multi-company and record-rule acceptance.
-8. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
+9. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
    mail test.**
-9. From clean final `19-usl`, repeat clean install, update, repeated update,
+10. From clean final `19-usl`, repeat clean install, update, repeated update,
    full local reconstruction and complete product/migration boundary across
    every delivered module after the remaining workstreams are merged.
 

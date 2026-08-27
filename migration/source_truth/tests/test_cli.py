@@ -46,9 +46,9 @@ class FakeDatabase:
                 "record_count": 2,
             },
             {
-                "model": "knowledge.article",
-                "table_name": "knowledge_article",
-                "owner_module": "knowledge",
+                "model": "res.users.settings",
+                "table_name": "res_users_settings",
+                "owner_module": "base_setup",
                 "transient": False,
                 "table_exists": True,
                 "record_count": 1,
@@ -60,7 +60,7 @@ class FakeDatabase:
             {"table_name": "account_move", "record_count": 3},
             {"table_name": "documents_document", "record_count": 2},
             {"table_name": "document_tag_rel", "record_count": 1},
-            {"table_name": "knowledge_article", "record_count": 1},
+            {"table_name": "res_users_settings", "record_count": 1},
         ]
 
     def fields(self):
@@ -79,9 +79,9 @@ class FakeDatabase:
                 "ai": False,
             },
             {
-                "model": "knowledge.article",
-                "name": "body",
-                "ttype": "html",
+                "model": "res.users.settings",
+                "name": "theme",
+                "ttype": "char",
                 "relation": "",
                 "state": "base",
                 "required": False,
@@ -198,22 +198,37 @@ class SourceTruthAuditCase(unittest.TestCase):
             self.assertFalse(inventory["summary"]["complete"])
             self.assertEqual(
                 inventory["blocking"]["incomplete_populated_scopes"],
-                ["knowledge"],
+                ["preferences"],
             )
             self.assertFalse(any(current_distribution_blocking(inventory).values()))
             self.assertEqual(inventory["summary"]["stored_or_manual_fields"], 2)
             self.assertEqual(
                 inventory["incomplete_scope_fields"],
-                ["knowledge.article.body"],
+                ["res.users.settings.theme"],
             )
             report = build_gap_report(inventory)
             self.assertFalse(report["summary"]["production_ready"])
             self.assertEqual(report["summary"]["delivered_source_records"], 5)
             self.assertEqual(report["summary"]["blocked_source_records"], 1)
             self.assertEqual(
-                report["blocked_scopes"]["knowledge"]["fields"][0]["name"],
-                "body",
+                report["blocked_scopes"]["preferences"]["fields"][0]["name"],
+                "theme",
             )
+
+    def test_approved_source_configuration_drops_are_explicit_and_non_blocking(self):
+        contract = load_contract(ROOT / "migration/source_truth/coverage.json")
+        for scope in (
+            "ai_configuration",
+            "knowledge",
+            "sales_marketing",
+            "studio",
+        ):
+            with self.subTest(scope=scope):
+                self.assertEqual(contract["scopes"][scope]["status"], "implemented")
+                self.assertEqual(
+                    contract["scopes"][scope]["disposition"],
+                    "deliberately_not_copied",
+                )
 
     def test_current_distribution_gate_keeps_structural_errors_blocking(self):
         with tempfile.TemporaryDirectory() as directory:

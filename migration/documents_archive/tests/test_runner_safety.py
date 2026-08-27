@@ -110,6 +110,8 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertNotIn("QUALIFIED_SOURCE", restore)
         self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
         self.assertIn("source contains unsupported Documents URL references", restore)
+        self.assertIn("attachment.res_model = 'ai.agent.source'", restore)
+        self.assertIn('"restricted_unassigned_evidence"', restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")

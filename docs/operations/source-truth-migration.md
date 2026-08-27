@@ -154,9 +154,12 @@ Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
 unassigned enterprise evidence file through the supported Paperless API, with
-byte-for-byte read-back and preview checks. Sign, Knowledge, preference, AI,
-and collaboration actions continue to keep the attachment gate blocked until
-their own stages pass.
+byte-for-byte read-back and preview checks. The genuine strategy PDF referenced
+by an experimental AI source record is added to that archive as private,
+needs-review business evidence; the AI index and configuration are not copied.
+Knowledge attachments are explicitly discarded with the approved demo-content
+disposition. Sign, preference and collaboration actions continue to keep the
+attachment gate blocked until their own stages pass.
 
 ## Deterministic reconstruction
 
@@ -219,19 +222,23 @@ configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
 Paperless Documents archive have implemented translation stages. The current
 Distribution-scope gate passes. The strict production gate remains
 blocked—correctly—on collaboration history, remaining attachment actions,
-Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-and source AI configuration. These are explicit gaps, not silently copied or
-represented as full parity. The separate physical opening-stock evidence item
-also remains blocking for B2C operational release even though it is not a fact
-contained in the source database.
+Sign and user preferences. Knowledge is unused default/demo Online content;
+AI configuration and Sales/Marketing configuration were experiments/default
+setup; Studio implementation metadata is superseded by maintained Distribution
+add-ons. The approved product decision for those four scopes is
+`deliberately_not_copied`; this does not claim that the obsolete source runtime
+was migrated. The separate physical opening-stock evidence item also remains
+blocking for B2C operational release even though it is not a fact contained in
+the source database.
 
-The strict 26 August rehearsal reports eight incomplete scopes:
-`ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
-`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
-pending source attachment IDs, represented by 1 AI-configuration action, 64
-collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
-actions. Action totals can overlap when one attachment has more than one
-relationship; the 115 source IDs are the file-level count.
+The strict 27 August audit therefore reports four incomplete scopes:
+`attachments`, `collaboration`, `preferences`, and `signing`. The attachment
+ledger reports 107 pending source attachment IDs, represented by 64
+collaboration actions, 9 preference actions, and 50 Sign actions. Action totals
+can overlap when one attachment has more than one relationship; the 107 source
+IDs are the file-level count. The ledger explicitly records the discarded
+Knowledge attachments and the private Documents destination of the AI-indexed
+business source file, so neither outcome is silent.
 
 ### B2C commerce stage
 
