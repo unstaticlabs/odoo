@@ -32,8 +32,8 @@ size and digest observations above do not establish migration completeness.
 
 On 26 August, the B2C-integrated branch completed a fresh full reconstruction
 from this package and published a sanitized reusable QA seed. The finalized
-`odoo_dev` target passed the database boundary for all fourteen delivered
-product modules with no migration registry/schema residue. Accounting remained
+`odoo_dev` target passed the database boundary for the then-current fourteen
+delivered product modules with no migration registry/schema residue. Accounting remained
 balanced at EUR 2,900,936.82 debit and credit; B2C retained 304 canonical
 orders, 457 source lines, 1,821 payment/refund/fee events, 261 fulfilments and
 109 governed SKU aliases (nine exactly verified and 100 explicitly not
@@ -41,7 +41,7 @@ applicable), with zero unexplained pending mappings. All 180 critical source
 moves have monthly session relationships, and all 40 B2C files plus 2,893
 immutable evidence rows have durable archive links. Paperless archived 645
 source groups and synchronized 638 live authorized mappings. A separate
-empty-database installation passed for all fourteen product modules, and two
+empty-database installation passed for those fourteen product modules, and two
 isolated full-seed hydrations matched
 the sealed Accounting, Documents and Paperless controls with zero OCR
 submissions. This is current rehearsal evidence, not a final frozen-source
@@ -82,7 +82,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
-| Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
+| Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | integrated on candidate through `b951d3395f7`; clean 15-module registry, canonical finalization, named-persona and multi-company backend acceptance pass; merge-commit PR and live browser acceptance remain |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
 
 For every merge:
@@ -94,8 +94,9 @@ For every merge:
 5. invalidate any QA seed, evidence or candidate produced by an earlier commit;
 6. verify the complete target module set, not only modules touched by the merge.
 
-The current database boundary expects the fourteen delivered modules listed by
-`scripts/odoo/product_database_boundary.py`, including `usl_b2c` and
+The current integration-candidate database boundary expects the fifteen
+delivered modules listed by `scripts/odoo/product_database_boundary.py`,
+including `usl_b2c` and
 `usl_documents_b2c`. Pending
 features may extend that set. The script is authoritative after all merges; a
 partial `odoo_dev` installation is not final-target evidence.
@@ -109,8 +110,9 @@ partial `odoo_dev` installation is not final-target evidence.
   validation.
 - [ ] Merge Paperless 3.0 and Native Sign after independent review and
   validation.
-- [ ] Merge Collaboration History and Distribution Access Control after
-  independent review and validation.
+- [ ] Merge Collaboration History after independent review and validation.
+- [ ] Land the qualified Distribution Access Control candidate through its
+  merge-commit PR after required checks.
 - [ ] Confirm no active release branch contains unmerged product or migration
   final state.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
@@ -119,8 +121,8 @@ partial `odoo_dev` installation is not final-target evidence.
   labels and record the digest.
 - [x] Install every currently delivered product module into a fresh empty
   database; run update and repeated update without migration modules on the
-  runtime path. This passed for the current fourteen-module baseline and must
-  be repeated after the remaining merges.
+  runtime path. This now passes for the 15-module access-control candidate and
+  must be repeated after the remaining merges.
 - [x] Run a fresh full local reconstruction from the most recent available
   Online dump and filestore while Online is still active. The 26 August
   rehearsal passed; it must be repeated after the remaining merges and again
@@ -145,13 +147,18 @@ partial `odoo_dev` installation is not final-target evidence.
   migration-critical discrepancy. No blanket waiver is permitted.
 
 The currently known strict-source blockers are not generic “migration debt.”
-They are the eight named scopes `ai_configuration`, `attachments`,
-`collaboration`, `knowledge`, `preferences`, `sales_marketing`, `signing` and
-`studio`, including 115 pending source attachment IDs. Collaboration and Sign
-have active implementation workstreams; the other scopes still need a
-source-backed product translation or an explicit, reviewed disposition. The
-physical opening-stock count is a separate operational prerequisite because
-the source contains no defensible historical quantity truth.
+They are the four named scopes `attachments`, `collaboration`, `preferences`
+and `signing`, including 107 pending source attachment IDs. Collaboration and
+Sign have active implementation workstreams; preferences and remaining file
+relationships still need a source-backed product translation or an explicit,
+reviewed disposition. Knowledge, experimental AI configuration, unused
+sales/marketing configuration and the superseded Studio model are approved
+non-product source dispositions and no longer block the strict gate. The one
+real strategy PDF formerly attached to AI configuration is retained separately
+as restricted business evidence; the final reconstruction must prove that
+archive route. The physical opening-stock count is a separate operational
+prerequisite because the source contains no defensible historical quantity
+truth.
 
 ## Phase B — production inputs and owners
 

@@ -18,9 +18,11 @@ Accounting v1 is engineering-complete for internal daily use. The current
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
 through merge `64c1f2b1207`. Paperless 3.0 and Native Sign remain independently
-reviewable workstreams. Collaboration History and Distribution Access Control
-are also active, unmerged workstreams. All four must be reviewed and merged or
-explicitly rejected before the final production qualification; no feature
+reviewable workstreams. Collaboration History remains an active, unmerged
+workstream. Distribution Access Control is integrated and qualified on the
+dedicated merge candidate through `b951d3395f7`; its merge-commit PR still has
+to land on `19-usl`. All remaining workstreams must be merged or explicitly
+rejected before the final production qualification; no feature
 worktree, old QA seed or rehearsal candidate can be promoted directly.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
@@ -95,6 +97,11 @@ maturity map is maintained in
 - Pocket ID SSO with immutable identity links and one independent local
   break-glass administrator; Odoo remains authoritative for roles, companies
   and record rules.
+- Recoverability-based Distribution roles for Valentin, Roger, Prosper and
+  Agents, with a separately enforced irreversible-action capability, immutable
+  audit evidence and explicit two-company Accounting review for Prosper. The
+  merged candidate qualifies 49,713 reviewed action keys and loads only the
+  compact protected runtime projection in workers.
 - French electronic-invoice reception for UBL, CII and Factur-X invoices and
   credit notes, including native draft bills, original evidence,
   duplicate/retry controls, role-aware browser journeys and controlled
@@ -142,13 +149,14 @@ release candidate. A new full reconstruction is still required after the
 remaining workstreams merge.
 
 The current candidate's isolated clean-install and repeated-update check passes
-for all fourteen presently delivered product modules with no migration registry
+for all fifteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
 The rehearsal is not a production admission candidate. The strict whole-source
-gate still identifies eight incomplete scopes, the attachment ledger has 115
-pending source attachment IDs, and the separately governed physical
+gate now identifies four incomplete scopes—attachments, Collaboration,
+preferences and Sign—the attachment ledger has 107 pending source attachment
+IDs, and the separately governed physical
 opening-stock count is still not evidenced. B2C itself now has complete honest
 dispositions: nine aliases are exactly verified, 100 are explicitly not
 applicable, all 180 source-ledger moves have monthly session links, all 40
@@ -198,8 +206,10 @@ The canonical, evidence-bearing sequence is maintained in the
 6. Review and merge Collaboration History, then close the corresponding
    strict source scope and attachment dispositions without importing
    migration-only provenance into the product.
-7. Review and merge Distribution Access Control and repeat named-persona,
-   multi-company and record-rule acceptance.
+7. Distribution Access Control — **integrated on the dedicated candidate
+   through `b951d3395f7`; clean install/update, canonical finalization, named
+   personas, multi-company policy, backend and desktop/mobile suites pass.
+   Merge-commit PR and live interactive browser acceptance remain.**
 8. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
