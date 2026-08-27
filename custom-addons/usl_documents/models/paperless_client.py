@@ -655,13 +655,23 @@ class PaperlessClient:
         results = payload.get("results", payload if isinstance(payload, list) else [])
         return results[0] if results else None
 
-    def set_document_permissions(self, document_id, *, view_users, change_users):
+    def set_document_permissions(self, document_ids, *, view_users, change_users):
         if not self.owner_user_id:
             raise PaperlessCompatibilityError(
                 _(
                     "The dedicated Paperless service identity ID is not configured; "
                     "permission synchronization is blocked.",
                 ),
+            )
+        if isinstance(document_ids, int):
+            normalized_ids = [document_ids]
+        else:
+            normalized_ids = sorted(
+                {int(document_id) for document_id in document_ids},
+            )
+        if not normalized_ids:
+            raise PaperlessCompatibilityError(
+                _("At least one Paperless document is required."),
             )
         permissions = {
             "view": {"users": sorted(set(view_users)), "groups": []},
@@ -671,7 +681,7 @@ class PaperlessClient:
             "POST",
             "/api/documents/bulk_edit/",
             body={
-                "documents": [int(document_id)],
+                "documents": normalized_ids,
                 "method": "set_permissions",
                 "parameters": {
                     "set_permissions": permissions,

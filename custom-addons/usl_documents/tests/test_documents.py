@@ -2376,6 +2376,94 @@ class TestDocuments(TransactionCase):
             110, view_users=[21, 22], change_users=[22],
         )
 
+    def test_permission_sync_batches_documents_with_identical_access(self):
+        documents = self._document(
+            111,
+            permission_sync_state="pending",
+        ) | self._document(
+            112,
+            permission_sync_state="pending",
+        )
+        self.env["usl.paperless.user.mapping"].search([
+            ("user_id", "in", [self.user.id, self.manager.id]),
+        ]).unlink()
+        self._verified_mapping([
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 21,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 22,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        ])
+
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            documents.with_user(self.manager).action_sync_permissions()
+
+        permission_call.assert_called_once_with(
+            [111, 112],
+            view_users=[21, 22],
+            change_users=[22],
+        )
+        self.assertEqual(
+            set(documents.mapped("permission_sync_state")),
+            {"synchronized"},
+        )
+
+    def test_permission_sync_isolates_failed_bounded_batches(self):
+        documents = self.env["usl.document"].browse()
+        for paperless_id in range(113, 116):
+            documents |= self._document(
+                paperless_id,
+                permission_sync_state="pending",
+            )
+        self.env["usl.paperless.user.mapping"].search([
+            ("user_id", "in", [self.user.id, self.manager.id]),
+        ]).unlink()
+        self._verified_mapping(
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 22,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        )
+
+        with (
+            patch(
+                "odoo.addons.usl_documents.models.document."
+                "PAPERLESS_PERMISSION_BATCH_SIZE",
+                2,
+            ),
+            patch.object(
+                PaperlessClient,
+                "set_document_permissions",
+                side_effect=[PaperlessUnavailable("Archive offline"), {}],
+            ) as permission_call,
+        ):
+            documents.with_user(self.manager).action_sync_permissions()
+
+        self.assertEqual(permission_call.call_count, 2)
+        self.assertEqual(
+            documents.filtered(lambda item: item.paperless_id in (113, 114))
+            .mapped("permission_sync_state"),
+            ["failed", "failed"],
+        )
+        self.assertEqual(
+            documents.filtered(lambda item: item.paperless_id == 115)
+            .permission_sync_state,
+            "synchronized",
+        )
+
     def test_identity_mapping_cannot_bypass_verification_state(self):
         mapping = self.env["usl.paperless.user.mapping"].create(
             {
@@ -3024,6 +3112,39 @@ class TestDocuments(TransactionCase):
 
 @tagged("post_install", "-at_install", "usl_documents")
 class TestPaperlessClientContract(TransactionCase):
+    def test_permission_update_accepts_one_bounded_document_batch(self):
+        self.env["ir.config_parameter"].sudo().set_int(
+            "usl_documents.paperless_service_user_id",
+            42,
+        )
+        client = PaperlessClient(self.env)
+        with patch.object(
+            client,
+            "_request",
+            return_value=({"result": "OK"}, {}),
+        ) as request:
+            client.set_document_permissions(
+                [13, 12, 13],
+                view_users=[8, 7, 8],
+                change_users=[8],
+            )
+
+        self.assertEqual(
+            request.call_args.kwargs["body"],
+            {
+                "documents": [12, 13],
+                "method": "set_permissions",
+                "parameters": {
+                    "set_permissions": {
+                        "view": {"users": [7, 8], "groups": []},
+                        "change": {"users": [8], "groups": []},
+                    },
+                    "owner": 42,
+                    "merge": False,
+                },
+            },
+        )
+
     def test_multipart_headers_reject_filename_and_content_type_injection(self):
         self.assertEqual(
             PaperlessClient._multipart_filename('invoice"\r\nX-Evil: yes.pdf'),
