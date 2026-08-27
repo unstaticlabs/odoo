@@ -171,10 +171,10 @@ def read_source():
             cursor,
             """
             SELECT attachment.id AS attachment_id, attachment.name AS filename,
-                   attachment.res_model AS source_res_model,
                    attachment.store_fname, attachment.checksum,
                    attachment.file_size, attachment.mimetype,
-                   attachment.create_uid, attachment.create_date AS attachment_create_date
+                   attachment.create_uid, attachment.create_date AS attachment_create_date,
+                   COALESCE(attachment.res_model, '') AS source_res_model
               FROM ir_attachment attachment
              WHERE (
                     COALESCE(attachment.res_model, '') = ''

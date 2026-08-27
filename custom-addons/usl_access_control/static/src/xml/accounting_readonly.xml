@@ -1,0 +1,9 @@
+<templates>
+    <t t-name="usl_access_control.BillGuideReadonly"
+       t-inherit="account.BillGuide"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('bill_guide_container')]" position="attributes">
+            <attribute name="t-if">!this.uslReadonlyAccounting</attribute>
+        </xpath>
+    </t>
+</templates>

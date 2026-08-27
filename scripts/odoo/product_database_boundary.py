@@ -16,6 +16,7 @@ MIGRATION_MODULES = {
 }
 PRODUCT_MODULES = {
     "rebuild_account_migration",
+    "usl_access_control",
     "usl_accounting",
     "usl_b2c",
     "usl_documents",
@@ -29,6 +30,21 @@ PRODUCT_MODULES = {
     "usl_project",
     "usl_tese_accounting",
     "usl_tese_payroll",
+}
+EXCLUDED_AUTO_INSTALL_MODULES = {
+    "contacts",
+    "gamification",
+    "hr_gamification",
+    "hr_skills_survey",
+    "html_builder",
+    "link_tracker",
+    "mail_plugin",
+    "mass_mailing",
+    "mass_mailing_sale",
+    "mass_mailing_themes",
+    "project_mail_plugin",
+    "social_media",
+    "survey",
 }
 FORBIDDEN_MODELS = {
     "rebuild.account.analytic.override",
@@ -86,7 +102,14 @@ if os.environ.get("USL_PRODUCT_BOUNDARY_PREPROD", "0") == "1" and qa_profile != 
 
 module_states = dict(rows(
     "SELECT name, state FROM ir_module_module WHERE name = ANY(%s)",
-    (list(MIGRATION_MODULES | PRODUCT_MODULES | {"usl_bootstrap"}),),
+    (
+        list(
+            MIGRATION_MODULES
+            | PRODUCT_MODULES
+            | EXCLUDED_AUTO_INSTALL_MODULES
+            | {"usl_bootstrap"}
+        ),
+    ),
 ))
 for module_name in sorted(MIGRATION_MODULES):
     if module_states.get(module_name) not in {None, "uninstalled", "uninstallable"}:
@@ -101,6 +124,12 @@ for module_name in sorted(PRODUCT_MODULES):
         )
 if module_states.get("usl_bootstrap") == "installed":
     errors.append("Test-only usl_bootstrap is installed in the product target.")
+for module_name in sorted(EXCLUDED_AUTO_INSTALL_MODULES):
+    if module_states.get(module_name) not in {None, "uninstalled", "uninstallable"}:
+        errors.append(
+            f"Excluded optional product module {module_name} remains "
+            f"{module_states[module_name]}.",
+        )
 
 if table_exists("ir_module_module_dependency"):
     dependency_rows = rows(

@@ -1,5 +1,28 @@
 # Roles and Permissions
 
+## Distribution roles and irreversible actions
+
+Application access and **Irreversible Actions** are separate. Permanent
+deletion, accounting lock changes, user/role changes, module maintenance,
+arbitrary server actions and external e-invoice registration changes require
+the separate capability. The product hides high-risk controls when practical,
+and the server enforces the rule for every RPC call.
+
+- **Full Product Administrator:** all applications and protected actions under
+  an attributable human identity.
+- **Technical Administrator:** full B2C operations, Projects and Documents,
+  Accounting read-only, and safe technical inspection. Cannot change security,
+  locks, Accounting records or perform permanent deletion.
+- **Accounting Reviewer:** reversible annual-review Accounting work in unlocked
+  periods, including draft adjustments, posting, reset and reconciliation.
+  Cannot reach unrelated applications, change locks or permanently delete.
+- **AI Agent:** combines with explicitly assigned application groups, but can
+  never perform Irreversible Actions. An authorized human must handle that
+  boundary.
+
+Every Agent create, update and delete is attributable in Distribution Audit.
+Successful protected human actions are recorded there as well.
+
 ## Accounting manager
 
 Can inspect all accounting, create and edit documents, post, pay, reconcile,

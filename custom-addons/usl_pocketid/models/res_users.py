@@ -71,6 +71,7 @@ _CONFIGURATION_KEYS = {
     "profile",
     "companies",
     "create_if_missing",
+    "optional_if_missing",
     "subject",
     "email_link",
 }
@@ -356,6 +357,7 @@ class ResUsers(models.Model):
                     _("The configured identity profile is unsupported."),
                     login=login,
                 )
+            definition = profile_definitions[profile]
             name = configuration.get("name")
             if name is not None and (
                 not isinstance(name, str) or not name.strip()
@@ -368,6 +370,20 @@ class ResUsers(models.Model):
             if not isinstance(create_if_missing, bool):
                 self._usl_pocketid_configuration_error(
                     _("create_if_missing must be true or false."),
+                    login=login,
+                )
+            optional_if_missing = configuration.get("optional_if_missing", False)
+            if not isinstance(optional_if_missing, bool):
+                self._usl_pocketid_configuration_error(
+                    _("optional_if_missing must be true or false."),
+                    login=login,
+                )
+            if optional_if_missing and (create_if_missing or definition["active"]):
+                self._usl_pocketid_configuration_error(
+                    _(
+                        "optional_if_missing is only supported for inactive "
+                        "historical or decision profiles.",
+                    ),
                     login=login,
                 )
             email = configuration.get("email")
@@ -398,7 +414,6 @@ class ResUsers(models.Model):
                         login=login,
                     )
                 seen_subjects.add(subject)
-            definition = profile_definitions[profile]
             email_link = configuration.get("email_link", False)
             if not isinstance(email_link, bool):
                 self._usl_pocketid_configuration_error(
@@ -461,6 +476,8 @@ class ResUsers(models.Model):
             normalized["user_recordset"] = self._usl_pocketid_find_configured_user(
                 normalized,
             )
+            if not normalized["user_recordset"] and optional_if_missing:
+                continue
             if (
                 not normalized["user_recordset"]
                 and not create_if_missing

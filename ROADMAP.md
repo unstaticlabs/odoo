@@ -119,6 +119,11 @@ maturity map is maintained in
 - Pocket ID SSO with immutable identity links and one independent local
   break-glass administrator; Odoo remains authoritative for roles, companies
   and record rules.
+- Recoverability-based Distribution roles for Valentin, Roger, Prosper and
+  Agents, with a separately enforced irreversible-action capability, immutable
+  audit evidence and explicit two-company Accounting review for Prosper. The
+  merged candidate qualifies 49,713 reviewed action keys and loads only the
+  compact protected runtime projection in workers.
 - French electronic-invoice reception for UBL, CII and Factur-X invoices and
   credit notes, including native draft bills, original evidence,
   duplicate/retry controls, role-aware browser journeys and controlled
@@ -192,7 +197,7 @@ integration branch because publication is correctly restricted to a clean
 rehearsals, must be repeated after the remaining workstreams merge.
 
 The current candidate's isolated clean-install and repeated-update check passes
-for all fourteen presently delivered product modules with no migration registry
+for all fifteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
@@ -284,8 +289,9 @@ The canonical, evidence-bearing sequence is maintained in the
    passed; its source scope and attachment relationships are closed without
    migration-only provenance or outbound delivery state in the product**.
 7. Review and merge Native Sign with signing evidence and permission gates.
-8. Review and merge Distribution Access Control and repeat named-persona,
-   multi-company and record-rule acceptance.
+8. Distribution Access Control — **integrated on the consolidated readiness
+   candidate; regenerate the policy on the final merged registry and repeat
+   named-persona, multi-company and record-rule acceptance.**
 9. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic

@@ -10,7 +10,7 @@ The qualified release is one commit-tagged Docker image containing Odoo core,
 the USL product add-ons, the patched pinned OCA bundle and user documentation.
 The running Odoo service has no checkout source mounts. Its reconstructed
 `odoo_dev` database records the same commit, image ID, OCA digest, installed
-module versions and source-dump SHA-256.
+module versions, action-risk policy digest and source-dump SHA-256.
 
 ## Local deterministic release
 
@@ -25,7 +25,8 @@ The command derives a stable worktree-specific Compose project and isolated port
 block, creates checkout-local ignored secrets, forces both regulatory live
 guards to `0`, synchronizes exact OCA pins, builds the `distribution` image,
 recreates `odoo_dev`, finalizes migration modules out of the registry and
-schema, records release identity and starts the no-bind-mount runtime. The final
+schema, verifies the zero-exception action inventory, records release identity
+and starts the no-bind-mount runtime. The final
 release gate also requires each enabled Documents persona to complete the
 individual Paperless identity handshake described below.
 
@@ -40,7 +41,8 @@ Evidence is written below ignored `artifacts/release/`. The command refuses a
 dirty Git tree, a foreign Compose working directory, an untagged or `latest`
 image, an incomplete source package, an OCA pin mismatch, installed migration
 modules, migration models/fields/XML IDs/schema residue, module-version drift,
-a runtime source mount, a missing or unverified individual Paperless mapping,
+a changed or unclassified action, action-policy/image/database digest drift, a
+runtime source mount, a missing or unverified individual Paperless mapping,
 or unsynchronized Paperless object permissions.
 
 The stages can be repeated independently with the same source path:
@@ -56,9 +58,9 @@ scripts/preprod-release gate /absolute/path/to/usl-online-dump
 
 `clean-install` installs every delivered product module into a disposable empty
 database using the immutable image, applies and verifies the release identity,
-runs the full database product/migration boundary, and then removes both the
-database and its filestore. This qualification is deliberately separate from
-the migrated `odoo_dev` reconstruction.
+runs the full database product/migration boundary and exact runtime action-risk
+check, and then removes both the database and its filestore. This qualification
+is deliberately separate from the migrated `odoo_dev` reconstruction.
 
 Do not set `USL_RELEASE_ALLOW_DIRTY=1` for qualification. That switch exists
 only to test release tooling while it is being developed.

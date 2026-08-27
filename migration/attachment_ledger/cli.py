@@ -286,7 +286,7 @@ def classify_attachment(
             ),
         )
 
-    if model == "spreadsheet.dashboard":
+    if model == "spreadsheet.dashboard" and row["res_id"] in {1, 2, 7}:
         result.append(
             action(
                 "deliberately_not_copied",

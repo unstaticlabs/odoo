@@ -103,7 +103,8 @@ must report `purpose=production`, `profile=full`, `outcome=passed`,
 ## 3. Build the candidate
 
 Use the exact immutable Odoo Distribution, Paperless overlay and Ollama runtime
-digests qualified for the release:
+digests qualified for the release. The Distribution image labels must match the
+release commit, OCA bundle and qualified action-risk policy:
 
 ```bash
 export COMPOSE_PROJECT_NAME=usl-odoo-migration-final-YYYYMMDD
@@ -186,7 +187,8 @@ Preflight is read-only with respect to application/Pocket data. It rejects
 changed files/fingerprints, wrong commit/image/OCA/modules/source, unsafe DB
 names or URLs, public database manager, default secrets, live regulatory flags,
 missing external networks, existing target data, foreign volumes and any
-managed Pocket service.
+managed Pocket service. It also rejects a checkout, candidate or image whose
+canonical action-risk policy digest differs from the qualified release.
 
 Stage uses `pg_restore --jobs=4`, analyses the committed Odoo database, restores
 the exact filestore and official Paperless export, rechecks every stored Odoo
@@ -222,8 +224,9 @@ make production-cutover-admit \
 ```
 
 Gate rechecks product/migration boundaries, database/image release identity,
-Accounting totals/reconciliation, multi-company roles, Paperless sanity,
-links/checksums/object permissions, service health and journey evidence.
+the exact installed action registry, Accounting totals/reconciliation,
+multi-company roles, Paperless sanity, links/checksums/object permissions,
+service health and journey evidence.
 
 Admission records the fingerprint in Odoo and private cut-over state before
 starting the approved cron worker policy. It permanently disables candidate

@@ -87,6 +87,7 @@ class AttachmentClassificationTest(unittest.TestCase):
         actions = self.classify(
             {
                 "res_model": "spreadsheet.dashboard",
+                "res_id": 1,
                 "res_field": "spreadsheet_binary_data",
             },
         )

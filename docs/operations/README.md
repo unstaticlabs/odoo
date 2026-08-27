@@ -25,3 +25,4 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Restore historical platform billing](platform-billing-migration.md)
 - [Pocket ID SSO runbook](pocket-id-sso-runbook.md)
 - [Documents production-candidate delivery](documents-production-candidate.md)
+- [Distribution access control runbook](distribution-access-control-runbook.md)

@@ -94,8 +94,9 @@ The root `Dockerfile` uses purpose-specific stages:
   it. The test-only `usl_bootstrap` fixture is excluded. The
   `.github/workflows/product-image.yml` workflow publishes it to
   `ghcr.io/unstaticlabs/usl-odoo` pinned by commit SHA;
-- `distribution` extends that product image with the exact release identity
-  used by the qualified pre-production and production gates;
+- `distribution` extends that product image with the exact release identity,
+  including the canonical reviewed action-risk policy digest, used by the
+  qualified pre-production and production gates;
 - `test` adds Chromium only for browser-capable automated tests;
 - `dev` adds developer tools but uses the repository bind mount instead of
   embedding a second copy of the source tree.
@@ -268,6 +269,8 @@ The production custom-module boundaries are:
   and record-level authorization;
 - `usl_documents_accounting`: Accounting-specific document links and evidence;
 - `usl_pocketid`: Pocket ID authentication and identity governance;
+- `usl_access_control`: recoverability-based Distribution roles, protected
+  irreversible actions and attributable Agent audit;
 - `usl_platform_billing`: the independent content-platform payout billing
   application;
 - `usl_platform_billing_pocketid`: governed Pocket ID access for Platform
@@ -484,6 +487,10 @@ make repair-pocket-id                 # repair and verify this project's SSO
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
 make paperless-users           # reconcile governed users and document access
+make action-risk-inventory     # reject unclassified/changed source actions
+make action-risk-compile-policy # derive the compact protected worker policy
+make action-risk-runtime       # compare the exact installed odoo_dev registry
+make product-assets            # compile every installed-registry asset bundle
 scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 make documents-restore                # isolated Documents migration rehearsal
@@ -540,8 +547,9 @@ scripts/preprod-release all /absolute/path/to/usl-online-dump
 
 It synchronizes the pinned OCA commits, builds a commit-tagged self-contained
 image, reconstructs `odoo_dev`, records the dump/image/module identity in the
-database, starts the no-bind-mount runtime and runs the source, database,
-schema, image, service and direct-Paperless-identity gates. Both regulatory live
+database, starts the no-bind-mount runtime and runs the source, exact action
+registry, database, schema, image, service and direct-Paperless-identity gates.
+Both regulatory live
 guards remain `0`. Target finalization provisions and verifies the individual
 Paperless identities and synchronizes document permissions without importing
 source credentials or relying on first login. The final gate checks that state;

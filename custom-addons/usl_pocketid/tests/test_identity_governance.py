@@ -526,6 +526,23 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             notifications_before,
         )
 
+    def test_optional_historical_profile_does_not_create_a_clean_install_user(self):
+        prepared = self.env["res.users"]._usl_pocketid_prepare_user_configuration(
+            [
+                {
+                    "login": "absent.historical@example.invalid",
+                    "profile": "historical",
+                    "optional_if_missing": True,
+                },
+            ],
+        )
+        self.assertFalse(prepared)
+        self.assertFalse(
+            self.env["res.users"].with_context(active_test=False).search(
+                [("login", "=", "absent.historical@example.invalid")],
+            ),
+        )
+
     def test_strict_configuration_refuses_unclassified_human_users(self):
         with self.assertRaisesRegex(ValidationError, "explicitly classified"):
             self.env["res.users"]._usl_pocketid_apply_user_configuration(
