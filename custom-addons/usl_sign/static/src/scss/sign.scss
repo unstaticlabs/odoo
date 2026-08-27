@@ -818,7 +818,7 @@
 
 .usl_sign_method_radio.o_field_radio .o_horizontal {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
     gap: .5rem;
     width: 100%;
 
@@ -1245,8 +1245,10 @@
 }
 
 .usl_sign_systray_requests {
-    width: 28rem;
-    max-width: 100vw;
+    width: min(24rem, calc(100vw - 1rem));
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
 }
 
 .usl_sign_systray_heading {
@@ -1269,6 +1271,17 @@
     align-items: center;
     gap: .75rem;
     padding: .8rem 1rem;
+
+    > * {
+        min-width: 0;
+    }
+
+    .badge {
+        max-width: 7rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .usl_sign_systray_request_icon {
@@ -1286,6 +1299,25 @@
     padding: .7rem 1rem;
     border-top: 1px solid var(--border-color, #dee2e6);
     text-decoration: none;
+}
+
+@media (max-width: 480px) {
+    .usl_sign_systray_heading {
+        align-items: flex-start;
+        gap: .5rem;
+    }
+
+    .usl_sign_systray_request {
+        flex-wrap: wrap;
+
+        > .min-w-0 {
+            flex-basis: calc(100% - 3rem);
+        }
+
+        .badge {
+            margin-inline-start: 2.75rem;
+        }
+    }
 }
 
 .usl_sign_inspector_section {
@@ -1696,10 +1728,6 @@
 }
 
 @media (max-width: 991.98px) {
-    .usl_sign_method_radio.o_field_radio .o_horizontal {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
     .usl_sign_inspector_header {
         align-items: stretch;
         flex-direction: column;

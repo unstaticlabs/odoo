@@ -4,6 +4,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.misc import format_datetime
 
+from .constants import TRUST_LEVELS
+
 
 class SignWorkspace(models.AbstractModel):
     _name = "usl.sign.workspace"
@@ -156,10 +158,23 @@ class SignWorkspace(models.AbstractModel):
         return item
 
     @api.model
-    def _section(self, model, domain, item_builder, *, order, limit=6):
+    def _section(
+        self,
+        model,
+        domain,
+        item_builder,
+        *,
+        order,
+        limit=6,
+        more_action=False,
+    ):
         count = self.env[model].search_count(domain)
         records = self.env[model].search(domain, order=order, limit=limit)
-        return {"count": count, "items": [item_builder(record) for record in records]}
+        return {
+            "count": count,
+            "items": [item_builder(record) for record in records],
+            "more_action": more_action if count > limit else False,
+        }
 
     @api.model
     def _records_section(self, records, item_builder, *, limit=6):
@@ -278,6 +293,8 @@ class SignWorkspace(models.AbstractModel):
                 ),
                 self._completed_item,
                 order="completed_at desc, id desc",
+                limit=5,
+                more_action="usl_sign.completed_documents_action",
             ),
         }
         return {
@@ -315,6 +332,38 @@ class SignStart(models.TransientModel):
         required=True,
         default=lambda self: self.env.company,
     )
+    requested_trust = fields.Selection(
+        TRUST_LEVELS,
+        string="Signing method",
+        default="standard",
+        required=True,
+    )
+    signing_method_summary = fields.Char(
+        compute="_compute_signing_method_summary",
+        readonly=True,
+    )
+
+    @api.depends("requested_trust")
+    def _compute_signing_method_summary(self):
+        summaries = {
+            "standard": _(
+                "Private links record each signer’s consent and actions. The final "
+                "PDF receives one platform integrity seal."
+            ),
+            "strong_personal": _(
+                "Each signer needs an approved identity and fresh Pocket ID passkey. "
+                "Personal PDF signatures are applied one after another, in signer order."
+            ),
+            "qualified_external": _(
+                "A reviewed external provider applies the qualified signature. You "
+                "will choose that provider before sending."
+            ),
+        }
+        for wizard in self:
+            wizard.signing_method_summary = summaries.get(
+                wizard.requested_trust,
+                "",
+            )
 
     @api.model
     def _record_models(self):
@@ -347,6 +396,7 @@ class SignStart(models.TransientModel):
                     if self.record_ref
                     else False
                 ),
+                "default_requested_trust": self.requested_trust,
                 "active_id": self.template_id.id,
                 "active_model": self.template_id._name,
             }
@@ -379,6 +429,8 @@ class SignStart(models.TransientModel):
                 if self.record_ref
                 else False,
                 "responsible_message": self.message,
+                "requested_trust": self.requested_trust,
+                "signing_order": self.requested_trust == "strong_personal",
                 "signer_ids": [
                     (
                         0,
