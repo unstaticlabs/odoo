@@ -315,6 +315,13 @@ clean_install() {
     -e ODOO_INIT_DB=odoo_dev init-db odoo \
     --config=/etc/odoo/odoo.conf --database=odoo_dev \
     --init="$product_modules" --without-demo=true --stop-after-init --log-level=warn
+  # Odoo's auto-install fixed point includes optional demo/marketing products
+  # that are not part of Distribution. Remove only the reviewed exact set and
+  # abort if a supported installed module has acquired a dependency on it.
+  "${compose[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/enforce_product_module_scope.py"
   "${compose[@]}" --profile init run --rm -T \
     -e ODOO_INIT_DB=odoo_dev \
     init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \

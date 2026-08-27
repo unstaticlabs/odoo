@@ -176,6 +176,86 @@
       }
     },
     {
+      "action_key": "rpc:account.bank.ingestion.config.unlink",
+      "action_name": "permanently delete account.bank.ingestion.config",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.config",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.file.unlink",
+      "action_name": "permanently delete account.bank.ingestion.file",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.file",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.unlink",
+      "action_name": "permanently delete account.bank.ingestion",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.ingestion.upload.unlink",
+      "action_name": "permanently delete account.bank.ingestion.upload",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.ingestion.upload",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.certification.unlink",
+      "action_name": "permanently delete account.bank.statement.certification",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.certification",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.confirm.unlink",
+      "action_name": "permanently delete account.bank.statement.confirm",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.confirm",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.exception.unlink",
+      "action_name": "permanently delete account.bank.statement.exception",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.exception",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:account.bank.statement.reopen.unlink",
+      "action_name": "permanently delete account.bank.statement.reopen",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "account.bank.statement.reopen",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:account.fiscal.position.action_create_foreign_taxes",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -512,16 +592,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "fetchmail.server",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:gamification.badge.unlink",
-      "action_name": "permanently delete gamification.badge",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "gamification.badge",
         "operation": "unlink"
       }
     },
@@ -1236,26 +1306,6 @@
       }
     },
     {
-      "action_key": "rpc:mailing.list.unlink",
-      "action_name": "permanently delete mailing.list",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mailing.list",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:mailing.mailing.unlink",
-      "action_name": "permanently delete mailing.mailing",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mailing.mailing",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:microsoft.outlook.mixin.unlink",
       "action_name": "permanently delete microsoft.outlook.mixin",
       "classification": "protected",
@@ -1861,16 +1911,6 @@
       }
     },
     {
-      "action_key": "rpc:survey.survey.unlink",
-      "action_name": "permanently delete survey.survey",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "survey.survey",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:uom.uom.unlink",
       "action_name": "permanently delete uom.uom",
       "classification": "protected",
@@ -2316,16 +2356,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:gamification.ir_cron_check_challenge_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:gamification.ir_cron_consolidate_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "action_name": "execute a server action",
       "classification": "protected"
@@ -2447,21 +2477,6 @@
     },
     {
       "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_ab_testing_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_queue_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mass_mailing.mailing_list_merge_action",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2846,7 +2861,12 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:survey.action_survey_print",
+      "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2862,6 +2882,11 @@
     },
     {
       "action_key": "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2911,7 +2936,7 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "9f3c5c325edba9cc4bce32df057cfbd3ec6c8ee68c6b3939c963d55964dd1f24",
-  "runtime_policy_sha256": "8e1214c6042c8ac527befce7e070473a993b6084f66da11a7f6bc7bb2b9ec491",
+  "qualified_policy_digest": "9abfe00196c4dbd4f09a922ddf46999b015e3cb643acde9ac0e0965e5ccedf90",
+  "runtime_policy_sha256": "994d1ff9c14eabf97b30c9eb4c093d422baf786daf899677532316ec521cf4e7",
   "schema": "usl-action-risk-protected-runtime-v1"
 }
