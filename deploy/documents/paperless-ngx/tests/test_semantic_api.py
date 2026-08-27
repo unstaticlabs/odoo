@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 from django.contrib.auth.models import Permission, User
@@ -5,6 +6,7 @@ from django.db.models import Q
 from django.test import TestCase
 from documents.bulk_edit import set_permissions
 from documents.models import Document, PaperlessTask
+from documents.signals.handlers import add_or_update_document_in_llm_index
 from documents.tasks import bulk_update_documents
 from guardian.shortcuts import assign_perm
 from paperless_ai.semantic_api import SemanticSearchUnavailable, query_lexical_index
@@ -97,6 +99,27 @@ class TestPermissionVectorInvariance(TestCase):
             rebuild=False,
             document_ids=[self.document.id],
         )
+
+    @patch("documents.signals.handlers.AIConfig")
+    @patch("documents.tasks.update_document_in_llm_index.apply_async")
+    def test_controlled_bulk_restore_defers_incremental_embedding(
+        self,
+        enqueue,
+        ai_config,
+    ):
+        ai_config.return_value.llm_index_enabled = True
+
+        with patch.dict(
+            os.environ,
+            {"PAPERLESS_USL_DEFER_SEMANTIC_INDEX": "true"},
+        ):
+            add_or_update_document_in_llm_index(
+                sender=None,
+                document=self.document,
+            )
+
+        enqueue.assert_not_called()
+        ai_config.assert_not_called()
 
 
 class TestSemanticSearchApi(APITestCase):

@@ -74,18 +74,28 @@ class DocumentLinkMixin(models.AbstractModel):
         # record. The technical operation itself retains its stricter owner /
         # administrator rules.
         Operation = self.env["usl.document.operation"].sudo()
-        for record in self:
-            domain = [
-                ("res_model", "=", record._name),
-                ("res_id", "=", record.id),
+        pending_states = {"pending", "uploading", "processing"}
+        failure_states = {"failed", "duplicate"}
+        grouped = Operation._read_group(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "in", self.ids),
                 ("acknowledged", "=", False),
-            ]
-            record.document_archive_pending_count = Operation.search_count(
-                domain + [("state", "in", ("pending", "uploading", "processing"))],
+                ("state", "in", list(pending_states | failure_states)),
+            ],
+            ["res_id", "state"],
+            ["__count"],
+        ) if self.ids else []
+        pending_by_record = {record_id: 0 for record_id in self.ids}
+        failures_by_record = {record_id: 0 for record_id in self.ids}
+        for record_id, state, count in grouped:
+            target = (
+                pending_by_record if state in pending_states else failures_by_record
             )
-            record.document_archive_failure_count = Operation.search_count(
-                domain + [("state", "in", ("failed", "duplicate"))],
-            )
+            target[record_id] = target.get(record_id, 0) + count
+        for record in self:
+            record.document_archive_pending_count = pending_by_record[record.id]
+            record.document_archive_failure_count = failures_by_record[record.id]
 
     def action_open_documents_workspace(self):
         self.ensure_one()

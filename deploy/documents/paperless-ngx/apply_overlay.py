@@ -233,6 +233,37 @@ patch_file(
 )
 
 patch_file(
+    "documents/signals/handlers.py",
+    "1a593a6b81a2a2111ace6dd6527418e88da7761c9a0a9ce282c3322e0f496692",
+    (
+        (
+            "import logging\n",
+            "import logging\nimport os\n",
+        ),
+        (
+            '''    if kwargs.get("skip_ai_index"):
+        return
+    ai_config = AIConfig()
+''',
+            '''    if kwargs.get("skip_ai_index"):
+        return
+    if os.getenv(
+        "PAPERLESS_USL_DEFER_SEMANTIC_INDEX",
+        "false",
+    ).lower() == "true":
+        logger.info(
+            "Deferring semantic indexing for document %s until the governed "
+            "bulk update.",
+            document.pk,
+        )
+        return
+    ai_config = AIConfig()
+''',
+        ),
+    ),
+)
+
+patch_file(
     "documents/bulk_edit.py",
     "f233105bb95c8ad406b006705c55218011f47fd3cfbe263d10e07064537e6058",
     (

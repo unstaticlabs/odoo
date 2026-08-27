@@ -1,5 +1,68 @@
 # Product performance audit
 
+## Integrated performance pass — 27 August 2026
+
+The combined Documents candidate exposed two additional measured bottlenecks.
+The first was product-facing: opening a 40-document workspace, including its
+authorized record facets, used 426 SQL queries and 432.8 ms in an isolated
+fresh-install database. The second was migration-facing: the source-complete
+archive rehearsal interleaved every consumed document with a separate BGE-M3
+Celery job. Individual semantic jobs took approximately 55–337 seconds on the
+local CPU-saturated Ollama service, leaving 15 uploads waiting behind the
+embedding worker for most of the run.
+
+The integrated fixes are deliberately separate:
+
+- Workspace links, record facets, Contacts, Employees and computed presentation
+  roles are resolved in batches. The same 40-document request now uses 75
+  queries and 67.3 ms: 82% fewer queries and 84% less local server time. The
+  regression ceiling is 85 queries, and all target visibility checks still run
+  through the caller's Odoo ACLs and record rules.
+- Processing/failure badges on 40 business records now use one grouped
+  operation read instead of 80 independent `search_count` calls. The complete
+  read uses 10 queries, and active operation lookup has a partial composite
+  index on record identity and state.
+- Governed source reconstruction now defers only incremental semantic-index
+  signals while the bounded upload/OCR/metadata phase runs. It then force
+  restores normal Paperless behavior and executes the supported
+  `document_llmindex migrate`, `update` and `compact` sequence once. Release
+  inventory must prove zero active tasks and exact document/vector coverage;
+  failure restores the normal runtime and fails the migration. Ordinary user
+  uploads are unchanged, and production admission rejects the deferral switch.
+
+Paperless `3.0.5-usl.6` is the first overlay containing the controlled bulk
+index path. Its hash-guarded ARM64 image built successfully and its 21 focused
+Django tests passed. A complete post-change source reconstruction is still
+required before quoting an end-to-end migration speedup or qualifying an AMD64
+production image. The full rehearsal already running when this pass began uses
+the older `3.0.5-usl.5` behavior and remains evidence of the bottleneck, not
+evidence for the optimized path.
+
+### Wider audit findings
+
+Existing QA evidence shows why the reusable seed remains important. Clean
+product installation measured 274 seconds. Qualified seed hydration measured
+88–127 seconds, while branch-specific upgrade/finalization measured 199–353
+seconds depending on the integrated module set. The current cache design keeps
+writable databases and service volumes isolated, validates content digests,
+and records zero OCR/download work on a warm hit; weakening those checks for a
+faster apparent result was rejected.
+
+The Odoo image build sent about 1.08 GB of required upstream source in 26
+seconds during an uncached context transfer. Most of that is the delivered
+Odoo source tree, not disposable artifacts; dumps, Git data and private
+migration evidence are already excluded. A split prebuilt upstream-source base
+could reduce developer rebuild latency, but it would add another release
+artifact and identity boundary. It remains a measured follow-up rather than an
+unreviewed change in this pass.
+
+Increasing Paperless workers was also rejected as the primary migration fix.
+Ollama was already saturating the available CPU, so extra Celery workers would
+mainly increase memory pressure and contention. Increasing embedding chunk size
+would reduce work but alter retrieval quality and the frozen release contract.
+The selected two-phase flow preserves the qualified BGE-M3 model, 512-token
+chunks, OCR output and final vector parity.
+
 ## Scope and method
 
 The 2026-08-27 audit covered the delivered custom add-ons, the Odoo runtime
@@ -90,7 +153,8 @@ budget first; database tuning should follow observed production statistics.
 ## Regression and operational checks
 
 The `usl_documents_performance` tests fail if the 40-record paths exceed 15
-badge queries, 25 link-helper queries, or 10 metadata-resolution queries. Run
+document-badge queries, 12 operation-status queries, 25 link-helper queries,
+10 metadata-resolution queries or 85 complete-workspace queries. Run
 them in an isolated test database with:
 
 ```bash

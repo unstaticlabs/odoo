@@ -36,6 +36,16 @@ merge, clean `19-usl` must publish it and prove one cold hydration followed by
 fail-closed warm reuse. Release qualification also still requires the signed-in
 browser matrix and merge-commit admission into `19-usl`.
 
+The 27 August integrated performance pass additionally reduced the measured
+40-document workspace from 426 to 75 SQL queries and from 432.8 ms to 67.3 ms,
+and replaced per-record archive-status counts with one grouped query. The
+Paperless `3.0.5-usl.6` candidate separates bulk source ingestion from one
+verified semantic-index update so CPU-bound BGE-M3 jobs no longer block every
+subsequent upload. Its image build, hash guards, focused Django tests and
+migration safety tests pass. End-to-end migration timing, source-complete
+vector parity on the new path and production AMD64 qualification remain open;
+the older full reconstruction already in progress cannot satisfy those gates.
+
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
 Odoo Online `saas~19.3.1.3` accounting state while keeping

@@ -285,7 +285,7 @@ the ordinary product registry is accepted.
 
 `make documents-restore` installs the delivered Documents modules and replays
 the complete source Documents perimeter into a separately managed Paperless
-3.0.4 archive. On an existing reconstructed target, it first upgrades the
+3.0.5 archive. On an existing reconstructed target, it first upgrades the
 accounting parent module so stored business views are current before the
 Documents accounting extension is revalidated. It is not a filestore copy:
 
@@ -314,6 +314,10 @@ Documents accounting extension is revalidated. It is not a filestore copy:
   supported formats must return a non-empty typed preview; API v10 and actual
   permission read-back must pass, and successful
   runs may not add an Odoo binary attachment;
+- incremental BGE-M3 work is deferred only during governed bulk replay. Normal
+  runtime is restored before one supported migrate/update/compact pass, and
+  both the Paperless task inventory and vector/document parity must pass before
+  the stage can seal its checkpoint;
 - the three qualified text containers rejected by Paperless 3.0.5—the generated
   FEC ZIP, an accounting XML, and calendar evidence—remain byte-for-byte Odoo
   operational attachments and are checksum-linked to deterministic, searchable

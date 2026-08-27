@@ -221,6 +221,16 @@ identity. Governed interactive accounts and mappings are target configuration
 created after business-data parity, so a clean reconstruction is immediately
 usable without weakening source-truth controls.
 
+Source-complete reconstruction uses a controlled two-phase semantic-index
+path. While the bounded uploader materializes originals, OCR, metadata and
+permissions, `PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true` suppresses only the
+incremental post-consume embedding signal. The migration runner then waits for
+all ordinary Paperless tasks, force recreates the service with the switch set
+back to `false`, runs the supported vector migrate/update/compact commands, and
+requires release-inventory parity. Its exit trap restores normal runtime even
+after failure. Do not set this variable for ordinary operation; production and
+pre-production admission reject it.
+
 ## Storage
 
 Named volumes separate:

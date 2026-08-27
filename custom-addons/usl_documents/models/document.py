@@ -396,8 +396,9 @@ class UslDocument(models.Model):
     @api.depends("intake_role", "link_ids.active", "link_ids.document_role")
     @api.depends_context("uid", "allowed_company_ids")
     def _compute_is_prominent(self):
+        visible_by_document = self._accessible_active_links_by_document()
         for document in self:
-            accessible_roles = document._accessible_active_links().mapped(
+            accessible_roles = visible_by_document[document.id].mapped(
                 "document_role",
             )
             document.is_prominent = (
@@ -434,8 +435,9 @@ class UslDocument(models.Model):
                 ],
             ).mapped("document_id").ids,
         )
+        visible_by_document = self._accessible_active_links_by_document()
         for document in self:
-            accessible_roles = document._accessible_active_links().mapped(
+            accessible_roles = visible_by_document[document.id].mapped(
                 "document_role",
             )
             document.is_in_my_library = (
@@ -2069,19 +2071,47 @@ class UslDocument(models.Model):
     @api.model
     def _workspace_correspondent_values(self, correspondent):
         """Return archive metadata without exposing an inaccessible Contact."""
-        partner = self.env["res.partner"]
-        mapped_partner = correspondent.sudo().partner_id
-        if mapped_partner:
-            partner = self.env["res.partner"].search(
-                [("id", "=", mapped_partner.id)],
-                limit=1,
-            )
-        return {
-            "id": correspondent.id,
-            "name": partner.display_name if partner else correspondent.name,
-            "archive_name": correspondent.name,
-            "partner_id": partner.id,
+        return self._workspace_correspondent_values_by_id(correspondent).get(
+            correspondent.id,
+            {
+                "id": False,
+                "name": False,
+                "archive_name": False,
+                "partner_id": False,
+            },
+        )
+
+    @api.model
+    def _workspace_correspondent_values_by_id(self, correspondents):
+        """Serialize correspondents with one ACL-aware Contact lookup."""
+        correspondents = correspondents.exists()
+        if not correspondents:
+            return {}
+        partner_id_by_correspondent = {
+            correspondent.id: correspondent.partner_id.id
+            for correspondent in correspondents.sudo()
         }
+        partner_ids = {
+            partner_id
+            for partner_id in partner_id_by_correspondent.values()
+            if partner_id
+        }
+        visible_partners = self.env["res.partner"].search(
+            [("id", "in", list(partner_ids))],
+        )
+        visible_partner_by_id = {partner.id: partner for partner in visible_partners}
+        values_by_id = {}
+        for correspondent in correspondents:
+            partner = visible_partner_by_id.get(
+                partner_id_by_correspondent.get(correspondent.id),
+            )
+            values_by_id[correspondent.id] = {
+                "id": correspondent.id,
+                "name": partner.display_name if partner else correspondent.name,
+                "archive_name": correspondent.name,
+                "partner_id": partner.id if partner else False,
+            }
+        return values_by_id
 
     @api.model
     def _broad_search_terms(self, domain):
@@ -2147,23 +2177,36 @@ class UslDocument(models.Model):
         return ", ".join(clauses)
 
     @api.model
-    def _workspace_document_values(self, item, semantic_scores=None):
+    def _workspace_document_values(
+        self,
+        item,
+        semantic_scores=None,
+        *,
+        active_links=None,
+        correspondent=None,
+        employee_by_id=None,
+    ):
         semantic_similarity = (semantic_scores or {}).get(item.paperless_id)
-        active_links = item._accessible_active_links()
+        if active_links is None:
+            active_links = item._accessible_active_links()
         employee_link = active_links.filtered(
             lambda link: link.res_model == "hr.employee",
         )[:1]
-        employee = (
-            self.env["hr.employee"].search(
-                [("id", "=", employee_link.res_id)],
-                limit=1,
+        if employee_by_id is None:
+            employee = (
+                self.env["hr.employee"].search(
+                    [("id", "=", employee_link.res_id)],
+                    limit=1,
+                )
+                if employee_link
+                else self.env["hr.employee"]
             )
-            if employee_link
-            else self.env["hr.employee"]
-        )
-        correspondent = self._workspace_correspondent_values(
-            item.correspondent_id,
-        )
+        else:
+            employee = employee_by_id.get(employee_link.res_id)
+        if correspondent is None:
+            correspondent = self._workspace_correspondent_values(
+                item.correspondent_id,
+            )
         return {
             "id": item.id,
             "name": item.name,
@@ -2235,6 +2278,51 @@ class UslDocument(models.Model):
                 else False
             ),
             "paperless_url": item.paperless_url,
+        }
+
+    @api.model
+    def _workspace_documents_values(
+        self,
+        documents,
+        semantic_scores=None,
+        *,
+        visible_links_by_document=None,
+    ):
+        """Serialize a result window without per-document security queries."""
+        if not documents:
+            return {}
+        documents = documents.exists()
+        if visible_links_by_document is None:
+            visible_links_by_document = (
+                documents._accessible_active_links_by_document()
+            )
+        correspondent_by_id = self._workspace_correspondent_values_by_id(
+            documents.mapped("correspondent_id"),
+        )
+        employee_ids = {
+            employee_link.res_id
+            for document in documents
+            if (
+                employee_link := visible_links_by_document[document.id].filtered(
+                    lambda link: link.res_model == "hr.employee",
+                )[:1]
+            )
+        }
+        employee_by_id = {
+            employee.id: employee
+            for employee in self.env["hr.employee"].search(
+                [("id", "in", list(employee_ids))],
+            )
+        }
+        return {
+            document.id: self._workspace_document_values(
+                document,
+                semantic_scores,
+                active_links=visible_links_by_document[document.id],
+                correspondent=correspondent_by_id.get(document.correspondent_id.id),
+                employee_by_id=employee_by_id,
+            )
+            for document in documents
         }
 
     @api.model
@@ -2628,10 +2716,14 @@ class UslDocument(models.Model):
                 "error": str(error),
             }
         link_facets = []
+        visible_links_by_document = None
         if include_workspace_metadata:
+            visible_links_by_document = (
+                accessible_documents._accessible_active_links_by_document()
+            )
             seen_links = set()
             for document in accessible_documents:
-                for link in document._accessible_active_links():
+                for link in visible_links_by_document[document.id]:
                     key = f"{link.res_model}:{link.res_id}"
                     if key in seen_links:
                         continue
@@ -2656,15 +2748,19 @@ class UslDocument(models.Model):
                 if ordered_ids is not None
                 else self.search(domain, order=order, limit=500)
             )
+        serialized_documents = documents | result_window
+        if visible_links_by_document is None:
+            visible_links_by_document = (
+                serialized_documents._accessible_active_links_by_document()
+            )
+        serialized_by_id = self._workspace_documents_values(
+            serialized_documents,
+            semantic_scores,
+            visible_links_by_document=visible_links_by_document,
+        )
         result = {
-            "documents": [
-                self._workspace_document_values(item, semantic_scores)
-                for item in documents
-            ],
-            "result_window": [
-                self._workspace_document_values(item, semantic_scores)
-                for item in result_window
-            ],
+            "documents": [serialized_by_id[item.id] for item in documents],
+            "result_window": [serialized_by_id[item.id] for item in result_window],
             "result_window_offset": 0,
             "result_window_complete": bool(
                 archive_search_requested and count <= len(result_window),
@@ -4549,6 +4645,10 @@ class UslDocumentOperation(models.Model):
     _name = "usl.document.operation"
     _description = "Document Ingestion Operation"
     _order = "create_date desc, id desc"
+
+    _active_record_status_idx = models.Index(
+        "(res_model, res_id, state) WHERE acknowledged IS NOT TRUE",
+    )
 
     name = fields.Char(required=True, readonly=True)
     state = fields.Selection(

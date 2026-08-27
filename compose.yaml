@@ -41,10 +41,11 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
       PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
       PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
       PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
@@ -132,6 +133,7 @@ services:
             echo "Paperless distribution base digest is not qualified"; exit 1;
           }
           [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
+          [ "$${PAPERLESS_USL_DEFER_SEMANTIC_INDEX}" = "false" ] || { echo "Deferred semantic indexing is migration-only"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BACKEND}" = "ollama" ] || { echo "Paperless embeddings must use Ollama"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" = "usl-bge-m3:documents-20260824-rc1" ] || { echo "Paperless BGE-M3 alias is not qualified"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
@@ -254,7 +256,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
@@ -300,6 +302,7 @@ services:
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://paperless-tika:9998
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
       PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
       PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
       PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: http://paperless-ollama:11434
@@ -337,7 +340,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -358,7 +361,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
     restart: "no"
     depends_on:
       paperless-webserver:

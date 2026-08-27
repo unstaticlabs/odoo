@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+semantic-search-api-v2+personal-gemini-v1` has four bounded feature
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1` has five bounded feature
 groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
@@ -28,11 +28,17 @@ groups:
    edits as embedding-invariant. Those edits no longer recompute unchanged
    BGE-M3 vectors or hit the 30-minute task limit. Every other bulk metadata or
    content edit retains the upstream vector refresh.
-3. The same module adds the authenticated, read-only
+3. Controlled one-shot archive reconstruction may set
+   `PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true` while OCR, metadata, and
+   permission truth are materialized. Incremental embedding tasks are then
+   suppressed, the normal runtime is force-restored, and Paperless's supported
+   migrate/update/compact commands must produce a complete vector inventory.
+   Production admission rejects this migration-only switch.
+4. The same module adds the authenticated, read-only
    `POST /api/documents/semantic_search/` endpoint. It uses Paperless's native
    Ollama embedding client and `llmindex.db`; it never opens the vector database
    from Odoo.
-4. `paperless_personal_ai` is a supported Django app loaded through
+5. `paperless_personal_ai` is a supported Django app loaded through
    `PAPERLESS_APPS`. It owns per-user Gemini configuration, an encrypted
    user-bound credential, profile-only APIs, release checks, and runtime
    permission rechecks. The exact-source backend patch removes native global

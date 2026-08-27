@@ -56,6 +56,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
                 self.assertEqual(completed.returncode, 2)
                 self.assertIn("Refusing unsafe", completed.stderr)
 
+    def test_rejects_invalid_restore_timeout(self):
+        for value in ("", "0", "later"):
+            with self.subTest(value=value):
+                completed = self.run_runner(
+                    COMPOSE_PROJECT_NAME="codex-migration-safety-test",
+                    DOCUMENTS_RESTORE_TIMEOUT=value,
+                )
+                self.assertEqual(completed.returncode, 2)
+                self.assertIn("positive number of seconds", completed.stderr)
+
     def test_rejects_reserved_main_and_feature_ports(self):
         for variable, port in (
             ("DOCUMENTS_MIGRATION_PAPERLESS_PORT", "8010"),
@@ -124,7 +134,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("workflows.update(enabled=False)", cleanup)
         self.assertIn("user.is_active = False", cleanup)
         self.assertIn("user.is_superuser = False", cleanup)
-        self.assertIn("trap deprovision_archive_identity EXIT", runner)
+        self.assertIn("trap cleanup_documents_restore EXIT", runner)
+        self.assertIn("deprovision_archive_identity || cleanup_status=$?", runner)
+        self.assertIn("restore_semantic_runtime || cleanup_status=$?", runner)
 
     def test_release_inventory_fails_closed_on_every_queue_and_boundary_counter(self):
         inventory = RELEASE_INVENTORY.read_text(encoding="utf-8")
@@ -165,6 +177,34 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("Run the normal fresh reconstruction", checkpoint)
 
+    def test_bulk_restore_defers_then_verifies_semantic_index(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+
+        self.assertIn('DOCUMENTS_DEFER_SEMANTIC_INDEX:-1', script)
+        self.assertIn("enable_semantic_index_deferral", script)
+        self.assertIn("finalize_semantic_index", script)
+        self.assertLess(
+            script.index("run_restore\n        finalize_semantic_index"),
+            script.index("run_native_attachment_bridge", script.index("case \"$command_name\"")),
+        )
+        for command in (
+            "document_llmindex migrate",
+            "document_llmindex update",
+            "document_llmindex compact",
+            "scripts/paperless_release_inventory.py",
+        ):
+            self.assertIn(command, script)
+        self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true", script)
+        self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=false", script)
+        self.assertIn("--force-recreate --no-deps paperless-webserver", script)
+        self.assertIn("wait_for_archive_tasks", script)
+        self.assertIn("documents_paperlesstask", script)
+        self.assertIn(
+            "Deferred semantic indexing is migration-only",
+            compose,
+        )
+
     def test_canonical_reset_clears_target_mirror_before_archive_volumes(self):
         script = SCRIPT.read_text(encoding="utf-8")
         reset = (
@@ -204,7 +244,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("migration source bindings are absent", script)
         self.assertIn("make qa-cache-refresh", script)
         self.assertLess(
-            script.index("require_source_bindings\n        start_archive"),
+            script.index(
+                "require_source_bindings\n        enable_semantic_index_deferral",
+            ),
             script.index("verify_checkpoint\n        run_restore"),
         )
 
