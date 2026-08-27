@@ -30,15 +30,30 @@ class SignWorkspace(models.AbstractModel):
     @api.model
     def _completed_domain(self):
         """Apply the product completion contract again at the read boundary."""
-        return [
-            ("state", "=", "completed"),
-            ("validation_status", "=", "valid"),
-            ("evidence_status", "=", "complete"),
-            ("archive_status", "=", "archived"),
-            ("final_data", "!=", False),
-            ("completion_certificate", "!=", False),
-            ("dossier_data", "!=", False),
-        ]
+        native = fields.Domain.AND(
+            [
+                [("state", "=", "completed")],
+                [("validation_status", "=", "valid")],
+                [("evidence_status", "=", "complete")],
+                [("archive_status", "=", "archived")],
+                [("final_data", "!=", False)],
+                [("completion_certificate", "!=", False)],
+                [("dossier_data", "!=", False)],
+            ],
+        )
+        external = fields.Domain.AND(
+            [
+                [("state", "=", "external_archived")],
+                [("record_kind", "=", "external_archive")],
+                [("validation_status", "=", "not_started")],
+                [("evidence_status", "=", "not_started")],
+                [("archive_status", "=", "archived")],
+                [("data", "!=", False)],
+                [("archive_document_id", "!=", False)],
+                [("archive_dossier_document_id", "!=", False)],
+            ],
+        )
+        return fields.Domain.OR([native, external])
 
     @api.model
     def _request_item(self, request):
@@ -74,6 +89,11 @@ class SignWorkspace(models.AbstractModel):
             )
         presentations = {
             "signed": (_("Signed"), "signed", "fa-check"),
+            "external_recorded": (
+                _("Recorded externally"),
+                "ready",
+                "fa-info-circle",
+            ),
             "declined": (_("Declined"), "attention", "fa-times"),
             "expired": (_("Expired"), "muted", "fa-clock-o"),
             "cancelled": (_("Cancelled"), "muted", "fa-ban"),
