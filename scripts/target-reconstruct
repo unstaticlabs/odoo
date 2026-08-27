@@ -88,6 +88,23 @@ case "$migration_purpose" in
     ;;
 esac
 
+prepare_personal_ai_keyring() {
+  local configured_path="${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-}"
+  if [[ "$migration_purpose" == production && -z "$configured_path" ]]; then
+    printf 'Production migration requires USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH.\n' >&2
+    return 2
+  fi
+  configured_path="${configured_path:-$ROOT/.documents-personal-ai-keys.json}"
+  if [[ "$migration_purpose" == production && ! -f "$configured_path" ]]; then
+    printf 'Production Personal AI master-key file is missing: %s\n' \
+      "$configured_path" >&2
+    return 2
+  fi
+  python3 "$ROOT/scripts/documents_sso_env.py" \
+    --personal-ai-key-file "$configured_path" >/dev/null
+  export USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH="$configured_path"
+}
+
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
 if [[ ! -d "$source_dump_dir" ]]; then
   printf 'Migration source package is incomplete: %s\n' "$source_dump_dir" >&2
@@ -433,6 +450,7 @@ revalidate_finalized_qa_cache() {
 }
 
 run_stage "Docker resource preflight" scripts/migration-resource-preflight
+run_stage "Personal AI key preflight" prepare_personal_ai_keyring
 run_stage "target identity preflight" preflight_target_identity
 start_target_database
 stop_product

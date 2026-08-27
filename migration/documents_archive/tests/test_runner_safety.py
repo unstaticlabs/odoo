@@ -422,6 +422,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
     def test_clean_paperless_bootstrap_is_digest_pinned(self):
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
         stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn("paperless-model-init:", compose)
         self.assertIn('ollama pull "$$USL_BGE_SOURCE_MODEL"', compose)
@@ -437,6 +438,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertIn("paperless-model-init", stack)
         self.assertIn("Paperless BGE-M3 bootstrap digest is not pinned", stack)
+        self.assertIn("prepare_personal_ai_keyring", target)
+        self.assertIn(
+            "Production migration requires USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
+            target,
+        )
+        self.assertIn('run_stage "Personal AI key preflight"', target)
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
