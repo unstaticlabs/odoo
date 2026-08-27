@@ -213,37 +213,12 @@
     }
 }
 
-.usl_sign_proof_notice,
 .usl_sign_location_status {
-    display: flex;
-    align-items: flex-start;
-    gap: .4rem;
-    margin: 0 0 .45rem;
-    color: #5b6168;
-    font-size: .75rem;
-    line-height: 1.35;
-}
-
-.usl_sign_proof_details {
+    max-width: 65ch;
     margin: .35rem 0 0 2.1rem;
     color: #5b6168;
     font-size: .75rem;
-
-    summary {
-        width: fit-content;
-        cursor: pointer;
-        text-decoration: underline;
-        text-underline-offset: .15rem;
-    }
-
-    p {
-        max-width: 65ch;
-        margin-top: .35rem;
-    }
-}
-
-.usl_sign_location_status {
-    margin: .35rem 0 0 .875rem;
+    line-height: 1.35;
 }
 
 .usl_sign_consent_choice {
@@ -288,6 +263,15 @@
     margin-bottom: .15rem;
     color: #212529;
     font-size: .875rem;
+}
+
+.usl_sign_consent_privacy {
+    display: block;
+    max-width: 65ch;
+    color: #5b6168;
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1.35;
 }
 
 .usl_sign_consent_choice > span > span {
