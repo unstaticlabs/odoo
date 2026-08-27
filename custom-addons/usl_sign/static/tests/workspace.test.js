@@ -87,10 +87,12 @@ test("landing renders the five document journeys and routes only the selected ac
     expect(".usl_sign_signer_chip--ready").toHaveText(/Roger Example\s*Invited/);
     expect(".usl_sign_signer_chip--ready .fa-envelope").toHaveCount(1);
 
+    await contains("header .btn-outline-primary").click();
     await contains("header .btn-primary").click();
     await contains(".list-group-item-action").click();
 
     expect(actions).toEqual([
+        {action: "usl_sign.signature_inspector_action", options: undefined},
         {action: "usl_sign.sign_start_action", options: undefined},
         {
             action: {
