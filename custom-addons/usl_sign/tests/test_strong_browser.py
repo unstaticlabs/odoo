@@ -697,9 +697,9 @@ class TestSignBrowserJourneys(HttpCase):
                         iframe?.contentDocument?.querySelector(
                             '.o_sign_oca_field[data-field="1"] [role="button"]',
                         ) && document.getElementById("sign_oca_button") &&
-                        Array.from(document.querySelectorAll("button")).some(
-                            (button) => button.textContent.includes("Next field"),
-                        )
+                        iframe.contentDocument.querySelector(
+                            ".o_sign_sign_item_navigator",
+                        )?.textContent.includes("Click to start")
                     ) {
                         break;
                     }
@@ -710,8 +710,8 @@ class TestSignBrowserJourneys(HttpCase):
                     '.o_sign_oca_field[data-field="1"] [role="button"]',
                 );
                 const header = document.querySelector(".usl_sign_portal_header");
-                const guide = Array.from(document.querySelectorAll("button")).find(
-                    (candidate) => candidate.textContent.includes("Next field"),
+                const guide = iframe?.contentDocument?.querySelector(
+                    ".o_sign_sign_item_navigator",
                 );
                 const submit = document.getElementById("sign_oca_button");
                 if (!field || !guide || !submit || !submit.disabled) {
@@ -747,6 +747,9 @@ class TestSignBrowserJourneys(HttpCase):
                 await new Promise((resolve) => setTimeout(resolve, 450));
                 if (document.querySelector(".modal") || !field.closest(".o_sign_oca_field")) {
                     throw new Error("The optional guide filled a field instead of only navigating.");
+                }
+                if (!guide.textContent.includes("Next")) {
+                    throw new Error("The Strong field guide did not advance from its start state.");
                 }
                 console.log("test successful");
             })();
@@ -1036,9 +1039,9 @@ class TestSignBrowserJourneys(HttpCase):
                     for (let attempt = 0; attempt < 400; attempt++) {
                         if (
                             iframe.contentDocument?.querySelector(".o_sign_oca_field") &&
-                            Array.from(document.querySelectorAll("button")).some(
-                                (button) => button.textContent.includes("Next field"),
-                            )
+                            iframe.contentDocument.querySelector(
+                                ".o_sign_sign_item_navigator",
+                            )?.textContent.includes("Click to start")
                         ) {
                             break;
                         }
@@ -1064,10 +1067,7 @@ class TestSignBrowserJourneys(HttpCase):
                         throw new Error("The desktop signer actions are missing.");
                     }
                     const footer = document.querySelector(".o_sign_oca_footer");
-                    const guide = Array.from(document.querySelectorAll("button")).find(
-                        (candidate) => candidate.textContent.includes("Next field"),
-                    );
-                    const oldNavigator = iframe.contentDocument.querySelector(
+                    const guide = iframe.contentDocument.querySelector(
                         ".o_sign_sign_item_navigator",
                     );
                     if (!footer || getComputedStyle(footer).display === "none" || !guide) {
@@ -1076,8 +1076,16 @@ class TestSignBrowserJourneys(HttpCase):
                     if (footer.scrollWidth > footer.clientWidth + 1 || footer.clientHeight > 210) {
                         throw new Error("The signer footer overflows or obscures too much of the document.");
                     }
-                    if (oldNavigator) {
-                        throw new Error("The stale OCA field navigator is still active.");
+                    if (guide.getAttribute("role") !== "button" || guide.tabIndex !== 0) {
+                        throw new Error("The restored field guide is not keyboard accessible.");
+                    }
+                    const guideBox = guide.getBoundingClientRect();
+                    if (getComputedStyle(guide).position !== "fixed" || guideBox.left > 2) {
+                        throw new Error(
+                            `The field guide is not attached to the left document edge: ` +
+                            `left=${guideBox.left}, cssLeft=${getComputedStyle(guide).left}, ` +
+                            `parent=${guide.parentElement?.tagName}.${guide.parentElement?.className || ""}.`,
+                        );
                     }
                     const firstInput = iframe.contentDocument.querySelector(
                         '.o_sign_oca_field input[type="text"]',
@@ -1088,6 +1096,9 @@ class TestSignBrowserJourneys(HttpCase):
                     if (!firstInput || firstInput.value !== firstValueBeforeGuide) {
                         throw new Error("The optional guide filled a field automatically.");
                     }
+                    if (!guide.textContent.includes("Next")) {
+                        throw new Error("The field guide did not advance from its start state.");
+                    }
                     const viewer = iframe.contentDocument.getElementById("viewerContainer");
                     viewer.scrollTop = Math.max(0, viewer.scrollHeight - viewer.clientHeight);
                     viewer.dispatchEvent(new WheelEvent("wheel", {deltaY: 40, bubbles: true}));
@@ -1095,6 +1106,9 @@ class TestSignBrowserJourneys(HttpCase):
                     await new Promise((resolve) => setTimeout(resolve, 450));
                     if (Math.abs(viewer.scrollTop - manualScrollTop) > 2) {
                         throw new Error("Manual scrolling did not cancel guided navigation.");
+                    }
+                    if (!guide.isConnected || !guide.textContent.includes("Next")) {
+                        throw new Error("Manual scrolling disabled the field guide.");
                     }
                     window.dispatchEvent(new Event("resize"));
                     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -1128,6 +1142,16 @@ class TestSignBrowserJourneys(HttpCase):
                     }
                     if (!input) {
                         throw new Error("The Standard signer field did not render.");
+                    }
+                    const guide = iframe.contentDocument.querySelector(
+                        ".o_sign_sign_item_navigator",
+                    );
+                    const guideBox = guide?.getBoundingClientRect();
+                    if (
+                        !guideBox || guideBox.left < -1 ||
+                        guideBox.right > iframe.contentDocument.documentElement.clientWidth + 1
+                    ) {
+                        throw new Error("The mobile field guide overflows the document viewport.");
                     }
                     input.focus();
                     await new Promise((resolve) => setTimeout(resolve, 0));
