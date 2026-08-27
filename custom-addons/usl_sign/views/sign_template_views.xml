@@ -14,7 +14,7 @@
                     <button name="configure" type="object" string="Place fields" class="btn-primary"
                         invisible="preparation_status == 'ready' or has_requests"
                         groups="usl_sign.group_sign_template_manager"/>
-                    <button name="action_mark_ready" type="object" string="Review and publish" class="btn-primary"
+                    <button name="action_mark_ready" type="object" string="Review and publish" class="btn-primary" help="Validate the fields and publish this template for new signature requests."
                         invisible="preparation_status == 'ready' or has_requests"
                         groups="usl_sign.group_sign_template_manager"/>
                     <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action" string="Use template" class="btn-primary"
