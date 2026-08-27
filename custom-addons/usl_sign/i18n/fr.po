@@ -3770,3 +3770,55 @@ msgstr "Ce navigateur crée une clé de signature à usage unique pour ce PDF pr
 #. module: usl_sign
 msgid "Requested by"
 msgstr "Demandé par"
+
+#. module: usl_sign
+msgid "Decline this request and record the reason for the requester."
+msgstr "Refuser cette demande et consigner le motif pour le demandeur."
+
+#. module: usl_sign
+msgid "Start a new signature request for this contact."
+msgstr "Créer une demande de signature pour ce contact."
+
+#. module: usl_sign
+msgid "Start the reviewed Pocket ID setup required for Strong personal signatures."
+msgstr "Lancer la configuration Pocket ID vérifiée requise pour les signatures personnelles fortes."
+
+#. module: usl_sign
+msgid "Confirm that the connected Pocket ID account belongs to this known person. This enables future Strong signatures."
+msgstr "Confirmer que le compte Pocket ID connecté appartient à cette personne connue. Cette validation autorise ses futures signatures fortes."
+
+#. module: usl_sign
+msgid "Prevent this identity link from authorizing new Strong signatures. Completed documents remain unchanged."
+msgstr "Empêcher ce lien d’identité d’autoriser de nouvelles signatures fortes. Les documents terminés restent inchangés."
+
+#. module: usl_sign
+msgid "Freeze the document setup and review the signing method before sending."
+msgstr "Figer la préparation du document et vérifier la méthode de signature avant l’envoi."
+
+#. module: usl_sign
+msgid "Create a new draft from this request. The rejected record and its evidence stay unchanged."
+msgstr "Créer un brouillon à partir de cette demande. L’enregistrement rejeté et ses preuves restent inchangés."
+
+#. module: usl_sign
+msgid "Ask Paperless for the latest status of the signed PDF and proof package."
+msgstr "Demander à Paperless l’état actuel du PDF signé et du dossier de preuves."
+
+#. module: usl_sign
+msgid "Send the request and share each invited Odoo user's own signing assignment."
+msgstr "Envoyer la demande et partager avec chaque utilisateur Odoo invité sa propre tâche de signature."
+
+#. module: usl_sign
+msgid "Save this method on the draft request, then continue to field placement."
+msgstr "Enregistrer cette méthode sur la demande en brouillon, puis passer au placement des champs."
+
+#. module: usl_sign
+msgid "Run fresh health checks for every Sign service configured for this company."
+msgstr "Relancer les contrôles de santé de tous les services Sign configurés pour cette société."
+
+#. module: usl_sign
+msgid "Run this service health check now."
+msgstr "Relancer maintenant le contrôle de santé de ce service."
+
+#. module: usl_sign
+msgid "Validate the fields and publish this template for new signature requests."
+msgstr "Valider les champs et publier ce modèle pour les nouvelles demandes de signature."
