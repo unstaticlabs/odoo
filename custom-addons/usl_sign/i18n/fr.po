@@ -3578,12 +3578,24 @@ msgid "Reuse this signature for the remaining Signature fields as you continue t
 msgstr "Réutilisez cette signature pour les champs Signature restants à mesure que vous parcourez ce document."
 
 #. module: usl_sign
-msgid "Download the document as it is now"
-msgstr "Télécharger le document dans son état actuel"
+msgid "Download the final document"
+msgstr "Télécharger le document final"
 
 #. module: usl_sign
-msgid "If other people still need to sign, this copy is not the final document."
-msgstr "Si d’autres personnes doivent encore signer, cette copie n’est pas le document final."
+msgid "Download the current signed copy"
+msgstr "Télécharger la copie signée actuelle"
+
+#. module: usl_sign
+msgid "Other people still need to sign. This is the current signed copy, not the final document."
+msgstr "D’autres personnes doivent encore signer. Ceci est la copie signée actuelle, pas le document final."
+
+#. module: usl_sign
+msgid "Everyone has signed. This is the final document."
+msgstr "Tout le monde a signé. Ceci est le document final."
+
+#. module: usl_sign
+msgid "Everyone has signed. Final checks are still in progress; this is the current signed copy."
+msgstr "Tout le monde a signé. Les vérifications finales sont encore en cours ; ceci est la copie signée actuelle."
 
 #. module: usl_sign
 msgid "Signed file in Documents"

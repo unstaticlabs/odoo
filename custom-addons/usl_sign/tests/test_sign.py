@@ -2539,8 +2539,10 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn("Final storage is in progress", request_form)
         self.assertIn("action_open_archived_signed_document", request_form)
         result_page = self.env.ref("usl_sign.portal_sign_result").arch
-        self.assertIn("Download the document as it is now", result_page)
-        self.assertIn("not the final document", result_page)
+        self.assertIn("Download the final document", result_page)
+        self.assertIn("Download the current signed copy", result_page)
+        self.assertIn("has_pending_signers", result_page)
+        self.assertIn("final_document_ready", result_page)
         self.assertIn('t-call="usl_sign.sign_motion"', result_page)
 
         motion = self.env.ref("usl_sign.sign_motion").arch
@@ -2561,6 +2563,39 @@ class TestCleanUslSign(TransactionCase):
         portal_page = self.env.ref("usl_sign.portal_sign_document").arch
         self.assertIn("usl_strong_sign_context", portal_page)
         self.assertIn("strong_sign.js", portal_page)
+
+    def test_signing_result_state_distinguishes_pending_final_and_checks(self):
+        sign_request = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+        )
+        first, second = sign_request.signer_ids.sorted(
+            lambda signer: (signer.sequence, signer.id),
+        )
+        first.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "signed"},
+        )
+
+        self.assertEqual(
+            sign_request._signing_result_state(),
+            {"has_pending_signers": True, "final_document_ready": False},
+        )
+
+        second.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "signed"},
+        )
+        self.assertEqual(
+            sign_request._signing_result_state(),
+            {"has_pending_signers": False, "final_document_ready": False},
+        )
+
+        sign_request.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
+            {"final_data": field_value(self.pdf)},
+        )
+        self.assertEqual(
+            sign_request._signing_result_state(),
+            {"has_pending_signers": False, "final_document_ready": True},
+        )
 
     def test_my_identity_has_one_direct_form_journey(self):
         self.assertFalse(
