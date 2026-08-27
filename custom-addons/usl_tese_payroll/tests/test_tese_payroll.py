@@ -215,6 +215,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         context = payslip._document_archive_context(payslip.attachment_id)
 
         self.assertEqual(context["document_type"], "Payroll record")
+        self.assertTrue(context["replace_document_type"])
         self.assertEqual(context["tags"], ["HR", "Payroll"])
         self.assertEqual(context["confidentiality"], "hr")
         self.assertTrue(context["accounting_evidence"])

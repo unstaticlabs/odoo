@@ -310,10 +310,16 @@ class UslDocument(models.Model):
             combined_tags = document.tag_ids | tags
             if combined_tags != document.tag_ids:
                 payload["tags"] = combined_tags.mapped("paperless_id")
-            if not document.document_type_id and context.get(
+            replace_document_type = bool(context.get("replace_document_type"))
+            if (not document.document_type_id or replace_document_type) and context.get(
                 "document_type_paperless_id",
             ):
-                payload["document_type"] = context["document_type_paperless_id"]
+                if (
+                    not document.document_type_id
+                    or document.document_type_id.id
+                    != context.get("document_type_record_id")
+                ):
+                    payload["document_type"] = context["document_type_paperless_id"]
             elif (
                 document.document_type_id
                 and context.get("document_type_record_id")
@@ -356,11 +362,15 @@ class UslDocument(models.Model):
                 and incoming_confidentiality
                 and confidentiality != incoming_confidentiality
             ):
-                conflicts.append(_("confidentiality"))
-                confidentiality = max(
+                stricter_confidentiality = max(
                     (confidentiality, incoming_confidentiality),
                     key=confidentiality_order.get,
                 )
+                # A trusted business context may safely narrow access.  Only a
+                # request to relax an already stricter root remains ambiguous.
+                if stricter_confidentiality != incoming_confidentiality:
+                    conflicts.append(_("confidentiality"))
+                confidentiality = stricter_confidentiality
             access_scopes = {
                 document.access_scope,
                 context.get("access_scope"),
