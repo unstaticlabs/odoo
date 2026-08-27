@@ -66,10 +66,38 @@ reconcile in unlocked periods for both Unstatic Labs and USL MEDIA. A lock
 change or permanent deletion must be performed by an authorized human after
 separate review. Any further company grant still requires explicit approval.
 
+## Action-surface change procedure
+
+The machine-checked inventory in
+[Distribution action-risk inventory](../agents/distribution-access-risk-inventory.md)
+is authoritative. Any Odoo, OCA, product-module, view, controller, job or
+provider change that alters the exposed action surface must be classified before
+the branch can qualify:
+
+```bash
+make action-risk-discover
+# review and edit policy/action_policy.json; add behavioral evidence
+make action-risk-refresh
+make action-risk-inventory
+make action-risk-runtime
+```
+
+Discovery and refresh are deliberately separate: generation may identify a new
+action but never decides that action's risk. Do not use a wildcard or a
+module-wide default to clear a diff. Trace the action to its final local and
+external sinks and use an explicit stable action key.
+
+When the runtime check fails after a module update, do not bypass it or edit the
+qualified digest in place. Regenerate from the exact delivered registry,
+review every diff, add the required evidence, and repeat clean-install and
+reconstructed-target qualification. An already-qualified production runtime is
+not stopped solely because a later checkout differs; the mismatch blocks the
+next finalization or release.
+
 ## Audit review
 
-Open **Settings > Distribution Audit**. Review by actor, time, model, operation,
-origin and correlation ID. Agent events include submitted values and selected
+Open **Settings > Distribution Audit**. Review by actor, time, action key,
+model, operation, origin and correlation ID. Agent events include submitted values and selected
 before-values; secrets and binary payloads are redacted. Protected human
 actions are recorded before their business operation in the same transaction,
 so only successful committed work remains in the database.
