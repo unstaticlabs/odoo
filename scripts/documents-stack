@@ -120,6 +120,7 @@ SERVICES=(
   paperless-db
   paperless-broker
   paperless-ollama
+  paperless-model-init
   paperless-model-preflight
   paperless-trash-init
   paperless-gotenberg
@@ -162,6 +163,10 @@ validate_config() {
   }
   grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_MODEL: usl-bge-m3:documents-20260824-rc1" <<<"$config" || {
     printf 'Paperless BGE-M3 release alias is not pinned.\n' >&2
+    return 1
+  }
+  grep -Fq "USL_BGE_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab" <<<"$config" || {
+    printf 'Paperless BGE-M3 bootstrap digest is not pinned.\n' >&2
     return 1
   }
   grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ollama" <<<"$config" || {

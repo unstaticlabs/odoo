@@ -419,6 +419,25 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("SOURCE_PAPERLESS_OLLAMA_VOLUME", recovery)
         self.assertIn("paperless-ollama-data.tgz", recovery)
 
+    def test_clean_paperless_bootstrap_is_digest_pinned(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+
+        self.assertIn("paperless-model-init:", compose)
+        self.assertIn('ollama pull "$$USL_BGE_SOURCE_MODEL"', compose)
+        self.assertIn(
+            'ollama cp "$$USL_BGE_SOURCE_MODEL" "$$USL_BGE_TARGET_MODEL"',
+            compose,
+        )
+        self.assertGreaterEqual(
+            compose.count(
+                "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+            ),
+            1,
+        )
+        self.assertIn("paperless-model-init", stack)
+        self.assertIn("Paperless BGE-M3 bootstrap digest is not pinned", stack)
+
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
 

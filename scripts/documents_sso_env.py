@@ -181,7 +181,7 @@ def ensure_env(path: Path) -> None:
             ]
             if additions:
                 upgraded_lines.extend(
-                    ["", "# Generated Paperless QA service configuration."]
+                    ["", "# Generated Paperless QA service configuration."],
                 )
                 upgraded_lines.extend(
                     f"{key}={value}" for key, value in additions.items()
@@ -256,10 +256,22 @@ def ensure_env(path: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", type=Path)
+    parser.add_argument(
+        "--personal-ai-key-file",
+        type=Path,
+        help="create or validate only the Personal AI master-key file",
+    )
+    parser.add_argument("path", nargs="?", type=Path)
     arguments = parser.parse_args()
     try:
-        ensure_env(arguments.path)
+        if arguments.personal_ai_key_file:
+            if arguments.path:
+                parser.error("path cannot be used with --personal-ai-key-file")
+            ensure_personal_ai_master_keys(arguments.personal_ai_key_file)
+        elif arguments.path:
+            ensure_env(arguments.path)
+        else:
+            parser.error("path or --personal-ai-key-file is required")
     except RuntimeError as error:
         print(f"error: {error}", file=__import__("sys").stderr)
         return 1

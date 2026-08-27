@@ -37,6 +37,7 @@ export USL_EREPORTING_LIVE_ENABLED=0
 export PAPERLESS_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
 export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}"
 export POCKET_ID_ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id-qa-$root_hash.env}"
+export USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH="${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-$ROOT/.documents-personal-ai-keys.json}"
 export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"
 export USL_POCKET_ID_DEV_ODOO_DB=odoo_dev
 export USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"
@@ -70,6 +71,8 @@ esac
 usl_verify_compose_scope "$COMPOSE_PROJECT_NAME" "$ROOT" "QA provisioning"
 
 scripts/pocket-id-dev bootstrap >/dev/null
+python3 "$ROOT/scripts/documents_sso_env.py" \
+  --personal-ai-key-file "$USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH" >/dev/null
 set -a
 # shellcheck disable=SC1090
 source "$POCKET_ID_ENV_FILE"
