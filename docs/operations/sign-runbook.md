@@ -78,28 +78,34 @@ Remove project volumes only when deliberately requesting a new clean seed.
 
 Loopback is the default and must remain the normal developer setting. For an
 explicitly authorized private-network review, bind only the Mac's exact
-private or Tailscale IPv4 address and use that same address (or its `*.ts.net`
-name) in the three browser-facing URLs:
+private or Tailscale IPv4 address. Keep the Odoo and Paperless browser origins
+on their generated `*.localhost` names when reviewers connect through an SSH
+tunnel; this preserves stable callbacks without exposing either service:
 
 ```shell
 export USL_SIGN_POCKETID_BIND_ADDRESS=100.64.0.10
 export USL_SIGN_POCKETID_PRIVATE_QA=1
-export USL_SIGN_POCKETID_ODOO_HOSTNAME=100.64.0.10
-export USL_SIGN_POCKETID_POCKET_HOSTNAME=100.64.0.10
-export USL_SIGN_POCKETID_PAPERLESS_PUBLIC_URL=http://100.64.0.10:PORT
 scripts/sign-qa-stack start
 ```
 
-Use the Paperless port printed by `scripts/sign-qa-stack info`. The Sign QA
-Compose overlay publishes only Odoo, its gevent endpoint, Pocket ID and
-Paperless on that one address. PostgreSQL, CA and DSS remain internal to the
-isolated Compose project. The helper rejects wildcard, public and multicast
-bind addresses; an explicit private-QA opt-in is required for non-localhost
-OIDC hostnames. The QA-only private HTTP exception is accepted only when
-`USL_DEPLOYMENT_ENV=development` and the opt-in is set; preproduction and
-production continue to require HTTPS. Plain HTTP on a private address is
-suitable only for this disposable synthetic review tenant, not for production
-or a real passkey ceremony.
+For the `native-sign-2e96` review slot, the generated origins are
+`http://odoo-sign-native-sign-2e96-qa.localhost:17025` and
+`http://paperless-sign-native-sign-2e96-qa.localhost:20025`. Forward both from
+the reviewer's loopback in one session:
+
+```shell
+ssh -N -T \
+  -L 127.0.0.1:17025:100.79.30.44:17025 \
+  -L 127.0.0.1:20025:100.79.30.44:20025 \
+  roger@m4max-2.local
+```
+
+The Sign QA Compose overlay publishes only Odoo, its gevent endpoint, Pocket
+ID and Paperless on the selected private address. PostgreSQL, CA and DSS remain
+internal to the isolated Compose project. The helper rejects wildcard, public
+and multicast bind addresses; an explicit private-QA opt-in is required for
+non-localhost browser origins. Private QA does not make Odoo or Paperless
+public and is never suitable for production data or a real biometric journey.
 
 ## Product workspaces
 
