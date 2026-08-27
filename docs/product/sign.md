@@ -59,7 +59,7 @@ The stable navigation is deliberately small:
 
 The request form progressively discloses technical material. Overview,
 Signers and Documents lead the operational journey; certificate, hash, DSS and
-manifest details remain under Proof & Validation. The primary action and
+manifest details remain under Method, result & proof. The primary action and
 current blocker stay visible without requiring users to reconstruct the state
 from chatter.
 
@@ -122,7 +122,9 @@ The browser worker uses the pinned PKI.js 3.4.0 library and Web Crypto to:
 - extract PDF/A-3 attachments, inspect embedded PDFs, hash every artifact,
   verify the USL detached evidence-manifest signature and compare its expected
   artifact hashes, including the privacy-preserving Pocket ID authentication
-  summary.
+  summary. Artifact matching uses both the manifest kind and original filename,
+  and one embedded file can satisfy only one manifest entry; source and frozen
+  revisions may therefore safely share their original filename.
 
 An intact browser result is deliberately narrower than a DSS validation
 decision. Browser platforms do not expose their trust store to ordinary web
@@ -167,6 +169,14 @@ checksum-identical duplicate. Sending mail, exporting a file, opening an
 external service, uploading a PDF or receiving a claimed completion never
 satisfies this gate.
 
+While Paperless is processing its two accepted files, the request shows a
+neutral in-progress state and keeps both Odoo downloads available. A failure is
+shown separately with retry guidance. Once linked, the signed PDF and proof
+package open directly in the Odoo Documents application for requesters,
+coordinators, and signers who also have Documents access. These explicit
+participant links are synchronized to Paperless; no other private archive
+access is granted.
+
 The linked Odoo record shows current state, next action, requested/achieved
 trust, completed PDF, completion certificate and archival state without
 requiring a chatter reconstruction.
@@ -200,6 +210,18 @@ the signer whose turn is available. Reminders update the same activity rather
 than creating duplicates; signing, declining, cancelling or expiring removes
 outstanding assignments. The lifecycle cron repairs a missing activity without
 depending on email delivery.
+
+The Sign pencil drawer uses that same actionable assignment domain and lists
+the actual document names. Each row opens its signing journey in a new tab;
+the aggregate technical activity group is not an end-user destination.
+
+Within one signing session, adopting a signature or initials retains the full
+name and chosen mark for later placements of the same type. The default
+**Automatically fill repeated…** preference reuses it as the signer moves
+through repeated fields, while signature and initials images remain distinct.
+The completion page also offers a session-bound download of the document in
+its current state and identifies that copy as non-final when other signers or
+final checks remain.
 
 After the last signer, Odoo renders the final PDF, asks the internal DSS
 service to apply the USL platform seal, re-reads the persisted bytes and runs

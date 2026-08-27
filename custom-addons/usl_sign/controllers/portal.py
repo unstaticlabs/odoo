@@ -264,6 +264,7 @@ class SignPortalController(PortalSign):
             "status": "success",
             "company_id": signer.request_id.company_id.id,
             "request_name": signer.request_id.name,
+            "request_id": signer.request_id.id,
         }
         return action
 
@@ -304,8 +305,45 @@ class SignPortalController(PortalSign):
                 "declined": status == "declined",
                 "result_company": company,
                 "result_request_name": summary.get("request_name"),
+                "result_download_url": (
+                    "/sign/result/download" if summary.get("request_id") else False
+                ),
             },
         )
+
+    @http.route(
+        "/sign/result/download",
+        type="http",
+        auth="public",
+        methods=["GET"],
+        website=True,
+        sitemap=False,
+    )
+    def download_current_signed_document(self):
+        summary = request.session.get(SIGN_RESULT_SESSION_KEY, {})
+        if summary.get("status") != "success" or not summary.get("request_id"):
+            return request.not_found()
+        sign_request = request.env["sign.oca.request"].sudo().browse(
+            summary["request_id"],
+        ).exists()
+        if not sign_request or not sign_request.data:
+            return request.not_found()
+        source_name = sign_request.filename or f"{sign_request.name}.pdf"
+        stem = source_name[:-4] if source_name.lower().endswith(".pdf") else source_name
+        filename = (
+            sign_request.final_filename
+            if sign_request.final_data and sign_request.data == sign_request.final_data
+            else f"{stem}-signed-so-far.pdf"
+        )
+        stream = request.env["ir.binary"]._get_stream_from(
+            sign_request,
+            "data",
+            filename=filename,
+            mimetype="application/pdf",
+        )
+        response = stream.get_response(as_attachment=True)
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        return response
 
     @http.route(
         "/sign/external/<int:journey_id>/document",
