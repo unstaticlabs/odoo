@@ -250,26 +250,56 @@ class UslDocument(models.Model):
 
     @api.depends("link_ids")
     def _compute_link_count(self):
+        visible_by_document = self._accessible_active_links_by_document()
         for document in self:
-            document.link_count = len(document._accessible_active_links())
+            document.link_count = len(visible_by_document[document.id])
+
+    def _accessible_active_links_by_document(self):
+        """Return readable active links grouped by document.
+
+        One target search is issued per linked model rather than one access
+        check per relationship.  The document check and every target search
+        still run in the current user's environment.
+        """
+        visible_by_document = {
+            document_id: self.env["usl.document.link"].sudo().browse()
+            for document_id in self.ids
+        }
+        if not self:
+            return visible_by_document
+
+        self.check_access("read")
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "in", self.ids),
+                ("active", "=", True),
+            ],
+        )
+        links_by_model = {}
+        for link in links:
+            if link.res_model in self.env:
+                links_by_model.setdefault(link.res_model, []).append(link)
+
+        for model_name, model_links in links_by_model.items():
+            target_model = self.env[model_name]
+            try:
+                target_model.check_access("read")
+                visible_target_ids = set(
+                    target_model.search(
+                        [("id", "in", [link.res_id for link in model_links])],
+                    ).ids,
+                )
+            except AccessError:
+                continue
+            for link in model_links:
+                if link.res_id in visible_target_ids:
+                    visible_by_document[link.document_id.id] |= link
+        return visible_by_document
 
     def _accessible_active_links(self):
         """Return links whose target record is readable by the current user."""
         self.ensure_one()
-        self.check_access("read")
-        visible = self.env["usl.document.link"].sudo().browse()
-        for link in self.sudo().link_ids.filtered("active"):
-            if link.res_model not in self.env:
-                continue
-            record = self.env[link.res_model].browse(link.res_id).exists()
-            if not record:
-                continue
-            try:
-                record.check_access("read")
-            except AccessError:
-                continue
-            visible |= link
-        return visible
+        return self._accessible_active_links_by_document()[self.id]
 
     @api.depends("correspondent_id", "correspondent_id.partner_id")
     def _compute_mapped_contact(self):
@@ -295,11 +325,12 @@ class UslDocument(models.Model):
         return [("correspondent_id.partner_id", operator, normalized)]
 
     def _compute_search_helpers(self):
+        visible_by_document = self._accessible_active_links_by_document()
         for document in self:
             document.all_text = False
             document.archive_text = False
             document.custom_field_text = False
-            document.has_linked_record = bool(document._accessible_active_links())
+            document.has_linked_record = bool(visible_by_document[document.id])
             document.linked_record_ref = False
 
     @api.depends("tag_ids", "tag_ids.name")
@@ -318,12 +349,13 @@ class UslDocument(models.Model):
 
     @api.depends("link_ids.active", "link_ids.res_model", "link_ids.res_id")
     def _compute_linked_employee(self):
+        visible_by_document = self._accessible_active_links_by_document()
         for document in self:
-            employee_link = document._accessible_active_links().filtered(
+            employee_link = visible_by_document[document.id].filtered(
                 lambda link: link.active and link.res_model == "hr.employee",
             )[:1]
             document.linked_employee_id = (
-                self.env["hr.employee"].browse(employee_link.res_id).exists()
+                self.env["hr.employee"].browse(employee_link.res_id)
                 if employee_link
                 else False
             )
@@ -346,6 +378,7 @@ class UslDocument(models.Model):
             return []
         matching = set()
         documents = self.search([])
+        visible_by_document = documents._accessible_active_links_by_document()
         for document in documents:
             searchable = [
                 document.name,
@@ -357,7 +390,7 @@ class UslDocument(models.Model):
             ]
             searchable.extend(
                 link.record_name
-                for link in document._accessible_active_links()
+                for link in visible_by_document[document.id]
             )
             if any(needle in (item or "").casefold() for item in searchable):
                 matching.add(document.paperless_id)
@@ -500,35 +533,15 @@ class UslDocument(models.Model):
         if operator == "!=":
             wanted = not wanted
         accessible_document_ids = self.search([]).ids
-        visible_linked_ids = set()
-        links = self.env["usl.document.link"].sudo().search(
-            [
-                ("document_id", "in", accessible_document_ids),
-                ("active", "=", True),
-            ],
+        accessible_documents = self.browse(accessible_document_ids)
+        visible_by_document = (
+            accessible_documents._accessible_active_links_by_document()
         )
-        for model_name in links.mapped("res_model"):
-            if model_name not in self.env:
-                continue
-            target_model = self.env[model_name]
-            target_ids = links.filtered(
-                lambda link: link.res_model == model_name,
-            ).mapped("res_id")
-            try:
-                target_model.check_access("read")
-                visible_target_ids = set(
-                    target_model.search([("id", "in", target_ids)]).ids,
-                )
-            except AccessError:
-                continue
-            visible_linked_ids.update(
-                links.filtered(
-                    lambda link: (
-                        link.res_model == model_name
-                        and link.res_id in visible_target_ids
-                    ),
-                ).mapped("document_id").ids,
-            )
+        visible_linked_ids = {
+            document_id
+            for document_id, links in visible_by_document.items()
+            if links
+        }
         if not visible_linked_ids:
             return Domain.FALSE if wanted else Domain.TRUE
         return Domain(
@@ -851,9 +864,15 @@ class UslDocument(models.Model):
 
     @api.model
     def _paperless_values(
-        self, payload, *, source="paperless", metadata_catalog=None,
+        self,
+        payload,
+        *,
+        source="paperless",
+        metadata_catalog=None,
+        metadata_records=None,
     ):
         metadata_catalog = metadata_catalog or {}
+        metadata_records = metadata_records if metadata_records is not None else {}
 
         def metadata_name(section, value, fallback=False):
             try:
@@ -868,8 +887,13 @@ class UslDocument(models.Model):
                 remote_id = int(remote_id)
             except (TypeError, ValueError):
                 return self.env[model_name]
-            record = self.env[model_name].sudo().search(
-                [("paperless_id", "=", remote_id)], limit=1,
+            records_by_id = metadata_records.get(model_name)
+            record = (
+                records_by_id.get(remote_id, self.env[model_name])
+                if records_by_id is not None
+                else self.env[model_name].sudo().search(
+                    [("paperless_id", "=", remote_id)], limit=1,
+                )
             )
             if not record and isinstance(value, dict):
                 record = (
@@ -878,6 +902,8 @@ class UslDocument(models.Model):
                     .with_context(usl_documents_cache_write=True)
                     .create(self.env[model_name]._cache_values(value))
                 )
+                if records_by_id is not None:
+                    records_by_id[remote_id] = record
             return record
 
         tags = payload.get("tags") or []
@@ -941,6 +967,21 @@ class UslDocument(models.Model):
             "availability_state": "available",
             "source": source,
             "last_error": False,
+        }
+
+    @api.model
+    def _paperless_metadata_records(self):
+        """Prefetch synchronized catalogs once for a multi-document refresh."""
+        return {
+            model_name: {
+                record.paperless_id: record
+                for record in self.env[model_name].sudo().search([])
+            }
+            for model_name in (
+                "usl.paperless.tag",
+                "usl.paperless.correspondent",
+                "usl.paperless.document.type",
+            )
         }
 
     @api.model
@@ -1047,9 +1088,11 @@ class UslDocument(models.Model):
         pages_processed = 0
         complete = False
         metadata_catalog = None
+        metadata_records = None
         try:
             client.compatibility()
             self._sync_metadata_catalogs(client)
+            metadata_records = self._paperless_metadata_records()
             while True:
                 payload = client.list_documents(
                     page=page,
@@ -1065,14 +1108,26 @@ class UslDocument(models.Model):
                     for item in results
                 ):
                     metadata_catalog = client.metadata_catalog()
+                documents_by_paperless_id = {
+                    document.paperless_id: document
+                    for document in self.sudo().search(
+                        [
+                            (
+                                "paperless_id",
+                                "in",
+                                [int(item["id"]) for item in results],
+                            ),
+                        ],
+                    )
+                }
                 for item in results:
                     paperless_id = int(item["id"])
                     seen.add(paperless_id)
-                    document = self.sudo().search(
-                        [("paperless_id", "=", paperless_id)], limit=1,
-                    )
+                    document = documents_by_paperless_id.get(paperless_id)
                     values = self._paperless_values(
-                        item, metadata_catalog=metadata_catalog,
+                        item,
+                        metadata_catalog=metadata_catalog,
+                        metadata_records=metadata_records,
                     )
                     # A document returned by the active endpoint has left
                     # Paperless Trash. Clear the previous deletion event even
@@ -1097,6 +1152,7 @@ class UslDocument(models.Model):
                         document.with_context(usl_documents_cache_write=True).write(values)
                     else:
                         document = self.sudo().create(values)
+                        documents_by_paperless_id[paperless_id] = document
                     document._synchronize_versions(item.get("versions") or [])
                     touched |= document
                 pages_processed += 1
@@ -1116,14 +1172,27 @@ class UslDocument(models.Model):
                         30,
                     ),
                 )
-                for item in client.list_trashed_documents():
+                trashed_items = list(client.list_trashed_documents())
+                trashed_documents_by_paperless_id = {
+                    document.paperless_id: document
+                    for document in self.sudo().search(
+                        [
+                            (
+                                "paperless_id",
+                                "in",
+                                [int(item["id"]) for item in trashed_items],
+                            ),
+                        ],
+                    )
+                }
+                for item in trashed_items:
                     paperless_id = int(item["id"])
                     trashed_ids.add(paperless_id)
-                    document = self.sudo().search(
-                        [("paperless_id", "=", paperless_id)], limit=1,
-                    )
+                    document = trashed_documents_by_paperless_id.get(paperless_id)
                     values = self._paperless_values(
-                        item, metadata_catalog=metadata_catalog,
+                        item,
+                        metadata_catalog=metadata_catalog,
+                        metadata_records=metadata_records,
                     )
                     values["availability_state"] = "trashed"
                     values["last_error"] = False
@@ -1164,6 +1233,7 @@ class UslDocument(models.Model):
                         ).write(values)
                     else:
                         document = self.sudo().create(values)
+                        trashed_documents_by_paperless_id[paperless_id] = document
                         document.with_context(
                             usl_documents_cache_write=True,
                         ).write({"availability_state": "trashed"})
@@ -1206,6 +1276,7 @@ class UslDocument(models.Model):
                     values = self._paperless_values(
                         item,
                         metadata_catalog=metadata_catalog,
+                        metadata_records=metadata_records,
                     )
                     values.pop("source", None)
                     document.with_context(
@@ -3051,6 +3122,9 @@ class UslDocumentLink(models.Model):
     _record_link_unique = models.Constraint(
         "UNIQUE(document_id, res_model, res_id)",
         "This archived document is already linked to that Odoo record.",
+    )
+    _active_record_lookup_idx = models.Index(
+        "(res_model, res_id, document_id) WHERE active IS TRUE",
     )
 
     @api.model
