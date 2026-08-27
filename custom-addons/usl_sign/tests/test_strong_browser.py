@@ -1333,6 +1333,14 @@ class TestSignBrowserJourneys(HttpCase):
                     emailInput.dispatchEvent(new InputEvent("input", {bubbles: true}));
                     emailInput.dispatchEvent(new Event("change", {bubbles: true}));
                     const consent = document.getElementById("usl_sign_consent");
+                    const privacy = document.getElementById("usl_sign_consent_privacy");
+                    if (
+                        !privacy?.textContent.includes("Sharing your approximate location is optional") ||
+                        consent.getAttribute("aria-describedby") !== privacy.id ||
+                        document.querySelector(".usl_sign_proof_details")
+                    ) {
+                        throw new Error("The concise signing privacy notice is missing or inaccessible.");
+                    }
                     consent.checked = true;
                     consent.dispatchEvent(new Event("change", {bubbles: true}));
                     const button = document.getElementById("sign_oca_button");

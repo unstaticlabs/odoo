@@ -88,16 +88,13 @@
                 </div>
                 <div t-if="!uslGuide.remaining" class="usl_sign_consent" role="group" aria-labelledby="usl_sign_consent_title">
                     <label class="usl_sign_consent_choice" for="usl_sign_consent">
-                        <input id="usl_sign_consent" class="form-check-input" type="checkbox" t-on-change="(ev) => this._onConsentChanged(ev)"/>
+                        <input id="usl_sign_consent" class="form-check-input" type="checkbox" aria-describedby="usl_sign_consent_privacy" t-on-change="(ev) => this._onConsentChanged(ev)"/>
                         <span>
                             <strong id="usl_sign_consent_title">I reviewed this document and agree to sign electronically.</strong>
+                            <small id="usl_sign_consent_privacy" class="usl_sign_consent_privacy">We record the network address and browser details used to sign. Sharing your approximate location is optional.</small>
                         </span>
                     </label>
-                    <details class="usl_sign_proof_details">
-                        <summary>What proof is recorded?</summary>
-                        <p class="usl_sign_proof_notice"><t t-out="info.proof_notice"/></p>
-                        <p t-if="uslLocation.status !== 'idle'" class="usl_sign_location_status" role="status" aria-live="polite"><t t-out="locationMessage"/></p>
-                    </details>
+                    <p t-if="uslLocation.status !== 'idle'" class="usl_sign_location_status" role="status" aria-live="polite"><t t-out="locationMessage"/></p>
                     <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
                     <div id="usl_sign_submission_error" class="alert alert-warning py-2 mt-2 mb-0 d-none" role="alert" tabindex="-1"></div>
                 </div>
