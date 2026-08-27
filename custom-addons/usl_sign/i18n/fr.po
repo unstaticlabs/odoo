@@ -122,7 +122,7 @@ msgstr "Refusée"
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/js/workspace.esm.js:0
 msgid "Documents waiting for your signature"
-msgstr "Documents qui attendent votre signature"
+msgstr "Documents en attente de votre signature"
 
 #. module: usl_sign
 #. odoo-python
@@ -445,7 +445,7 @@ msgstr "État des services"
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/js/workspace.esm.js:0
 msgid "Sign now"
-msgstr "À signer"
+msgstr "Signer maintenant"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__signed_to_import
@@ -3534,14 +3534,6 @@ msgstr "Choisissez un PDF signé ou un dossier de preuves pour vérifier ses sig
 #. odoo-python
 msgid "From %(sender)s · Sign as %(role)s"
 msgstr "De %(sender)s · Signer en tant que %(role)s"
-
-#. module: usl_sign
-msgid "Sign now"
-msgstr "Signer maintenant"
-
-#. module: usl_sign
-msgid "Documents waiting for your signature"
-msgstr "Documents en attente de votre signature"
 
 #. module: usl_sign
 msgid "View all"
