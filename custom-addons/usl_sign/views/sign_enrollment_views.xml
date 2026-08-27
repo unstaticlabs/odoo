@@ -23,7 +23,7 @@
                 <header>
                     <button name="action_send_invitation" type="object" string="Send setup email" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <button name="action_copy_invitation" type="object" string="Copy setup link" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
-                    <button name="action_confirm_identity" type="object" string="Approve identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_confirm_identity" type="object" string="Approve identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer" help="Confirm that the connected Pocket ID account belongs to this known person. This enables future Strong signatures."/>
                     <button name="action_open_revoke" type="object" string="Revoke identity" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
                 </header>
@@ -165,7 +165,7 @@
                     <field name="reason" placeholder="Record why this identity enrolment is revoked."/>
                 </group>
                 <footer>
-                    <button name="action_apply" type="object" string="Revoke" class="btn-danger"/>
+                    <button name="action_apply" type="object" string="Revoke" class="btn-danger" help="Prevent this identity link from authorizing new Strong signatures. Completed documents remain unchanged."/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
