@@ -739,6 +739,7 @@ services:
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
       - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./migration/documents_archive:/mnt/documents-archive-migration:ro
+      - ./migration/sign_restore:/mnt/sign-restore-migration:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro

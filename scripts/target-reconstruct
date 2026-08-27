@@ -563,8 +563,20 @@ else
     run_stage "finalize B2C relationships and Documents links" env \
       B2C_REQUIRE_FINAL_RELATIONSHIPS=1 scripts/b2c-restore all
     stop_product
+    run_stage "prepare Sign external archive" env \
+      COMPOSE_PROJECT_NAME="$compose_project" \
+      SIGN_CANONICAL_TARGET=1 \
+      SIGN_TARGET_DATABASE=odoo_dev \
+      scripts/sign-restore prepare-target
+    stop_product
+    run_stage "restore Sign external archive" env \
+      COMPOSE_PROJECT_NAME="$compose_project" \
+      SIGN_CANONICAL_TARGET=1 \
+      SIGN_TARGET_DATABASE=odoo_dev \
+      scripts/sign-restore all
+    stop_product
   else
-    printf 'Documents archive: skipped by explicit no-documents QA profile.\n'
+    printf 'Documents and Sign archives: skipped by explicit no-documents QA profile.\n'
   fi
   run_stage "restore Paie TESE" restore_tese_for_reconstruction
   stop_product
