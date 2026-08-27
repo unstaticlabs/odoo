@@ -8,7 +8,7 @@ import {SigningMethodRadio} from "../src/js/signing_method_radio.esm";
 
 defineMailModels();
 
-test("selected signing method is visible without relying on :has()", async () => {
+test("signing methods render as comparable selectable columns", async () => {
     const record = reactive({
         data: {requested_trust: "standard"},
         fields: {
@@ -36,12 +36,23 @@ test("selected signing method is visible without relying on :has()", async () =>
 
     expect(".o_radio_item.is-selected").toHaveCount(1);
     expect(".o_radio_item.is-selected").toHaveText(/Standard/);
+    expect(".usl_sign_method_card").toHaveCount(3);
+    expect(".usl_sign_method_card .usl_sign_method_facts").toHaveCount(3);
+    expect(".usl_sign_method_card .usl_sign_method_select").toHaveCount(3);
+    expect(".usl_sign_method_card").toHaveText(/Signer check/);
+    expect(".usl_sign_method_card").toHaveText(/Signed PDF/);
+    expect(".usl_sign_method_card").toHaveText(/Proof kept/);
+    expect(".o_radio_item.is-selected .usl_sign_method_select").toHaveText("Selected");
 
     await contains('.o_radio_input[data-value="strong_personal"]').click();
     await animationFrame();
 
     expect(".o_radio_item.is-selected").toHaveCount(1);
-    expect(".o_radio_item.is-selected").toHaveText(/Strong personal/);
-    expect(".o_radio_item.is-selected").toHaveText(/Approved identity and Pocket ID passkey/);
-    expect(".o_radio_item.is-selected").toHaveText(/personal PAdES signature per signer/);
+    expect(".o_radio_item.is-selected").toHaveText(/Strong/);
+    expect(".o_radio_item.is-selected").toHaveText(/Reviewed identity and Pocket ID passkey/);
+    expect(".o_radio_item.is-selected").toHaveText(/Personal PAdES per signer/);
+    expect(".o_radio_item.is-selected .usl_sign_method_select").toHaveText("Selected");
+    expect(".o_radio_item:not(.is-selected) .usl_sign_method_select").toHaveText(
+        /Choose this method/
+    );
 });
