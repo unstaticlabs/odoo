@@ -81,4 +81,5 @@ adapter is not a substitute.
 
 - [French mandatory invoice mentions](https://www.economie.gouv.fr/entreprises/gerer-son-entreprise-au-quotidien/gerer-sa-comptabilite-et-ses-demarches/mentions-obligatoires-dune-facture-tout-savoir)
 - [DGFiP B2B electronic-invoice specifications](https://www.impots.gouv.fr/specifications-externes-b2b)
+- [Code de commerce, article R123-237](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000045710304)
 - [Code de commerce, article R123-238](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006259054/2022-12-08)
