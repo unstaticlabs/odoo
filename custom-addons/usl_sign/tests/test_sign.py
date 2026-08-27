@@ -23,6 +23,7 @@ from odoo.tools.pdf import PdfReader, PdfWriter
 
 from odoo.addons.usl_sign.controllers.strong import (
     StrongSignController,
+    _ceremony_signature_appearance,
     _personal_certificate_subject,
 )
 from odoo.addons.usl_sign.models.constants import (
@@ -94,6 +95,11 @@ class FakeDSS:
     def cross_validate(document):
         del document
         return _pyhanko_valid()
+
+    @staticmethod
+    def apply_incremental_overlays(document, overlays):
+        del overlays
+        return document + b"\n% incremental test overlay"
 
     def revision_matches(self, original, signed):
         del original, signed
@@ -1233,6 +1239,75 @@ class TestCleanUslSign(TransactionCase):
                 self._items(request, signer.role_id, "Camille Signer"),
                 reviewed_document_sha256="0" * 64,
             )
+
+    def test_strong_candidate_uses_signature_preserving_incremental_overlay(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        signer = request.signer_ids
+        base_data = field_content(request.data)
+        overlays = []
+
+        def apply_incremental(document, values):
+            self.assertEqual(document, base_data)
+            overlays.extend(values)
+            return document + b"\n% incremental test overlay"
+
+        with patch.object(
+            DSSClient,
+            "apply_incremental_overlays",
+            side_effect=apply_incremental,
+        ):
+            candidate = signer._prepare_signing_candidate(
+                self._items(request, signer.role_id, "Camille Signer"),
+                reviewed_document_sha256=hashlib.sha256(base_data).hexdigest(),
+                preserve_pdf_signatures=True,
+            )
+
+        self.assertTrue(overlays)
+        self.assertEqual({overlay["page"] for overlay in overlays}, {1})
+        self.assertTrue(all(overlay["document"].startswith(b"%PDF-") for overlay in overlays))
+        self.assertTrue(candidate["candidate_data"].startswith(base_data))
+
+    def test_strong_primary_signature_is_a_native_pades_appearance(self):
+        request = self._request()
+        signature = self.env.ref("sign_oca.sign_field_signature")
+        item = request.signatory_data["1"]
+        item.update(
+            {
+                "field_id": signature.id,
+                "field_type": signature.field_type,
+                "name": signature.name,
+                "height": 8,
+            },
+        )
+        request.signatory_data = {"1": item}
+        request = self._ready(request)
+        request._freeze_document()
+        signer = request.signer_ids
+        base_data = field_content(request.data)
+        png = (
+            "data:image/png;base64,"
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        )
+
+        with patch.object(DSSClient, "apply_incremental_overlays") as incremental:
+            candidate = signer._prepare_signing_candidate(
+                self._items(request, signer.role_id, png),
+                reviewed_document_sha256=hashlib.sha256(base_data).hexdigest(),
+                preserve_pdf_signatures=True,
+            )
+
+        incremental.assert_not_called()
+        self.assertEqual(candidate["candidate_data"], base_data)
+        self.assertEqual(candidate["pades_appearance_item_id"], "1")
+        appearance = _ceremony_signature_appearance(
+            SimpleNamespace(
+                binding_payload={"pades_appearance_item_id": "1"},
+                candidate_layout=candidate["completed_layout"],
+            ),
+        )
+        self.assertEqual(appearance["page"], 1)
+        self.assertTrue(base64.b64decode(appearance["image"]).startswith(b"\x89PNG"))
 
     def test_observed_browser_context_is_bounded_and_reviewer_only(self):
         request = self._ready(self._request())

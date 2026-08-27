@@ -8,11 +8,14 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+import org.apache.pdfbox.Loader;
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.PDFRevisionWrapper;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.ImageScaling;
+import eu.europa.esig.dss.enumerations.MimeType;
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
@@ -22,6 +25,8 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.pades.PAdESSignatureParameters;
+import eu.europa.esig.dss.pades.SignatureFieldParameters;
+import eu.europa.esig.dss.pades.SignatureImageParameters;
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.pades.validation.PDFDocumentValidator;
 import eu.europa.esig.dss.pades.validation.PdfRevision;
@@ -53,13 +58,16 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
+import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.AdobePDFSchema;
 import org.apache.xmpbox.schema.DublinCoreSchema;
@@ -171,6 +179,7 @@ public final class Application {
         server.createContext("/v1/pades/seal", application::seal);
         server.createContext("/v1/pades/data-to-sign", application::dataToSign);
         server.createContext("/v1/pades/embed", application::embed);
+        server.createContext("/v1/pdf/overlay-incremental", application::overlayIncrementally);
         server.createContext("/v1/pades/validate", application::validate);
         server.createContext("/v1/pades/revision-match", application::revisionMatch);
         server.createContext("/v1/pades/cross-validate", application::crossValidate);
@@ -280,6 +289,7 @@ public final class Application {
             }
             parameters.setCertificateChain(certificateChain);
             parameters.setReason("Strong personal signature authorized by a document-bound passkey ceremony");
+            configureSignatureAppearance(parameters, document, payload.get("appearance"));
             PAdESService service = service(timestamp);
             ToBeSigned result = service.getDataToSign(pdf(document), parameters);
             String contextId = UUID.randomUUID().toString();
@@ -319,6 +329,131 @@ public final class Application {
                     "document", b64(bytes(result)),
                     "padesLevel", context.parameters().getSignatureLevel().name());
         });
+    }
+
+    private void overlayIncrementally(HttpExchange exchange) throws IOException {
+        handle(exchange, payload -> {
+            byte[] document = document(payload, "document");
+            Object rawOverlays = payload.get("overlays");
+            if (!(rawOverlays instanceof List<?> rows) || rows.isEmpty() || rows.size() > 200) {
+                throw new IllegalArgumentException("Between 1 and 200 PDF overlays are required.");
+            }
+            List<PdfOverlay> overlays = new ArrayList<>();
+            for (Object rawRow : rows) {
+                if (!(rawRow instanceof Map<?, ?> row)) {
+                    throw new IllegalArgumentException("Every PDF overlay must be an object.");
+                }
+                Object rawPage = row.get("page");
+                Object rawDocument = row.get("document");
+                if (!(rawPage instanceof Number number)
+                        || number.intValue() < 1
+                        || !(rawDocument instanceof String encoded)
+                        || encoded.isBlank()) {
+                    throw new IllegalArgumentException("Every PDF overlay needs a page and Base64 document.");
+                }
+                overlays.add(new PdfOverlay(number.intValue() - 1, decode(encoded)));
+            }
+            byte[] result = applyIncrementalOverlays(document, overlays);
+            return Map.of("document", b64(result), "documentSha256", sha256(result));
+        });
+    }
+
+    static byte[] applyIncrementalOverlays(byte[] source, List<PdfOverlay> overlays) throws IOException {
+        pdf(source);
+        ByteArrayOutputStream output = new ByteArrayOutputStream(source.length + 16_384);
+        try (PDDocument target = Loader.loadPDF(source)) {
+            LayerUtility layers = new LayerUtility(target);
+            for (PdfOverlay overlay : overlays) {
+                if (overlay.pageIndex() >= target.getNumberOfPages()) {
+                    throw new IllegalArgumentException("A PDF overlay references a missing page.");
+                }
+                pdf(overlay.document());
+                try (PDDocument overlayDocument = Loader.loadPDF(overlay.document())) {
+                    if (overlayDocument.getNumberOfPages() != 1) {
+                        throw new IllegalArgumentException("Every PDF overlay must contain exactly one page.");
+                    }
+                    PDFormXObject form = layers.importPageAsForm(overlayDocument, 0);
+                    PDPage page = target.getPage(overlay.pageIndex());
+                    try (PDPageContentStream content = new PDPageContentStream(
+                            target, page, AppendMode.APPEND, true, true)) {
+                        content.drawForm(form);
+                    }
+                }
+            }
+            target.saveIncremental(output);
+        }
+        byte[] result = output.toByteArray();
+        if (!Arrays.equals(source, Arrays.copyOf(result, source.length))) {
+            throw new IllegalStateException("Incremental PDF output did not preserve the base revision.");
+        }
+        return result;
+    }
+
+    static void configureSignatureAppearance(
+            PAdESSignatureParameters parameters,
+            byte[] document,
+            Object rawAppearance) throws IOException {
+        if (rawAppearance == null) {
+            return;
+        }
+        if (!(rawAppearance instanceof Map<?, ?> appearance)) {
+            throw new IllegalArgumentException("The PAdES appearance must be an object.");
+        }
+        Object rawImage = appearance.get("image");
+        Object rawPage = appearance.get("page");
+        if (!(rawImage instanceof String encodedImage)
+                || !(rawPage instanceof Number pageValue)) {
+            throw new IllegalArgumentException("The PAdES appearance needs an image and page.");
+        }
+        byte[] image = decode(encodedImage);
+        byte[] pngHeader = new byte[] {
+            (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+        };
+        if (image.length > 2_000_000
+                || image.length < pngHeader.length
+                || !Arrays.equals(pngHeader, Arrays.copyOf(image, pngHeader.length))) {
+            throw new IllegalArgumentException("The PAdES appearance must be a bounded PNG image.");
+        }
+        int pageNumber = pageValue.intValue();
+        double xPercent = appearanceNumber(appearance, "position_x");
+        double yPercent = appearanceNumber(appearance, "position_y");
+        double widthPercent = appearanceNumber(appearance, "width");
+        double heightPercent = appearanceNumber(appearance, "height");
+        if (pageNumber < 1 || xPercent < 0 || yPercent < 0
+                || widthPercent <= 0 || heightPercent <= 0
+                || xPercent + widthPercent > 100 || yPercent + heightPercent > 100) {
+            throw new IllegalArgumentException("The PAdES appearance geometry is outside the PDF page.");
+        }
+        PDRectangle box;
+        try (PDDocument pdf = Loader.loadPDF(document)) {
+            if (pageNumber > pdf.getNumberOfPages()) {
+                throw new IllegalArgumentException("The PAdES appearance references a missing page.");
+            }
+            box = pdf.getPage(pageNumber - 1).getMediaBox();
+        }
+        SignatureFieldParameters field = new SignatureFieldParameters();
+        field.setPage(pageNumber);
+        field.setOriginX(box.getLowerLeftX() + (float) (xPercent / 100 * box.getWidth()));
+        field.setOriginY(box.getLowerLeftY()
+                + (float) ((100 - yPercent - heightPercent) / 100 * box.getHeight()));
+        field.setWidth((float) (widthPercent / 100 * box.getWidth()));
+        field.setHeight((float) (heightPercent / 100 * box.getHeight()));
+        SignatureImageParameters visual = new SignatureImageParameters();
+        visual.setImage(new InMemoryDocument(
+                image,
+                "adopted-signature.png",
+                MimeType.fromFileName("adopted-signature.png")));
+        visual.setFieldParameters(field);
+        visual.setImageScaling(ImageScaling.STRETCH);
+        parameters.setImageParameters(visual);
+    }
+
+    private static double appearanceNumber(Map<?, ?> appearance, String name) {
+        Object value = appearance.get(name);
+        if (!(value instanceof Number number) || !Double.isFinite(number.doubleValue())) {
+            throw new IllegalArgumentException("The PAdES appearance geometry is invalid.");
+        }
+        return number.doubleValue();
     }
 
     private void validate(HttpExchange exchange) throws IOException {
@@ -1083,4 +1218,6 @@ public final class Application {
             String mimeType,
             String relationship,
             String description) {}
+
+    record PdfOverlay(int pageIndex, byte[] document) {}
 }

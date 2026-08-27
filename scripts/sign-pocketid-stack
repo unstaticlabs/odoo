@@ -270,6 +270,8 @@ status() {
 
 upgrade_qa() {
   bootstrap
+  docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
+    || "${COMPOSE[@]}" build usl-sign-dss
   "${COMPOSE[@]}" up -d --wait \
     db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver
   "${COMPOSE[@]}" stop odoo
@@ -410,13 +412,22 @@ strong_acceptance_prepare() {
 }
 
 strong_acceptance_review() {
-  if [[ ! "${2:-}" =~ ^[1-9][0-9]*$ ]]; then
-    printf 'A numeric enrolment ID is required.\n' >&2
+  if [[ ! "${2:-}" =~ ^[1-9][0-9]*,[1-9][0-9]*$ ]]; then
+    printf 'Exactly two comma-separated numeric enrolment IDs are required.\n' >&2
     return 2
   fi
   strong_acceptance_shell sign_strong_acceptance_review.py \
-    -e "USL_SIGN_ACCEPTANCE_ENROLLMENT_ID=$2" \
+    -e "USL_SIGN_ACCEPTANCE_ENROLLMENT_IDS=$2" \
     -e "USL_SIGN_ACCEPTANCE_RUN_ID=${3:-qa}"
+}
+
+strong_acceptance_next() {
+  if [[ ! "${2:-}" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'A numeric request ID is required.\n' >&2
+    return 2
+  fi
+  strong_acceptance_shell sign_strong_acceptance_next.py \
+    -e "USL_SIGN_ACCEPTANCE_REQUEST_ID=$2"
 }
 
 strong_acceptance_verify() {
@@ -429,6 +440,12 @@ strong_acceptance_verify() {
 }
 
 strong_acceptance() {
+  if [[ "${USL_SIGN_POCKETID_DISABLE_RATE_LIMITING:-false}" != "true" ]]; then
+    printf '%s\n' \
+      'Strong acceptance requires USL_SIGN_POCKETID_DISABLE_RATE_LIMITING=true.' \
+      'Use this only in an isolated virtual-authenticator stack; reviewer QA must keep rate limiting enabled.' >&2
+    return 2
+  fi
   load_environment
   "${COMPOSE[@]}" up -d --wait \
     db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver odoo
@@ -454,6 +471,7 @@ case "${1:-help}" in
   passkey-acceptance) passkey_acceptance ;;
   strong-acceptance-prepare) strong_acceptance_prepare "$@" ;;
   strong-acceptance-review) strong_acceptance_review "$@" ;;
+  strong-acceptance-next) strong_acceptance_next "$@" ;;
   strong-acceptance-verify) strong_acceptance_verify "$@" ;;
   strong-acceptance) strong_acceptance ;;
   help|*)
@@ -462,7 +480,8 @@ case "${1:-help}" in
       '       scripts/sign-pocketid-stack info' \
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
       '       scripts/sign-pocketid-stack test [ODOO_TEST_TAGS]' \
-      '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID [RUN_ID]' \
+      '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID,ENROLMENT_ID [RUN_ID]' \
+      '       scripts/sign-pocketid-stack strong-acceptance-next REQUEST_ID' \
       '       scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID' \
       "This helper owns only Compose project $PROJECT and its isolated volumes."
     ;;

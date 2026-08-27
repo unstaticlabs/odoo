@@ -102,6 +102,13 @@ class CDPClient {
             this.socket.addEventListener("error", rejectPromise, {once: true});
         });
         this.socket.addEventListener("message", (event) => this.receive(event.data));
+        this.socket.addEventListener("close", () => {
+            const error = new Error("Chrome DevTools connection closed");
+            for (const pending of this.pending.values()) {
+                pending.reject(error);
+            }
+            this.pending.clear();
+        });
     }
 
     receive(raw) {
@@ -129,7 +136,20 @@ class CDPClient {
             payload.sessionId = sessionId;
         }
         const response = new Promise((resolvePromise, rejectPromise) => {
-            this.pending.set(id, {resolve: resolvePromise, reject: rejectPromise});
+            const timeout = setTimeout(() => {
+                this.pending.delete(id);
+                rejectPromise(new Error(`Chrome DevTools ${method} timed out`));
+            }, 30000);
+            this.pending.set(id, {
+                resolve: (value) => {
+                    clearTimeout(timeout);
+                    resolvePromise(value);
+                },
+                reject: (error) => {
+                    clearTimeout(timeout);
+                    rejectPromise(error);
+                },
+            });
         });
         this.socket.send(JSON.stringify(payload));
         return response;
@@ -434,58 +454,112 @@ async function authorizeFreshPasskey(client, sessionId, discovery, env, asserted
 }
 
 
-async function fullStrongAcceptance({
-    client,
-    sessionId,
-    authenticatorId,
-    credentials,
-    env,
-    assertedCount,
-    networkRequests,
-    trackedSessions,
-}) {
-    const runId = randomBytes(5).toString("hex");
-    const prepared = stackAcceptance("strong-acceptance-prepare", runId);
-    await client.send("Fetch.disable", {}, sessionId);
-    await client.send("Page.navigate", {url: prepared.invitation_url}, sessionId);
-    await waitFor(
-        () => evaluate(
-            client,
-            sessionId,
-            `document.readyState === "complete" && Boolean(document.getElementById("usl_enroll_button"))`
-        ),
-        "Odoo Strong enrolment page",
-        15000
+async function completeStrongSigner({client, identity, signing, env, trackedSessions}) {
+    const {browserContextId, credentials} = identity;
+    const targetParams = {url: "about:blank"};
+    if (browserContextId) {
+        targetParams.browserContextId = browserContextId;
+    }
+    const signerTarget = await client.send("Target.createTarget", targetParams);
+    const signerAttachment = await client.send(
+        "Target.attachToTarget",
+        {targetId: signerTarget.targetId, flatten: true}
     );
-    const enrollmentUrl = new URL(prepared.invitation_url);
-    const enrollmentBase = enrollmentUrl.pathname;
-    const enrollmentBegin = await jsonRpc(
-        client,
-        sessionId,
-        `${enrollmentBase}/begin`
-    );
-    await client.send("Page.navigate", {url: enrollmentBegin.authorization_url}, sessionId);
-    await clickPocketAuthorization(
-        client,
-        sessionId,
-        assertedCount,
-        "Pocket ID enrolment"
-    );
-
-    const reviewed = stackAcceptance(
-        "strong-acceptance-review",
-        prepared.enrollment_id,
-        runId
-    );
-    await client.send("Page.navigate", {url: reviewed.signing_url}, sessionId);
+    const sessionId = signerAttachment.sessionId;
+    trackedSessions.add(sessionId);
+    await Promise.all([
+        client.send("Page.enable", {}, sessionId),
+        client.send("Runtime.enable", {}, sessionId),
+        client.send("Network.enable", {}, sessionId),
+    ]);
+    await client.send("Page.navigate", {url: signing.signing_url}, sessionId);
     await waitFor(
         () => evaluate(
             client,
             sessionId,
             `document.readyState === "complete"
-                && Boolean(document.getElementById("usl_strong_sign_button"))`
+                && Boolean(document.getElementById("sign_oca_button"))
+                && Boolean(document.querySelector(".o_sign_oca_iframe")?.contentDocument)`
         ),
-        "Odoo Strong signing page",
+        `${signing.username} Strong signing page`,
+        20000
+    ).catch(async (error) => {
+        const diagnostic = await evaluate(
+            client,
+            sessionId,
+            `({
+                readyState: document.readyState,
+                title: document.title,
+                body: document.body?.innerText?.slice(0, 800),
+                iframe: Boolean(document.querySelector(".o_sign_oca_iframe")),
+                submit: Boolean(document.getElementById("sign_oca_button")),
+                url: location.href,
+            })`
+        );
+        throw new Error(`${error.message}; page=${JSON.stringify(diagnostic)}`);
+    });
+
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `Boolean(document.querySelector(".o_sign_oca_iframe")?.contentDocument
+                ?.querySelector('.o_sign_oca_field [role="button"]'))`
+        ),
+        `${signing.username} Strong signature field`,
+        20000
+    );
+    await evaluate(
+        client,
+        sessionId,
+        `(async () => {
+            const iframe = document.querySelector(".o_sign_oca_iframe");
+            const field = iframe.contentDocument.querySelector(
+                '.o_sign_oca_field [role="button"]'
+            );
+            field.click();
+            let adoptButton;
+            for (let attempt = 0; attempt < 200 && !adoptButton; attempt++) {
+                adoptButton = Array.from(
+                    document.querySelectorAll(".modal .btn-primary")
+                ).find((candidate) => candidate.textContent.includes("Adopt"));
+                if (!adoptButton || adoptButton.disabled) {
+                    adoptButton = null;
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+            }
+            if (!adoptButton) {
+                throw new Error("The personal signature adoption dialog was not ready");
+            }
+            adoptButton.click();
+            for (let attempt = 0; attempt < 200; attempt++) {
+                if (iframe.contentDocument.querySelector(".o_sign_oca_field img")) {
+                    return true;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+            throw new Error("The adopted personal signature was not placed");
+        })()`
+    );
+    await evaluate(
+        client,
+        sessionId,
+        `(() => {
+            const consent = document.getElementById("usl_sign_consent");
+            if (!consent.checked) {
+                consent.click();
+            }
+            return true;
+        })()`,
+        {userGesture: true}
+    );
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `!document.getElementById("sign_oca_button")?.disabled`
+        ),
+        `${signing.username} completed Strong signer workspace`,
         20000
     );
 
@@ -496,8 +570,7 @@ async function fullStrongAcceptance({
         client,
         sessionId,
         `(() => {
-            document.getElementById("usl_strong_consent").click();
-            document.getElementById("usl_strong_sign_button").click();
+            document.getElementById("sign_oca_button").click();
             return true;
         })()`,
         {userGesture: true}
@@ -509,7 +582,7 @@ async function fullStrongAcceptance({
                 (target) => target.type === "page" && !targetsBefore.has(target.targetId)
             );
         },
-        "Strong Pocket ID popup",
+        `${signing.username} Strong Pocket ID popup`,
         20000
     ).catch(async (error) => {
         const targets = (await client.send("Target.getTargets")).targetInfos.map(
@@ -523,8 +596,8 @@ async function fullStrongAcceptance({
             client,
             sessionId,
             `({
-                buttonDisabled: document.getElementById("usl_strong_sign_button")?.disabled,
-                status: document.getElementById("usl_strong_status")?.innerText,
+                buttonDisabled: document.getElementById("sign_oca_button")?.disabled,
+                status: document.getElementById("usl_sign_submission_status")?.innerText,
                 url: location.href,
             })`
         );
@@ -589,22 +662,129 @@ async function fullStrongAcceptance({
         client,
         popupSession,
         popupCount,
-        "Pocket ID Strong authorization"
-    );
-    await waitFor(
-        () => evaluate(
-            client,
-            sessionId,
-            `location.pathname === "/sign/result/success"`
-        ),
-        "completed Strong signing redirect",
-        120000
+        `${signing.username} Pocket ID Strong authorization`
     );
     await client.send(
         "WebAuthn.removeVirtualAuthenticator",
         {authenticatorId: popupAuthenticator.authenticatorId},
         popupSession
     ).catch(() => undefined);
+    await client.send(
+        "Target.detachFromTarget",
+        {sessionId: popupSession}
+    ).catch(() => undefined);
+    trackedSessions.delete(popupSession);
+    const completionState = await waitFor(
+        async () => {
+            const state = await evaluate(
+                client,
+                sessionId,
+                `({
+                    success: location.pathname === "/sign/result/success",
+                    error: document.querySelector("#usl_sign_submission_error:not(.d-none)")
+                        ?.innerText?.trim() || "",
+                })`
+            );
+            return state.success ? {status: "success"} : state.error
+                ? {status: "error", message: state.error}
+                : false;
+        },
+        `${signing.username} completed Strong signing redirect`,
+        120000
+    ).catch(async (error) => {
+        const diagnostic = await evaluate(
+            client,
+            sessionId,
+            `({
+                active: document.getElementById("usl_strong_sign_context")?.dataset.active,
+                buttonDisabled: document.getElementById("sign_oca_button")?.disabled,
+                buttonLabel: document.getElementById("sign_oca_button")?.innerText,
+                status: document.getElementById("usl_sign_submission_status")?.innerText,
+                url: location.href,
+            })`
+        ).catch((diagnosticError) => ({diagnosticError: diagnosticError.message}));
+        throw new Error(`${error.message}; signer page=${JSON.stringify(diagnostic)}`);
+    });
+    if (completionState.status === "error") {
+        throw new Error(
+            `${signing.username} Strong signing failed: ${completionState.message}`
+        );
+    }
+    await client.send("Target.closeTarget", {targetId: signerTarget.targetId});
+    trackedSessions.delete(sessionId);
+
+    return popupAssertions.value;
+}
+
+
+async function fullStrongAcceptance({client, identities, env, networkRequests, trackedSessions}) {
+    const runId = randomBytes(5).toString("hex");
+    const prepared = stackAcceptance("strong-acceptance-prepare", runId);
+    if (prepared.enrollments?.length !== 2) {
+        throw new Error("Strong acceptance did not prepare two signer identities");
+    }
+    for (const enrollment of prepared.enrollments) {
+        const identity = identities[enrollment.username];
+        if (!identity) {
+            throw new Error(`Missing browser identity for ${enrollment.username}`);
+        }
+        await client.send("Fetch.disable", {}, identity.sessionId);
+        await client.send(
+            "Page.navigate",
+            {url: enrollment.invitation_url},
+            identity.sessionId
+        );
+        await waitFor(
+            () => evaluate(
+                client,
+                identity.sessionId,
+                `document.readyState === "complete" && Boolean(document.getElementById("usl_enroll_button"))`
+            ),
+            `${enrollment.username} Odoo Strong enrolment page`,
+            15000
+        );
+        const enrollmentUrl = new URL(enrollment.invitation_url);
+        const enrollmentBegin = await jsonRpc(
+            client,
+            identity.sessionId,
+            `${enrollmentUrl.pathname}/begin`
+        );
+        await client.send(
+            "Page.navigate",
+            {url: enrollmentBegin.authorization_url},
+            identity.sessionId
+        );
+        await clickPocketAuthorization(
+            client,
+            identity.sessionId,
+            identity.assertedCount,
+            `${enrollment.username} Pocket ID enrolment`
+        );
+    }
+
+    const reviewed = stackAcceptance(
+        "strong-acceptance-review",
+        prepared.enrollments.map((row) => row.enrollment_id).join(","),
+        runId
+    );
+    const signerResults = [];
+    let signing = reviewed;
+    for (const username of ["roger", "valentin"]) {
+        if (signing.username !== username) {
+            throw new Error(`Expected ${username} as the next sequential Strong signer`);
+        }
+        const passkeyAssertions = await completeStrongSigner({
+            client,
+            identity: identities[username],
+            signing,
+            env,
+            trackedSessions,
+        });
+        signerResults.push({username, passkeyAssertions, signer_id: signing.signer_id});
+        if (username === "roger") {
+            signing = stackAcceptance("strong-acceptance-next", reviewed.request_id);
+        }
+    }
 
     const forbidden = [
         /BEGIN (?:EC |RSA )?PRIVATE KEY/i,
@@ -625,15 +805,104 @@ async function fullStrongAcceptance({
     return {
         archive_status: verified.archive_status,
         browser_private_material_detected: false,
-        ceremony_completed: verified.checks.ceremony_completed,
+        ceremonies_completed: verified.checks.ceremonies_completed,
         document_key_transport: "CSR and signature value only",
         evidence_complete: verified.checks.evidence_complete,
-        oidc_validated: verified.checks.oidc_validated,
-        passkey_assertions: popupAssertions.value,
+        oidc_validated: verified.checks.all_oidc_validated,
+        signer_results: signerResults,
         request_id: verified.request_id,
+        signature_count: verified.signature_count,
         state: verified.state,
         validation_engine: verified.validation_engine,
         validation_status: verified.validation_status,
+    };
+}
+
+
+function pocketOnboardingUrl(username) {
+    const output = execFileSync(
+        "python3",
+        [
+            join(ROOT, "scripts/pocket_id_dev.py"),
+            "--env-file",
+            ENV_FILE,
+            "one-time-link",
+            username,
+        ],
+        {cwd: ROOT, encoding: "utf8"}
+    );
+    const url = output.match(/https?:\/\/\S+/)?.[0];
+    if (!url) {
+        throw new Error(`Pocket ID did not return a one-time onboarding URL for ${username}`);
+    }
+    return url;
+}
+
+
+async function setupBrowserIdentity({
+    client,
+    username,
+    onboardingUrl,
+    trackedSessions,
+    browserContextId,
+}) {
+    const targetOptions = {url: onboardingUrl};
+    if (browserContextId) {
+        targetOptions.browserContextId = browserContextId;
+    }
+    const {targetId} = await client.send("Target.createTarget", targetOptions);
+    const {sessionId} = await client.send(
+        "Target.attachToTarget",
+        {targetId, flatten: true}
+    );
+    trackedSessions.add(sessionId);
+    await Promise.all([
+        client.send("Page.enable", {}, sessionId),
+        client.send("Runtime.enable", {}, sessionId),
+        client.send("Network.enable", {}, sessionId),
+        client.send(
+            "Fetch.enable",
+            {patterns: [{urlPattern: `${REDIRECT_URI}*`, requestStage: "Request"}]},
+            sessionId
+        ),
+        client.send("WebAuthn.enable", {}, sessionId),
+    ]);
+    const {authenticatorId} = await client.send(
+        "WebAuthn.addVirtualAuthenticator",
+        {
+            options: {
+                protocol: "ctap2",
+                transport: "internal",
+                hasResidentKey: true,
+                hasUserVerification: true,
+                isUserVerified: true,
+                automaticPresenceSimulation: true,
+            },
+        },
+        sessionId
+    );
+    const assertedCount = {value: 0, before: 0};
+    client.on("WebAuthn.credentialAsserted", (_params, eventSessionId) => {
+        if (eventSessionId === sessionId) {
+            assertedCount.value += 1;
+        }
+    });
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `document.readyState === "complete" && location.pathname === "/settings/account"`
+        ),
+        `${username} Pocket ID account onboarding`
+    );
+    const credentials = await registerPasskey(client, sessionId, authenticatorId);
+    return {
+        username,
+        sessionId,
+        authenticatorId,
+        browserContextId,
+        credentials,
+        assertedCount,
     };
 }
 
@@ -654,20 +923,10 @@ async function main() {
     if (!discovery.fresh_passkey_reauthentication_supported) {
         throw new Error("Pocket ID does not advertise strict fresh-passkey support");
     }
-    const onboardingOutput = execFileSync(
-        "python3",
-        [
-            join(ROOT, "scripts/pocket_id_dev.py"),
-            "--env-file",
-            ENV_FILE,
-            "one-time-link",
-            "roger",
-        ],
-        {cwd: ROOT, encoding: "utf8"}
-    );
-    const onboardingUrl = onboardingOutput.match(/https?:\/\/\S+/)?.[0];
-    if (!onboardingUrl) {
-        throw new Error("Pocket ID did not return a one-time onboarding URL");
+    const onboardingUrls = {roger: pocketOnboardingUrl("roger")};
+    const fullAcceptance = process.env.USL_SIGN_FULL_ACCEPTANCE === "1";
+    if (fullAcceptance) {
+        onboardingUrls.valentin = pocketOnboardingUrl("valentin");
     }
 
     const profile = await mkdtemp(join(tmpdir(), "usl-sign-passkey-"));
@@ -692,7 +951,7 @@ async function main() {
         chromeStderr = `${chromeStderr}${chunk}`.slice(-4000);
     });
     let client;
-    let authenticatorId;
+    const browserIdentities = [];
     try {
         const activePort = await waitFor(
             async () => {
@@ -709,14 +968,8 @@ async function main() {
         const [port, browserPath] = activePort.split("\n");
         client = new CDPClient(`ws://127.0.0.1:${port}${browserPath}`);
         await client.ready;
-        const {targetId} = await client.send("Target.createTarget", {url: onboardingUrl});
-        const attached = await client.send(
-            "Target.attachToTarget",
-            {targetId, flatten: true}
-        );
-        const sessionId = attached.sessionId;
         const networkRequests = [];
-        const trackedSessions = new Set([sessionId]);
+        const trackedSessions = new Set();
         client.on("Network.requestWillBeSent", (params, eventSessionId) => {
             if (trackedSessions.has(eventSessionId)) {
                 networkRequests.push({
@@ -725,64 +978,42 @@ async function main() {
                 });
             }
         });
-        await Promise.all([
-            client.send("Page.enable", {}, sessionId),
-            client.send("Runtime.enable", {}, sessionId),
-            client.send("Network.enable", {}, sessionId),
-            client.send(
-                "Fetch.enable",
-                {patterns: [{urlPattern: `${REDIRECT_URI}*`, requestStage: "Request"}]},
-                sessionId
-            ),
-            client.send("WebAuthn.enable", {}, sessionId),
-        ]);
-        ({authenticatorId} = await client.send(
-            "WebAuthn.addVirtualAuthenticator",
-            {
-                options: {
-                    protocol: "ctap2",
-                    transport: "internal",
-                    hasResidentKey: true,
-                    hasUserVerification: true,
-                    isUserVerified: true,
-                    automaticPresenceSimulation: true,
-                },
-            },
-            sessionId
-        ));
-        const assertedCount = {value: 0, before: 0};
-        client.on("WebAuthn.credentialAsserted", (_params, eventSessionId) => {
-            if (eventSessionId === sessionId) {
-                assertedCount.value += 1;
-            }
+        const rogerIdentity = await setupBrowserIdentity({
+            client,
+            username: "roger",
+            onboardingUrl: onboardingUrls.roger,
+            trackedSessions,
         });
-        await waitFor(
-            () => evaluate(
-                client,
-                sessionId,
-                `document.readyState === "complete" && location.pathname === "/settings/account"`
-            ),
-            "Pocket ID account onboarding"
-        );
-        const credentials = await registerPasskey(client, sessionId, authenticatorId);
-        const fullAcceptance = process.env.USL_SIGN_FULL_ACCEPTANCE === "1";
+        browserIdentities.push(rogerIdentity);
         if (fullAcceptance) {
+            const {browserContextId} = await client.send("Target.createBrowserContext");
+            const valentinIdentity = await setupBrowserIdentity({
+                client,
+                username: "valentin",
+                onboardingUrl: onboardingUrls.valentin,
+                trackedSessions,
+                browserContextId,
+            });
+            browserIdentities.push(valentinIdentity);
             const strongAcceptance = await fullStrongAcceptance({
                 client,
-                sessionId,
-                authenticatorId,
-                credentials,
+                identities: Object.fromEntries(
+                    browserIdentities.map((identity) => [identity.username, identity])
+                ),
                 env,
-                assertedCount,
                 networkRequests,
                 trackedSessions,
             });
             console.log(JSON.stringify({
-                    credential_count: credentials.length,
+                    credential_count: browserIdentities.reduce(
+                        (count, identity) => count + identity.credentials.length,
+                        0
+                    ),
                     strict_capability: true,
                     strong_acceptance: strongAcceptance,
                 }, null, 2));
         } else {
+            const {sessionId, credentials, assertedCount} = rogerIdentity;
             assertedCount.before = assertedCount.value;
             const first = await authorizeFreshPasskey(
                 client, sessionId, discovery, env, assertedCount
@@ -807,11 +1038,20 @@ async function main() {
             }, null, 2));
         }
     } finally {
-        if (client && authenticatorId) {
-            await client.send(
-                "WebAuthn.removeVirtualAuthenticator",
-                {authenticatorId}
-            ).catch(() => undefined);
+        if (client) {
+            for (const identity of browserIdentities) {
+                await client.send(
+                    "WebAuthn.removeVirtualAuthenticator",
+                    {authenticatorId: identity.authenticatorId},
+                    identity.sessionId
+                ).catch(() => undefined);
+                if (identity.browserContextId) {
+                    await client.send(
+                        "Target.disposeBrowserContext",
+                        {browserContextId: identity.browserContextId}
+                    ).catch(() => undefined);
+                }
+            }
         }
         if (client) {
             await client.send("Browser.close").catch(() => undefined);

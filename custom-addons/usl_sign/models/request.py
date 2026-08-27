@@ -4591,7 +4591,13 @@ class SignRequestSigner(models.Model):
             "network": self.env["sign.oca.request"]._server_network_context(),
         }
 
-    def _prepare_signing_candidate(self, items, *, reviewed_document_sha256):
+    def _prepare_signing_candidate(
+        self,
+        items,
+        *,
+        reviewed_document_sha256,
+        preserve_pdf_signatures=False,
+    ):
         """Render one signer's frozen fields without mutating the live request."""
         self.ensure_one()
         request = self.request_id
@@ -4617,6 +4623,9 @@ class SignRequestSigner(models.Model):
         reader = PdfReader(BytesIO(current_document))
         writer = PdfWriter()
         pages = dict(enumerate(reader.pages, start=1))
+        incremental_overlays = []
+        pades_appearance_item_id = False
+        visible_field_values = 0
         signer_fields = {}
         for key, configured in frozen_layout.items():
             if int(configured["role_id"]) != self.role_id.id:
@@ -4650,16 +4659,49 @@ class SignRequestSigner(models.Model):
                 msg = "A required signing field could not be rendered."
                 raise ValidationError(msg)
             if overlay:
-                merge = getattr(page, "merge_page", None) or getattr(page, "mergePage")
-                merge(overlay)
+                visible_field_values += 1
+                if (
+                    preserve_pdf_signatures
+                    and item.get("field_type") == "signature"
+                    and not pades_appearance_item_id
+                ):
+                    # DSS renders the primary adopted signature as the native
+                    # PAdES field appearance in the same increment as the
+                    # personal certificate signature. This avoids a separate
+                    # page-content update that PDF validators must reject.
+                    pades_appearance_item_id = str(key)
+                elif preserve_pdf_signatures:
+                    overlay_stream = BytesIO()
+                    overlay_writer = PdfWriter()
+                    _add_page(overlay_writer, overlay)
+                    overlay_writer.write(overlay_stream)
+                    incremental_overlays.append(
+                        {"page": page_number, "document": overlay_stream.getvalue()},
+                    )
+                else:
+                    merge = getattr(page, "merge_page", None) or getattr(page, "mergePage")
+                    merge(overlay)
             pages[page_number] = page
             completed_layout[str(key)] = item
             signer_fields[str(key)] = item
-        for page in pages.values():
-            _add_page(writer, page)
-        stream = BytesIO()
-        writer.write(stream)
-        candidate = stream.getvalue()
+        if preserve_pdf_signatures:
+            if not visible_field_values:
+                msg = "The signing payload contains no visible field values."
+                raise ValidationError(msg)
+            candidate = (
+                request._sign_dss_client().apply_incremental_overlays(
+                    current_document,
+                    incremental_overlays,
+                )
+                if incremental_overlays
+                else current_document
+            )
+        else:
+            for page in pages.values():
+                _add_page(writer, page)
+            stream = BytesIO()
+            writer.write(stream)
+            candidate = stream.getvalue()
         serialized_fields = json.dumps(
             signer_fields,
             sort_keys=True,
@@ -4672,6 +4714,7 @@ class SignRequestSigner(models.Model):
             "candidate_document_sha256": hashlib.sha256(candidate).hexdigest(),
             "completed_layout": completed_layout,
             "field_values_sha256": hashlib.sha256(serialized_fields).hexdigest(),
+            "pades_appearance_item_id": pades_appearance_item_id,
         }
 
     def _store_signing_context_evidence(self, signing_context):

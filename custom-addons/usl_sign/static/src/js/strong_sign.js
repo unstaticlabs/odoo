@@ -434,6 +434,7 @@
             );
             popup?.close();
             if (authorization.state === "completed") {
+                context.dataset.active = "false";
                 window.location.assign(authorization.redirect || "/sign/result/success");
                 return;
             }
@@ -465,6 +466,7 @@
             await safelyDestroy(ceremonyWorker);
             ceremonyWorker = null;
             setPortalStatus("Signed.", "Opening your result…", "success");
+            context.dataset.active = "false";
             window.location.assign(result.redirect);
         } catch (error) {
             if (!callbackFailed) {
