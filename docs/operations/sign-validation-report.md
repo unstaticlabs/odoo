@@ -215,6 +215,10 @@ authenticator and with both regulatory live flags set to `0`:
 - all eight Sign restoration matcher tests passed, including duplicate export
   prevention, byte-and-size identity matching and exact external-archive
   perimeter enforcement;
+- the preserved `odoo_dev` product database passed
+  `make product-migration-boundary`: all 14 product modules are installed and
+  no migration module, model, field, table, column or XML ID remains in the
+  operational registry or schema;
 - the Impeccable detector returned no findings across Sign source templates,
   views, JavaScript and styles. Automated desktop/mobile journeys cover manual
   filling, guide switching, scrolling and resizing, repeated fields, adoption,
@@ -228,10 +232,38 @@ later documentation-only commits ending at `65b9bd882706`; they touch no file
 changed by this feature and the three-way merge audit reports no conflict. They
 are intentionally not replayed into this pinned feature history.
 
-The final preserved `usl-sign-native-sign-2e96-qa` tenant is upgraded in place,
-not reset. Its existing `odoo_dev` data, PostgreSQL volume, filestore, identity
-records and Paperless archive remain intact. Odoo and Paperless are exposed
-only on Roger's private address; database, CA and DSS ports remain internal.
+The final preserved `usl-migration-native-sign-2e96-qa` tenant is upgraded in
+place, not reset. The forward upgrade retained the one completed ceremony that
+predates candidate-hash binding; all newly created ceremonies must carry the
+three binding hashes and cannot clear them later. The QA updater now upgrades
+the complete installed Sign dependency set rather than `usl_sign` alone. Its
+existing `odoo_dev` data, PostgreSQL volume, filestore, identity records and
+Paperless archive remain intact: 11 requests, 15 signers, one template, 682
+pre-existing Odoo document records and 1,743 attachments were present before
+and after the module upgrade.
+
+The final browser origins are
+`http://odoo-sign-native-sign-2e96-qa.localhost:17025` and
+`http://paperless-sign-native-sign-2e96-qa.localhost:20025`; Pocket ID remains
+`https://pocketid-odoo-dev.unstaticlabs.com`. Paperless allowed-host,
+CSRF/CORS, OIDC and Odoo deep-link configuration use that private Paperless
+origin. Odoo and Paperless listen only on Roger's private address; database,
+CA and DSS ports remain internal.
+
+Four already-consumed QA archive operations were initially stranded by a
+restored Paperless workflow that assigned their documents and successful task
+records to superseded integration identities. Their Paperless IDs 683–686 and
+full SHA-256 values matched the four Odoo operations exactly. Only those
+matched objects were transferred to the canonical Documents integration
+identity, after which the normal Odoo reconciliation linked both signed PDFs
+and both dossiers and advanced Standard request 9 and Strong request 11 from
+Evidence incomplete to Completed. The Sign QA configurator now reuses that
+canonical identity instead of creating a competing archive owner; the obsolete
+identity is disabled and its token revoked. The final credential can read both
+pre-existing and new archive records, all 686 Odoo archive operations are
+Archived, and the preserved Paperless queue is stable at zero queued and zero
+in flight. No file, task, history or unrelated queue entry was deleted or
+recreated.
 
 The expected registry warning about replacing OCA's coarse request state
 selection remains deliberate: the product requires the exact lifecycle and
