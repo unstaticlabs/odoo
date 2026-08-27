@@ -129,43 +129,51 @@
         <field name="arch" type="xml">
             <xpath expr="//kanban" position="attributes">
                 <attribute name="js_class">usl_sign_template_kanban</attribute>
+                <attribute name="class">o_kanban_small_column usl_sign_document_kanban</attribute>
             </xpath>
             <xpath expr="//kanban/field[@name='create_uid']" position="before">
+                <field name="document_preview_url"/>
                 <field name="company_id"/>
                 <field name="version"/>
                 <field name="preparation_status"/>
                 <field name="default_trust"/>
                 <field name="signer_role_count"/>
             </xpath>
-            <xpath expr="//field[@name='display_name']" position="after">
-                <div class="d-flex flex-wrap gap-1 mt-2">
-                    <span class="badge text-bg-light">v<field name="version"/></span>
-                    <field name="preparation_status" widget="badge"/>
-                    <field name="default_trust" widget="badge"/>
-                </div>
-            </xpath>
-            <xpath expr="//t[@t-name='card']//footer" position="replace">
-                <footer class="mt-3 d-flex align-items-center justify-content-between gap-2">
-                    <div class="d-flex flex-wrap gap-2">
-                        <button name="configure" type="object" string="Place fields"
-                            class="btn btn-primary btn-sm"
-                            invisible="preparation_status == 'ready'"
-                            groups="usl_sign.group_sign_template_manager"/>
-                        <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
-                            string="Use template" class="btn btn-primary btn-sm"
-                            invisible="preparation_status != 'ready'"/>
-                        <button name="action_new_version" type="object" string="New version"
-                            class="btn btn-outline-secondary btn-sm"
-                            invisible="preparation_status != 'ready'"
-                            groups="usl_sign.group_sign_template_manager"/>
-                        <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
-                            string="Use and sign myself" context="{'default_sign_now': 1}"
-                            title="Starts a request with you as the only signer. You will review the request before signing."
-                            class="btn btn-link btn-sm px-1"
-                            invisible="preparation_status != 'ready' or signer_role_count != 1"/>
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                    <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                    <div class="p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <h2 class="h6 mb-0 text-break"><field name="display_name"/></h2>
+                            <span class="badge text-bg-light">v<field name="version"/></span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <field name="preparation_status" widget="badge"/>
+                            <field name="default_trust" widget="badge"/>
+                        </div>
+                        <footer class="mt-3 d-flex align-items-end justify-content-between gap-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button name="configure" type="object" string="Place fields"
+                                    class="btn btn-primary btn-sm"
+                                    invisible="preparation_status == 'ready'"
+                                    groups="usl_sign.group_sign_template_manager"/>
+                                <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
+                                    string="Use template" class="btn btn-primary btn-sm"
+                                    invisible="preparation_status != 'ready'"/>
+                                <button name="action_new_version" type="object" string="New version"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    invisible="preparation_status != 'ready'"
+                                    groups="usl_sign.group_sign_template_manager"/>
+                                <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
+                                    string="Use and sign myself" context="{'default_sign_now': 1}"
+                                    title="Starts a request with you as the only signer. You will review the request before signing."
+                                    class="btn btn-link btn-sm px-1"
+                                    invisible="preparation_status != 'ready' or signer_role_count != 1"/>
+                            </div>
+                            <field name="create_uid" widget="many2one_avatar_user"/>
+                        </footer>
                     </div>
-                    <field name="create_uid" widget="many2one_avatar_user"/>
-                </footer>
+                </t>
             </xpath>
         </field>
     </record>

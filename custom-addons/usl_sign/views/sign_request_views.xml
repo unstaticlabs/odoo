@@ -147,6 +147,10 @@
                             </field>
                         </page>
                         <page string="Files" name="documents">
+                            <section class="usl_sign_form_preview mb-4" aria-labelledby="usl_sign_request_preview_title">
+                                <h3 id="usl_sign_request_preview_title" class="h5 mb-2">Document preview</h3>
+                                <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                            </section>
                             <group>
                                 <field name="data" filename="filename" string="Main PDF" readonly="state != 'draft'"/>
                                 <field name="filename" invisible="1"/>
@@ -325,6 +329,10 @@
                     <div class="alert alert-success" role="status" invisible="state != 'completed'">
                         <strong>Complete.</strong> The signed document and its proof are ready below.
                     </div>
+                    <section class="usl_sign_form_preview my-4" aria-labelledby="usl_sign_result_preview_title" invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
+                        <h2 id="usl_sign_result_preview_title" class="h5 mb-2">Signed document preview</h2>
+                        <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                    </section>
                     <group invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
                         <group string="Result">
                             <field name="achieved_trust_short" string="Signing method achieved" readonly="1"/>
@@ -489,6 +497,49 @@
             </list>
         </field>
     </record>
+    <record id="sign_request_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.kanban.usl.open</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <kanban create="0" delete="0" quick_create="0" default_order="create_date desc" class="o_kanban_small_column usl_sign_document_kanban">
+                <field name="name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="lifecycle_stage"/>
+                <field name="signer_progress"/>
+                <field name="next_step"/>
+                <field name="due_date_summary"/>
+                <field name="requested_trust_short"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <h2 class="h6 mb-0 text-break"><field name="name"/></h2>
+                                <field name="lifecycle_stage" widget="badge"
+                                    decoration-danger="state in ['action_required', 'validation_failed']"
+                                    decoration-warning="state in ['waiting_enrollment', 'evidence_incomplete']"
+                                    decoration-info="state in ['sent', 'viewed', 'partial', 'validating']"/>
+                            </div>
+                            <div class="small text-muted mt-2"><field name="requested_trust_short"/></div>
+                            <div class="usl_sign_document_next mt-3">
+                                <span class="small text-muted d-block">Next</span>
+                                <field name="next_step"/>
+                            </div>
+                            <footer class="mt-3 d-flex align-items-end justify-content-between gap-3">
+                                <div class="small text-muted min-w-0">
+                                    <span class="d-block"><field name="signer_progress"/></span>
+                                    <span class="d-block text-truncate"><field name="due_date_summary"/></span>
+                                </div>
+                                <button name="preview" type="object" string="Open document" class="btn btn-sm btn-outline-primary flex-shrink-0" invisible="state in ['draft', 'ready']"/>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
     <record id="sign_request_search_usl" model="ir.ui.view">
         <field name="name">sign.oca.request.search.usl.open</field>
         <field name="model">sign.oca.request</field>
@@ -523,6 +574,44 @@
                 <field name="daily_timestamp_status" string="Independent timestamp" widget="badge" optional="hide"/>
                 <button name="preview" type="object" string="Open signed PDF" class="btn-primary"/>
             </list>
+        </field>
+    </record>
+    <record id="sign_request_completed_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.kanban.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="completed_at desc" class="o_kanban_small_column usl_sign_document_kanban">
+                <field name="name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="completed_at"/>
+                <field name="signer_progress"/>
+                <field name="achieved_trust_short"/>
+                <field name="completed_proof_label"/>
+                <field name="completed_storage_label"/>
+                <field name="archive_document_id"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <h2 class="h6 mb-1 text-break"><field name="name"/></h2>
+                            <div class="small text-muted"><field name="completed_at"/></div>
+                            <div class="d-flex flex-wrap gap-1 mt-3">
+                                <span class="badge text-bg-success"><i class="fa fa-check me-1" title="Proof ready"/><field name="completed_proof_label"/></span>
+                                <span class="badge text-bg-success"><i class="fa fa-folder-open-o me-1" title="Stored in Documents"/><field name="completed_storage_label"/></span>
+                                <span class="badge text-bg-light"><field name="achieved_trust_short"/></span>
+                            </div>
+                            <footer class="mt-3 d-flex align-items-center justify-content-between gap-3">
+                                <span class="small text-muted"><field name="signer_progress"/></span>
+                                <div class="d-flex flex-wrap justify-content-end gap-1">
+                                    <button name="action_open_archived_signed_document" type="object" string="Documents" class="btn btn-sm btn-outline-secondary" groups="usl_documents.group_documents_user" invisible="not archive_document_id"/>
+                                    <button name="preview" type="object" string="Open PDF" class="btn btn-sm btn-primary"/>
+                                </div>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -577,6 +666,56 @@
             </list>
         </field>
     </record>
+    <record id="my_signature_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.kanban.usl.mine</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="arch" type="xml">
+            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="create_date desc" action="action_open_my_signature" type="object" class="o_kanban_small_column usl_sign_document_kanban">
+                <field name="document_name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="sender_id"/>
+                <field name="role_id"/>
+                <field name="personal_status"/>
+                <field name="personal_next_step"/>
+                <field name="request_due_at"/>
+                <field name="requested_trust_short"/>
+                <field name="signed_on"/>
+                <field name="is_allow_signature"/>
+                <field name="can_open_signing_identity"/>
+                <field name="can_open_external_signing"/>
+                <field name="state"/>
+                <field name="request_state"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <h2 class="h6 mb-0 text-break"><field name="document_name"/></h2>
+                                <span t-att-class="'badge ' + (record.state.raw_value === 'signed' ? 'text-bg-success' : (['declined', 'expired', 'cancelled', 'validation_failed'].includes(record.request_state.raw_value) ? 'text-bg-danger' : 'text-bg-warning'))">
+                                    <i t-if="record.state.raw_value === 'signed'" class="fa fa-check me-1" title="Signed"/>
+                                    <field name="personal_status"/>
+                                </span>
+                            </div>
+                            <div class="small text-muted mt-2 text-truncate">From <field name="sender_id"/> · <field name="role_id"/></div>
+                            <div class="usl_sign_document_next mt-3"><field name="personal_next_step"/></div>
+                            <footer class="mt-3 d-flex align-items-end justify-content-between gap-3">
+                                <div class="small text-muted min-w-0">
+                                    <span class="d-block"><field name="requested_trust_short"/></span>
+                                    <span t-if="record.signed_on.raw_value" class="d-block">Signed <field name="signed_on"/></span>
+                                    <span t-elif="record.request_due_at.raw_value" class="d-block">Due <field name="request_due_at"/></span>
+                                </div>
+                                <button name="sign" type="object" string="Review and sign" class="btn btn-sm btn-primary flex-shrink-0" invisible="not is_allow_signature"/>
+                                <button name="action_open_signing_identity" type="object" string="Set up identity" class="btn btn-sm btn-primary flex-shrink-0" invisible="not can_open_signing_identity"/>
+                                <button name="action_open_external_signing" type="object" string="Continue" class="btn btn-sm btn-primary flex-shrink-0" invisible="not can_open_external_signing"/>
+                                <button name="action_open_my_signature" type="object" string="Open record" class="btn btn-sm btn-outline-primary flex-shrink-0" invisible="is_allow_signature or can_open_signing_identity or can_open_external_signing"/>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
     <record id="my_signature_form_usl" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.form.usl.mine</field>
         <field name="model">sign.oca.request.signer</field>
@@ -601,6 +740,10 @@
                             <div><field name="personal_next_step" readonly="1" nolabel="1"/></div>
                         </div>
                     </div>
+                    <section class="usl_sign_form_preview my-4" aria-labelledby="usl_sign_my_signature_preview_title">
+                        <h2 id="usl_sign_my_signature_preview_title" class="h5 mb-2">Document preview</h2>
+                        <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                    </section>
                     <div class="row g-3 my-4">
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="sender_id" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing as</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
@@ -646,7 +789,13 @@
     <record id="sign_request_action" model="ir.actions.act_window">
         <field name="name">Open Requests</field>
         <field name="res_model">sign.oca.request</field>
-        <field name="view_mode">list,form,activity</field>
+        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('sign_request_kanban_usl')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('sign_request_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('sign_request_form_usl')})
+        ]"/>
         <field name="domain">[('state', 'not in', ['completed', 'declined', 'expired', 'cancelled']), '|', ('user_id', '=', uid), ('coordinator_ids', 'in', [uid])]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No open requests</p>
@@ -656,7 +805,13 @@
     <record id="my_signatures_action" model="ir.actions.act_window">
         <field name="name">My Signatures</field>
         <field name="res_model">sign.oca.request.signer</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('my_signature_kanban_usl')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('my_signature_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('my_signature_form_usl')})
+        ]"/>
         <field name="domain">[('partner_id.user_ids', 'in', [uid]), ('request_id.state', 'not in', ['draft', 'ready'])]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No documents have been assigned to you</p>
@@ -666,9 +821,10 @@
     <record id="completed_documents_action" model="ir.actions.act_window">
         <field name="name">Completed Documents</field>
         <field name="res_model">sign.oca.request</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="view_ids" eval="[
             (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('sign_request_completed_kanban_usl')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('sign_request_completed_list_usl')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('sign_request_form_usl')})
         ]"/>
