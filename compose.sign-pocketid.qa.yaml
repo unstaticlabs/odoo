@@ -1,4 +1,13 @@
 services:
+  # This overlay makes both services hard dependencies of Odoo.  Keep them
+  # active whenever the overlay is selected, including governed module-update
+  # helpers that do not pass the interactive `sign` profile explicitly.
+  usl-sign-step-ca:
+    profiles: !override []
+
+  usl-sign-dss:
+    profiles: !override []
+
   pocket-id:
     build:
       context: .
