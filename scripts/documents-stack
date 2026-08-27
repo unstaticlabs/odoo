@@ -181,8 +181,8 @@ validate_config() {
     printf 'Ollama 0.30.11 is not pinned by qualified digest.\n' >&2
     return 1
   }
-  grep -Fq "ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1" <<<"$config" || {
-    printf 'Pocket ID v2.13.0 is not pinned by digest.\n' >&2
+  grep -Fq "ghcr.io/pocket-id/pocket-id:v2.14.0@sha256:01540977dcf4c7b41b1159f34d68e4632f2658d62790e460ca65a42722b13c4a" <<<"$config" || {
+    printf 'Pocket ID v2.14.0 is not pinned by digest.\n' >&2
     return 1
   }
   grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai" <<<"$config" || {

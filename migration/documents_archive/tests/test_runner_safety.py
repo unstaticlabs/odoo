@@ -612,6 +612,34 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertIn('run_stage "Personal AI key preflight"', target)
 
+    def test_qualified_document_service_pins_are_consistent(self):
+        paths = (
+            ROOT / ".env.example",
+            ROOT / "compose.yaml",
+            ROOT / "deploy/documents/preprod.env.example",
+            ROOT / "deploy/documents/qa.env",
+            ROOT / "deploy/preprod.env.example",
+            ROOT / "deploy/production.external-pocket-id.env.example",
+            ROOT / "scripts/documents-stack",
+            ROOT / "scripts/pocket_id_dev.py",
+        )
+        content = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+        self.assertNotIn("gotenberg/gotenberg:8.35", content)
+        self.assertNotIn("pocket-id:v2.13.0", content)
+        self.assertIn(
+            "gotenberg/gotenberg:8.36@"
+            "sha256:87c16b9f364279d321bc9772d31fa58a"
+            "a6abe036423c270698bd636c3a8e9466",
+            content,
+        )
+        self.assertIn(
+            "pocket-id:v2.14.0@"
+            "sha256:01540977dcf4c7b41b1159f34d68e463"
+            "2f2658d62790e460ca65a42722b13c4a",
+            content,
+        )
+
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
 
