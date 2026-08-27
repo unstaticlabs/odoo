@@ -156,6 +156,22 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             test_body,
         )
 
+    def test_sign_stack_reprovisions_clients_when_public_urls_change(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        upgrade_body = stack[
+            stack.index("upgrade_qa() {") : stack.index("\n}\n\nlogs()")
+        ]
+        paperless_body = stack[
+            stack.index("configure_paperless_only() {") : stack.index(
+                "\n}\n\narchive_acceptance()",
+            )
+        ]
+
+        self.assertIn("provision_pocket", upgrade_body)
+        self.assertIn("provision_pocket", paperless_body)
+
     def test_sign_qa_reuses_the_canonical_documents_integration_identity(self):
         stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
             encoding="utf-8",
