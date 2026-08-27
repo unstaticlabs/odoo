@@ -196,6 +196,52 @@
     flex: 1 1 30rem;
 }
 
+.usl_sign_field_guide {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 24rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+
+    > div:first-child {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+    }
+
+    strong {
+        font-size: .875rem;
+    }
+
+    span {
+        color: #5b6168;
+        font-size: .8rem;
+        line-height: 1.3;
+    }
+}
+
+.usl_sign_field_guide_actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: .35rem;
+}
+
+.usl_sign_proof_notice,
+.usl_sign_location_status {
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+    margin: 0 0 .45rem;
+    color: #5b6168;
+    font-size: .75rem;
+    line-height: 1.35;
+}
+
+.usl_sign_location_status {
+    margin: .35rem 0 0 .875rem;
+}
+
 .usl_sign_consent_choice {
     display: flex;
     width: 100%;
@@ -383,6 +429,9 @@
     background: #fff;
     border-top: 1px solid #d8dadd;
     box-shadow: 0 -1px 4px rgba(0, 0, 0, .08);
+    max-height: 45vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .o_portal_sign_document_body .o_sign_validation_buttons {
@@ -818,7 +867,7 @@
 
 .usl_sign_method_radio.o_field_radio .o_horizontal {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
     gap: .5rem;
     width: 100%;
 
@@ -1245,8 +1294,8 @@
 }
 
 .usl_sign_systray_requests {
-    width: min(24rem, calc(100vw - 1rem));
-    max-width: 100%;
+    width: calc(100vw - 1rem);
+    max-width: 24rem;
     min-width: 0;
     overflow-x: hidden;
 }
@@ -1802,6 +1851,11 @@
         gap: .75rem;
     }
 
+    .usl_sign_field_guide {
+        width: 100%;
+        flex-basis: auto;
+    }
+
     .usl_sign_consent {
         max-width: none;
     }
@@ -1812,6 +1866,10 @@
 }
 
 @media (max-width: 575.98px) {
+    .usl_sign_method_radio.o_field_radio .o_horizontal {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .usl_sign_inspector_header h1 {
         font-size: 2rem;
     }
@@ -1903,6 +1961,15 @@
 
     .usl_sign_portal_actions {
         width: 100%;
+    }
+
+    .usl_sign_field_guide {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .usl_sign_field_guide_actions .btn:first-child {
+        flex: 1 1 auto;
     }
 
     .usl_sign_portal_actions .btn {

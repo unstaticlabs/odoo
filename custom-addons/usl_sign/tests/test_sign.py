@@ -1203,6 +1203,72 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(persisted["position_x"], frozen["position_x"])
         self.assertEqual(persisted["width"], frozen["width"])
 
+    def test_signing_candidate_is_complete_bound_and_non_mutating(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        signer = request.signer_ids
+        base_data = field_content(request.data)
+        base_layout = json.loads(json.dumps(request.signatory_data))
+        reviewed_hash = hashlib.sha256(base_data).hexdigest()
+
+        candidate = signer._prepare_signing_candidate(
+            self._items(request, signer.role_id, "Camille Signer"),
+            reviewed_document_sha256=reviewed_hash,
+        )
+
+        self.assertEqual(candidate["base_document_sha256"], reviewed_hash)
+        self.assertEqual(
+            candidate["candidate_document_sha256"],
+            hashlib.sha256(candidate["candidate_data"]).hexdigest(),
+        )
+        self.assertNotEqual(candidate["candidate_data"], base_data)
+        self.assertEqual(field_content(request.data), base_data)
+        self.assertEqual(request.signatory_data, base_layout)
+        completed = next(iter(candidate["completed_layout"].values()))
+        self.assertEqual(completed["value"], "Camille Signer")
+
+        with self.assertRaisesRegex(ValidationError, "changed after you reviewed"):
+            signer._prepare_signing_candidate(
+                self._items(request, signer.role_id, "Camille Signer"),
+                reviewed_document_sha256="0" * 64,
+            )
+
+    def test_observed_browser_context_is_bounded_and_reviewer_only(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        signer = request.signer_ids
+        context = signer._normalized_signing_context(
+            location={"status": "refused"},
+            browser_context={
+                "user_agent": "Test browser",
+                "platform": "Test platform",
+                "language": "en-US",
+                "languages": ["en-US", "en"],
+                "timezone": "Europe/Paris",
+                "screen": {"width": 1440, "height": 900},
+                "viewport": {"width": 1280, "height": 720},
+            },
+        )
+        self.assertEqual(context["location"], {"status": "refused"})
+        self.assertNotIn("fingerprint", context)
+        evidence = signer._store_signing_context_evidence(context)
+        self.assertFalse(
+            self.env["usl.sign.evidence"].with_user(self.sign_user).search(
+                [("id", "=", evidence.id)],
+            ),
+        )
+        self.assertEqual(
+            self.env["usl.sign.evidence"].with_user(self.evidence_reviewer).search(
+                [("id", "=", evidence.id)],
+            ),
+            evidence,
+        )
+        with self.assertRaisesRegex(ValidationError, "browser context"):
+            signer._normalized_signing_context(
+                location={"status": "unavailable"},
+                browser_context={"user_agent": "x" * 513},
+            )
+
     def test_cross_validation_disagreement_never_completes(self):
         request = self._ready(self._request())
         request._freeze_document()
@@ -1896,7 +1962,18 @@ class TestCleanUslSign(TransactionCase):
                 "enrollment_id": enrollment.id,
                 "challenge": field_value(b"binding"),
                 "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
+                "base_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
                 "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "candidate_data": field_value(self.pdf),
+                "candidate_layout": sign_request.frozen_layout,
+                "field_values_sha256": hashlib.sha256(b"fields").hexdigest(),
+                "evidence_context_sha256": hashlib.sha256(b"context").hexdigest(),
+                "evidence_context": {
+                    "format": "usl-sign-observed-context-v1",
+                    "browser": {},
+                    "location": {"status": "refused"},
+                    "network": {"observed": False},
+                },
                 "consent_sha256": hashlib.sha256(b"consent").hexdigest(),
                 "csr_sha256": hashlib.sha256(b"csr").hexdigest(),
                 "public_key_sha256": hashlib.sha256(b"public").hexdigest(),
@@ -1927,6 +2004,9 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(ceremony.state, "revoked")
         self.assertFalse(ceremony.data_to_sign)
         self.assertFalse(ceremony.dss_signing_context)
+        self.assertFalse(ceremony.candidate_data)
+        self.assertFalse(ceremony.candidate_layout)
+        self.assertFalse(ceremony.evidence_context)
         self.assertEqual(ceremony.failure_code, "signer_restarted")
         self.assertEqual(
             sign_request.event_ids[-1].event_type,
@@ -2131,10 +2211,12 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn('t-value="\'review\'"', start_page)
         self.assertIn("before anything is signed", start_page)
 
-        strong_page = self.env.ref("usl_sign.strong_sign_page").arch
-        self.assertIn('t-value="\'journey\'"', strong_page)
-        self.assertIn("data-finish-label", strong_page)
-        self.assertIn("private key never leaves this page", strong_page)
+        self.assertFalse(
+            self.env.ref("usl_sign.strong_sign_page", raise_if_not_found=False),
+        )
+        portal_page = self.env.ref("usl_sign.portal_sign_document").arch
+        self.assertIn("usl_strong_sign_context", portal_page)
+        self.assertIn("strong_sign.js", portal_page)
 
     def test_my_identity_has_one_direct_form_journey(self):
         self.assertFalse(
