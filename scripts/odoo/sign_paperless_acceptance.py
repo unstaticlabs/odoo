@@ -41,21 +41,24 @@ def _poll_until_archived(request, *, attempts=30):
 
 def _complete_standard(label):
     raw_pdf = _pdf()
-    role = env.ref("sign_oca.sign_role_customer")
+    roles = env.ref("sign_oca.sign_role_customer") | env.ref(
+        "sign_oca.sign_role_employee",
+    )
     field = env.ref("sign_oca.sign_field_name")
     policy = env.ref("usl_sign.policy_routine_standard")
-    partner = env["res.partner"].search(
-        [("email", "=", "qa-sign-archive@preproduction.invalid")],
-        limit=1,
-    ) or env["res.partner"].create(
-        {
-            "name": "QA Sign Archive Signer",
-            "email": "qa-sign-archive@preproduction.invalid",
-        },
-    )
+    partners = env["res.partner"]
+    for sequence in range(1, 3):
+        email = f"qa-sign-archive-{sequence}@preproduction.invalid"
+        partner = env["res.partner"].search([("email", "=", email)], limit=1)
+        partners |= partner or env["res.partner"].create(
+            {
+                "name": f"QA Sign Archive Signer {sequence}",
+                "email": email,
+            },
+        )
     layout = {
-        "1": {
-            "id": 1,
+        str(sequence): {
+            "id": sequence,
             "field_id": field.id,
             "field_type": field.field_type,
             "required": True,
@@ -63,13 +66,14 @@ def _complete_standard(label):
             "role_id": role.id,
             "page": 1,
             "position_x": 12,
-            "position_y": 18,
+            "position_y": 12 + sequence * 12,
             "width": 30,
             "height": 6,
             "value": False,
             "default_value": field.default_value,
             "placeholder": "",
-        },
+        }
+        for sequence, role in enumerate(roles, start=1)
     }
     request = env["sign.oca.request"].create(
         {
@@ -87,30 +91,80 @@ def _complete_standard(label):
                     {
                         "partner_id": partner.id,
                         "role_id": role.id,
-                        "sequence": 10,
+                        "sequence": sequence * 10,
                     },
-                ),
+                )
+                for sequence, (partner, role) in enumerate(
+                    zip(partners, roles, strict=True),
+                    start=1,
+                )
             ],
         },
     )
     request.action_mark_ready()
     request._freeze_document()
     request._transition("sent", "request_sent", payload={"qa_acceptance": True})
-    signer = request.signer_ids
-    access_token = signer._issue_access_token()
-    session_token = signer._exchange_access_token(access_token)
-    items = json.loads(json.dumps(request.frozen_layout))
-    items["1"]["value"] = "QA Sign Archive Signer"
-    reviewed_document_sha256 = hashlib.sha256(field_content(request.data)).hexdigest()
-    signer.action_sign(
-        items,
-        access_token=session_token,
-        document_sha256=reviewed_document_sha256,
-        consent=True,
-    )
+    for signer in request.signer_ids.sorted(lambda row: (row.sequence, row.id)):
+        access_token = signer._issue_access_token()
+        session_token = signer._exchange_access_token(access_token)
+        items = json.loads(json.dumps(request.frozen_layout))
+        for key, item in items.items():
+            if int(item["role_id"]) == signer.role_id.id:
+                items[key]["value"] = signer.partner_id.name
+        reviewed_document_sha256 = hashlib.sha256(field_content(request.data)).hexdigest()
+        signer.action_sign(
+            items,
+            access_token=session_token,
+            document_sha256=reviewed_document_sha256,
+            consent=True,
+            location={"status": "refused"},
+            browser_context={
+                "language": "en-US",
+                "platform": "synthetic-release-acceptance",
+                "timezone": "UTC",
+            },
+        )
     env.cr.commit()
     request.invalidate_recordset()
     return request
+
+
+def _assert_standard_topology(request):
+    final_pdf = field_content(request.final_data)
+    validation = request._sign_dss_client().validate(
+        final_pdf,
+        expected_level="standard",
+    )
+    cross_validation = request._sign_dss_client().cross_validate(final_pdf)
+    if (
+        validation.get("status") != "valid"
+        or validation.get("signatureCount") != 1
+        or cross_validation.get("status") != "valid"
+        or cross_validation.get("signature_count") != 1
+        or len(request.signer_ids) != 2
+        or any(signer.state != "signed" for signer in request.signer_ids)
+    ):
+        msg = "The Standard acceptance topology is not two attestations and one seal"
+        raise RuntimeError(msg)
+    signing_summary = next(
+        artifact
+        for artifact in request._dossier_artifacts_v2()
+        if artifact["kind"] == "signing_summary"
+    )
+    summary = json.loads(signing_summary["content"])
+    if summary["proof"] != {
+        "signer_attestations": 2,
+        "personal_pades_signatures": 0,
+        "platform_integrity_seals": 1,
+        "expected_pdf_signature_count": 1,
+    }:
+        msg = "The Standard dossier describes the wrong proof semantics"
+        raise RuntimeError(msg)
+    return {
+        "signer_attestations": 2,
+        "pdf_signatures": 1,
+        "platform_integrity_seals": 1,
+    }
 
 
 params = env["ir.config_parameter"].sudo()
@@ -136,6 +190,7 @@ try:
         raise RuntimeError(
             f"Direct archive did not complete: {direct.state}/{direct.archive_status}",
         )
+    direct_topology = _assert_standard_topology(direct)
     duplicate = env["usl.document"].sudo().upload_from_odoo(
         direct.dossier_filename,
         base64_text(field_content(direct.dossier_data)),
@@ -170,6 +225,7 @@ try:
         raise RuntimeError(
             f"Archive recovery did not complete: {recovery.state}/{recovery.archive_status}",
         )
+    recovery_topology = _assert_standard_topology(recovery)
 
     direct_dossier = field_content(direct.dossier_data)
     recovery_dossier = field_content(recovery.dossier_data)
@@ -185,6 +241,7 @@ try:
                     "dossier_sha256": hashlib.sha256(direct_dossier).hexdigest(),
                     "request_id": direct.id,
                     "state": direct.state,
+                    "topology": direct_topology,
                 },
                 "duplicate_reused": True,
                 "recovery": {
@@ -196,6 +253,7 @@ try:
                     "dossier_sha256": hashlib.sha256(recovery_dossier).hexdigest(),
                     "request_id": recovery.id,
                     "state": recovery.state,
+                    "topology": recovery_topology,
                 },
                 "run_id": run_id,
             },
