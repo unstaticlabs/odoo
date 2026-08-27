@@ -82,23 +82,9 @@
         </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">
             <div class="o_sign_validation_buttons">
-                <div class="usl_sign_field_guide" role="group" aria-label="Field guide" aria-live="polite">
-                    <div>
-                        <strong>
-                            <t t-if="uslGuide.remaining" t-out="requiredFieldsRemainingLabel"/>
-                            <t t-else="">Ready to sign</t>
-                        </strong>
-                        <span t-if="uslGuide.remaining">Select a field on the page, or use the guide.</span>
-                        <span t-else="">Confirm below to finish.</span>
-                    </div>
-                    <div t-if="uslGuide.remaining" class="usl_sign_field_guide_actions">
-                        <button type="button" class="btn btn-outline-secondary" aria-label="Previous incomplete field" title="Previous required field" t-on-click="previousIncompleteField">
-                            <i class="fa fa-chevron-up me-1" aria-hidden="true"/>Previous
-                        </button>
-                        <button type="button" class="btn btn-primary" aria-label="Next incomplete field" title="Next required field" t-on-click="nextIncompleteField">
-                            Next field<i class="fa fa-chevron-down ms-1" aria-hidden="true"/>
-                        </button>
-                    </div>
+                <div t-if="uslGuide.remaining" class="usl_sign_field_progress" role="status" aria-live="polite">
+                    <strong t-out="requiredFieldsRemainingLabel"/>
+                    <span>Fill the highlighted fields directly, or use the guide on the left.</span>
                 </div>
                 <div t-if="!uslGuide.remaining" class="usl_sign_consent" role="group" aria-labelledby="usl_sign_consent_title">
                     <label class="usl_sign_consent_choice" for="usl_sign_consent">

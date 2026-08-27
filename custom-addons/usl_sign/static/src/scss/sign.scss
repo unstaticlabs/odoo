@@ -196,19 +196,11 @@
     flex: 1 1 26rem;
 }
 
-.usl_sign_field_guide {
+.usl_sign_field_progress {
     display: flex;
     min-width: 0;
     flex: 1 1 24rem;
-    align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-
-    > div:first-child {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-    }
+    flex-direction: column;
 
     strong {
         font-size: .875rem;
@@ -219,12 +211,6 @@
         font-size: .8rem;
         line-height: 1.3;
     }
-}
-
-.usl_sign_field_guide_actions {
-    display: flex;
-    flex: 0 0 auto;
-    gap: .35rem;
 }
 
 .usl_sign_proof_notice,
@@ -1963,7 +1949,7 @@
         gap: .75rem;
     }
 
-    .usl_sign_field_guide {
+    .usl_sign_field_progress {
         width: 100%;
         flex-basis: auto;
     }
@@ -2080,15 +2066,6 @@
 
     .usl_sign_portal_actions {
         width: 100%;
-    }
-
-    .usl_sign_field_guide {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .usl_sign_field_guide_actions .btn:first-child {
-        flex: 1 1 auto;
     }
 
     .usl_sign_portal_actions .btn {
