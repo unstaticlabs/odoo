@@ -1118,10 +1118,14 @@ those untouched areas were not rewritten.
 Remaining risks are bounded and explicit. The 50,000-ID lexical scope is ample
 for the current archive but must be revisited before that population is
 approached. The five-second cache is per Odoo worker rather than shared.
-Production remains `linux/amd64`, so the Paperless image and BGE-M3 release
-still require the planned AMD64 release qualification; development and this
-evidence intentionally use ARM64. A warm semantic response can make the
-progress banner brief, and an unrelated Pocket profile-page console exception
+The exact Paperless overlay now also builds for `linux/amd64` at manifest
+digest
+`sha256:a30e826e471f097df1cb941b69d7379ebb800f4bf07a1daff45f2359d5cb079d`
+with version `3.0.5-usl.5` and the expected USL patch label. Its all-locale
+frontend build passed and the compiled French bundle contains the maintained
+Personal Gemini strings. This is cross-architecture image-build evidence, not
+the still-required full AMD64 release-cohort restore. A warm semantic response
+can make the progress banner brief, and an unrelated Pocket profile-page console exception
 was observed immediately after one-time-link login, with no Documents-page
 error observed.
 
@@ -1267,7 +1271,8 @@ identity, but Pocket ID's final **Sign in** action remained in a loading state
 on two fresh interactions without a browser console error. No one-time token
 was injected into browser automation. The complete disposable-database
 desktop/mobile suites passed; a human should still complete the short local
-SSO tour before merge. Production is AMD64 and remains unqualified by this
-ARM64 development closeout. At target `origin/19-usl`
+SSO tour before merge. The AMD64 overlay build passes, but production remains
+unqualified until the complete runtime-bound candidate cohort is restored and
+accepted on AMD64. At target `origin/19-usl`
 `65b9bd8827060a72cb42c10ef7875a4766a83f67`, Native Sign is not present; its
 future Documents integration must be reviewed when that branch is merged.

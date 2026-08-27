@@ -28,10 +28,12 @@ promoted directly.
 The combined Documents review candidate preserves the exact reviewed tips of
 both feature branches through explicit merge commits. Its five affected product
 modules passed clean install, upgrade and identical repeated upgrade; Documents
-also passed its query budgets and desktop/mobile Chromium suites. A fresh
-source-dump reconstruction and schema-v3 seed publication are in progress on
-the merged tree. Release qualification still requires the completed seed,
-one real cold hydration followed by fail-closed warm reuse, the signed-in
+also passed its query budgets and desktop/mobile Chromium suites. The exact
+Paperless overlay also builds successfully for production `linux/amd64`. A
+fresh source-dump reconstruction is in progress on the merged tree. The
+schema-v3 seed cannot be published from a review branch by design: after the
+merge, clean `19-usl` must publish it and prove one cold hydration followed by
+fail-closed warm reuse. Release qualification also still requires the signed-in
 browser matrix and merge-commit admission into `19-usl`.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
@@ -233,8 +235,9 @@ The canonical, evidence-bearing sequence is maintained in the
    dispositions; physical opening stock remains a separate later operation**.
 5. Paperless 3.0 — **integrated into the combined Documents review candidate
    from exact feature tip `2ba19d6fa90`; clean module/install/update/browser
-   suites pass. Complete full archive reconstruction, signed-in manual journeys,
-   AMD64 qualification and final merge remain required**.
+   suites and the AMD64 overlay build pass. Complete full archive
+   reconstruction, release-cohort restore, signed-in manual journeys and final
+   merge remain required**.
 6. Review and merge Native Sign with signing evidence and permission gates.
 7. Review and merge Collaboration History, then close the corresponding
    strict source scope and attachment dispositions without importing

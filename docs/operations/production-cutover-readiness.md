@@ -53,10 +53,14 @@ that candidate, all five affected product modules passed clean install,
 upgrade and identical repeated upgrade. `usl_documents` passed 184 Python
 post-tests, the 13/20/6 query ceilings, asset compilation, and desktop/mobile
 Chromium suites (39/268 and 33/248). The merged tree also passed the 114-test
-Documents migration-safety suite. A fresh full reconstruction and schema-v3
-seed publication are in progress; no older seed or feature database is final
-release evidence. Canonical `odoo_dev` must be reconstructed from the eventual
-final `19-usl`, not repaired ad hoc.
+Documents migration-safety suite, subsequently extended to 116 passing tests.
+The exact Paperless overlay built for `linux/amd64` at manifest digest
+`sha256:a30e826e471f097df1cb941b69d7379ebb800f4bf07a1daff45f2359d5cb079d`;
+the full release-cohort restore remains separate. A fresh full reconstruction
+is in progress. Schema-v3 seed publication is intentionally restricted to a
+clean `19-usl` checkout and therefore follows the merge; no older seed or
+feature database is final release evidence. Canonical `odoo_dev` must be
+reconstructed from the eventual final `19-usl`, not repaired ad hoc.
 
 ## Non-negotiable boundaries
 
@@ -93,7 +97,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | integrated into the combined Documents candidate from reviewed tip `3d2b2b49382`; affected suites pass, v3 publication/cold-warm evidence and final merge pending |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
-| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | integrated into the combined Documents candidate from reviewed tip `2ba19d6fa90`; clean suites pass, full archive/browser/AMD64 evidence and final merge pending |
+| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | integrated into the combined Documents candidate from reviewed tip `2ba19d6fa90`; clean suites and AMD64 overlay build pass, full archive/release-cohort restore/signed-in browser evidence and final merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
 | Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
@@ -125,7 +129,8 @@ partial `odoo_dev` installation is not final-target evidence.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
   validation.
-- [ ] Complete Paperless 3.0 full-archive, browser and AMD64 qualification;
+- [ ] Complete Paperless 3.0 full-archive and signed-in browser qualification,
+  then restore the complete candidate cohort with the built AMD64 overlay;
   merge the combined Documents candidate and Native Sign after independent
   review and validation.
 - [ ] Merge Collaboration History and Distribution Access Control after
