@@ -307,6 +307,17 @@ clean_install_product() {
     --init="$product_modules" \
     --without-demo=true \
     --stop-after-init
+  # Odoo reaches an auto-install fixed point after installing the supported
+  # product set. Remove the reviewed optional marketing/demo modules with the
+  # same fail-closed helper used by canonical reconstruction and isolated QA.
+  release_compose --profile init run --rm -T \
+    -e ODOO_INIT_DB="$clean_install_database" \
+    -e ODOO_DB_FILTER="^${clean_install_database}$" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$clean_install_database" \
+    --shell-interface=python \
+    < "$ROOT/scripts/odoo/enforce_product_module_scope.py"
   database_identity 1 "$clean_install_database" \
     > "$ROOT/artifacts/release/clean-install-database-identity.json"
   USL_PRODUCT_BOUNDARY_PREPROD=1 \

@@ -102,6 +102,25 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.assertIn("COPY --link --chown=1000:1000 custom-addons ./custom-addons", dockerfile)
         self.assertIn("COPY --link --chown=1000:1000 docs/users ./docs/users", dockerfile)
 
+    def test_preproduction_clean_install_enforces_product_module_scope(self):
+        release_script = (ROOT / "scripts/preprod-release").read_text(
+            encoding="utf-8",
+        )
+        clean_install = release_script.split("clean_install_product() {", 1)[1].split(
+            "\n}\n\nreconstruct_target()",
+            1,
+        )[0]
+
+        install_position = clean_install.index('--init="$product_modules"')
+        scope_position = clean_install.index(
+            'scripts/odoo/enforce_product_module_scope.py',
+        )
+        boundary_position = clean_install.index(
+            'scripts/check-product-database-boundary',
+        )
+        self.assertLess(install_position, scope_position)
+        self.assertLess(scope_position, boundary_position)
+
     def _private_json(self, name, value):
         path = self.root / name
         path.write_text(json.dumps(value) + "\n", encoding="utf-8")
