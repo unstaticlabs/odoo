@@ -234,12 +234,16 @@ class UslProjectRestoreRun(models.Model):
                 tracking_disable=True,
                 mail_create_nolog=True,
                 mail_create_nosubscribe=True,
+                mail_auto_subscribe_no_notify=True,
             )
         )
         if record:
             if self._is_current_revision(record, snapshot):
                 return record
-            record.with_context(tracking_disable=True).write(values)
+            record.with_context(
+                tracking_disable=True,
+                mail_auto_subscribe_no_notify=True,
+            ).write(values)
         else:
             record = model.create(values)
         if (
@@ -248,7 +252,10 @@ class UslProjectRestoreRun(models.Model):
             or record.rebuild_source_snapshot != snapshot
             or record.rebuild_import_note != trace_values["rebuild_import_note"]
         ):
-            record.with_context(tracking_disable=True).write(trace_values)
+            record.with_context(
+                tracking_disable=True,
+                mail_auto_subscribe_no_notify=True,
+            ).write(trace_values)
         for field_name in translation_fields:
             translated = self._source_translation(row.get(field_name), "fr_FR")
             if translated and translated != self._source_text(row.get(field_name)):

@@ -335,6 +335,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("attachment_gate=gate", target)
         self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
         self.assertIn('export USL_ONLINE_DUMP_DIR="$source_dump_dir"', target)
+        for phase in (
+            "post-accounting",
+            "post-source-restoration",
+            "post-target-configuration",
+            "final-reconstruction",
+        ):
+            self.assertIn(
+                f"scripts/migration-outbound-safety {phase}",
+                target,
+            )
         self.assertLess(
             target.index('export USL_ONLINE_DUMP_DIR="$source_dump_dir"'),
             target.index('scripts/migration-source-truth "$source_gate"'),

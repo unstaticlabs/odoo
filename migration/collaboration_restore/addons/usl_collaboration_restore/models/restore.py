@@ -565,59 +565,9 @@ class UslCollaborationRestoreRun(models.Model):
             self._stamp_audit(declaration, row, users)
         return rules, declarations
 
-    def _restore_knowledge_documents(self, payload):
-        Document = self.env["usl.document"].sudo()
-        company = self.env.company
-        result = {}
-        for row in payload["knowledge"]:
-            bound = self._bound_record("knowledge.article", row["id"], "usl.document")
-            if bound:
-                result[row["id"]] = bound
-                continue
-            title = self._text(row["name"]) or f"Knowledge article {row['id']}"
-            body = self._text(row["body"])
-            rendered = self._knowledge_pdf(title, body)
-            checksum = hashlib.sha256(rendered).hexdigest()
-            existing = Document.search([
-                ("availability_state", "=", "available"),
-                "|", ("checksum", "=", checksum), ("version_ids.checksum", "=", checksum),
-            ], limit=1)
-            if existing:
-                document = existing
-            else:
-                filename = re.sub(r"[^\w. -]+", "_", title, flags=re.UNICODE).strip(" .")[:180]
-                filename = filename or f"knowledge-{row['id']}"
-                upload = Document.with_user(self.env.ref("base.user_root")).with_company(company).upload_from_odoo(
-                    f"{filename}.pdf",
-                    base64.b64encode(rendered).decode(),
-                    "application/pdf",
-                    company_id=company.id,
-                    confidentiality="internal",
-                    source="odoo_generated",
-                )
-                if upload["state"] == "duplicate":
-                    document = Document.browse(upload["document_id"])
-                elif upload["state"] == "processing":
-                    operation = self.env["usl.document.operation"].sudo().browse(upload["operation_id"])
-                    deadline = time.monotonic() + 180
-                    while operation.state == "processing" and time.monotonic() < deadline:
-                        operation.poll()
-                        self.env.cr.commit()
-                        operation.invalidate_recordset()
-                        if operation.state == "processing":
-                            time.sleep(2)
-                    if operation.state != "archived" or not operation.document_id:
-                        raise RuntimeError(f"Knowledge article {row['id']} could not be archived: {operation.error_message}")
-                    document = operation.document_id
-                else:
-                    raise RuntimeError(f"Knowledge article {row['id']} archive failed: {upload}")
-            result[row["id"]] = document
-            self._bind("knowledge.article", row["id"], document, row)
-        return result
-
     @staticmethod
-    def _knowledge_pdf(title, rendered_html):
-        """Create a stable Paperless-compatible reading copy of a legacy article."""
+    def _generated_archive_pdf(title, rendered_html):
+        """Create a stable Paperless-compatible reading copy of a legacy node."""
         stream = io.BytesIO()
         _page_width, page_height = A4
         pdf = canvas.Canvas(
@@ -628,7 +578,7 @@ class UslCollaborationRestoreRun(models.Model):
         )
         pdf.setTitle(title)
         pdf.setAuthor("Unstatic Labs")
-        pdf.setSubject("Archived internal Knowledge article")
+        pdf.setSubject("Archived legacy Documents node")
 
         margin = 50
         line_height = 13
@@ -747,7 +697,7 @@ class UslCollaborationRestoreRun(models.Model):
             )
             if row.get("url"):
                 body += f"<p>Archived URL: {html.escape(row['url'])}</p>"
-            rendered = self._knowledge_pdf(title, body)
+            rendered = self._generated_archive_pdf(title, body)
             company = companies.get(row["company_id"]) or self.env.company
             restricted = any(
                 marker in path.casefold()
@@ -887,47 +837,6 @@ class UslCollaborationRestoreRun(models.Model):
         )
         record.invalidate_recordset()
 
-    def _write_archive_thread(self, archive_dir, model, res_id, messages, tracking):
-        safe = re.sub(r"[^a-zA-Z0-9_.-]+", "_", model or "model-less")
-        stem = f"{safe}-{res_id or 0}"
-        path = archive_dir / f"{stem}.html"
-        parts = [f"<!doctype html><meta charset='utf-8'><h1>{html.escape(model or 'Model-less mail')} {res_id or ''}</h1>"]
-        for message in messages:
-            parts.append(
-                "<article><h2>" + html.escape(message.get("subject") or "") + "</h2>"
-                + "<dl>"
-                + f"<dt>Date</dt><dd>{html.escape(str(message.get('date') or ''))}</dd>"
-                + f"<dt>Author partner</dt><dd>{html.escape(str(message.get('author_id') or ''))}</dd>"
-                + f"<dt>Email from</dt><dd>{html.escape(message.get('email_from') or '')}</dd>"
-                + f"<dt>Source message</dt><dd>{message['id']}</dd>"
-                + f"<dt>Parent message</dt><dd>{html.escape(str(message.get('parent_id') or ''))}</dd>"
-                + "</dl>"
-                + (message.get("body") or ""),
-            )
-            values = tracking.get(message["id"], [])
-            if values:
-                parts.append("<h3>Field changes</h3><pre>" + html.escape(json.dumps(values, default=str, ensure_ascii=False, indent=2)) + "</pre>")
-            parts.append("</article>")
-        path.write_text("\n".join(parts), encoding="utf-8")
-        path.chmod(0o600)
-        json_path = archive_dir / f"{stem}.json"
-        json_bytes = (json.dumps({
-            "model": model,
-            "res_id": res_id,
-            "messages": messages,
-            "tracking": {
-                str(message["id"]): tracking.get(message["id"], []) for message in messages
-            },
-        }, default=str, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
-        json_path.write_bytes(json_bytes)
-        json_path.chmod(0o600)
-        return {
-            "html_file": path.name,
-            "html_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "json_file": json_path.name,
-            "json_sha256": hashlib.sha256(json_bytes).hexdigest(),
-        }
-
     def action_restore(self):
         self.ensure_one()
         side_effect_models = tuple(
@@ -1052,7 +961,6 @@ class UslCollaborationRestoreRun(models.Model):
         }
         document_records = self._restore_document_nodes(payload, document_records)
         rules, declarations = self._restore_legacy_declarations(payload, users)
-        knowledge = self._restore_knowledge_documents(payload)
         sign_attachment_documents, sign_documents = self._restore_sign_documents(
             payload,
             document_sha1_ids,
@@ -1077,7 +985,6 @@ class UslCollaborationRestoreRun(models.Model):
             "account.return": declarations,
             "account.return.type": rules,
             "documents.document": document_records,
-            "knowledge.article": knowledge,
             "sign.request": sign_documents,
             "discuss.channel": channel_map,
         }
@@ -1087,32 +994,19 @@ class UslCollaborationRestoreRun(models.Model):
         recipients = defaultdict(list)
         for row in payload["recipients"]:
             recipients[row["message_id"]].append(row["partner_id"])
-        tracking_by_message = defaultdict(list)
-        for row in payload["tracking"]:
-            tracking_by_message[row["mail_message_id"]].append(row)
-
         evidence_root = Path(os.environ["COLLABORATION_EVIDENCE_DIR"])
-        archive_dir = evidence_root / "technical-threads"
-        archive_dir.mkdir(parents=True, exist_ok=True)
-        archive_dir.chmod(0o700)
         dispositions = {"messages": [], "tracking": [], "followers": [], "activities": [], "other": []}
         for row in payload["knowledge"]:
-            document = knowledge.get(row["id"])
             dispositions["other"].append({
                 "model": "knowledge.article",
                 "id": row["id"],
-                "disposition": "canonical_document_archive" if document else "private_archive",
-                "target_model": document._name if document else None,
-                "target_id": document.id if document else None,
-                "target_checksum": document.checksum if document else None,
-                # The exact source HTML is restricted migration evidence.  The
-                # operational user-facing copy is the deterministic PDF stored
-                # in Documents and receives the article's chatter below.
-                "source": row,
+                "disposition": "deliberately_not_copied",
+                "reason": "approved Knowledge demo/configuration exclusion",
+                "source_sha256": self._checksum(row),
             })
         subtype_map = self._restore_subtypes(payload, xmlids, dispositions)
-        archived_threads = defaultdict(list)
         messages = {}
+        dropped_message_ids = set()
 
         for row in payload["messages"]:
             target = self._resolve_message_target(
@@ -1123,11 +1017,42 @@ class UslCollaborationRestoreRun(models.Model):
                 sign_request_by_attachment,
                 sign_email_targets,
             )
-            if not target:
-                reason = "technical_or_unsupported" if row["model"] in EXTERNAL_ARCHIVE_MODELS or not row["model"] else "missing_business_successor"
-                archived_threads[row["model"], row["res_id"]].append(row)
+            route = route_model(row["model"])
+            if route == "deliberately_not_copied":
+                dropped_message_ids.add(row["id"])
                 dispositions["messages"].append({
-                    "id": row["id"], "disposition": "external_archive", "reason": reason,
+                    "id": row["id"],
+                    "disposition": "deliberately_not_copied",
+                    "reason": "approved Knowledge demo/configuration exclusion",
+                    "source_model": row["model"], "source_res_id": row["res_id"],
+                    "source_parent_id": row["parent_id"], "source_sha256": self._checksum(row),
+                })
+                continue
+            if not target:
+                approved_models = EXTERNAL_ARCHIVE_MODELS | {"res.partner", "product.product"}
+                no_business_payload = (
+                    row["model"] in approved_models
+                    and row["message_type"] in {"notification", "tracking"}
+                    and row["is_internal"]
+                    and not row["subject"]
+                    and not row["parent_id"]
+                    and not row["incoming_email_cc"]
+                    and not row["incoming_email_to"]
+                    and not row["outgoing_email_to"]
+                    and not recipients[row["id"]]
+                    and not message_attachments[row["id"]]
+                )
+                if not no_business_payload:
+                    raise RuntimeError(
+                        "A Collaboration message has no canonical target and is "
+                        f"not an approved configuration-only drop: {row['id']} "
+                        f"({row['model']}, {row['res_id']})",
+                    )
+                dropped_message_ids.add(row["id"])
+                dispositions["messages"].append({
+                    "id": row["id"],
+                    "disposition": "deliberately_not_copied",
+                    "reason": "generated configuration audit traffic",
                     "source_model": row["model"], "source_res_id": row["res_id"],
                     "source_parent_id": row["parent_id"], "source_sha256": self._checksum(row),
                 })
@@ -1162,13 +1087,25 @@ class UslCollaborationRestoreRun(models.Model):
                     "source_model": row["model"], "source_res_id": row["res_id"],
                     "parent_source_model": source_parent["model"] if source_parent else None,
                     "parent_source_res_id": source_parent["res_id"] if source_parent else None,
-                    "disposition": "native_parent" if message and parent else "private_archive_reference",
+                    "disposition": (
+                        "native_parent"
+                        if message and parent
+                        else "deliberately_not_copied"
+                        if row["id"] in dropped_message_ids
+                        else "unresolved_parent_reference"
+                    ),
                 })
         for row in payload["messages"]:
             if messages.get(row["id"]):
                 self._stamp_audit(messages[row["id"]], row, users)
 
-        self._restore_tracking(payload["tracking"], messages, users, dispositions)
+        self._restore_tracking(
+            payload["tracking"],
+            messages,
+            users,
+            dispositions,
+            dropped_message_ids,
+        )
         assert_no_delivery_state("tracking restoration")
         self._restore_followers(
             payload, record_maps, partners, active_internal_partners, subtype_map, dispositions,
@@ -1184,7 +1121,8 @@ class UslCollaborationRestoreRun(models.Model):
         self._restore_aliases(payload, record_maps, dispositions)
         assert_no_delivery_state("alias restoration")
         self._record_attachment_recipient_dispositions(
-            payload, messages, partners, document_attachment_ids, subtype_map, dispositions,
+            payload, messages, partners, document_attachment_ids, subtype_map,
+            dispositions, dropped_message_ids,
         )
         self._remove_synthetic_accounting_notes(messages)
         synthetic_notes_remaining = self.env["mail.message"].sudo().search_count([
@@ -1200,14 +1138,6 @@ class UslCollaborationRestoreRun(models.Model):
             )
 
         archives = []
-        for (model, res_id), thread in sorted(archived_threads.items(), key=lambda item: (item[0][0] or "", item[0][1] or 0)):
-            archive = self._write_archive_thread(
-                archive_dir, model, res_id, thread, tracking_by_message,
-            )
-            archives.append({
-                "model": model, "res_id": res_id,
-                "messages": [row["id"] for row in thread], **archive,
-            })
         dispositions["other"].extend([
             {"model": "mail.notification", "id": row["id"], "disposition": "discard_delivery_state", "source": row}
             for row in payload["notifications"]
@@ -1316,13 +1246,13 @@ class UslCollaborationRestoreRun(models.Model):
                 "complete": True,
                 "dispositions": exact_dispositions,
                 "relational_dispositions": relational_dispositions,
-                "external_messages": sum(
-                    len(rows) for rows in archived_threads.values()
-                ),
+                "external_messages": 0,
+                "deliberately_not_copied_messages": len(dropped_message_ids),
                 "visible_messages": len(messages),
             },
             "visible_message_count": len(messages),
-            "external_message_count": sum(len(rows) for rows in archived_threads.values()),
+            "external_message_count": 0,
+            "deliberately_not_copied_message_count": len(dropped_message_ids),
             "archives": archives,
             "outbound_side_effect_counts_before": side_effect_before,
             "outbound_side_effect_counts_after": side_effect_after,
@@ -1345,10 +1275,15 @@ class UslCollaborationRestoreRun(models.Model):
         statistics = {
             **actual,
             "visible_messages": len(messages),
-            "external_messages": sum(len(rows) for rows in archived_threads.values()),
+            "external_messages": 0,
+            "deliberately_not_copied_messages": len(dropped_message_ids),
             "archives": len(archives),
         }
-        if statistics["visible_messages"] != 49451 or statistics["external_messages"] != 554:
+        if (
+            statistics["visible_messages"] != 49385
+            or statistics["external_messages"] != 0
+            or statistics["deliberately_not_copied_messages"] != 620
+        ):
             raise RuntimeError(f"Collaboration disposition baseline changed: {statistics}")
         self.write({
             "status": "passed", "finished_at": fields.Datetime.now(),
@@ -1511,7 +1446,14 @@ class UslCollaborationRestoreRun(models.Model):
             or "sécurité sociale" in label.lower(),
         )
 
-    def _restore_tracking(self, rows, messages, users, dispositions):
+    def _restore_tracking(
+        self,
+        rows,
+        messages,
+        users,
+        dispositions,
+        dropped_message_ids,
+    ):
         legacy = defaultdict(list)
         disposition_by_id = {}
         Tracking = self.env["mail.tracking.value"].sudo()
@@ -1523,8 +1465,15 @@ class UslCollaborationRestoreRun(models.Model):
         for row in rows:
             message = messages.get(row["mail_message_id"])
             if not message:
+                if row["mail_message_id"] not in dropped_message_ids:
+                    raise RuntimeError(
+                        "Tracking history has no canonical message and was not "
+                        f"approved for exclusion: {row['id']}",
+                    )
                 disposition = {
-                    "id": row["id"], "disposition": "external_archive", "source": row,
+                    "id": row["id"],
+                    "disposition": "deliberately_not_copied",
+                    "source_sha256": self._checksum(row),
                 }
                 dispositions["tracking"].append(disposition)
                 disposition_by_id[row["id"]] = disposition
@@ -1599,9 +1548,18 @@ class UslCollaborationRestoreRun(models.Model):
             target = self._resolve_business_target(row["res_model"], row["res_id"], record_maps)
             partner = partners.get(row["partner_id"])
             if not target or not partner or row["partner_id"] not in active_internal_partners:
-                dispositions["followers"].append({
-                    "id": row["id"], "disposition": "archive_not_subscribed", "source": row,
-                })
+                if row["res_model"] in EXTERNAL_ARCHIVE_MODELS:
+                    dispositions["followers"].append({
+                        "id": row["id"],
+                        "disposition": "deliberately_not_copied",
+                        "source_sha256": self._checksum(row),
+                    })
+                else:
+                    dispositions["followers"].append({
+                        "id": row["id"],
+                        "disposition": "archive_not_subscribed",
+                        "source": row,
+                    })
                 continue
             existing = self._bound_record("mail.followers", row["id"], "mail.followers")
             if not existing:
@@ -2056,7 +2014,14 @@ class UslCollaborationRestoreRun(models.Model):
             })
 
     def _record_attachment_recipient_dispositions(
-        self, payload, messages, partners, document_attachment_ids, subtype_map, dispositions,
+        self,
+        payload,
+        messages,
+        partners,
+        document_attachment_ids,
+        subtype_map,
+        dispositions,
+        dropped_message_ids,
     ):
         for row in payload["message_attachment_details"]:
             message = messages.get(row["message_id"])
@@ -2073,12 +2038,18 @@ class UslCollaborationRestoreRun(models.Model):
                 outcome = "canonical_document_payload"
                 target = {"target_document_id": canonical_document}
             else:
-                outcome = "private_archive"
+                outcome = (
+                    "deliberately_not_copied"
+                    if row["message_id"] in dropped_message_ids
+                    else "unresolved_attachment_relationship"
+                )
                 target = {}
             dispositions["other"].append({
                 "model": "message_attachment_rel",
                 "id": f"{row['message_id']}:{row['attachment_id']}",
-                "disposition": outcome, "source": row, **target,
+                "disposition": outcome,
+                "source_sha256": self._checksum(row),
+                **target,
             })
         for row in payload["recipients"]:
             message = messages.get(row["message_id"])
@@ -2086,7 +2057,13 @@ class UslCollaborationRestoreRun(models.Model):
             dispositions["other"].append({
                 "model": "mail.message.recipient",
                 "id": f"{row['message_id']}:{row['partner_id']}",
-                "disposition": "native" if message and partner else "private_archive",
+                "disposition": (
+                    "native"
+                    if message and partner
+                    else "deliberately_not_copied"
+                    if row["message_id"] in dropped_message_ids
+                    else "unresolved_recipient_relationship"
+                ),
                 "target_message_id": message.id if message else None,
                 "target_partner_id": partner.id if partner else None,
             })

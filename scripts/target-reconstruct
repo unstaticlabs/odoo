@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -286,8 +287,9 @@ if collaboration_path.is_file() and collaboration_path.stat().st_mtime >= int(sy
     collaboration = json.loads(collaboration_path.read_text(encoding="utf-8"))
     collaboration_summary = collaboration.get("summary") or {
         "complete": (
-            collaboration.get("visible_message_count") == 49451
-            and collaboration.get("external_message_count") == 554
+            collaboration.get("visible_message_count") == 49385
+            and collaboration.get("external_message_count") == 0
+            and collaboration.get("deliberately_not_copied_message_count") == 620
             and len(collaboration.get("dispositions", {}).get("messages", [])) == 50005
             and len(collaboration.get("dispositions", {}).get("tracking", [])) == 36946
             and len(collaboration.get("dispositions", {}).get("followers", [])) == 5862
@@ -495,6 +497,8 @@ else
   fi
   accounting_validated=1
   stop_product
+  run_stage "verify empty outbound queues after Accounting" \
+    scripts/migration-outbound-safety post-accounting
   run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
     DOCUMENTS_TARGET_DATABASE=odoo_dev \
     COMPOSE_PROJECT_NAME="$compose_project" \
@@ -553,7 +557,8 @@ else
   fi
   if [[ "$documents_enabled" == 1 ]]; then
     # B2C archives its locked provider files and Collaboration archives
-    # retained Knowledge/folder evidence after the source Documents stage.
+    # retained legacy Documents/folder evidence after the source Documents
+    # stage. Approved demo Knowledge content is deliberately not copied.
     # Seal only after every governed archive producer has finished.
     run_stage "seal final Documents archive checkpoint" env \
       DOCUMENTS_CANONICAL_TARGET=1 \
@@ -563,6 +568,8 @@ else
       scripts/documents-restore seal-checkpoint
     stop_product
   fi
+  run_stage "verify empty outbound queues after source restoration" \
+    scripts/migration-outbound-safety post-source-restoration
   run_stage "finalize migration boundary" finalize_migration_boundary
   migration_finalized=1
 fi
@@ -583,6 +590,8 @@ case "$seed_refresh" in
 esac
 
 run_stage "apply target configuration" env USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+run_stage "verify empty outbound queues after target configuration" \
+  scripts/migration-outbound-safety post-target-configuration
 if [[ "$seed_refresh" == 1 ]]; then
   # Arm cleanup before capture: failures after the pending directory is created
   # must never leave an ambiguous partial seed that blocks the next retry.
@@ -598,6 +607,8 @@ if [[ "$qa_profile" == full ]]; then
   run_stage "multi-company acceptance" make \
     COMPOSE_PROJECT="$compose_project" accounting-multicompany-acceptance
 fi
+run_stage "verify final empty outbound queues" \
+  scripts/migration-outbound-safety final-reconstruction
 if [[ "$seed_refresh" == 1 ]]; then
   run_stage "publish qualified QA seed" scripts/qa-seed publish
   seed_pending=0

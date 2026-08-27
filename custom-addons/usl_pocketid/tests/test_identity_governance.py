@@ -468,6 +468,8 @@ class TestPocketIDIdentityGovernance(TransactionCase):
 
     def test_named_profiles_are_least_privilege_and_idempotent(self):
         configuration = self._governed_user_configuration()
+        mails_before = self.env["mail.mail"].sudo().search_count([])
+        notifications_before = self.env["mail.notification"].sudo().search_count([])
         summary = self.env[
             "res.users"
         ]._usl_pocketid_apply_user_configuration(
@@ -509,6 +511,14 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 active_test=False,
             ).search_count([]),
             user_count,
+        )
+        self.assertEqual(
+            self.env["mail.mail"].sudo().search_count([]),
+            mails_before,
+        )
+        self.assertEqual(
+            self.env["mail.notification"].sudo().search_count([]),
+            notifications_before,
         )
 
     def test_strict_configuration_refuses_unclassified_human_users(self):

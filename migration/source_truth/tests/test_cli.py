@@ -194,6 +194,7 @@ class SourceTruthAuditCase(unittest.TestCase):
             dump.write_text("source", encoding="utf-8")
             (root / "filestore").mkdir()
             contract = load_contract(ROOT / "migration/source_truth/coverage.json")
+            contract["scopes"]["ai_configuration"]["status"] = "incomplete"
             inventory = build_inventory(source_package(root), FakeDatabase(), contract)
             self.assertFalse(inventory["summary"]["complete"])
             self.assertEqual(

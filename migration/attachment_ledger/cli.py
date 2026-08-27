@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import io
 import json
 import os
 import sys
@@ -20,7 +19,6 @@ from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -30,11 +28,9 @@ from migration.source_truth.cli import (  # noqa: E402
     SourceDatabase,
     default_source_dir,
     resolve_source_container,
-    sha256_file,
     source_package,
     verify_filestore,
 )
-
 
 SCHEMA = "usl-source-attachment-ledger-v1"
 DEFAULT_SOURCE_DIR = default_source_dir()
@@ -184,11 +180,11 @@ def classify_attachment(
         scope = "knowledge" if model == "knowledge.cover" else "native_reference"
         return [
             action(
-                "restore_external_reference" if scope == "knowledge" else "recompute_reference",
+                "deliberately_not_copied" if scope == "knowledge" else "recompute_reference",
                 scope,
                 "implemented",
                 (
-                    "the Knowledge archive retains the original external reference"
+                    "Knowledge demo/configuration data is outside the approved migration perimeter"
                     if scope == "knowledge"
                     else "URL attachments contain no source binary"
                 ),
@@ -217,7 +213,7 @@ def classify_attachment(
         )
 
     if (model, field) in NATIVE_PRIMARY_IMAGES:
-        scope = NATIVE_PRIMARY_IMAGES[(model, field)]
+        scope = NATIVE_PRIMARY_IMAGES[model, field]
         result.append(
             action(
                 "restore_native_binary_field",
@@ -228,7 +224,7 @@ def classify_attachment(
         )
     elif (
         field in GENERATED_IMAGE_FIELDS
-        or model == "ir.attachment" and field == "thumbnail"
+        or (model == "ir.attachment" and field == "thumbnail")
         or (model, field) == ("res.company", "logo_web")
     ):
         result.append(
@@ -262,7 +258,7 @@ def classify_attachment(
     if (
         model.startswith("sign.")
         or attachment_id in sign_document_attachment_ids
-        or model == "res.users" and field.startswith("sign_")
+        or (model == "res.users" and field.startswith("sign_"))
     ):
         result.append(
             action(
@@ -276,19 +272,19 @@ def classify_attachment(
     if model == "spreadsheet.dashboard":
         result.append(
             action(
-                "restore_preference_payload",
+                "deliberately_not_copied",
                 "preferences",
-                "pending",
-                "the dashboard definition is user-visible configuration data",
+                "implemented",
+                "the source contains only packaged sample dashboards, not USL business data",
             ),
         )
     elif model == "ai.agent.source":
         result.append(
             action(
-                "archive_ai_source",
-                "ai_configuration",
-                "pending",
-                "the source file must be retained even when AI configuration is translated separately",
+                "archive_restricted_business_evidence",
+                "documents",
+                "implemented",
+                "the business PDF is archived byte-for-byte with manager-only access while its experimental AI configuration is dropped",
             ),
         )
 
@@ -467,15 +463,19 @@ def build_ledger(
 
 
 def write_ledger(ledger: dict[str, Any], root: Path) -> tuple[Path, Path]:
+    root.mkdir(parents=True, exist_ok=True)
+    root.chmod(0o700)
     snapshot = f"source-{ledger['source']['dump_sha256'][:12]}"
     directory = root / snapshot
     directory.mkdir(parents=True, exist_ok=True)
+    directory.chmod(0o700)
     json_path = directory / "attachment-disposition-ledger.json"
     csv_path = directory / "attachment-disposition-ledger.csv"
     json_path.write_text(
         json.dumps(ledger, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    json_path.chmod(0o600)
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
             handle,
@@ -496,6 +496,7 @@ def write_ledger(ledger: dict[str, Any], root: Path) -> tuple[Path, Path]:
                     ),
                 },
             )
+    csv_path.chmod(0o600)
     return json_path, csv_path
 
 

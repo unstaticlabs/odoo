@@ -45,9 +45,12 @@ TRANSLATED_MODELS = {
     "account.return": "rebuild.account.declaration",
     "account.return.type": "rebuild.account.declaration.rule",
     "documents.document": "usl.document",
-    "knowledge.article": "usl.document",
     "sign.request": "usl.document",
 }
+
+DELIBERATELY_NOT_COPIED_MODELS = frozenset({
+    "knowledge.article",
+})
 
 EXTERNAL_ARCHIVE_MODELS = frozenset({
     "account.depreciation.model",
@@ -75,6 +78,8 @@ def route_model(model):
         return "translated"
     if model == "discuss.channel":
         return "discuss"
+    if model in DELIBERATELY_NOT_COPIED_MODELS:
+        return "deliberately_not_copied"
     if model in EXTERNAL_ARCHIVE_MODELS or not model:
         return "external_archive"
     return "unclassified"

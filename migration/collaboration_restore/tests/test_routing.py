@@ -23,6 +23,10 @@ class RoutingTest(unittest.TestCase):
         self.assertEqual(routing.route_model("documents.document"), "translated")
         self.assertEqual(routing.route_model("sign.request"), "translated")
         self.assertEqual(routing.route_model("discuss.channel"), "discuss")
+        self.assertEqual(
+            routing.route_model("knowledge.article"),
+            "deliberately_not_copied",
+        )
 
     def test_technical_and_unknown_models_do_not_leak_to_native_records(self):
         self.assertEqual(routing.route_model("ir.cron"), "external_archive")
