@@ -124,6 +124,29 @@ test("the whole PDF field starts movement and remains selectable", () => {
     cleanup();
 });
 
+test("field placement opens on page one without overriding later navigation", () => {
+    const container = {scrollTop: 900, scrollLeft: 40};
+    const iframeDocument = {
+        getElementById: (id) => id === "viewerContainer" ? container : null,
+    };
+    const viewer = {currentPageNumber: 8};
+    const fixture = {
+        initialPageApplied: false,
+        pdfApplication: () => ({pdfViewer: viewer}),
+    };
+
+    UslSignTemplateEditor.prototype.showFirstPageOnStart.call(fixture, iframeDocument);
+    expect(viewer.currentPageNumber).toBe(1);
+    expect(container.scrollTop).toBe(0);
+    expect(container.scrollLeft).toBe(0);
+
+    viewer.currentPageNumber = 3;
+    container.scrollTop = 300;
+    UslSignTemplateEditor.prototype.showFirstPageOnStart.call(fixture, iframeDocument);
+    expect(viewer.currentPageNumber).toBe(3);
+    expect(container.scrollTop).toBe(300);
+});
+
 test("right-clicking a PDF field deletes it without opening the page menu", async () => {
     const {fixture, item, cleanup} = editorFixture();
     const deleted = [];
