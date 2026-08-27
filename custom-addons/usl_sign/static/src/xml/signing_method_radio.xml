@@ -5,7 +5,7 @@
              t-attf-class="{{ this.hasTouch ? 'o_input' : '' }} o_{{ this.props.orientation }}"
              t-att-aria-label="this.props.label">
             <t t-foreach="this.items" t-as="item" t-key="item[0]">
-                <div t-attf-class="form-check o_radio_item {{ this.hasTouch ? 'w-100' : '' }}" aria-atomic="true">
+                <div t-attf-class="form-check o_radio_item {{ item[0] === this.value ? 'is-selected' : '' }} {{ this.hasTouch ? 'w-100' : '' }}" aria-atomic="true">
                     <input type="radio" class="form-check-input o_radio_input"
                            t-att-checked="item[0] === this.value"
                            t-att-disabled="this.props.readonly"

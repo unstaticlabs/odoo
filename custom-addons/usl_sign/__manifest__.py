@@ -70,6 +70,7 @@
             "usl_sign/static/tests/workspace.test.js",
             "usl_sign/static/tests/signature_inspector_utils.test.js",
             "usl_sign/static/tests/signature_inspector.test.js",
+            "usl_sign/static/tests/signing_method_radio.test.js",
         ],
         "web.assets_tests": [
             ("remove", "sign_oca/static/src/tests/sign_tour.esm.js"),
