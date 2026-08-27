@@ -942,3 +942,15 @@ class PaperlessClient:
         if document_id:
             return f"{self.public_url}/documents/{int(document_id)}/details"
         return self.public_url
+
+    def paperless_login_url(self, document_id):
+        """Open the private archive through its normal SSO boundary.
+
+        Paperless keeps the requested document as the post-login destination,
+        so an existing Pocket ID session returns directly to the archive copy.
+        """
+        detail_path = f"/documents/{int(document_id)}/details"
+        return (
+            f"{self.public_url}/accounts/login/?next="
+            f"{urllib.parse.quote(detail_path, safe='')}"
+        )
