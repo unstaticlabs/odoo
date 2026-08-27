@@ -249,8 +249,11 @@ export function safeAttachmentName(name) {
     return String(name || "unnamed").split(/[\\/]/).pop().slice(0, 180) || "unnamed";
 }
 
-function artifactCandidates(item, attachments, usedIndexes) {
+function artifactCandidates(item, attachments, usedIndexes, manifestFormat) {
     const available = attachments.filter((_attachment, index) => !usedIndexes.has(index));
+    if (manifestFormat === "usl-sign-evidence-manifest-v2") {
+        return available.filter((attachment) => attachment.name === item.name);
+    }
     if (item.kind === "authentication") {
         return available.filter(
             (attachment) =>
@@ -298,13 +301,25 @@ export function matchManifestArtifacts(manifest, attachments) {
             (item) => item.kind === "signed" && String(item.sha256 || "").toLowerCase() === finalHash
         )
     ) {
-        expected.push({kind: "signed", name: "final signed PDF", sha256: finalHash});
+        expected.push({
+            kind: "signed",
+            name:
+                manifest.format === "usl-sign-evidence-manifest-v2"
+                    ? "signed-document.pdf"
+                    : "final signed PDF",
+            sha256: finalHash,
+        });
     }
     const mismatches = [];
     const usedIndexes = new Set();
     let matched = 0;
     for (const item of expected) {
-        const candidates = artifactCandidates(item, attachments, usedIndexes);
+        const candidates = artifactCandidates(
+            item,
+            attachments,
+            usedIndexes,
+            manifest.format
+        );
         if (candidates.length !== 1) {
             mismatches.push(
                 candidates.length

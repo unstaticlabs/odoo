@@ -3,6 +3,7 @@ import hashlib
 import itertools
 import json
 import uuid
+import zipfile
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from io import BytesIO
@@ -1900,6 +1901,27 @@ class TestCleanUslSign(TransactionCase):
         )
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
+        manifest_envelope = json.loads(field_content(request.evidence_manifest))
+        manifest_payload = json.loads(
+            base64.b64decode(manifest_envelope["manifest"], validate=True),
+        )
+        self.assertEqual(manifest_payload["format"], "usl-sign-evidence-manifest-v2")
+        self.assertNotIn("request_id", manifest_payload)
+        self.assertNotIn("company_id", manifest_payload)
+        self.assertEqual(
+            [artifact["name"] for artifact in manifest_payload["artifacts"]],
+            [
+                "original-document.pdf",
+                "frozen-document.pdf",
+                "signed-document.pdf",
+                "completion-certificate.pdf",
+                "signing-summary.json",
+                "event-history.json",
+                "validation-summary.json",
+                "certificate-chains.json",
+                "technical-validation-reports.zip",
+            ],
+        )
         self.assertEqual(request.daily_timestamp_status, "scheduled")
         self.assertEqual(request.state, "completed")
         preview = request.preview()
@@ -1958,20 +1980,108 @@ class TestCleanUslSign(TransactionCase):
         with patch.object(
             type(request), "_sign_dss_client", return_value=CapturingDSS(),
         ):
-            request._build_dossier_pdf(b"signed manifest")
+            request._build_dossier_pdf(
+                b"signed manifest",
+                artifacts=[
+                    request._dossier_artifact(
+                        "signed",
+                        "signed-document.pdf",
+                        self.pdf,
+                        "application/pdf",
+                        "Final independently validated signed document",
+                    ),
+                    request._dossier_artifact(
+                        "original",
+                        "original-document.pdf",
+                        self.pdf,
+                        "application/pdf",
+                        "Original document",
+                    ),
+                ],
+            )
 
         signed_artifact = next(
             artifact
             for artifact in captured["artifacts"]
-            if artifact["name"] == "final-Routine-agreement-signed.pdf"
+            if artifact["name"] == "signed-document.pdf"
         )
         self.assertEqual(signed_artifact["content"], self.pdf)
         self.assertEqual(signed_artifact["mimetype"], "application/pdf")
         self.assertEqual(signed_artifact["relationship"], "Data")
         self.assertIn(
-            "Signed PDF embedded in this package: final-Routine-agreement-signed.pdf",
+            "Purpose: human-auditable proof package; signed-document.pdf is the document of record",
             captured["summary"],
         )
+
+    def test_dossier_v2_uses_stable_names_and_sanitized_summaries(self):
+        request = self._request()
+        request.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
+            {
+                "original_data": field_value(self.pdf),
+                "original_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "final_data": field_value(self.pdf),
+                "final_filename": "private-database-name-signed.pdf",
+                "final_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "completion_certificate": field_value(self.pdf),
+                "achieved_trust": "standard",
+                "consent_text_snapshot": "I agree to sign.",
+            },
+        )
+        request._store_pdf_certificate_chains(_pyhanko_valid())
+        request._create_evidence(
+            "validation",
+            f"{request.name}-dss-detailed-secret.xml",
+            b"<report>valid</report>",
+            mimetype="application/xml",
+            metadata={"engine": "EU DSS", "report": "detailed"},
+        )
+        request._create_evidence(
+            "authentication",
+            f"{request.name}-{request.signer_ids.id}-raw-token.jwt",
+            b"private-authentication-token",
+            mimetype="application/jwt",
+            signer=request.signer_ids,
+            metadata={"ceremony_id": 987, "claims": {"sub": "private-subject"}},
+        )
+
+        artifacts = request._dossier_artifacts_v2()
+        names = [artifact["name"] for artifact in artifacts]
+        self.assertEqual(
+            names,
+            [
+                "original-document.pdf",
+                "frozen-document.pdf",
+                "signed-document.pdf",
+                "completion-certificate.pdf",
+                "signing-summary.json",
+                "event-history.json",
+                "validation-summary.json",
+                "certificate-chains.json",
+                "technical-validation-reports.zip",
+            ],
+        )
+        serialized = b"\n".join(artifact["content"] for artifact in artifacts)
+        self.assertNotIn(b"private-authentication-token", serialized)
+        self.assertNotIn(b"private-subject", serialized)
+        self.assertNotIn(b"ceremony_id", serialized)
+        self.assertNotIn(str(request.id).encode(), names[0].encode())
+        signing_summary = json.loads(
+            next(
+                artifact["content"]
+                for artifact in artifacts
+                if artifact["name"] == "signing-summary.json"
+            ),
+        )
+        self.assertEqual(signing_summary["proof"]["signer_attestations"], 1)
+        self.assertNotIn("partner_id", json.dumps(signing_summary))
+        technical_reports = next(
+            artifact["content"]
+            for artifact in artifacts
+            if artifact["name"] == "technical-validation-reports.zip"
+        )
+        with zipfile.ZipFile(BytesIO(technical_reports)) as archive:
+            self.assertEqual(archive.namelist(), ["index.json", "01-eu-dss-detailed.xml"])
+            self.assertEqual(archive.read("01-eu-dss-detailed.xml"), b"<report>valid</report>")
 
     def test_oca_final_document_delivery_defaults_to_enabled(self):
         defaults = self.env["res.company"].default_get(
