@@ -5891,3 +5891,15 @@ msgstr "Documents : classer les enregistrements liés fiables"
 
 #~ msgid "Archive in Paperless"
 #~ msgstr "Archiver dans Paperless"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Remove this Odoo link without deleting the archived document."
+msgstr "Supprime ce lien Odoo sans effacer le document archivé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_loader.js:0
+msgid "The Documents workspace could not be loaded."
+msgstr "L’espace Documents n’a pas pu être chargé."

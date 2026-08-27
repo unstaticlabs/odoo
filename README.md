@@ -121,6 +121,11 @@ Keep BuildKit enabled (the default in current Docker Engine and Docker
 Desktop). The Dockerfile uses cache and bind mounts that do not become image
 layers.
 
+Pinned OCA synchronization also reuses the main checkout's already-fetched
+commits when a linked worktree has no local checkout. Each worktree still gets
+an independent patched tree; subsequent syncs avoid network fetches while the
+exact pinned commits are already present.
+
 ### Dependency updates
 
 Dependabot monitors the maintained Python dependency set, Dockerfile base
@@ -420,6 +425,8 @@ For branch and worktree QA, choose the smallest honest data profile:
 
 ```bash
 make qa                              # complete cached production-shaped state
+make qa-reuse                        # revalidate an unchanged worktree target in place
+make qa-clean CONFIRM=qa-volumes     # retire only this worktree's QA volumes
 make qa PROFILE=no-documents         # complete Odoo ledger; no Documents runtime
 make qa PROFILE=documents-smoke      # deterministic source-derived document sample
 make qa PROFILE=clean-install        # clean product plus self-contained fixtures
@@ -437,6 +444,20 @@ immediately instead of silently starting a long source ingestion. Partial
 profiles are stamped in the database and cannot pass a pre-production gate.
 Arbitrary partial accounting ledgers are intentionally unsupported.
 Seed pruning is never automatic and requires the explicit confirmation above.
+
+`make qa` remains the deterministic cold path: it deletes only that worktree's
+isolated QA volumes and hydrates the shared qualified seed. After it passes,
+`make qa-reuse` can restart and revalidate the same target without another
+restore, module upgrade or fixture replay. Reuse is refused unless the seed
+manifest, migration digest, full-profile stamp, project identity and required
+volumes still match. Because the target is intentionally writable, use plain
+`make qa` after manual business-data changes or whenever a pristine baseline
+is required.
+
+When a worktree no longer needs its warm QA target, `make qa-clean
+CONFIRM=qa-volumes` removes only that checkout's computed `usl-odoo-qa-*`
+containers, network and writable volumes. It preserves the shared seed,
+source package, images, BuildKit cache and project-bound identity environment.
 
 The underlying scripts remain stable automation interfaces:
 

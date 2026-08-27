@@ -165,11 +165,13 @@ def read_source():
             cursor,
             """
             SELECT attachment.id AS attachment_id, attachment.name AS filename,
+                   attachment.res_model AS source_res_model,
                    attachment.store_fname, attachment.checksum,
                    attachment.file_size, attachment.mimetype,
                    attachment.create_uid, attachment.create_date AS attachment_create_date
               FROM ir_attachment attachment
-             WHERE COALESCE(attachment.res_model, '') = ''
+             WHERE (COALESCE(attachment.res_model, '') = ''
+                    OR attachment.res_model = 'ai.agent.source')
                AND attachment.type = 'binary'
                AND attachment.name != 'res.company.scss'
                AND NOT EXISTS (
@@ -372,6 +374,9 @@ def group_source(source):
         document["kind"] = "document"
         grouped[document["checksum"]].append(document)
     for attachment in source["unassigned"]:
+        restricted_business_evidence = (
+            attachment.get("source_res_model") == "ai.agent.source"
+        )
         grouped[attachment["checksum"]].append(
             {
                 **attachment,
@@ -382,7 +387,9 @@ def group_source(source):
                 "owner_id": None,
                 "res_model": None,
                 "res_id": 0,
-                "access_internal": "edit",
+                "access_internal": (
+                    "none" if restricted_business_evidence else "edit"
+                ),
                 "access_via_link": "none",
                 "is_access_via_link_hidden": True,
                 "document_token": "",
@@ -395,7 +402,11 @@ def group_source(source):
                 "access_rows": [],
                 "folder_path": "",
                 "folder_company_id": None,
-                "kind": "unassigned_evidence",
+                "kind": (
+                    "restricted_unassigned_evidence"
+                    if restricted_business_evidence
+                    else "unassigned_evidence"
+                ),
             },
         )
     return sorted(
@@ -1838,7 +1849,7 @@ result = {
     "source_profile_is_full": SOURCE_PROFILE == "full" and not SOURCE_LIMIT,
     "source_document_identities": expected_source_documents,
     "source_unassigned_evidence": sum(
-        entry["kind"] == "unassigned_evidence"
+        entry["kind"] in {"unassigned_evidence", "restricted_unassigned_evidence"}
         for group in groups
         for entry in group
     ),

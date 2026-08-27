@@ -35,7 +35,6 @@ import {
     useSelectCreate,
 } from "@web/views/fields/relational_utils";
 import { getDefaultConfig } from "@web/views/view";
-import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 const FILTER_DEFAULTS = {
@@ -279,33 +278,6 @@ export class DocumentPreview extends Component {
             this.renderedPdfKey = null;
             this.state.page += 1;
         }
-    }
-}
-
-export class OpenDocumentsField extends Component {
-    static template = "usl_documents.OpenDocumentsField";
-    static props = { ...standardFieldProps };
-
-    setup() {
-        this.orm = useService("orm");
-        this.action = useService("action");
-    }
-
-    get count() {
-        return Number(this.props.record.data[this.props.name]) || 0;
-    }
-
-    get label() {
-        return `Open ${this.count} document${this.count === 1 ? "" : "s"}`;
-    }
-
-    async open() {
-        const action = await this.orm.call(
-            this.props.record.resModel,
-            "action_open_documents",
-            [[this.props.record.resId]]
-        );
-        return this.action.doAction(action);
     }
 }
 
@@ -3562,9 +3534,6 @@ export class DocumentsWorkspace extends Component {
 
 registry.category("actions").add(
     "usl_documents.workspace",
-    DocumentsWorkspace
+    DocumentsWorkspace,
+    { force: true }
 );
-registry.category("fields").add("usl_open_documents", {
-    component: OpenDocumentsField,
-    supportedTypes: ["integer"],
-});

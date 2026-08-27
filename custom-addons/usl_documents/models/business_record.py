@@ -18,27 +18,56 @@ class DocumentLinkMixin(models.AbstractModel):
     )
 
     def _compute_archived_document_count(self):
+        """Count readable documents in a bounded number of queries.
+
+        Links and correspondent mappings are technical relationships, so they
+        are collected with sudo.  The candidate documents are then searched in
+        the caller's environment: record rules remain the final authority and
+        no inaccessible document contributes to a badge.
+        """
+        counts = {record_id: set() for record_id in self.ids}
+        if not counts:
+            return
+
         Document = self.env["usl.document"]
+        candidate_document_ids = set()
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "in", self.ids),
+                ("active", "=", True),
+            ],
+        )
+        for link in links:
+            counts[link.res_id].add(link.document_id.id)
+            candidate_document_ids.add(link.document_id.id)
+
+        if self._name == "res.partner":
+            correspondents = (
+                self.env["usl.paperless.correspondent"]
+                .sudo()
+                .search([("partner_id", "in", self.ids)])
+            )
+            partner_by_correspondent = {
+                correspondent.id: correspondent.partner_id.id
+                for correspondent in correspondents
+            }
+            mapped_documents = Document.sudo().search(
+                [("correspondent_id", "in", correspondents.ids)],
+            )
+            for document in mapped_documents:
+                partner_id = partner_by_correspondent.get(document.correspondent_id.id)
+                if partner_id:
+                    counts[partner_id].add(document.id)
+                    candidate_document_ids.add(document.id)
+
+        visible_document_ids = set(
+            Document.search([("id", "in", list(candidate_document_ids))]).ids,
+        ) if candidate_document_ids else set()
         for record in self:
-            link_domain = [
-                ("link_ids.res_model", "=", record._name),
-                ("link_ids.res_id", "=", record.id),
-                ("link_ids.active", "=", True),
-            ]
-            if record._name == "res.partner":
-                record.archived_document_count = Document.search_count(
-                    [
-                        "|",
-                        ("correspondent_id.partner_id", "=", record.id),
-                        "&",
-                        "&",
-                        ("link_ids.res_model", "=", record._name),
-                        ("link_ids.res_id", "=", record.id),
-                        ("link_ids.active", "=", True),
-                    ],
-                )
-            else:
-                record.archived_document_count = Document.search_count(link_domain)
+            record.archived_document_count = len(
+                counts[record.id] & visible_document_ids,
+            )
 
     def _compute_document_archive_status(self):
         # A status count is safe to expose on an already-authorized business

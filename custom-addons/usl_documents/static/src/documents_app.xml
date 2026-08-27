@@ -39,17 +39,6 @@
         </div>
     </t>
 
-    <t t-name="usl_documents.OpenDocumentsField">
-        <button type="button"
-                class="btn btn-link p-0 text-nowrap o_usl_open_documents"
-                t-att-title="label"
-                t-att-aria-label="label"
-                t-on-click.stop="open">
-            <i class="fa fa-folder-open-o me-1" aria-hidden="true"/>
-            <t t-esc="label"/>
-        </button>
-    </t>
-
     <t t-name="usl_documents.PermanentDeleteDialog">
         <Dialog title="'Permanently delete document?'" size="'md'">
             <p>

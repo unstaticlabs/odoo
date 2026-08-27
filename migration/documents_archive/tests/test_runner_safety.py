@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/documents-restore"
 QA_SCRIPT = ROOT / "scripts/qa-environment"
+QA_CLEAN_SCRIPT = ROOT / "scripts/qa-clean"
 SEED_SCRIPT = ROOT / "scripts/qa-seed"
 TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
 NATIVE_BRIDGE_SCRIPT = (
@@ -193,6 +194,8 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertNotIn("QUALIFIED_SOURCE", restore)
         self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
         self.assertIn("source contains unsupported Documents URL references", restore)
+        self.assertIn("attachment.res_model = 'ai.agent.source'", restore)
+        self.assertIn('"restricted_unassigned_evidence"', restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -258,6 +261,36 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('run_stage "restore target configuration after seed capture"'),
             script.index('run_stage "multi-company acceptance"'),
         )
+
+    def test_qa_reuses_only_an_exact_verified_worktree_state(self):
+        script = QA_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("usl-worktree-qa-state-v1", script)
+        self.assertIn("seed_manifest_sha256", script)
+        self.assertIn("migration_sha256", script)
+        self.assertIn("pocket_environment_sha256", script)
+        self.assertIn("worktree_state_sha256", script)
+        self.assertIn("qa_state_digest", script)
+        self.assertIn("qa_volumes_present", script)
+        self.assertIn('reuse_requested="${USL_QA_REUSE_EXISTING:-0}"', script)
+        self.assertIn('cache_result="warm-hit"', script)
+        self.assertLess(
+            script.index("qa_state_matches && qa_volumes_present"),
+            script.index('stage "reset isolated QA project"'),
+        )
+        self.assertIn('stage "reuse and verify existing QA target"', script)
+        self.assertIn("scripts/check-product-database-boundary", script)
+
+    def test_qa_cleanup_is_worktree_scoped_and_confirmation_gated(self):
+        script = QA_CLEAN_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("usl-odoo-qa-?*", script)
+        self.assertIn("USL_QA_CLEAN_CONFIRM", script)
+        self.assertIn("qa-volumes", script)
+        self.assertIn("usl_verify_compose_scope", script)
+        self.assertIn("usl_compose_active_unsafe_resources", script)
+        self.assertIn("down --volumes --remove-orphans", script)
+        self.assertNotIn("docker system prune", script)
 
     def test_downstream_source_bindings_survive_until_global_finalization(self):
         script = TARGET_SCRIPT.read_text(encoding="utf-8")

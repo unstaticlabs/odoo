@@ -7,6 +7,7 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Portable production migration candidate](portable-production-migration.md)
 - [Production cut-over readiness register](production-cutover-readiness.md)
 - [Deployment runbook](deployment-runbook.md)
+- [Product performance audit and operating budgets](product-performance.md)
 - [Backup and recovery runbook](backup-and-recovery-runbook.md)
 - [Run imported accounting data in development](run-imported-accounting-dev.md)
 - [Accounting development workflow](accounting-development-workflow.md)
