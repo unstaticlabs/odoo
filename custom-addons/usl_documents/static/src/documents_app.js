@@ -656,6 +656,9 @@ export class DocumentsWorkspaceView extends Component {
         this.searchReady = false;
         this.workspaceLoadToken = 0;
         this.workspaceMetadataLoaded = false;
+        this.resultWindow = [];
+        this.resultWindowOffset = 0;
+        this.resultWindowComplete = false;
         this.metadataSaveQueue = Promise.resolve();
         useSetupAction({
             getOrderBy: () => this.state.orderBy,
@@ -1289,6 +1292,25 @@ export class DocumentsWorkspaceView extends Component {
                 );
                 this.state.pageSize = pageSize;
                 this.state.page = Math.floor(offset / pageSize) + 1;
+                const windowStart = Number(offset) - this.resultWindowOffset;
+                const requestedEnd = Math.min(
+                    Number(offset) + pageSize,
+                    this.state.count
+                );
+                const windowEnd = requestedEnd - this.resultWindowOffset;
+                if (
+                    this.resultWindow.length &&
+                    windowStart >= 0 &&
+                    windowEnd <= this.resultWindow.length
+                ) {
+                    this.state.documents = this.resultWindow.slice(
+                        windowStart,
+                        windowEnd
+                    );
+                    this.persistState();
+                    this.replaceNavigationState();
+                    return Promise.resolve();
+                }
                 return this.load();
             },
         };
@@ -1973,6 +1995,15 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     applyWorkspaceResult(result) {
+        if (Array.isArray(result.result_window)) {
+            this.resultWindow = result.result_window;
+            this.resultWindowOffset = Number(result.result_window_offset) || 0;
+            this.resultWindowComplete = Boolean(result.result_window_complete);
+        } else {
+            this.resultWindow = [];
+            this.resultWindowOffset = 0;
+            this.resultWindowComplete = false;
+        }
         this.state.documents = result.documents;
         this.state.count = result.count;
         this.state.page = Number(result.page) || this.state.page;
@@ -2623,7 +2654,7 @@ export class DocumentsWorkspaceView extends Component {
         this.state.starring[document.id] = true;
         const starred = !document.is_starred;
         const setStarred = (value) => {
-            for (const item of this.state.documents) {
+            for (const item of [...this.state.documents, ...this.resultWindow]) {
                 if (item.id === document.id) {
                     item.is_starred = value;
                 }

@@ -1199,9 +1199,9 @@ test("semantic results show rounded match chips and enable closeness sorting", a
 });
 
 test.tags("desktop");
-test("manually editing the pager range applies the requested page size", async () => {
+test("editing a searched pager range reuses the loaded result window", async () => {
     const calls = [];
-    const documents = Array.from({ length: 24 }, (_, index) => ({
+    const resultWindow = Array.from({ length: 120 }, (_, index) => ({
         id: index + 1,
         name: `Document ${index + 1}`,
         tags: [],
@@ -1210,8 +1210,11 @@ test("manually editing the pager range applies the requested page size", async (
         calls.push(kwargs);
         return {
             ...emptyWorkspace,
-            documents,
-            count: 200,
+            documents: resultWindow.slice(0, 24),
+            result_window: resultWindow,
+            result_window_offset: 0,
+            result_window_complete: true,
+            count: 120,
             page: kwargs.page,
             page_size: kwargs.page_size,
         };
@@ -1225,7 +1228,8 @@ test("manually editing the pager range applies the requested page size", async (
     await contains(".o_usl_documents_toolbar").click();
     await animationFrame();
 
-    expect(calls.at(-1).page_size).toBe(96);
+    expect(calls).toHaveLength(1);
+    expect(".o_usl_document_card").toHaveCount(96);
     expect(".o_pager_counter .o_pager_value").toHaveText("1-96");
 });
 

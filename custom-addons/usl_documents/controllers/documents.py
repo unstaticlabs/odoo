@@ -20,6 +20,16 @@ SAFE_BROWSER_BINARY_TYPES = {
 
 class DocumentsController(http.Controller):
     @staticmethod
+    def _preview_content(client, document_id, version, mime_type):
+        if (mime_type or "").split(";", 1)[0].strip().lower().startswith("image/"):
+            return client.download(
+                document_id,
+                version_id=version,
+                original=True,
+            )
+        return client.preview(document_id, version_id=version)
+
+    @staticmethod
     def _browser_preview(content, content_type):
         mime_type = (content_type or "").split(";", 1)[0].strip().lower()
         text_types = {
@@ -91,20 +101,23 @@ class DocumentsController(http.Controller):
         version = self._version(document, version)
         if version is False:
             return request.not_found()
-        try:
-            content, headers = document._paperless().preview(
-                document.paperless_id, version_id=version,
-            )
-        except PaperlessError as error:
-            return request.make_response(
-                str(error), status=503, headers=[("Content-Type", "text/plain")],
-            )
         preview_mime = document.mime_type
         if version:
             cached_version = document.version_ids.filtered(
                 lambda item: item.paperless_version_id == version,
             )
             preview_mime = cached_version[:1].mime_type or preview_mime
+        try:
+            content, headers = self._preview_content(
+                document._paperless(),
+                document.paperless_id,
+                version,
+                preview_mime,
+            )
+        except PaperlessError as error:
+            return request.make_response(
+                str(error), status=503, headers=[("Content-Type", "text/plain")],
+            )
         content_type = (
             headers.get("Content-Type")
             or preview_mime

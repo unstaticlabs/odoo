@@ -1462,6 +1462,7 @@ class UslDocument(models.Model):
             "usl.paperless.document.type",
         ):
             self.env[model_name].synchronize_catalog(client=client)
+        self._configure_archive_automation(client)
         custom_fields = [
             {
                 "id": int(item["id"]),
@@ -1516,6 +1517,101 @@ class UslDocument(models.Model):
                     },
                 )
         smart_views.synchronize_archive_views(client=client)
+
+    @api.model
+    def _configure_archive_automation(self, client):
+        """Enable Paperless learning when the catalog has usable examples.
+
+        Explicit matching rules are user-owned and are never replaced.  Automatic
+        learning is enabled only for shared, active metadata that is still
+        unconfigured and already occurs on at least two documents.
+        """
+        configured = 0
+        for model_name in (
+            "usl.paperless.tag",
+            "usl.paperless.correspondent",
+            "usl.paperless.document.type",
+        ):
+            model = self.env[model_name].sudo()
+            records = model.search(
+                [
+                    ("active", "=", True),
+                    ("matching_algorithm", "=", "0"),
+                    ("match", "in", (False, "")),
+                    ("document_count", ">=", 2),
+                ],
+            )
+            if model_name == "usl.paperless.tag":
+                records = records.filtered(lambda record: not record.is_inbox_tag)
+            for record in records:
+                payload = client.update_metadata(
+                    model._paperless_kind,
+                    record.paperless_id,
+                    {
+                        "matching_algorithm": 6,
+                        "match": "",
+                        "is_insensitive": True,
+                    },
+                )
+                record.with_context(usl_documents_cache_write=True).write(
+                    model._cache_values(payload),
+                )
+                configured += 1
+        return configured
+
+    @api.model
+    def reconcile_linked_classification(self, *, limit=1000):
+        """Classify roots whose authoritative Odoo context is complete.
+
+        This deliberately does not mark a document as human-reviewed.  It only
+        removes the manual-review flag when access, company, business links, and
+        at least one classification dimension are already deterministic.
+        """
+        candidates = self.sudo().search(
+            [
+                ("review_state", "=", "needs_attention"),
+                ("availability_state", "=", "available"),
+                ("company_id", "!=", False),
+                ("permission_sync_state", "=", "synchronized"),
+                ("last_error", "=", False),
+                ("link_ids.active", "=", True),
+                "|",
+                ("document_type_id", "!=", False),
+                ("tag_ids", "!=", False),
+            ],
+            order="id",
+            limit=max(0, int(limit or 0)) or None,
+        )
+        classified = self.browse()
+        skipped = 0
+        for document in candidates:
+            links = document.link_ids.filtered("active")
+            if not links or any(
+                link.company_id != document.company_id
+                or link.policy_reason in {
+                    "legacy_relationship_backfill_pending",
+                    "legacy_operation_backfill_pending",
+                }
+                or link.res_model not in self.env
+                or not self.env[link.res_model].sudo().browse(link.res_id).exists()
+                for link in links
+            ):
+                skipped += 1
+                continue
+            classified |= document
+        if classified:
+            classified.with_context(usl_documents_cache_write=True).write(
+                {"review_state": "classified"},
+            )
+        return {
+            "considered": len(candidates),
+            "classified": len(classified),
+            "skipped": skipped,
+        }
+
+    @api.model
+    def cron_reconcile_linked_classification(self):
+        return self.reconcile_linked_classification(limit=1000)
 
     @api.model
     def sync_from_paperless(self, *, full=False, limit_pages=None, client=None):
@@ -1798,7 +1894,12 @@ class UslDocument(models.Model):
             self.env[
                 "usl.paperless.user.mapping"
             ]._reconcile_remote_identity_state(client=client)
-            return self.sync_from_paperless(limit_pages=20, client=client)
+            result = self.sync_from_paperless(limit_pages=20, client=client)
+            if result.get("complete"):
+                result["classification"] = self.reconcile_linked_classification(
+                    limit=1000,
+                )
+            return result
         except PaperlessError:
             _logger.exception("Paperless incremental synchronization failed")
             return False
@@ -2364,6 +2465,7 @@ class UslDocument(models.Model):
                 }
         domain = Domain.AND([Domain(domain), native_domain])
         order = self._workspace_order(order_by, sort)
+        ordered_ids = None
         try:
             if sort == "semantic" and semantic_scores_loaded and not order_by:
                 matching = self.search(domain)
@@ -2455,11 +2557,26 @@ class UslDocument(models.Model):
                         break
                 if len(link_facets) >= 200:
                     break
+        result_window = self.browse()
+        if archive_search_requested:
+            result_window = (
+                self.browse(ordered_ids[:500])
+                if ordered_ids is not None
+                else self.search(domain, order=order, limit=500)
+            )
         result = {
             "documents": [
                 self._workspace_document_values(item, semantic_scores)
                 for item in documents
             ],
+            "result_window": [
+                self._workspace_document_values(item, semantic_scores)
+                for item in result_window
+            ],
+            "result_window_offset": 0,
+            "result_window_complete": bool(
+                archive_search_requested and count <= len(result_window),
+            ),
             "count": count,
             "page": page,
             "page_size": page_size,

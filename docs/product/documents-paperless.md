@@ -181,6 +181,28 @@ Paperless retrains periodically. It is probabilistic and local, but it does not
 create an inspectable list of heuristic rules that either application could
 truthfully display.
 
+The catalog synchronizer enables **Learn automatically** for active shared
+tags, correspondents, and document types that still have no explicit rule and
+already occur on at least two documents. Inbox tags are excluded. This setup is
+idempotent, preserves every manually configured expression, and is rerun after
+archive reconstruction as well as during normal synchronization.
+
+Odoo separately reconciles the review state of an archive root. It may promote
+**Needs review** to **Classified** (never to **Reviewed**) only when the root is
+available, has a company, synchronized permissions, an existing authoritative
+business relationship, consistent link companies, and a document type or tag.
+Unlinked external intake, policy conflicts, missing records, and permission
+errors remain visible for review. The same bounded reconciler runs every five
+minutes and at the end of the Documents migration.
+
+Two broader alternatives were rejected. Trusting all metadata assigned by
+Paperless would clear the Inbox fastest, but it cannot establish Odoo company
+or record authorization and would hide genuinely unassigned files. A one-time
+migration update would clean today's backlog but would regress after future
+intake or a final reconstruction. The combined Paperless-learning and
+authoritative-link reconciliation keeps the archive classifier reusable while
+leaving Odoo's access boundary deterministic.
+
 Each catalog row and form shows the number of non-Trash documents the current
 user may access and opens those documents with a removable native facet.
 
@@ -273,8 +295,11 @@ Context is additive. Projects receive **Projects** and one stable
 **Project · Name** tag, Platform Billing receives one stable platform tag,
 expenses use the canonical **Expenses** taxonomy, and accounting, HR, payroll,
 tax and closing evidence receive their relevant business type. Existing manual
-tags, correspondent and document type are never silently erased. A conflicting
-non-empty classification enters **Needs review**.
+tags are never silently erased. A conflicting non-empty classification enters
+**Needs review**, except when a trusted, more-specific business policy
+explicitly replaces a generic type. Access can be narrowed without creating a
+false conflict; a request to relax existing confidentiality still requires
+review.
 
 For a mapped Contact, the same workspace composes archive correspondent mapping
 and explicit Odoo relationships without duplicating results.

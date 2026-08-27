@@ -2941,8 +2941,100 @@ class TestDocuments(TransactionCase):
             )
         self.assertEqual(result["count"], 2)
         self.assertEqual(len(result["documents"]), 1)
+        self.assertEqual(
+            [item["id"] for item in result["result_window"]],
+            [second.id, first.id],
+        )
+        self.assertTrue(result["result_window_complete"])
         search.assert_called_once()
         self.assertEqual(search.call_args.kwargs["document_ids"], [182, 183])
+
+    def test_trusted_linked_documents_are_classified_without_claiming_review(self):
+        document_type = self._document_type(9182, "Linked evidence")
+        document = self._document(
+            9182,
+            review_state="needs_attention",
+            document_type_id=document_type.id,
+        )
+        self.env["usl.document.link"].sudo().with_context(
+            usl_documents_link_policy_write=True,
+        ).create(
+            {
+                "document_id": document.id,
+                "res_model": "res.partner",
+                "res_id": self.partner_a.id,
+                "record_name": self.partner_a.display_name,
+                "company_id": self.company_a.id,
+                "linked_by_id": self.manager.id,
+                "archive_mode": "automatic",
+                "policy_role": "library",
+                "document_role": "library",
+                "attachment_origin": "backfill",
+                "policy_reason": "business_record_default",
+            },
+        )
+
+        result = self.env["usl.document"].reconcile_linked_classification()
+
+        self.assertEqual(result["classified"], 1)
+        self.assertEqual(document.review_state, "classified")
+
+    def test_archive_automation_preserves_rules_and_enables_learning(self):
+        learnable = self._document_type(
+            9282,
+            "Repeated evidence",
+            matching_algorithm="0",
+            document_count=2,
+        )
+        explicit = self._document_type(
+            9283,
+            "Explicit evidence",
+            matching_algorithm="3",
+            match="EXPLICIT",
+            document_count=20,
+        )
+        client = MagicMock()
+        models_by_kind = {
+            "tags": "usl.paperless.tag",
+            "correspondents": "usl.paperless.correspondent",
+            "document_types": "usl.paperless.document.type",
+        }
+
+        def automatic_payload(kind, paperless_id, _values):
+            record = self.env[models_by_kind[kind]].search(
+                [("paperless_id", "=", paperless_id)],
+                limit=1,
+            )
+            return {
+                "id": paperless_id,
+                "name": record.name,
+                "matching_algorithm": 6,
+                "match": "",
+                "is_insensitive": True,
+                "document_count": record.document_count,
+            }
+
+        client.update_metadata.side_effect = automatic_payload
+
+        configured = self.env["usl.document"]._configure_archive_automation(client)
+
+        self.assertGreaterEqual(configured, 1)
+        self.assertEqual(learnable.matching_algorithm, "6")
+        self.assertEqual(explicit.matching_algorithm, "3")
+        calls = [call.args[:2] for call in client.update_metadata.call_args_list]
+        self.assertIn(("document_types", learnable.paperless_id), calls)
+        self.assertNotIn(("document_types", explicit.paperless_id), calls)
+        self.assertTrue(
+            all(
+                call.args[2]
+                == {
+                    "matching_algorithm": 6,
+                    "match": "",
+                    "is_insensitive": True,
+                }
+                for call in client.update_metadata.call_args_list
+            ),
+        )
 
     def test_repeated_search_can_omit_invariant_workspace_metadata(self):
         self._document(1181, name="Metadata-light result")
@@ -5008,6 +5100,25 @@ class TestPaperlessClientContract(TransactionCase):
         self.assertIn(b"&lt;script&gt;", content)
         self.assertNotIn(b"<script>", content)
         self.assertIn(b"Supplier evidence", content)
+
+    def test_image_previews_use_the_original_archive_binary(self):
+        client = MagicMock()
+        client.download.return_value = (b"jpeg", {"Content-Type": "image/jpeg"})
+
+        content = DocumentsController._preview_content(
+            client,
+            82,
+            "version-3",
+            "image/jpeg",
+        )
+
+        self.assertEqual(content[0], b"jpeg")
+        client.download.assert_called_once_with(
+            82,
+            version_id="version-3",
+            original=True,
+        )
+        client.preview.assert_not_called()
 
     def test_active_preview_types_cannot_execute_in_odoo_origin(self):
         content, content_type = DocumentsController._browser_preview(

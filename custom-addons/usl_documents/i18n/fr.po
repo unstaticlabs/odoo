@@ -5875,6 +5875,11 @@ msgstr "L’original reste joint à son enregistrement Odoo. Documents réutilis
 msgid "Archiving"
 msgstr "Archivage"
 
+#. module: usl_documents
+#: model:ir.cron,name:usl_documents.ir_cron_usl_documents_classification
+msgid "Documents: classify trusted linked records"
+msgstr "Documents : classer les enregistrements liés fiables"
+
 #~ msgid ""
 #~ "%(count)s attachment(s) sent to Paperless. Odoo copies were retained."
 #~ msgstr ""

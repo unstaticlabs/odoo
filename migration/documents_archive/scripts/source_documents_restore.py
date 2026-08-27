@@ -1789,6 +1789,10 @@ classification_type_counts = {
         key=str.casefold,
     )
 }
+classification_reconciliation = env[
+    "usl.document"
+].reconcile_linked_classification(limit=0)
+env.cr.commit()
 
 after_attachment_count = all_attachments.search_count([])
 expected_source_documents = sum(
@@ -1874,6 +1878,7 @@ result = {
     "restored_relationships_by_model": relationships_by_model,
     "classification_tag_counts": classification_tag_counts,
     "classification_type_counts": classification_type_counts,
+    "classification_reconciliation": classification_reconciliation,
     "source_added_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,
