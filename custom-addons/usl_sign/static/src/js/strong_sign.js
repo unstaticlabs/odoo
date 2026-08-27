@@ -113,6 +113,12 @@
                 phase === "success" || (activeIndex >= 0 && stepIndex < activeIndex)
             );
         }
+        const finishLabel = container.querySelector("[data-finish-label]");
+        if (finishLabel) {
+            finishLabel.textContent = phase === "success"
+                ? finishLabel.dataset.finishComplete
+                : finishLabel.dataset.finishPending;
+        }
     }
 
     function setPhase(container, phase, {tone = "info", title = "", message = ""} = {}) {

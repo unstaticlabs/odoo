@@ -22,6 +22,11 @@ without interrupting everyday work.
   permission is unavailable.
 - Every empty, waiting, failure and retry state must tell the user what happens
   next without implying that they caused an infrastructure problem.
+- Motion is feedback, not proof. The public signer journey uses small authored
+  vector scenes only for review, identity confirmation, active processing and
+  completion. The adjacent status text remains authoritative, animations have
+  static fallbacks under `prefers-reduced-motion`, and no animation implies
+  that identity, trust, validation or final archival has succeeded.
 
 ## Ten release journeys
 
@@ -131,7 +136,9 @@ without interrupting everyday work.
   signature is added and checked → completion.
 - **Primary action:** **Confirm and sign**.
 - **Expectation:** three honest phases—Review, Confirm, Done—with no fake
-  progress or technical ceremony language. Security details are optional.
+  progress or technical ceremony language. The final step reads **Finish**
+  while work is still being applied and checked, and changes to **Done** only
+  after the server accepts the result. Security details are optional.
 - **Release check:** fresh authorization, exact-document binding, replay,
   different-document attack, stale session, popup failure and service outage
   are tested without a physical authenticator in routine automation.

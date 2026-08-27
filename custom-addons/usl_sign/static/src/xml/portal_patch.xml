@@ -74,7 +74,7 @@
                     <strong>Review and sign</strong>
                     <span>Complete the required fields, then confirm below.</span>
                 </div>
-                <span class="badge rounded-pill text-bg-light border"><i class="fa fa-lock me-1"/> Protected session</span>
+                <span class="badge rounded-pill text-bg-light border"><i class="fa fa-lock me-1"/> Private signing session</span>
             </header>
         </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">

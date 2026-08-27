@@ -2072,6 +2072,24 @@ class TestCleanUslSign(TransactionCase):
         result_page = self.env.ref("usl_sign.portal_sign_result").arch
         self.assertIn("Download the document as it is now", result_page)
         self.assertIn("not the final document", result_page)
+        self.assertIn('t-call="usl_sign.sign_motion"', result_page)
+
+        motion = self.env.ref("usl_sign.sign_motion").arch
+        self.assertIn('aria-hidden="true"', motion)
+        self.assertIn('viewBox="0 0 160 120"', motion)
+        self.assertIn("motion_variant == 'review'", motion)
+        self.assertIn("motion_variant == 'identity'", motion)
+        self.assertIn("motion_variant == 'complete'", motion)
+        self.assertNotIn("script", motion)
+
+        start_page = self.env.ref("usl_sign.portal_sign_start").arch
+        self.assertIn('t-value="\'review\'"', start_page)
+        self.assertIn("before anything is signed", start_page)
+
+        strong_page = self.env.ref("usl_sign.strong_sign_page").arch
+        self.assertIn('t-value="\'journey\'"', strong_page)
+        self.assertIn("data-finish-label", strong_page)
+        self.assertIn("private key never leaves this page", strong_page)
 
     def test_my_identity_has_one_direct_form_journey(self):
         self.assertFalse(
