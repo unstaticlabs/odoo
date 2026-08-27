@@ -207,13 +207,18 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             1,
         )[1]
         ordered_steps = [
-            'run_stage "reset target database" scripts/accounting-compat dev-reset',
-            'run_stage "import accounting" scripts/accounting-compat dev-import',
-            'run_stage "validate accounting" scripts/accounting-compat dev-validate',
-            "scripts/project-restore all",
-            "scripts/tese-restore all",
-            "scripts/platform-billing-restore all",
-            "scripts/target-finalize",
+            'run_stage "reset target database"',
+            'run_stage "import accounting"',
+            'run_stage "validate accounting"',
+            'run_stage "restore product data"',
+            'run_stage "restore B2C commerce evidence"',
+            'run_stage "restore Projects"',
+            'run_stage "restore Documents archive"',
+            'run_stage "finalize B2C relationships and Documents links"',
+            'run_stage "restore Paie TESE"',
+            'run_stage "restore Platform Billing"',
+            'run_stage "finalize migration boundary"',
+            'run_stage "apply target configuration"',
         ]
         positions = []
         cursor = 0
@@ -237,10 +242,11 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             script,
         )
         self.assertIn(
-            'COMPOSE_PROJECT_NAME="$compose_project" '
-            "scripts/platform-billing-restore all",
+            'run_stage "restore Platform Billing" '
+            "restore_platform_billing_for_reconstruction",
             script,
         )
+        self.assertIn("scripts/platform-billing-restore idempotence", script)
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", script)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", script)
 

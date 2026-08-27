@@ -4,34 +4,63 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current release preparation — updated 2026-08-25
+## Current release preparation — updated 2026-08-27
 
 Status: **Accounting v1 is engineering-complete, but the Distribution is not
 yet production-ready.** The current `19-usl` history contains the reviewed
-Expense Analytics baseline at `aae5994a7ec` and the migration-performance merge
-at `61580c1704c`. The aligned Expense feature tip is preserved at
-`archive/expense-batch-context-20260825`.
-B2C, Paperless 3.0, Native Sign and monthly bank-statement email ingestion
-remain independent review branches. None may be treated as shipped until it
-has been reviewed, merged into `19-usl`, and included in a fresh complete
-reconstruction.
+migration-performance foundation through `61580c1704c`, Expense Analytics
+through `aae5994a7ec`, B2C through merge `368812b2868`, the validated upstream
+SaaS 19.3 catch-up through merge `4104a3abbef`, and monthly bank-statement email
+ingestion through merge `64c1f2b1207` plus its focused fixes.
 
-`19-usl` now contains the reviewed migration-performance work through merge
-`61580c1704c`. It implements deterministic batched
-Accounting replay, fail-closed reusable QA seeds, portable sanitized production
-candidates, an external-Pocket-ID cut-over topology, immutable Distribution
-images, a focused application launcher and contextual French regression guards.
-It now also emits dump-bound model/table/stored-field gap evidence and refuses
-to start reconstruction on an unsafe shared low-memory Docker runtime. Its
-reusable full QA seed and a final production candidate have **not** been
-published. The latest
-fresh no-Documents rehearsal was correctly invalidated when Docker Desktop's
-8 GiB shared VM OOM-killed the atomic Accounting import; the interrupted target
-is not reusable, and no unrelated feature project may be stopped automatically
-to make the rerun pass.
-An isolated clean install and repeated update now pass the complete current
-12-module product database boundary with no migration registry/schema residue;
-this proves module completeness only, not final-source migration parity.
+After Docker capacity was increased, the integrated B2C baseline completed a
+fresh full reconstruction on 26 August. It published a reusable sanitized QA
+seed, restored the complete Accounting/Product/B2C/HR/Projects/Documents/TESE/
+Platform Billing perimeter, finalized to a product-only registry, and passed
+two isolated zero-OCR seed hydrations. A separate clean install and repeated
+update passed all fourteen delivered product modules. These are valid current
+rehearsal results, not a final production candidate: later feature merges
+invalidate them for release admission.
+
+Paperless 3.0, Native Sign, Collaboration History and Distribution Access
+Control remain active, unmerged workstreams. Their final commits must be
+reviewed and merged into `19-usl` before a new complete qualification. The
+strict source gate also still reports eight incomplete scopes and 115 pending
+source attachment IDs, and the physical opening-stock count is not yet
+available. No feature worktree, old QA seed or rehearsal candidate may be
+promoted directly.
+
+### Current production-candidate checklist
+
+- [x] Integrate migration performance and portable-candidate tooling.
+- [x] Integrate Expense Analytics.
+- [x] Integrate B2C sales/inventory and complete honest accounting, evidence
+  and SKU dispositions.
+- [x] Integrate the validated SaaS 19.3 upstream catch-up.
+- [x] Integrate scheduled Shine bank-statement ingestion.
+- [x] Complete one full integrated reconstruction, publish a reusable QA seed
+  and reproduce it twice in isolated projects.
+- [x] Prove clean install, update and repeated update for the current fourteen
+  delivered modules with no migration registry or schema residue.
+- [ ] Review and merge Paperless 3.0.
+- [ ] Review and merge Native Sign.
+- [ ] Review and merge Collaboration History.
+- [ ] Review and merge Distribution Access Control.
+- [ ] Resolve or explicitly translate every strict whole-source gap and all
+  115 pending source attachment IDs; no silent drop or blanket waiver.
+- [ ] Obtain and execute the governed physical opening-stock count; do not
+  fabricate historical stock.
+- [ ] Repeat static checks, clean install/update, full reconstruction, source
+  parity, browser/persona journeys and product-boundary validation from the
+  exact final merged commit.
+- [ ] Rehearse the complete intended production procedure on an isolated
+  production-shaped host, including reset/abort, backup and recovery.
+- [ ] Freeze Odoo Online, capture and verify the final dump and filestore, then
+  build and independently approve the immutable candidate.
+- [ ] Complete technical, infrastructure, Accounting Manager, professional
+  accounting and final business go/no-go decisions.
+- [ ] Admit the exact candidate and activate external services only through
+  their separate post-admission gates.
 
 The canonical remaining release sequence and owner/evidence checklist are in
 [`docs/operations/production-cutover-readiness.md`](docs/operations/production-cutover-readiness.md).
@@ -104,6 +133,8 @@ Final evidence and residual advisories are recorded in
 - [x] Create `docs/operations/` for deployment and recovery runbooks.
 - [x] Create `docs/accounting/` for accounting invariants and parity evidence.
 - [x] Create `docs/agents/` for agent mandates, permissions and action policies.
+- [x] Create a canonical feature-to-module, screen, documentation and maturity
+  map in `docs/product/fork-overview.md`.
 - [x] Assign responsibility for product decisions.
 - [x] Assign responsibility for architecture decisions.
 - [x] Assign responsibility for accounting acceptance.
@@ -165,8 +196,8 @@ Final evidence and residual advisories are recorded in
 - [x] Confirm the exact upstream baseline:
   - [x] Repository: `odoo/odoo`
   - [x] Branch: `saas-19.3`
-  - [x] Pinned commit: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
-  - [x] Commit date: 25 July 2026
+  - [x] Pinned commit: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`
+  - [x] Integrated into `19-usl`: 26 August 2026
 - [x] Add the official Odoo repository as the canonical `upstream` remote.
 - [x] Define the project repository as the `usl` remote
   (`unstaticlabs/odoo`).
@@ -196,13 +227,13 @@ Final evidence and residual advisories are recorded in
   - [ ] Test coverage
   - [ ] Removal or upstreaming path
 - [x] Define the custom add-on namespaces.
-- [ ] Separate:
-  - [ ] Upstream Odoo add-ons
-  - [ ] OCA add-ons
-  - [ ] Generic reusable USL add-ons
-  - [ ] USL-specific add-ons
-  - [ ] Experimental add-ons
-  - [ ] Migration-only add-ons
+- [x] Separate:
+  - [x] Upstream Odoo add-ons
+  - [x] OCA add-ons
+  - [x] Generic reusable USL add-ons
+  - [x] USL-specific add-ons
+  - [x] Experimental or test-only add-ons
+  - [x] Migration-only add-ons
 - [ ] Define module naming conventions.
 - [ ] Define manifest conventions.
 - [ ] Define versioning conventions.
@@ -210,8 +241,8 @@ Final evidence and residual advisories are recorded in
 - [ ] Define dependency rules between module categories.
 - [ ] Prevent generic modules from depending on company-specific modules.
 - [ ] Prevent accounting foundations from depending on experimental AI features.
-- [ ] Prevent migration utilities from becoming permanent runtime dependencies.
-- [ ] Create a module and dependency map.
+- [x] Prevent migration utilities from becoming permanent runtime dependencies.
+- [x] Create a module and dependency map.
 - [ ] Add automated detection of circular or forbidden dependencies.
 - [ ] Create an OCA evaluation policy.
 - [ ] For every OCA dependency, record:
@@ -2085,7 +2116,7 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [x] Compare invoices by status.
 - [x] Compare vendor bills by status.
 - [x] Compare Accounting attachments.
-- [ ] Compare projects and tasks.
+- [x] Compare projects and tasks.
 - [ ] Compare active users.
 - [x] Compare Accounting companies.
 - [x] Compare analytic records.
@@ -2104,7 +2135,7 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [x] Document failures and manual interventions.
 - [x] Automate repeatable fixes.
 - [x] Rehearsal 2: latest supplied production backup.
-- [ ] Measure total migration duration.
+- [x] Measure total and per-stage rehearsal duration.
 - [ ] Measure service interruption.
 - [x] Run accounting comparisons.
 - [x] Run Accounting workflow smoke tests.
@@ -2120,9 +2151,10 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Resolve all migration blockers.
 - [ ] Freeze the cutover runbook.
 
-The full-profile QA seed publication, two zero-OCR hydrations, optimized
-before/after timing comparison and intended-host dress rehearsal remain open.
-Passing a cached or scoped reconstruction does not close those items.
+The full-profile QA seed publication and two zero-OCR hydrations passed on
+26 August. The optimized before/after timing comparison, interruption-window
+measurement and intended-host dress rehearsal remain open. Passing a cached or
+scoped reconstruction does not close those items.
 
 ## Milestone 26 exit criteria
 

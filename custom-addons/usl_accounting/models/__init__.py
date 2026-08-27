@@ -8,6 +8,8 @@ from . import (
     account_reconcile_compat,
     analytic_reporting,
     bank_partner_suggestion,
+    bank_statement_review,
+    bank_statement_ingestion,
     expense_bank_matching,
     expense_batch_reporting,
     fiscal_year,

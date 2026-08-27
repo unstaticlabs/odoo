@@ -106,6 +106,15 @@ bank's CSV or XLSX export, create a **Statement Sheet Mapping** in
 settings. The mapping describes the date, amount, reference and partner columns;
 it does not post or reconcile transactions automatically.
 
+For scheduled Shine exports, open **Configuration > Accounting > Bank
+Statement Email Setup**. One setup belongs to exactly one company, bank
+journal and bank account. Keep **Receive and process emails** disabled until
+the approved sender, download host, alias route, historical start month and
+responsible accountant have been checked and a synthetic email has passed.
+CSV and QIF copies are retained as evidence; OFX is the transaction source and
+the bank PDF is the balance evidence. This setup does not reconcile imported
+transactions automatically.
+
 ## Currency Rate Automation
 
 Open **Configuration > Currency Rate Automation** to govern ECB reference

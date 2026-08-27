@@ -2,7 +2,7 @@
 
 Status: accepted architecture decision
 Baseline: Odoo Community `saas~19.3` at
-`efb98f932f3a568ce550a26ebde06da0e14e65d3`
+`aef56898d9ea5a97948af04c03ae101d17b8b4a3`
 
 ## Decision
 
@@ -100,6 +100,7 @@ identifiers. It is explicitly rejected for this increment.
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |
 | Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
+| Scheduled bank-export ingestion and monthly certification | `usl_accounting` | native statements/mail plus maintained OCA OFX parsing | provenance, duplicate, identity, balance, continuity, certification and security tests |
 | Reconciliation-model intelligence | compatibility module for this stage | runtime behavior derived from native journal lines | rule behavior and OCA tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
@@ -109,7 +110,7 @@ identifiers. It is explicitly rejected for this increment.
 | External-provider payroll and TESE settlement | `usl_tese_payroll` | focused product module over native HR/Accounting and OCA matching | clean module, security, accounting and settlement tests |
 | TESE closing control | `usl_tese_accounting` | focused bridge from TESE payroll to the Accounting closing workspace | period, evidence, posting and liability-state tests |
 | Documents archive and access policy | `usl_documents` | Paperless-backed product module over native companies, contacts and access groups | backend/frontend suites, API/read-back and migration parity |
-| Accounting document evidence | `usl_documents_accounting` | focused bridge from Documents to Accounting records | record-link, authorization and accounting-view tests |
+| Accounting document evidence | `usl_documents_accounting` | focused bridge from the Paperless source of truth to Accounting records, including mandatory exact-version bank evidence | checksum/version pinning, record-link, retry, authorization and accounting-view tests |
 | Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
 | Source trace, importer, native replay, parity evidence and reconstruction models | temporary `migration/accounting_restore` add-on | migration-only and uninstalled at finalization | canonical harness, idempotency and final-registry boundary gates |
@@ -163,7 +164,8 @@ menus.
 | `server-auth` | `f51fe1b36965b78ac935e80c6b95d7115440a1b4` |
 | `account-financial-reporting` | `aa34bf33fc96fbae7fb5a2b9609b807b4e20514c` |
 | `account-reconcile` | `a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb` |
-| `bank-statement-import` | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |
+| `bank-statement-import` (base/file and existing formats) | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |
+| `bank-statement-import` (separate OFX checkout) | `861d9610f3aa24cbbdf45578ceba8377aecab8fc` |
 | `server-ux` | `1372e6489daa3a639d7542f3dcd60af640fb294b` |
 | `reporting-engine` | `6692523980cbc57d414935311d7f7bf1c834edc6` |
 | `account-financial-tools` | `3b3b3cf0974d5452734090e5a0421e762089de75` |
@@ -175,6 +177,9 @@ candidate data: partner fixtures use unique exact evidence, date assertions
 follow the configured `res.lang`, and browser tests use the current Hoot step
 API. The complete `/account_reconcile_oca` tag must run in the
 Chromium-enabled `test` image so browser wrappers cannot be silently skipped.
+The separate OFX checkout exposes only `account_statement_import_ofx`; its
+SaaS 19.3 patch uses the current binary API and `res.partner.bank` fields. It
+does not replace the newer base/file pin.
 
 ## Upstream core patches
 

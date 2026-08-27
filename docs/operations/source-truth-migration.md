@@ -28,9 +28,17 @@ The input is the preserved Odoo Online package:
 Never start target Odoo against the source database. Never edit source rows to
 make an importer pass.
 
-The Accounting harness resolves `--source-dir` once and exports that absolute
-path to every Compose child. Host validation and the read-only container mount
-therefore cannot silently select different source packages.
+Canonical reconstruction resolves `USL_ONLINE_DUMP_DIR` once, exports the
+absolute path to every migration stage, and uses that same path for host
+validation and the read-only container mount. If the variable is unset, local
+development uses the ignored checkout-local `usl-online-dump/`; production
+must supply the approved external package path.
+
+Two alternatives were considered: retaining per-script maintainer-specific
+defaults, or requiring every caller to repeat `--source-dir` for every stage.
+Both permit path drift between host validation, audit tools and Compose. The
+single exported environment contract is used instead, with a portable local
+default and an explicit production override.
 
 ## Whole-source coverage ledger
 
@@ -90,12 +98,14 @@ deferred. The strict `gate` remains the acceptance test for any future claim
 that every source application has been delivered.
 
 The August 2026 source also contains configured Inventory, Manufacturing and
-Quality applications, but no stock moves, pickings, quants, manufacturing
-orders, bills of materials or quality alerts. Their warehouse, route, location,
-valuation and quality configuration is classified as the deferred
-`inventory_manufacturing` scope. Product and accounting records continue
-through their implemented stages; the Distribution must not claim operational
-Inventory parity until that scope has its own translation and validation.
+Quality applications, but no stock moves, move lines, pickings, quants,
+valuation layers, manufacturing orders, bills of materials, quality points or
+quality checks. Product restoration now translates and validates the one
+warehouse, 23 locations, six routes, seven rules, 11 operation types, costing
+configuration, and these exact zero transaction baselines. This completes the
+source `inventory_manufacturing` scope without claiming that unrecorded physical
+stock is zero. An approved dated physical count remains an external release
+input and may only become a native opening inventory adjustment.
 
 Restore the source first with the same isolated project when necessary:
 
@@ -204,27 +214,65 @@ populated persistent models and 93 populated relation or unmapped tables. It
 verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
-Accounting, global identity, Product Master, HR, Projects, Paie TESE, Platform
-Billing and the Paperless Documents archive have implemented translation
-stages. The current Distribution-scope gate passes. The strict production gate
-remains blocked—correctly—on collaboration history, 115 attachment actions,
+Accounting, global identity, Product Master, Inventory/Manufacturing
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
+Paperless Documents archive have implemented translation stages. The current
+Distribution-scope gate passes. The strict production gate remains
+blocked—correctly—on collaboration history, remaining attachment actions,
 Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-source AI configuration and Inventory, Manufacturing and Quality
-configuration. These are explicit gaps, not silently copied or represented as
-full parity. The latter scope currently
-contains configuration only: the source has no stock moves, pickings, quants,
-manufacturing orders, bills of materials or quality alerts.
+and source AI configuration. These are explicit gaps, not silently copied or
+represented as full parity. The separate physical opening-stock evidence item
+also remains blocking for B2C operational release even though it is not a fact
+contained in the source database.
+
+The strict 26 August rehearsal reports eight incomplete scopes:
+`ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
+`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
+pending source attachment IDs, represented by 1 AI-configuration action, 64
+collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
+actions. Action totals can overlap when one attachment has more than one
+relationship; the 115 source IDs are the file-level count.
+
+### B2C commerce stage
+
+B2C creates its canonical records after Accounting and Product restoration,
+then finalizes relationships only after Accounting, Product, Projects and full
+Documents restoration. It parses 39 checksum-locked dump files directly from
+the read-only source filestore plus one checksum-locked private Medusa line
+export in the same canonical source package. It creates immutable restricted
+evidence and requires all 40 files in final Documents. The source has zero
+native sales, payments and stock operations, so the stage does not manufacture
+any. It fingerprints Accounting, reconciliations, bank data, native payment
+records, named supplier documents, Sales, Purchase, Stock and product cost
+history before and after import.
+
+The current evidence baseline is 304 canonical orders, 457 line rows (235 Etsy
+plus 222 Medusa), 1,821 payment/refund/fee events, 261 fulfilment/COGS rows,
+2,893 immutable evidence rows, 109 aliases and 81 monthly session scopes. Nine
+aliases are verified by exact canonical internal reference and 100 are
+explicitly not applicable; none is unexplained pending. All 180 critical moves
+have verified provider/month session links, 81 have unique bank links, and 14
+direct identifier relationships cover 10 events. The Odoo Online dump and its
+filestore remain primary; the Medusa sold-item file is explicitly post-dump
+supplemental provider evidence and never masquerades as a source-database
+record. Repeat import must preserve those counts and the same protected
+fingerprint. Detailed file and column dispositions live in
+`migration/b2c_restore/source-field-matrix.md`.
 
 ### Platform Billing stage
 
-Platform Billing runs after Accounting, Projects and Paie TESE and before the
-Documents archive. The temporary importer links source platforms, sessions and
-payouts to the already reconstructed native journal entries. It does not
-recreate those entries or import the source suggestion cache: suggestions are
-recomputed from current bank data. A repeated import must retain the same
-application and ledger digests. Finalization uninstalls the importer and
-removes its allow-listed physical source columns before the ordinary product
-registry is accepted.
+Platform Billing runs after Accounting, Projects, the Documents archive, the
+idempotent post-Documents B2C refresh, and Paie TESE. The temporary importer
+links source platforms, sessions and payouts to the already reconstructed
+native journal entries. It does not recreate those entries or import the
+source suggestion cache: suggestions are recomputed from current bank data. A
+repeated import must retain the same application and ledger digests.
+Finalization uninstalls temporary modules in reverse dependency order, keeps
+the complete temporary add-ons path available until the last uninstall, then
+runs Platform Billing's schema scrub and every product-only boundary check.
+This prevents an ordinary Odoo registry from starting while a temporary module
+is still installed. The final scrub removes allow-listed source columns before
+the ordinary product registry is accepted.
 
 ### Documents archive stage
 

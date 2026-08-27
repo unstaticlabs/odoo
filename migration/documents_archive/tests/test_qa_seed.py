@@ -157,6 +157,14 @@ class QaSeedManifestTest(unittest.TestCase):
         self.assertIn('if table_exists("payment_provider")', script)
         self.assertIn("Migration source-binding columns remain", script)
 
+    def test_paperless_seed_export_is_portable_and_identity_free(self):
+        script = (ROOT / "scripts/qa-seed").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "paperless_seed_sanitize.py --portable-candidate",
+            script,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

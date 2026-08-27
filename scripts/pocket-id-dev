@@ -267,17 +267,22 @@ configure_odoo() {
   local apply_identity_policy="${3:-1}"
   local status=0 module_name module_state modules_csv seen_modules
   local qa_data_profile="${USL_QA_DATA_PROFILE:-full}"
-  local -a init_modules requested_modules update_modules module_args
-  # macOS Bash 3.2 treats a declared-but-empty array as unbound under `set -u`.
-  # Initialize every accumulator before querying its length.
-  init_modules=()
-  requested_modules=()
-  update_modules=()
-  module_args=()
+  local -a init_modules=() requested_modules=() update_modules=() module_args=()
+  # macOS Bash 3.2 requires every array accumulator to be initialized before
+  # its length is queried under `set -u`.
   require_target_database
   provision
   if [[ "$skip_paperless" != 1 ]]; then
     start_paperless_runtime
+  fi
+  # ``init-db`` intentionally reuses the delivered Odoo image and has no
+  # independent build definition.  On a completely clean Docker host Compose
+  # otherwise attempts to pull the project-local image, builds the sibling
+  # ``odoo`` service only after that pull fails, and still returns the original
+  # non-zero status.  Materialize the image first so the first governed
+  # configuration run behaves exactly like every later idempotent run.
+  if ! docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1; then
+    "${COMPOSE[@]}" build odoo
   fi
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   modules_csv="usl_pocketid"

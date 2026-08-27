@@ -3862,17 +3862,51 @@ class RebuildAccountImportRun(models.Model):
             analytic_accounts[row["id"]] = analytic_account
         return analytic_accounts
 
-    def _import_analytic_lines(self, conn, options, companies, partners, accounts, analytic_plans, analytic_accounts):
+    def _import_analytic_lines(
+        self,
+        conn,
+        options,
+        companies,
+        partners,
+        accounts,
+        analytic_plans,
+        analytic_accounts,
+        products,
+    ):
+        source_plan_columns = [
+            row["column_name"]
+            for row in self._fetchall(
+                conn,
+                """
+                SELECT column_name
+                  FROM information_schema.columns
+                 WHERE table_schema = 'public'
+                   AND table_name = 'account_analytic_line'
+                   AND column_name ~ '^x_plan[0-9]+_id$'
+                 ORDER BY ordinal_position
+                """,
+            )
+        ]
+        # Column names come only from information_schema and are constrained by
+        # the expression above.  Selecting them dynamically is required because
+        # Odoo assigns x_planN_id names according to each database's plan order.
+        source_plan_select = "".join(
+            f', analytic."{column_name}"'
+            for column_name in source_plan_columns
+        )
         rows = self._fetchall(
             conn,
-            """
-            SELECT id, account_id, partner_id, company_id, currency_id, name, category,
-                   date, amount, unit_amount, general_account_id, journal_id,
-                   move_line_id, code, ref
-            FROM account_analytic_line
-            WHERE company_id = ANY(%(source_company_ids)s)
-              AND date BETWEEN %(date_from)s AND %(date_to)s
-            ORDER BY date, id
+            f"""
+            SELECT analytic.id, analytic.account_id, analytic.partner_id,
+                   analytic.company_id, analytic.currency_id, analytic.name,
+                   analytic.category, analytic.date, analytic.amount,
+                   analytic.unit_amount, analytic.general_account_id,
+                   analytic.journal_id, analytic.move_line_id, analytic.code,
+                   analytic.ref, analytic.product_id{source_plan_select}
+              FROM account_analytic_line analytic
+             WHERE analytic.company_id = ANY(%(source_company_ids)s)
+               AND analytic.date BETWEEN %(date_from)s AND %(date_to)s
+             ORDER BY analytic.date, analytic.id
             """,
             options,
         )
@@ -3894,13 +3928,50 @@ class RebuildAccountImportRun(models.Model):
         imported_line_ids = []
         pending = []
         linked_to_move_line_count = 0
+        linked_product_count = 0
         skipped_missing_account = []
+        missing_dimension_accounts = []
+        conflicting_plan_accounts = []
+        missing_products = []
         seen_source_ids = set()
+        target_plan_columns = set(
+            self.env["account.analytic.line"]._get_plan_fnames(),
+        )
         for row in rows:
             analytic_account = analytic_accounts.get(row["account_id"])
             if not analytic_account:
                 skipped_missing_account.append(row["id"])
                 continue
+            source_dimension_ids = [
+                row[column_name]
+                for column_name in ["account_id", *source_plan_columns]
+                if row.get(column_name)
+            ]
+            target_dimensions = {}
+            for source_account_id in source_dimension_ids:
+                target_account = analytic_accounts.get(source_account_id)
+                if not target_account:
+                    missing_dimension_accounts.append({
+                        "source_line_id": row["id"],
+                        "source_account_id": source_account_id,
+                    })
+                    continue
+                target_column = target_account.plan_id._column_name()
+                existing_target = target_dimensions.get(target_column)
+                if existing_target and existing_target != target_account.id:
+                    conflicting_plan_accounts.append({
+                        "source_line_id": row["id"],
+                        "target_column": target_column,
+                        "source_account_ids": source_dimension_ids,
+                    })
+                    continue
+                target_dimensions[target_column] = target_account.id
+            product = products.get(row["product_id"])
+            if row["product_id"] and not product:
+                missing_products.append({
+                    "source_line_id": row["id"],
+                    "source_product_id": row["product_id"],
+                })
             vals = {
                 "name": row["name"] or row["ref"] or f"Source analytic line {row['id']}",
                 "date": row["date"],
@@ -3917,9 +3988,15 @@ class RebuildAccountImportRun(models.Model):
                 "rebuild_source_move_line_id": row["move_line_id"],
                 "rebuild_source_general_account_id": row["general_account_id"],
                 "rebuild_source_journal_id": row["journal_id"],
-                analytic_account.plan_id._column_name(): analytic_account.id,
+                "product_id": product.id if product else False,
                 **self._trace_values("account.analytic.line", row["id"], options),
             }
+            # Clear every restored plan column before assigning the source
+            # dimensions so repeated imports also reproduce removed values.
+            vals.update(dict.fromkeys(target_plan_columns, False))
+            vals.update(target_dimensions)
+            if product:
+                linked_product_count += 1
             target_move_line = move_lines_by_source_id.get(row["move_line_id"])
             if target_move_line:
                 vals["move_line_id"] = target_move_line.id
@@ -3982,14 +4059,45 @@ class RebuildAccountImportRun(models.Model):
                 "accounting_impact": "The statutory ledger is unchanged, but management reporting would lose source analytic attribution.",
                 "recommendation": "Import or map the missing source analytic accounts and rerun the exact replay.",
             })
+        parity_blockers = {
+            "missing_dimension_accounts": missing_dimension_accounts[:50],
+            "conflicting_plan_accounts": conflicting_plan_accounts[:50],
+            "missing_products": missing_products[:50],
+        }
+        if any(parity_blockers.values()):
+            self.env["rebuild.account.discrepancy"].create({
+                "name": "Source analytic dimensions or products could not be restored exactly",
+                "import_run_id": self.id,
+                "severity": "P1",
+                "classification": "missing_capability",
+                "status": "open",
+                "period_key": f"{options['date_from']}:{options['date_to']}",
+                "source_model": "account.analytic.line",
+                "source_value": json.dumps(parity_blockers, sort_keys=True),
+                "accounting_impact": (
+                    "The statutory ledger is unchanged, but management reporting "
+                    "would lose source analytic or product attribution."
+                ),
+                "recommendation": (
+                    "Restore every referenced analytic account and product, resolve "
+                    "same-plan conflicts, and rerun exact replay."
+                ),
+            })
         return {
             "source_analytic_plan_count": len(analytic_plans),
             "source_analytic_account_count": len(analytic_accounts),
             "source_analytic_line_count": len(rows),
             "imported_analytic_line_count": len(imported_line_ids),
             "linked_to_move_line_count": linked_to_move_line_count,
+            "source_product_link_count": len([
+                row for row in rows if row["product_id"]
+            ]),
+            "linked_product_count": linked_product_count,
             "unlinked_source_analytic_line_count": len(rows) - linked_to_move_line_count - len(skipped_missing_account),
             "skipped_missing_account_count": len(skipped_missing_account),
+            "missing_dimension_account_count": len(missing_dimension_accounts),
+            "conflicting_plan_account_count": len(conflicting_plan_accounts),
+            "missing_product_count": len(missing_products),
             "removed_generated_duplicate_count": (
                 generated_duplicate_count
             ),
@@ -4374,11 +4482,26 @@ class RebuildAccountImportRun(models.Model):
                     "account.move",
                 ],
             )
-            target = self.env["account.move"].with_context(active_test=False).search([
+            targets = self.env["account.move"].with_context(active_test=False).search([
                 ("rebuild_source_model", "in", account_move_trace_models),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
+            ])
+            target = self.env["account.move"]
+            for trace_model in account_move_trace_models:
+                candidates = targets.filtered(
+                    lambda move, model=trace_model: (
+                        move.rebuild_source_model == model
+                    ),
+                )
+                if len(candidates) > 1:
+                    raise ValueError(
+                        "Source account.move %s has multiple %s attachment targets."
+                        % (row["res_id"], trace_model),
+                    )
+                if candidates:
+                    target = candidates
+                    break
             if target:
                 return "account.move", target
             return None, self.env["account.move"]
@@ -4410,6 +4533,97 @@ class RebuildAccountImportRun(models.Model):
             ], limit=1)
             return "rebuild.account.asset", snapshot
         return None, self.env["ir.attachment"]
+
+    def repair_final_account_move_attachment_targets(self):
+        """Attach source evidence to the one surviving native account move.
+
+        Native document materialization can replace an intermediate move after
+        the exact attachment replay.  Odoo deliberately keeps the binary in
+        that case but clears its ``res_model``/``res_id``.  At the end of the
+        one-shot migration the source identity must resolve to exactly one
+        durable move; anything else is unsafe to guess.
+        """
+        self.ensure_one()
+        snapshot = self.source_snapshot_id
+        if not snapshot:
+            raise ValueError("Attachment target repair requires a source snapshot.")
+
+        Attachment = self.env["ir.attachment"].sudo()
+        attachments = Attachment.search([
+            ("rebuild_source_model", "=", "ir.attachment"),
+            ("rebuild_source_snapshot", "=", snapshot),
+            ("rebuild_source_attachment_res_model", "=", "account.move"),
+            ("rebuild_source_attachment_res_id", "!=", False),
+        ])
+        source_move_ids = set(
+            attachments.mapped("rebuild_source_attachment_res_id"),
+        )
+        moves = self.env["account.move"].sudo().with_context(
+            active_test=False,
+        ).search([
+            ("rebuild_source_snapshot", "=", snapshot),
+            ("rebuild_source_id", "in", list(source_move_ids) or [0]),
+        ])
+        moves_by_source = defaultdict(lambda: self.env["account.move"])
+        for move in moves:
+            moves_by_source[move.rebuild_source_id] |= move
+
+        missing = []
+        ambiguous = []
+        repaired = self.env["ir.attachment"]
+        main_repaired = 0
+        for attachment in attachments:
+            source_move_id = attachment.rebuild_source_attachment_res_id
+            candidates = moves_by_source[source_move_id]
+            if not candidates:
+                missing.append(source_move_id)
+                continue
+            if len(candidates) != 1:
+                ambiguous.append({
+                    "source_move_id": source_move_id,
+                    "target_move_ids": candidates.ids,
+                    "target_trace_models": candidates.mapped(
+                        "rebuild_source_model",
+                    ),
+                })
+                continue
+            move = candidates
+            if (
+                attachment.res_model != "account.move"
+                or attachment.res_id != move.id
+            ):
+                attachment.write({
+                    "res_model": "account.move",
+                    "res_id": move.id,
+                })
+                repaired |= attachment
+            if (
+                attachment.rebuild_source_is_main
+                and move.message_main_attachment_id != attachment
+            ):
+                move._message_set_main_attachment_id(
+                    attachment,
+                    force=True,
+                    filter_xml=False,
+                )
+                main_repaired += 1
+
+        if missing or ambiguous:
+            raise ValueError(
+                "Final Accounting attachment targets are incomplete: %s"
+                % json.dumps(
+                    {
+                        "ambiguous": ambiguous[:20],
+                        "missing_source_move_ids": sorted(set(missing))[:20],
+                    },
+                    sort_keys=True,
+                ),
+            )
+        return {
+            "checked_attachment_count": len(attachments),
+            "repaired_attachment_count": len(repaired),
+            "repaired_main_attachment_count": main_repaired,
+        }
 
     def _import_attachments(self, conn, options, companies, rows=None):
         rows = self._attachment_rows(conn, options) if rows is None else rows
@@ -6913,6 +7127,13 @@ class RebuildAccountImportRun(models.Model):
                     WHERE expense.company_id = ANY(%(source_company_ids)s)
                       AND expense.date BETWEEN %(date_from)s AND %(date_to)s
                       AND expense.product_id IS NOT NULL
+                  )
+               OR product.id IN (
+                    SELECT DISTINCT analytic.product_id
+                      FROM account_analytic_line analytic
+                     WHERE analytic.company_id = ANY(%(source_company_ids)s)
+                       AND analytic.date BETWEEN %(date_from)s AND %(date_to)s
+                       AND analytic.product_id IS NOT NULL
                   )
                OR (
                     product.active
@@ -9956,6 +10177,14 @@ class RebuildAccountImportRun(models.Model):
             )
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)
+            products, _current_standard_prices = (
+                self._native_expense_product_map(
+                    conn,
+                    options,
+                    companies,
+                    accounts,
+                )
+            )
             _reconciliation_models, reconciliation_model_stats = (
                 self._reconciliation_model_map(
                     conn,
@@ -9974,6 +10203,7 @@ class RebuildAccountImportRun(models.Model):
                 account_count=len(accounts),
                 analytic_account_count=len(analytic_accounts),
                 journal_count=len(journals),
+                product_count=len(products),
             )
             stage_started = time.perf_counter()
             move_rows = self._move_rows(conn, options)
@@ -10435,7 +10665,14 @@ class RebuildAccountImportRun(models.Model):
             )
             stage_started = time.perf_counter()
             analytic_stats = self._import_analytic_lines(
-                conn, options, companies, partners, accounts, analytic_plans, analytic_accounts
+                conn,
+                options,
+                companies,
+                partners,
+                accounts,
+                analytic_plans,
+                analytic_accounts,
+                products,
             )
             record_stage(
                 "analytics",

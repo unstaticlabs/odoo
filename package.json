@@ -1,0 +1,12 @@
+{
+  "name": "usl-odoo-distribution-tooling",
+  "private": true,
+  "scripts": {
+    "impeccable:check": "impeccable check --scope=project",
+    "impeccable:detect": "impeccable detect",
+    "impeccable:update": "impeccable update --providers=codex,claude,cursor,github --scope=project --yes"
+  },
+  "devDependencies": {
+    "impeccable": "3.6.0"
+  }
+}

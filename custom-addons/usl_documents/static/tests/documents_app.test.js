@@ -779,6 +779,74 @@ test("selected document survives a reload after the host router normalizes the U
     ).toBe("12");
 });
 
+test("a business action opens its exact governed document version", async () => {
+    const document = {
+        id: 88,
+        name: "Official bank statement",
+        paperless_id: 188,
+        date: "2026-07-31",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Shine",
+        document_type: "Bank statement",
+        tags: [],
+        link_count: 1,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", ({ args }) => {
+        expect(args).toEqual([88]);
+        return {
+            ...document,
+            can_edit: false,
+            can_change_links: false,
+            can_manage: false,
+            links: [],
+            versions: [
+                {
+                    id: 18,
+                    paperless_version_id: "certified-3",
+                    label: "Certified original",
+                    is_current: true,
+                    is_received_original: true,
+                    preview_url:
+                        "/usl_documents/88/preview?version=certified-3",
+                    original_url:
+                        "/usl_documents/88/download?original=1&version=certified-3",
+                    archive_url:
+                        "/usl_documents/88/download?original=0&version=certified-3",
+                },
+            ],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                res_model: "account.bank.statement",
+                res_id: 44,
+                linked_filter: true,
+                initial_document_id: 88,
+                initial_version_id: "certified-3",
+            }),
+        },
+    });
+    await animationFrame();
+
+    expect(".o_usl_detail_title").toHaveText("Official bank statement");
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_document")
+    ).toBe("88");
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_version")
+    ).toBe("certified-3");
+});
+
 test("top tag shortcuts compose with native search facets", async () => {
     const tags = [
         { id: 21, name: "Tax & reporting", color: "#31a354" },
@@ -888,16 +956,51 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
     );
 });
 
-test("Back from a record-context workspace returns to the linked record", async () => {
+test("smart-button history restores the exact Odoo route on Back and Forward", async () => {
     let returnedAction = null;
     let returnedOptions = null;
+    let returnedLocation = null;
+    let returnedHistoryState = null;
     mockService("action", {
         async doAction(actionToRun, options) {
             returnedAction = actionToRun;
             returnedOptions = options;
+            returnedLocation = browser.location.href;
+            returnedHistoryState = browser.history.state;
         },
     });
     onRpc("usl.document", "workspace_data", () => emptyWorkspace);
+
+    const documentsUrl = new URL(browser.location.href);
+    documentsUrl.searchParams.set(
+        "domain",
+        '[["linked_record_ref","=","account.move:12"]]'
+    );
+    documentsUrl.searchParams.set("groupBy", "tag_ids");
+    documentsUrl.searchParams.set("usl_filters", "{}");
+    browser.history.replaceState(
+        {
+            nextState: {
+                action: "usl_documents.workspace",
+                actionStack: [
+                    {
+                        action: 210,
+                        model: "account.move",
+                        resId: 12,
+                        view_type: "form",
+                    },
+                    {
+                        action: "usl_documents.workspace",
+                    },
+                ],
+                domain: '[["linked_record_ref","=","account.move:12"]]',
+                groupBy: "tag_ids",
+                usl_filters: "{}",
+            },
+        },
+        "",
+        documentsUrl
+    );
 
     await mountWithCleanup(DocumentsWorkspace, {
         props: {
@@ -912,24 +1015,33 @@ test("Back from a record-context workspace returns to the linked record", async 
         browser.history.state.uslDocumentsRecordContext ||
             browser.history.state.nextState?.uslDocumentsRecordContext
     ).toBe("account.move:12");
+    expect(browser.history.state.nextState.actionStack?.length).toBe(2);
+    expect(browser.history.state.skipRouteChange).toBe(false);
 
-    const popState = new Event("popstate");
-    Object.defineProperty(popState, "state", {
-        value: {
-            nextState: { actionStack: [] },
-        },
-    });
-    browser.dispatchEvent(popState);
+    browser.history.back();
+    await animationFrame();
     await tick();
 
-    expect(returnedAction).toEqual({
-        type: "ir.actions.act_window",
-        res_model: "account.move",
-        res_id: 12,
-        views: [[false, "form"]],
-        target: "current",
+    expect(returnedAction).toBe(null);
+    expect(returnedOptions).toBe(null);
+    expect(returnedLocation).toBe(null);
+    expect(returnedHistoryState).toBe(null);
+    expect(browser.history.state.nextState.actionStack?.length).toBe(1);
+    expect(browser.history.state.nextState).toMatchObject({
+        action: 210,
+        model: "account.move",
+        resId: 12,
+        view_type: "form",
     });
-    expect(returnedOptions).toEqual({ clearBreadcrumbs: true });
+    expect(browser.location.href).toMatch(/action-210\/12/);
+
+    browser.history.forward();
+    await animationFrame();
+    await tick();
+    expect(browser.history.state.nextState.actionStack?.length).toBe(2);
+    expect(browser.history.state.nextState.uslDocumentsRecordContext).toBe(
+        "account.move:12"
+    );
 });
 
 test("native search defaults to broad archive search and keeps specialist fields advanced", async () => {

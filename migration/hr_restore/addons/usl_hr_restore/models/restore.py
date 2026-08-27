@@ -452,7 +452,7 @@ class UslHrRestoreRun(models.Model):
         self.env.flush_all()
         if attendances:
             all_attendances = self.env["resource.calendar.attendance"].union(
-                *attendances.values(),
+                attendances.values(),
             )
             all_attendances._compute_day_period()
 

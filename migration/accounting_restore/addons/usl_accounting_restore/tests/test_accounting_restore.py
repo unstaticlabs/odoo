@@ -5209,6 +5209,110 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(mapping[901], expected_line)
 
+    def test_analytic_import_restores_all_plan_dimensions_and_product(self):
+        primary_plan = self.env["account.analytic.plan"].search(
+            [],
+            order="id",
+            limit=1,
+        )
+        secondary_plan = self.env["account.analytic.plan"].create({
+            "name": "Analytic import secondary plan",
+        })
+        (primary_plan | secondary_plan)._sync_all_plan_column()
+        primary_account = self.env["account.analytic.account"].create({
+            "name": "Analytic import primary account",
+            "plan_id": primary_plan.id,
+        })
+        secondary_account = self.env["account.analytic.account"].create({
+            "name": "Analytic import secondary account",
+            "plan_id": secondary_plan.id,
+        })
+        product = self.env["product.product"].create({
+            "name": "Analytic import product",
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Analytic dimension parity test",
+        })
+        options = {
+            "source_snapshot_id": "analytic-dimension-parity-test",
+            "date_from": "2025-01-01",
+            "date_to": "2025-12-31",
+        }
+        source_row = {
+            "id": 990001,
+            "account_id": 11,
+            "x_plan987_id": 22,
+            "partner_id": None,
+            "company_id": 1,
+            "currency_id": None,
+            "name": "Source multi-plan analytic line",
+            "category": "other",
+            "date": fields.Date.from_string("2025-07-01"),
+            "amount": -42.5,
+            "unit_amount": 1.0,
+            "general_account_id": None,
+            "journal_id": None,
+            "move_line_id": None,
+            "code": None,
+            "ref": "AN-PARITY",
+            "product_id": 33,
+        }
+        method_args = (
+            object(),
+            options,
+            {1: self.company},
+            {},
+            {},
+            {1: primary_plan, 2: secondary_plan},
+            {11: primary_account, 22: secondary_account},
+            {33: product},
+        )
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[
+                [{"column_name": "x_plan987_id"}],
+                [source_row],
+            ],
+        ):
+            stats = import_run._import_analytic_lines(*method_args)
+
+        analytic_line = self.env["account.analytic.line"].search([
+            ("rebuild_source_model", "=", "account.analytic.line"),
+            ("rebuild_source_id", "=", 990001),
+        ])
+        self.assertEqual(len(analytic_line), 1)
+        self.assertEqual(
+            set(analytic_line._get_analytic_accounts().ids),
+            {primary_account.id, secondary_account.id},
+        )
+        self.assertEqual(analytic_line.product_id, product)
+        self.assertEqual(stats["linked_product_count"], 1)
+        self.assertFalse(stats["missing_dimension_account_count"])
+        self.assertFalse(stats["missing_product_count"])
+
+        cleared_source_row = {
+            **source_row,
+            "x_plan987_id": None,
+            "product_id": None,
+        }
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[
+                [{"column_name": "x_plan987_id"}],
+                [cleared_source_row],
+            ],
+        ):
+            import_run._import_analytic_lines(*method_args)
+
+        self.assertEqual(
+            analytic_line._get_analytic_accounts(),
+            primary_account,
+        )
+        self.assertFalse(analytic_line.product_id)
+
     def test_source_payment_method_with_distinct_account_gets_distinct_line(self):
         journal = self._journal("bank")
         payment_method = self.env["account.payment.method"].search([
@@ -5571,6 +5675,88 @@ class TestRebuildAccountMigration(TransactionCase):
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
         self.assertEqual(attachment.with_user(reviewer).raw.content, raw)
+
+    def test_attachment_target_prefers_the_governed_native_representation(self):
+        snapshot = "unit-native-attachment-priority"
+        source_move_id = 990024
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Native attachment target priority",
+            "source_snapshot_id": snapshot,
+        })
+        legacy_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        native_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move.native_engine_replay",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+
+        target_model, target = import_run._target_for_attachment(
+            {"res_model": "account.move", "res_id": source_move_id},
+            {
+                "source_snapshot_id": snapshot,
+                "attachment_target_trace_models": {
+                    "account.move": [
+                        "account.move.native_engine_replay",
+                        "account.move",
+                    ],
+                },
+            },
+        )
+
+        self.assertEqual(target_model, "account.move")
+        self.assertEqual(target, native_move)
+        self.assertNotEqual(target, legacy_move)
+
+    def test_final_attachment_repair_rehomes_detached_source_evidence(self):
+        snapshot = "unit-final-attachment-target"
+        source_move_id = 990025
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Final attachment target repair",
+            "source_snapshot_id": snapshot,
+        })
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        attachment = self.env["ir.attachment"].sudo().create({
+            "name": "detached-source-evidence.png",
+            "raw": b"source evidence",
+            "mimetype": "image/png",
+            "res_model": False,
+            "res_id": 0,
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 990026,
+            "rebuild_source_snapshot": snapshot,
+            "rebuild_source_attachment_res_model": "account.move",
+            "rebuild_source_attachment_res_id": source_move_id,
+            "rebuild_source_is_main": True,
+        })
+
+        result = import_run.repair_final_account_move_attachment_targets()
+
+        self.assertEqual(result["checked_attachment_count"], 1)
+        self.assertEqual(result["repaired_attachment_count"], 1)
+        self.assertEqual(result["repaired_main_attachment_count"], 1)
+        self.assertEqual(attachment.res_model, "account.move")
+        self.assertEqual(attachment.res_id, move.id)
+        self.assertEqual(move.message_main_attachment_id, attachment)
 
     def test_native_expense_attachment_preserves_source_url_evidence(self):
         snapshot = "unit-native-expense-url-attachment"

@@ -4,12 +4,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
 target_database="${TESE_TARGET_DATABASE:-odoo_dev}"
-source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/tese-migration-addons"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 usl_verify_compose_scope "$compose_project" "$ROOT" "TESE restoration"
 
 case "$target_database" in

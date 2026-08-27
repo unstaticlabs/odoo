@@ -4,16 +4,17 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 source "$repo_root/scripts/lib/compose-scope.sh"
+source "$repo_root/scripts/lib/migration-addons.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-}}"
 require_isolated_project="${PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT:-${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}}"
 target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
 test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_restore}"
-source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$repo_root/usl-online-dump}"
 source_dump_sha=""
 source_snapshot=""
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/platform-billing-migration-addons"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 
 if [[ -z "$compose_project" ]]; then
     echo "Refusing an unset Compose project."
@@ -180,8 +181,10 @@ validate_history() {
 finalize_history() {
     run_shell \
         migration/platform_billing_restore/addons/usl_platform_billing_restore/scripts/finalize_restore.py
-    finalize_product_schema
-    validate_product_boundary
+    if [[ "${PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE:-0}" != "1" ]]; then
+        finalize_product_schema
+        validate_product_boundary
+    fi
 }
 
 finalize_product_schema() {
@@ -265,6 +268,10 @@ case "$command_name" in
     finalize)
         finalize_history
         ;;
+    schema-finalize)
+        finalize_product_schema
+        validate_product_boundary
+        ;;
     product-validate)
         validate_product_boundary
         ;;
@@ -280,7 +287,7 @@ case "$command_name" in
         finalize_history
         ;;
     *)
-        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|product-validate|test|all]"
+        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|schema-finalize|product-validate|test|all]"
         exit 2
         ;;
 esac

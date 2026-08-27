@@ -151,11 +151,11 @@ reset_project() {
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
-product_modules='rebuild_account_migration,usl_accounting,usl_documents,usl_documents_accounting,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+product_modules='rebuild_account_migration,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
 
 verify_seed() {
   local runtime_json
-  runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.XXXXXX.json")"
+  runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.json.XXXXXX")"
   scripts/qa-seed runtime "$runtime_json"
   if ! scripts/qa_seed.py verify \
     --root "$ROOT" --seed-dir "$qa_seed_dir" \
@@ -200,7 +200,11 @@ hydrate_seed() {
     "$odoo_volume" >/dev/null
   docker run --rm \
     -v "$odoo_volume:/target" -v "$qa_seed_dir:/seed:ro" alpine:3.24.1 \
-    sh -ec 'mkdir -p /target/filestore && tar -C /target/filestore -xzf /seed/odoo-filestore.tgz'
+    sh -ec '
+      mkdir -p /target/filestore /target/sessions
+      tar -C /target/filestore -xzf /seed/odoo-filestore.tgz
+      chown -R 1000:1000 /target
+    '
 
   paperless_export_volume="${COMPOSE_PROJECT_NAME}_paperless-export"
   docker volume create \
@@ -214,24 +218,25 @@ hydrate_seed() {
   "${compose[@]}" stop paperless-webserver
   before_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   before_tasks="$(
-    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-      python manage.py shell -c \
+    "${compose[@]}" --profile paperless run --rm --no-deps \
+      --entrypoint python paperless-webserver manage.py shell -c \
       'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' \
       | tail -n 1
   )"
   "${compose[@]}" --profile paperless run --rm --no-deps \
-    --user paperless paperless-webserver \
-    document_importer --no-progress-bar /usr/src/paperless/export/qa-seed
+    --user paperless --entrypoint python paperless-webserver \
+    manage.py document_importer --no-progress-bar \
+    /usr/src/paperless/export/qa-seed
   after_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   after_tasks="$(
-    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-      python manage.py shell -c \
+    "${compose[@]}" --profile paperless run --rm --no-deps \
+      --entrypoint python paperless-webserver manage.py shell -c \
       'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' \
       | tail -n 1
   )"
   if [[ "$after_queue" != "$before_queue" || "$after_tasks" != "$before_tasks" ]]; then
     printf 'QA seed hydration submitted Paperless background/OCR work; refusing cache.\n' >&2
-    printf 'Queue: %s -> %s; task results: %s -> %s\n' \
+    printf 'Queue: %s -> %s; Paperless task rows: %s -> %s\n' \
       "$before_queue" "$after_queue" "$before_tasks" "$after_tasks" >&2
     return 1
   fi
@@ -246,8 +251,8 @@ Path(sys.argv[1]).write_text(json.dumps({
     "broker_queue_after": int(sys.argv[3]),
     "broker_queue_before": int(sys.argv[2]),
     "ocr_submissions": 0,
-    "task_results_after": int(sys.argv[5]),
-    "task_results_before": int(sys.argv[4]),
+    "paperless_tasks_after": int(sys.argv[5]),
+    "paperless_tasks_before": int(sys.argv[4]),
 }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
@@ -327,6 +332,22 @@ clean_install() {
   scripts/check-product-database-boundary
 }
 
+b2c_qa_bootstrap() {
+  # Run the write-heavy persona bootstrap without the long-lived Odoo process.
+  # Otherwise the Documents synchronization cron can start concurrently and
+  # contend on the same B2C-linked document rows, making QA provisioning depend
+  # on whether the minute scheduler happens to fire during this stage.
+  "${compose[@]}" stop odoo
+  "${compose[@]}" --profile init run --rm -T --no-deps \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e USL_QA_DATA_PROFILE="$profile" \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/b2c_qa_bootstrap.py"
+  "${compose[@]}" up -d --wait odoo
+}
+
 usl_cli_title "provision isolated QA target"
 printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
 if [[ "$profile" == full ]]; then
@@ -361,6 +382,7 @@ case "$profile" in
     stage "clean product installation" clean_install
     ;;
 esac
+stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
 
 write_report passed
 trap - EXIT

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_order_documents" model="ir.ui.view">
+        <field name="name">b2c.order.archived.documents</field>
+        <field name="model">b2c.order</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-cloud-upload" string="Upload" invisible="archived_document_count != 0" groups="usl_documents.group_documents_user"/>
+                <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-folder-open-o" invisible="archived_document_count == 0" groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                    <field name="archived_document_count" widget="statinfo" string="Documents"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_b2c_payment_event_documents" model="ir.ui.view">
+        <field name="name">b2c.payment.event.archived.documents</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_payment_event_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-cloud-upload" string="Upload" invisible="archived_document_count != 0" groups="usl_documents.group_documents_user"/>
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-folder-open-o" invisible="archived_document_count == 0" groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                        <field name="archived_document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_documents" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.archived.documents</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_fulfilment_event_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-cloud-upload" string="Upload" invisible="archived_document_count != 0" groups="usl_documents.group_documents_user"/>
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-folder-open-o" invisible="archived_document_count == 0" groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                        <field name="archived_document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_b2c_accounting_session_documents" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.archived.documents</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_accounting_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/widget" position="after">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-cloud-upload" string="Upload" invisible="archived_document_count != 0" groups="usl_documents.group_documents_user"/>
+                    <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-folder-open-o" invisible="archived_document_count == 0" groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                        <field name="archived_document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

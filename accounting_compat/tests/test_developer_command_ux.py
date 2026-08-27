@@ -188,6 +188,44 @@ esac
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(completed.stdout, "28069|18072|11411|18010")
 
+    def test_cli_port_defaults_accept_project_bound_environment(self):
+        repository = self.temporary / "checkout"
+        repository.mkdir()
+        project_environment = self.temporary / ".pocket-id-project.env"
+        project_environment.write_text(
+            "ODOO_HTTP_PORT=28069\n"
+            "ODOO_GEVENT_PORT=28072\n"
+            "POCKET_ID_HTTP_PORT=21411\n"
+            "PAPERLESS_HTTP_PORT=28010\n",
+            encoding="utf-8",
+        )
+        command = (
+            'source "$1"; '
+            'usl_cli_load_local_port_defaults "$2" "$3"; '
+            "printf '%s|%s|%s|%s' \"$ODOO_HTTP_PORT\" \"$ODOO_GEVENT_PORT\" "
+            '"$POCKET_ID_HTTP_PORT" "$PAPERLESS_HTTP_PORT"'
+        )
+
+        completed = subprocess.run(
+            [
+                "bash",
+                "-c",
+                command,
+                "test",
+                str(ROOT / "scripts/lib/cli-ui.sh"),
+                str(repository),
+                str(project_environment),
+            ],
+            cwd=ROOT,
+            env=os.environ,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "28069|28072|21411|28010")
+
     def test_doctor_reports_a_missing_target_before_recommending_deploy(self):
         rows = self.row("one", "db", "running", str(ROOT), "db")
 

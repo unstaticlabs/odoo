@@ -3609,6 +3609,100 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.metadata_hash, "a" * 64)
         self.assertFalse(document.link_ids)
 
+    def test_async_link_uses_submitter_operation_company_not_poller_companies(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        operation = self.env["usl.document.operation"].sudo().create({
+            "name": "single-company-submitter.pdf",
+            "state": "processing",
+            "checksum": "d" * 64,
+            "mime_type": "application/pdf",
+            "company_id": self.company_a.id,
+            "confidentiality": "accounting",
+            "paperless_task_id": "task-company-scope",
+            "res_model": "res.partner",
+            "res_id": self.partner_a.id,
+            "source": "odoo_upload",
+            "user_id": self.user.id,
+        })
+        payload = {
+            "id": 110,
+            "title": "Single-company archive",
+            "created": "2026-08-25",
+            "added": "2026-08-25T10:00:00Z",
+            "modified": "2026-08-25T10:00:00Z",
+            "original_file_name": "single-company-submitter.pdf",
+            "mime_type": "application/pdf",
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        broad_poller = operation.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id, self.company_b.id],
+        )
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={"status": "success", "related_document_ids": [110]},
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+        ):
+            broad_poller.poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id.company_id, self.company_a)
+        self.assertEqual(operation.document_id.link_ids.linked_by_id, self.user)
+
+    def test_async_archive_context_ignores_broader_poller_company_scope(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        archive_context = self.partner_a._document_archive_context()
+        operation = self.env["usl.document.operation"].sudo().create({
+            "name": "scoped-archive-context.pdf",
+            "state": "processing",
+            "checksum": "f" * 64,
+            "metadata_hash": self.env["usl.document"]._archive_metadata_hash(
+                archive_context,
+            ),
+            "mime_type": "application/pdf",
+            "company_id": self.company_a.id,
+            "paperless_task_id": "task-archive-context-company-scope",
+            "res_model": self.partner_a._name,
+            "res_id": self.partner_a.id,
+            "source": "odoo_attachment",
+            "context_json": archive_context,
+            "user_id": self.user.id,
+        })
+        payload = {
+            "id": 111,
+            "title": "Scoped archive context",
+            "created": "2026-08-25",
+            "added": "2026-08-25T10:00:00Z",
+            "modified": "2026-08-25T10:00:00Z",
+            "original_file_name": "scoped-archive-context.pdf",
+            "mime_type": "application/pdf",
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        broad_poller = operation.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id, self.company_b.id],
+        )
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={"status": "success", "related_document_ids": [111]},
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+        ):
+            broad_poller.poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id.company_id, self.company_a)
+        self.assertEqual(operation.document_id.link_ids.linked_by_id, self.user)
+
     def test_workspace_restores_active_and_failed_operations_by_role(self):
         active = self.env["usl.document.operation"].sudo().create(
             {

@@ -187,6 +187,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("allowed_company_ids=target_companies.ids", restore)
+        self.assertIn("allowed_company_ids=operation.company_id.ids", restore)
         self.assertIn("documents_model.with_env(admin.env)", restore)
         self.assertIn('item["document"].with_env(admin.env)', restore)
         self.assertNotIn("QUALIFIED_SOURCE", restore)
@@ -222,8 +223,85 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("USL_RECONSTRUCT_RESUME_ACCOUNTING=1", makefile)
         self.assertIn('run_stage "revalidate reusable accounting"', script)
         self.assertIn("scripts/accounting-compat dev-validate", script)
+        self.assertIn('failed_checks == {"manager_accounting_identity_matches"}', script)
+        self.assertIn('manager.get("target") is None', script)
+        self.assertIn("scripts/hr-restore all", script)
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
+
+    def test_finalized_qa_refresh_resumes_qualification_without_source_replay(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("qa-cache-qualify-resume:", makefile)
+        self.assertIn("USL_RECONSTRUCT_RESUME_FINALIZED=1", makefile)
+        self.assertIn("revalidate_finalized_qa_cache", script)
+        self.assertIn('migration_purpose" != qa-cache', script)
+        self.assertIn('if [[ "$resume_finalized" == 1 ]]; then', script)
+        finalized_branch = script[
+            script.index('if [[ "$resume_finalized" == 1 ]]; then', script.index('start_target_database')):
+            script.index('seed_refresh="${USL_QA_SEED_REFRESH:-0}"')
+        ]
+        self.assertIn('run_stage "revalidate finalized QA target"', finalized_branch)
+        self.assertNotIn('run_stage "import accounting"', finalized_branch.split("else", 1)[0])
+        self.assertIn('compose+=(--env-file "$POCKET_ID_ENV_FILE")', seed)
+        self.assertLess(
+            script.index('run_stage "apply target configuration"'),
+            script.index('run_stage "capture pending QA seed"'),
+        )
+        self.assertLess(
+            script.index('run_stage "capture pending QA seed"'),
+            script.index('run_stage "restore target configuration after seed capture"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore target configuration after seed capture"'),
+            script.index('run_stage "multi-company acceptance"'),
+        )
+
+    def test_downstream_source_bindings_survive_until_global_finalization(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("restore_projects_for_reconstruction", script)
+        self.assertIn("restore_tese_for_reconstruction", script)
+        self.assertIn("restore_platform_billing_for_reconstruction", script)
+        self.assertNotIn(
+            'run_stage "restore Projects" env '
+            "PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all",
+            script,
+        )
+        self.assertLess(
+            script.index('run_stage "restore Documents archive"'),
+            script.index('run_stage "restore Paie TESE"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Platform Billing"'),
+            script.index('run_stage "finalize migration boundary"'),
+        )
+        finalizer = script[
+            script.index("finalize_migration_boundary()") :
+            script.index('run_stage "Docker resource preflight"')
+        ]
+        self.assertIn(
+            "PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1",
+            finalizer,
+        )
+        self.assertLess(
+            finalizer.index("scripts/platform-billing-restore finalize"),
+            finalizer.index("scripts/tese-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/tese-restore finalize"),
+            finalizer.index("scripts/project-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/project-restore finalize"),
+            finalizer.index("scripts/accounting-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/accounting-restore finalize"),
+            finalizer.index("scripts/platform-billing-restore schema-finalize"),
+        )
 
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
         runner = SCRIPT.read_text(encoding="utf-8")
@@ -243,16 +321,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('stage "verify qualified seed (read only)"'),
             script.index('stage "reset isolated QA project"'),
         )
-        self.assertIn(
-            "document_importer --no-progress-bar /usr/src/paperless/export/qa-seed",
-            script,
-        )
-        self.assertIn("--user paperless paperless-webserver", script)
+        self.assertIn("/usr/src/paperless/export/qa-seed", script)
         self.assertIn("usl-odoo-qa-?*", script)
         self.assertIn("No containers or data volumes were changed", script)
         self.assertIn("pg_restore -U odoo -d odoo_dev --exit-on-error", script)
         self.assertIn('--jobs="$RESTORE_JOBS"', script)
+        self.assertIn("mkdir -p /target/filestore /target/sessions", script)
+        self.assertIn("chown -R 1000:1000 /target", script)
         self.assertIn("PaperlessTask.objects.count()", script)
+        self.assertIn("--user paperless --entrypoint python paperless-webserver", script)
+        self.assertIn("manage.py document_importer --no-progress-bar", script)
         self.assertIn("verify_hydrated_controls", script)
 
     def test_paperless_file_writers_run_as_the_runtime_user(self):
@@ -326,6 +404,11 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("source_gate=gate", target)
         self.assertIn("attachment_gate=gate", target)
         self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
+        self.assertIn('export USL_ONLINE_DUMP_DIR="$source_dump_dir"', target)
+        self.assertLess(
+            target.index('export USL_ONLINE_DUMP_DIR="$source_dump_dir"'),
+            target.index('scripts/migration-source-truth "$source_gate"'),
+        )
         self.assertLess(
             target.index('scripts/migration-source-truth "$source_gate"'),
             target.index("scripts/accounting-compat dev-reset"),
@@ -342,6 +425,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
 
         finalizer = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
         self.assertIn("scripts/platform-billing-restore product-validate", finalizer)
+        self.assertIn(
+            'usl_cli_load_local_port_defaults "$ROOT" "${POCKET_ID_ENV_FILE:-}"',
+            finalizer,
+        )
 
     def test_seed_pruning_requires_confirmation_and_preserves_current(self):
         seed = SEED_SCRIPT.read_text(encoding="utf-8")
@@ -349,6 +436,34 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("USL_QA_SEED_PRUNE_CONFIRM", seed)
         self.assertIn('[[ "$candidate" != "$current_dir" ]]', seed)
         self.assertIn("CONFIRM=qa-seeds", seed)
+
+    def test_tempfile_templates_are_portable_to_bsd_mktemp(self):
+        for relative in (
+            "scripts/qa-seed",
+            "scripts/qa-environment",
+            "scripts/production-cutover",
+        ):
+            with self.subTest(script=relative):
+                script = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertNotIn("XXXXXX.json", script)
+                self.assertNotIn("XXXXXX.tsv", script)
+
+    def test_qa_persona_bootstrap_cannot_race_product_crons(self):
+        qa = QA_SCRIPT.read_text(encoding="utf-8")
+        start = qa.index("b2c_qa_bootstrap() {")
+        function = qa[start : qa.index("\nusl_cli_title", start)]
+
+        self.assertIn('"${compose[@]}" stop odoo', function)
+        self.assertIn("--profile init run --rm -T --no-deps", function)
+        self.assertIn('"${compose[@]}" up -d --wait odoo', function)
+        self.assertLess(
+            function.index('"${compose[@]}" stop odoo'),
+            function.index("b2c_qa_bootstrap.py"),
+        )
+        self.assertGreater(
+            function.index('"${compose[@]}" up -d --wait odoo'),
+            function.index("b2c_qa_bootstrap.py"),
+        )
 
     def test_source_identity_index_is_removed_with_migration_columns(self):
         finalizer = (
@@ -392,7 +507,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("pg_dump -U \"$POSTGRES_USER\" -Fc", candidate)
         self.assertNotIn("compose.pocket-id.yaml", cutover)
         self.assertIn("candidate reset is permanently disabled", cutover.lower())
-        self.assertIn("document_importer --no-progress-bar", cutover)
+        self.assertIn("/usr/src/paperless/export/candidate", cutover)
+        self.assertIn("PaperlessTask.objects.count()", cutover)
+        self.assertIn("--user paperless --entrypoint python paperless-webserver", cutover)
+        self.assertIn("manage.py document_importer --no-progress-bar", cutover)
+        self.assertIn("mkdir -p '/target/filestore/$database' /target/sessions", cutover)
+        self.assertIn("chown -R 1000:1000 /target", cutover)
         self.assertIn('--jobs="$RESTORE_JOBS"', cutover)
         self.assertIn("USL_PRODUCTION_CRON_ALLOWLIST_JSON", cutover)
         self.assertIn("journeys --evidence", cutover)

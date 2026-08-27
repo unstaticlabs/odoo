@@ -1,0 +1,93 @@
+diff --git a/account_statement_import_ofx/tests/test_import_bank_statement.py b/account_statement_import_ofx/tests/test_import_bank_statement.py
+--- a/account_statement_import_ofx/tests/test_import_bank_statement.py
++++ b/account_statement_import_ofx/tests/test_import_bank_statement.py
+@@ -1,10 +1,9 @@
+-import base64
+ import datetime
+ from unittest.mock import patch
+ 
+ import odoo.tests.common as common
+ from odoo.exceptions import UserError
+-from odoo.tools import file_open
++from odoo.tools import BinaryBytes, file_open
+ 
+ 
+ class TestOfxFile(common.TransactionCase):
+@@ -32,10 +31,9 @@ class TestOfxFile(common.TransactionCase):
+             company.account_journal_suspense_account_id = suspense_account
+         bank = cls.env["res.partner.bank"].create(
+             {
+-                "acc_number": "123456",
++                "account_number": "123456",
+                 "partner_id": cls.env.ref("base.main_partner").id,
+                 "company_id": company.id,
+-                "bank_id": cls.env.ref("base.res_bank_1").id,
+             }
+         )
+         cls.env["account.journal"].create(
+@@ -49,10 +47,9 @@ class TestOfxFile(common.TransactionCase):
+         )
+         bank_iban_ofx = cls.env["res.partner.bank"].create(
+             {
+-                "acc_number": "12345678901",
++                "account_number": "12345678901",
+                 "partner_id": cls.env.ref("base.main_partner").id,
+                 "company_id": company.id,
+-                "bank_id": cls.env.ref("base.res_bank_1").id,
+             }
+         )
+         cls.env["account.journal"].create(
+@@ -72,7 +69,7 @@ class TestOfxFile(common.TransactionCase):
+             ofx_bin_wrong = ofx_file.read()
+             wizard = self.asi_model.create(
+                 {
+-                    "statement_file": base64.b64encode(ofx_bin_wrong),
++                    "statement_file": BinaryBytes(ofx_bin_wrong),
+                     "statement_filename": "test_ofx_wrong.ofx",
+                 }
+             )
+@@ -84,7 +81,7 @@ class TestOfxFile(common.TransactionCase):
+             ofx_bin = ofx_file.read()
+             wizard = self.asi_model.create(
+                 {
+-                    "statement_file": base64.b64encode(ofx_bin),
++                    "statement_file": BinaryBytes(ofx_bin),
+                     "statement_filename": "test_ofx.ofx",
+                 }
+             )
+@@ -107,7 +104,7 @@ class TestOfxFile(common.TransactionCase):
+             ofx_bin = ofx_file.read()
+             wizard = self.asi_model.create(
+                 {
+-                    "statement_file": base64.b64encode(ofx_bin),
++                    "statement_file": BinaryBytes(ofx_bin),
+                     "statement_filename": "test_ofx_iban.ofx",
+                 }
+             )
+@@ -124,7 +121,7 @@ class TestOfxFile(common.TransactionCase):
+             ofx_bin = ofx_file.read()
+             wizard = self.asi_model.create(
+                 {
+-                    "statement_file": base64.b64encode(ofx_bin),
++                    "statement_file": BinaryBytes(ofx_bin),
+                     "statement_filename": "test_ofx_checknum_memo.ofx",
+                 }
+             )
+@@ -141,7 +138,7 @@ class TestOfxFile(common.TransactionCase):
+             ofx_bin = ofx_file.read()
+             wizard = self.asi_model.create(
+                 {
+-                    "statement_file": base64.b64encode(ofx_bin),
++                    "statement_file": BinaryBytes(ofx_bin),
+                     "statement_filename": "test_ofx.ofx",
+                 }
+             )
+@@ -157,7 +154,7 @@ class TestOfxFile(common.TransactionCase):
+         non_ofx_data = b"This is not an OFX file"
+         wizard = self.asi_model.create(
+             {
+-                "statement_file": base64.b64encode(non_ofx_data),
++                "statement_file": BinaryBytes(non_ofx_data),
+                 "statement_filename": "test.txt",
+             }
+         )

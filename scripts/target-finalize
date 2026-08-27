@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
-usl_cli_load_local_port_defaults "$ROOT"
+# Base-Compose product validators restart Odoo outside pocket-id-dev's
+# subprocess. Import only the four non-secret ports from the selected
+# project-bound identity environment so every stage recreates the same runtime.
+usl_cli_load_local_port_defaults "$ROOT" "${POCKET_ID_ENV_FILE:-}"
 
 usl_require_explicit_compose_project "Target finalization"
 usl_verify_compose_scope \
@@ -35,8 +38,10 @@ esac
 product_modules=(
   rebuild_account_migration
   usl_accounting
+  usl_b2c
   usl_documents
   usl_documents_accounting
+  usl_documents_b2c
   usl_expense_batch
   usl_locale
   usl_platform_billing
@@ -69,6 +74,7 @@ docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
 # Validate the upgraded current-branch registry, not the schema captured in a
 # seed or left by the preceding migration stage.
 scripts/accounting-restore product-validate
+scripts/b2c-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
 scripts/platform-billing-restore product-validate

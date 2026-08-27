@@ -5,6 +5,7 @@ import os
 
 MIGRATION_MODULES = {
     "usl_accounting_restore",
+    "usl_b2c_restore",
     "usl_hr_restore",
     "usl_identity_restore",
     "usl_platform_billing_restore",
@@ -15,8 +16,10 @@ MIGRATION_MODULES = {
 PRODUCT_MODULES = {
     "rebuild_account_migration",
     "usl_accounting",
+    "usl_b2c",
     "usl_documents",
     "usl_documents_accounting",
+    "usl_documents_b2c",
     "usl_expense_batch",
     "usl_locale",
     "usl_platform_billing",
@@ -34,6 +37,7 @@ FORBIDDEN_MODELS = {
     "rebuild.account.source.report",
 }
 FORBIDDEN_MODEL_PREFIXES = (
+    "usl.b2c.restore",
     "usl.hr.restore",
     "usl.identity.restore",
     "usl.platform.billing.restore",

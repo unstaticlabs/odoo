@@ -4550,9 +4550,15 @@ class UslDocumentOperation(models.Model):
                         access_user=operation._archive_context_access_user(),
                     )
                 elif operation.res_model and operation.res_id:
-                    record = self.env[operation.res_model].with_user(
-                        operation._archive_context_access_user(),
-                    ).browse(operation.res_id).exists()
+                    record = (
+                        self.env[operation.res_model]
+                        .with_user(operation._archive_context_access_user())
+                        .with_context(
+                            allowed_company_ids=operation.company_id.ids,
+                        )
+                        .browse(operation.res_id)
+                        .exists()
+                    )
                     if not record:
                         raise UserError(_("The source Odoo record no longer exists."))
                     record.check_access("read")

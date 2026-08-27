@@ -112,7 +112,7 @@ PY
     docker network inspect "$network" >/dev/null
   done
 
-  config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.XXXXXX.json")"
+  config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.json.XXXXXX")"
   TEMP_FILES+=("$config")
   chmod 600 "$config"
   "${COMPOSE[@]}" --profile paperless config --format json > "$config"
@@ -159,7 +159,7 @@ preflight() {
   verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
   candidate="$VERIFIED_CANDIDATE"
   project="$VERIFIED_PROJECT"
-  volumes_json="$(mktemp "${TMPDIR:-/tmp}/usl-production-volumes.XXXXXX.json")"
+  volumes_json="$(mktemp "${TMPDIR:-/tmp}/usl-production-volumes.json.XXXXXX")"
   TEMP_FILES+=("$volumes_json")
   chmod 600 "$volumes_json"
   printf '{"volumes":[' > "$volumes_json"
@@ -240,11 +240,11 @@ stage() {
   docker run --rm -v "$odoo_volume:/target" -v "$candidate:/candidate:ro" \
     alpine:3.24.1 sh -ec "
       test ! -e '/target/filestore/$database'
-      mkdir -p '/target/filestore/$database'
+      mkdir -p '/target/filestore/$database' /target/sessions
       tar -C '/target/filestore/$database' -xzf /candidate/odoo-filestore.tgz
-      chown -R 1000:1000 '/target/filestore/$database'
+      chown -R 1000:1000 /target
     "
-  target_inventory="$(mktemp "${TMPDIR:-/tmp}/usl-production-filestore.XXXXXX.tsv")"
+  target_inventory="$(mktemp "${TMPDIR:-/tmp}/usl-production-filestore.tsv.XXXXXX")"
   TEMP_FILES+=("$target_inventory")
   "${COMPOSE[@]}" exec -T -e TARGET_DB="$database" db sh -ec '
     psql -X -qAt -U "$POSTGRES_USER" -d "$TARGET_DB" -c "
@@ -280,14 +280,15 @@ stage() {
     '
   queue_before="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   tasks_before="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py shell -c \
+    --entrypoint python paperless-webserver manage.py shell -c \
     'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    --user paperless paperless-webserver \
-    document_importer --no-progress-bar /usr/src/paperless/export/candidate
+    --user paperless --entrypoint python paperless-webserver \
+    manage.py document_importer --no-progress-bar \
+    /usr/src/paperless/export/candidate
   queue_after="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   tasks_after="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py shell -c \
+    --entrypoint python paperless-webserver manage.py shell -c \
     'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
   if [[ "$queue_before" != "$queue_after" || "$tasks_before" != "$tasks_after" ]]; then
     printf 'Paperless import submitted background/OCR tasks; refusing stage.\n' >&2
@@ -296,7 +297,7 @@ stage() {
 
   printf '[4/5] Validate restored accounting/Documents controls\n'
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py document_sanity_checker
+    --entrypoint python paperless-webserver manage.py document_sanity_checker
   python3 - "$candidate/qualification.json" "$database" <<'PY'
 # The shell performs live SQL/API controls immediately below; this first check
 # keeps qualification parsing fail-closed before values reach shell variables.
@@ -322,8 +323,8 @@ PY
       'active_link_count',(SELECT count(*) FROM usl_document_link WHERE active)
     )::text")"
   actual_paperless="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver \
-    python manage.py shell -c 'from documents.models import Document; print(Document.objects.count())' | tail -n 1)"
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import Document; print(Document.objects.count())' | tail -n 1)"
   python3 - "$candidate/qualification.json" "$actual_accounting" \
     "$actual_documents" "$actual_paperless" <<'PY'
 import json

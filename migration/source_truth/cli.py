@@ -18,25 +18,25 @@ import os
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONTRACT = ROOT / "migration/source_truth/coverage.json"
-DEFAULT_SOURCE_DIR = Path(
-    os.environ.get("USL_ONLINE_DUMP_DIR", "/Users/valentin/Code/odoo/usl-online-dump"),
-)
 DEFAULT_ARTIFACTS = ROOT / "artifacts/migration/private"
 CONTRACT_SCHEMA = "usl-source-truth-coverage-v1"
 INVENTORY_SCHEMA = "usl-source-truth-inventory-v2"
 GAP_REPORT_SCHEMA = "usl-source-migration-gap-report-v1"
 CURRENT_DISTRIBUTION_SCOPES = {
     "accounting",
+    "b2c_commerce",
     "credential_state",
     "documents",
     "hr",
     "identity",
+    "inventory_manufacturing",
     "native_reference",
     "platform_billing",
     "product_master",
@@ -47,6 +47,16 @@ CURRENT_DISTRIBUTION_SCOPES = {
 
 class AuditError(RuntimeError):
     """An unsafe or invalid migration-audit condition."""
+
+
+def default_source_dir(environment: Mapping[str, str] | None = None) -> Path:
+    """Resolve the source package without embedding a maintainer checkout path."""
+    environment = os.environ if environment is None else environment
+    configured = environment.get("USL_ONLINE_DUMP_DIR")
+    return Path(configured) if configured else ROOT / "usl-online-dump"
+
+
+DEFAULT_SOURCE_DIR = default_source_dir()
 
 
 def sha256_file(path: Path) -> str:

@@ -10,6 +10,7 @@ from migration.source_truth.cli import (
     build_inventory,
     classify,
     current_distribution_blocking,
+    default_source_dir,
     load_contract,
     source_package,
     verify_filestore,
@@ -97,6 +98,13 @@ class FakeDatabase:
 
 
 class SourceTruthAuditCase(unittest.TestCase):
+    def test_default_source_directory_is_repository_portable_and_overridable(self):
+        self.assertEqual(default_source_dir({}), ROOT / "usl-online-dump")
+        self.assertEqual(
+            default_source_dir({"USL_ONLINE_DUMP_DIR": "/tmp/approved-source"}),
+            Path("/tmp/approved-source"),
+        )
+
     def test_contract_classifies_known_perimeters(self):
         contract = load_contract(ROOT / "migration/source_truth/coverage.json")
         self.assertEqual(classify("account.move", contract["model_rules"]), "accounting")

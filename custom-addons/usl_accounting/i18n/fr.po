@@ -3311,3 +3311,1208 @@ msgstr "Actualiser l’accès aux notes de frais"
 #: code:addons/usl_accounting/models/multi_company_expenses.py:0
 msgid "Multi-company expenses are ready"
 msgstr "Les notes de frais multi-sociétés sont prêtes"
+
+#. module: usl_accounting
+msgid "%(journal)s — %(month)s"
+msgstr "%(journal)s — %(month)s"
+
+#. module: usl_accounting
+msgid "Scheduled Bank Export"
+msgstr "Export bancaire planifié"
+
+#. module: usl_accounting
+msgid "Bank Statement Email Setup"
+msgstr "Configuration des e-mails de relevés bancaires"
+
+#. module: usl_accounting
+msgid "Scheduled exports"
+msgstr "Exports planifiés"
+
+#. module: usl_accounting
+msgid "Scheduled export address"
+msgstr "Adresse des exports planifiés"
+
+#. module: usl_accounting
+msgid "Received Bank Export"
+msgstr "Export bancaire reçu"
+
+#. module: usl_accounting
+msgid "Received Bank Exports"
+msgstr "Exports bancaires reçus"
+
+#. module: usl_accounting
+msgid "Received bank export"
+msgstr "Export bancaire reçu"
+
+#. module: usl_accounting
+msgid "Received bank exports"
+msgstr "Exports bancaires reçus"
+
+#. module: usl_accounting
+msgid "Received exports"
+msgstr "Exports reçus"
+
+#. module: usl_accounting
+msgid "Bank Statements"
+msgstr "Relevés bancaires"
+
+#. module: usl_accounting
+msgid "Bank Statement Review"
+msgstr "Vérification du relevé bancaire"
+
+#. module: usl_accounting
+msgid "Bank Statement Certification History"
+msgstr "Historique de certification du relevé bancaire"
+
+#. module: usl_accounting
+msgid "Bank Statement Review Exception"
+msgstr "Exception de vérification du relevé bancaire"
+
+#. module: usl_accounting
+msgid "Monthly Bank Statement"
+msgstr "Relevé bancaire mensuel"
+
+#. module: usl_accounting
+msgid "Expected"
+msgstr "Attendu"
+
+#. module: usl_accounting
+msgid "Processing"
+msgstr "En cours de traitement"
+
+#. module: usl_accounting
+msgid "Ready for review"
+msgstr "Prêt pour vérification"
+
+#. module: usl_accounting
+msgid "Certified"
+msgstr "Certifié"
+
+#. module: usl_accounting
+msgid "Reopened"
+msgstr "Rouvert"
+
+#. module: usl_accounting
+msgid "Received"
+msgstr "Reçu"
+
+#. module: usl_accounting
+msgid "Processed"
+msgstr "Traité"
+
+#. module: usl_accounting
+msgid "Already imported"
+msgstr "Déjà importé"
+
+#. module: usl_accounting
+msgid "Import failed"
+msgstr "Échec de l’import"
+
+#. module: usl_accounting
+msgid "Needs review"
+msgstr "À vérifier"
+
+#. module: usl_accounting
+msgid "Prior evidence"
+msgstr "Justificatif antérieur"
+
+#. module: usl_accounting
+msgid "Duplicate copy"
+msgstr "Copie identique"
+
+#. module: usl_accounting
+msgid "Open monthly review"
+msgstr "Ouvrir la vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Process now"
+msgstr "Traiter maintenant"
+
+#. module: usl_accounting
+msgid "Process received exports"
+msgstr "Traiter les exports reçus"
+
+#. module: usl_accounting
+msgid "Retry"
+msgstr "Réessayer"
+
+#. module: usl_accounting
+#. module: usl_accounting
+msgid "Receive and process emails"
+msgstr "Recevoir et traiter les e-mails"
+
+#. module: usl_accounting
+msgid "Set the complete 'Send bank exports to' email address before enabling email processing."
+msgstr "Renseignez l’adresse complète « Envoyer les exports bancaires à » avant d’activer le traitement des e-mails."
+
+#. module: usl_accounting
+msgid "Add at least one accepted sender address before enabling email processing."
+msgstr "Ajoutez au moins une adresse d’expéditeur acceptée avant d’activer le traitement des e-mails."
+
+#. module: usl_accounting
+msgid "Add Shine's accounting download site before enabling email processing."
+msgstr "Ajoutez le site de téléchargement comptable de Shine avant d’activer le traitement des e-mails."
+
+#. module: usl_accounting
+msgid "When enabled, Odoo accepts bank-export emails sent to this address, imports their OFX transactions, and saves the official PDF in Documents."
+msgstr "Lorsque cette option est activée, Odoo reçoit les e-mails d’export bancaire envoyés à cette adresse, importe leurs opérations OFX et conserve le PDF officiel dans Documents."
+
+#. module: usl_accounting
+msgid "Bank account identifier"
+msgstr "Identifiant du compte bancaire"
+
+#. module: usl_accounting
+msgid "The IBAN or account number stated in the bank export."
+msgstr "L’IBAN ou le numéro de compte indiqué dans l’export bancaire."
+
+#. module: usl_accounting
+msgid "Expected by day"
+msgstr "Attendu avant le"
+
+#. module: usl_accounting
+msgid "Day of the following month by which the bank email should arrive."
+msgstr "Jour du mois suivant avant lequel l’e-mail de la banque doit arriver."
+
+#. module: usl_accounting
+msgid "Send bank exports to"
+msgstr "Envoyer les exports bancaires à"
+
+#. module: usl_accounting
+msgid "Month to review"
+msgstr "Mois à vérifier"
+
+#. module: usl_accounting
+msgid "Email processing"
+msgstr "Traitement des e-mails"
+
+#. module: usl_accounting
+msgid "Open current month"
+msgstr "Ouvrir le mois en cours"
+
+#. module: usl_accounting
+msgid "Open the oldest monthly bank statement that still needs review."
+msgstr "Ouvrir le plus ancien relevé bancaire mensuel restant à vérifier."
+
+#. module: usl_accounting
+msgid "Shine sends its monthly accounting export to the address below. Odoo imports the OFX transactions and saves the official PDF in Documents for the monthly review."
+msgstr "Shine envoie son export comptable mensuel à l’adresse ci-dessous. Odoo importe les opérations OFX et conserve le PDF officiel dans Documents pour la vérification mensuelle."
+
+#. module: usl_accounting
+msgid "Statement review"
+msgstr "Vérification du relevé"
+
+#. module: usl_accounting
+msgid "Review statements from"
+msgstr "Vérifier les relevés à partir du"
+
+#. module: usl_accounting
+msgid "Email delivery"
+msgstr "Réception par e-mail"
+
+#. module: usl_accounting
+msgid "Current month"
+msgstr "Mois en cours"
+
+#. module: usl_accounting
+msgid "Email expected by"
+msgstr "E-mail attendu avant le"
+
+#. module: usl_accounting
+msgid "Next step"
+msgstr "Étape suivante"
+
+#. module: usl_accounting
+msgid "Email history"
+msgstr "Historique des e-mails"
+
+#. module: usl_accounting
+msgid "Advanced safeguards"
+msgstr "Protections avancées"
+
+#. module: usl_accounting
+msgid "These restrictions prevent an email or download link from sending files to the wrong bank account. Change them only when the bank changes its delivery details."
+msgstr "Ces restrictions empêchent un e-mail ou un lien de téléchargement d’envoyer des fichiers vers le mauvais compte bancaire. Ne les modifiez que si la banque change ses modalités d’envoi."
+
+#. module: usl_accounting
+msgid "Bank export format"
+msgstr "Format d’export bancaire"
+
+#. module: usl_accounting
+msgid "Accepted sender addresses"
+msgstr "Adresses d’expéditeur autorisées"
+
+#. module: usl_accounting
+msgid "Accepted download sites"
+msgstr "Sites de téléchargement autorisés"
+
+#. module: usl_accounting
+msgid "Email address setup"
+msgstr "Configuration de l’adresse e-mail"
+
+#. module: usl_accounting
+msgid "Address name"
+msgstr "Nom de l’adresse"
+
+#. module: usl_accounting
+msgid "Email domain"
+msgstr "Domaine de messagerie"
+
+#. module: usl_accounting
+msgid "Add missing file"
+msgstr "Ajouter le fichier manquant"
+
+#. module: usl_accounting
+msgid "Only an accountant can add a missing bank export file."
+msgstr "Seul un comptable peut ajouter un fichier d’export bancaire manquant."
+
+#. module: usl_accounting
+msgid "Add a missing bank export file"
+msgstr "Ajouter un fichier d’export bancaire manquant"
+
+#. module: usl_accounting
+msgid "Import the OFX transactions, link the monthly statement, and send its official PDF to Documents."
+msgstr "Importer les opérations OFX, rattacher le relevé mensuel et envoyer son PDF officiel dans Documents."
+
+#. module: usl_accounting
+msgid "Try processing the retained email and files again. Existing transactions will not be duplicated."
+msgstr "Retraiter l’e-mail et les fichiers conservés. Les opérations existantes ne seront pas dupliquées."
+
+#. module: usl_accounting
+msgid "Add a bank file that was missing from the email or could not be downloaded. The file remains linked to this received email."
+msgstr "Ajouter un fichier bancaire absent de l’e-mail ou qui n’a pas pu être téléchargé. Le fichier reste rattaché à l’e-mail reçu."
+
+#. module: usl_accounting
+msgid "The received PDF is password-protected. Replace it with an unlocked original PDF from the bank."
+msgstr "Le PDF reçu est protégé par mot de passe. Remplacez-le par le PDF original non verrouillé fourni par la banque."
+
+#. module: usl_accounting
+msgid "The received PDF is damaged or incomplete. Replace it with the original PDF downloaded from the bank."
+msgstr "Le PDF reçu est endommagé ou incomplet. Remplacez-le par le PDF original téléchargé depuis la banque."
+
+#. module: usl_accounting
+msgid "Replace the damaged bank statement"
+msgstr "Remplacer le relevé bancaire endommagé"
+
+#. module: usl_accounting
+msgid "Add the official statement PDF"
+msgstr "Ajouter le PDF du relevé officiel"
+
+#. module: usl_accounting
+msgid "No received bank email is linked to this month. Wait for the scheduled export or ask an Accounting Manager to check the email setup."
+msgstr "Aucun e-mail bancaire reçu n’est rattaché à ce mois. Attendez l’export planifié ou demandez à un Responsable comptable de vérifier la configuration de l’adresse."
+
+#. module: usl_accounting
+msgid "The bank sent a corrected file"
+msgstr "La banque a envoyé un fichier corrigé"
+
+#. module: usl_accounting
+msgid "Link to an existing bank transaction"
+msgstr "Rattacher à une opération bancaire existante"
+
+#. module: usl_accounting
+msgid "Import as a separate bank transaction"
+msgstr "Importer comme une opération bancaire distincte"
+
+#. module: usl_accounting
+msgid "Use as the official statement"
+msgstr "Utiliser comme relevé officiel"
+
+#. module: usl_accounting
+msgid "Ignore this file for the monthly check"
+msgstr "Ignorer ce fichier pour la vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Resolve monthly check issue"
+msgstr "Résoudre le problème de vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Bank statement issue resolved by %(user)s: %(name)s"
+msgstr "Problème du relevé bancaire résolu par %(user)s : %(name)s"
+
+#. module: usl_accounting
+msgid "Add Missing Bank Export File"
+msgstr "Ajouter un fichier d’export bancaire manquant"
+
+#. module: usl_accounting
+msgid "Choose the file downloaded from the bank."
+msgstr "Choisissez le fichier téléchargé depuis la banque."
+
+#. module: usl_accounting
+msgid "The received email belongs to another bank account."
+msgstr "L’e-mail reçu appartient à un autre compte bancaire."
+
+#. module: usl_accounting
+msgid "This PDF does not belong to the selected statement month. Choose the official PDF for %(period)s."
+msgstr "Ce PDF ne correspond pas au mois du relevé sélectionné. Choisissez le PDF officiel pour %(period)s."
+
+#. module: usl_accounting
+msgid "The replacement PDF is now the official statement and has been sent to Documents."
+msgstr "Le PDF de remplacement est désormais le relevé officiel et a été envoyé dans Documents."
+
+#. module: usl_accounting
+msgid "The missing file was added. Process the received email again."
+msgstr "Le fichier manquant a été ajouté. Traitez à nouveau l’e-mail reçu."
+
+#. module: usl_accounting
+msgid "Bank export file added by %(user)s: %(name)s"
+msgstr "Fichier d’export bancaire ajouté par %(user)s : %(name)s"
+
+#. module: usl_accounting
+msgid "Add Bank Export File"
+msgstr "Ajouter un fichier d’export bancaire"
+
+#. module: usl_accounting
+msgid "Original bank file"
+msgstr "Fichier bancaire original"
+
+#. module: usl_accounting
+msgid "Use this PDF"
+msgstr "Utiliser ce PDF"
+
+#. module: usl_accounting
+msgid "Add official PDF"
+msgstr "Ajouter le PDF officiel"
+
+#. module: usl_accounting
+msgid "Apply decision"
+msgstr "Appliquer la décision"
+
+#. module: usl_accounting
+msgid "Retain file"
+msgstr "Conserver le fichier"
+
+#. module: usl_accounting
+msgid "Confirm Bank Balances"
+msgstr "Confirmer les soldes bancaires"
+
+#. module: usl_accounting
+msgid "Confirm Bank-Reported Balances"
+msgstr "Confirmer les soldes indiqués par la banque"
+
+#. module: usl_accounting
+msgid "Confirm bank balances"
+msgstr "Confirmer les soldes bancaires"
+
+#. module: usl_accounting
+msgid "Confirm balances"
+msgstr "Confirmer les soldes"
+
+#. module: usl_accounting
+msgid "Confirm cut-over baseline"
+msgstr "Confirmer le solde initial de reprise"
+
+#. module: usl_accounting
+msgid "Certify"
+msgstr "Certifier"
+
+#. module: usl_accounting
+msgid "Reopen"
+msgstr "Rouvrir"
+
+#. module: usl_accounting
+msgid "Reopen bank statement"
+msgstr "Rouvrir le relevé bancaire"
+
+#. module: usl_accounting
+msgid "Reopen Certified Bank Statement"
+msgstr "Rouvrir un relevé bancaire certifié"
+
+#. module: usl_accounting
+msgid "Reopen Certified Statement"
+msgstr "Rouvrir le relevé certifié"
+
+#. module: usl_accounting
+msgid "Reopen statement"
+msgstr "Rouvrir le relevé"
+
+#. module: usl_accounting
+msgid "Accept"
+msgstr "Accepter"
+
+#. module: usl_accounting
+msgid "Accept as official statement"
+msgstr "Accepter comme relevé officiel"
+
+#. module: usl_accounting
+msgid "Resolve"
+msgstr "Résoudre"
+
+#. module: usl_accounting
+msgid "Official PDF"
+msgstr "PDF officiel"
+
+#. module: usl_accounting
+msgid "<span class=\"o_stat_text\">Official PDF</span>"
+msgstr "<span class=\"o_stat_text\">PDF officiel</span>"
+
+#. module: usl_accounting
+msgid "<span class=\"o_stat_text\">Original file</span>"
+msgstr "<span class=\"o_stat_text\">Fichier original</span>"
+
+#. module: usl_accounting
+msgid "Current monthly checkpoint"
+msgstr "Point de contrôle mensuel"
+
+#. module: usl_accounting
+msgid "Statement period"
+msgstr "Période du relevé"
+
+#. module: usl_accounting
+msgid "Balance check"
+msgstr "Contrôle des soldes"
+
+#. module: usl_accounting
+msgid "Continuity and follow-up"
+msgstr "Continuité et suivi"
+
+#. module: usl_accounting
+msgid "Bank evidence"
+msgstr "Justificatif bancaire"
+
+#. module: usl_accounting
+msgid "Evidence and sources"
+msgstr "Justificatifs et sources"
+
+#. module: usl_accounting
+msgid "Certification history"
+msgstr "Historique de certification"
+
+#. module: usl_accounting
+msgid "Source details"
+msgstr "Détails de la source"
+
+#. module: usl_accounting
+msgid "Approved source"
+msgstr "Source autorisée"
+
+#. module: usl_accounting
+msgid "Monthly review owner"
+msgstr "Responsable de la vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Bank opening balance"
+msgstr "Solde bancaire d’ouverture"
+
+#. module: usl_accounting
+msgid "Bank closing balance"
+msgstr "Solde bancaire de clôture"
+
+#. module: usl_accounting
+msgid "Export opening balance"
+msgstr "Solde d’ouverture de l’export"
+
+#. module: usl_accounting
+msgid "Export closing balance"
+msgstr "Solde de clôture de l’export"
+
+#. module: usl_accounting
+msgid "Continuous"
+msgstr "Continu"
+
+#. module: usl_accounting
+msgid "Continuity broken"
+msgstr "Continuité rompue"
+
+#. module: usl_accounting
+msgid "Baseline required"
+msgstr "Solde initial requis"
+
+#. module: usl_accounting
+msgid "Source email"
+msgstr "E-mail source"
+
+#. module: usl_accounting
+msgid "Original export archive"
+msgstr "Archive originale de l’export"
+
+#. module: usl_accounting
+msgid "OFX transactions"
+msgstr "Transactions OFX"
+
+#. module: usl_accounting
+msgid "Official bank statement"
+msgstr "Relevé bancaire officiel"
+
+#. module: usl_accounting
+msgid "CSV copy"
+msgstr "Copie CSV"
+
+#. module: usl_accounting
+msgid "QIF copy"
+msgstr "Copie QIF"
+
+#. module: usl_accounting
+msgid "Unsupported file"
+msgstr "Fichier non pris en charge"
+
+#. module: usl_accounting
+msgid "Bank identity"
+msgstr "Identifiant bancaire"
+
+#. module: usl_accounting
+msgid "Approved fallback"
+msgstr "Identifiant de secours approuvé"
+
+#. module: usl_accounting
+msgid "Transaction identity needs review"
+msgstr "Identifiant de transaction à vérifier"
+
+#. module: usl_accounting
+msgid "Corrected source"
+msgstr "Source corrigée"
+
+#. module: usl_accounting
+msgid "Mapped to existing transaction"
+msgstr "Associé à une transaction existante"
+
+#. module: usl_accounting
+msgid "Approved as a new transaction"
+msgstr "Approuvé comme nouvelle transaction"
+
+#. module: usl_accounting
+msgid "Accepted evidence"
+msgstr "Justificatif accepté"
+
+#. module: usl_accounting
+msgid "Not relevant"
+msgstr "Non pertinent"
+
+#. module: usl_accounting
+msgid "Waiting for the scheduled bank export."
+msgstr "En attente de l’export bancaire planifié."
+
+#. module: usl_accounting
+msgid "The scheduled export is overdue."
+msgstr "L’export planifié est en retard."
+
+#. module: usl_accounting
+msgid "The received bank export is being processed."
+msgstr "L’export bancaire reçu est en cours de traitement."
+
+#. module: usl_accounting
+msgid "Review the received bank export."
+msgstr "Vérifiez l’export bancaire reçu."
+
+#. module: usl_accounting
+msgid "Open the statement review."
+msgstr "Ouvrez la vérification du relevé."
+
+#. module: usl_accounting
+msgid "Accept the official PDF statement."
+msgstr "Acceptez le relevé PDF officiel."
+
+#. module: usl_accounting
+msgid "Confirm the bank-reported balances."
+msgstr "Confirmez les soldes indiqués par la banque."
+
+#. module: usl_accounting
+msgid "Confirm the statement period."
+msgstr "Confirmez la période du relevé."
+
+#. module: usl_accounting
+msgid "No bank transactions are linked to this period."
+msgstr "Aucune transaction bancaire n’est liée à cette période."
+
+#. module: usl_accounting
+msgid "An Accounting Manager must confirm the cut-over baseline."
+msgstr "Un responsable comptable doit confirmer le solde initial de reprise."
+
+#. module: usl_accounting
+msgid "Resolve transaction identity for every statement movement."
+msgstr "Résolvez l’identifiant de chaque mouvement du relevé."
+
+#. module: usl_accounting
+msgid "The opening balance does not continue the preceding certified statement."
+msgstr "Le solde d’ouverture ne reprend pas le relevé certifié précédent."
+
+#. module: usl_accounting
+msgid "The transactions differ from the bank closing balance by %(amount)s."
+msgstr "Les transactions diffèrent du solde bancaire de clôture de %(amount)s."
+
+#. module: usl_accounting
+msgid "Balances saved. The statement agrees with the bank."
+msgstr "Soldes enregistrés. Le relevé concorde avec la banque."
+
+#. module: usl_accounting
+msgid "Balances saved. Resolve the displayed difference before certification."
+msgstr "Soldes enregistrés. Résolvez l’écart affiché avant la certification."
+
+#. module: usl_accounting
+msgid "Bank-reported opening and closing balances confirmed."
+msgstr "Soldes d’ouverture et de clôture indiqués par la banque confirmés."
+
+#. module: usl_accounting
+msgid "Cut-over baseline confirmed."
+msgstr "Solde initial de reprise confirmé."
+
+#. module: usl_accounting
+msgid "Cut-over opening balance accepted by the Accounting Manager."
+msgstr "Solde d’ouverture de reprise accepté par le responsable comptable."
+
+#. module: usl_accounting
+msgid "Bank statement certified."
+msgstr "Relevé bancaire certifié."
+
+#. module: usl_accounting
+msgid "This statement is already certified."
+msgstr "Ce relevé est déjà certifié."
+
+#. module: usl_accounting
+msgid "This statement is not ready for certification."
+msgstr "Ce relevé n’est pas prêt à être certifié."
+
+#. module: usl_accounting
+msgid "Bank statement reopened for correction."
+msgstr "Relevé bancaire rouvert pour correction."
+
+#. module: usl_accounting
+msgid "Certified bank statement reopened. Reason: %(reason)s"
+msgstr "Relevé bancaire certifié rouvert. Motif : %(reason)s"
+
+#. module: usl_accounting
+msgid "Reopening allows corrections and requires a new certification. Existing evidence and certification history remain unchanged."
+msgstr "La réouverture permet les corrections et impose une nouvelle certification. Les justificatifs et l’historique existants sont conservés."
+
+#. module: usl_accounting
+msgid "Record why this certified statement is being reopened."
+msgstr "Indiquez pourquoi ce relevé certifié est rouvert."
+
+#. module: usl_accounting
+msgid "Why is this correction required?"
+msgstr "Pourquoi cette correction est-elle nécessaire ?"
+
+#. module: usl_accounting
+msgid "Bank export processing finished."
+msgstr "Traitement de l’export bancaire terminé."
+
+#. module: usl_accounting
+msgid "Bank export retained and processed successfully."
+msgstr "Export bancaire conservé et traité avec succès."
+
+#. module: usl_accounting
+msgid "Bank export retained and processed; review is required."
+msgstr "Export bancaire conservé et traité ; une vérification est requise."
+
+#. module: usl_accounting
+msgid "Bank export processing failed"
+msgstr "Échec du traitement de l’export bancaire"
+
+#. module: usl_accounting
+msgid "Attachment processing failed"
+msgstr "Échec du traitement de la pièce jointe"
+
+#. module: usl_accounting
+msgid "Malformed export archive"
+msgstr "Archive d’export incorrecte"
+
+#. module: usl_accounting
+msgid "Archive retained and safely extracted."
+msgstr "Archive conservée et extraite de façon sûre."
+
+#. module: usl_accounting
+msgid "Official PDF retained unchanged."
+msgstr "PDF officiel conservé sans modification."
+
+#. module: usl_accounting
+msgid "Official bank statement evidence accepted: %(name)s"
+msgstr "Justificatif bancaire officiel accepté : %(name)s"
+
+#. module: usl_accounting
+msgid "This exact PDF is already the accepted evidence."
+msgstr "Ce PDF identique est déjà le justificatif accepté."
+
+#. module: usl_accounting
+msgid "Replacement bank statement received"
+msgstr "Nouveau relevé bancaire reçu"
+
+#. module: usl_accounting
+msgid "A new PDF was retained. Review it before replacing the accepted evidence."
+msgstr "Un nouveau PDF a été conservé. Vérifiez-le avant de remplacer le justificatif accepté."
+
+#. module: usl_accounting
+msgid "Bank statement PDF period does not match"
+msgstr "La période du relevé PDF ne correspond pas"
+
+#. module: usl_accounting
+msgid "The PDF period inferred from the email does not match the OFX month. Review the source before accepting evidence."
+msgstr "La période du PDF déduite de l’e-mail ne correspond pas au mois OFX. Vérifiez la source avant d’accepter le justificatif."
+
+#. module: usl_accounting
+msgid "OFX transaction export missing"
+msgstr "Export de transactions OFX manquant"
+
+#. module: usl_accounting
+msgid "No OFX transaction export was found. Add the OFX file or a recovered ZIP, then retry."
+msgstr "Aucun export de transactions OFX n’a été trouvé. Ajoutez le fichier OFX ou une archive ZIP récupérée, puis réessayez."
+
+#. module: usl_accounting
+msgid "The matched statement already contains its identified bank transactions."
+msgstr "Le relevé correspondant contient déjà ses transactions bancaires identifiées."
+
+#. module: usl_accounting
+msgid "A retained recovered export supplied the missing transactions."
+msgstr "Un export récupéré et conservé a fourni les transactions manquantes."
+
+#. module: usl_accounting
+msgid "Unsupported bank export attachment"
+msgstr "Pièce jointe d’export bancaire non prise en charge"
+
+#. module: usl_accounting
+msgid "The attachment %(name)s needs an accounting review."
+msgstr "La pièce jointe %(name)s nécessite une vérification comptable."
+
+#. module: usl_accounting
+msgid "Bank account does not match"
+msgstr "Le compte bancaire ne correspond pas"
+
+#. module: usl_accounting
+msgid "The OFX account does not match the account configured for this route."
+msgstr "Le compte OFX ne correspond pas au compte configuré pour cette route."
+
+#. module: usl_accounting
+msgid "The OFX attachment is malformed or unsupported."
+msgstr "La pièce jointe OFX est incorrecte ou non prise en charge."
+
+#. module: usl_accounting
+msgid "The OFX currency does not match the configured bank journal."
+msgstr "La devise OFX ne correspond pas au journal bancaire configuré."
+
+#. module: usl_accounting
+msgid "The OFX export contains an ambiguous statement population."
+msgstr "L’export OFX contient un ensemble de relevés ambigu."
+
+#. module: usl_accounting
+msgid "The OFX export contains no transactions."
+msgstr "L’export OFX ne contient aucune transaction."
+
+#. module: usl_accounting
+msgid "The OFX transaction population could not be verified."
+msgstr "L’ensemble des transactions OFX n’a pas pu être vérifié."
+
+#. module: usl_accounting
+msgid "One OFX file must cover a single calendar month."
+msgstr "Un fichier OFX doit couvrir un seul mois civil."
+
+#. module: usl_accounting
+msgid "The OFX transaction has no stable bank identifier."
+msgstr "La transaction OFX ne possède pas d’identifiant bancaire stable."
+
+#. module: usl_accounting
+msgid "The OFX transaction identifier is duplicated in this file."
+msgstr "L’identifiant de transaction OFX est dupliqué dans ce fichier."
+
+#. module: usl_accounting
+msgid "Transaction %(ordinal)s needs an identity decision"
+msgstr "La transaction %(ordinal)s nécessite une décision d’identification"
+
+#. module: usl_accounting
+msgid "All %(count)s bank transactions were already present and linked."
+msgstr "Les %(count)s transactions bancaires étaient déjà présentes et ont été reliées."
+
+#. module: usl_accounting
+msgid "Imported %(new)s new transaction(s); %(existing)s already present."
+msgstr "%(new)s nouvelle(s) transaction(s) importée(s) ; %(existing)s déjà présente(s)."
+
+#. module: usl_accounting
+msgid "A bank transaction identity already exists with different accounting facts."
+msgstr "Un identifiant de transaction bancaire existe déjà avec des données comptables différentes."
+
+#. module: usl_accounting
+msgid "An exact transaction identity already belongs to another statement."
+msgstr "Un identifiant de transaction exact appartient déjà à un autre relevé."
+
+#. module: usl_accounting
+msgid "Existing transactions are split across multiple bank statements."
+msgstr "Les transactions existantes sont réparties entre plusieurs relevés bancaires."
+
+#. module: usl_accounting
+msgid "The existing statement cannot be adopted without changing historical membership."
+msgstr "Le relevé existant ne peut pas être adopté sans modifier son contenu historique."
+
+#. module: usl_accounting
+msgid "The migrated bank history contains a conflicting transaction identity."
+msgstr "L’historique bancaire migré contient un identifiant de transaction en conflit."
+
+#. module: usl_accounting
+msgid "A manager approved a conservative transaction identity."
+msgstr "Un responsable a approuvé un identifiant de transaction prudent."
+
+#. module: usl_accounting
+msgid "The selected transaction belongs to another bank journal."
+msgstr "La transaction sélectionnée appartient à un autre journal bancaire."
+
+#. module: usl_accounting
+msgid "The selected transaction does not match the candidate date and amount."
+msgstr "La transaction sélectionnée ne correspond pas à la date et au montant du candidat."
+
+#. module: usl_accounting
+msgid "The scheduled export link could not be downloaded. It may have expired; attach a freshly downloaded export and retry."
+msgstr "Le lien de l’export planifié n’a pas pu être téléchargé. Il a peut-être expiré ; joignez un nouvel export téléchargé puis réessayez."
+
+#. module: usl_accounting
+msgid "The bank export download exceeds the 50 MiB limit."
+msgstr "Le téléchargement de l’export bancaire dépasse la limite de 50 Mio."
+
+#. module: usl_accounting
+msgid "The recovered bank export exceeds the 50 MiB limit."
+msgstr "L’export bancaire récupéré dépasse la limite de 50 Mio."
+
+#. module: usl_accounting
+msgid "The uncompressed export exceeds the 100 MiB limit."
+msgstr "L’export décompressé dépasse la limite de 100 Mio."
+
+#. module: usl_accounting
+msgid "The export archive contains too many files."
+msgstr "L’archive d’export contient trop de fichiers."
+
+#. module: usl_accounting
+msgid "The export archive contains an unsafe path or link."
+msgstr "L’archive d’export contient un chemin ou un lien non sûr."
+
+#. module: usl_accounting
+msgid "The export archive contains an unsafe compression ratio."
+msgstr "L’archive d’export présente un taux de compression non sûr."
+
+#. module: usl_accounting
+msgid "The export archive is malformed."
+msgstr "L’archive d’export est incorrecte."
+
+#. module: usl_accounting
+msgid "The bank export download redirected to an unapproved host."
+msgstr "Le téléchargement de l’export bancaire a été redirigé vers un hôte non autorisé."
+
+#. module: usl_accounting
+msgid "The configured download host does not resolve to a public address."
+msgstr "L’hôte de téléchargement configuré ne correspond pas à une adresse publique."
+
+#. module: usl_accounting
+msgid "The sender %(sender)s is not approved for this bank export route."
+msgstr "L’expéditeur %(sender)s n’est pas autorisé pour cette route d’export bancaire."
+
+#. module: usl_accounting
+msgid "Use complete, exact sender email addresses."
+msgstr "Utilisez des adresses e-mail d’expéditeur complètes et exactes."
+
+#. module: usl_accounting
+msgid "Download hosts must be plain DNS host names."
+msgstr "Les hôtes de téléchargement doivent être de simples noms DNS."
+
+#. module: usl_accounting
+msgid "The source account must match the bank account on the journal."
+msgstr "Le compte source doit correspondre au compte bancaire du journal."
+
+#. module: usl_accounting
+msgid "The bank journal must belong to the configured company."
+msgstr "Le journal bancaire doit appartenir à la société configurée."
+
+#. module: usl_accounting
+msgid "The source attachment belongs to another company."
+msgstr "La pièce jointe source appartient à une autre société."
+
+#. module: usl_accounting
+msgid "The monthly review owner must have access to the configured company."
+msgstr "Le responsable de la vérification mensuelle doit avoir accès à la société configurée."
+
+#. module: usl_accounting
+msgid "The monthly review owner must be an accountant who can complete the review."
+msgstr "Le responsable de la vérification mensuelle doit être un comptable autorisé à la terminer."
+
+#. module: usl_accounting
+msgid "The expected delivery day must be between 1 and 28."
+msgstr "Le jour de réception attendu doit être compris entre 1 et 28."
+
+#. module: usl_accounting
+msgid "This export predates the configured ingestion cut-over."
+msgstr "Cet export est antérieur à la date de démarrage configurée."
+
+#. module: usl_accounting
+msgid "The retained source file no longer matches its recorded checksum."
+msgstr "Le fichier source conservé ne correspond plus à son empreinte enregistrée."
+
+#. module: usl_accounting
+msgid "Recovered bank export retained: %(name)s"
+msgstr "Export bancaire récupéré et conservé : %(name)s"
+
+#. module: usl_accounting
+msgid "The recovered export was retained. Process the source again."
+msgstr "L’export récupéré a été conservé. Traitez de nouveau la source."
+
+#. module: usl_accounting
+msgid "Choose a bank export file to retain."
+msgstr "Choisissez un fichier d’export bancaire à conserver."
+
+#. module: usl_accounting
+msgid "Only an accountant can process a received bank export."
+msgstr "Seul un comptable peut traiter un export bancaire reçu."
+
+#. module: usl_accounting
+msgid "Only an accountant can add a recovered bank export."
+msgstr "Seul un comptable peut ajouter un export bancaire récupéré."
+
+#. module: usl_accounting
+msgid "Only an accountant can confirm bank balances."
+msgstr "Seul un comptable peut confirmer les soldes bancaires."
+
+#. module: usl_accounting
+msgid "Only an accountant can accept bank statement evidence."
+msgstr "Seul un comptable peut accepter le justificatif du relevé bancaire."
+
+#. module: usl_accounting
+msgid "Only an Accounting Manager can reopen a certified statement."
+msgstr "Seul un responsable comptable peut rouvrir un relevé certifié."
+
+#. module: usl_accounting
+msgid "Only an Accounting Manager can resolve this exception."
+msgstr "Seul un responsable comptable peut résoudre cette exception."
+
+#. module: usl_accounting
+msgid "Choose a resolution and record the reason."
+msgstr "Choisissez une résolution et indiquez son motif."
+
+#. module: usl_accounting
+msgid "Choose the existing bank transaction."
+msgstr "Choisissez la transaction bancaire existante."
+
+#. module: usl_accounting
+msgid "This exception has no transaction candidate to approve."
+msgstr "Cette exception ne comporte aucun candidat à approuver."
+
+#. module: usl_accounting
+msgid "This exception has no transaction candidate to map."
+msgstr "Cette exception ne comporte aucun candidat à associer."
+
+#. module: usl_accounting
+msgid "Retained bank export files cannot be deleted."
+msgstr "Les fichiers d’export bancaire conservés ne peuvent pas être supprimés."
+
+#. module: usl_accounting
+msgid "Retained source file identity is immutable."
+msgstr "L’identité du fichier source conservé est immuable."
+
+#. module: usl_accounting
+msgid "Certification history is immutable."
+msgstr "L’historique de certification est immuable."
+
+#. module: usl_accounting
+msgid "Certification history cannot be deleted."
+msgstr "L’historique de certification ne peut pas être supprimé."
+
+#. module: usl_accounting
+msgid "Bank statement exception history cannot be deleted."
+msgstr "L’historique des exceptions du relevé bancaire ne peut pas être supprimé."
+
+#. module: usl_accounting
+msgid "Reopen the certified statement before accepting replacement evidence."
+msgstr "Rouvrez le relevé certifié avant d’accepter un justificatif de remplacement."
+
+#. module: usl_accounting
+msgid "Reopen the certified statement before changing its balances."
+msgstr "Rouvrez le relevé certifié avant de modifier ses soldes."
+
+#. module: usl_accounting
+msgid "Reopen the certified statement before changing its bank evidence or balances."
+msgstr "Rouvrez le relevé certifié avant de modifier ses justificatifs bancaires ou ses soldes."
+
+#. module: usl_accounting
+msgid "Reopen the certified statement before changing its bank transactions."
+msgstr "Rouvrez le relevé certifié avant de modifier ses transactions bancaires."
+
+#. module: usl_accounting
+msgid "Reopen the certified bank statement before changing its liquidity entry."
+msgstr "Rouvrez le relevé bancaire certifié avant de modifier son écriture de trésorerie."
+
+#. module: usl_accounting
+msgid "Reopen the certified bank statement before cancelling or deleting its transaction."
+msgstr "Rouvrez le relevé bancaire certifié avant d’annuler ou de supprimer sa transaction."
+
+#. module: usl_accounting
+msgid "A managed bank statement requires a period."
+msgstr "Un relevé bancaire géré nécessite une période."
+
+#. module: usl_accounting
+msgid "The statement period end must follow its start."
+msgstr "La fin de la période du relevé doit être postérieure à son début."
+
+#. module: usl_accounting
+msgid "The statement must use the configured bank journal."
+msgstr "Le relevé doit utiliser le journal bancaire configuré."
+
+#. module: usl_accounting
+msgid "This PDF is not linked to a bank statement period."
+msgstr "Ce PDF n’est lié à aucune période de relevé bancaire."
+
+#. module: usl_accounting
+msgid "No official bank statement has been accepted yet."
+msgstr "Aucun relevé bancaire officiel n’a encore été accepté."
+
+#. module: usl_accounting
+msgid "No scheduled bank export route is configured for this journal."
+msgstr "Aucune route d’export bancaire planifié n’est configurée pour ce journal."
+
+#. module: usl_accounting
+msgid "This bank export route is archived."
+msgstr "Cette route d’export bancaire est archivée."
+
+#. module: usl_accounting
+msgid "unknown"
+msgstr "inconnu"
+
+#. module: usl_accounting
+msgid "Use this retained PDF as the official evidence for the monthly review. Prior evidence remains in the history."
+msgstr "Utilisez ce PDF conservé comme justificatif officiel du contrôle mensuel. Le justificatif antérieur reste dans l’historique."
+
+#. module: usl_accounting
+msgid "Accept this opening balance as the starting continuity checkpoint because no preceding certified statement exists."
+msgstr "Acceptez ce solde d’ouverture comme point de départ de la continuité, car aucun relevé certifié antérieur n’existe."
+
+#. module: usl_accounting
+msgid "Save the bank-reported balances even when they expose a difference; certification remains blocked until it is resolved."
+msgstr "Enregistrez les soldes indiqués par la banque même s’ils révèlent un écart ; la certification reste bloquée jusqu’à sa résolution."
+
+#. module: usl_accounting
+msgid "Monthly bank check"
+msgstr "Contrôle bancaire mensuel"
+
+#. module: usl_accounting
+msgid "Monthly checks"
+msgstr "Contrôles du mois"
+
+#. module: usl_accounting
+msgid "What needs your attention"
+msgstr "Points à vérifier"
+
+#. module: usl_accounting
+msgid "What to check"
+msgstr "Vérification à effectuer"
+
+#. module: usl_accounting
+msgid "Items to review"
+msgstr "Points à vérifier"
+
+#. module: usl_accounting
+msgid "Statement needed"
+msgstr "Relevé requis"
+
+#. module: usl_accounting
+msgid "PDF received"
+msgstr "PDF reçu"
+
+#. module: usl_accounting
+msgid "No transactions"
+msgstr "Aucune transaction"
+
+#. module: usl_accounting
+msgid "Review needed"
+msgstr "Vérification requise"
+
+#. module: usl_accounting
+msgid "Does not agree"
+msgstr "Écart constaté"
+
+#. module: usl_accounting
+msgid "Agrees"
+msgstr "Conforme"
+
+#. module: usl_accounting
+msgid "Update bank balances"
+msgstr "Modifier les soldes bancaires"
+
+#. module: usl_accounting
+msgid "Received PDF"
+msgstr "PDF reçu"
+
+#. module: usl_accounting
+msgid "Compared with the PDF"
+msgstr "Comparé au PDF"
+
+#. module: usl_accounting
+msgid "Checked by"
+msgstr "Vérifié par"
+
+#. module: usl_accounting
+msgid "Imported transactions"
+msgstr "Transactions importées"
+
+#. module: usl_accounting
+msgid "Net movement"
+msgstr "Mouvement net"
+
+#. module: usl_accounting
+msgid "Still to match"
+msgstr "Reste à rapprocher"
+
+#. module: usl_accounting
+msgid "Bank balances"
+msgstr "Soldes bancaires"
+
+#. module: usl_accounting
+msgid "Opening balance"
+msgstr "Solde d’ouverture"
+
+#. module: usl_accounting
+msgid "Plus net movement"
+msgstr "Plus mouvement net"
+
+#. module: usl_accounting
+msgid "Previous month"
+msgstr "Mois précédent"
+
+#. module: usl_accounting
+msgid "Previous certified month"
+msgstr "Mois précédent certifié"
+
+#. module: usl_accounting
+msgid "Received files"
+msgstr "Fichiers reçus"
+
+#. module: usl_accounting
+msgid "Resolved issues"
+msgstr "Points résolus"
+
+#. module: usl_accounting
+msgid "Related file"
+msgstr "Fichier concerné"
+
+#. module: usl_accounting
+msgid "Apply decision"
+msgstr "Appliquer la décision"
+
+#. module: usl_accounting
+msgid "Review bank statement issue"
+msgstr "Vérifier un point du relevé bancaire"
+
+#. module: usl_accounting
+msgid "Only an Accounting Manager can resolve this review item."
+msgstr "Seul un responsable comptable peut résoudre ce point à vérifier."
+
+#. module: usl_accounting
+msgid "All bank checks are complete. This month is ready to certify."
+msgstr "Tous les contrôles bancaires sont terminés. Ce mois peut être certifié."
+
+#. module: usl_accounting
+msgid "This month agrees with the bank and has been certified."
+msgstr "Ce mois est conforme au relevé de la banque et a été certifié."
+
+#. module: usl_accounting
+msgid "This month was reopened and must be certified again."
+msgstr "Ce mois a été rouvert et doit être certifié à nouveau."
+
+#. module: usl_accounting
+msgid "%(count)s checks need attention before this month can be certified."
+msgstr "%(count)s contrôles doivent être traités avant de pouvoir certifier ce mois."
+
+#. module: usl_accounting
+msgid "Review: %(issue)s"
+msgstr "À vérifier : %(issue)s"
+
+#. module: usl_accounting
+msgid "Review the items requiring attention."
+msgstr "Vérifiez les points qui nécessitent votre attention."
+
+#. module: usl_accounting
+msgid "No earlier certified month exists. An Accounting Manager must confirm this starting balance once."
+msgstr "Aucun mois antérieur n’est certifié. Un responsable comptable doit confirmer ce solde de départ une seule fois."
+
+#. module: usl_accounting
+msgid "The opening balance or dates do not follow the previous certified month."
+msgstr "Le solde d’ouverture ou les dates ne suivent pas le mois précédent certifié."

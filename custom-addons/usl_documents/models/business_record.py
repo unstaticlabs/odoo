@@ -7,7 +7,8 @@ class DocumentLinkMixin(models.AbstractModel):
     _description = "Archived Document Link Mixin"
 
     archived_document_count = fields.Integer(
-        string="Archived Documents", compute="_compute_archived_document_count",
+        string="Archived Documents",
+        compute="_compute_archived_document_count",
     )
     document_archive_pending_count = fields.Integer(
         string="Documents processing", compute="_compute_document_archive_status",
@@ -525,9 +526,13 @@ class IrAttachment(models.Model):
                 raise UserError(
                     _("Select an attachment belonging to a supported business record."),
                 )
-            record = self.env[attachment.res_model].browse(
-                attachment.res_id,
-            ).exists()
+            record = (
+                self.env[attachment.res_model]
+                .browse(
+                    attachment.res_id,
+                )
+                .exists()
+            )
             if not record:
                 raise UserError(_("The attachment's business record no longer exists."))
             operations |= attachment._queue_usl_documents_archive(

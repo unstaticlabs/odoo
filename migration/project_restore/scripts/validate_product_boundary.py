@@ -10,6 +10,7 @@ migration_modules = env["ir.module.module"].sudo().search(
             "in",
             [
                 "usl_identity_restore",
+                "usl_b2c_restore",
                 "usl_hr_restore",
                 "usl_product_restore",
                 "usl_project_restore",
@@ -27,6 +28,7 @@ if active_migration_modules:
     )
 
 forbidden_models = {
+    "usl.b2c.restore.run",
     "usl.identity.restore.run",
     "usl.hr.restore.run",
     "usl.product.restore.run",

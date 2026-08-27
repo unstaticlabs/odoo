@@ -6,20 +6,22 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Distribution production candidate
 
-Status date: 25 August 2026
+Status date: 27 August 2026
 
 - Branch: `19-usl`
-- Upstream baseline: `efb98f932f3a568ce550a26ebde06da0e14e65d3`
+- Upstream baseline: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`
 - Developer/QA product database: `odoo_dev`
 - Read-only source snapshot: `odoo_online_source_saas_19_3`
 
 Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
-is now integrated at `aae5994a7ec`; B2C sales/inventory, Paperless 3.0, Native
-Sign and monthly bank-statement email ingestion remain independently reviewable
-workstreams. They must be reviewed and merged before the final full
-reconstruction; no feature worktree, old QA seed or rehearsal candidate can be
-promoted directly.
+is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
+merge `368812b2868`. Monthly bank-statement email ingestion is integrated
+through merge `64c1f2b1207`. Paperless 3.0 and Native Sign remain independently
+reviewable workstreams. Collaboration History and Distribution Access Control
+are also active, unmerged workstreams. All four must be reviewed and merged or
+explicitly rejected before the final production qualification; no feature
+worktree, old QA seed or rehearsal candidate can be promoted directly.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -28,6 +30,10 @@ USL behavior isolated in custom add-ons and maintained OCA dependencies.
 The same distribution now includes restored Projects, governed Pocket ID SSO,
 the focused Paie TESE workflow, Platform Billing and a Paperless-backed
 Documents application.
+The validated upstream catch-up is retained through merge `4104a3abbef`. The
+complete current fork surface, module ownership, migration boundary and
+maturity map is maintained in
+[`docs/product/fork-overview.md`](docs/product/fork-overview.md).
 
 ### Shipped
 
@@ -70,6 +76,16 @@ Documents application.
   commission bills and delayed or pooled bank settlement in native Accounting,
   including bank-derived foreign-currency rates without rewriting posted
   ledger values.
+- B2C preserves incomplete and overlapping Etsy, Medusa, Stripe, Revolut and
+  Printful history as canonical auditable records without manufacturing native
+  sales, payments, stock moves or accounting effects. It restores the complete
+  46-template catalog, keeps future operations native, and exposes explicit
+  SKU, currency, accounting-link and opening-stock coverage controls.
+- Scheduled bank-statement ingestion retains each approved email and original
+  file, imports exact OFX identities into native statements, requires the
+  official PDF in Documents, and provides monthly balance, continuity,
+  certification and controlled-reopening checks without creating a parallel
+  ledger.
 - Paperless-backed Documents provides authorized search, OCR, previews,
   metadata, versions, Trash and links to Accounting, Contacts, Employees and
   Paie TESE records without duplicating originals in Odoo.
@@ -99,23 +115,48 @@ Documents application.
 - A focused launcher that de-emphasizes Discussion, To-do, Dashboards and Apps.
 - Contextual French terminology guards and corrected visible Accounting,
   Documents, HR/Paie and navigation language.
+- A project-wide Impeccable code-first UI workflow and design detector for
+  future Odoo view, accessibility, responsive and frontend work.
 - Dump-bound source gap evidence that names every populated model, relation
   table and stored/manual field under its delivered or blocked scope.
 - A pre-mutation Docker capacity guard and accurate exit-137 resource
   classification, without stopping unrelated feature projects.
 
-These items are part of `19-usl` through merge `61580c1704c`. The complete
-reusable QA seed publication, two zero-OCR
-hydrations, current-source performance comparison and production dress
-rehearsal remain outstanding. A fresh no-Documents rehearsal reached the
-Accounting import but was OOM-killed by the shared 8 GiB Docker VM; its target
-must be reset and the run repeated on a responsive, sufficiently isolated
-runtime before it counts as evidence.
+These foundations and the B2C work are now part of local `19-usl`. After Docker
+capacity was increased, a fresh full reconstruction of source dump
+`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`
+completed on 26 August and published a reusable sanitized QA seed. The run
+proved repeatable Product, Accounting, Identity, B2C, HR, Projects, Documents,
+Paie TESE and Platform Billing restoration, 645 archived Paperless documents,
+638 live authorized document mappings, and a final product-only registry. The
+same canonical run restored all 40 checksum-locked B2C source files and linked
+all 2,893 immutable provider-evidence rows to the searchable archive.
+Two independent isolated seed hydrations then reproduced identical Accounting,
+Documents and Paperless controls with zero OCR submissions. Current-source
+performance comparison and the production dress rehearsal remain outstanding.
+The subsequent bank-ingestion merge passed clean installs for all four affected
+product modules, the pinned OCA OFX suite and repeated upgrades of canonical
+`odoo_dev`; its accounting, B2C and stock fingerprints remained unchanged.
+That focused evidence does not promote the earlier full seed to a final
+release candidate. A new full reconstruction is still required after the
+remaining workstreams merge.
 
 The current candidate's isolated clean-install and repeated-update check passes
-for all twelve presently delivered product modules with no migration registry
+for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
+
+The rehearsal is not a production admission candidate. The strict whole-source
+gate still identifies eight incomplete scopes, the attachment ledger has 115
+pending source attachment IDs, and the separately governed physical
+opening-stock count is still not evidenced. B2C itself now has complete honest
+dispositions: nine aliases are exactly verified, 100 are explicitly not
+applicable, all 180 source-ledger moves have monthly session links, all 40
+source files are archived, and no accounting relationship or SKU mapping is
+left unexplained and pending. Aggregate monthly coverage is not presented as
+one-to-one order accounting, and the 35 header-only Medusa orders remain
+visible without invented lines. The remaining whole-source and physical-count
+items are visible release blockers, not silently discarded data.
 
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in
@@ -148,16 +189,24 @@ The canonical, evidence-bearing sequence is maintained in the
 1. Migration-performance/portable-candidate — **merged through
    `61580c1704c`**.
 2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
-3. Review and merge B2C sales/inventory with complete historical source
-   disposition and analytics dimensions.
+3. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
+   canonical rehearsal passed with complete evidence, relationship and alias
+   dispositions; physical opening stock remains a separate later operation**.
 4. Review and merge Paperless 3.0 and requalify the official export/import and
    zero-OCR paths.
 5. Review and merge Native Sign with signing evidence and permission gates.
-6. Review and merge monthly bank-statement email ingestion with idempotence,
-   failure visibility and a manual-import fallback.
-7. From clean final `19-usl`, run clean install, update, repeated update, full
-   local reconstruction and complete product/migration boundary across every
-   delivered module.
+6. Review and merge Collaboration History, then close the corresponding
+   strict source scope and attachment dispositions without importing
+   migration-only provenance into the product.
+7. Review and merge Distribution Access Control and repeat named-persona,
+   multi-company and record-rule acceptance.
+8. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
+   product/OCA suites and repeated canonical upgrade passed. Production still
+   requires the private OFX cut-over preview/apply/repeat and a routed synthetic
+   mail test.**
+9. From clean final `19-usl`, repeat clean install, update, repeated update,
+   full local reconstruction and complete product/migration boundary across
+   every delivered module after the remaining workstreams are merged.
 
 The exact merge order may change to resolve dependencies, but each feature
 remains independently reviewed and every merge invalidates earlier release

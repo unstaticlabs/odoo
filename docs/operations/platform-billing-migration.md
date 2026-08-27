@@ -30,11 +30,11 @@ and free ports such as `19469/19472`. The harness refuses any project name that
 does not start with `usl-odoo-fp-`. It verifies the repository working
 directory and Compose labels before operations.
 
-The source dump defaults to
-`/Users/valentin/Code/odoo/usl-online-dump` and is mounted read-only. The source
-database must already be running inside the dedicated project; this stage does
-not start, stop or alter it. Both electronic-invoice live flags are forced to
-`0`.
+The source dump defaults to the ignored checkout-local `usl-online-dump/` and
+is mounted read-only. Set `USL_ONLINE_DUMP_DIR` to the approved absolute
+external package path for rehearsal or production use. The source database
+must already be running inside the dedicated project; this stage does not
+start, stop or alter it. Both electronic-invoice live flags are forced to `0`.
 
 ## Isolated Accounting reconstruction
 
@@ -49,8 +49,8 @@ export COMPOSE_PROJECT_NAME=usl-odoo-fp-qa
 export ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-fp-qa
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-fp-qa
 export ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT=1
-export ACCOUNTING_COMPAT_SOURCE_DIR=/Users/valentin/Code/odoo/usl-online-dump
-export USL_ONLINE_DUMP_DIR=/Users/valentin/Code/odoo/usl-online-dump
+export ACCOUNTING_COMPAT_SOURCE_DIR=/approved/private/usl-online-dump
+export USL_ONLINE_DUMP_DIR=/approved/private/usl-online-dump
 export ODOO_HTTP_PORT=19469
 export ODOO_GEVENT_PORT=19472
 export USL_EINVOICE_LIVE_ENABLED=0

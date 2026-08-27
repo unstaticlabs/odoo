@@ -270,6 +270,15 @@ Paperless upload. Existing manual metadata wins; conflicting non-empty defaults
 produce a review item. Stable project/platform mappings update one nested tag
 through entity renames and prevent per-record tag growth.
 
+Managed bank statements use this same write path with a stricter completion
+contract. The received PDF remains attached to the source email in Odoo, but a
+checkpoint is not certifiable until Paperless exposes a version with the same
+SHA-256, the version is pinned on the statement relationship, accounting access
+is synchronized and the archived original is available. A corrected PDF is
+submitted as a new version of the existing statement root. Advisory locking
+makes a cron/manual retry converge without submitting the same accepted source
+twice.
+
 Historical Odoo binaries cross a separate migration boundary. The canonical
 tool under `migration/documents_archive/` verifies the approved dump and every
 filestore object, then uses the supported asynchronous Odoo-to-Paperless write

@@ -66,6 +66,14 @@ CLOSING_CONTROL_DEFINITIONS = (
 
 HYGIENE_CONTROL_DEFINITIONS = (
     (
+        "hygiene_bank_statement",
+        "reconciliation",
+        "Monthly bank statement evidence",
+        "Checks scheduled bank exports, statement evidence, balance agreement and certified continuity.",
+        "An incomplete checkpoint weakens confidence that every bank movement for the month is present.",
+        "accountant_reviewer",
+    ),
+    (
         "hygiene_bank_unmatched",
         "reconciliation",
         "Unmatched bank transactions",

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_order_search" model="ir.ui.view">
+        <field name="name">b2c.order.search</field>
+        <field name="model">b2c.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="external_order_id"/>
+                <field name="channel_id"/>
+                <field name="country_id"/>
+                <filter name="pending_review" string="Pending Review" domain="[('review_state', '=', 'pending')]"/>
+                <filter name="incomplete" string="Incomplete" domain="[('amount_completeness', '!=', 'complete')]"/>
+                <filter name="unmapped" string="Unmapped" domain="[('mapping_state', 'not in', ('verified', 'not_applicable'))]"/>
+                <filter name="order_date" string="Order Date" date="order_date"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'order_date:month'}"/>
+                    <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_provider" string="Source Provider" context="{'group_by': 'source_provider'}"/>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                    <filter name="group_currency" string="Transaction Currency" context="{'group_by': 'currency_id'}"/>
+                    <filter name="group_mapping" string="Mapping" context="{'group_by': 'mapping_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_list" model="ir.ui.view">
+        <field name="name">b2c.order.list</field>
+        <field name="model">b2c.order</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="review_state == 'pending'" decoration-danger="review_state == 'blocked'">
+                <field name="order_date"/>
+                <field name="name"/>
+                <field name="channel_id"/>
+                <field name="source_provider"/>
+                <field name="external_order_id" optional="show"/>
+                <field name="country_id" optional="show"/>
+                <field name="currency_id" optional="show"/>
+                <field name="revenue_amount" sum="Transaction Revenue" optional="hide"/>
+                <field name="revenue_company_amount" sum="Company Revenue"/>
+                <field name="refund_company_amount" sum="Refunds" optional="show"/>
+                <field name="net_company_amount" sum="Net" optional="show"/>
+                <field name="unallocated_revenue_company_amount" sum="Unallocated" optional="show"/>
+                <field name="line_revenue_coverage_percent" optional="show"/>
+                <field name="amount_completeness" widget="badge"/>
+                <field name="mapping_state" widget="badge"/>
+                <field name="review_state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_pivot" model="ir.ui.view">
+        <field name="name">b2c.order.pivot</field>
+        <field name="model">b2c.order</field>
+        <field name="arch" type="xml">
+            <pivot string="B2C Order Revenue and Coverage" sample="0">
+                <field name="order_date" interval="month" type="row"/>
+                <field name="channel_id" type="col"/>
+                <field name="revenue_company_amount" type="measure"/>
+                <field name="refund_company_amount" type="measure"/>
+                <field name="net_company_amount" type="measure"/>
+                <field name="unallocated_revenue_company_amount" type="measure"/>
+                <field name="line_revenue_coverage_percent" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_graph" model="ir.ui.view">
+        <field name="name">b2c.order.graph</field>
+        <field name="model">b2c.order</field>
+        <field name="arch" type="xml">
+            <graph string="B2C Revenue by Month and Channel" type="bar" stacked="1" sample="0">
+                <field name="order_date" interval="month"/>
+                <field name="channel_id"/>
+                <field name="revenue_company_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_form" model="ir.ui.view">
+        <field name="name">b2c.order.form</field>
+        <field name="model">b2c.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,confirmed,fulfilled,partially_refunded,refunded,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_native_sale_order" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="not sale_order_id">
+                            <field name="sale_order_id" string="Native Sale Order" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Blocked" bg_color="text-bg-danger" invisible="review_state != 'blocked'"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Canonical Business Identity">
+                            <field name="canonical_key" readonly="1"/>
+                            <field name="channel_id"/>
+                            <field name="source_provider"/>
+                            <field name="origin"/>
+                            <field name="external_order_id"/>
+                            <field name="external_display_id"/>
+                            <field name="original_provider_state"/>
+                        </group>
+                        <group string="Dates and Scope">
+                            <field name="order_date"/>
+                            <field name="payment_date"/>
+                            <field name="refund_date"/>
+                            <field name="fulfilment_date"/>
+                            <field name="country_id"/>
+                            <field name="fulfilment_mode"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Order Lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="original_sku"/>
+                                    <field name="original_name"/>
+                                    <field name="original_variation" optional="hide"/>
+                                    <field name="quantity"/>
+                                    <field name="product_id"/>
+                                    <field name="mapping_state" widget="badge"/>
+                                    <field name="revenue_amount" sum="Transaction Revenue"/>
+                                    <field name="revenue_company_amount" sum="Company Revenue"/>
+                                    <field name="amount_completeness" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Amounts and Coverage">
+                            <group>
+                                <group string="Transaction Currency">
+                                    <field name="currency_id"/>
+                                    <field name="subtotal_amount"/>
+                                    <field name="shipping_amount"/>
+                                    <field name="discount_amount"/>
+                                    <field name="tax_amount"/>
+                                    <field name="fee_amount"/>
+                                    <field name="refund_amount"/>
+                                    <field name="revenue_amount"/>
+                                    <field name="total_amount"/>
+                                    <field name="net_amount"/>
+                                </group>
+                                <group string="Company Currency">
+                                    <field name="company_currency_id"/>
+                                    <field name="subtotal_company_amount"/>
+                                    <field name="shipping_company_amount"/>
+                                    <field name="discount_company_amount"/>
+                                    <field name="tax_company_amount"/>
+                                    <field name="fee_company_amount"/>
+                                    <field name="refund_company_amount"/>
+                                    <field name="revenue_company_amount"/>
+                                    <field name="total_company_amount"/>
+                                    <field name="net_company_amount"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Currency Evidence">
+                                    <field name="conversion_state"/>
+                                    <field name="evidenced_conversion_rate"/>
+                                    <field name="conversion_evidence"/>
+                                </group>
+                                <group string="Coverage">
+                                    <field name="amount_completeness"/>
+                                    <field name="mapping_state"/>
+                                    <field name="review_state"/>
+                                    <field name="accounting_link_state"/>
+                                    <field name="accounting_link_note"/>
+                                    <field name="line_revenue_company_amount" readonly="1"/>
+                                    <field name="unallocated_revenue_company_amount" readonly="1"/>
+                                    <field name="line_revenue_coverage_percent" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Overlapping Sources">
+                            <field name="source_record_ids" readonly="1">
+                                <list>
+                                    <field name="source_provider"/>
+                                    <field name="source_record_key"/>
+                                    <field name="external_order_id"/>
+                                    <field name="external_display_id"/>
+                                    <field name="original_provider_state"/>
+                                    <field name="completeness_state" widget="badge"/>
+                                    <field name="source_precedence"/>
+                                    <field name="is_primary"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Payment and Refund Events">
+                            <field name="payment_event_ids" readonly="1">
+                                <list>
+                                    <field name="event_date"/>
+                                    <field name="source_provider"/>
+                                    <field name="event_type"/>
+                                    <field name="amount"/>
+                                    <field name="fee_amount"/>
+                                    <field name="refund_amount"/>
+                                    <field name="net_amount"/>
+                                    <field name="currency_id"/>
+                                    <field name="review_state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Fulfilment and COGS">
+                            <field name="fulfilment_event_ids" readonly="1">
+                                <list>
+                                    <field name="event_date"/>
+                                    <field name="source_provider"/>
+                                    <field name="external_printful_id"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="destination_country_id"/>
+                                    <field name="cogs_amount"/>
+                                    <field name="company_cogs_amount"/>
+                                    <field name="currency_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Accounting and Bank Links">
+                            <field name="accounting_link_ids" readonly="1">
+                                <list>
+                                    <field name="link_type"/>
+                                    <field name="link_state" widget="badge"/>
+                                    <field name="account_move_id"/>
+                                    <field name="account_move_line_id"/>
+                                    <field name="bank_statement_line_id"/>
+                                    <field name="attachment_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes and Support">
+                            <group>
+                                <field name="supporting_attachment_id"/>
+                                <field name="notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_order" model="ir.actions.act_window">
+        <field name="name">Canonical Orders</field>
+        <field name="res_model">b2c.order</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_b2c_order_search"/>
+    </record>
+
+    <record id="view_b2c_order_line_search" model="ir.ui.view">
+        <field name="name">b2c.order.line.search</field>
+        <field name="model">b2c.order.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="original_sku"/>
+                <field name="original_name"/>
+                <field name="product_id"/>
+                <filter name="unmapped" string="Unmapped" domain="[('mapping_state', '=', 'pending')]"/>
+                <filter name="order_date" string="Order Date" date="order_date"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'order_date:month'}"/>
+                    <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_sku" string="Original SKU" context="{'group_by': 'original_sku'}"/>
+                    <filter name="group_product" string="Verified Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_line_list" model="ir.ui.view">
+        <field name="name">b2c.order.line.list</field>
+        <field name="model">b2c.order.line</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="mapping_state == 'pending'">
+                <field name="order_date"/>
+                <field name="order_id"/>
+                <field name="channel_id"/>
+                <field name="country_id"/>
+                <field name="original_sku"/>
+                <field name="original_name"/>
+                <field name="quantity" sum="Units"/>
+                <field name="product_id"/>
+                <field name="mapping_state" widget="badge"/>
+                <field name="currency_id"/>
+                <field name="revenue_amount" sum="Transaction Revenue"/>
+                <field name="revenue_company_amount" sum="Company Revenue"/>
+                <field name="amount_completeness" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_line_pivot" model="ir.ui.view">
+        <field name="name">b2c.order.line.pivot</field>
+        <field name="model">b2c.order.line</field>
+        <field name="arch" type="xml">
+            <pivot string="B2C Units and Evidenced Line Revenue" sample="0">
+                <field name="order_date" interval="month" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="original_sku" type="row"/>
+                <field name="channel_id" type="col"/>
+                <field name="quantity" type="measure"/>
+                <field name="revenue_company_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_b2c_order_line_graph" model="ir.ui.view">
+        <field name="name">b2c.order.line.graph</field>
+        <field name="model">b2c.order.line</field>
+        <field name="arch" type="xml">
+            <graph string="B2C Units by Product / SKU" type="bar" stacked="1" sample="0">
+                <field name="order_date" interval="month"/>
+                <field name="product_id"/>
+                <field name="quantity" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_b2c_order_line_analytics" model="ir.actions.act_window">
+        <field name="name">Units and SKU Coverage</field>
+        <field name="res_model">b2c.order.line</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="view_b2c_order_line_search"/>
+        <field name="help" type="html"><p>Line-grain measures never include unallocated header revenue. Use Canonical Orders for total revenue and coverage.</p></field>
+    </record>
+</odoo>

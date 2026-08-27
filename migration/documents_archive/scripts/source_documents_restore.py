@@ -1014,8 +1014,12 @@ def settle_pending(force=False):
         progressed = False
         for item in list(pending):
             operation = item["operation"]
+            # Poll in the operation's legal-company scope.  The submitter may
+            # deliberately have access to fewer companies than the archive
+            # administrator, and Odoo rejects a with_user() environment whose
+            # allowed-company context includes an unauthorized company.
             operation.with_context(
-                allowed_company_ids=target_companies.ids,
+                allowed_company_ids=operation.company_id.ids,
             ).poll()
             env.cr.commit()
             operation.invalidate_recordset()

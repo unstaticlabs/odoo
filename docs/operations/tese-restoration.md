@@ -91,9 +91,9 @@ residuals.
 
 ## Safe commands
 
-Keep the private dump outside Git. The default path is
-`/Users/valentin/Code/odoo/usl-online-dump`; set `USL_ONLINE_DUMP_DIR` when it
-differs.
+The ignored checkout-local `usl-online-dump/` is the development default. Set
+`USL_ONLINE_DUMP_DIR` to the approved absolute external package path for
+rehearsal or production use; never commit the private dump.
 
 For the normal disposable developer/QA database, use the single canonical
 pipeline:

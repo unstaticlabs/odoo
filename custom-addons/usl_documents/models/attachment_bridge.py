@@ -272,6 +272,14 @@ class UslDocument(models.Model):
         for document in self:
             actor = submitted_by or self.env.user
             access_actor = access_user or actor
+            access_company_id = int(
+                context.get("company_id") or document.company_id.id or 0,
+            )
+            access_context = (
+                {"allowed_company_ids": [access_company_id]}
+                if access_company_id
+                else {}
+            )
             incoming_role = context.get("document_role") or "background"
             if not context.get("related_records") and incoming_role in {
                 "evidence",
@@ -284,9 +292,13 @@ class UslDocument(models.Model):
                         skip_permission_invalidation=True,
                     ).write({"intake_role": incoming_role})
             for target in context.get("related_records") or []:
-                record = self.env[target["model"]].with_user(access_actor).browse(
-                    int(target["id"]),
-                ).exists()
+                record = (
+                    self.env[target["model"]]
+                    .with_user(access_actor)
+                    .with_context(**access_context)
+                    .browse(int(target["id"]))
+                    .exists()
+                )
                 if not record:
                     raise UserError(_("A related business record no longer exists."))
                 record.check_access("read")
@@ -422,10 +434,22 @@ class UslDocument(models.Model):
         for document in self:
             actor = submitted_by or self.env.user
             access_actor = access_user or actor
+            access_company_id = int(
+                context.get("company_id") or document.company_id.id or 0,
+            )
+            access_context = (
+                {"allowed_company_ids": [access_company_id]}
+                if access_company_id
+                else {}
+            )
             for target in context.get("related_records") or []:
-                record = self.env[target["model"]].with_user(access_actor).browse(
-                    int(target["id"]),
-                ).exists()
+                record = (
+                    self.env[target["model"]]
+                    .with_user(access_actor)
+                    .with_context(**access_context)
+                    .browse(int(target["id"]))
+                    .exists()
+                )
                 if not record:
                     raise UserError(_("A related business record no longer exists."))
                 record.check_access("read")

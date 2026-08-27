@@ -7,14 +7,17 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 
 ## Documents
 
+- [Distribution fork overview](fork-overview.md)
 - [Product vision](product-vision.md)
 - [Experience principles](experience-principles.md)
 - [Structured operational memory](structured-operational-memory.md)
 - [Accounting core](accounting-core.md)
+- [Scheduled bank-statement review](scheduled-bank-statements.md)
 - [Company-paid expense bank matching](expense-bank-matching.md)
 - [Lightweight expense batches](expense-batches.md)
 - [Paie TESE](paie-tese.md)
 - [Content-platform payout billing](platform-billing.md)
+- [B2C sales, products and inventory](b2c-sales-inventory.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
 - [Pocket ID SSO architecture](pocket-id-sso.md)

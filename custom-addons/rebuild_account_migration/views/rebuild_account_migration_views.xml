@@ -282,11 +282,10 @@
         <field name="active" eval="False"/>
     </record>
     <record id="account_statement_import_sheet_file.action_statement_import_sheet_report_mappings" model="ir.actions.act_window">
-        <field name="name">Bank Statement File Mappings</field>
+        <field name="name">CSV/XLSX Bank File Layouts</field>
     </record>
     <record id="account_statement_import_sheet_file.menu_statement_import_sheet_mapping" model="ir.ui.menu">
-        <field name="name">Bank Statement File Mappings</field>
-        <field name="sequence">45</field>
+        <field name="active" eval="False"/>
     </record>
     <record id="view_rebuild_bank_statement_mapping_label" model="ir.ui.view">
         <field name="name">account.journal.statement.mapping.label</field>

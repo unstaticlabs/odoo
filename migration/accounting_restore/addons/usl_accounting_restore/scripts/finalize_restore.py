@@ -41,29 +41,50 @@ if not module or module.state != "installed":
         "usl_accounting_restore must be installed before finalization.",
     )
 
-latest_run = env["rebuild.account.import.run"].sudo().search([], limit=1)
-if not latest_run or latest_run.status != "passed":
+latest_run = env["rebuild.account.import.run"].sudo().search(
+    [],
+    order="id desc",
+    limit=1,
+)
+if latest_run and latest_run.status != "passed":
     raise RuntimeError(
         "The latest Accounting restoration must pass before finalization.",
     )
-blocking = env["rebuild.account.discrepancy"].sudo().search_count([
-    ("severity", "in", ["P0", "P1"]),
-    ("status", "in", ["open", "investigating"]),
-])
-if blocking:
-    raise RuntimeError(
-        f"{blocking} P0/P1 restoration discrepancy record(s) remain open.",
+if latest_run:
+    attachment_target_repair = (
+        latest_run.repair_final_account_move_attachment_targets()
     )
+    blocking = env["rebuild.account.discrepancy"].sudo().search_count([
+        ("severity", "in", ["P0", "P1"]),
+        ("status", "in", ["open", "investigating"]),
+    ])
+    if blocking:
+        raise RuntimeError(
+            f"{blocking} P0/P1 restoration discrepancy record(s) remain open.",
+        )
+else:
+    attachment_target_repair = {
+        "checked_attachment_count": 0,
+        "repaired_attachment_count": 0,
+        "repaired_main_attachment_count": 0,
+    }
 
 before = accounting_snapshot()
-run_evidence = {
-    "name": latest_run.name,
-    "status": latest_run.status,
-    "source_snapshot_id": latest_run.source_snapshot_id,
-    "source_dump_sha256": latest_run.source_dump_sha256,
-    "finished_at": str(latest_run.finished_at or ""),
-    "statistics": latest_run.statistics_json or {},
-}
+run_evidence = (
+    {
+        "name": latest_run.name,
+        "status": latest_run.status,
+        "source_snapshot_id": latest_run.source_snapshot_id,
+        "source_dump_sha256": latest_run.source_dump_sha256,
+        "finished_at": str(latest_run.finished_at or ""),
+        "statistics": latest_run.statistics_json or {},
+    }
+    if latest_run
+    else {
+        "status": "not_run",
+        "reason": "empty temporary module reinstall cleanup",
+    }
+)
 module.button_immediate_uninstall()
 env.cr.commit()
 after = accounting_snapshot()
@@ -74,6 +95,7 @@ if after != before:
 
 print(json.dumps({
     "migration_module": "uninstalled",
+    "attachment_target_repair": attachment_target_repair,
     "business_snapshot_before": before,
     "business_snapshot_after": after,
     "restore_evidence": run_evidence,

@@ -8,11 +8,17 @@ checkpoint. A row marked **planned** or **partial** is not release evidence.
 
 - Odoo development branch: `codex/fix-seamless-paperless-documents`.
 - Odoo starting commit: `6d5ea36048bf2e4d352b2bb49995485fba61e168`.
-- Odoo base: `origin/19-usl` at
-  `e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621`.
+- Odoo base originally replayed at
+  `e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621`; the final branch integrates
+  current `origin/19-usl` at
+  `65b9bd8827060a72cb42c10ef7875a4766a83f67`.
 - Odoo MCP development branch: `codex/paperless-documents-mcp`.
 - Odoo MCP starting commit and base:
   `fd4627afa7a2aa43ac2f06744d48bb76fe627fdc`.
+- Odoo MCP current main and pushed feature tip:
+  `394124bf1dc0e28b7faa1f0a9c78f31180534478` and
+  `c22538006c521ab981c0d5ee3c3c5ff20e8e8b83`, respectively. Current main is
+  an ancestor of the feature tip.
 - Source dump: `/Users/roger/projects/odoo/usl-online-dump/dump.sql`, SHA-256
   `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
 - The Odoo branch is advanced only with ordinary scoped commits. Do not reset,
@@ -338,18 +344,29 @@ administrator's intentional production pause on every update, whereas the QA
 bootstrap is an explicit environment-recovery action and the product check
 leaves the original attachment safe and explains the operational remedy.
 
-Backend validation passed 170 test methods (178 reported test entries), zero
+The final caught-up tree contains 172 Python test methods. Odoo executed 174
+post-test wrappers and reported 180 `usl_documents` entries, with zero
 failures and zero errors, after focused regressions for private
 state, read-only accounting access, manager-only views, empty archive search,
 background visibility, multi-company scope, attachment promotion,
 root/version identity, unchanged policy/synchronization writes, and trusted
 generated-final provenance, observable attachment ingestion, exact-document
-opening, and paused-worker handling. Frontend validation passed 34 desktop
-tests with 233 assertions and 29 mobile tests with 216 assertions, with zero
-Odoo failures or errors. Two consecutive scoped module updates installed
-`usl_documents saas~19.3.1.7.9`; Python, XML, JavaScript
+opening, paused-worker handling, and both direct and archive-context
+multi-company polling. Frontend validation passed 35 desktop tests with 246
+assertions and 30 mobile tests with 229 assertions, with zero Odoo failures or
+errors. Two consecutive scoped module updates installed
+`usl_documents saas~19.3.1.7.10`; Python, XML, JavaScript
 asset, translation, manifest, production-model Ruff, shell-syntax, static, and
 product/migration source and database checks passed.
+
+On the caught-up 872-root ARM64 QA archive, native Paperless lexical search
+had an 88.5 ms median (524.2 ms first call), while its bounded scoped endpoint
+had a 23.0 ms median. Odoo **Everywhere** exact results took 162.8 ms cold and
+44.3 ms median warm; the cold hybrid server path took 2.95 seconds and its
+briefly cached repeats took 39.0–44.6 ms. Direct semantic retrieval remained
+the slow component at a 3.87 second median. The UI therefore keeps the exact
+request and visible results independent, then refines them semantically with
+the explicit in-progress banner.
 
 The reported QA attachment was recovered without replacement: Odoo attachment
 1922 remains on project task 671, operation 1768 completed, and it points to
@@ -359,16 +376,47 @@ returned the completed status and an exact-document workspace action. The
 restored attachment backfill is complete, all three Documents schedulers are
 active, and no ingestion operation remains active.
 
+The final base catch-up integrates `19-usl` at
+`65b9bd8827060a72cb42c10ef7875a4766a83f67` with a merge commit. Rebasing the
+feature's existing product-history commits was also considered, but rejected
+because it would rewrite already reviewed history and increase replay risk
+without changing the review diff. Conflict resolution retained the feature's
+newer asynchronous attachment queue, `usl_documents` 1.7.10, scoped semantic
+Paperless image, metadata-cache reuse, and exact-document UI. Mainline's newer
+route cleanup, bank-statement Documents integration and 1.4.1 accounting
+bridge, explicit Python reconstruction importer, and associated safety tests
+were retained. Both multi-company ingestion tests were combined. The first
+caught-up full gate exposed that switching from a broad scheduler user to a
+single-company submitter retained the scheduler's `allowed_company_ids`.
+Record validation now explicitly uses the operation company in both the
+legacy direct-link and current archive-context paths, and both regressions
+pass. Mainline's
+older synchronous attachment upload, 1.3.6 Documents manifest, and unpatched
+Paperless image were dropped because the branch implementations supersede
+them; the feature's older reconstruction entrypoint form and older accounting
+bridge version were dropped because current mainline supersedes them.
+
 The exact authoritative dump was reconstructed in the isolated project with
 the deterministic `documents-smoke` profile. Eight selected source identity
 groups produced seven live Paperless roots, with eight checksum validations,
 permission write/readback, HR restriction, and cross-company supersession all
 passing. The sealed restore evidence SHA-256 is
 `dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`.
-The final database boundary passed with 12 product modules and no migration
+The final caught-up database boundary passed with 14 product modules and no migration
 registry, schema, menu, field, model, or XML-ID residue. This partial profile
 is deterministic QA evidence only; it is not complete source or release
 parity.
+
+The first caught-up database-boundary run failed honestly because the older QA
+database did not yet have mainline's new `usl_b2c` and `usl_documents_b2c`
+product modules. Their install and unchanged repeated update passed, after
+which the 14-module boundary passed. Two exact stale Documents-only disposable
+test databases were then removed because their unconfigured cron workers were
+polluting logs; `odoo_dev` was never a deletion target. One rebuild invocation
+also defaulted to the repository-wide Odoo image tag. It was interrupted during
+preflight before database mutation and rerun with the explicit
+`usl-odoo-paperless-193-0824-odoo:latest` tag; the running QA container uses
+that isolated image.
 
 Post-reconstruction bootstrap found that Compose rendered
 `POCKET_ID_EXTRA_USERS_JSON` as YAML flow syntax and removed its JSON quotes.
@@ -451,6 +499,10 @@ The independent Odoo MCP branch contains:
   migration `v3`, and `SERVER_VERSION=0.20.0`;
 - `b9931e9fd12ff51ba29e6b886edd7eb780a2be47` — the accepted security,
   disclosure, capacity, deployment, client-refresh, and rollback boundary.
+- `324db9deec20951e8a69d0baa351da070fb49053` — accessible shared/personal
+  saved views and scoped replay across Documents retrieval.
+- `c22538006c521ab981c0d5ee3c3c5ff20e8e8b83` — the complete ten-tool
+  contract and current qualification/deployment documentation.
 
 Three credible authorization designs were compared:
 
@@ -488,19 +540,19 @@ errors. The repeated fresh installation passed 149 methods; Odoo reported 155
 assertions and 28 mobile tests/207 assertions. Two consecutive upgrades to
 `1.7.1`, scoped Ruff, Python compilation, and diff checks passed.
 
-The MCP repository passed TypeScript typecheck and 1,172 tests across 29 files
-with 4,523 assertions. Wrangler 4.113.0 dry-run produced a 3,478.15 KiB Worker
-(712.18 KiB gzip) with all four Durable Object bindings. Two consecutive
-bundles produced the same compiled `index.js` SHA-256:
-`a34daa7fa42866307a25a522c2df67f6b201a5a4d3ff3ef1f98035431bf3f8c9`.
-The final non-secret MCP identity is
-`38291baa9134226f4c61a11a00cd8dd595fdec52222d35f751d936a433694c2d`;
-it binds MCP commit `b9931e9fd12ff51ba29e6b886edd7eb780a2be47`, server
-version `0.20.0`, Worker digest, and both endpoint URLs. Local readiness reached
+The caught-up MCP repository passed TypeScript typecheck and 1,211 tests. Two
+consecutive Wrangler dry-runs produced the same compiled `index.js` SHA-256:
+`3e65c76922223561d799cbe9ae67b4a1c923745c59b05a58786e831b5ecbf0ed`.
+The pushed MCP tip is
+`c22538006c521ab981c0d5ee3c3c5ff20e8e8b83`, based on current main
+`394124bf1dc0e28b7faa1f0a9c78f31180534478`, with server version `0.22.0`.
+It exposes ten read-only Documents tools, including accessible shared/personal
+saved-view discovery and scoped replay across browse, exact, hybrid, semantic,
+and similarity retrieval. Local readiness reached
 `/mcp` and `/documents/mcp`, which correctly returned HTTP 401 without a user
 credential.
 
-Real MCP Inspector acceptance listed exactly the nine `documents.*` tools on
+Real MCP Inspector acceptance listed the governed `documents.*` tools on
 the focused endpoint. A short-lived API key for the existing QA Documents user
 completed hybrid search, metadata, an 80-character OCR page, local
 similar-document retrieval, versions without checksums, tag catalog, and

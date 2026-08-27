@@ -1,7 +1,7 @@
 # AI Contributor Guide
 
 This branch starts from upstream Odoo `saas~19.3` at
-`efb98f932f3a568ce550a26ebde06da0e14e65d3`. Keep it close to upstream Odoo:
+`aef56898d9ea5a97948af04c03ae101d17b8b4a3`. Keep it close to upstream Odoo:
 avoid changes to core Odoo code unless the task explicitly requires a
 distribution-level core patch and the tradeoff is documented.
 
@@ -23,6 +23,9 @@ distribution-level core patch and the tradeoff is documented.
   - `docs/operations/`
   - `docs/accounting/`
   - `docs/agents/`
+- Use `docs/product/fork-overview.md` as the canonical feature-to-module map.
+  Update it when a delivered capability, product module, core patch, migration
+  stage, user entry point or maturity classification materially changes.
 - Follow `docs/agents/french-localization.md` for French product terminology
   and translation ownership.
 - Use the existing Docker, Dev Container, and helper workflow documented in `README.md`.
@@ -32,6 +35,30 @@ distribution-level core patch and the tradeoff is documented.
 - Material implementation decisions must compare at least two credible alternatives, including standard Odoo or OCA options where relevant.
 - Treat accounting, security, privacy, access control, data integrity, and migration-sensitive changes as risky. Inspect the surrounding model, security, view, migration, and test behavior before changing them.
 - Do not make unrelated refactors, broad rewrites, formatting churn, speculative abstractions, or product changes outside the requested scope.
+
+## UI Design Workflow
+
+- Use the project-local `impeccable` skill for product UI and UX work,
+  including new views, redesigns, layout or typography changes, responsive
+  behavior, accessibility reviews and frontend polish.
+- Load `PRODUCT.md` through the skill before UI work. Existing specifications
+  under `docs/product/`, `docs/accounting/`, `docs/operations/` and
+  `docs/users/` remain the detailed authorities; do not create a competing
+  product or design narrative.
+- Treat Odoo application surfaces as **Operate** interfaces. Preserve native
+  Odoo interaction patterns, semantics, security and familiar components while
+  applying strong hierarchy, clarity, accessibility and responsive behavior.
+- The shared workflow is code-first. For a new or materially redesigned
+  surface, shape the workflow and direction before implementation. For scoped
+  refinements, preserve the incumbent identity and use the narrowest relevant
+  Impeccable command.
+- Keep the Impeccable detector hook enabled. Resolve real findings rather than
+  suppressing them, and document any evidence-backed exception through the
+  skill's governed ignore workflow.
+- Impeccable live variant mode is not configured for this repository because
+  Odoo views and asset bundles are generated through the Odoo runtime rather
+  than a supported HMR or static-source pipeline. Do not introduce a parallel
+  frontend runtime merely to enable live mode.
 
 ## Product and Migration Boundary
 
