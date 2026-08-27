@@ -483,6 +483,68 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             service_registration.run()
         provider_call.assert_not_called()
 
+    def test_official_letter_finalization_is_guarded_before_rendering(self):
+        recipient = self.env["res.partner"].create(
+            {
+                "name": "Official recipient",
+                "street": "20 avenue Victor Hugo",
+                "zip": "69002",
+                "city": "Lyon",
+                "country_id": self.env.ref("base.fr").id,
+                "lang": "fr_FR",
+            }
+        )
+        letter = self.env["usl.document.letter"].create(
+            {
+                "recipient_id": recipient.id,
+                "subject": "Governed correspondence",
+                "signatory_id": self.env.user.id,
+                "signatory_title": "Présidence",
+                "body": "<p>Official content.</p>",
+            }
+        )
+        renderer = self.env["usl.document.renderer"]
+        render_result = {
+            "pdf": b"%PDF-1.7\n%%EOF\n",
+            "template_revision": "test-revision",
+            "payload_sha256": "a" * 64,
+            "renderer_version": "1.0.0",
+        }
+        company_payload = {
+            "name": self.company.name,
+            "legal_identity_lines": ["Test identity"],
+            "primary_color": "714B67",
+            "footer_label": self.company.name,
+        }
+        with (
+            patch.object(
+                type(self.company),
+                "_usl_document_renderer_company_payload",
+                return_value=(company_payload, []),
+            ),
+            patch.object(type(renderer), "render", return_value=render_result) as render,
+        ):
+            with self.assertRaisesRegex(AccessError, "AI Agents"):
+                letter.with_user(self.agent).sudo().action_finalize()
+            render.assert_not_called()
+            letter.with_user(self.valentin).sudo().action_finalize()
+
+        self.assertEqual(letter.state, "finalized")
+        self.assertTrue(
+            self.valentin.has_group(
+                "usl_document_templates.group_document_letter_manager"
+            )
+        )
+        event = self.env["usl.audit.event"].sudo().search(
+            [
+                ("actor_id", "=", self.valentin.id),
+                ("action_key", "=", "guard:documents.letter.finalize"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(event)
+        self.assertEqual(event.outcome, "succeeded")
+
     def test_company_rules_remain_separate_from_roles(self):
         other_invoice = self._draft_invoice(self.env.user, company=self.other_company)
         with self.assertRaises(AccessError):
