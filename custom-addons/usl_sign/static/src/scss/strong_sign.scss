@@ -339,6 +339,10 @@ $usl-sign-warning: #9a6a13;
     transition: background .16s ease, box-shadow .16s ease, transform .16s ease;
 }
 
+.usl-sign-button[hidden] {
+    display: none;
+}
+
 .usl-sign-button:hover:not(:disabled) {
     color: #fff;
     background: $usl-sign-primary-dark;

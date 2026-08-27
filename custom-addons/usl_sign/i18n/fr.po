@@ -2593,8 +2593,8 @@ msgid "Result rejected"
 msgstr "Résultat rejeté"
 
 #. module: usl_sign
-msgid "The signed document failed verification. Open Result & proof for details."
-msgstr "Le document signé n’a pas passé la vérification. Ouvrez Résultat et preuves pour consulter les détails."
+msgid "The signed document failed verification. Open Method, result & proof for details."
+msgstr "Le document signé n’a pas passé la vérification. Ouvrez Méthode, résultat et preuves pour consulter les détails."
 
 #. module: usl_sign
 msgid "Send setup invitation"
@@ -3525,3 +3525,76 @@ msgstr "Si chaque signature prise en charge correspond à la clé publique de so
 #. module: usl_sign
 msgid "Whether embedded evidence matches its signed USL manifest when available."
 msgstr "Si les preuves intégrées correspondent à leur manifeste USL signé lorsqu’il est disponible."
+
+#. module: usl_sign
+msgid "Choose a signed PDF or evidence dossier to check its digital signatures and embedded proof."
+msgstr "Choisissez un PDF signé ou un dossier de preuves pour vérifier ses signatures numériques et les preuves intégrées."
+
+#. module: usl_sign
+#. odoo-python
+msgid "From %(sender)s · Sign as %(role)s"
+msgstr "De %(sender)s · Signer en tant que %(role)s"
+
+#. module: usl_sign
+msgid "Sign now"
+msgstr "Signer maintenant"
+
+#. module: usl_sign
+msgid "Documents waiting for your signature"
+msgstr "Documents en attente de votre signature"
+
+#. module: usl_sign
+msgid "View all"
+msgstr "Tout afficher"
+
+#. module: usl_sign
+msgid "Automatically fill repeated initials"
+msgstr "Remplir automatiquement les paraphes répétés"
+
+#. module: usl_sign
+msgid "Reuse these initials for the remaining Initials fields as you continue through this document."
+msgstr "Réutilisez ces paraphes pour les champs Paraphes restants à mesure que vous parcourez ce document."
+
+#. module: usl_sign
+msgid "Automatically fill repeated signatures"
+msgstr "Remplir automatiquement les signatures répétées"
+
+#. module: usl_sign
+msgid "Reuse this signature for the remaining Signature fields as you continue through this document."
+msgstr "Réutilisez cette signature pour les champs Signature restants à mesure que vous parcourez ce document."
+
+#. module: usl_sign
+msgid "Download the document as it is now"
+msgstr "Télécharger le document dans son état actuel"
+
+#. module: usl_sign
+msgid "If other people still need to sign, this copy is not the final document."
+msgstr "Si d’autres personnes doivent encore signer, cette copie n’est pas le document final."
+
+#. module: usl_sign
+msgid "Signed file in Documents"
+msgstr "Fichier signé dans Documents"
+
+#. module: usl_sign
+msgid "Proof in Documents"
+msgstr "Preuves dans Documents"
+
+#. module: usl_sign
+msgid "Final storage is in progress."
+msgstr "L’archivage final est en cours."
+
+#. module: usl_sign
+msgid "The signed PDF and proof package are safe in Odoo while Paperless finishes storing both archive copies."
+msgstr "Le PDF signé et le dossier de preuves sont conservés dans Odoo pendant que Paperless termine l’archivage des deux copies."
+
+#. module: usl_sign
+msgid "Check storage status"
+msgstr "Vérifier l’état de l’archivage"
+
+#. module: usl_sign
+msgid "Method, result & proof"
+msgstr "Méthode, résultat et preuves"
+
+#. module: usl_sign
+msgid "This archived file is not available yet."
+msgstr "Ce fichier archivé n’est pas encore disponible."

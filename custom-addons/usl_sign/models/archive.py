@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class UslDocumentLink(models.Model):
@@ -58,6 +58,58 @@ class SignRequestArchive(models.Model):
                 raise ValidationError(msg)
             request._archive_dossier(force=True)
         return True
+
+    def action_refresh_archive(self):
+        self._check_prepare_access()
+        self._reconcile_archive()
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def _action_open_archived_file(self, field_name):
+        self.ensure_one()
+        document = self[field_name]
+        if not document:
+            raise UserError(_("This archived file is not available yet."))
+        document.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": document.name,
+            "res_model": "usl.document",
+            "res_id": document.id,
+            "views": [
+                (self.env.ref("usl_documents.view_usl_document_form").id, "form"),
+            ],
+            "target": "current",
+        }
+
+    def action_open_archived_signed_document(self):
+        return self._action_open_archived_file("archive_document_id")
+
+    def action_open_archived_proof_package(self):
+        return self._action_open_archived_file("archive_dossier_document_id")
+
+    def _share_archived_files_with_participants(self):
+        """Expose final private files only to this request's internal participants."""
+        archive_actor = self.env.ref("base.user_root")
+        for request in self:
+            partners = (
+                request.user_id.partner_id
+                | request.coordinator_ids.partner_id
+                | request.signer_ids.partner_id
+            )
+            for document in (
+                request.archive_document_id | request.archive_dossier_document_id
+            ):
+                secured_document = (
+                    document.with_user(archive_actor)
+                    .sudo()
+                    .with_company(request.company_id)
+                )
+                for partner in partners:
+                    secured_document.link_to_record("res.partner", partner.id)
+                # The new participant links change the effective Paperless ACL.
+                # Synchronize even when initial ingestion already marked the
+                # service-owned document permissions as current.
+                secured_document.action_sync_permissions()
 
     @api.model
     def _cron_reconcile_archives(self):

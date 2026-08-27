@@ -17,12 +17,16 @@ class ResUsers(models.Model):
     @api.model
     def sign_oca_request_user_count(self):
         """Adapt the inherited Sign systray to Native Sign lifecycle states."""
-        count = self.env["sign.oca.request.signer"].search_count(
-            self._usl_sign_actionable_signer_domain(),
+        model = self.env["sign.oca.request.signer"]
+        domain = self._usl_sign_actionable_signer_domain()
+        count = model.search_count(domain)
+        signers = model.search(
+            domain,
+            order="request_id desc, sequence, id",
+            limit=8,
         )
         if not count:
             return []
-        model = self.env["sign.oca.request.signer"]
         return [
             {
                 "id": self.env["ir.model"]._get_id(model._name),
@@ -30,6 +34,20 @@ class ResUsers(models.Model):
                 "model": model._name,
                 "icon": modules.module.get_module_icon("usl_sign"),
                 "total_records": count,
+                "items": [
+                    {
+                        "id": signer.id,
+                        "title": signer.request_id.name,
+                        "subtitle": _("From %(sender)s · Sign as %(role)s")
+                        % {
+                            "sender": signer.request_id.user_id.name,
+                            "role": signer.role_id.name,
+                        },
+                        "trust": signer.request_id.requested_trust_short,
+                        "url": f"/sign/user/{signer.id}",
+                    }
+                    for signer in signers
+                ],
             },
         ]
 

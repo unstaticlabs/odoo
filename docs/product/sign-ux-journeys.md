@@ -84,9 +84,13 @@ without interrupting everyday work.
   whole PDF → complete assigned fields → consent → sign → receive confirmation.
 - **Primary action:** **Review document**, then **Sign**.
 - **Expectation:** the requesting company, document, signing identity, due date
-  and remaining fields are obvious. Copy is short and natural.
+  and remaining fields are obvious. Copy is short and natural. An adopted full
+  name is shared between the signature and initials dialogs, and repeated marks
+  can be filled automatically without reopening the adoption dialog.
 - **Release check:** mobile layout, resume, expired link, wrong code, decline,
-  missing required field and interrupted submission all fail safely.
+  missing required field and interrupted submission all fail safely. After
+  signing, the signer can download the current document with an explicit
+  warning when it is not final yet.
 
 ### 6. Find my pending and earlier signatures
 
@@ -97,7 +101,8 @@ without interrupting everyday work.
 - **Primary action:** select a pending row to review and sign, or select a
   completed row to open the signed record and its proof directly.
 - **Expectation:** personal status and overall document status are separate;
-  waiting for another signer is not presented as an error.
+  waiting for another signer is not presented as an error. The Sign drawer
+  names each pending document and opens that signing journey in a new tab.
 - **Release check:** identity matching and company rules prevent sibling
   contacts or unrelated users from seeing or signing a document.
 

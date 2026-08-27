@@ -9,7 +9,7 @@ defineMailModels();
 test("signature inspector starts with a local-processing promise and one clear action", async () => {
     await mountWithCleanup(SignatureInspector);
 
-    expect(".usl_sign_inspector h1").toHaveText("Check a signed PDF");
+    expect(".usl_sign_inspector h1").toHaveText("Check Signatures");
     expect(".usl_sign_inspector_privacy").toHaveText(/stays in this browser/);
     expect(".usl_sign_inspector_dropzone").toHaveCount(1);
     expect(".usl_sign_inspector_dropzone").toHaveText(/signed PDF or evidence dossier/);

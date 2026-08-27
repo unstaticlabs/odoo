@@ -59,6 +59,14 @@ Use `upgrade` after changing `usl_sign`: it updates the module in place and
 restarts only Odoo, preserving the disposable QA records and isolated service
 volumes. Use `start` for a complete service/configuration refresh.
 
+Paperless ingestion is asynchronous. A freshly validated request may briefly
+show **Final storage is in progress** while both upload tasks finish. Use
+**Check storage status** for immediate reconciliation; the lifecycle job also
+reconciles it. Only a failed final-storage state is an archival error. The
+signed PDF and proof package remain downloadable from Odoo during either state,
+and linked archive records open in Documents for users whose existing Documents
+permissions allow them.
+
 `info` prints the resolved project, URLs, review users and login-link commands.
 `login-link` creates a one-time Pocket ID session for the named synthetic user;
 after opening it, use **Continue with Pocket ID** on the Odoo login page. `test`

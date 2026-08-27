@@ -9,8 +9,8 @@
 
                     <header class="usl_sign_inspector_header">
                         <div>
-                            <h1>Check a signed PDF</h1>
-                            <p>See which digital signatures are intact, who their certificates identify, and what still needs an authoritative check.</p>
+                            <h1 class="h2 mb-1">Check Signatures</h1>
+                            <p class="text-muted mb-0">Choose a signed PDF or evidence dossier to check its digital signatures and embedded proof.</p>
                         </div>
                         <div class="usl_sign_inspector_privacy" aria-label="Local processing">
                             <i class="fa fa-lock" aria-hidden="true"/>

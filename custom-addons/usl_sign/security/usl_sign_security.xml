@@ -72,6 +72,21 @@
         <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
     </record>
 
+    <record id="document_sign_participant_read" model="ir.rule">
+        <field name="name">Archived signature files: request participants</field>
+        <field name="model_id" ref="usl_documents.model_usl_document"/>
+        <field name="domain_force">[
+            ('confidentiality', '=', 'private'),
+            ('link_ids.res_model', '=', 'res.partner'),
+            ('link_ids.res_id', '=', user.partner_id.id)
+        ]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <record id="signer_company" model="ir.rule">
         <field name="name">Signature recipients: allowed companies</field>
         <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
