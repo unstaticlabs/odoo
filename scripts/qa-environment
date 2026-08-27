@@ -239,7 +239,7 @@ reuse_qa_target() {
     paperless-webserver
   "${compose[@]}" up -d --wait --pull never odoo
   if [[ "$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev \
-      -c "SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'")" != full ]]; then
+      -c "SELECT COALESCE((SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'), 'full')")" != full ]]; then
     printf 'The cached QA target is not stamped with the full profile.\n' >&2
     return 1
   fi

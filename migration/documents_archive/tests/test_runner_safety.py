@@ -409,6 +409,11 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('stage "reset isolated QA project"'),
         )
         self.assertIn('stage "reuse and verify existing QA target"', script)
+        self.assertIn(
+            "SELECT COALESCE((SELECT value FROM ir_config_parameter WHERE "
+            "key='usl.qa.data_profile'), 'full')",
+            script,
+        )
         self.assertIn("scripts/check-product-database-boundary", script)
 
     def test_qa_cleanup_is_worktree_scoped_and_confirmation_gated(self):
