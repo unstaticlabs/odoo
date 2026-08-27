@@ -551,11 +551,13 @@ patch(SignOcaPdfPortal.prototype, {
         this.uslFieldGuide?.move(1);
     },
 
-    _setSubmissionState(button, {busy, label, complete = false}) {
+    _setSubmissionState(button, {busy = true, label, message, complete = false}) {
         const consent = document.getElementById("usl_sign_consent");
         const spinner = document.getElementById("usl_sign_submission_spinner");
         const buttonLabel = document.getElementById("usl_sign_submission_label");
         const status = document.getElementById("usl_sign_submission_status");
+        const statusMessage =
+            message || (complete ? _t("Signature saved. Opening the result…") : "");
         button.dataset.submitting = busy ? "true" : "false";
         button.setAttribute("aria-busy", busy ? "true" : "false");
         spinner?.classList.toggle("d-none", !busy || complete);
@@ -565,11 +567,15 @@ patch(SignOcaPdfPortal.prototype, {
         if (consent) {
             consent.disabled = busy;
         }
-        status?.classList.toggle("d-none", !busy);
-        if (complete && status) {
-            status.querySelector("span").textContent =
-                _t("Signature saved. Opening the result…");
-            status.querySelector("i")?.classList.replace("fa-lock", "fa-check-circle");
+        status?.classList.toggle("d-none", !busy && !statusMessage);
+        if (status) {
+            const statusText = status.querySelector("span");
+            if (statusText && statusMessage) {
+                statusText.textContent = statusMessage;
+            }
+            const statusIcon = status.querySelector("i");
+            statusIcon?.classList.toggle("fa-lock", !complete);
+            statusIcon?.classList.toggle("fa-check-circle", complete);
         }
         this._syncConsentState();
     },
@@ -674,15 +680,19 @@ patch(SignOcaPdfPortal.prototype, {
             const location = await this._requestLocationOnce();
             const context = browserContext();
             if (this.info.requested_trust === "strong_personal") {
-                if (typeof window.uslStrongSign !== "function") {
+                if (typeof window.uslStrongCeremony !== "function") {
                     throw new Error("Strong signing is unavailable.");
                 }
-                await window.uslStrongSign({
-                    button,
+                await window.uslStrongCeremony({
                     items: this.info.items,
                     documentSha256: this.info.document_sha256,
                     location,
                     browserContext: context,
+                    onProgress: (progress) =>
+                        this._setSubmissionState(button, {
+                            busy: true,
+                            ...progress,
+                        }),
                 });
                 return;
             }
