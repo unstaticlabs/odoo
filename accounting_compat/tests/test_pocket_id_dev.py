@@ -152,7 +152,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         users_by_profile = {entry["profile"]: entry for entry in policy}
 
         self.assertEqual(
-            users_by_profile["collaborator"]["login"],
+            users_by_profile["technical_operator"]["login"],
             "roger@unstaticlabs.com",
         )
         self.assertEqual(
@@ -278,7 +278,8 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn(
-            "local -a init_modules requested_modules update_modules module_args",
+            "local -a init_modules=() requested_modules=() "
+            "update_modules=() module_args=()",
             script,
         )
         for name in (
