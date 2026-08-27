@@ -1072,7 +1072,7 @@ class UslDocument(models.Model):
         )
         for document in self:
             document.paperless_url = (
-                client.paperless_url(document.paperless_id)
+                client.paperless_login_url(document.paperless_id)
                 if (
                     client.public_url
                     and document.paperless_id
@@ -4213,7 +4213,7 @@ class UslDocument(models.Model):
             )
         return {
             "type": "ir.actions.act_url",
-            "url": self._paperless().paperless_url(self.paperless_id),
+            "url": self._paperless().paperless_login_url(self.paperless_id),
             "target": "new",
         }
 
