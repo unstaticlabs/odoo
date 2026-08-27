@@ -671,6 +671,21 @@ class IrAttachment(models.Model):
             self.sudo().with_context(
                 usl_documents_attachment_policy_write=True,
             ).write(values)
+        if archive_mode == "never":
+            obsolete_failures = self.env["usl.document.operation"].sudo().search(
+                [
+                    ("source_attachment_id", "=", self.id),
+                    ("state", "in", ("failed", "duplicate")),
+                    ("acknowledged", "=", False),
+                ],
+            )
+            if obsolete_failures:
+                obsolete_failures.write(
+                    {
+                        "acknowledged": True,
+                        "acknowledged_at": fields.Datetime.now(),
+                    },
+                )
         return {
             **policy,
             "archive_mode": archive_mode,

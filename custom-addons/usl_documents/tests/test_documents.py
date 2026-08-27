@@ -908,6 +908,55 @@ class TestDocuments(TransactionCase):
             ),
         )
 
+    def test_explicit_exclusion_retires_only_its_stale_failure(self):
+        task = self.env["project.task"].create({"name": "Native-only evidence"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            {
+                "name": "terms.html",
+                "raw": b"<html><body>Terms</body></html>",
+                "mimetype": "text/plain",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        obsolete = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": attachment.name,
+                "state": "failed",
+                "checksum": "8" * 64,
+                "company_id": self.company_a.id,
+                "user_id": self.user.id,
+                "source_attachment_id": attachment.id,
+                "source_attachment_checksum": attachment.checksum,
+                "error_message": "Paperless rejected the upload.",
+            },
+        )
+        unrelated = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "corrupted.pdf",
+                "state": "failed",
+                "checksum": "9" * 64,
+                "company_id": self.company_a.id,
+                "user_id": self.user.id,
+                "error_message": "The PDF is corrupted.",
+            },
+        )
+
+        self.assertEqual(
+            attachment._usl_documents_archive_eligibility(refresh=True),
+            (False, "unsupported_archive_format"),
+        )
+
+        self.assertTrue(obsolete.acknowledged)
+        self.assertTrue(obsolete.acknowledged_at)
+        self.assertFalse(unrelated.acknowledged)
+        self.assertEqual(
+            attachment.usl_documents_ledger_state,
+            "explicitly_excluded",
+        )
+
     def test_inline_and_tiny_placeholder_images_are_not_archived(self):
         task = self.env["project.task"].create({"name": "Mail evidence"})
         inline, placeholder, evidence = self.env["ir.attachment"].with_context(
@@ -2956,19 +3005,34 @@ class TestDocuments(TransactionCase):
             review_state="needs_attention",
             document_type_id=document_type.id,
         )
-        document._apply_archive_context(
+        self._verified_mapping(
             {
-                "company_id": self.company_a.id,
-                "confidentiality": "internal",
-                "accounting_evidence": False,
-                "access_scope": "linked_record",
-                "related_records": [
-                    {"model": "res.partner", "id": self.partner_a.id},
-                ],
+                "user_id": self.manager.id,
+                "paperless_user_id": 99182,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
             },
-            submitted_by=self.manager,
-            access_user=self.env.ref("base.user_root"),
         )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ):
+            document._apply_archive_context(
+                {
+                    "company_id": self.company_a.id,
+                    "confidentiality": "internal",
+                    "accounting_evidence": False,
+                    "access_scope": "linked_record",
+                    "attachment_origin": "backfill",
+                    "policy_reason": "business_record_default",
+                    "related_records": [
+                        {"model": "res.partner", "id": self.partner_a.id},
+                    ],
+                },
+                submitted_by=self.manager,
+                access_user=self.env.ref("base.user_root"),
+            )
 
         self.assertEqual(document.review_state, "classified")
         self.assertTrue(
@@ -2981,10 +3045,15 @@ class TestDocuments(TransactionCase):
         )
 
     def test_classification_cron_is_only_a_twice_daily_safety_net(self):
+        sync_cron = self.env.ref(
+            "usl_documents.ir_cron_usl_documents_sync",
+        )
         cron = self.env.ref(
             "usl_documents.ir_cron_usl_documents_classification",
         )
 
+        self.assertEqual(sync_cron.interval_number, 5)
+        self.assertEqual(sync_cron.interval_type, "minutes")
         self.assertEqual(cron.interval_number, 12)
         self.assertEqual(cron.interval_type, "hours")
 

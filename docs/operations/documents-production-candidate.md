@@ -65,10 +65,15 @@ directory, e-reporting, or production provider.
 Paperless is exactly `3.0.5` at image digest
 `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
 The qualified derived Paperless image is
-`usl-paperless-ngx:3.0.5-usl.3` at manifest digest
-`sha256:3ba338b00385a203a07296dac9be41aacbed2bcce4b317a7be206c570c1f05c5`.
+`usl-paperless-ngx:3.0.5-usl.5`, with locally inspected repository digest
+`sha256:43a3c471af24fe8241d6d6e47fef8f02f0f3b76094e64a4b40ec3b6225d502fc`,
+ARM64 manifest
+`sha256:153c89f7b88024e75422210fad00d97d08fa028eaf36aeba8e1fff205421ceb1`,
+and config
+`sha256:98f1b7848bc6b41bd81dfe5c9c7f9694c108126d851b284da1acd0f3d5b1e874`.
 It is built from the exact base above and contains the documented
-`semantic-search-api-v2+personal-gemini-v1` overlay. The isolated Ollama service is exactly
+`scoped-lexical-search-v1+permission-vector-invariance-v1+semantic-search-api-v2+personal-gemini-v1`
+overlay. The isolated Ollama service is exactly
 `0.30.11` at image digest
 `sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca`.
 Its application-facing model is `usl-bge-m3:documents-20260824-rc1`, model
@@ -169,11 +174,11 @@ correspondent, type, or other user metadata.
 |---|---|---|
 | A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | validated 2026-08-24 |
 | B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | validated 2026-08-25 |
-| C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | implementation and automated gates complete; manual SSO browser evidence pending |
+| C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | automated desktop/mobile gates complete; final manual SSO browser tour pending |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | validated 2026-08-25 |
 | E — personal Gemini | encrypted per-user key, activation/revocation, no Odoo chat UI, no search/index/MCP dependency | implementation and automated gates complete; manual profile browser evidence pending |
-| F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | local arm64 build/restore passed; full ledger and amd64 restore blocked |
-| G — production candidate | full security/functional matrix, install/upgrades, boundary/accounting/docs gates, release identity | planned |
+| F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | full ARM64 ledger and restore passed; AMD64 release qualification pending |
+| G — production candidate | full security/functional matrix, install/upgrades, boundary/accounting/docs gates, release identity | branch closeout automated gates passed; manual tour and AMD64 release qualification pending |
 
 The final evidence set must account for every native attachment as archived
 evidence, library, background, native-only on request, explicitly excluded, or
@@ -1191,3 +1196,78 @@ There are 21 historical failure rows in total, 66 revoked rows and 3,413
 successful rows. Two scheduled mail polls were revoked during the worker
 transition; subsequent scheduled mail polls succeeded. No failure was
 acknowledged, deleted or relabeled to make the gate pass.
+
+### 2026-08-27 branch closeout evidence
+
+The closeout correction publishes `usl_documents saas~19.3.1.7.16`. Fresh
+installs retain the one-minute attachment/ingestion pollers and five-minute
+Paperless catalog/identity synchronization. Classification and TESE
+relationship reconciliation are immediate on their business events, with
+unbounded twelve-hour sweeps only as recovery safety nets. The `1.7.15`
+migration repairs the briefly published `1.7.14` fresh-install schedule only
+when it still has those exact defaults, and the `1.7.16` migration retires an
+old failed/duplicate operation only when its source attachment is now
+deterministically `never` archived. Real failures remain visible.
+
+That last rule was exercised against every remaining QA failure. Operations
+1662 and 1663 are two `Terms_of_Service_fr_fr.html` files already classified
+as `unsupported_archive_format`; operation 1694 is a 1,407-byte
+`Instagram.png` already classified as `inline_or_placeholder_image`. Their
+obsolete messages are now acknowledged while their native expense attachments
+remain intact. Operation 908, `qa-corrupted-upload.pdf`, has no source
+attachment and remains the single active synthetic failure scenario. The four
+remaining **Needs review** roots are deliberately unlinked external intake
+fixtures with no company: Paperless IDs 7, 18, 45 and 877. No failure or review
+state was rewritten merely to satisfy a counter.
+
+Final clean-database Odoo validation passed:
+
+- `usl_documents`: 181 post-tests, zero failures/errors; 39 desktop tests with
+  268 assertions and 33 mobile tests with 248 assertions;
+- `usl_documents_accounting`: 13 post-tests, zero failures/errors;
+- `usl_expense_batch`: 30 post-tests, zero failures/errors, including four
+  desktop and four mobile tests;
+- `usl_tese_payroll`: 27 post-tests, zero failures/errors;
+- `usl_platform_billing`: 32 post-tests, zero failures/errors.
+
+The five modules were updated together on `odoo_dev` and updated identically a
+second time. The final Documents-only `1.7.16` update and repeat also passed.
+Installed versions are `usl_documents 1.7.16`, `usl_documents_accounting
+1.4.1`, `usl_expense_batch 1.2.6`, `usl_platform_billing 1.3.0` and
+`usl_tese_payroll 1.4.4`. Repeated live reconciliation returned zero newly
+classified roots and zero TESE work. The full archive has 872 Odoo roots and
+942 active relationships; 10/10 TESE payslips with attachments are linked.
+
+Paperless validation passed 20 scoped lexical/semantic and
+permission-vector-invariance Django/DRF tests, 20 Personal Gemini backend
+tests, and the two dedicated Personal AI Jest cases. Both non-localized and
+all-locale production frontend builds were cache-replayed from the pinned
+source and dependency lock. The 106 migration/release/recovery safety tests,
+Python compilation, manifest import during clean installation, XML parsing,
+shell syntax, maintained French catalogs, changed-file Ruff, diff hygiene,
+source boundary and live product-database boundary passed. The product
+boundary found 14 product modules and no migration registry/schema residue.
+A broad informational Ruff scan still reports 15 pre-existing findings in
+older migration and initializer files; the closeout files pass the scoped
+gate, and unrelated style churn was not introduced.
+
+The final independent recovery rehearsal exported 875 Paperless documents,
+restored Odoo and Paperless from coordinated backups, and auto-deleted its
+project, volumes and artifacts. Acceptance passed with 872 Odoo roots, 942
+active relationships, three companies, 11 active internal users, 5,428 moves,
+12,991 move lines, posted debit and credit both `2900936.82`, a 16,785-byte
+preview, source/restored integrity true and zero permission-sync failures. The
+source QA stack was restored healthy. The deterministic migration baseline
+remains
+`dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`;
+the closeout changes do not alter reconstruction inputs or selection.
+
+An automated live Chrome smoke reached Pocket ID with the existing local
+identity, but Pocket ID's final **Sign in** action remained in a loading state
+on two fresh interactions without a browser console error. No one-time token
+was injected into browser automation. The complete disposable-database
+desktop/mobile suites passed; a human should still complete the short local
+SSO tour before merge. Production is AMD64 and remains unqualified by this
+ARM64 development closeout. At target `origin/19-usl`
+`65b9bd8827060a72cb42c10ef7875a4766a83f67`, Native Sign is not present; its
+future Documents integration must be reviewed when that branch is merged.

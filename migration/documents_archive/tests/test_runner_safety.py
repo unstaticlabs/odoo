@@ -366,7 +366,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             3,
         )
         self.assertIn(
-            "--user paperless paperless-webserver",
+            "--user paperless --entrypoint python paperless-webserver",
             cutover,
         )
 
