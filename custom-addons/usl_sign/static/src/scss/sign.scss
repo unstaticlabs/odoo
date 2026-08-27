@@ -438,21 +438,6 @@
     min-width: 6rem;
 }
 
-.usl_sign_submission_status {
-    display: flex;
-    flex: 1 0 100%;
-    align-items: center;
-    justify-content: flex-end;
-    gap: .45rem;
-    margin-top: -.5rem;
-    color: #5b6168;
-    font-size: .8rem;
-}
-
-.usl_sign_submission_status .fa-check-circle {
-    color: #198754;
-}
-
 .usl-sign-business-summary {
     display: flex;
     align-items: center;
@@ -2056,8 +2041,4 @@
         flex: 1 1 0;
     }
 
-    .usl_sign_submission_status {
-        justify-content: flex-start;
-        margin-top: 0;
-    }
 }
