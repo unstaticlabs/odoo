@@ -180,6 +180,7 @@
                                         <h3 id="usl_sign_method_result_title" class="h5 mb-1">Signing method</h3>
                                         <div class="fw-semibold"><field name="requested_trust_short" readonly="1" nolabel="1"/></div>
                                         <field name="signing_method_summary" nolabel="1" readonly="1" class="d-block text-muted mt-1"/>
+                                        <field name="signature_semantics_summary" nolabel="1" readonly="1" class="d-block mt-2"/>
                                         <div class="mt-2" invisible="not achieved_trust_short">
                                             <span class="text-muted">Achieved: </span><field name="achieved_trust_short" readonly="1" nolabel="1" class="fw-semibold"/>
                                         </div>

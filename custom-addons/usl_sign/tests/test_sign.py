@@ -18,7 +18,7 @@ from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
-from odoo.tools.pdf import PdfWriter
+from odoo.tools.pdf import PdfReader, PdfWriter
 
 from odoo.addons.usl_sign.controllers.strong import (
     StrongSignController,
@@ -1302,6 +1302,99 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.validation_status, "indeterminate")
         self.assertFalse(request.final_data)
         self.assertIn("pyhanko", " ".join(request.evidence_ids.mapped("name")).lower())
+
+    def test_signature_topology_matches_standard_and_strong_semantics(self):
+        standard = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+        )
+        self.assertEqual(standard._expected_final_signature_count(), 1)
+        self.assertIn("attestation", standard.signature_semantics_summary.lower())
+        self.assertIn("platform integrity seal", standard.signature_semantics_summary.lower())
+        standard._assert_pdf_signature_counts(
+            FakeDSS.validate(self.pdf, "standard"),
+            _pyhanko_valid(),
+            expected_count=1,
+        )
+
+        strong = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+            policy_id=self.env.ref("usl_sign.policy_material_recurring_strong").id,
+            document_category="commercial",
+            signer_type="recurring",
+            risk_level="material",
+            requested_trust="strong_personal",
+        )
+        first, second = strong.signer_ids.sorted(lambda row: (row.sequence, row.id))
+        self.assertEqual(strong._expected_final_signature_count(), 3)
+        self.assertIn("personal PDF signature", strong.signature_semantics_summary)
+        self.assertEqual(
+            strong._assert_strong_personal_revision(
+                first,
+                "personal-certificate-one",
+                FakeDSS.validate(self.pdf, "strong_personal"),
+                _pyhanko_valid(),
+            ),
+            1,
+        )
+        first.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "signed", "certificate_serial": "personal-certificate-one"},
+        )
+        second_validation = FakeDSS.validate(self.pdf, "strong_personal")
+        second_validation["signatureCount"] = 2
+        self.assertEqual(
+            strong._assert_strong_personal_revision(
+                second,
+                "personal-certificate-two",
+                second_validation,
+                _pyhanko_valid(2),
+            ),
+            2,
+        )
+        with self.assertRaisesRegex(DSSServiceError, "distinct personal certificate"):
+            strong._assert_strong_personal_revision(
+                second,
+                "personal-certificate-one",
+                second_validation,
+                _pyhanko_valid(2),
+            )
+        with self.assertRaisesRegex(DSSServiceError, "exactly 2"):
+            strong._assert_strong_personal_revision(
+                second,
+                "personal-certificate-two",
+                FakeDSS.validate(self.pdf, "strong_personal"),
+                _pyhanko_valid(),
+            )
+        certificate_text = "\n".join(
+            page.extract_text()
+            for page in PdfReader(BytesIO(strong._completion_certificate_pdf())).pages
+        )
+        self.assertIn("Personal PAdES signatures: 2", certificate_text)
+        self.assertIn("Platform signatures: 1 final integrity seal", certificate_text)
+
+    def test_standard_finalization_rejects_extra_pdf_signatures(self):
+        request = self._ready(
+            self._request(
+                partners=[self.partner_one, self.partner_two],
+                roles=[self.role_customer, self.role_employee],
+            ),
+        )
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+        request._transition("validating", "validation_started")
+        request.signer_ids.with_context(
+            usl_sign_signer_transition=INTERNAL_OPERATION,
+        ).write({"state": "signed"})
+        validation = FakeDSS.validate(self.pdf, "standard")
+        validation["signatureCount"] = 2
+        dss = FakeDSS()
+        dss.cross_validate = lambda document: _pyhanko_valid(2)
+        with patch.object(type(request), "_sign_dss_client", return_value=dss):
+            self.assertFalse(request._complete_validated_document(self.pdf, validation))
+        self.assertEqual(request.state, "action_required")
+        self.assertFalse(request.final_data)
+        self.assertIn("exactly 1", request.last_error)
 
     def test_validation_without_achieved_trust_fails_closed(self):
         request = self._ready(self._request())

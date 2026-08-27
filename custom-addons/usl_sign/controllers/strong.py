@@ -873,7 +873,8 @@ class StrongSignController(http.Controller):
             msg = "The browser signature payload is invalid."
             raise ValidationError(msg) from error
         try:
-            embedded = DSSClient().embed_signature(
+            dss = DSSClient()
+            embedded = dss.embed_signature(
                 field_content(ceremony.candidate_data),
                 ceremony.certificate_pem,
                 signature_bytes,
@@ -881,13 +882,35 @@ class StrongSignController(http.Controller):
                 signing_context=ceremony.dss_signing_context,
             )
             signed_pdf = base64.b64decode(embedded["document"], validate=True)
-            validation = DSSClient().validate(signed_pdf, expected_level="strong_personal")
+            validation = dss.validate(signed_pdf, expected_level="strong_personal")
             if validation.get("status") != "valid" or validation.get(
                 "achievedTrust",
             ) != "strong_personal":
                 msg = "DSS rejected the personal PAdES signature."
                 raise DSSServiceError(msg)  # noqa: TRY301 - handled by fail-closed cleanup below
+            cross_validation = dss.cross_validate(signed_pdf)
+            expected_count = signer.request_id._assert_strong_personal_revision(
+                signer,
+                ceremony.certificate_serial,
+                validation,
+                cross_validation,
+            )
             signer.request_id._store_dss_reports(validation)
+            signer.request_id._create_evidence(
+                "validation",
+                f"{signer.request_id.name}-strong-revision-{expected_count}-pyhanko.json",
+                json.dumps(
+                    cross_validation, sort_keys=True, indent=2, ensure_ascii=False,
+                ).encode(),
+                mimetype="application/json",
+                signer=signer,
+                metadata={
+                    "engine": "pyHanko",
+                    "version": cross_validation.get("engine_version") or "0.36.2",
+                    "revision": expected_count,
+                },
+            )
+            signer.request_id._store_pdf_certificate_chains(cross_validation)
         except (DSSServiceError, binascii.Error, KeyError, TypeError, ValueError) as error:
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
                 {
