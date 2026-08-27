@@ -766,7 +766,10 @@ class ResUsers(models.Model):
             users, break_glass = self._usl_pocketid_validate_sso_only()
             if previous != policy:
                 for user in users - break_glass:
-                    user.with_context(no_reset_password=True).write(
+                    user.with_context(
+                        no_reset_password=True,
+                        usl_governed_identity_provisioning=True,
+                    ).write(
                         {"password": secrets.token_urlsafe(48)},
                     )
             parameters.set_bool("auth_signup.reset_password", False)

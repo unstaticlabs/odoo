@@ -19,8 +19,9 @@ is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
 through merge `64c1f2b1207`. Collaboration History is integrated on the
 current release candidate through merge `c2be4c7429a`. Paperless 3.0, Native
-Sign and Distribution Access Control remain independently reviewable,
-unmerged workstreams. All three must be merged or explicitly rejected before
+Sign, Distribution Access Control, the post-baseline migration-performance
+cache, and the project/task browser-title fix remain independently reviewable,
+unmerged workstreams. All five must be merged or explicitly rejected before
 the final production qualification; no feature worktree, old QA seed or
 rehearsal candidate can be promoted directly.
 
@@ -150,12 +151,16 @@ remaining workstreams merge.
 The 27 August Collaboration integration candidate completed another canonical
 reconstruction from the same locked source. Its two Collaboration passes were
 identical at 50,005 messages, 36,946 tracking values, 5,862 followers and 895
-activities. Finalization retained 49,451 visible messages and 554 restricted
-archives, removed every temporary migration model/field/table/XML ID, and
-passed the 14-module product database boundary. Identity and Documents
-qualification retained 798 live Paperless records and produced zero changes on
-the second synchronization. The shared reusable QA seed was not published from
-the integration branch because publication is correctly restricted to a clean
+activities. After product review, 49,385 operational messages are retained and
+620 messages are deliberately not copied: 66 default/demo Knowledge messages
+and 554 generated configuration notifications or tracking events with no
+customer or operational content. Their exact disposition is checksum-sealed
+outside the product; no parallel archive model is delivered. Finalization
+removed every temporary migration model/field/table/XML ID and passed the
+product database boundary. Identity and Documents qualification retained the
+source-backed Paperless archive and produced zero changes on repeated
+synchronization. The shared reusable QA seed was not published from the
+integration branch because publication is correctly restricted to a clean
 `19-usl` checkout. These results qualify this merge but, like all earlier
 rehearsals, must be repeated after the remaining workstreams merge.
 
@@ -164,18 +169,30 @@ for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
-The rehearsal is not a production admission candidate. Collaboration closes
-its source scope, but the strict whole-source gate still identifies five
-incomplete scopes, the attachment ledger has ten pending source attachment
-IDs, and the separately governed physical
-opening-stock count is still not evidenced. B2C itself now has complete honest
-dispositions: nine aliases are exactly verified, 100 are explicitly not
-applicable, all 180 source-ledger moves have monthly session links, all 40
-source files are archived, and no accounting relationship or SKU mapping is
-left unexplained and pending. Aggregate monthly coverage is not presented as
-one-to-one order accounting, and the 35 header-only Medusa orders remain
-visible without invented lines. The remaining whole-source and physical-count
-items are visible release blockers, not silently discarded data.
+The current locked-source rehearsal now clears all 19 strict source scopes:
+226,836 source records have explicit dispositions, with zero blocked records,
+relation rows or stored fields. The previously open AI, Sales/Marketing and
+Studio scopes are deliberately dropped because they contain experiments,
+default configuration or customizations superseded by the Distribution.
+Preferences are translated or explicitly recomputed/dropped. Nine default
+dashboard definitions are recomputed or rejected as unsupported configuration,
+and the genuine strategy PDF is retained byte-for-byte as a restricted
+manager-only Document. B2C has complete honest dispositions: nine aliases are
+exactly verified, 100 are explicitly not applicable, all 180 source-ledger
+moves have monthly session links, all 40 source files are archived, and no
+accounting relationship or SKU mapping is left unexplained and pending.
+Aggregate monthly coverage is not presented as one-to-one order accounting,
+and the 35 header-only Medusa orders remain visible without invented lines.
+The rehearsal is still not a production admission candidate: a wholly clean
+post-integration run, final frozen-source rerun, remaining release-train merges,
+isolated-host dress rehearsal and operational approvals remain required. The
+30 September physical opening-stock count is a separate go-live prerequisite;
+the migration correctly creates no unsupported historical stock activity.
+The clean 27 August reconstruction additionally passed final product-boundary,
+outbound-queue and multi-company controls with 14 delivered modules, 733 live
+Documents and no migration residue. The resulting `odoo_dev` is the canonical
+local pre-production target, but later workstream merges will invalidate this
+run for final release admission.
 
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in

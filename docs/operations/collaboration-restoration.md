@@ -7,20 +7,24 @@ value, follower, activity, reaction, recipient and attachment relationship to
 either a native business successor or sealed private archive evidence.
 
 The locked source contains 50,005 messages, 36,946 tracking values, 5,862
-followers and 895 activities. The production gate requires 49,451 messages on
-native or rebuilt records and 554 technical, deleted-record or otherwise
-unsupported messages in structured HTML/JSON archives. A changed count or
-unknown model blocks the run.
+followers and 895 activities. The production gate requires 49,385 messages on
+native or rebuilt operational records and 620 explicit non-copy dispositions.
+A changed count or unknown model blocks the run.
 
-The 554 archived messages are 350 generated notifications and 204 tracking
-events, all using the internal Note subtype. They contain no email, comment,
-reply, subject, recipient, attachment, reaction or parent relationship. Their
-291 archived threads comprise 371 server-action events, 94 scheduled-action
-events, 60 orphaned partner/Peppol notifications, seven automation events, six
-bank-link events, six depreciation-rule events, three IAP-account events, four
-CRM team/member events, two deleted-product creation notices and one Quality
-team creation notice. This is configuration audit history, not customer or
-operational narrative, so it intentionally remains private.
+The deliberately omitted set comprises 66 default/demo Knowledge messages and
+554 generated technical configuration notes. Knowledge is not part of the
+Distribution, and product review determined that its source records are demo
+content from the default Online setup. The 554 technical notes are 350
+generated notifications and 204 tracking events, all using the internal Note
+subtype. They contain no email, comment, reply, subject, recipient, attachment,
+reaction or parent relationship. Their 291 threads comprise 371 server-action
+events, 94 scheduled-action events, 60 orphaned partner/Peppol notifications,
+seven automation events, six bank-link events, six depreciation-rule events,
+three IAP-account events, four CRM team/member events, two deleted-product
+creation notices and one Quality team creation notice. Neither set is customer
+or operational history. Exact source-level dispositions are checksum-sealed in
+private migration evidence; the delivered product does not retain a shadow
+archive or Knowledge compatibility model.
 
 Run the stage only inside canonical reconstruction:
 
@@ -49,11 +53,10 @@ tables. Source IDs and restoration metadata remain only in mode-`0600`,
 checksum-sealed private artifacts; native business chatter remains in Odoo.
 
 The Collaboration stage completes all 64 attachment relationships assigned to
-its scope. The source-wide attachment gate nevertheless remains blocked on ten
-separate payloads: nine standard spreadsheet-dashboard definitions and one
-private strategy PDF used as an AI-agent source. The dashboard definitions are
-not personal preferences or historical figures. Three have installed native
-target counterparts and are recomputed; six require unsupported Enterprise
-dashboard modules and remain private evidence. The PDF is genuine business
-content and must become a restricted `usl.document`; its AI indexing and agent
-configuration must not be copied.
+its scope. The source-wide attachment gate also has a final disposition for
+each formerly pending payload. Nine standard spreadsheet-dashboard definitions
+are recomputed where the Distribution has a native counterpart or explicitly
+rejected where their Enterprise module is unsupported. The genuine private
+strategy PDF is retained byte-for-byte as a restricted manager-only
+`usl.document`; its AI indexing, embeddings and agent configuration are not
+copied.

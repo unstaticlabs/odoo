@@ -15,6 +15,11 @@ for name in ("usl.collaboration.restore.run", "usl.collaboration.restore.mapping
         raise RuntimeError(f"Migration model {name} remains in the product registry")
 evidence = Path(os.environ["COLLABORATION_EVIDENCE_DIR"]) / "collaboration-disposition.json"
 payload = json.loads(evidence.read_text(encoding="utf-8"))
+attachment_ledger_path = evidence.parents[2] / "attachment-disposition-ledger.json"
+attachment_ledger = json.loads(attachment_ledger_path.read_text(encoding="utf-8"))
+source_attachments = {
+    int(row["id"]): row for row in attachment_ledger["entries"]
+}
 if stat.S_IMODE(evidence.stat().st_mode) != 0o600:
     raise RuntimeError("Collaboration evidence is not mode 0600")
 actual_evidence_sha = hashlib.sha256(evidence.read_bytes()).hexdigest()
@@ -103,14 +108,25 @@ for row in dispositions["other"]:
         continue
     if row["disposition"] == "native_message_attachment":
         attachment = env["ir.attachment"].sudo().browse(row["target_attachment_id"]).exists()
-        source_message_id = int(row["id"].split(":", 1)[0])
+        source_message_id, source_attachment_id = (
+            int(value) for value in row["id"].split(":", 1)
+        )
         message = env["mail.message"].sudo().browse(message_targets[source_message_id]).exists()
+        source_attachment = source_attachments.get(source_attachment_id)
+        source_checksum = (source_attachment or {}).get("checksum")
+        payload_matches = bool(attachment and source_attachment) and (
+            attachment.checksum == source_checksum
+            if source_checksum
+            else (
+                source_attachment.get("type") == "url"
+                and attachment.type == "url"
+                and attachment.url == source_attachment.get("url")
+                and attachment.name == source_attachment.get("name")
+            )
+        )
         if (
             not attachment or not message or attachment not in message.attachment_ids
-            or (
-                row["source"]["checksum"]
-                and attachment.checksum != row["source"]["checksum"]
-            )
+            or not payload_matches
         ):
             attachment_errors.append(row["id"])
     elif row["disposition"] == "canonical_document_payload":

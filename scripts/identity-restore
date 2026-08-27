@@ -82,8 +82,14 @@ case "$command_name" in
     import) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_restore.py ;;
     validate) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py ;;
     preferences)
+        # Full Identity parity is proven immediately after the Identity import.
+        # By this later stage HR has deliberately enriched source partner 26's
+        # inconsistent employee flag from its source hr.employee relationship,
+        # so replaying the pre-HR validator here would reject the canonical
+        # product state.  The preference importer validates the locked source
+        # perimeter, every referenced user/action/business record, ambiguity,
+        # and the exact target values while it performs its idempotent upsert.
         run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_preferences.py
-        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py
         ;;
     finalize)
         run_shell migration/identity_restore/addons/usl_identity_restore/scripts/finalize_restore.py

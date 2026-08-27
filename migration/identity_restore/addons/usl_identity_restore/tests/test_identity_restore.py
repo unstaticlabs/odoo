@@ -17,6 +17,51 @@ class TestSavedFilterDomainParser(TransactionCase):
 
 @tagged("post_install", "-at_install")
 class TestIdentityRestore(TransactionCase):
+    def test_resume_inherits_completed_preferences_for_same_snapshot(self):
+        runs = self.env["usl.identity.restore.run"]
+        completed = {
+            "filters": {"migrated": [6, 7], "target_ids": [22, 23]},
+            "exports": {"native_recomputed": [1, 2]},
+        }
+        runs.create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "status": "passed",
+                "statistics_json": {"preference_dispositions": completed},
+            },
+        )
+        runs.create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "status": "passed",
+                "statistics_json": {
+                    "preference_dispositions": {"status": "deferred"},
+                },
+            },
+        )
+        current = runs.create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+            },
+        )
+        different_snapshot = runs.create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "different_snapshot",
+            },
+        )
+
+        self.assertEqual(
+            current._completed_preference_dispositions(),
+            completed,
+        )
+        self.assertFalse(
+            different_snapshot._completed_preference_dispositions(),
+        )
+
     def test_restored_user_does_not_keep_target_onboarding_todo(self):
         run = self.env["usl.identity.restore.run"].create(
             {

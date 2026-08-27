@@ -422,6 +422,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             ],
         )
         unconfigured.write({"active": False})
+        mail_count = self.env["mail.mail"].sudo().search_count([])
         with patch.dict(
             "os.environ",
             {"USL_POCKET_ID_LOGIN_POLICY": "sso_only"},
@@ -436,6 +437,10 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             second = self.env["res.users"]._usl_pocketid_apply_login_policy()
         self.assertEqual(first, LOGIN_POLICY_SSO_ONLY)
         self.assertEqual(second, LOGIN_POLICY_SSO_ONLY)
+        self.assertEqual(
+            self.env["mail.mail"].sudo().search_count([]),
+            mail_count,
+        )
         self.env.cr.execute(
             "SELECT password FROM res_users WHERE id = %s",
             [self.user.id],

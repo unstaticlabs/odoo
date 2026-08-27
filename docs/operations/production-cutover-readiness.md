@@ -83,7 +83,17 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | integrated on the current release candidate; clean reconstruction, repeated import and final product-boundary requalification passed |
 | Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
+| Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | active feature branch; review and merge or explicit rejection pending |
+| Project/task browser title | preserve dynamic action titles in browser history | active one-commit feature branch; review and merge or explicit rejection pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
+
+The five currently unmerged heads are
+`origin/codex/fix-seamless-paperless-documents`,
+`origin/codex/native-sign`, `origin/codex/distribution-access-control`,
+`origin/codex/migration-performance-cache`, and
+`origin/codex/fix-project-task-browser-title`. Feature-branch evidence is not
+release evidence; each head must receive its own Lead Developer integration
+review.
 
 For every merge:
 
@@ -107,17 +117,25 @@ partial `odoo_dev` installation is not final-target evidence.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
   validation.
-- [ ] Merge Paperless 3.0 and Native Sign after independent review and
-  validation.
+- [ ] Merge Paperless 3.0, Native Sign, the post-baseline
+  migration-performance cache and the project/task browser-title fix after
+  independent review and validation.
 - [x] Integrate Collaboration History after independent review and preserve its
   exact reviewed ancestry and archive ref.
 - [x] Reconstruct and finalize canonical `odoo_dev` from the locked source on
   the integrated Collaboration candidate. The second Collaboration import was
   identical, the final database retained 14 product modules with no migration
-  registry/schema residue, and 798 live Documents records remained stable on
-  identity synchronization. Shared QA-seed publication was intentionally not
-  performed from the integration branch; publication remains restricted to a
-  clean `19-usl` checkout.
+  registry/schema residue, and 733 live Documents records remained stable with
+  zero changes on repeated identity synchronization. The reduction from the
+  earlier 798-document rehearsal is the approved removal of 66 demo Knowledge
+  records plus retention of the genuine restricted strategy document. Shared
+  QA-seed publication was intentionally not performed from the integration
+  branch; publication remains restricted to a clean `19-usl` checkout.
+  A second clean run on 27 August completed from the same locked source with
+  the same 733 Documents, exact Accounting/B2C/Collaboration controls, passing
+  multi-company acceptance and zero records in every outbound delivery queue.
+  Timing evidence is sealed in
+  `artifacts/migration/private/runs/usl-odoo-saas-19-3-reconstruct-20260827T065753Z.json`.
 - [ ] Merge Distribution Access Control after independent review and
   validation.
 - [ ] Confirm no active release branch contains unmerged product or migration
@@ -134,9 +152,12 @@ partial `odoo_dev` installation is not final-target evidence.
   Online dump and filestore while Online is still active. The 26 August
   rehearsal passed; it must be repeated after the remaining merges and again
   from the frozen source.
-- [ ] Compare whole-source model/field dispositions, attachments, users,
+- [x] Compare whole-source model/field dispositions, attachments, users,
   Projects, Accounting, Expenses, B2C, inventory, Paperless, Sign, payroll and
-  Platform Billing against the source.
+  Platform Billing against the source. The 27 August gate covered all 19
+  scopes and 226,836 records with zero blocked records, relation rows or stored
+  fields; the attachment gate covered all 2,601 rows and 1,996 stored
+  checksums.
 - [x] Record exact total and stage durations, including Accounting and full
   Paperless reconstruction, for the 26 August rehearsal. Repeat for the final
   candidate.
@@ -153,14 +174,34 @@ partial `odoo_dev` installation is not final-target evidence.
 - [ ] Resolve every data-loss-, accounting-, security-, privacy- and
   migration-critical discrepancy. No blanket waiver is permitted.
 
-The currently known strict-source blockers are not generic “migration debt.”
-They are the five named scopes `ai_configuration`, `attachments`,
-`preferences`, `sales_marketing` and `studio`, including ten pending source
-attachment IDs. Collaboration, Knowledge and signing evidence now have
-implemented source-backed dispositions; the remaining scopes still need a
-source-backed product translation or an explicit, reviewed disposition. The
-physical opening-stock count is a separate operational prerequisite because
-the source contains no defensible historical quantity truth.
+The locked 24 August source now has explicit dispositions for all 19 audited
+scopes: 226,836 source records, with zero blocked records, relation rows or
+stored fields. The former five source blockers are closed by reviewed product
+decisions and tested translations:
+
+- AI configuration and Sales/Marketing configuration are discarded as
+  experiments or default setup, not business history.
+- Studio customizations are discarded because their business behaviour is
+  rebuilt and owned by the Distribution.
+- Seven source-backed saved filters are migrated; native filters and exports
+  are recomputed, while AI/marketing exports are explicitly discarded.
+- Nine standard dashboard definitions are recomputed where the Distribution
+  has a native replacement or explicitly rejected where their Enterprise
+  module is unsupported. The genuine strategy PDF is retained byte-for-byte as
+  a restricted manager-only Document.
+- Sixty-six default/demo Knowledge messages and 554 generated technical
+  configuration events are deliberately not copied. Their exact source
+  disposition is checksum-sealed outside the delivered product.
+- Eighteen historical expenses retain exact dates, states, amounts, accounts,
+  analytics and accounting links but point to the maintained expense-nature
+  products instead of four retired trip-category products. Finalization accepts
+  only this locked-snapshot, product-field-only transition; any other mismatch
+  remains fatal.
+
+These are no longer data-completeness blockers. The physical opening-stock
+count remains a separate operational prerequisite because the source contains
+no defensible historical quantity truth and the migration deliberately creates
+no historical stock moves, quants or valuation layers.
 
 ## Phase B — production inputs and owners
 

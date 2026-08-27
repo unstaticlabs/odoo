@@ -223,28 +223,34 @@ integrity error.
 
 Accounting, global identity, Product Master, Inventory/Manufacturing
 configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing,
-Collaboration, Knowledge content, signed evidence and the Paperless Documents
-archive have implemented translation or archive stages. The current
-Distribution-scope gate passes. The strict production gate remains
-blocked—correctly—on the ten remaining attachment actions, global user
-preferences, sales/marketing configuration, Studio data and source AI
-configuration. These are explicit gaps, not silently copied or represented as
-full parity. The separate physical opening-stock evidence item also remains
-blocking for B2C operational release even though it is not a fact contained in
-the source database.
+Collaboration, signed evidence and the Paperless Documents archive have
+implemented translation or archive stages. The strict gate covers all 19
+audited scopes and dispositions 226,836 source records with zero blocked
+records, relation rows or stored fields.
 
-The strict 26 August baseline now has five incomplete scopes:
-`ai_configuration`, `attachments`, `preferences`, `sales_marketing`, and
-`studio`. The attachment ledger reports ten pending source attachment IDs: nine
-standard Odoo spreadsheet-dashboard payloads and one 19-page private business
-strategy PDF indexed by the standard Odoo Agent. The dashboards are module
-configuration rather than historical business data or personal preferences.
-Invoicing, Expenses and Warehouse Metrics already have native target
-replacements and must be recomputed; Accounting, Benchmark, Operation Analysis,
-Warehouse Daily Operations, Purchase & Vendor Analysis and Manufacturing rely
-on unsupported Enterprise dashboard modules and remain private evidence. The
-strategy PDF must be retained byte-for-byte as a restricted `usl.document`
-without copying its obsolete AI index.
+The former five incomplete scopes are now closed explicitly. AI configuration
+and Sales/Marketing configuration are discarded as experiments or default
+setup. Studio data is discarded because the Distribution's maintained product
+modules are authoritative. Seven source-backed saved filters are migrated;
+six native filters and two exports are recomputed, and AI/marketing exports are
+discarded. Nine standard spreadsheet-dashboard payloads are recomputed where a
+native target exists or rejected where the Enterprise dashboard module is not
+part of the Distribution. The one genuine private strategy PDF is retained
+byte-for-byte as a restricted manager-only `usl.document`, without copying its
+obsolete AI index, embeddings or agent configuration. There are no pending
+attachment actions.
+
+Knowledge is not a Distribution product. Its 66 source messages are default or
+demo content and are deliberately not copied. The 554 additional deliberately
+omitted Collaboration messages are generated technical configuration notes
+without customer or operational narrative. Both decisions are represented in
+the checksum-sealed source disposition evidence, not by permanent compatibility
+models or a shadow archive inside Odoo.
+
+The separate physical opening-stock evidence item remains a B2C operational
+go-live prerequisite even though it is not a fact contained in the source
+database. The migration correctly creates no unsupported historical stock
+moves, quants or valuation layers.
 
 ### B2C commerce stage
 

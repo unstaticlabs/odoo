@@ -590,6 +590,32 @@ class UslIdentityRestoreRun(models.Model):
         self.write({"statistics_json": statistics})
         return dispositions
 
+    def _completed_preference_dispositions(self):
+        """Return the newest completed preference audit for this snapshot."""
+        self.ensure_one()
+        previous_runs = self.search(
+            [
+                ("id", "!=", self.id),
+                ("source_database", "=", self.source_database),
+                ("source_snapshot", "=", self.source_snapshot),
+                ("status", "=", "passed"),
+            ],
+            order="id desc",
+        )
+        return next(
+            (
+                dispositions
+                for previous_run in previous_runs
+                if (
+                    dispositions := (previous_run.statistics_json or {}).get(
+                        "preference_dispositions",
+                    )
+                )
+                and dispositions.get("status") != "deferred"
+            ),
+            None,
+        )
+
     def restore(self, source):
         self.ensure_one()
         xmlids = {}
@@ -936,6 +962,17 @@ class UslIdentityRestoreRun(models.Model):
         }
         if counts != source["counts"]:
             raise RuntimeError(f"Identity source/target counts differ: {source['counts']} != {counts}")
+        # A reconstruction resume may replay Identity after saved preferences
+        # were already finalized for this same locked snapshot.  Preserve that
+        # completed disposition on the new audit run so the immediate validator
+        # rechecks the existing filters instead of incorrectly requiring them
+        # to be absent.  A different snapshot must always start deferred.
+        previous_preferences = self._completed_preference_dispositions()
+        preference_dispositions = (
+            previous_preferences
+            if previous_preferences
+            else {"status": "deferred"}
+        )
         self.write(
             {
                 "status": "passed",
@@ -954,7 +991,7 @@ class UslIdentityRestoreRun(models.Model):
                     # Project stages and tags do not exist yet. A governed
                     # post-Project step resolves every saved-filter reference
                     # before this temporary module can be finalized.
-                    "preference_dispositions": {"status": "deferred"},
+                    "preference_dispositions": preference_dispositions,
                 },
             },
         )
