@@ -1535,9 +1535,19 @@ class UslProjectRestoreRun(models.Model):
             activity = activities.get(row["id"])
             if activity:
                 if not self._is_current_revision(activity, snapshot):
-                    activity.sudo().write(values)
+                    activity.sudo().with_context(
+                        mail_activity_quick_update=True,
+                    ).write(values)
             else:
-                activity = self.env["mail.activity"].sudo().create(values)
+                # Historical assignments must become visible activities, but
+                # must not generate a new "assigned to you" email/notification
+                # during the one-shot reconstruction.
+                activity = (
+                    self.env["mail.activity"]
+                    .sudo()
+                    .with_context(mail_activity_quick_update=True)
+                    .create(values)
+                )
                 activities[row["id"]] = activity
             self._stamp_audit("mail.activity", activity, row, users)
             if not row["active"] and self._written_this_run(activity):

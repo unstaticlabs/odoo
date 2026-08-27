@@ -32,6 +32,43 @@ EXPECTED_EXPORT_IDS = (
 )
 
 
+class _SafeDomainSymbol:
+    """Represent one whitelisted Odoo domain symbol without evaluating code."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
+
+
+def parse_saved_filter_domain(source):
+    """Parse literal domains plus Odoo's dynamic ``uid`` symbol safely.
+
+    Saved filters are evaluated by Odoo when a user opens the associated
+    action.  The Online source contains one legitimate dynamic filter using
+    ``uid``.  ``ast.literal_eval`` cannot represent that symbol, while
+    ``safe_eval`` would execute source-controlled expressions during the
+    migration.  This deliberately tiny AST interpreter keeps the supported
+    data shape and rejects calls, attributes, operators and every other name.
+    """
+
+    def convert(node):
+        if isinstance(node, ast.Expression):
+            return convert(node.body)
+        if isinstance(node, ast.List):
+            return [convert(item) for item in node.elts]
+        if isinstance(node, ast.Tuple):
+            return tuple(convert(item) for item in node.elts)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name) and node.id == "uid":
+            return _SafeDomainSymbol("uid")
+        raise ValueError(f"unsupported saved-filter syntax: {type(node).__name__}")
+
+    return convert(ast.parse(source or "[]", mode="eval"))
+
+
 def source_binary(row):
     path = (SOURCE_FILESTORE / row["store_fname"]).resolve()
     if SOURCE_FILESTORE not in path.parents or not path.is_file():
@@ -396,7 +433,7 @@ class UslIdentityRestoreRun(models.Model):
 
     def _translate_filter_domain(self, row):
         try:
-            domain = ast.literal_eval(row["domain"] or "[]")
+            domain = parse_saved_filter_domain(row["domain"])
         except (SyntaxError, ValueError) as error:
             raise RuntimeError(
                 f"Saved filter {row['id']} has an invalid source domain",
