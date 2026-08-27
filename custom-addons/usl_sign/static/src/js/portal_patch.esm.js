@@ -97,6 +97,15 @@ const LOCATION_MESSAGES = {
     timeout: _t("Location did not respond in time. You can still sign."),
 };
 
+const SUBMISSION_PHASE_LABELS = {
+    saving: _t("Saving and checking your signature…"),
+    preparing: _t("Preparing your secure signature…"),
+    identity: _t("Confirm your identity in Pocket ID…"),
+    applying: _t("Applying your signature…"),
+    validating: _t("Checking the signed document…"),
+    complete: _t("Signature saved."),
+};
+
 function browserContext() {
     const hints = navigator.userAgentData;
     return {
@@ -525,8 +534,32 @@ patch(SignOcaPdfPortal.prototype, {
         this.dialog = useService("dialog");
         this.uslGuide = useState({remaining: 0, current: 0});
         this.uslLocation = useState({status: "idle", payload: {status: "unavailable"}});
+        this.uslSubmission = useState({
+            active: false,
+            guard: false,
+            label: SUBMISSION_PHASE_LABELS.saving,
+        });
         this.uslLocationPromise = null;
-        onWillUnmount(() => this.uslFieldGuide?.destroy());
+        this.uslBeforeUnload = (event) => {
+            if (!this.uslSubmission.guard) {
+                return;
+            }
+            event.preventDefault();
+            event.returnValue = "";
+        };
+        this.uslVisibilityChange = () =>
+            document.body.classList.toggle("usl_sign_page_hidden", document.hidden);
+        window.addEventListener("beforeunload", this.uslBeforeUnload);
+        document.addEventListener("visibilitychange", this.uslVisibilityChange);
+        onWillUnmount(() => {
+            this.uslFieldGuide?.destroy();
+            window.removeEventListener("beforeunload", this.uslBeforeUnload);
+            document.removeEventListener("visibilitychange", this.uslVisibilityChange);
+            document.body.classList.remove("usl_sign_page_hidden");
+            document.querySelector(".o_sign_oca_content")?.classList.remove(
+                "usl_sign_is_processing"
+            );
+        });
     },
 
     checkToSign() {
@@ -627,10 +660,11 @@ patch(SignOcaPdfPortal.prototype, {
             : _t("%s required fields remaining", this.uslGuide.remaining);
     },
 
-    _setSubmissionState(button, {busy = true, label, complete = false}) {
+    _setSubmissionState(button, {busy = true, phase = "saving", complete = false}) {
         const consent = document.getElementById("usl_sign_consent");
         const spinner = document.getElementById("usl_sign_submission_spinner");
         const buttonLabel = document.getElementById("usl_sign_submission_label");
+        const label = SUBMISSION_PHASE_LABELS[phase] || SUBMISSION_PHASE_LABELS.saving;
         button.dataset.submitting = busy ? "true" : "false";
         button.setAttribute("aria-busy", busy ? "true" : "false");
         spinner?.classList.toggle("d-none", !busy || complete);
@@ -639,6 +673,26 @@ patch(SignOcaPdfPortal.prototype, {
         }
         if (consent) {
             consent.disabled = busy;
+        }
+        const enteringProcessing = busy && !this.uslSubmission.active;
+        document
+            .querySelector(".o_sign_oca_content")
+            ?.classList.toggle("usl_sign_is_processing", busy);
+        if (this.iframe?.el) {
+            this.iframe.el.hidden = busy;
+        }
+        if (this.signOcaFooter?.el) {
+            this.signOcaFooter.el.hidden = busy;
+        }
+        this.uslSubmission.active = busy;
+        this.uslSubmission.guard = busy && !complete;
+        this.uslSubmission.label = label;
+        if (enteringProcessing) {
+            window.requestAnimationFrame(() =>
+                window.requestAnimationFrame(() =>
+                    document.getElementById("usl_sign_processing")?.focus({preventScroll: true})
+                )
+            );
         }
         this._syncConsentState();
     },
@@ -788,10 +842,7 @@ patch(SignOcaPdfPortal.prototype, {
         error?.classList.add("d-none");
         const submissionError = document.getElementById("usl_sign_submission_error");
         submissionError?.classList.add("d-none");
-        this._setSubmissionState(button, {
-            busy: true,
-            label: _t("Saving and checking your signature…"),
-        });
+        this._setSubmissionState(button, {busy: true, phase: "saving"});
         try {
             const location = await this._requestLocationOnce();
             const context = browserContext();
@@ -825,7 +876,7 @@ patch(SignOcaPdfPortal.prototype, {
             this._setSubmissionState(button, {
                 busy: true,
                 complete: true,
-                label: _t("Signed"),
+                phase: "complete",
             });
             window.location = action.type === "ir.actions.act_url" ? action.url : window.location;
         } catch (rpcError) {
@@ -837,12 +888,12 @@ patch(SignOcaPdfPortal.prototype, {
                         "The signature could not be submitted. Reload the document and try again."
                     );
                 submissionError.classList.remove("d-none");
-                submissionError.focus();
             }
             this._setSubmissionState(button, {
                 busy: false,
-                label: _t("Sign"),
+                phase: "saving",
             });
+            submissionError?.focus();
         }
     },
 

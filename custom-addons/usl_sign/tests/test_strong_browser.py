@@ -1366,21 +1366,56 @@ class TestSignBrowserJourneys(HttpCase):
                     emailInput.value = "signed-browser@example.test";
                     emailInput.dispatchEvent(new InputEvent("input", {bubbles: true}));
                     emailInput.dispatchEvent(new Event("change", {bubbles: true}));
+                    button.click();
+                    let processing;
+                    for (let attempt = 0; attempt < 50; attempt++) {
+                        processing = document.getElementById("usl_sign_processing");
+                        if (processing && document.activeElement === processing) {
+                            break;
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 20));
+                    }
+                    const processingStatus = processing?.querySelector(
+                        ".usl_sign_processing_status",
+                    );
+                    if (
+                        !processing || document.activeElement !== processing ||
+                        !processing.textContent.includes("Securing your signature") ||
+                        !processingStatus?.textContent.includes(
+                            "Saving and checking your signature",
+                        ) ||
+                        getComputedStyle(iframe).display !== "none" ||
+                        getComputedStyle(document.querySelector(".o_sign_oca_footer")).display !==
+                            "none" ||
+                        document.querySelector("#usl_sign_submission_status")
+                    ) {
+                        throw new Error(
+                            "Signing did not open the focused intermediary screen: " +
+                            JSON.stringify({
+                                processing: Boolean(processing),
+                                activeElement: document.activeElement?.id,
+                                text: processing?.textContent.trim(),
+                                status: processingStatus?.textContent.trim(),
+                                iframeDisplay: getComputedStyle(iframe).display,
+                                footerDisplay: getComputedStyle(
+                                    document.querySelector(".o_sign_oca_footer"),
+                                ).display,
+                                duplicateStatus: Boolean(
+                                    document.querySelector("#usl_sign_submission_status"),
+                                ),
+                            }),
+                        );
+                    }
+                    const closeAttempt = new Event("beforeunload", {cancelable: true});
+                    window.dispatchEvent(closeAttempt);
+                    if (!closeAttempt.defaultPrevented) {
+                        throw new Error("The active signing operation does not warn before closing.");
+                    }
                     window.addEventListener(
                         "beforeunload",
                         () => console.log("test successful"),
                         {once: true},
                     );
-                    button.click();
-                    if (
-                        !button.textContent.includes("Saving and checking your signature") ||
-                        document.getElementById("usl_sign_submission_spinner").classList.contains(
-                            "d-none",
-                        ) ||
-                        document.querySelector("#usl_sign_submission_status")
-                    ) {
-                        throw new Error("Signing progress is not shown once on the primary button.");
-                    }
                 })();
                 """,
                 ready="Boolean(document.getElementById('sign_oca_button'))",
