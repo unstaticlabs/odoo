@@ -328,6 +328,14 @@ class SignPortalController(PortalSign):
         company = request.env["res.company"].sudo().browse(
             summary.get("company_id"),
         ).exists()
+        sign_request = request.env["sign.oca.request"].sudo().browse(
+            summary.get("request_id"),
+        ).exists()
+        result_state = (
+            sign_request._signing_result_state()
+            if status == "success" and sign_request
+            else {}
+        )
         return request.render(
             "usl_sign.portal_sign_result",
             {
@@ -335,8 +343,10 @@ class SignPortalController(PortalSign):
                 "declined": status == "declined",
                 "result_company": company,
                 "result_request_name": summary.get("request_name"),
+                "has_pending_signers": result_state.get("has_pending_signers"),
+                "final_document_ready": result_state.get("final_document_ready"),
                 "result_download_url": (
-                    "/sign/result/download" if summary.get("request_id") else False
+                    "/sign/result/download" if sign_request else False
                 ),
             },
         )
