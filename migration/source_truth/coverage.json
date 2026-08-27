@@ -34,7 +34,7 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, unassigned enterprise evidence, and Sign business evidence are restored or explicitly disposed, while collaboration, Knowledge, preference, and AI actions remain gated"
     },
     "documents": {
       "status": "implemented",
@@ -47,9 +47,9 @@
       "evidence": "no Community target and no approved lossless translation are implemented"
     },
     "signing": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "archive",
-      "evidence": "signed originals and audit evidence are not yet reconstructed"
+      "evidence": "the dump-bound external Sign stage restores all 8 completed requests and 11 participants without native completion claims, preserves 86 chatter/audit messages, archives or checksum-reuses all 35 business artifacts plus 5 request-linked Paperless purposes per request, explicitly excludes 11 rendered marks and 4 reusable user signature preferences from impersonation-capable reuse, and validates exact hashes, idempotency and a migration-clean final registry"
     },
     "hr": {
       "status": "implemented",

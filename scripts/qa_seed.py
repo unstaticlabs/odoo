@@ -39,6 +39,7 @@ MIGRATION_INPUTS = (
     "scripts/portable_filestore.py",
     "scripts/product-restore",
     "scripts/project-restore",
+    "scripts/sign-restore",
     "scripts/qa-seed",
     "scripts/qa-environment",
     "scripts/qa_seed.py",

@@ -1,11 +1,11 @@
 # Sign validation and release-readiness report
 
-Status date: 2026-08-26
+Status date: 2026-08-27
 
 ## Outcome
 
 This feature delivers a document-first, Odoo-native signing application on the
-current `19-usl` saas-19.3 baseline `f302ae6cdb43`. It extends the pinned OCA
+aligned `19-usl` saas-19.3 parent `ae00fc0fbda7`. It extends the pinned OCA
 Sign module without modifying its source. Odoo owns the workflow and structured
 evidence, EU DSS owns PAdES construction and validation, Pocket ID owns passkeys,
 `step-ca` issues short-lived document certificates, and Paperless stores the
@@ -138,10 +138,14 @@ the application and use the native workflow of the relevant Odoo business app.
 The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
-- `scripts/sign-qa-stack test /usl_sign` installed the module in a disposable
-  database and finished 86 post-test entries with zero failures and zero
-  errors. Odoo reported 92 Sign tests plus six web-suite wrappers;
-- desktop and mobile Sign frontend suites each passed 20 tests and 78
+- `scripts/sign-qa-stack test` installed the module in a disposable database
+  and finished 124 post-test entries with zero failures and zero errors. Odoo
+  reported 94 Sign tests, 42 Pocket ID tests and six web-suite wrappers;
+- after the external-archive immutability regression exposed and prompted
+  removal of a controlled-context leak, `scripts/sign-qa-stack test /usl_sign`
+  was rerun cleanly: 88 post-test entries, 94 Sign tests, six web wrappers,
+  zero failures and zero errors;
+- desktop and mobile Sign frontend suites each passed 36 tests and 134
   assertions. Seven headless Chrome journeys covered dashboard/Request signatures,
   requester prepare/send/monitor, template creation, the iframe field editor,
   Standard public signing and archival, identity setup presentation and the
@@ -149,10 +153,10 @@ authenticator:
 - the external-signer authorization regression passed in isolation and in the
   full suite: a signer can export the frozen document but cannot import,
   validate, retry, resume, remind or mutate the external journey;
-- `scripts/sign-qa-stack test '/usl_pocketid,/usl_documents'` finished 137
-  post-test entries with zero failures and zero errors. Odoo reported 103
-  Documents tests, 42 Pocket ID tests and six web wrappers; the mobile
-  Documents suite passed 24 tests and 181 assertions;
+- `scripts/sign-qa-stack test /usl_documents` finished 103 post-test entries
+  with zero failures and zero errors. Odoo reported 105 Documents tests and
+  six web wrappers; its desktop suite passed 28 tests / 203 assertions and its
+  mobile suite passed 25 tests / 194 assertions;
 - the Pocket ID patch rebuilt with its Go test layer uncached. The OIDC and
   WebAuthn packages passed. A virtual-authenticator Strong journey then made
   one fresh passkey assertion and completed a request with OIDC validation,
@@ -192,6 +196,26 @@ PDF/A-3 dossier, veraPDF, platform sealing, replay, and alteration checks.
 The expected registry warning about replacing OCA's coarse request state
 selection remains deliberate: the product requires the exact lifecycle and
 does not alter OCA source.
+
+## Odoo Online Sign restoration qualification
+
+The read-only source snapshot `source-0b9916db4807` was restored twice into the
+disposable `codex-migration-sign` project, never into the reviewer QA project.
+The second pass reused the same USL and Paperless records and hashes. Both
+validations proved 8 external requests, 11 participants, 53 preserved audit
+events, 33 other history messages, 40 request-linked Paperless artifacts and
+one additional unique inactive-template archive root. Each request has exactly
+five governed artifact purposes: exported signed PDF, exported Odoo
+certificate, source PDF, source-time certificate and readable sanitized
+history. Two checksum-identical inactive templates reused an existing root.
+
+Finalization removed all 105 temporary source bindings. The final registry
+contained no source Sign models, migration models, migration fields or native
+validation/evidence claims on the external records. The attachment ledger then
+reported 81 still-pending source file IDs, all outside Sign; the wider source
+migration therefore remains blocked on seven explicitly incomplete non-Sign
+scopes. The Sign source matcher, attachment disposition and deterministic
+replay tests passed, as did both product/migration boundary gates.
 
 ## Prior real-device evidence
 

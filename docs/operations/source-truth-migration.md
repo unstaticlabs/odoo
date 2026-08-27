@@ -154,9 +154,11 @@ Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
 unassigned enterprise evidence file through the supported Paperless API, with
-byte-for-byte read-back and preview checks. Sign, Knowledge, preference, AI,
-and collaboration actions continue to keep the attachment gate blocked until
-their own stages pass.
+byte-for-byte read-back and preview checks. The Sign stage preserves every
+completed request, participant, business artifact and history item as an
+external record; it deliberately does not recreate reusable signature images.
+Knowledge, preference, AI, and collaboration actions continue to keep the
+attachment gate blocked until their own stages pass.
 
 ## Deterministic reconstruction
 
@@ -164,10 +166,10 @@ their own stages pass.
 package, runs the strict source-wide and attachment gates, creates a clean
 target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
-and Platform Billing, rebuilds the Paperless archive, removes every temporary
-migration module and its allow-listed physical provenance columns, then
-applies target-only configuration. It is blocked while any shipped scope is
-incomplete. The strict
+and Platform Billing, rebuilds the Paperless archive, restores the external
+Sign records, removes every temporary migration module and its allow-listed
+physical provenance columns, then applies target-only configuration. It is
+blocked while any shipped scope is incomplete. The strict
 whole-source gate runs before the target reset. The command refuses a partial
 profile, checkpoint reuse, a dirty checkout or an unconfirmed source package.
 It therefore cannot report a production migration while any Online scope or
@@ -215,23 +217,27 @@ verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
 Accounting, global identity, Product Master, Inventory/Manufacturing
-configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
-Paperless Documents archive have implemented translation stages. The current
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing,
+Paperless Documents, and Sign have implemented translation or archive stages.
+The current
 Distribution-scope gate passes. The strict production gate remains
 blocked—correctly—on collaboration history, remaining attachment actions,
-Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
+Knowledge, user preferences, sales/marketing configuration, Studio data,
 and source AI configuration. These are explicit gaps, not silently copied or
 represented as full parity. The separate physical opening-stock evidence item
 also remains blocking for B2C operational release even though it is not a fact
 contained in the source database.
 
-The strict 26 August rehearsal reports eight incomplete scopes:
+The guarded Sign stage, artifact contract and final-state checks are documented
+in [Restore Odoo Online Sign records](sign-online-restoration.md).
+
+The strict Sign-qualified contract reports seven incomplete scopes:
 `ai_configuration`, `attachments`, `collaboration`, `knowledge`, `preferences`,
-`sales_marketing`, `signing`, and `studio`. The attachment ledger reports 115
-pending source attachment IDs, represented by 1 AI-configuration action, 64
-collaboration actions, 7 Knowledge actions, 9 preference actions, and 50 Sign
-actions. Action totals can overlap when one attachment has more than one
-relationship; the 115 source IDs are the file-level count.
+`sales_marketing`, and `studio`. The regenerated attachment ledger reports 81
+pending source attachment IDs: 1 AI-configuration action, 64 collaboration
+actions, 7 Knowledge actions, and 9 preference actions. The prior 115-file gap
+included 50 Sign actions, some on files that also had another pending action;
+the current 81 is the authoritative file-level count after Sign disposition.
 
 ### B2C commerce stage
 
