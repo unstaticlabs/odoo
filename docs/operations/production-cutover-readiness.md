@@ -168,6 +168,7 @@ Record values in the private change record, never in Git.
 | Pocket ID | existing issuer, separate Odoo/Paperless clients, redirect URIs and before/after read-only state hashes | Identity owner | [ ] |
 | Secrets | non-default DB/master/app secrets and client secrets supplied from approved storage, all files mode 0600 | Security/Operations | [ ] |
 | Identity policy | every Odoo/Paperless identity, companies, roles, object grants, break-glass decision and cron allowlist | Product/Security | [ ] |
+| Action-risk policy | zero unclassified/stale actions; source, clean-install and reconstructed-registry checks pass; candidate/image digest agrees | Product/Security | [ ] |
 | Backups | RPO/RTO, schedule, retention, separate failure domain, encryption/access, alerts and restore-test owner | Operations | [ ] |
 | Email | outbound SMTP and inbound aliases, SPF/DKIM/DMARC ownership, catch-all/bounce policy and activation test | Operations | [ ] |
 | Scheduled jobs | reviewed allowlist, cadence, company/timezone, idempotency, timeout/retry and failure owner | Product/Operations | [ ] |
@@ -210,8 +211,9 @@ Run the commands and stop conditions in
    dry-run/apply/dry-run and no Pocket mutation API;
 4. verify loopback/staging health and complete all required role/browser
    journeys;
-5. `gate` release identity, complete product/migration boundary, source parity,
-   Accounting, multi-company, Documents checksums/permissions and journeys;
+5. `gate` release identity, complete product/migration boundary, exact action
+   registry, source parity, Accounting, multi-company, Documents
+   checksums/permissions and journeys;
 6. take a coordinated pre-admission recovery point and prove its isolated
    restoration if the approved infrastructure backup implementation differs
    from the rehearsed one;

@@ -64,7 +64,8 @@ compose_array() {
 verify_candidate_and_environment() {
   local env_file="$1" candidate_argument="$2" fingerprint="$3"
   local candidate project config commit expected_commit image label_commit
-  local label_oca expected_oca runtime_label network
+  local label_oca expected_oca label_action_risk expected_action_risk
+  local runtime_label network
   candidate="$(cd "$candidate_argument" && pwd -P)"
   if [[ ! "$fingerprint" =~ ^[0-9a-f]{64}$ ]]; then
     printf 'Invalid candidate fingerprint.\n' >&2
@@ -82,24 +83,34 @@ verify_candidate_and_environment() {
     printf 'Checked-out release commit differs from the candidate.\n' >&2
     return 2
   fi
+  python3 scripts/action_risk_inventory.py check-source
   PYTHONPATH="$ROOT/scripts" python3 - "$candidate/release-identity.json" <<'PY'
 import json
 import sys
-from release_identity import oca_bundle_sha256, product_module_versions
+from release_identity import (
+    action_risk_policy_sha256,
+    oca_bundle_sha256,
+    product_module_versions,
+)
 
 identity = json.load(open(sys.argv[1], encoding="utf-8"))
 if product_module_versions() != identity.get("product_module_versions"):
     raise SystemExit("Checked-out product module versions differ from the candidate.")
 if oca_bundle_sha256() != (identity.get("oca") or {}).get("bundle_sha256"):
     raise SystemExit("Checked-out OCA runtime bundle differs from the candidate.")
+if action_risk_policy_sha256() != identity.get("action_risk_policy_sha256"):
+    raise SystemExit("Checked-out action-risk policy differs from the candidate.")
 PY
   image="$(env_field "$env_file" "$candidate" ODOO_IMAGE)"
   docker image inspect "$image" >/dev/null
   label_commit="$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
   label_oca="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')"
+  label_action_risk="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')"
   runtime_label="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')"
   expected_oca="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["oca_bundle_sha256"])' "$(manifest_path "$candidate")")"
+  expected_action_risk="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["action_risk_policy_sha256"])' "$(manifest_path "$candidate")")"
   if [[ "$label_commit" != "$expected_commit" || "$label_oca" != "$expected_oca" \
+      || "$label_action_risk" != "$expected_action_risk" \
       || "$runtime_label" != distribution ]]; then
     printf 'Runtime image labels differ from the approved Distribution candidate.\n' >&2
     return 2
@@ -440,7 +451,7 @@ gate() {
   "${COMPOSE[@]}" up -d --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
 
-  printf '[1/5] Product/migration and immutable release boundaries\n'
+  printf '[1/5] Product/migration, action-risk and immutable release boundaries\n'
   scripts/check-product-migration-boundary
   run_odoo_shell "$database" scripts/odoo/product_database_boundary.py \
     -e USL_PRODUCT_BOUNDARY_PREPROD=1
@@ -448,6 +459,8 @@ gate() {
   run_odoo_shell "$database" scripts/odoo/release_identity.py \
     -e USL_RELEASE_IDENTITY_JSON="$identity_json" \
     -e USL_RELEASE_IDENTITY_APPLY=0
+  run_odoo_shell "$database" scripts/odoo/action_risk_inventory.py \
+    -e ACTION_RISK_MODE=check
 
   printf '[2/5] Accounting totals, reconciliation and multi-company role journeys\n'
   run_odoo_shell "$database" scripts/odoo/multicompany_accounting_acceptance.py

@@ -459,6 +459,10 @@ payload = {
     "source_filestore_sha256": source_filestore_sha,
     "migration_sha256": migration_digest(Path.cwd()),
     "module_versions": json.loads(module_versions),
+    "action_risk": {
+        "status": "passed",
+        "policy_sha256": identity["action_risk_policy_sha256"],
+    },
     "accounting": {
         "status": accounting["status"],
         "controls": json.loads(accounting_controls),

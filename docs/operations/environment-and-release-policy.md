@@ -17,6 +17,8 @@ A release is eligible for production only when:
 
 - its intended product outcome is documented;
 - relevant automated checks pass;
+- the source and exact runtime action inventories have zero unclassified,
+  ambiguous, changed or stale entries;
 - accounting-critical changes include parity evidence;
 - data transformations are rehearsed on representative data;
 - backup and rollback expectations are explicit;
@@ -62,8 +64,10 @@ Each production release records:
 
 - version and included changes;
 - Git commit, upstream baseline, OCA pins and patched bundle digest;
-- qualified image reference, image ID and embedded revision labels;
-- database UUID, installed module versions and migration-input SHA-256;
+- qualified image reference, image ID and embedded revision, OCA and action-risk
+  policy labels;
+- database UUID, installed module versions, qualified action-risk digest and
+  migration-input SHA-256;
 - approver;
 - deployment time;
 - validation results;

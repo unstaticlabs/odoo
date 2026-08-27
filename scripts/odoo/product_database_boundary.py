@@ -15,6 +15,7 @@ MIGRATION_MODULES = {
 }
 PRODUCT_MODULES = {
     "rebuild_account_migration",
+    "usl_access_control",
     "usl_accounting",
     "usl_b2c",
     "usl_documents",

@@ -7,10 +7,12 @@ import os
 
 PRODUCT_MODULES = {
     "rebuild_account_migration",
+    "usl_access_control",
     "usl_accounting",
     "usl_b2c",
     "usl_documents",
     "usl_documents_accounting",
+    "usl_documents_b2c",
     "usl_expense_batch",
     "usl_locale",
     "usl_platform_billing",
@@ -47,6 +49,10 @@ if os.environ.get("USL_OCA_BUNDLE_SHA256") != (
     identity.get("oca") or {}
 ).get("bundle_sha256"):
     raise RuntimeError("The running OCA bundle does not match the release.")
+if os.environ.get("USL_ACTION_RISK_POLICY_SHA256") != identity.get(
+    "action_risk_policy_sha256",
+):
+    raise RuntimeError("The running action-risk policy does not match the release.")
 
 Modules = env["ir.module.module"].sudo()  # noqa: F821
 installed_modules = Modules.search([("state", "=", "installed")])
@@ -86,6 +92,10 @@ if os.environ.get("USL_RELEASE_IDENTITY_APPLY") == "1":
         database_identity["database_identity_sha256"],
     )
     params.set_str("usl.release.commit", identity["release_commit"])
+    params.set_str(
+        "usl.release.action_risk_policy_sha256",
+        identity["action_risk_policy_sha256"],
+    )
     params.set_str(
         "usl.release.source_dump_sha256",
         identity["source"]["dump_sha256"],

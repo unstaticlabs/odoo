@@ -1,0 +1,228 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_access_control
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_access_control
+msgid "USL Distribution Access Control"
+msgstr "Contrôle des accès de la Distribution USL"
+
+#. module: usl_access_control
+msgid "Recoverability-based roles, protected actions, and agent auditability"
+msgstr "Rôles fondés sur la réversibilité, actions protégées et traçabilité des agents"
+
+#. module: usl_access_control
+msgid "USL Distribution"
+msgstr "Distribution USL"
+
+#. module: usl_access_control
+msgid "Distribution Role"
+msgstr "Rôle de la Distribution"
+
+#. module: usl_access_control
+msgid "Identity Type"
+msgstr "Type d’identité"
+
+#. module: usl_access_control
+msgid "Special Capabilities"
+msgstr "Capacités spéciales"
+
+#. module: usl_access_control
+msgid "Distribution Audit Reader"
+msgstr "Lecteur du journal de la Distribution"
+
+#. module: usl_access_control
+msgid "Inspect attributable Agent mutations and protected actions without changing audit history."
+msgstr "Consulter les modifications attribuables aux agents et les actions protégées sans modifier l’historique d’audit."
+
+#. module: usl_access_control
+msgid "Irreversible Actions"
+msgstr "Actions irréversibles"
+
+#. module: usl_access_control
+msgid "Permit permanent deletion, lock changes, authorization changes, destructive technical maintenance, and other protected actions."
+msgstr "Autoriser la suppression définitive, les changements de verrou, les changements d’autorisation, la maintenance technique destructive et les autres actions protégées."
+
+#. module: usl_access_control
+msgid "AI Agent"
+msgstr "Agent IA"
+
+#. module: usl_access_control
+msgid "Marks an autonomous identity. Combine with application groups; irreversible actions remain explicitly denied."
+msgstr "Identifie un compte autonome. À combiner avec les groupes des applications ; les actions irréversibles restent explicitement interdites."
+
+#. module: usl_access_control
+msgid "Accounting Reviewer"
+msgstr "Réviseur comptable"
+
+#. module: usl_access_control
+msgid "Annual-review Accounting work in unlocked periods, including draft adjustments, posting, reset, and reconciliation; excludes locks and permanent deletion."
+msgstr "Travaux de révision annuelle en Comptabilité dans les périodes non verrouillées, notamment ajustements de brouillons, comptabilisation, remise en brouillon et lettrage ; hors verrous et suppression définitive."
+
+#. module: usl_access_control
+msgid "Technical Administrator"
+msgstr "Administrateur technique"
+
+#. module: usl_access_control
+msgid "Operate B2C, Projects and Documents and inspect technical configuration; security, locks, audit deletion and irreversible maintenance remain protected."
+msgstr "Exploiter le B2C, les Projets et les Documents et consulter la configuration technique ; la sécurité, les verrous, la suppression de l’audit et la maintenance irréversible restent protégés."
+
+#. module: usl_access_control
+msgid "Full Product Administrator"
+msgstr "Administrateur complet du produit"
+
+#. module: usl_access_control
+msgid "All Distribution applications and technical administration through an attributable user identity."
+msgstr "Toutes les applications de la Distribution et l’administration technique au moyen d’un compte utilisateur attribuable."
+
+#. module: usl_access_control
+msgid "Effective Distribution access"
+msgstr "Accès effectif à la Distribution"
+
+#. module: usl_access_control
+msgid "Application groups only"
+msgstr "Groupes des applications uniquement"
+
+#. module: usl_access_control
+msgid "AI Agent and Irreversible Actions are incompatible. Remove the destructive capability or the Agent identity."
+msgstr "Agent IA et Actions irréversibles sont incompatibles. Retirez la capacité destructive ou le type de compte Agent."
+
+#. module: usl_access_control
+msgid "AI Agents cannot perform irreversible actions. Use a recoverable workflow or ask an authorized human."
+msgstr "Les agents IA ne peuvent pas effectuer d’actions irréversibles. Utilisez un processus réversible ou demandez l’intervention d’une personne autorisée."
+
+#. module: usl_access_control
+msgid "This action requires the Irreversible Actions permission."
+msgstr "Cette action exige l’autorisation Actions irréversibles."
+
+#. module: usl_access_control
+msgid "The protected-action policy is invalid. Contact a product administrator before retrying this action."
+msgstr "La politique des actions protégées est invalide. Contactez un administrateur du produit avant de réessayer cette action."
+
+#. module: usl_access_control
+msgid "New protected-action audit events require an action key and policy digest."
+msgstr "Les nouveaux événements d’audit d’actions protégées exigent une clé d’action et une empreinte de politique."
+
+#. module: usl_access_control
+msgid "Distribution access"
+msgstr "Accès à la Distribution"
+
+#. module: usl_access_control
+msgid "Application access is separate from irreversible actions. AI Agent identities are always denied irreversible actions by the server."
+msgstr "L’accès aux applications est distinct des actions irréversibles. Le serveur interdit toujours les actions irréversibles aux comptes Agent IA."
+
+#. module: usl_access_control
+msgid "USL Distribution Audit Event"
+msgstr "Événement d’audit de la Distribution USL"
+
+#. module: usl_access_control
+msgid "Agent mutation"
+msgstr "Modification par un agent"
+
+#. module: usl_access_control
+msgid "Protected action"
+msgstr "Action protégée"
+
+#. module: usl_access_control
+msgid "Succeeded"
+msgstr "Réussie"
+
+#. module: usl_access_control
+msgid "Create"
+msgstr "Créer"
+
+#. module: usl_access_control
+msgid "Update"
+msgstr "Mettre à jour"
+
+#. module: usl_access_control
+msgid "Delete"
+msgstr "Supprimer"
+
+#. module: usl_access_control
+msgid "Action"
+msgstr "Action"
+
+#. module: usl_access_control
+msgid "Distribution audit events are immutable."
+msgstr "Les événements d’audit de la Distribution sont immuables."
+
+#. module: usl_access_control
+msgid "Distribution audit events cannot be deleted."
+msgstr "Les événements d’audit de la Distribution ne peuvent pas être supprimés."
+
+#. module: usl_access_control
+msgid "Distribution Audit"
+msgstr "Audit de la Distribution"
+
+#. module: usl_access_control
+msgid "Change evidence"
+msgstr "Preuve des modifications"
+
+#. module: usl_access_control
+msgid "Occurred At"
+msgstr "Date et heure"
+
+#. module: usl_access_control
+msgid "Actor"
+msgstr "Auteur"
+
+#. module: usl_access_control
+msgid "Actor Is Agent"
+msgstr "L’auteur est un agent"
+
+#. module: usl_access_control
+msgid "Event Type"
+msgstr "Type d’événement"
+
+#. module: usl_access_control
+msgid "Outcome"
+msgstr "Résultat"
+
+#. module: usl_access_control
+msgid "Model Name"
+msgstr "Nom du modèle"
+
+#. module: usl_access_control
+msgid "Record Ids"
+msgstr "Identifiants des enregistrements"
+
+#. module: usl_access_control
+msgid "Record Count"
+msgstr "Nombre d’enregistrements"
+
+#. module: usl_access_control
+msgid "Operation"
+msgstr "Opération"
+
+#. module: usl_access_control
+msgid "Action Name"
+msgstr "Nom de l’action"
+
+#. module: usl_access_control
+msgid "Action Key"
+msgstr "Clé de l’action"
+
+#. module: usl_access_control
+msgid "Policy Digest"
+msgstr "Empreinte de la politique"
+
+#. module: usl_access_control
+msgid "Changes Json"
+msgstr "Modifications JSON"
+
+#. module: usl_access_control
+msgid "Origin"
+msgstr "Origine"
+
+#. module: usl_access_control
+msgid "Correlation Id"
+msgstr "Identifiant de corrélation"

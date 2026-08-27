@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_access_control.DocumentsIrreversibleAccess"
+       t-inherit="usl_documents.DocumentsWorkspaceView"
+       t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='requestPermanentDelete']" position="attributes">
+            <attribute name="t-if">state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_permanently_delete</attribute>
+        </xpath>
+        <xpath expr="//div[@t-esc='state.selected.permanent_delete_blocker']" position="attributes">
+            <attribute name="t-if">state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_permanently_delete &amp;&amp; state.selected.permanent_delete_blocker</attribute>
+        </xpath>
+    </t>
+</templates>

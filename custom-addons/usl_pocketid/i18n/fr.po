@@ -1297,3 +1297,15 @@ msgstr "Point de terminaison Pocket ID validé, utilisé pour déconnecter égal
 #: model:mail.template,subject:usl_pocketid.portal_sso_invitation
 msgid "Your USL portal access"
 msgstr "Votre accès au portail USL"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "optional_if_missing must be true or false."
+msgstr "optional_if_missing doit valoir true ou false."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "optional_if_missing is only supported for inactive historical or decision profiles."
+msgstr "optional_if_missing est réservé aux profils historiques ou de décision inactifs."

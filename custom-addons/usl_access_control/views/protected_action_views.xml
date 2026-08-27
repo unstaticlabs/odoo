@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_accounting_session_irreversible" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.form.irreversible</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_accounting_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_unlock']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_res_config_settings_irreversible" model="ir.ui.view">
+        <field name="name">res.config.settings.form.irreversible</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_peppol_deregister'] | //button[@name='button_peppol_reregister'] | //button[@name='button_peppol_disconnect_branch_from_parent'] | //button[@name='button_reconnect_this_database'] | //button[@name='button_disconnect_this_database']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pdp_registration_irreversible" model="ir.ui.view">
+        <field name="name">pdp.registration.form.irreversible</field>
+        <field name="model">pdp.registration</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.pdp_registration_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_register_pdp_participant'] | //button[@name='button_deregister_pdp_participant']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pdp_config_irreversible" model="ir.ui.view">
+        <field name="name">pdp.config.wizard.form.irreversible</field>
+        <field name="model">pdp.config.wizard</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.pdp_config_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_peppol_unregister']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_peppol_registration_irreversible" model="ir.ui.view">
+        <field name="name">peppol.registration.form.irreversible</field>
+        <field name="model">peppol.registration</field>
+        <field name="inherit_id" ref="account_peppol.peppol_registration_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_register_peppol_participant']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
