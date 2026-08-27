@@ -1,3 +1,5 @@
+import secrets
+
 from werkzeug.exceptions import NotFound
 
 from odoo import http
@@ -10,18 +12,28 @@ from odoo.addons.sign_oca.controllers.main import PortalSign
 from odoo.addons.usl_sign.models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
 
 STRONG_CSP = (
-    "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; "
+    # Odoo's OWL runtime compiles its registered QWeb templates with
+    # `new Function`. Keep inline scripts nonce-only, but allow that required
+    # compiler capability for the shared signing application.
+    "default-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self'; font-src 'self'; "
     "connect-src 'self'; frame-src 'self'; worker-src 'self'; img-src 'self' data:; "
     "base-uri 'none'; object-src 'none'; form-action 'self'; frame-ancestors 'none'"
 )
 
 
-def _secure_strong_response(response):
+def _secure_strong_response(response, *, script_nonce=None):
+    # Do not set COOP here: the signing page intentionally owns a cross-origin
+    # Pocket ID popup, and a new browsing-context group severs that journey.
+    content_security_policy = STRONG_CSP
+    if script_nonce:
+        content_security_policy = content_security_policy.replace(
+            "script-src 'self'",
+            f"script-src 'self' 'nonce-{script_nonce}'",
+        )
     response.headers.update(
         {
             "Cache-Control": "no-store, max-age=0",
-            "Content-Security-Policy": STRONG_CSP,
-            "Cross-Origin-Opener-Policy": "same-origin",
+            "Content-Security-Policy": content_security_policy,
             "Permissions-Policy": "publickey-credentials-get=(), publickey-credentials-create=()",
             "Referrer-Policy": "no-referrer",
             "X-Content-Type-Options": "nosniff",
@@ -164,15 +176,26 @@ class SignPortalController(PortalSign):
                         {"signer": signer},
                     ),
                 )
+            script_nonce = secrets.token_urlsafe(24)
             return _secure_strong_response(
                 request.render(
-                    "usl_sign.strong_sign_page",
+                    "usl_sign.portal_sign_document",
                     {
+                        "doc": signer.request_id,
+                        "partner": signer.partner_id,
                         "signer": signer,
                         "access_token": access_token,
+                        "strong_signing": True,
+                        "script_nonce": script_nonce,
                         "certificate_subject": _personal_certificate_subject(signer),
+                        "sign_oca_backend_info": {
+                            "access_token": access_token,
+                            "signer_id": signer.id,
+                            "lang": signer.partner_id.lang,
+                        },
                     },
                 ),
+                script_nonce=script_nonce,
             )
         return request.render(
             "usl_sign.portal_sign_document",
@@ -181,6 +204,9 @@ class SignPortalController(PortalSign):
                 "partner": signer.partner_id,
                 "signer": signer,
                 "access_token": access_token,
+                "strong_signing": False,
+                "script_nonce": False,
+                "certificate_subject": False,
                 "sign_oca_backend_info": {
                     "access_token": access_token,
                     "signer_id": signer.id,
@@ -250,6 +276,8 @@ class SignPortalController(PortalSign):
         latitude=False,
         longitude=False,
         consent=False,
+        location=None,
+        browser_context=None,
     ):
         signer = self._secure_signer(signer_id, access_token)
         action = signer.action_sign(
@@ -259,6 +287,8 @@ class SignPortalController(PortalSign):
             latitude=latitude,
             longitude=longitude,
             consent=consent,
+            location=location,
+            browser_context=browser_context,
         )
         request.session[SIGN_RESULT_SESSION_KEY] = {
             "status": "success",

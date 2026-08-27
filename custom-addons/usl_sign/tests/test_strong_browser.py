@@ -674,19 +674,59 @@ class TestSignBrowserJourneys(HttpCase):
         )
         self.assertEqual(response.status_code, 200)
         page = response.text
-        self.assertIn(self.company.name, page)
-        self.assertIn("Review and confirm this signature", page)
-        self.assertIn("Confirm and sign", page)
-        self.assertIn("document-bound signature", page)
-        self.assertIn("usl-sign-motion--journey", page)
-        self.assertIn("data-finish-label", page)
-        self.assertIn("It never receives the document", page)
+        self.assertIn('id="usl_strong_sign_context"', page)
+        self.assertIn("usl_sign.document_portal", page)
+        self.assertIn("/usl_sign/static/src/js/strong_sign.js", page)
+        self.assertNotIn('id="usl_strong_sign_button"', page)
         self.assertNotIn("Exact document SHA-256", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
+        self.assertIn("'nonce-", response.headers["Content-Security-Policy"])
+        self.assertNotIn("'unsafe-inline'", response.headers["Content-Security-Policy"])
         self.assertIn(
             "publickey-credentials-get=()",
             response.headers["Permissions-Policy"],
+        )
+        self.browser_js(
+            f"/sign/session/{signer.id}/{session_token}?review=1",
+            """
+            (async () => {
+                for (let attempt = 0; attempt < 240; attempt++) {
+                    const iframe = document.querySelector("iframe");
+                    if (
+                        iframe?.contentDocument?.querySelector(
+                            '.o_sign_oca_field[data-field="1"] [role="button"]',
+                        ) && document.getElementById("sign_oca_button")
+                    ) {
+                        break;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+                const iframe = document.querySelector("iframe");
+                const field = iframe?.contentDocument?.querySelector(
+                    '.o_sign_oca_field[data-field="1"] [role="button"]',
+                );
+                const header = document.querySelector(".usl_sign_portal_header");
+                const guide = Array.from(document.querySelectorAll("button")).find(
+                    (candidate) => candidate.textContent.includes("Guide me"),
+                );
+                const submit = document.getElementById("sign_oca_button");
+                if (!field || !guide || !submit || !submit.disabled) {
+                    throw new Error("Strong did not render the shared incomplete field workspace.");
+                }
+                if (!header?.textContent.includes("Strong personal signature")) {
+                    throw new Error("Strong did not disclose its method in the shared workspace.");
+                }
+                guide.click();
+                await new Promise((resolve) => setTimeout(resolve, 450));
+                if (document.querySelector(".modal") || !field.closest(".o_sign_oca_field")) {
+                    throw new Error("The optional guide filled a field instead of only navigating.");
+                }
+                console.log("test successful");
+            })();
+            """,
+            ready="Boolean(document.getElementById('sign_oca_button'))",
+            timeout=60,
         )
         enrollment.with_user(self.reviewer).action_revoke(
             reason="Exercise the missing-identity signer guidance.",
@@ -983,6 +1023,41 @@ class TestSignBrowserJourneys(HttpCase):
                     if (!actions) {
                         throw new Error("The desktop signer actions are missing.");
                     }
+                    const footer = document.querySelector(".o_sign_oca_footer");
+                    const guide = Array.from(document.querySelectorAll("button")).find(
+                        (candidate) => candidate.textContent.includes("Guide me"),
+                    );
+                    const oldNavigator = iframe.contentDocument.querySelector(
+                        ".o_sign_sign_item_navigator",
+                    );
+                    if (!footer || getComputedStyle(footer).display === "none" || !guide) {
+                        throw new Error("Incomplete fields hid the manual signing controls.");
+                    }
+                    if (oldNavigator) {
+                        throw new Error("The stale OCA field navigator is still active.");
+                    }
+                    const firstInput = iframe.contentDocument.querySelector(
+                        '.o_sign_oca_field input[type="text"]',
+                    );
+                    const firstValueBeforeGuide = firstInput?.value;
+                    guide.click();
+                    await new Promise((resolve) => setTimeout(resolve, 80));
+                    if (!firstInput || firstInput.value !== firstValueBeforeGuide) {
+                        throw new Error("The optional guide filled a field automatically.");
+                    }
+                    const viewer = iframe.contentDocument.getElementById("viewerContainer");
+                    viewer.scrollTop = Math.max(0, viewer.scrollHeight - viewer.clientHeight);
+                    viewer.dispatchEvent(new WheelEvent("wheel", {deltaY: 40, bubbles: true}));
+                    const manualScrollTop = viewer.scrollTop;
+                    await new Promise((resolve) => setTimeout(resolve, 450));
+                    if (Math.abs(viewer.scrollTop - manualScrollTop) > 2) {
+                        throw new Error("Manual scrolling did not cancel guided navigation.");
+                    }
+                    window.dispatchEvent(new Event("resize"));
+                    await new Promise((resolve) => setTimeout(resolve, 30));
+                    if (!firstInput.isConnected) {
+                        throw new Error("A resize replaced the active signing fields.");
+                    }
                     console.log("test successful");
                 })();
                 """,
@@ -1160,10 +1235,21 @@ class TestSignBrowserJourneys(HttpCase):
                     const repeatedInitials = iframe.contentDocument?.querySelector(
                         '.o_sign_oca_field[data-field="8"]',
                     );
-                    repeatedInitials.click();
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    for (
+                        let attempt = 0;
+                        attempt < 200 && (
+                            document.querySelector(".modal") ||
+                            !iframe.contentDocument?.querySelector(
+                                '.o_sign_oca_field[data-field="8"] img',
+                            )
+                        );
+                        attempt++
+                    ) {
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                    }
                     if (
                         document.querySelector(".modal") ||
+                        !repeatedInitials ||
                         !iframe.contentDocument?.querySelector(
                             '.o_sign_oca_field[data-field="8"] img',
                         )
