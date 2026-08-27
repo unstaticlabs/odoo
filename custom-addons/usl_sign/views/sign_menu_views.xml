@@ -60,7 +60,6 @@
 
     <menuitem id="my_sign_identity_menu" name="My Signing Identity" parent="sign_oca.sign_oca_settings_menu" action="my_sign_identity_server_action" sequence="10" groups="usl_sign.group_sign_user"/>
     <menuitem id="sign_enrollment_menu" name="Signer Identity Reviews" parent="sign_oca.sign_oca_settings_menu" action="sign_enrollment_action" sequence="20" groups="usl_sign.group_sign_identity_reviewer"/>
-    <menuitem id="sign_policy_menu" name="Signing Policies" parent="sign_oca.sign_oca_settings_menu" action="sign_policy_action" sequence="30" groups="usl_sign.group_sign_admin"/>
     <menuitem id="sign_external_provider_menu" name="External Providers" parent="sign_oca.sign_oca_settings_menu" action="sign_external_provider_action" sequence="40" groups="usl_sign.group_sign_admin"/>
     <menuitem id="sign_service_status_menu" name="System Status" parent="sign_oca.sign_oca_settings_menu" action="sign_service_status_action" sequence="70" groups="usl_sign.group_sign_admin"/>
     <menuitem id="sign_daily_manifest_menu" name="Daily Timestamps" parent="sign_oca.sign_oca_settings_menu" action="sign_daily_manifest_action" sequence="80" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>

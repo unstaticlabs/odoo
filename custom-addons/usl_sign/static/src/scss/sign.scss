@@ -192,8 +192,8 @@
 }
 
 .usl_sign_consent {
-    max-width: 40rem;
-    flex: 1 1 30rem;
+    max-width: 35rem;
+    flex: 1 1 26rem;
 }
 
 .usl_sign_field_guide {
@@ -236,6 +236,24 @@
     color: #5b6168;
     font-size: .75rem;
     line-height: 1.35;
+}
+
+.usl_sign_proof_details {
+    margin: .35rem 0 0 2.1rem;
+    color: #5b6168;
+    font-size: .75rem;
+
+    summary {
+        width: fit-content;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: .15rem;
+    }
+
+    p {
+        max-width: 65ch;
+        margin-top: .35rem;
+    }
 }
 
 .usl_sign_location_status {
@@ -299,14 +317,6 @@
 .usl_sign_method_icon {
     width: 2rem;
     height: 2rem;
-}
-
-.usl_sign_method_recommendation .o_field_widget {
-    width: auto;
-}
-
-.usl_sign_method_recommendation .o_field_text {
-    line-height: 1.45;
 }
 
 .usl_sign_method_choice {
@@ -429,7 +439,7 @@
     background: #fff;
     border-top: 1px solid #d8dadd;
     box-shadow: 0 -1px 4px rgba(0, 0, 0, .08);
-    max-height: 45vh;
+    max-height: 12rem;
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -439,11 +449,11 @@
     width: 100%;
     max-width: 80rem;
     height: auto;
-    min-height: 4.75rem;
+    min-height: 4.25rem;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1.25rem;
+    gap: .75rem 1rem;
     margin: 0 auto;
     padding: .75rem 1.25rem;
 }
@@ -455,7 +465,7 @@
 }
 
 .usl_sign_portal_actions #sign_oca_button {
-    min-width: 10.75rem;
+    min-width: 6rem;
 }
 
 .usl_sign_submission_status {
@@ -867,14 +877,16 @@
 
 .usl_sign_method_radio.o_field_radio .o_horizontal {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-    gap: .5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: .75rem;
     width: 100%;
 
     .o_radio_item {
         position: relative;
-        align-items: center;
-        min-height: 3.25rem;
+        align-items: stretch;
+        min-width: 0;
+        min-height: 100%;
         margin: 0;
         padding: 0;
         border: 1px solid var(--o-border-color, #dee2e6);
@@ -885,18 +897,18 @@
         .o_radio_input {
             position: absolute;
             z-index: 1;
-            top: 50%;
+            top: 1rem;
             left: 1rem;
             margin: 0;
-            transform: translateY(-50%);
         }
 
         .o_form_label {
             display: flex;
-            align-items: center;
+            align-items: stretch;
+            flex-direction: column;
             width: 100%;
-            min-height: 3.25rem;
-            padding: .75rem 1rem .75rem 2.5rem;
+            min-height: 100%;
+            padding: .9rem 1rem 1rem 2.5rem;
             cursor: pointer;
         }
 
@@ -905,6 +917,52 @@
             box-shadow: 0 0 0 1px var(--o-brand-primary, #714b67);
             background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .06);
         }
+    }
+}
+
+.usl_sign_method_card_header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+
+    .badge {
+        max-width: 9rem;
+        white-space: normal;
+    }
+}
+
+.usl_sign_method_card_summary {
+    margin-top: .35rem;
+    color: var(--o-gray-700, #495057);
+    font-size: .875rem;
+    line-height: 1.4;
+}
+
+.usl_sign_method_facts {
+    display: grid;
+    gap: .55rem;
+    margin: .9rem 0 0;
+    padding-top: .8rem;
+    border-top: 1px solid var(--o-border-color, #dee2e6);
+
+    div {
+        min-width: 0;
+    }
+
+    dt {
+        color: var(--o-gray-600, #6c757d);
+        font-size: .7rem;
+        font-weight: 600;
+    }
+
+    dd {
+        margin: .1rem 0 0;
+        color: var(--o-gray-900, #212529);
+        font-size: .8rem;
+        font-weight: 400;
+        line-height: 1.35;
     }
 }
 
@@ -1293,11 +1351,19 @@
     min-width: 0;
 }
 
+.usl_sign_systray_menu {
+    width: 24rem;
+    max-width: calc(100vw - 1rem);
+    max-height: 70vh;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 .usl_sign_systray_requests {
-    width: calc(100vw - 1rem);
-    max-width: 24rem;
+    width: 100%;
     min-width: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 .usl_sign_systray_heading {
@@ -1331,6 +1397,11 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+}
+
+.usl_sign_systray_text {
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .usl_sign_systray_request_icon {

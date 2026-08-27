@@ -145,7 +145,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
     }
 
     roleLabel(role) {
-        return role.signer_name || role.name;
+        return role?.signer_name || role?.name || _t("Unassigned signer");
     }
 
     roleButtonStyle(role) {
@@ -369,6 +369,10 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
         this.items[item.id]?.remove();
         const role = this.role(item.role_id);
+        if (!role) {
+            delete this.items[item.id];
+            return;
+        }
         const element = document.createElement("div");
         element.className = "o_sign_oca_field";
         element.dataset.field = item.id;

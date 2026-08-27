@@ -696,7 +696,10 @@ class TestSignBrowserJourneys(HttpCase):
                     if (
                         iframe?.contentDocument?.querySelector(
                             '.o_sign_oca_field[data-field="1"] [role="button"]',
-                        ) && document.getElementById("sign_oca_button")
+                        ) && document.getElementById("sign_oca_button") &&
+                        Array.from(document.querySelectorAll("button")).some(
+                            (button) => button.textContent.includes("Next field"),
+                        )
                     ) {
                         break;
                     }
@@ -708,11 +711,15 @@ class TestSignBrowserJourneys(HttpCase):
                 );
                 const header = document.querySelector(".usl_sign_portal_header");
                 const guide = Array.from(document.querySelectorAll("button")).find(
-                    (candidate) => candidate.textContent.includes("Guide me"),
+                    (candidate) => candidate.textContent.includes("Next field"),
                 );
                 const submit = document.getElementById("sign_oca_button");
                 if (!field || !guide || !submit || !submit.disabled) {
                     throw new Error("Strong did not render the shared incomplete field workspace.");
+                }
+                const fieldBox = field.closest(".o_sign_oca_field").getBoundingClientRect();
+                if (fieldBox.width < 20 || fieldBox.height < 20 || !field.textContent.trim()) {
+                    throw new Error("The Strong signing field is present but not visibly actionable.");
                 }
                 if (!header?.textContent.includes("Strong personal signature")) {
                     throw new Error("Strong did not disclose its method in the shared workspace.");
@@ -1008,7 +1015,12 @@ class TestSignBrowserJourneys(HttpCase):
                 (async () => {
                     const iframe = document.querySelector(".o_sign_oca_iframe");
                     for (let attempt = 0; attempt < 400; attempt++) {
-                        if (iframe.contentDocument?.querySelector(".o_sign_oca_field")) {
+                        if (
+                            iframe.contentDocument?.querySelector(".o_sign_oca_field") &&
+                            Array.from(document.querySelectorAll("button")).some(
+                                (button) => button.textContent.includes("Next field"),
+                            )
+                        ) {
                             break;
                         }
                         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1019,19 +1031,31 @@ class TestSignBrowserJourneys(HttpCase):
                     if (!iframe.contentDocument?.querySelector(".o_sign_oca_field")) {
                         throw new Error("The Standard PDF fields did not render on desktop.");
                     }
+                    const renderedFields = Array.from(
+                        iframe.contentDocument.querySelectorAll(".o_sign_oca_field"),
+                    );
+                    if (renderedFields.some((field) => {
+                        const box = field.getBoundingClientRect();
+                        return box.width < 12 || box.height < 12;
+                    })) {
+                        throw new Error("A Standard signing field rendered without a usable target.");
+                    }
                     const actions = document.querySelector(".usl_sign_portal_actions");
                     if (!actions) {
                         throw new Error("The desktop signer actions are missing.");
                     }
                     const footer = document.querySelector(".o_sign_oca_footer");
                     const guide = Array.from(document.querySelectorAll("button")).find(
-                        (candidate) => candidate.textContent.includes("Guide me"),
+                        (candidate) => candidate.textContent.includes("Next field"),
                     );
                     const oldNavigator = iframe.contentDocument.querySelector(
                         ".o_sign_sign_item_navigator",
                     );
                     if (!footer || getComputedStyle(footer).display === "none" || !guide) {
                         throw new Error("Incomplete fields hid the manual signing controls.");
+                    }
+                    if (footer.scrollWidth > footer.clientWidth + 1 || footer.clientHeight > 210) {
+                        throw new Error("The signer footer overflows or obscures too much of the document.");
                     }
                     if (oldNavigator) {
                         throw new Error("The stale OCA field navigator is still active.");
@@ -1061,7 +1085,7 @@ class TestSignBrowserJourneys(HttpCase):
                     console.log("test successful");
                 })();
                 """,
-                ready="Boolean(document.getElementById('usl_sign_consent'))",
+                ready="Boolean(document.getElementById('sign_oca_button'))",
                 login=None,
                 timeout=60,
             )
@@ -1133,6 +1157,10 @@ class TestSignBrowserJourneys(HttpCase):
                     );
                     if (!signatureField) {
                         throw new Error("The visual signature field did not render.");
+                    }
+                    const signatureControl = signatureField.querySelector('[role="button"]');
+                    if (!signatureControl?.textContent.includes("Add signature")) {
+                        throw new Error("The empty signature field has no visible action label.");
                     }
                     signatureField.click();
                     let adoptButton;
@@ -1295,7 +1323,7 @@ class TestSignBrowserJourneys(HttpCase):
                     button.click();
                 })();
                 """,
-                ready="Boolean(document.getElementById('usl_sign_consent'))",
+                ready="Boolean(document.getElementById('sign_oca_button'))",
                 login=None,
                 timeout=120,
             )
