@@ -68,6 +68,23 @@ test("result view leads with integrity and keeps trust limitations explicit", as
     expect(".usl_sign_inspector_limits").toHaveText(/advanced or qualified/);
 });
 
+test("USL certificates are labelled by their actual proof role", async () => {
+    const component = await mountWithCleanup(SignatureInspector);
+    expect(
+        component.signatureKindLabel({
+            certificate: {subject: {commonName: "USL Sign Personal: Alice Example"}},
+        })
+    ).toBe("Personal signer PAdES signature");
+    expect(
+        component.signatureKindLabel({
+            certificate: {subject: {commonName: "USL Sign Platform Seal"}},
+        })
+    ).toBe("Platform integrity seal");
+    expect(component.signatureKindLabel({signatureKind: "Document timestamp"})).toBe(
+        "Document timestamp"
+    );
+});
+
 test("unsupported and oversized files fail before PDF parsing", async () => {
     const component = await mountWithCleanup(SignatureInspector);
 
