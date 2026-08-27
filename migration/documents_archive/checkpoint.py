@@ -32,6 +32,10 @@ TRANSFORMATION_INPUTS = (
     "custom-addons/usl_documents/security",
     "custom-addons/usl_documents_accounting/__manifest__.py",
     "custom-addons/usl_documents_accounting/models",
+    "custom-addons/usl_documents_b2c/__manifest__.py",
+    "custom-addons/usl_documents_b2c/models",
+    "migration/b2c_restore/addons/usl_b2c_restore",
+    "migration/collaboration_restore/addons/usl_collaboration_restore",
 )
 INCLUDED_SUFFIXES = {".csv", ".py", ".xml"}
 

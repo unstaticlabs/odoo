@@ -53,6 +53,12 @@ class QaSeedManifestTest(unittest.TestCase):
                     "paperless_document_count": 1,
                     "status": "passed"
                 },
+                "collaboration": {
+                    "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "external_message_count": 554,
+                    "status": "passed",
+                    "visible_message_count": 49451
+                },
                 "migration_boundary": "passed",
                 "product_database_boundary": "passed",
                 "profile": "full",

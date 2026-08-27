@@ -63,6 +63,7 @@
                         <page string="Portal Guidance"><field name="filing_guidance" nolabel="1"/></page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -297,6 +298,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

@@ -79,6 +79,29 @@ _CONFIGURATION_KEYS = {
 class ResUsers(models.Model):
     _inherit = "res.users"
 
+    def _notify_security_setting_update(
+        self,
+        subject,
+        content,
+        mail_values=None,
+        **kwargs,
+    ):
+        """Keep governed non-interactive provisioning free of outbound mail.
+
+        Environment provisioning rotates credentials and applies identity
+        policy before the target is released. Those changes are recorded in
+        the immutable Pocket ID audit log; sending account-security messages
+        while provisioning could contact addresses restored from the source.
+        """
+        if self.env.context.get("usl_governed_identity_provisioning"):
+            return self.env["mail.mail"]
+        return super()._notify_security_setting_update(
+            subject,
+            content,
+            mail_values=mail_values,
+            **kwargs,
+        )
+
     usl_pocketid_access = fields.Boolean(
         string="Pocket ID login enabled",
         copy=False,
@@ -539,7 +562,9 @@ class ResUsers(models.Model):
                 if not subject_matches.active:
                     subject_matches.write({"active": True})
             else:
-                self.env["usl.oidc.identity"].create(
+                self.env["usl.oidc.identity"].with_context(
+                    mail_auto_subscribe_no_notify=True,
+                ).create(
                     {
                         "issuer": provider.usl_oidc_issuer,
                         "subject": subject,
@@ -608,10 +633,14 @@ class ResUsers(models.Model):
                 values["password"] = secrets.token_urlsafe(48)
             elif configuration["profile"] == "break_glass":
                 values["password"] = break_glass_password
-            user.write(values)
-            self._usl_pocketid_apply_identity_configuration(
+            provisioned_user = user.with_context(
+                usl_governed_identity_provisioning=True,
+                mail_auto_subscribe_no_notify=True,
+            )
+            provisioned_user.write(values)
+            provisioned_user._usl_pocketid_apply_identity_configuration(
                 provider=provider,
-                user=user,
+                user=provisioned_user,
                 configuration=configuration,
             )
             configured_users |= user
@@ -737,7 +766,10 @@ class ResUsers(models.Model):
             users, break_glass = self._usl_pocketid_validate_sso_only()
             if previous != policy:
                 for user in users - break_glass:
-                    user.with_context(no_reset_password=True).write(
+                    user.with_context(
+                        no_reset_password=True,
+                        usl_governed_identity_provisioning=True,
+                    ).write(
                         {"password": secrets.token_urlsafe(48)},
                     )
             parameters.set_bool("auth_signup.reset_password", False)

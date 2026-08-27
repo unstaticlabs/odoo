@@ -157,9 +157,12 @@ unassigned enterprise evidence file through the supported Paperless API, with
 byte-for-byte read-back and preview checks. The genuine strategy PDF referenced
 by an experimental AI source record is added to that archive as private,
 needs-review business evidence; the AI index and configuration are not copied.
-Knowledge attachments are explicitly discarded with the approved demo-content
-disposition. Sign, preference and collaboration actions continue to keep the
-attachment gate blocked until their own stages pass.
+The final Collaboration and Preferences stages close signing, chatter, saved-
+filter, and dashboard dispositions. Knowledge attachments are explicitly
+discarded with the approved demo-content disposition. Three dashboard
+definitions are recomputed from installed target modules and six unsupported
+Enterprise dashboard payloads receive explicit not-copied evidence. No source
+attachment action remains pending.
 
 ## Deterministic reconstruction
 
@@ -167,7 +170,8 @@ attachment gate blocked until their own stages pass.
 package, runs the strict source-wide and attachment gates, creates a clean
 target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
-and Platform Billing, rebuilds the Paperless archive, removes every temporary
+and Platform Billing, rebuilds the Paperless archive, restores source-wide
+Collaboration history, removes every temporary
 migration module and its allow-listed physical provenance columns, then
 applies target-only configuration. It is blocked while any shipped scope is
 incomplete. The strict
@@ -218,27 +222,36 @@ verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
 Accounting, global identity, Product Master, Inventory/Manufacturing
-configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
-Paperless Documents archive have implemented translation stages. The current
-Distribution-scope gate passes. The strict production gate remains
-blocked—correctly—on collaboration history, remaining attachment actions,
-Sign and user preferences. Knowledge is unused default/demo Online content;
-AI configuration and Sales/Marketing configuration were experiments/default
-setup; Studio implementation metadata is superseded by maintained Distribution
-add-ons. The approved product decision for those four scopes is
-`deliberately_not_copied`; this does not claim that the obsolete source runtime
-was migrated. The separate physical opening-stock evidence item also remains
-blocking for B2C operational release even though it is not a fact contained in
-the source database.
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing,
+Collaboration, signed evidence and the Paperless Documents archive have
+implemented translation or archive stages. The strict gate covers all 19
+audited scopes and dispositions 226,836 source records with zero blocked
+records, relation rows or stored fields.
 
-The strict 27 August audit therefore reports four incomplete scopes:
-`attachments`, `collaboration`, `preferences`, and `signing`. The attachment
-ledger reports 107 pending source attachment IDs, represented by 64
-collaboration actions, 9 preference actions, and 50 Sign actions. Action totals
-can overlap when one attachment has more than one relationship; the 107 source
-IDs are the file-level count. The ledger explicitly records the discarded
-Knowledge attachments and the private Documents destination of the AI-indexed
-business source file, so neither outcome is silent.
+The former incomplete scopes are now closed explicitly. AI configuration and
+Sales/Marketing configuration are discarded as experiments or default setup.
+Studio implementation metadata is not copied; its maintained Distribution
+behavior and expense-matching candidates are recomputed. Seven source-backed
+saved filters are migrated;
+six native filters and two exports are recomputed, and AI/marketing exports are
+discarded. Nine standard spreadsheet-dashboard payloads are recomputed where a
+native target exists or rejected where the Enterprise dashboard module is not
+part of the Distribution. The one genuine private strategy PDF is retained
+byte-for-byte as a restricted manager-only `usl.document`, without copying its
+obsolete AI index, embeddings or agent configuration. There are no pending
+attachment actions.
+
+Knowledge is not a Distribution product. Its 66 source messages are default or
+demo content and are deliberately not copied. The 554 additional deliberately
+omitted Collaboration messages are generated technical configuration notes
+without customer or operational narrative. Both decisions are represented in
+the checksum-sealed source disposition evidence, not by permanent compatibility
+models or a shadow archive inside Odoo.
+
+The separate physical opening-stock evidence item remains a B2C operational
+go-live prerequisite even though it is not a fact contained in the source
+database. The migration correctly creates no unsupported historical stock
+moves, quants or valuation layers.
 
 ### B2C commerce stage
 

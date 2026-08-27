@@ -17,13 +17,13 @@ Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
-through merge `64c1f2b1207`. Paperless 3.0 and the schema-v3
-migration-cache/Documents-performance follow-up are integrated together on the
-current review candidate. Native Sign, Collaboration History and Distribution
-Access Control remain independently reviewable workstreams. Those three must
-be reviewed and merged or explicitly rejected before the final production
-qualification; no feature worktree, old QA seed or rehearsal candidate can be
-promoted directly.
+through merge `64c1f2b1207`. Paperless 3.0, the schema-v3 migration-cache/
+Documents-performance follow-up, and Collaboration History are integrated on
+the current review candidate with their reviewed ancestry preserved. Native
+Sign, Distribution Access Control, and the project/task browser-title fix
+remain independently reviewable workstreams. They must be merged or explicitly
+rejected before final production qualification; no feature worktree, old QA
+seed, or rehearsal candidate can be promoted directly.
 
 The combined Documents review candidate preserves the exact reviewed tips of
 both feature branches through explicit merge commits. Its five affected product
@@ -43,8 +43,9 @@ Paperless `3.0.5-usl.6` candidate separates bulk source ingestion from one
 verified semantic-index update so CPU-bound BGE-M3 jobs no longer block every
 subsequent upload. Its image build, hash guards, focused Django tests and
 migration safety tests pass. End-to-end migration timing, source-complete
-vector parity on the new path and production AMD64 qualification remain open;
-the older full reconstruction already in progress cannot satisfy those gates.
+vector parity on the new path and production AMD64 qualification remain open.
+The pre-optimization reconstruction was stopped because later bind-mounted
+stages could no longer represent one exact commit.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -124,6 +125,11 @@ maturity map is maintained in
   readiness. It is ready but deliberately inactive.
 - Complete Accounting attachment reconstruction preserves source metadata,
   native record/chatter links and access inheritance.
+- Source-backed Collaboration history restores native chatter, tracking,
+  followers, activities, recipients, reactions and attachment relationships
+  across rebuilt business records without recreating outbound delivery queues.
+  Unsupported technical history remains sealed private evidence, and the
+  temporary restore module is removed from the delivered database.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
 ### Integrated migration and release foundations
@@ -169,6 +175,22 @@ That focused evidence does not promote the earlier full seed to a final
 release candidate. A new full reconstruction is still required after the
 remaining workstreams merge.
 
+The 27 August Collaboration integration candidate completed another canonical
+reconstruction from the same locked source. Its two Collaboration passes were
+identical at 50,005 messages, 36,946 tracking values, 5,862 followers and 895
+activities. After product review, 49,385 operational messages are retained and
+620 messages are deliberately not copied: 66 default/demo Knowledge messages
+and 554 generated configuration notifications or tracking events with no
+customer or operational content. Their exact disposition is checksum-sealed
+outside the product; no parallel archive model is delivered. Finalization
+removed every temporary migration model/field/table/XML ID and passed the
+product database boundary. Identity and Documents qualification retained the
+source-backed Paperless archive and produced zero changes on repeated
+synchronization. The shared reusable QA seed was not published from the
+integration branch because publication is correctly restricted to a clean
+`19-usl` checkout. These results qualify this merge but, like all earlier
+rehearsals, must be repeated after the remaining workstreams merge.
+
 The current candidate's isolated clean-install and repeated-update check passes
 for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
@@ -184,26 +206,35 @@ stock moves/quants remain intact. That database still has the pending
 `origin/19-usl`; it must be replaced by the final clean reconstruction rather
 than treated as final release evidence or repaired ad hoc.
 
-The rehearsal is not a production admission candidate. Four earlier source
-scopes now have explicit approved dispositions: default/demo Knowledge,
-experimental AI configuration, unused Sales/Marketing configuration and
-superseded Studio implementation metadata are deliberately not copied. The
-strict whole-source gate still identifies the genuinely open Attachments,
-Collaboration, Preferences and Signing scopes, and the separately governed
-physical opening-stock count is still not evidenced. B2C itself now has complete honest
-dispositions: nine aliases are exactly verified, 100 are explicitly not
-applicable, all 180 source-ledger moves have monthly session links, all 40
-source files are archived, and no accounting relationship or SKU mapping is
-left unexplained and pending. Aggregate monthly coverage is not presented as
-one-to-one order accounting, and the 35 header-only Medusa orders remain
-visible without invented lines. The remaining whole-source and physical-count
-items are visible release blockers, not silently discarded data.
+The current locked-source rehearsal now clears all 19 strict source scopes:
+226,836 source records have explicit dispositions, with zero blocked records,
+relation rows or stored fields. The previously open AI, Sales/Marketing and
+Studio scopes are deliberately dropped because they contain experiments,
+default configuration or customizations superseded by the Distribution.
+Preferences are translated or explicitly recomputed/dropped. Nine default
+dashboard definitions are recomputed or rejected as unsupported configuration,
+and the genuine strategy PDF is retained byte-for-byte as a restricted
+manager-only Document. B2C has complete honest dispositions: nine aliases are
+exactly verified, 100 are explicitly not applicable, all 180 source-ledger
+moves have monthly session links, all 40 source files are archived, and no
+accounting relationship or SKU mapping is left unexplained and pending.
+Aggregate monthly coverage is not presented as one-to-one order accounting,
+and the 35 header-only Medusa orders remain visible without invented lines.
+The rehearsal is still not a production admission candidate: a wholly clean
+post-integration run, final frozen-source rerun, remaining release-train merges,
+isolated-host dress rehearsal and operational approvals remain required. The
+30 September physical opening-stock count is a separate go-live prerequisite;
+the migration correctly creates no unsupported historical stock activity.
+The clean 27 August reconstruction additionally passed final product-boundary,
+outbound-queue and multi-company controls with 14 delivered modules, 733 live
+Documents and no migration residue. The resulting `odoo_dev` is the canonical
+local pre-production target, but later workstream merges will invalidate this
+run for final release admission.
 
-The current attachment ledger contains 107 pending source IDs: 64
-Collaboration, 9 Preferences and 50 Sign actions, with overlaps where one file
-has more than one required relationship. The genuine strategy PDF referenced
-by experimental AI remains selected for private Documents archival; only the
-AI configuration and index are deliberately omitted.
+The former 107 pending attachment IDs now have explicit Collaboration,
+Preferences, signing-evidence, dashboard, or restricted-Documents
+dispositions. This merged tree still requires a new source-complete run before
+those earlier results become evidence for the combined candidate.
 
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in
@@ -248,10 +279,11 @@ The canonical, evidence-bearing sequence is maintained in the
    suites and the AMD64 overlay build pass. Complete full archive
    reconstruction, release-cohort restore, signed-in manual journeys and final
    merge remain required**.
-6. Review and merge Native Sign with signing evidence and permission gates.
-7. Review and merge Collaboration History, then close the corresponding
-   strict source scope and attachment dispositions without importing
-   migration-only provenance into the product.
+6. Collaboration History — **integrated on the current release candidate;
+   clean reconstruction, repeated import and product-boundary qualification
+   passed; its source scope and attachment relationships are closed without
+   migration-only provenance or outbound delivery state in the product**.
+7. Review and merge Native Sign with signing evidence and permission gates.
 8. Review and merge Distribution Access Control and repeat named-persona,
    multi-company and record-rule acceptance.
 9. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean

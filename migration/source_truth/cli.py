@@ -529,15 +529,19 @@ def build_gap_report(inventory: dict[str, Any]) -> dict[str, Any]:
 
 
 def write_gap_report(report: dict[str, Any], root: Path) -> tuple[Path, Path]:
+    root.mkdir(parents=True, exist_ok=True)
+    root.chmod(0o700)
     snapshot = f"source-{report['source_dump_sha256'][:12]}"
     directory = root / snapshot
     json_path = directory / "source-migration-gap-report.json"
     markdown_path = directory / "source-migration-gap-report.md"
     directory.mkdir(parents=True, exist_ok=True)
+    directory.chmod(0o700)
     json_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    json_path.chmod(0o600)
     lines = [
         "# Source migration coverage and gaps",
         "",
@@ -583,17 +587,22 @@ def write_gap_report(report: dict[str, Any], root: Path) -> tuple[Path, Path]:
         "",
     ))
     markdown_path.write_text("\n".join(lines), encoding="utf-8")
+    markdown_path.chmod(0o600)
     return json_path, markdown_path
 
 
 def write_inventory(inventory: dict[str, Any], root: Path) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
+    root.chmod(0o700)
     snapshot = f"source-{inventory['source']['dump_sha256'][:12]}"
     destination = root / snapshot / "source-truth-inventory.json"
     destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.parent.chmod(0o700)
     destination.write_text(
         json.dumps(inventory, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    destination.chmod(0o600)
     return destination
 
 

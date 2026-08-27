@@ -1,3 +1,4 @@
+import ast
 import hashlib
 import os
 from pathlib import Path
@@ -12,6 +13,60 @@ RESTORE_REVISION = 1
 SOURCE_FILESTORE = Path(
     os.getenv("IDENTITY_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
 ).resolve()
+
+NATIVE_FILTER_IDS = frozenset({1, 2, 3, 4, 5, 20})
+MIGRATED_FILTER_IDS = frozenset({6, 7, 9, 14, 15, 17, 19})
+DROPPED_SALES_MARKETING_FILTER_IDS = frozenset({10, 12, 16, 18})
+EXPECTED_FILTER_IDS = (
+    NATIVE_FILTER_IDS
+    | MIGRATED_FILTER_IDS
+    | DROPPED_SALES_MARKETING_FILTER_IDS
+)
+NATIVE_EXPORT_IDS = frozenset({1, 2})
+DROPPED_SALES_MARKETING_EXPORT_IDS = frozenset({3, 4})
+DROPPED_AI_EXPORT_IDS = frozenset({7, 8, 9, 10, 11, 12, 13})
+EXPECTED_EXPORT_IDS = (
+    NATIVE_EXPORT_IDS
+    | DROPPED_SALES_MARKETING_EXPORT_IDS
+    | DROPPED_AI_EXPORT_IDS
+)
+
+
+class _SafeDomainSymbol:
+    """Represent one whitelisted Odoo domain symbol without evaluating code."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
+
+
+def parse_saved_filter_domain(source):
+    """Parse literal domains plus Odoo's dynamic ``uid`` symbol safely.
+
+    Saved filters are evaluated by Odoo when a user opens the associated
+    action.  The Online source contains one legitimate dynamic filter using
+    ``uid``.  ``ast.literal_eval`` cannot represent that symbol, while
+    ``safe_eval`` would execute source-controlled expressions during the
+    migration.  This deliberately tiny AST interpreter keeps the supported
+    data shape and rejects calls, attributes, operators and every other name.
+    """
+
+    def convert(node):
+        if isinstance(node, ast.Expression):
+            return convert(node.body)
+        if isinstance(node, ast.List):
+            return [convert(item) for item in node.elts]
+        if isinstance(node, ast.Tuple):
+            return tuple(convert(item) for item in node.elts)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name) and node.id == "uid":
+            return _SafeDomainSymbol("uid")
+        raise ValueError(f"unsupported saved-filter syntax: {type(node).__name__}")
+
+    return convert(ast.parse(source or "[]", mode="eval"))
 
 
 def source_binary(row):
@@ -54,7 +109,8 @@ class IdentitySourceReader:
         with self._connect() as connection, connection.cursor() as cursor:
             cursor.execute("SHOW transaction_read_only")
             if cursor.fetchone()["transaction_read_only"] != "on":
-                raise RuntimeError("Identity source connection is not read-only")
+                message = "Identity source connection is not read-only"
+                raise RuntimeError(message)
             result = {
                 "companies": self._rows(
                     cursor,
@@ -149,10 +205,49 @@ class IdentitySourceReader:
                     SELECT model, res_id, module || '.' || name AS xmlid
                       FROM ir_model_data
                      WHERE model IN (
+                         'ir.actions.act_window',
                          'res.company', 'res.country', 'res.country.state',
                          'res.partner', 'res.users'
                      )
                      ORDER BY model, res_id, module, name
+                    """,
+                ),
+                "filters": self._rows(
+                    cursor,
+                    """
+                    SELECT id, action_id, embedded_action_id,
+                           embedded_parent_res_id, create_uid, write_uid, name,
+                           sort, model_id, domain, context, is_default, active,
+                           create_date, write_date
+                      FROM ir_filters
+                     ORDER BY id
+                    """,
+                ),
+                "filter_users": self._rows(
+                    cursor,
+                    """
+                    SELECT ir_filters_id AS filter_id,
+                           res_users_id AS user_id
+                      FROM ir_filters_res_users_rel
+                     ORDER BY ir_filters_id, res_users_id
+                    """,
+                ),
+                "exports": self._rows(
+                    cursor,
+                    """
+                    SELECT id, create_uid, write_uid, name, resource,
+                           create_date, write_date
+                      FROM ir_exports
+                     ORDER BY id
+                    """,
+                ),
+                "export_lines": self._rows(
+                    cursor,
+                    """
+                    SELECT id, export_id, create_uid, write_uid, name,
+                           create_date, write_date
+                      FROM ir_exports_line
+                     ORDER BY export_id, id
                     """,
                 ),
             }
@@ -265,9 +360,16 @@ class UslIdentityRestoreRun(models.Model):
             tracking_disable=True,
             mail_create_nolog=True,
             mail_create_nosubscribe=True,
+            mail_auto_subscribe_no_notify=True,
         )
         if record:
-            record.with_context(install_mode=True).write(values)
+            record.with_context(
+                install_mode=True,
+                tracking_disable=True,
+                mail_create_nolog=True,
+                mail_create_nosubscribe=True,
+                mail_auto_subscribe_no_notify=True,
+            ).write(values)
         else:
             record = target.create(values)
         return record
@@ -319,6 +421,200 @@ class UslIdentityRestoreRun(models.Model):
             if target and target._name == model:
                 return target
         return self.env[model]
+
+    def _preference_target(self, model, source_id):
+        record = self._traced(model, source_id)
+        if not record:
+            raise RuntimeError(
+                f"Saved-filter source reference {model} {source_id} has no "
+                "canonical rebuilt target",
+            )
+        return record.id
+
+    def _translate_filter_domain(self, row):
+        try:
+            domain = parse_saved_filter_domain(row["domain"])
+        except (SyntaxError, ValueError) as error:
+            raise RuntimeError(
+                f"Saved filter {row['id']} has an invalid source domain",
+            ) from error
+        field_models = {
+            ("account.move", "journal_id"): "account.journal",
+            ("account.move.line", "account_id"): "account.account",
+            ("account.move.line", "partner_id"): "res.partner",
+            ("project.task", "stage_id"): "project.task.type",
+            ("project.task", "tag_ids"): "project.tags",
+        }
+
+        def translate(term):
+            if not isinstance(term, (list, tuple)) or len(term) < 3:
+                return term
+            source_model = field_models.get((row["model_id"], term[0]))
+            if not source_model or term[1] not in {"=", "!=", "in", "not in"}:
+                return term
+            source_values = term[2] if isinstance(term[2], (list, tuple)) else [term[2]]
+            target_values = [
+                self._preference_target(source_model, int(source_id))
+                for source_id in source_values
+            ]
+            target_value = target_values if isinstance(term[2], (list, tuple)) else target_values[0]
+            return (term[0], term[1], target_value, *term[3:])
+
+        return [translate(term) for term in domain]
+
+    def _restore_preferences(self, source, users):
+        actual_filter_ids = {row["id"] for row in source["filters"]}
+        if actual_filter_ids != EXPECTED_FILTER_IDS:
+            raise RuntimeError(
+                "The locked saved-filter perimeter changed: "
+                f"{sorted(actual_filter_ids)}",
+            )
+        actual_export_ids = {row["id"] for row in source["exports"]}
+        if actual_export_ids != EXPECTED_EXPORT_IDS:
+            raise RuntimeError(
+                "The locked saved-export perimeter changed: "
+                f"{sorted(actual_export_ids)}",
+            )
+        filter_users = {}
+        for relation in source["filter_users"]:
+            filter_users.setdefault(relation["filter_id"], []).append(
+                users[relation["user_id"]].id,
+            )
+        action_xmlids = {
+            row["res_id"]: row["xmlid"]
+            for row in source["xmlids"]
+            if row["model"] == "ir.actions.act_window"
+        }
+        migrated = []
+        for row in source["filters"]:
+            if row["id"] not in MIGRATED_FILTER_IDS:
+                continue
+            action_xmlid = action_xmlids.get(row["action_id"])
+            action = (
+                self.env.ref(action_xmlid, raise_if_not_found=False)
+                if action_xmlid
+                else self.env["ir.actions.actions"]
+            )
+            if row["id"] == 14:
+                action = self.env.ref(
+                    "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
+                )
+            if row["action_id"] and not action:
+                raise RuntimeError(
+                    f"Saved filter {row['id']} has no equivalent target action",
+                )
+            users_ids = sorted(filter_users.get(row["id"], []))
+            values = {
+                "name": row["name"],
+                "model_id": row["model_id"],
+                "domain": repr(self._translate_filter_domain(row)),
+                "context": row["context"] or "{}",
+                "sort": row["sort"] or "[]",
+                "is_default": bool(row["is_default"]),
+                "active": bool(row["active"]),
+                "action_id": action.id if action else False,
+                "user_ids": [Command.set(users_ids)],
+            }
+            candidates = self.env["ir.filters"].sudo().search([
+                ("name", "=", row["name"]),
+                ("model_id", "=", row["model_id"]),
+                ("user_ids", "in", users_ids or [False]),
+            ])
+            exact = candidates.filtered(
+                lambda item: sorted(item.user_ids.ids) == users_ids,
+            )
+            if len(exact) > 1:
+                raise RuntimeError(
+                    f"Saved filter {row['id']} has ambiguous target candidates",
+                )
+            target = exact or self.env["ir.filters"].sudo().create(values)
+            if exact:
+                target.write(values)
+            creator = users.get(row["create_uid"])
+            writer = users.get(row["write_uid"])
+            self.env.cr.execute(
+                "UPDATE ir_filters SET create_date=COALESCE(%s, create_date), "
+                "write_date=COALESCE(%s, write_date), "
+                "create_uid=COALESCE(%s, create_uid), "
+                "write_uid=COALESCE(%s, write_uid) WHERE id=%s",
+                (
+                    row["create_date"],
+                    row["write_date"],
+                    creator.id if creator else None,
+                    writer.id if writer else None,
+                    target.id,
+                ),
+            )
+            migrated.append(target.id)
+        return {
+            "filters": {
+                "migrated": sorted(MIGRATED_FILTER_IDS),
+                "native_recomputed": sorted(NATIVE_FILTER_IDS),
+                "deliberately_not_copied_sales_marketing": sorted(
+                    DROPPED_SALES_MARKETING_FILTER_IDS,
+                ),
+                "target_ids": migrated,
+            },
+            "exports": {
+                "native_recomputed": sorted(NATIVE_EXPORT_IDS),
+                "deliberately_not_copied_sales_marketing": sorted(
+                    DROPPED_SALES_MARKETING_EXPORT_IDS,
+                ),
+                "deliberately_not_copied_ai_experiments": sorted(
+                    DROPPED_AI_EXPORT_IDS,
+                ),
+            },
+        }
+
+    def restore_preferences(self, source):
+        """Finalize saved filters after their business targets exist."""
+        self.ensure_one()
+        if self.status != "passed":
+            raise RuntimeError(
+                "Identity business restoration must pass before preferences",
+            )
+        users = {
+            row["id"]: self._traced("res.users", row["id"])
+            for row in source["users"]
+        }
+        missing_users = sorted(
+            source_id for source_id, user in users.items() if not user
+        )
+        if missing_users:
+            raise RuntimeError(
+                f"Saved preferences reference missing users: {missing_users}",
+            )
+        dispositions = self._restore_preferences(source, users)
+        statistics = dict(self.statistics_json or {})
+        statistics["preference_dispositions"] = dispositions
+        self.write({"statistics_json": statistics})
+        return dispositions
+
+    def _completed_preference_dispositions(self):
+        """Return the newest completed preference audit for this snapshot."""
+        self.ensure_one()
+        previous_runs = self.search(
+            [
+                ("id", "!=", self.id),
+                ("source_database", "=", self.source_database),
+                ("source_snapshot", "=", self.source_snapshot),
+                ("status", "=", "passed"),
+            ],
+            order="id desc",
+        )
+        return next(
+            (
+                dispositions
+                for previous_run in previous_runs
+                if (
+                    dispositions := (previous_run.statistics_json or {}).get(
+                        "preference_dispositions",
+                    )
+                )
+                and dispositions.get("status") != "deferred"
+            ),
+            None,
+        )
 
     def restore(self, source):
         self.ensure_one()
@@ -511,7 +807,18 @@ class UslIdentityRestoreRun(models.Model):
                 values["notification_type"] = row["notification_type"]
             if user:
                 self._claim_trace(user, "res.users", row["id"])
-                user.sudo().with_context(no_reset_password=True).write(values)
+                # mail's security alert is triggered by the presence of the
+                # ``login`` key, even when its value is unchanged. A restore
+                # must never enqueue a security email for a no-op write.
+                if values.get("login") == user.login:
+                    values.pop("login")
+                user.sudo().with_context(
+                    no_reset_password=True,
+                    tracking_disable=True,
+                    mail_create_nolog=True,
+                    mail_create_nosubscribe=True,
+                    mail_auto_subscribe_no_notify=True,
+                ).write(values)
             else:
                 # project_todo creates a personal welcome task whenever an
                 # internal user is created.  That is useful for a new Odoo
@@ -648,9 +955,24 @@ class UslIdentityRestoreRun(models.Model):
                 + len(deferred_user_groups)
             ),
             "images": len(source["images"]),
+            "filters": len(source["filters"]),
+            "filter_users": len(source["filter_users"]),
+            "exports": len(source["exports"]),
+            "export_lines": len(source["export_lines"]),
         }
         if counts != source["counts"]:
             raise RuntimeError(f"Identity source/target counts differ: {source['counts']} != {counts}")
+        # A reconstruction resume may replay Identity after saved preferences
+        # were already finalized for this same locked snapshot.  Preserve that
+        # completed disposition on the new audit run so the immediate validator
+        # rechecks the existing filters instead of incorrectly requiring them
+        # to be absent.  A different snapshot must always start deferred.
+        previous_preferences = self._completed_preference_dispositions()
+        preference_dispositions = (
+            previous_preferences
+            if previous_preferences
+            else {"status": "deferred"}
+        )
         self.write(
             {
                 "status": "passed",
@@ -666,6 +988,10 @@ class UslIdentityRestoreRun(models.Model):
                             for _user_id, group_id, xmlid in deferred_user_groups
                         },
                     ),
+                    # Project stages and tags do not exist yet. A governed
+                    # post-Project step resolves every saved-filter reference
+                    # before this temporary module can be finalized.
+                    "preference_dispositions": preference_dispositions,
                 },
             },
         )

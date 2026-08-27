@@ -172,6 +172,11 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "A Documents run cannot reset and reuse the Paperless archive together.",
             script,
         )
+        self.assertIn("seal-checkpoint)", script)
+        self.assertIn(
+            "Final archive checkpoint sealing requires the canonical full target.",
+            script,
+        )
         checkpoint = (
             ROOT / "migration/documents_archive/checkpoint.py"
         ).read_text(encoding="utf-8")
@@ -205,6 +210,28 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             compose,
         )
 
+    def test_reconstruction_reseals_checkpoint_after_all_document_producers(self):
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        b2c_stage = target.index(
+            'run_stage "finalize B2C relationships and Documents links"',
+        )
+        collaboration_stage = target.index(
+            'run_stage "restore Collaboration history"',
+        )
+        checkpoint_stage = target.index(
+            'run_stage "seal final Documents archive checkpoint"',
+        )
+        self.assertLess(b2c_stage, collaboration_stage)
+        self.assertLess(collaboration_stage, checkpoint_stage)
+        checkpoint = (
+            ROOT / "migration/documents_archive/checkpoint.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            '"migration/collaboration_restore/addons/usl_collaboration_restore"',
+            checkpoint,
+        )
+
     def test_canonical_reset_clears_target_mirror_before_archive_volumes(self):
         script = SCRIPT.read_text(encoding="utf-8")
         reset = (
@@ -220,6 +247,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('env["usl.document.operation"]', reset)
         self.assertIn('env["usl.document.link"]', reset)
         self.assertIn('env["usl.document"]', reset)
+        self.assertIn('env.get("b2c.provider.evidence")', reset)
+        self.assertIn("with_context(b2c_evidence_import=True).write", reset)
+        self.assertLess(
+            reset.index("with_context(b2c_evidence_import=True).write"),
+            reset.index('Document.with_context(active_test=False).search([]).unlink()'),
+        )
 
     def test_restore_uses_all_mapped_companies_for_archive_policy(self):
         restore = (
@@ -236,6 +269,15 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("source contains unsupported Documents URL references", restore)
         self.assertIn("attachment.res_model = 'ai.agent.source'", restore)
         self.assertIn('"restricted_unassigned_evidence"', restore)
+        for model_name in (
+            "b2c.accounting.session",
+            "b2c.fulfilment.event",
+            "b2c.order",
+            "b2c.payment.event",
+        ):
+            self.assertIn(f'"{model_name}"', restore)
+        self.assertIn("unsupported_relationships", restore)
+        self.assertIn("preserved_governed_extension_relationship_count", restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -270,7 +312,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("scripts/accounting-compat dev-validate", script)
         self.assertIn('failed_checks == {"manager_accounting_identity_matches"}', script)
         self.assertIn('manager.get("target") is None', script)
-        self.assertIn("scripts/hr-restore all", script)
+        self.assertIn("scripts/hr-restore install", script)
+        self.assertIn("scripts/hr-restore import", script)
+        self.assertIn("scripts/hr-restore validate", script)
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 
@@ -351,6 +395,18 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             script.index('run_stage "restore Platform Billing"'),
+            script.index('run_stage "restore Collaboration history"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Projects"'),
+            script.index('run_stage "finalize source-backed saved preferences"'),
+        )
+        self.assertLess(
+            script.index('run_stage "finalize source-backed saved preferences"'),
+            script.index('run_stage "finalize migration boundary"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Collaboration history"'),
             script.index('run_stage "finalize migration boundary"'),
         )
         finalizer = script[
@@ -362,6 +418,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             finalizer,
         )
         self.assertLess(
+            finalizer.index("scripts/collaboration-restore finalize"),
+            finalizer.index("scripts/platform-billing-restore finalize"),
+        )
+        self.assertLess(
             finalizer.index("scripts/platform-billing-restore finalize"),
             finalizer.index("scripts/tese-restore finalize"),
         )
@@ -371,12 +431,27 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(
             finalizer.index("scripts/project-restore finalize"),
+            finalizer.index("scripts/hr-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/hr-restore finalize"),
+            finalizer.index("scripts/product-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/product-restore finalize"),
+            finalizer.index("scripts/identity-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/identity-restore finalize"),
             finalizer.index("scripts/accounting-restore finalize"),
         )
         self.assertLess(
             finalizer.index("scripts/accounting-restore finalize"),
             finalizer.index("scripts/platform-billing-restore schema-finalize"),
         )
+        self.assertNotIn('run_stage "restore identities" scripts/identity-restore all', script)
+        self.assertNotIn('run_stage "restore product data" scripts/product-restore all', script)
+        self.assertNotIn('run_stage "restore HR" scripts/hr-restore all', script)
 
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
         runner = SCRIPT.read_text(encoding="utf-8")
@@ -506,6 +581,16 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("attachment_gate=gate", target)
         self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
         self.assertIn('export USL_ONLINE_DUMP_DIR="$source_dump_dir"', target)
+        for phase in (
+            "post-accounting",
+            "post-source-restoration",
+            "post-target-configuration",
+            "final-reconstruction",
+        ):
+            self.assertIn(
+                f"scripts/migration-outbound-safety {phase}",
+                target,
+            )
         self.assertLess(
             target.index('export USL_ONLINE_DUMP_DIR="$source_dump_dir"'),
             target.index('scripts/migration-source-truth "$source_gate"'),

@@ -130,7 +130,7 @@ Stage dependencies:
 | --- | --- | --- | --- |
 | `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_3` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
 | `make accounting-attachment-audit` | Restored source attachment metadata, complete source filestore and reconstructed `odoo_dev` | Private source/target integrity, relationship, chatter and exclusion evidence | It verifies every referenced source blob, reads every imported target binary through Odoo storage and blocks material Accounting omissions. See [Accounting attachment reconstruction](attachment-reconstruction.md). |
-| `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. |
+| `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. The accepted `csv_v1` contract is bound to the source-dump SHA-256 and records a SHA-256 for every exported file; Parquet is deliberately not a second supported migration path. |
 | `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_saas_19_3_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
 | `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs the complete source Accounting state through the target Odoo ORM. |
 | `make accounting-validation-exact-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
@@ -373,11 +373,11 @@ Direct expense evidence is part of the blocking gate. Binary files are verified
 against the restored filestore checksum and size; URL attachments retain their
 native type and URL instead of being discarded as non-binary records. Chatter
 attachments retain their source message relationship metadata. Notification
-followers and generated tracking messages are not copied as business records:
-blindly restoring notification subscriptions could send unintended mail, while
-generated tracking logs would duplicate events produced by the native target
-workflow. Those exclusions do not remove original receipts, invoices, uploaded
-files or links from the expense.
+The early Accounting attachment pass creates temporary source-aware file links;
+the final Collaboration stage replaces its generated attachment notes with the
+original source messages, tracking history, mapped internal followers and
+verified attachment relationships. Delivery notifications and sent queue rows
+are deliberately excluded so reconstruction cannot resend historical mail.
 
 The import is safe to repeat. Existing source-traced expenses and evidence are
 revalidated and reused. Payments already linked to expenses and depreciation

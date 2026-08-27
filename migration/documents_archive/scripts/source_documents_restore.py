@@ -73,6 +73,12 @@ QUALIFIED_SEARCHABLE_DERIVATIVES = {
         "kind": "corrupt base64-wrapped supplier invoice",
     },
 }
+GOVERNED_POST_DOCUMENTS_LINK_MODELS = {
+    "b2c.accounting.session",
+    "b2c.fulfilment.event",
+    "b2c.order",
+    "b2c.payment.event",
+}
 
 
 def fail(message):
@@ -170,8 +176,10 @@ def read_source():
                    attachment.file_size, attachment.mimetype,
                    attachment.create_uid, attachment.create_date AS attachment_create_date
               FROM ir_attachment attachment
-             WHERE (COALESCE(attachment.res_model, '') = ''
-                    OR attachment.res_model = 'ai.agent.source')
+             WHERE (
+                    COALESCE(attachment.res_model, '') = ''
+                    OR attachment.res_model = 'ai.agent.source'
+                   )
                AND attachment.type = 'binary'
                AND attachment.name != 'res.company.scss'
                AND NOT EXISTS (
@@ -387,6 +395,10 @@ def group_source(source):
                 "owner_id": None,
                 "res_model": None,
                 "res_id": 0,
+                # The strategy PDF attached to the discarded experimental AI
+                # setup is genuine private business content. Preserve its
+                # bytes without recreating the AI model or exposing it to
+                # ordinary Documents users.
                 "access_internal": (
                     "none" if restricted_business_evidence else "edit"
                 ),
@@ -445,6 +457,7 @@ def source_truth_payload(group):
                 "owner_id": item["owner_id"],
                 "res_model": item["res_model"],
                 "res_id": item["res_id"],
+                "source_res_model": item.get("source_res_model") or "",
                 "folder_path": item["folder_path"],
                 "folder_company_id": item.get("folder_company_id"),
                 "tag_ids": item["tag_ids"],
@@ -1763,11 +1776,20 @@ actual_relationships = {
         [("document_id", "in", migrated_document_ids), ("active", "=", True)],
     )
 }
-if actual_relationships != expected_relationships:
+unexpected_relationships = actual_relationships - expected_relationships
+governed_extension_relationships = {
+    relationship
+    for relationship in unexpected_relationships
+    if relationship[1] in GOVERNED_POST_DOCUMENTS_LINK_MODELS
+}
+unsupported_relationships = (
+    unexpected_relationships - governed_extension_relationships
+)
+if expected_relationships - actual_relationships or unsupported_relationships:
     fail(
         "the finalized business relationship set is not deterministic; "
         f"missing={sorted(expected_relationships - actual_relationships)}, "
-        f"unexpected={sorted(actual_relationships - expected_relationships)}",
+        f"unexpected={sorted(unsupported_relationships)}",
     )
 relationships_by_model = {
     model_name: sum(
@@ -1887,6 +1909,16 @@ result = {
     "excluded_empty_source_document_types": excluded_empty_source_document_types,
     "restored_relationship_count": len(expected_relationships),
     "restored_relationships_by_model": relationships_by_model,
+    "preserved_governed_extension_relationship_count": len(
+        governed_extension_relationships,
+    ),
+    "preserved_governed_extension_relationships_by_model": {
+        model_name: sum(
+            relationship[1] == model_name
+            for relationship in governed_extension_relationships
+        )
+        for model_name in sorted(GOVERNED_POST_DOCUMENTS_LINK_MODELS)
+    },
     "classification_tag_counts": classification_tag_counts,
     "classification_type_counts": classification_type_counts,
     "classification_reconciliation": classification_reconciliation,
