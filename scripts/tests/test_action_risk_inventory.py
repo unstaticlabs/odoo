@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import tempfile
@@ -91,6 +92,15 @@ class ActionRiskInventoryTestCase(unittest.TestCase):
             "evidence_families": {"test-contract": self.evidence()},
             "actions": actions,
         }
+
+    def test_stable_ast_dump_includes_empty_fields(self):
+        node = ast.parse("def action(value):\n    return value\n").body[0]
+
+        dumped = inventory.stable_ast_dump(node)
+
+        self.assertIn("posonlyargs=[]", dumped)
+        self.assertIn("kw_defaults=[]", dumped)
+        self.assertIn("decorator_list=[]", dumped)
 
 
 class TestDiscovery(ActionRiskInventoryTestCase):

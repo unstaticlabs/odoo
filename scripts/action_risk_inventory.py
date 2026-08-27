@@ -181,6 +181,15 @@ def sha256_json(value: object) -> str:
     return hashlib.sha256(canonical_json(value).encode()).hexdigest()
 
 
+def stable_ast_dump(node: ast.AST) -> str:
+    """Serialize ASTs identically across the supported Python versions."""
+
+    try:
+        return ast.dump(node, include_attributes=False, show_empty=True)
+    except TypeError:  # Python 3.12 always includes empty fields.
+        return ast.dump(node, include_attributes=False)
+
+
 def qualified_policy_digest(
     surface: Mapping[str, object],
     policy: Mapping[str, object],
@@ -901,9 +910,7 @@ def _python_contributions(
                                 canonical_json(
                                     {
                                         "auth": auth,
-                                        "method": ast.dump(
-                                            method_node, include_attributes=False,
-                                        ),
+                                        "method": stable_ast_dump(method_node),
                                         "methods": methods,
                                         "route": route_path,
                                         "type": route_type,
@@ -961,9 +968,7 @@ def _python_contributions(
                                 private=_decorated_private(method_node),
                                 source=source,
                                 line=method_node.lineno,
-                                fragment=ast.dump(
-                                    method_node, include_attributes=False,
-                                ),
+                                fragment=stable_ast_dump(method_node),
                                 delegates=tuple(sorted(analysis.delegates)),
                                 sinks=tuple(sorted(set(analysis.sinks))),
                                 guards=tuple(sorted(analysis.guards)),
@@ -996,7 +1001,7 @@ def _add_method_internal_actions(
                 "parents": parents,
                 "risk_flags": sorted(analysis.risk_flags),
             },
-            ast.dump(method_node, include_attributes=False),
+            stable_ast_dump(method_node),
         )
     counts: dict[str, int] = defaultdict(int)
     for sink in analysis.sinks:
@@ -1013,7 +1018,7 @@ def _add_method_internal_actions(
                 "guards": sorted(analysis.guards),
                 "risk_flags": sorted(analysis.risk_flags),
             },
-            f"{ast.dump(method_node, include_attributes=False)}:{sink}:{counts[sink]}",
+            f"{stable_ast_dump(method_node)}:{sink}:{counts[sink]}",
         )
 
 
@@ -1057,7 +1062,7 @@ def _add_helper_sinks(
                     "sources": [{"path": source, "line": node.lineno}],
                     "risk_flags": sorted(analysis.risk_flags),
                 },
-                f"{ast.dump(node, include_attributes=False)}:{sink}:{counts[sink]}",
+                f"{stable_ast_dump(node)}:{sink}:{counts[sink]}",
             )
 
 
@@ -1095,7 +1100,7 @@ def _framework_methods(
                     private=_decorated_private(method_node),
                     source="odoo/orm/models.py",
                     line=method_node.lineno,
-                    fragment=ast.dump(method_node, include_attributes=False),
+                    fragment=stable_ast_dump(method_node),
                     delegates=(),
                     sinks=tuple(sorted(set(analysis.sinks))),
                     guards=(),
