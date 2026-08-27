@@ -251,8 +251,9 @@ import sys
 value = json.load(open(sys.argv[1], encoding="utf-8"))
 valid = (
     value.get("source_dump_sha256") == sys.argv[2]
-    and value.get("visible_message_count") == 49451
-    and value.get("external_message_count") == 554
+    and value.get("visible_message_count") == 49385
+    and value.get("external_message_count") == 0
+    and value.get("deliberately_not_copied_message_count") == 620
     and len(value.get("dispositions", {}).get("messages", [])) == 50005
     and len(value.get("dispositions", {}).get("tracking", [])) == 36946
     and len(value.get("dispositions", {}).get("followers", [])) == 5862
@@ -283,10 +284,11 @@ with open(sys.argv[1], "w", encoding="utf-8") as stream:
             },
             "captured_at": datetime.now(UTC).isoformat(),
             "collaboration": {
+                "deliberately_not_copied_message_count": 620,
                 "evidence_sha256": sys.argv[8],
-                "external_message_count": 554,
+                "external_message_count": 0,
                 "status": "passed",
-                "visible_message_count": 49451,
+                "visible_message_count": 49385,
             },
             "compose_project": sys.argv[2],
             "documents": {

@@ -54,10 +54,11 @@ class QaSeedManifestTest(unittest.TestCase):
                     "status": "passed"
                 },
                 "collaboration": {
+                    "deliberately_not_copied_message_count": 620,
                     "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                    "external_message_count": 554,
+                    "external_message_count": 0,
                     "status": "passed",
-                    "visible_message_count": 49451
+                    "visible_message_count": 49385
                 },
                 "migration_boundary": "passed",
                 "product_database_boundary": "passed",

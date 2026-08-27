@@ -324,8 +324,9 @@ def validate_qualification(qualification: dict) -> None:
         raise SeedError("seed qualification has incomplete Documents controls")
     collaboration = qualification["collaboration"]
     if (
-        collaboration.get("visible_message_count") != 49451
-        or collaboration.get("external_message_count") != 554
+        collaboration.get("visible_message_count") != 49385
+        or collaboration.get("external_message_count") != 0
+        or collaboration.get("deliberately_not_copied_message_count") != 620
         or not isinstance(collaboration.get("evidence_sha256"), str)
         or len(collaboration["evidence_sha256"]) != 64
     ):
