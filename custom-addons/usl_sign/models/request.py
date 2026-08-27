@@ -86,6 +86,16 @@ class SignRequest(models.Model):
     _inherit = "sign.oca.request"
     _order = "create_date desc, id desc"
 
+    def _signing_result_state(self):
+        """Return the live, user-facing outcome after a signer finishes."""
+        self.ensure_one()
+        return {
+            "has_pending_signers": any(
+                signer.state != "signed" for signer in self.signer_ids
+            ),
+            "final_document_ready": bool(self.final_data),
+        }
+
     def preview(self):
         """Open the validated result, never an editor overlay or unchecked file."""
         self.ensure_one()
