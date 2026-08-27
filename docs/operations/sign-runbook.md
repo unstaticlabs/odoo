@@ -26,6 +26,9 @@ The pinned components are:
   is tracked in Pocket ID issue
   [#1654](https://github.com/pocket-id/pocket-id/issues/1654);
 - `@peculiar/x509` 2.0.0 in the dedicated browser worker;
+- PKI.js 3.4.0 in the offline signature-inspection worker; its bundled runtime
+  notices are distributed in
+  `custom-addons/usl_sign/static/lib/signature_inspector_THIRD_PARTY_NOTICES.txt`;
 - `opentimestamps` 0.4.5 with `python-bitcoinlib` 0.12.2 and
   `pycryptodomex` 3.23.0 in Odoo for portable Bitcoin existence proofs;
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
@@ -445,3 +448,7 @@ smoke, browser journeys, `scripts/check-sign-clean-boundary` and
 jobs, settings, dependencies, assets, fixtures and documentation. The release
 must contain no Sign compatibility layer, reconstruction machinery or
 provider-specific integration.
+
+Run `make sign-product-validate`. Its `scripts/check-sign-worker-build` gate
+installs the exact lockfile into a temporary directory, rebuilds both browser
+workers and compares them byte-for-byte with the committed bundles.

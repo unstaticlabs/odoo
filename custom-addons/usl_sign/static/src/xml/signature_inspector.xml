@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignatureInspector">
+        <div class="o_action usl_sign_inspector">
+            <div class="o_content overflow-auto">
+                <main class="container-xxl px-3 px-lg-4 py-4 py-lg-5">
+                    <input t-ref="fileInput" type="file" class="visually-hidden" accept="application/pdf,.pdf"
+                           t-on-change="onFileChange"/>
+
+                    <header class="usl_sign_inspector_header">
+                        <div>
+                            <h1>Check a signed PDF</h1>
+                            <p>See which digital signatures are intact, who their certificates identify, and what still needs an authoritative check.</p>
+                        </div>
+                        <div class="usl_sign_inspector_privacy" aria-label="Local processing">
+                            <i class="fa fa-lock" aria-hidden="true"/>
+                            <span><strong>Your file stays in this browser.</strong> Nothing is uploaded to Odoo.</span>
+                        </div>
+                    </header>
+
+                    <section t-if="state.stage === 'empty'" class="usl_sign_inspector_empty">
+                        <button type="button"
+                                t-att-class="'usl_sign_inspector_dropzone' + (state.dragging ? ' is-dragging' : '')"
+                                t-on-click="chooseFile" t-on-dragover="onDragOver" t-on-dragleave="onDragLeave"
+                                t-on-drop="onDrop">
+                            <span class="usl_sign_inspector_dropicon" aria-hidden="true"><i class="fa fa-shield"/></span>
+                            <strong>Drop a signed PDF or evidence dossier here</strong>
+                            <span>or choose a PDF from your Mac</span>
+                            <small>PDF only · up to 100 MB · checked locally</small>
+                        </button>
+                        <div class="usl_sign_inspector_intro">
+                            <div>
+                                <i class="fa fa-check-circle" aria-hidden="true"/>
+                                <span><strong>Cryptographic integrity</strong>Signature bytes and the PDF revision they cover.</span>
+                            </div>
+                            <div>
+                                <i class="fa fa-id-card-o" aria-hidden="true"/>
+                                <span><strong>Certificate details</strong>Named holder, issuer, dates, algorithms, and chain structure.</span>
+                            </div>
+                            <div>
+                                <i class="fa fa-archive" aria-hidden="true"/>
+                                <span><strong>Dossier evidence</strong>Embedded files, hashes, signed manifest, and consistency checks.</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section t-elif="state.stage === 'loading'" class="usl_sign_inspector_loading" aria-live="polite" aria-busy="true">
+                        <span class="usl_sign_inspector_scan" aria-hidden="true"><i class="fa fa-file-pdf-o"/></span>
+                        <div>
+                            <h2>Checking <t t-out="state.fileName"/></h2>
+                            <p>Reading the PDF, verifying signatures, and checking embedded evidence locally…</p>
+                        </div>
+                    </section>
+
+                    <section t-elif="state.stage === 'error'" class="usl_sign_inspector_error" role="alert">
+                        <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                        <div>
+                            <h2>This file could not be checked</h2>
+                            <p t-out="state.error"/>
+                            <button type="button" class="btn btn-primary" t-on-click="chooseFile">Choose another PDF</button>
+                        </div>
+                    </section>
+
+                    <t t-else="">
+                        <div class="usl_sign_inspector_filebar">
+                            <div class="usl_sign_inspector_filename">
+                                <i class="fa fa-file-pdf-o" aria-hidden="true"/>
+                                <span><strong t-out="state.fileName"/><small><t t-out="formatBytes(state.fileSize)"/> · SHA-256 <t t-out="shortHash(state.result.document.sha256)"/></small></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-light" t-on-click="() => this.copyHash(state.result.document.sha256)" title="Copy the complete SHA-256 hash">
+                                    <i class="fa fa-copy me-1" aria-hidden="true"/> Copy hash
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" t-on-click="chooseFile">Check another PDF</button>
+                            </div>
+                        </div>
+
+                        <section t-attf-class="usl_sign_inspector_verdict is-{{ verdict.tone }}" aria-live="polite">
+                            <span class="usl_sign_inspector_verdict_icon" aria-hidden="true">
+                                <i t-att-class="verdict.tone === 'success' ? 'fa fa-check' : verdict.tone === 'danger' ? 'fa fa-times' : verdict.tone === 'warning' ? 'fa fa-exclamation' : 'fa fa-minus'"/>
+                            </span>
+                            <div>
+                                <h2 t-out="verdict.title"/>
+                                <p t-out="verdict.detail"/>
+                            </div>
+                            <dl>
+                                <div><dt>Signatures</dt><dd t-out="totalSignatures"/></div>
+                                <div><dt>Embedded files</dt><dd t-out="state.result.dossier.attachmentCount"/></div>
+                            </dl>
+                        </section>
+
+                        <div class="usl_sign_inspector_results">
+                            <div class="usl_sign_inspector_primary">
+                                <section class="usl_sign_inspector_section">
+                                    <div class="usl_sign_inspector_section_heading">
+                                        <div>
+                                            <h2>Digital signatures</h2>
+                                            <p>Each result applies to one signed PDF revision. Later signatures normally add a new revision.</p>
+                                        </div>
+                                        <span class="badge rounded-pill text-bg-light" t-out="totalSignatures"/>
+                                    </div>
+                                    <div t-if="!totalSignatures" class="usl_sign_inspector_no_signatures">
+                                        <i class="fa fa-pencil-square-o" aria-hidden="true"/>
+                                        <div>
+                                            <strong>No certificate-based signature was found.</strong>
+                                            <p>A typed name, scanned handwriting, or drawn mark can look signed without containing a digital signature that software can verify.</p>
+                                        </div>
+                                    </div>
+                                    <t t-foreach="allPdfResults" t-as="document" t-key="document.name + '-' + document_index">
+                                        <div t-if="document.signatures.length" class="usl_sign_inspector_document_group">
+                                            <h3 t-if="allPdfResults.length > 1"><i class="fa fa-file-o me-2" aria-hidden="true"/><t t-out="document.name"/></h3>
+                                            <details t-foreach="document.signatures" t-as="signature"
+                                                     t-key="document.name + '-' + signature.index"
+                                                     class="usl_sign_signature_result" t-att-open="signature.index === 1">
+                                                <summary>
+                                                    <span t-attf-class="usl_sign_status_mark is-{{ signatureTone(signature) }}" aria-hidden="true">
+                                                        <i t-att-class="signatureTone(signature) === 'success' ? 'fa fa-check' : signatureTone(signature) === 'danger' ? 'fa fa-times' : 'fa fa-exclamation'"/>
+                                                    </span>
+                                                    <span class="usl_sign_signature_identity">
+                                                        <strong t-out="signatureTitle(signature)"/>
+                                                        <small><t t-out="signature.signatureKind || 'Document signature'"/> · <t t-out="formatDate(signature.signedAt || signature.claimedSigningTime)"/></small>
+                                                    </span>
+                                                    <span t-attf-class="usl_sign_result_label is-{{ signatureTone(signature) }}" t-out="signatureLabel(signature)"/>
+                                                    <i class="fa fa-chevron-down usl_sign_signature_chevron" aria-hidden="true"/>
+                                                </summary>
+                                                <div class="usl_sign_signature_details">
+                                                    <div class="usl_sign_check_list">
+                                                        <div t-attf-class="is-{{ signature.byteRangeValid ? 'success' : 'danger' }}">
+                                                            <i t-att-class="signature.byteRangeValid ? 'fa fa-check-circle' : 'fa fa-times-circle'" aria-hidden="true"/>
+                                                            <span><strong>Signed PDF revision</strong><t t-out="byteRangeMessage(signature)"/></span>
+                                                        </div>
+                                                        <div t-attf-class="is-{{ signature.cryptoValid === true ? (signature.weakAlgorithm ? 'warning' : 'success') : signature.cryptoValid === false ? 'danger' : 'warning' }}">
+                                                            <i t-att-class="signature.cryptoValid === true ? (signature.weakAlgorithm ? 'fa fa-exclamation-circle' : 'fa fa-check-circle') : signature.cryptoValid === false ? 'fa fa-times-circle' : 'fa fa-question-circle'" aria-hidden="true"/>
+                                                            <span><strong>Cryptographic signature</strong><t t-if="signature.cryptoValid === true"><t t-if="signature.weakAlgorithm">The signature matches, but it uses legacy SHA-1 cryptography.</t><t t-else="">The certificate public key verifies this signature.</t></t><t t-else="" t-out="signature.validationError"/></span>
+                                                        </div>
+                                                        <div t-attf-class="is-{{ certificatePathLinked(signature) ? 'success' : 'warning' }}">
+                                                            <i t-att-class="certificatePathLinked(signature) ? 'fa fa-check-circle' : 'fa fa-exclamation-circle'" aria-hidden="true"/>
+                                                            <span><strong>Embedded certificate path</strong><t t-if="certificatePathLinked(signature)">The embedded issuer link or links verify cryptographically.</t><t t-else="">Only the signing certificate, or no verifiable issuer link, was embedded.</t></span>
+                                                        </div>
+                                                        <div class="is-neutral">
+                                                            <i class="fa fa-question-circle" aria-hidden="true"/>
+                                                            <span><strong>Trust and revocation</strong>Not established offline. Use an authoritative validator for trusted-list, qualification, and current revocation status.</span>
+                                                        </div>
+                                                        <div t-if="signature.embeddedRevocationMaterial || document.hasDssMaterial" class="is-neutral">
+                                                            <i class="fa fa-archive" aria-hidden="true"/>
+                                                            <span><strong>Long-term validation material</strong>Revocation or DSS evidence is embedded. Its freshness and trust still require an authoritative validator.</span>
+                                                        </div>
+                                                    </div>
+                                                    <dl class="usl_sign_signature_facts">
+                                                        <div><dt>Certificate holder</dt><dd t-out="signature.certificate?.subject.label || signature.claimedName || 'Not provided'"/></div>
+                                                        <div><dt>Certificate issuer</dt><dd t-out="signature.certificate?.issuer.label || 'Not provided'"/></div>
+                                                        <div><dt>Valid from</dt><dd t-out="formatDate(signature.certificate?.notBefore)"/></div>
+                                                        <div><dt>Valid until</dt><dd t-out="formatDate(signature.certificate?.notAfter)"/></div>
+                                                        <div><dt>Digest</dt><dd t-out="signature.digestAlgorithm || 'Not reported'"/></div>
+                                                        <div><dt>Signature algorithm</dt><dd t-out="signature.signatureAlgorithm || 'Not reported'"/></div>
+                                                        <div><dt>PDF profile</dt><dd t-out="signature.subFilter"/></div>
+                                                        <div><dt>Certificate SHA-256</dt><dd class="usl_sign_hash" t-out="signature.certificate?.sha256 || 'Unavailable'"/></div>
+                                                    </dl>
+                                                    <div t-if="signature.timestamp?.present" t-attf-class="usl_sign_timestamp is-{{ signature.timestamp.valid ? 'success' : 'danger' }}">
+                                                        <i class="fa fa-clock-o" aria-hidden="true"/>
+                                                        <span><strong><t t-if="signature.timestamp.valid">Signature timestamp verified</t><t t-else="">Signature timestamp could not be verified</t></strong><t t-out="signature.timestamp.valid ? formatDate(signature.timestamp.time) : signature.timestamp.error"/></span>
+                                                    </div>
+                                                    <details class="usl_sign_inspector_technical">
+                                                        <summary>Claimed PDF details</summary>
+                                                        <dl>
+                                                            <div><dt>Name</dt><dd t-out="signature.claimedName || 'Not provided'"/></div>
+                                                            <div><dt>Reason</dt><dd t-out="signature.claimedReason || 'Not provided'"/></div>
+                                                            <div><dt>Location</dt><dd t-out="signature.claimedLocation || 'Not provided'"/></div>
+                                                            <div><dt>PDF signing time</dt><dd t-out="signature.claimedSigningTime || 'Not provided'"/></div>
+                                                        </dl>
+                                                    </details>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </t>
+                                </section>
+
+                                <section t-if="state.result.dossier.detected" class="usl_sign_inspector_section usl_sign_dossier_section">
+                                    <div class="usl_sign_inspector_section_heading">
+                                        <div>
+                                            <h2>Evidence dossier</h2>
+                                            <p>The PDF contains embedded files. Their bytes were hashed and compared with the USL manifest when present.</p>
+                                        </div>
+                                    </div>
+                                    <div t-attf-class="usl_sign_dossier_verdict is-{{ dossierVerdict.tone }}">
+                                        <i t-att-class="dossierVerdict.tone === 'success' ? 'fa fa-check-circle' : dossierVerdict.tone === 'danger' ? 'fa fa-times-circle' : 'fa fa-exclamation-circle'" aria-hidden="true"/>
+                                        <span><strong t-out="dossierVerdict.title"/><t t-out="dossierVerdict.detail"/></span>
+                                    </div>
+                                    <div class="usl_sign_attachment_list">
+                                        <div t-foreach="state.result.dossier.attachments" t-as="attachment" t-key="attachment.name + '-' + attachment.index">
+                                            <i t-att-class="attachment.pdf ? 'fa fa-file-pdf-o' : attachment.name.endsWith('.json') ? 'fa fa-file-code-o' : 'fa fa-file-o'" aria-hidden="true"/>
+                                            <span><strong t-out="attachment.name"/><small><t t-out="formatBytes(attachment.size)"/> · SHA-256 <t t-out="shortHash(attachment.sha256)"/></small></span>
+                                            <span t-if="attachment.pdf" class="badge text-bg-light"><t t-out="attachment.pdf.signatures.length"/> signature(s)</span>
+                                        </div>
+                                    </div>
+                                    <ul t-if="state.result.dossier.artifactChecks.mismatches.length" class="usl_sign_dossier_mismatches">
+                                        <li t-foreach="state.result.dossier.artifactChecks.mismatches" t-as="mismatch" t-key="mismatch" t-out="mismatch"/>
+                                    </ul>
+                                </section>
+                            </div>
+
+                            <aside class="usl_sign_inspector_limits">
+                                <h2>What this browser checks</h2>
+                                <ul>
+                                    <li><i class="fa fa-search" aria-hidden="true"/><span>Whether each signature covers only its declared PDF revision.</span></li>
+                                    <li><i class="fa fa-search" aria-hidden="true"/><span>Whether each supported signature matches its certificate public key.</span></li>
+                                    <li><i class="fa fa-search" aria-hidden="true"/><span>Whether embedded evidence matches its signed USL manifest when available.</span></li>
+                                </ul>
+                                <h3>What still needs an authoritative validator</h3>
+                                <ul class="is-limited">
+                                    <li><i class="fa fa-minus" aria-hidden="true"/><span>Whether the issuer is trusted under a current EU or company trust list.</span></li>
+                                    <li><i class="fa fa-minus" aria-hidden="true"/><span>Current or historical certificate revocation status unless complete proof is embedded and validated.</span></li>
+                                    <li><i class="fa fa-minus" aria-hidden="true"/><span>Whether a signature legally qualifies as advanced or qualified.</span></li>
+                                </ul>
+                                <p><strong>Need a formal decision?</strong> Use the Sign validation service or another maintained PAdES validator with current trust lists.</p>
+                            </aside>
+                        </div>
+                    </t>
+                </main>
+            </div>
+        </div>
+    </t>
+</templates>
