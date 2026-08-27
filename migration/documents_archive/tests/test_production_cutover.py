@@ -85,6 +85,23 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def test_preproduction_overlay_uses_packaged_distribution_paths(self):
+        overlay = (ROOT / "compose.preprod.yaml").read_text(encoding="utf-8")
+        dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+
+        packaged_addons = (
+            "/opt/odoo/addons,/opt/odoo/odoo/addons,"
+            "/opt/odoo/custom-addons,/opt/odoo/oca-addons"
+        )
+        self.assertEqual(overlay.count(f"ODOO_ADDONS_PATH: {packaged_addons}"), 2)
+        self.assertEqual(
+            overlay.count("USL_USER_DOCS_PATH: /opt/odoo/docs/users"),
+            2,
+        )
+        self.assertNotIn("/opt/usl/custom-addons", overlay)
+        self.assertIn("COPY --link --chown=1000:1000 custom-addons ./custom-addons", dockerfile)
+        self.assertIn("COPY --link --chown=1000:1000 docs/users ./docs/users", dockerfile)
+
     def _private_json(self, name, value):
         path = self.root / name
         path.write_text(json.dumps(value) + "\n", encoding="utf-8")

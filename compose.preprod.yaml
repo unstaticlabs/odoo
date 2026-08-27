@@ -4,8 +4,8 @@ services:
     # stage. Runtime startup must never rebuild or bind-mount another checkout.
     build: !reset null
     environment:
-      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/usl/custom-addons,/opt/usl/oca-addons
-      USL_USER_DOCS_PATH: /opt/usl/user-docs
+      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons
+      USL_USER_DOCS_PATH: /opt/odoo/docs/users
     ports: !override
       - "127.0.0.1:${ODOO_HTTP_PORT}:8069"
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
@@ -14,8 +14,8 @@ services:
 
   init-db:
     environment:
-      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/usl/custom-addons,/opt/usl/oca-addons
-      USL_USER_DOCS_PATH: /opt/usl/user-docs
+      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons
+      USL_USER_DOCS_PATH: /opt/odoo/docs/users
     volumes: !override
       - odoo-data:/var/lib/odoo
 
