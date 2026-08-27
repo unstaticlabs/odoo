@@ -74,6 +74,25 @@ class AttachmentClassificationTest(unittest.TestCase):
         self.assertEqual(actions[0]["kind"], "revoke_and_reenroll")
         self.assertEqual(actions[0]["state"], "implemented")
 
+    def test_unused_knowledge_cover_url_is_explicitly_discarded(self):
+        actions = self.classify(
+            {
+                "res_model": "knowledge.cover",
+                "res_field": "attachment_id",
+                "type": "url",
+                "url": "https://example.invalid/default-cover.jpg",
+            },
+        )
+        self.assertEqual(actions[0]["kind"], "discard_unused_knowledge_reference")
+        self.assertEqual(actions[0]["scope"], "knowledge")
+        self.assertEqual(actions[0]["state"], "implemented")
+
+    def test_ai_source_pdf_becomes_private_business_evidence(self):
+        actions = self.classify({"res_model": "ai.agent.source"})
+        self.assertEqual(actions[0]["kind"], "archive_private_business_evidence")
+        self.assertEqual(actions[0]["scope"], "documents")
+        self.assertEqual(actions[0]["state"], "implemented")
+
     def test_file_integrity_is_checked(self):
         with tempfile.TemporaryDirectory() as directory:
             filestore = Path(directory)

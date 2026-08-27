@@ -42,9 +42,9 @@
       "evidence": "the dump-bound Paperless 3.0.5/API v10 stage restores every classified Documents identity and unassigned evidence file into checksum-stable archive roots, verifies originals, previews, metadata, links and object permissions, and produces identical evidence on replay"
     },
     "knowledge": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "no Community target and no approved lossless translation are implemented"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "product decision 2026-08-27: the 87 source Knowledge configuration/demo records are unused default Odoo Online material; the Distribution has no Knowledge product and intentionally does not copy them"
     },
     "signing": {
       "status": "incomplete",
@@ -67,9 +67,9 @@
       "evidence": "the temporary Platform Billing stage restores four platforms, three sessions, 31 payouts and all 51 generated Accounting links with stable application and ledger digests; transient legacy candidates are regenerated"
     },
     "studio": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "populated Studio models require explicit business mappings"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "product decision 2026-08-27: the 14 source x_sl_expense_bank_candidate rows belong to the superseded Studio implementation; their business workflow is rebuilt canonically in Distribution modules and the obsolete source model is intentionally not reproduced"
     },
     "preferences": {
       "status": "incomplete",
@@ -87,14 +87,14 @@
       "evidence": "the product stage restores the one warehouse, 23 locations, six routes, seven rules and 11 operation types and validates exact zero source stock moves, move lines, pickings, quants, valuation layers, BOMs, manufacturing orders and quality records; physical opening stock remains a separately governed not-evidenced release blocker rather than an inferred source fact"
     },
     "sales_marketing": {
-      "status": "incomplete",
-      "disposition": "translated",
-      "evidence": "sales-team and UTM business configuration is not globally reconstructed"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "product decision 2026-08-27: the 53 source CRM-team, UTM and sale-PDF configuration records are unused experiment/default configuration, not historical B2C transactions; canonical B2C evidence and analytics migrate separately"
     },
     "ai_configuration": {
-      "status": "incomplete",
-      "disposition": "translate_or_archive",
-      "evidence": "source AI agents, prompts, topics and automation need an explicit Community treatment"
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "product decision 2026-08-27: the 103 source AI agent, prompt, embedding, topic and experimental automation records are non-production experiments and are intentionally excluded from the Distribution"
     },
     "credential_state": {
       "status": "implemented",

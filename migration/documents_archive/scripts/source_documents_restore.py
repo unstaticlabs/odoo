@@ -166,9 +166,10 @@ def read_source():
             SELECT attachment.id AS attachment_id, attachment.name AS filename,
                    attachment.store_fname, attachment.checksum,
                    attachment.file_size, attachment.mimetype,
-                   attachment.create_uid, attachment.create_date AS attachment_create_date
+                   attachment.create_uid, attachment.create_date AS attachment_create_date,
+                   COALESCE(attachment.res_model, '') AS source_res_model
               FROM ir_attachment attachment
-             WHERE COALESCE(attachment.res_model, '') = ''
+             WHERE COALESCE(attachment.res_model, '') IN ('', 'ai.agent.source')
                AND attachment.type = 'binary'
                AND attachment.name != 'res.company.scss'
                AND NOT EXISTS (
@@ -381,7 +382,11 @@ def group_source(source):
                 "owner_id": None,
                 "res_model": None,
                 "res_id": 0,
-                "access_internal": "edit",
+                "access_internal": (
+                    "none"
+                    if attachment.get("source_res_model") == "ai.agent.source"
+                    else "edit"
+                ),
                 "access_via_link": "none",
                 "is_access_via_link_hidden": True,
                 "document_token": "",

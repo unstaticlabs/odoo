@@ -182,13 +182,21 @@ def classify_attachment(
 
     if row["type"] == "url":
         scope = "knowledge" if model == "knowledge.cover" else "native_reference"
-        state = "pending" if scope == "knowledge" else "implemented"
         return [
             action(
-                "restore_external_reference" if scope == "knowledge" else "recompute_reference",
+                (
+                    "discard_unused_knowledge_reference"
+                    if scope == "knowledge"
+                    else "recompute_reference"
+                ),
                 scope,
-                state,
-                "URL attachments contain no source binary",
+                "implemented",
+                (
+                    "the unused default Knowledge cover has no source binary and "
+                    "is deliberately not copied under the approved product decision"
+                    if scope == "knowledge"
+                    else "URL attachments contain no source binary"
+                ),
             ),
         ]
 
@@ -282,10 +290,10 @@ def classify_attachment(
     elif model == "ai.agent.source":
         result.append(
             action(
-                "archive_ai_source",
-                "ai_configuration",
-                "pending",
-                "the source file must be retained even when AI configuration is translated separately",
+                "archive_private_business_evidence",
+                "documents",
+                "implemented",
+                "the AI configuration is deliberately dropped, while its source PDF is preserved byte-for-byte as a restricted business document",
             ),
         )
 

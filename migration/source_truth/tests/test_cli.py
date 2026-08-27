@@ -194,6 +194,13 @@ class SourceTruthAuditCase(unittest.TestCase):
             dump.write_text("source", encoding="utf-8")
             (root / "filestore").mkdir()
             contract = load_contract(ROOT / "migration/source_truth/coverage.json")
+            # Exercise the gate independently of the repository's current
+            # product decisions.  Knowledge is deliberately not copied in the
+            # live contract, so make this fixture incomplete explicitly.
+            contract["scopes"]["knowledge"] = {
+                **contract["scopes"]["knowledge"],
+                "status": "incomplete",
+            }
             inventory = build_inventory(source_package(root), FakeDatabase(), contract)
             self.assertFalse(inventory["summary"]["complete"])
             self.assertEqual(
