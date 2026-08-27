@@ -469,7 +469,7 @@ stages = {item["name"]: item["status"] for item in run.get("stages", [])}
 if stages.get("multi-company acceptance") != 0:
     raise SystemExit("Multi-company acceptance did not pass in this reconstruction.")
 payload = {
-    "schema": "usl-production-candidate-qualification-v1",
+    "schema": "usl-production-candidate-qualification-v2",
     "status": "passed",
     "purpose": "production",
     "profile": "full",

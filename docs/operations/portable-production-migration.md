@@ -123,6 +123,8 @@ archive is rebuilt from the sanitized database's exact `ir.attachment`
 inventory: orphaned files are excluded and every retained file's SHA-1/size is
 verified. It then exports Paperless, captures parity controls, seals checksums
 and publishes atomically. It never runs OCR or calls a Pocket mutation API.
+This is the v2 candidate contract; v1 candidates that bound only the Odoo image
+are deliberately incompatible and must be rebuilt from the frozen source.
 
 Record the printed fingerprint in the change record. Have the independent
 approver verify locally:

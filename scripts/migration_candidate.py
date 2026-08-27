@@ -20,8 +20,8 @@ from pathlib import Path, PurePosixPath
 import portable_filestore
 import qa_seed
 
-SCHEMA = "usl-production-migration-candidate-v1"
-QUALIFICATION_SCHEMA = "usl-production-candidate-qualification-v1"
+SCHEMA = "usl-production-migration-candidate-v2"
+QUALIFICATION_SCHEMA = "usl-production-candidate-qualification-v2"
 REQUIRED_ARTIFACTS = (
     "odoo.dump",
     "odoo-filestore.tgz",

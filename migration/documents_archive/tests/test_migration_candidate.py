@@ -184,6 +184,14 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         )
 
     def test_seal_and_verify_with_independent_fingerprint(self):
+        self.assertEqual(
+            migration_candidate.SCHEMA,
+            "usl-production-migration-candidate-v2",
+        )
+        self.assertEqual(
+            migration_candidate.QUALIFICATION_SCHEMA,
+            "usl-production-candidate-qualification-v2",
+        )
         manifest = migration_candidate.seal(self.args())
         verified = migration_candidate.verify(self.args(manifest["fingerprint"]))
 
