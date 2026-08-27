@@ -48,19 +48,19 @@ submissions. This is current rehearsal evidence, not a final frozen-source
 production candidate.
 
 The schema-v3 migration-cache/Documents-performance work and Paperless 3.0 are
-now one combined integration candidate, not yet part of `origin/19-usl`. On
-that candidate, all five affected product modules passed clean install,
-upgrade and identical repeated upgrade. `usl_documents` passed 184 Python
+now merged into local `19-usl`. All five affected product modules passed clean install,
+upgrade and identical repeated upgrade. `usl_documents` passed 187 Python
 post-tests, the 13/20/6 query ceilings, asset compilation, and desktop/mobile
-Chromium suites (39/268 and 33/248). The merged tree also passed the 114-test
-Documents migration-safety suite, subsequently extended to 116 passing tests.
+Chromium suites (39/268 and 33/248). The merged tree also passed all 121
+Documents migration-safety tests.
 The exact Paperless overlay built for `linux/amd64` at manifest digest
 `sha256:a30e826e471f097df1cb941b69d7379ebb800f4bf07a1daff45f2359d5cb079d`;
-the full release-cohort restore remains separate. A fresh full reconstruction
-is in progress. Schema-v3 seed publication is intentionally restricted to a
-clean `19-usl` checkout and therefore follows the merge; no older seed or
-feature database is final release evidence. Canonical `odoo_dev` must be
-reconstructed from the eventual final `19-usl`, not repaired ad hoc.
+the full release-cohort restore remains separate. The fresh locked-source
+reconstruction now finalizes canonical `odoo_dev` with 15 product modules, no
+migration residue, 1,148 live Documents, nine Trash records and 8,654 indexed
+chunks across the same 1,148 live documents. Schema-v3 seed publication and a
+real cold/warm reuse cycle remain required; no older seed or feature database
+is final release evidence.
 
 ## Non-negotiable boundaries
 
@@ -94,16 +94,16 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Workstream | Required release outcome | Status on 27 August 2026 |
 | --- | --- | --- |
 | Migration performance and portable candidate | optimized reconstruction, sealed candidate, external-Pocket cut-over tooling, Distribution image | merged through `61580c1704c`; reusable full seed published from the integrated rehearsal |
-| Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | integrated into the combined Documents candidate from reviewed tip `3d2b2b49382`; affected suites pass, v3 publication/cold-warm evidence and final merge pending |
+| Migration cache and Documents performance | content-qualified schema-v3 seed, verified warm reuse, batched/lazy Documents, bounded Odoo runtime | merged into `19-usl` from reviewed tip `3d2b2b49382`; affected suites and full optimized reconstruction pass, v3 publication/cold-warm evidence pending |
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
-| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | integrated into the combined Documents candidate from reviewed tip `2ba19d6fa90`; clean suites and AMD64 overlay build pass, full archive/release-cohort restore/signed-in browser evidence and final merge pending |
+| Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | merged into `19-usl` from reviewed tip `2ba19d6fa90`; clean suites, AMD64 overlay build, full archive and vector parity pass; release-cohort restore and signed-in browser evidence pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
-| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | integrated on the current release candidate; clean reconstruction, repeated import and final product-boundary requalification passed |
-| Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | integrated on the current consolidated candidate; action inventory regeneration and final merged-registry acceptance remain |
-| Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | active feature branch; review and merge or explicit rejection pending |
+| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | merged into `19-usl`; clean reconstruction, repeated import and final product-boundary requalification passed |
+| Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | merged into `19-usl`; 50,041 source actions and 42,669 runtime actions pass on the final reconstructed registry |
+| Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | consolidated into the merged migration-cache/Documents work; no separate active feature remains |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
-| Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | integrated on the review candidate through merge `602df379352`; focused desktop webclient suite passed; actual Projects browser acceptance and required branch CI pending |
+| Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | merged into `19-usl` through merge `602df379352`; focused desktop webclient suite passed; signed-in Projects acceptance pending |
 
 Native Sign is the remaining product head to review on this consolidated
 candidate. Feature-branch evidence is not release evidence; its exact reviewed
@@ -128,19 +128,19 @@ partial `odoo_dev` installation is not final-target evidence.
 ## Phase A — finish the release before freezing Online
 
 - [x] Merge the approved migration-performance candidate into `19-usl`.
-- [ ] Finish and merge the combined Paperless/schema-v3 Documents candidate,
-  publish the shared seed from its clean reconstructed tree, run one cold
+- [x] Merge the combined Paperless/schema-v3 Documents candidate after
+  independent review and full optimized reconstruction.
+- [ ] Publish the shared seed from the clean reconstructed tree, run one cold
   hydration and prove the next verified reuse reports a warm hit with zero
   download/OCR work.
 - [x] Merge Expense Analytics after independent review and validation.
 - [x] Merge B2C sales/inventory after independent review and validation.
 - [x] Merge monthly bank-statement ingestion after independent review and
   validation.
-- [ ] Complete the optimized Paperless 3.0 full-archive and release-cohort
-  restore, then merge the combined Documents candidate after independent
-  review and validation.
-- [ ] Merge Native Sign and the project/task browser-title fix after
-  independent review and validation.
+- [x] Complete the optimized Paperless 3.0 full-archive reconstruction and
+  vector-parity gate. The separate release-cohort restore remains open.
+- [x] Merge the project/task browser-title fix after independent review.
+- [ ] Merge or explicitly reject Native Sign after independent review.
 - [x] Integrate Collaboration History after independent review and preserve its
   exact reviewed ancestry and archive ref.
 - [x] Reconstruct and finalize canonical `odoo_dev` from the locked source on
@@ -158,10 +158,10 @@ partial `odoo_dev` installation is not final-target evidence.
   Timing evidence is sealed in
   `artifacts/migration/private/runs/usl-odoo-saas-19-3-reconstruct-20260827T065753Z.json`.
 - [x] Integrate Distribution Access Control with reviewed ancestry preserved.
-  Regenerate its action inventory against the final merged registry and repeat
-  named-persona and multi-company backend acceptance before admission.
-- [ ] Confirm no active release branch contains unmerged product or migration
-  final state.
+  Its final merged-registry action inventory is regenerated and passing;
+  signed-in named-persona acceptance remains before admission.
+- [x] Confirm no active release branch contains unmerged product or migration
+  final state other than the explicitly preserved Native Sign workstream.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
   migration-boundary checks from clean `19-usl`.
 - [ ] Build the immutable GHCR `distribution` image, verify its revision/OCA

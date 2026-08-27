@@ -31,12 +31,22 @@ The integrated fixes are deliberately separate:
   uploads are unchanged, and production admission rejects the deferral switch.
 
 Paperless `3.0.5-usl.6` is the first overlay containing the controlled bulk
-index path. Its hash-guarded ARM64 image built successfully and its 21 focused
-Django tests passed. A complete post-change source reconstruction is still
-required before quoting an end-to-end migration speedup or qualifying an AMD64
-production image. The full rehearsal already running when this pass began uses
-the older `3.0.5-usl.5` behavior and remains evidence of the bottleneck, not
-evidence for the optimized path.
+index path. Its hash-guarded ARM64 image built successfully and its final 22
+focused Django tests passed. The optimized locked-source reconstruction reused
+646 exact governed roots without re-uploading bytes, archived 832 eligible
+native attachments, and finalized 1,148 live documents plus nine Trash
+records. The semantic gate indexed all 1,148 live documents into 8,654 chunks,
+with zero active tasks. Production AMD64 qualification remains a separate
+release-host gate.
+
+The final pass also made the restore itself genuinely idempotent. Exact reuse
+now requires content, governed metadata and company identity rather than a
+checksum alone; unchanged archive metadata and object permissions perform no
+remote writes; native attachments are settled before semantic finalization;
+and the temporary migration service identity is separated from the permanent
+runtime identity. A worker-side deferral guard also makes already-queued
+embedding jobs harmless during governed bulk reconstruction. Repeated identity
+synchronization consequently changed zero Documents or permissions.
 
 ### Wider audit findings
 

@@ -19,22 +19,21 @@ is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
 through merge `64c1f2b1207`. Paperless 3.0, the schema-v3 migration-cache/
 Documents-performance follow-up, Collaboration History, Distribution Access
-Control, and the project/task browser-title fix are integrated on the current
-review candidate with their reviewed ancestry preserved. Native Sign remains
+Control, and the project/task browser-title fix are merged directly into
+`19-usl` with their reviewed ancestry preserved. Native Sign remains
 the final independently reviewable product workstream. It must be merged or
 explicitly rejected before final production qualification; no feature worktree,
 old QA seed, or rehearsal candidate can be promoted directly.
 
-The combined Documents review candidate preserves the exact reviewed tips of
+The combined Documents implementation preserves the exact reviewed tips of
 both feature branches through explicit merge commits. Its five affected product
 modules passed clean install, upgrade and identical repeated upgrade; Documents
 also passed its query budgets and desktop/mobile Chromium suites. The exact
 Paperless overlay also builds successfully for production `linux/amd64`. A
-fresh source-dump reconstruction is in progress on the merged tree. The
-schema-v3 seed cannot be published from a review branch by design: after the
-merge, clean `19-usl` must publish it and prove one cold hydration followed by
-fail-closed warm reuse. Release qualification also still requires the signed-in
-browser matrix and merge-commit admission into `19-usl`.
+fresh locked-source reconstruction and finalization now pass on `19-usl`.
+Publishing the schema-v3 seed and proving one cold hydration followed by
+fail-closed warm reuse remain release-evidence work. Release qualification
+also still requires the signed-in browser matrix.
 
 The 27 August integrated performance pass additionally reduced the measured
 40-document workspace from 426 to 75 SQL queries and from 432.8 ms to 67.3 ms,
@@ -42,16 +41,16 @@ and replaced per-record archive-status counts with one grouped query. The
 Paperless `3.0.5-usl.6` candidate separates bulk source ingestion from one
 verified semantic-index update so CPU-bound BGE-M3 jobs no longer block every
 subsequent upload. Its image build, hash guards, focused Django tests and
-migration safety tests pass. End-to-end migration timing, source-complete
-vector parity on the new path and production AMD64 qualification remain open.
-The pre-optimization reconstruction was stopped because later bind-mounted
-stages could no longer represent one exact commit.
+migration safety tests pass. The optimized locked-source reconstruction reused
+646 exact governed roots without submitting bytes, archived all 832 eligible
+native attachments, and finalized 1,148 live Paperless documents plus nine
+Trash records with exact 8,654-row vector parity and zero active tasks.
 
-The current integration candidate also preserves project-specific task titles
+The integrated product also preserves project-specific task titles
 when browser history rebuilds the Projects action. Its generic desktop
-webclient regression is qualified through merge `602df379352`; an actual
-Projects browser journey and required branch CI remain release gates, so this
-candidate is not yet recorded as merged into `19-usl`.
+webclient regression is qualified through merge `602df379352`. An actual
+Projects signed-in browser journey remains a release gate; the feature itself
+is merged into `19-usl`.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -165,9 +164,9 @@ maturity map is maintained in
   classification, without stopping unrelated feature projects.
 - Content-qualified schema-v3 reconstruction seeds, explicit verified warm
   worktree reuse, batched Documents queries, lazy Documents workspace assets,
-  and bounded Odoo worker/connection/memory/request budgets. These are present
-  on the combined Documents integration candidate and become release evidence
-  only after the v3 refresh and cold/warm cycle finish on that exact tree.
+  and bounded Odoo worker/connection/memory/request budgets. These are merged
+  into `19-usl`; shared-seed publication and the real cold/warm reuse cycle
+  remain release-evidence gates.
 
 These foundations and the B2C work are now part of local `19-usl`. After Docker
 capacity was increased, a fresh full reconstruction of source dump
@@ -185,8 +184,8 @@ The subsequent bank-ingestion merge passed clean installs for all four affected
 product modules, the pinned OCA OFX suite and repeated upgrades of canonical
 `odoo_dev`; its accounting, B2C and stock fingerprints remained unchanged.
 That focused evidence does not promote the earlier full seed to a final
-release candidate. A new full reconstruction is still required after the
-remaining workstreams merge.
+release candidate. The current locked-source reconstruction supersedes it,
+but the final frozen-source run is still required after Native Sign is decided.
 
 The 27 August Collaboration integration candidate completed another canonical
 reconstruction from the same locked source. Its two Collaboration passes were
@@ -204,20 +203,19 @@ integration branch because publication is correctly restricted to a clean
 `19-usl` checkout. These results qualify this merge but, like all earlier
 rehearsals, must be repeated after the remaining workstreams merge.
 
-The current candidate's isolated clean-install and repeated-update check passes
+The current `19-usl` isolated clean-install and repeated-update check passes
 for all fifteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
-The 27 August performance-candidate audit rechecked canonical `odoo_dev`
-without mutating it: 5,425 moves, 12,991 move lines, 2,861 partial
+The 27 August final integrated audit reconstructed canonical `odoo_dev`:
+5,425 moves, 12,991 move lines, 2,861 partial
 reconciliations, balanced posted debit/credit of EUR 2,900,936.82, all five
 source-journal move counts, 304 B2C orders, 457 lines, 1,821 payment events,
 261 fulfilments, 2,893 evidence rows, 45 source product-value rows and zero
-stock moves/quants remain intact. That database still has the pending
-`usl_access_control` module installed while its source is not in the current
-`origin/19-usl`; it must be replaced by the final clean reconstruction rather
-than treated as final release evidence or repaired ad hoc.
+stock moves/quants remain intact. Finalization now delivers exactly 15 product
+modules, passes the 50,041-action source and 42,669-action runtime security
+inventories, and leaves no migration registry or schema residue.
 
 The current locked-source rehearsal now clears all 19 strict source scopes:
 226,836 source records have explicit dispositions, with zero blocked records,
@@ -233,16 +231,16 @@ moves have monthly session links, all 40 source files are archived, and no
 accounting relationship or SKU mapping is left unexplained and pending.
 Aggregate monthly coverage is not presented as one-to-one order accounting,
 and the 35 header-only Medusa orders remain visible without invented lines.
-The rehearsal is still not a production admission candidate: a wholly clean
-post-integration run, final frozen-source rerun, remaining release-train merges,
+The rehearsal is still not a production admission candidate: a final
+frozen-source rerun, the Native Sign decision,
 isolated-host dress rehearsal and operational approvals remain required. The
 30 September physical opening-stock count is a separate go-live prerequisite;
 the migration correctly creates no unsupported historical stock activity.
 The clean 27 August reconstruction additionally passed final product-boundary,
-outbound-queue and multi-company controls with 14 delivered modules, 733 live
-Documents and no migration residue. The resulting `odoo_dev` is the canonical
-local pre-production target, but later workstream merges will invalidate this
-run for final release admission.
+outbound-queue and multi-company controls with 15 delivered modules, 1,148 live
+Documents, nine Trash records and no migration residue. The resulting
+`odoo_dev` is the canonical local pre-production target; Native Sign or any
+later release change invalidates it for final admission.
 
 The former 107 pending attachment IDs now have explicit Collaboration,
 Preferences, signing-evidence, dashboard, or restricted-Documents
@@ -279,38 +277,36 @@ The canonical, evidence-bearing sequence is maintained in the
 
 1. Migration-performance/portable-candidate — **merged through
    `61580c1704c`**.
-2. Migration cache/Documents performance follow-up — **integrated into the
-   combined Documents review candidate from exact feature tip `3d2b2b49382`;
-   schema-v3 seed publication, one real cold/warm cycle and final merge remain
-   required**.
+2. Migration cache/Documents performance follow-up — **merged into `19-usl`
+   from exact feature tip `3d2b2b49382`; schema-v3 seed publication and one
+   real cold/warm cycle remain required**.
 3. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 4. B2C sales/inventory — **merged into `19-usl` at `368812b2868`; full
    canonical rehearsal passed with complete evidence, relationship and alias
    dispositions; physical opening stock remains a separate later operation**.
-5. Paperless 3.0 — **integrated into the combined Documents review candidate
-   from exact feature tip `2ba19d6fa90`; clean module/install/update/browser
-   suites and the AMD64 overlay build pass. Complete full archive
-   reconstruction, release-cohort restore, signed-in manual journeys and final
-   merge remain required**.
-6. Collaboration History — **integrated on the current release candidate;
+5. Paperless 3.0 — **merged into `19-usl` from exact feature tip
+   `2ba19d6fa90`; clean module/install/update/browser suites, AMD64 overlay
+   build, complete archive reconstruction and vector parity pass. The
+   release-cohort restore and signed-in manual journeys remain required**.
+6. Collaboration History — **merged into `19-usl`;
    clean reconstruction, repeated import and product-boundary qualification
    passed; its source scope and attachment relationships are closed without
    migration-only provenance or outbound delivery state in the product**.
 7. Review and merge Native Sign with signing evidence and permission gates.
-8. Distribution Access Control — **integrated on the consolidated readiness
-   candidate; regenerate the policy on the final merged registry and repeat
-   named-persona, multi-company and record-rule acceptance.**
+8. Distribution Access Control — **merged into `19-usl`; the final merged
+   registry passes the requalified 50,041-action source inventory and
+   42,669-action runtime inventory. Signed-in persona acceptance remains.**
 9. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
    mail test.**
-10. Dynamic Project task history titles — **integrated on the review candidate
+10. Dynamic Project task history titles — **merged into `19-usl`
    through merge `602df379352`; 77 focused desktop webclient tests and 320
    assertions passed. Actual Projects Back/Forward browser acceptance and
-   required branch CI remain pending before merge.**
-11. From clean final `19-usl`, repeat clean install, update, repeated update,
-   full local reconstruction and complete product/migration boundary across
-   every delivered module after the remaining workstreams are merged.
+   signed-in Projects acceptance remains pending.**
+11. **Current locked-source reconstruction and complete product/migration
+   boundary pass.** Repeat them from the final frozen source after Native Sign
+   is merged or explicitly rejected.
 
 The exact merge order may change to resolve dependencies, but each feature
 remains independently reviewed and every merge invalidates earlier release
