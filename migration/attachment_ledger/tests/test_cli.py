@@ -151,6 +151,22 @@ class AttachmentClassificationTest(unittest.TestCase):
             "implemented",
         )
 
+    def test_sign_business_evidence_is_archived(self):
+        actions = self.classify({"res_model": "sign.request", "res_id": 2})
+        self.assertEqual(actions[0]["kind"], "archive_signing_evidence")
+        self.assertEqual(actions[0]["state"], "implemented")
+
+    def test_rendered_and_reusable_signing_marks_cannot_be_reused(self):
+        rendered = self.classify(
+            {"res_model": "sign.request.item", "res_field": "signature"},
+        )
+        preference = self.classify(
+            {"res_model": "res.users", "res_field": "sign_signature_data"},
+        )
+        self.assertEqual(rendered[0]["kind"], "retain_rendered_mark_in_signed_result")
+        self.assertEqual(preference[0]["kind"], "discard_reusable_signing_preference")
+        self.assertEqual({rendered[0]["state"], preference[0]["state"]}, {"implemented"})
+
     def test_file_integrity_is_checked(self):
         with tempfile.TemporaryDirectory() as directory:
             filestore = Path(directory)

@@ -272,17 +272,31 @@ def classify_attachment(
             ),
         )
 
-    if (
-        model.startswith("sign.")
-        or attachment_id in sign_document_attachment_ids
-        or (model == "res.users" and field.startswith("sign_"))
-    ):
+    if model == "sign.request.item" and field == "signature":
+        result.append(
+            action(
+                "retain_rendered_mark_in_signed_result",
+                "signing",
+                "implemented",
+                "the exact signed PDF preserves the rendered mark; the standalone image is checksum-inventoried but not restored as an impersonation-capable signing asset",
+            ),
+        )
+    elif model == "res.users" and field.startswith("sign_"):
+        result.append(
+            action(
+                "discard_reusable_signing_preference",
+                "signing",
+                "implemented",
+                "reusable signature and initials images are checksum-inventoried but deliberately not copied into the new signing identity",
+            ),
+        )
+    elif model.startswith("sign.") or attachment_id in sign_document_attachment_ids:
         result.append(
             action(
                 "archive_signing_evidence",
                 "signing",
                 "implemented",
-                "the Documents archive verifies the signed originals and Collaboration links the request history to the canonical archive root",
+                "the external Sign stage preserves the exact business artifact in Paperless or reuses its checksum-identical governed archive root",
             ),
         )
 

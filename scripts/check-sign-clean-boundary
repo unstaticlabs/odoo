@@ -4,7 +4,6 @@
 import ast
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCANNED = (
     ROOT / "custom-addons" / "usl_sign",
@@ -20,14 +19,11 @@ FORBIDDEN = (
     "yousign",
     "usl_sign_restore",
     "usl.sign.restore",
-    "migration/sign_restore",
     "sign-migration",
-    "sign-restore",
     "provider transaction",
     "provider_transaction",
     "migration_assurance",
     "historical evidence",
-    "odoo online",
     "/sign/webhook",
     "usl.sign.passkey",
     "sign_webauthn",
@@ -38,14 +34,20 @@ FORBIDDEN = (
     "requires_signed_pdf",
 )
 FORBIDDEN_PATHS = (
-    ROOT / "migration" / "sign_restore",
-    ROOT / "scripts" / "sign-restore",
     ROOT / "docs" / "operations" / "sign-yousign-runbook.md",
     ROOT / "custom-addons" / "usl_sign" / "controllers" / "webhook.py",
     ROOT / "custom-addons" / "usl_sign" / "services" / "yousign.py",
     ROOT / "custom-addons" / "usl_sign" / "models" / "approval.py",
     ROOT / "custom-addons" / "usl_sign" / "views" / "sign_approval_views.xml",
 )
+EXTERNAL_ARCHIVE_FILES = {
+    ROOT / ".env.example",
+    ROOT / "custom-addons" / "usl_sign" / "i18n" / "fr.po",
+    ROOT / "custom-addons" / "usl_sign" / "models" / "request.py",
+    ROOT / "custom-addons" / "usl_sign" / "tests" / "test_sign.py",
+    ROOT / "custom-addons" / "usl_sign" / "views" / "sign_request_views.xml",
+    ROOT / "docs" / "product" / "sign.md",
+}
 REQUIRED_PURPOSE_SEPARATION = {
     ROOT / "compose.yaml": (
         "USL_DSS_PLATFORM_KEYSTORE: /run/usl-sign-dss/platform.p12",
@@ -63,7 +65,21 @@ REQUIRED_PURPOSE_SEPARATION = {
         "enforceSigningKeySeparation();",
     ),
 }
-TEXT_SUFFIXES = {"", ".csv", ".env", ".html", ".js", ".json", ".md", ".po", ".py", ".scss", ".xml", ".yaml", ".yml"}
+TEXT_SUFFIXES = {
+    "",
+    ".csv",
+    ".env",
+    ".html",
+    ".js",
+    ".json",
+    ".md",
+    ".po",
+    ".py",
+    ".scss",
+    ".xml",
+    ".yaml",
+    ".yml",
+}
 
 
 errors = []
@@ -79,6 +95,30 @@ for path, snippets in REQUIRED_PURPOSE_SEPARATION.items():
                 f"{path.relative_to(ROOT)} is missing Sign key-separation boundary {snippet!r}",
             )
 
+compose_path = ROOT / "compose.yaml"
+compose_service = None
+sign_restore_mounts = []
+for line_number, line in enumerate(compose_path.read_text().splitlines(), start=1):
+    if line.startswith("  ") and not line.startswith("    ") and line.endswith(":"):
+        compose_service = line.strip().removesuffix(":")
+    if "migration/sign_restore" in line or "/mnt/sign-restore-migration" in line:
+        sign_restore_mounts.append((line_number, compose_service, line.strip()))
+    if "--addons-path" in line and "sign-restore" in line:
+        errors.append(
+            f"compose.yaml:{line_number} puts Sign restoration code on an Odoo add-ons path",
+        )
+if sign_restore_mounts != [
+    (
+        sign_restore_mounts[0][0] if sign_restore_mounts else -1,
+        "project-migration",
+        "- ./migration/sign_restore:/mnt/sign-restore-migration:ro",
+    ),
+]:
+    errors.append(
+        "Sign restoration must have exactly one read-only mount on the migration-only "
+        f"project-migration service; found {sign_restore_mounts!r}",
+    )
+
 for root in SCANNED:
     paths = root.rglob("*") if root.is_dir() else [root]
     for path in paths:
@@ -90,10 +130,15 @@ for root in SCANNED:
         ):
             continue
         content = path.read_text(errors="ignore").lower()
+        if "odoo online" in content and path not in EXTERNAL_ARCHIVE_FILES:
+            errors.append(
+                f"{path.relative_to(ROOT)} contains Odoo Online residue outside the "
+                "explicit external-archive owner files",
+            )
         for forbidden in FORBIDDEN:
             if forbidden in content:
                 errors.append(
-                    f"{path.relative_to(ROOT)} contains forbidden Sign residue {forbidden!r}"
+                    f"{path.relative_to(ROOT)} contains forbidden Sign residue {forbidden!r}",
                 )
 
 constants_path = ROOT / "custom-addons" / "usl_sign" / "models" / "constants.py"
@@ -123,7 +168,7 @@ for path in (ROOT / "custom-addons" / "usl_sign").rglob("*.py"):
         for line_number, line in enumerate(content.splitlines(), start=1):
             if "usl_sign_" in line and "=True" in line:
                 errors.append(
-                    f"{path.relative_to(ROOT)}:{line_number} uses a client-forgeable Sign mutation flag"
+                    f"{path.relative_to(ROOT)}:{line_number} uses a client-forgeable Sign mutation flag",
                 )
 
 if errors:

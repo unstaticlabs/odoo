@@ -34,7 +34,7 @@
     "attachments": {
       "status": "implemented",
       "disposition": "translated",
-      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, signing evidence, collaboration files and unassigned enterprise evidence are restored; nine packaged sample-dashboard payloads are explicitly not copied and the genuine strategy PDF is archived byte-for-byte as restricted business evidence"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, external Sign business evidence, collaboration files and unassigned enterprise evidence are restored or explicitly disposed; nine packaged sample-dashboard payloads are explicitly not copied and the genuine strategy PDF is archived byte-for-byte as restricted business evidence"
     },
     "documents": {
       "status": "implemented",
@@ -49,7 +49,7 @@
     "signing": {
       "status": "implemented",
       "disposition": "archive",
-      "evidence": "the Documents and Collaboration stages reuse the 16 canonical signed-evidence roots, verify original and completion-certificate bytes, and preserve Sign request chatter without installing Sign functionality"
+      "evidence": "the dump-bound external Sign stage restores all 8 completed requests and 11 participants without native completion claims, preserves 86 chatter/audit messages, archives or checksum-reuses all 35 business artifacts plus 5 request-linked Paperless purposes per request, explicitly excludes 11 rendered marks and 4 reusable user signature preferences from impersonation-capable reuse, and validates exact hashes, idempotency and a migration-clean final registry"
     },
     "hr": {
       "status": "implemented",
