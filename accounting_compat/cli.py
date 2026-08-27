@@ -3994,6 +3994,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    no_reset_password=True,",
             "    mail_create_nosubscribe=True,",
             "    tracking_disable=True,",
+            "    usl_governed_identity_provisioning=True,",
             ")",
             "companies = env['res.company'].search([",
             "    ('rebuild_source_id', 'in', [1, 8]),",
