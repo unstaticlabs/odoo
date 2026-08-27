@@ -2463,14 +2463,6 @@ msgid "Saving your signature and checking the document. Keep this tab open."
 msgstr "Enregistrement de votre signature et vérification du document. Gardez cet onglet ouvert."
 
 #. module: usl_sign
-msgid "Signature saved. Opening the result…"
-msgstr "Signature enregistrée. Ouverture du résultat…"
-
-#. module: usl_sign
-msgid "Finalizing…"
-msgstr "Finalisation…"
-
-#. module: usl_sign
 msgid "The signature could not be submitted. Reload the document and try again."
 msgstr "La signature n’a pas pu être envoyée. Rechargez le document et réessayez."
 
