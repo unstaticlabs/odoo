@@ -2401,12 +2401,12 @@ msgid "Place signing fields"
 msgstr "Placer les champs à remplir"
 
 #. module: usl_sign
-msgid "Confirm this signature"
-msgstr "Confirmer cette signature"
+msgid "Review and confirm this signature"
+msgstr "Vérifier et confirmer cette signature"
 
 #. module: usl_sign
-msgid "Review the document first. When you’re ready, Pocket ID will ask you to confirm it’s you."
-msgstr "Vérifiez d’abord le document. Lorsque vous serez prêt, Pocket ID vous demandera de confirmer votre identité."
+msgid "Review the document first. Pocket ID will then confirm your account before this document-bound signature is applied."
+msgstr "Vérifiez d’abord le document. Pocket ID confirmera ensuite votre compte avant l’apposition de cette signature liée au document."
 
 #. module: usl_sign
 msgid "Your confirmation applies only to this document."
@@ -2453,8 +2453,8 @@ msgid "Availability"
 msgstr "Disponibilité"
 
 #. module: usl_sign
-msgid "A secure Pocket ID window will open."
-msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir."
+msgid "Pocket ID opens in a separate window to confirm your account. It never receives the document."
+msgstr "Pocket ID s’ouvre dans une fenêtre distincte pour confirmer votre compte. Il ne reçoit jamais le document."
 
 #. module: usl_sign
 msgid "Connect your signing identity"
@@ -2685,8 +2685,8 @@ msgid "Close this window"
 msgstr "Fermer cette fenêtre"
 
 #. module: usl_sign
-msgid "A secure Pocket ID window will open. This step only connects your account."
-msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir. Cette étape connecte uniquement votre compte."
+msgid "Pocket ID opens in a separate window. This only connects your account; it does not sign a document."
+msgstr "Pocket ID s’ouvre dans une fenêtre distincte. Cela connecte uniquement votre compte ; aucun document n’est signé."
 
 #. module: usl_sign
 msgid "Choose a signing method"
@@ -3746,3 +3746,27 @@ msgstr "Cet enregistrement signé provient d’Odoo Online. USL Sign l’a conse
 #. module: usl_sign
 msgid "USL Sign records use this application's signing and validation workflow. External records preserve a result produced elsewhere without claiming that USL Sign reran those checks."
 msgstr "Les enregistrements USL Sign utilisent le processus de signature et de validation de cette application. Les enregistrements externes conservent un résultat produit ailleurs sans prétendre qu’USL Sign a relancé ces contrôles."
+
+#. module: usl_sign
+msgid "Private signing session"
+msgstr "Session de signature privée"
+
+#. module: usl_sign
+msgid "You can review the whole document before anything is signed."
+msgstr "Vous pouvez vérifier l’intégralité du document avant qu’une signature ne soit apposée."
+
+#. module: usl_sign
+msgid "Finish"
+msgstr "Terminer"
+
+#. module: usl_sign
+msgid "Done"
+msgstr "Terminé"
+
+#. module: usl_sign
+msgid "This browser creates a one-use signing key for this exact PDF. The private key never leaves this page, and the result is checked before it is accepted."
+msgstr "Ce navigateur crée une clé de signature à usage unique pour ce PDF précis. La clé privée ne quitte jamais cette page et le résultat est vérifié avant d’être accepté."
+
+#. module: usl_sign
+msgid "Requested by"
+msgstr "Demandé par"

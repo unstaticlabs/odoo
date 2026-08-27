@@ -15,6 +15,7 @@ $usl-sign-warning: #9a6a13;
 
 .usl-sign-secure-body {
     min-width: 20rem;
+    min-height: 100vh;
     min-height: 100dvh;
     margin: 0;
     color: $usl-sign-ink;
@@ -133,13 +134,15 @@ $usl-sign-warning: #9a6a13;
     grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.usl-sign-eyebrow {
-    margin: 0 0 .35rem;
-    color: $usl-sign-primary;
-    font-size: .74rem;
-    font-weight: 750;
-    letter-spacing: .085em;
-    text-transform: uppercase;
+.usl-sign-hero__progress {
+    display: grid;
+    justify-items: end;
+    gap: .4rem;
+}
+
+.usl-sign-hero__progress .usl-sign-motion {
+    width: 7.25rem;
+    margin-right: .4rem;
 }
 
 .usl-sign-shell h1,
@@ -159,6 +162,226 @@ $usl-sign-warning: #9a6a13;
     color: #555f69;
     font-size: 1rem;
     line-height: 1.55;
+}
+
+.usl-sign-intro-layout {
+    display: grid;
+    align-items: center;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr) 8.75rem;
+}
+
+.usl-sign-intro-layout--compact {
+    grid-template-columns: minmax(0, 1fr) 7.75rem;
+}
+
+.usl-sign-motion {
+    display: block;
+    width: 8rem;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+    color: $usl-sign-primary;
+    contain: layout paint;
+}
+
+.usl-sign-intro-layout .usl-sign-motion {
+    width: 100%;
+    margin: 0;
+}
+
+.usl-sign-motion svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.usl-sign-motion__backdrop {
+    fill: #f5eff3;
+}
+
+.usl-sign-motion__paper {
+    fill: #fff;
+    stroke: #8b7284;
+    stroke-width: 2;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__fold,
+.usl-sign-motion__ink,
+.usl-sign-motion__scan,
+.usl-sign-motion__check,
+.usl-sign-motion__connection,
+.usl-sign-motion__error-mark {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.usl-sign-motion__fold {
+    stroke: #b3a2ae;
+    stroke-width: 2;
+}
+
+.usl-sign-motion__ink {
+    stroke: #a69aa3;
+    stroke-width: 3;
+}
+
+.usl-sign-motion__scan {
+    stroke: $usl-sign-primary;
+    stroke-width: 2.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__seal {
+    fill: $usl-sign-success;
+    stroke: #fff;
+    stroke-width: 3;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__check {
+    stroke: #fff;
+    stroke-width: 3.5;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+}
+
+.usl-sign-motion__person {
+    fill: #fff;
+    stroke: #8b7284;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.5;
+}
+
+.usl-sign-motion__connection {
+    stroke: #b3a2ae;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+    stroke-width: 2.5;
+}
+
+.usl-sign-motion__shield {
+    fill: $usl-sign-primary;
+    stroke: $usl-sign-primary-dark;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__progress {
+    fill: #fff;
+    stroke: $usl-sign-success;
+    stroke-dasharray: 24 70;
+    stroke-linecap: round;
+    stroke-width: 5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__error {
+    fill: #fbecef;
+    stroke: $usl-sign-danger;
+    stroke-width: 2;
+}
+
+.usl-sign-motion__error-mark {
+    stroke: $usl-sign-danger;
+    stroke-width: 4;
+}
+
+.usl-sign-motion--review .usl-sign-motion__paper,
+.usl-sign-motion--complete .usl-sign-motion__paper {
+    animation: usl-sign-motion-paper .56s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink {
+    stroke-dasharray: 42;
+    stroke-dashoffset: 42;
+    animation: usl-sign-motion-draw .42s ease-out forwards;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--one {
+    animation-delay: .28s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--two {
+    animation-delay: .38s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--three {
+    animation-delay: .48s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__scan {
+    animation: usl-sign-motion-scan .72s .62s ease-in-out both;
+}
+
+.usl-sign-motion--complete .usl-sign-motion__seal {
+    animation: usl-sign-motion-pop .4s .98s cubic-bezier(.2, .9, .3, 1.25) both;
+}
+
+.usl-sign-motion--complete .usl-sign-motion__check {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .34s 1.15s ease-out forwards;
+}
+
+.usl-sign-motion--identity .usl-sign-motion__connection {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .38s .3s ease-out forwards;
+}
+
+.usl-sign-motion--identity .usl-sign-motion__shield {
+    animation: usl-sign-motion-pop .44s .52s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+
+.usl-sign-motion__phase {
+    opacity: 0;
+    pointer-events: none;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review,
+[data-phase="preparing"] .usl-sign-motion__phase--identity,
+[data-phase="identity"] .usl-sign-motion__phase--identity,
+[data-phase="signing"] .usl-sign-motion__phase--processing,
+[data-phase="validating"] .usl-sign-motion__phase--processing,
+[data-phase="success"] .usl-sign-motion__phase--complete,
+[data-phase="error"] .usl-sign-motion__phase--error {
+    opacity: 1;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review,
+[data-phase="preparing"] .usl-sign-motion__phase--identity,
+[data-phase="identity"] .usl-sign-motion__phase--identity,
+[data-phase="success"] .usl-sign-motion__phase--complete,
+[data-phase="error"] .usl-sign-motion__phase--error {
+    animation: usl-sign-motion-phase .3s ease-out both;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review .usl-sign-motion__scan {
+    animation: usl-sign-motion-scan .72s .28s ease-in-out both;
+}
+
+[data-phase="preparing"] .usl-sign-motion__phase--identity .usl-sign-motion__connection,
+[data-phase="identity"] .usl-sign-motion__phase--identity .usl-sign-motion__connection {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .38s .16s ease-out forwards;
+}
+
+[data-phase="success"] .usl-sign-motion__phase--complete .usl-sign-motion__check {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .34s .42s ease-out forwards;
+}
+
+[data-phase="signing"] .usl-sign-motion__phase--processing .usl-sign-motion__progress,
+[data-phase="validating"] .usl-sign-motion__phase--processing .usl-sign-motion__progress {
+    animation: usl-sign-motion-spin .9s linear infinite;
 }
 
 .usl-sign-muted {
@@ -229,6 +452,10 @@ $usl-sign-warning: #9a6a13;
     position: absolute;
     color: #fff;
     content: "\2713";
+}
+
+.usl-sign-step-label {
+    font: inherit;
 }
 
 .usl-sign-card,
@@ -564,6 +791,7 @@ $usl-sign-warning: #9a6a13;
 }
 
 .usl-sign-public-page {
+    min-height: calc(100vh - 8rem);
     min-height: calc(100dvh - 8rem);
     padding: clamp(1rem, 4vw, 3rem) 1rem;
     color: $usl-sign-ink;
@@ -593,7 +821,7 @@ $usl-sign-warning: #9a6a13;
 }
 
 .usl-sign-public-card__body--centered,
-.usl-sign-public-card--compact:not(:has(.usl-sign-brand)) {
+.usl-sign-public-card--centered {
     text-align: center;
 }
 
@@ -739,10 +967,15 @@ $usl-sign-warning: #9a6a13;
     font-size: 1.7rem;
 }
 
-.usl-sign-callback p:not(.usl-sign-eyebrow) {
+.usl-sign-callback p {
     margin: .65rem 0;
     color: $usl-sign-muted;
     line-height: 1.5;
+}
+
+.usl-sign-callback-company {
+    font-size: .8rem;
+    font-weight: 650;
 }
 
 @keyframes usl-sign-enter {
@@ -759,6 +992,35 @@ $usl-sign-warning: #9a6a13;
     to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes usl-sign-motion-paper {
+    from { opacity: 0; transform: translateY(.45rem) scale(.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes usl-sign-motion-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes usl-sign-motion-scan {
+    0% { opacity: 0; transform: translateY(-1.2rem) scaleX(.7); }
+    30%, 70% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(1.15rem) scaleX(1); }
+}
+
+@keyframes usl-sign-motion-pop {
+    from { opacity: 0; transform: scale(.55); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes usl-sign-motion-phase {
+    from { opacity: 0; transform: translateY(.22rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes usl-sign-motion-spin {
+    to { transform: rotate(360deg); }
+}
+
 @media (max-width: 767.98px) {
     .usl-sign-shell {
         width: calc(100% - 1rem);
@@ -769,6 +1031,25 @@ $usl-sign-warning: #9a6a13;
         gap: 1.25rem;
         padding: 1.5rem .5rem 1rem;
         grid-template-columns: 1fr;
+    }
+
+    .usl-sign-hero__progress {
+        justify-items: stretch;
+    }
+
+    .usl-sign-hero__progress .usl-sign-motion {
+        width: 6.5rem;
+        margin: 0 auto;
+    }
+
+    .usl-sign-intro-layout,
+    .usl-sign-intro-layout--compact {
+        grid-template-columns: 1fr;
+    }
+
+    .usl-sign-intro-layout .usl-sign-motion {
+        width: 7rem;
+        grid-row: 1;
     }
 
     .usl-sign-steps {
@@ -857,5 +1138,22 @@ $usl-sign-warning: #9a6a13;
         animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
+    }
+
+    .usl-sign-motion *,
+    .usl-sign-motion *::before,
+    .usl-sign-motion *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .usl-sign-motion__ink,
+    .usl-sign-motion__connection,
+    .usl-sign-motion__check {
+        stroke-dashoffset: 0 !important;
+    }
+
+    .usl-sign-motion__scan {
+        display: none;
     }
 }

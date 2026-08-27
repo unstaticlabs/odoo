@@ -575,8 +575,10 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertIn("Connect your signing identity", page)
         self.assertIn(self.company.name, page)
         self.assertIn("Your account stays under your control", page)
-        self.assertIn("This step only connects your account", page)
-        self.assertIn("Secure signing", page)
+        self.assertIn("This only connects your account", page)
+        self.assertIn("Private signing session", page)
+        self.assertIn("usl-sign-motion--identity", page)
+        self.assertIn("it does not sign a document", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")
         self.assertIn(
@@ -673,9 +675,12 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertEqual(response.status_code, 200)
         page = response.text
         self.assertIn(self.company.name, page)
-        self.assertIn("Confirm this signature", page)
+        self.assertIn("Review and confirm this signature", page)
         self.assertIn("Confirm and sign", page)
-        self.assertIn("Pocket ID will ask you to confirm it’s you", page)
+        self.assertIn("document-bound signature", page)
+        self.assertIn("usl-sign-motion--journey", page)
+        self.assertIn("data-finish-label", page)
+        self.assertIn("It never receives the document", page)
         self.assertNotIn("Exact document SHA-256", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
@@ -692,6 +697,7 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertEqual(unavailable_response.status_code, 200)
         self.assertIn("Set up your signing identity first", unavailable_response.text)
         self.assertIn("personal setup link", unavailable_response.text)
+        self.assertIn("usl-sign-motion--identity", unavailable_response.text)
         self.assertNotIn("id=\"usl_strong_sign_button\"", unavailable_response.text)
         self.assertIn(
             "frame-ancestors 'none'",

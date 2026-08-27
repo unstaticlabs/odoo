@@ -109,6 +109,12 @@ the application and use the native workflow of the relevant Odoo business app.
   cards show ACL-safe signer chips, and System Status uses a responsive kanban.
   Archive failure language consistently requires Paperless confirmation of both
   the signed PDF and proof package.
+- **Final signer polish:** public review, identity, processing and completion
+  states use small dependency-free vector scenes with honest adjacent status
+  text. Only an accepted completion displays a success mark; identity and
+  review motion never claim verification. Motion stops under the browser's
+  reduced-motion preference, and the public pages retain static content and
+  viewport-unit fallbacks for older browsers.
 
 ## Trust and evidence behavior
 
@@ -145,7 +151,7 @@ authenticator:
   removal of a controlled-context leak, `scripts/sign-qa-stack test /usl_sign`
   was rerun cleanly: 88 post-test entries, 94 Sign tests, six web wrappers,
   zero failures and zero errors;
-- desktop and mobile Sign frontend suites each passed 36 tests and 134
+- desktop and mobile Sign frontend suites each passed 37 tests and 139
   assertions. Seven headless Chrome journeys covered dashboard/Request signatures,
   requester prepare/send/monitor, template creation, the iframe field editor,
   Standard public signing and archival, identity setup presentation and the
@@ -174,8 +180,17 @@ authenticator:
   vulnerabilities;
 - full Ruff validation passed for `usl_sign` and every new Python service/QA
   utility. Python compilation, JavaScript parsing, XML parsing, shell syntax,
-  PO format, all 13 maintained French catalogues, clean Sign boundary,
+  PO format, all 15 maintained French catalogues, clean Sign boundary,
   product/migration source boundary and `git diff --check` passed;
+- a final in-app visual pass covered the dashboard, request entry, ready-request
+  review, Standard signer start and PDF workspace, Strong identity setup,
+  signature checker and Documents-backed signature cards at 1440 px and 390 px.
+  Every checked screen had zero horizontal overflow and zero console errors.
+  Pocket ID account connection and passkey actions were deliberately not opened;
+- the isolated loopback QA bootstrap exposed and fixed an internal hostname
+  routing defect: containers now use Docker's host gateway for a loopback-bound
+  Pocket ID, while private LAN/Tailscale deployments retain their exact bind
+  address. A fresh `odoo_dev` tenant then initialized and reached healthy state;
 - the installed QA image passed `python -m pip check`, and
   `make user-docs-build` rendered the complete MkDocs site successfully.
 

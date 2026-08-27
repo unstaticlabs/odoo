@@ -851,7 +851,7 @@
             cursor: pointer;
         }
 
-        &:has(.o_radio_input:checked) {
+        &.is-selected {
             border-color: var(--o-brand-primary, #714b67);
             box-shadow: 0 0 0 1px var(--o-brand-primary, #714b67);
             background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .06);
