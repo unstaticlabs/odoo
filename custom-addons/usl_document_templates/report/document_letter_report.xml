@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_document_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="letter">
+                <div class="article" t-att-data-oe-model="letter._name" t-att-data-oe-id="letter.id">
+                    <p>The governed PDF is produced by the USL LaTeX renderer.</p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_document_letter" model="ir.actions.report">
+        <field name="name">Official letter</field>
+        <field name="model">usl.document.letter</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">usl_document_templates.report_document_letter</field>
+        <field name="report_file">usl_document_templates.report_document_letter</field>
+        <field name="binding_model_id" ref="model_usl_document_letter"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">object._usl_document_report_attachment_name()</field>
+        <field name="attachment">object._usl_document_report_attachment_name()</field>
+        <field name="attachment_use">True</field>
+        <field name="usl_output_policy">latex</field>
+        <field name="usl_document_template_id" ref="template_official_letter_v1"/>
+    </record>
+</odoo>
+
