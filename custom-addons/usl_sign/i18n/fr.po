@@ -3933,6 +3933,39 @@ msgid "Saving and checking your signature…"
 msgstr "Enregistrement et vérification de votre signature…"
 
 #. module: usl_sign
+msgid "Securing your signature"
+msgstr "Sécurisation de votre signature"
+
+#. module: usl_sign
+msgid "Keep this tab open."
+msgstr "Gardez cet onglet ouvert."
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Preparing your secure signature…"
+msgstr "Préparation de votre signature sécurisée…"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Confirm your identity in Pocket ID…"
+msgstr "Confirmez votre identité dans Pocket ID…"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Applying your signature…"
+msgstr "Apposition de votre signature…"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Checking the signed document…"
+msgstr "Vérification du document signé…"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Signature saved."
+msgstr "Signature enregistrée."
+
+#. module: usl_sign
 msgid "Signer check"
 msgstr "Contrôle du signataire"
 
