@@ -43,6 +43,21 @@ def sha256(content):
     return hashlib.sha256(content).hexdigest()
 
 
+def identity_search_domains(model, *, login=None, email=None):
+    """Return ordered, stable identity fallbacks for reconstructed records."""
+    domains = []
+    if model == "res.users":
+        if login:
+            domains.append(("login", [("login", "=ilike", login)]))
+        if email:
+            domains.append(
+                ("linked partner email", [("partner_id.email", "=ilike", email)]),
+            )
+    elif email:
+        domains.append(("email", [("email", "=ilike", email)]))
+    return domains
+
+
 class SourceReader:
     def __init__(self, options):
         self.options = options

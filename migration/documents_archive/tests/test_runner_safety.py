@@ -294,6 +294,15 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             reset.index("with_context(b2c_evidence_import=True).write"),
             reset.index('Document.with_context(active_test=False).search([]).unlink()'),
         )
+        self.assertIn("_clear_external_references", reset)
+        self.assertIn("pg_constraint", reset)
+        self.assertNotIn("pg_constraint AS constraint", reset)
+        self.assertIn("attnotnull", reset)
+        self.assertIn("Documents reset cannot detach required reference", reset)
+        self.assertLess(
+            reset.index('_clear_external_references(\n        "usl_document"'),
+            reset.index("Operation.search([]).unlink()"),
+        )
 
     def test_restore_uses_all_mapped_companies_for_archive_policy(self):
         restore = (
