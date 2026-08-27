@@ -17,7 +17,7 @@
             <textarea id="usl_sign_decline_reason" class="form-control" rows="4" required="required" autofocus="autofocus" placeholder="Briefly explain why you cannot sign" t-on-input="updateReason"/>
             <t t-set-slot="footer">
                 <button type="button" class="btn btn-secondary" t-on-click="props.close">Keep reviewing</button>
-                <button type="button" class="btn btn-danger" t-att-disabled="!state.reason.trim() || state.busy" t-on-click="confirm">
+                <button type="button" class="btn btn-danger" title="Decline this request and record the reason for the requester." t-att-disabled="!state.reason.trim() || state.busy" t-on-click="confirm">
                     <i t-if="state.busy" class="fa fa-spinner fa-spin me-2"/>Decline document
                 </button>
             </t>
