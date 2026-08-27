@@ -3437,6 +3437,9 @@ class UslDocument(models.Model):
         company_id=None,
         confidentiality="internal",
         source="odoo_upload",
+        document_date=None,
+        document_type_id=None,
+        tag_ids=None,
     ):
         if not filename or not content_base64:
             raise ValidationError(_("Choose a non-empty file."))
@@ -3492,6 +3495,17 @@ class UslDocument(models.Model):
             )
         if not self.env.su and company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
+        document_type = self.env["usl.paperless.document.type"]
+        if document_type_id:
+            document_type = document_type.browse(int(document_type_id)).exists()
+            if not document_type or not document_type.active:
+                raise ValidationError(_("Choose an active Paperless document type."))
+        requested_tags = {int(tag_id) for tag_id in (tag_ids or [])}
+        tags = self.env["usl.paperless.tag"].search(
+            [("id", "in", list(requested_tags)), ("active", "=", True)],
+        )
+        if set(tags.ids) != requested_tags:
+            raise ValidationError(_("One or more selected tags are unavailable."))
         archive_context = (
             (
                 operation.context_json
@@ -3520,6 +3534,38 @@ class UslDocument(models.Model):
             }
         )
         confidentiality = archive_context.get("confidentiality") or confidentiality
+        if document_date:
+            archive_context["document_date"] = fields.Date.to_string(document_date)
+        if document_type:
+            archive_context.update(
+                {
+                    "document_type": document_type.name,
+                    "document_type_record_id": document_type.id,
+                    "document_type_paperless_id": document_type.paperless_id or False,
+                },
+            )
+        if tags:
+            tag_names = set(tags.mapped("name"))
+            paperless_tag_ids = {
+                paperless_id
+                for paperless_id in tags.mapped("paperless_id")
+                if paperless_id
+            }
+            archive_context.update(
+                {
+                    "tags": sorted(
+                        set(archive_context.get("tags") or []) | tag_names,
+                    ),
+                    "tag_record_ids": sorted(
+                        set(archive_context.get("tag_record_ids") or [])
+                        | set(tags.ids),
+                    ),
+                    "tag_paperless_ids": sorted(
+                        set(archive_context.get("tag_paperless_ids") or [])
+                        | paperless_tag_ids,
+                    ),
+                },
+            )
         checksum = hashlib.sha256(content).hexdigest()
         metadata_hash = (
             operation.metadata_hash

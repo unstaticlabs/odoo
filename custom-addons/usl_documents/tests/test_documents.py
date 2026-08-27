@@ -1488,6 +1488,28 @@ class TestDocuments(TransactionCase):
         )
         upload.assert_called_once()
 
+    def test_upload_applies_archive_metadata_during_ingestion(self):
+        document_type = self._document_type(41, "Signing history")
+        tag = self._tag(52, "Odoo Online (External)")
+        with (
+            patch.object(PaperlessClient, "search", return_value={"results": []}),
+            patch.object(
+                PaperlessClient, "upload_multipart", return_value="task-metadata",
+            ) as upload,
+        ):
+            self.env["usl.document"].upload_from_odoo(
+                "history.pdf",
+                base64.b64encode(b"history").decode(),
+                "application/pdf",
+                document_date=fields.Date.to_date("2026-02-11"),
+                document_type_id=document_type.id,
+                tag_ids=tag.ids,
+            )
+
+        self.assertEqual(upload.call_args.kwargs["created"], "2026-02-11")
+        self.assertEqual(upload.call_args.kwargs["document_type_id"], 41)
+        self.assertEqual(upload.call_args.kwargs["tag_ids"], [52])
+
     def test_company_and_accountant_permissions_do_not_leak_metadata(self):
         internal = self._document(103)
         evidence = self._document(
