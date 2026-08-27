@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server saas~19.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-06 04:10+0000\n"
-"PO-Revision-Date: 2026-08-24 00:00+0000\n"
+"PO-Revision-Date: 2026-08-27 00:00+0000\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -3089,3 +3089,439 @@ msgstr "Vérifiez avant l’envoi"
 #. module: usl_sign
 msgid "Confirm the people, method and timing. Nothing is sent until you choose Send for signature."
 msgstr "Confirmez les personnes, la méthode et l’échéance. Rien n’est envoyé avant de choisir Envoyer pour signature."
+
+#. module: usl_sign
+msgid "Check Signatures"
+msgstr "Vérifier des signatures"
+
+#. module: usl_sign
+msgid "Check signatures"
+msgstr "Vérifier des signatures"
+
+#. module: usl_sign
+msgid "Check a signed PDF"
+msgstr "Vérifier un PDF signé"
+
+#. module: usl_sign
+msgid "See which digital signatures are intact, who their certificates identify, and what still needs an authoritative check."
+msgstr "Vérifiez quelles signatures numériques sont intactes, qui leurs certificats identifient et quels points nécessitent encore une validation faisant autorité."
+
+#. module: usl_sign
+msgid "Your file stays in this browser."
+msgstr "Votre fichier reste dans ce navigateur."
+
+#. module: usl_sign
+msgid "Nothing is uploaded to Odoo."
+msgstr "Rien n’est envoyé à Odoo."
+
+#. module: usl_sign
+msgid "Local processing"
+msgstr "Traitement local"
+
+#. module: usl_sign
+msgid "Drop a signed PDF or evidence dossier here"
+msgstr "Déposez ici un PDF signé ou un dossier de preuves"
+
+#. module: usl_sign
+msgid "or choose a PDF from your Mac"
+msgstr "ou choisissez un PDF sur votre Mac"
+
+#. module: usl_sign
+msgid "PDF only · up to 100 MB · checked locally"
+msgstr "PDF uniquement · 100 Mo maximum · vérifié localement"
+
+#. module: usl_sign
+msgid "Cryptographic integrity"
+msgstr "Intégrité cryptographique"
+
+#. module: usl_sign
+msgid "Signature bytes and the PDF revision they cover."
+msgstr "Les octets de la signature et la révision du PDF qu’ils couvrent."
+
+#. module: usl_sign
+msgid "Certificate details"
+msgstr "Informations du certificat"
+
+#. module: usl_sign
+msgid "Named holder, issuer, dates, algorithms, and chain structure."
+msgstr "Titulaire, émetteur, dates, algorithmes et structure de la chaîne."
+
+#. module: usl_sign
+msgid "Dossier evidence"
+msgstr "Preuves du dossier"
+
+#. module: usl_sign
+msgid "Embedded files, hashes, signed manifest, and consistency checks."
+msgstr "Fichiers intégrés, empreintes, manifeste signé et contrôles de cohérence."
+
+#. module: usl_sign
+msgid "Checking"
+msgstr "Vérification de"
+
+#. module: usl_sign
+msgid "Reading the PDF, verifying signatures, and checking embedded evidence locally…"
+msgstr "Lecture du PDF, vérification des signatures et contrôle local des preuves intégrées…"
+
+#. module: usl_sign
+msgid "This file could not be checked"
+msgstr "Ce fichier n’a pas pu être vérifié"
+
+#. module: usl_sign
+msgid "Choose another PDF"
+msgstr "Choisir un autre PDF"
+
+#. module: usl_sign
+msgid "Check another PDF"
+msgstr "Vérifier un autre PDF"
+
+#. module: usl_sign
+msgid "Copy hash"
+msgstr "Copier l’empreinte"
+
+#. module: usl_sign
+msgid "Copy the complete SHA-256 hash"
+msgstr "Copier l’empreinte SHA-256 complète"
+
+#. module: usl_sign
+msgid "Embedded files"
+msgstr "Fichiers intégrés"
+
+#. module: usl_sign
+msgid "Digital signatures"
+msgstr "Signatures numériques"
+
+#. module: usl_sign
+msgid "Each result applies to one signed PDF revision. Later signatures normally add a new revision."
+msgstr "Chaque résultat concerne une révision signée du PDF. Les signatures suivantes ajoutent normalement une nouvelle révision."
+
+#. module: usl_sign
+msgid "No certificate-based signature was found."
+msgstr "Aucune signature fondée sur un certificat n’a été trouvée."
+
+#. module: usl_sign
+msgid "A typed name, scanned handwriting, or drawn mark can look signed without containing a digital signature that software can verify."
+msgstr "Un nom saisi, une signature manuscrite numérisée ou un tracé peut sembler signé sans contenir de signature numérique vérifiable par un logiciel."
+
+#. module: usl_sign
+msgid "Signed PDF revision"
+msgstr "Révision signée du PDF"
+
+#. module: usl_sign
+msgid "Cryptographic signature"
+msgstr "Signature cryptographique"
+
+#. module: usl_sign
+msgid "The certificate public key verifies this signature."
+msgstr "La clé publique du certificat valide cette signature."
+
+#. module: usl_sign
+msgid "Embedded certificate chain"
+msgstr "Chaîne de certificats intégrée"
+
+#. module: usl_sign
+msgid "The certificates link together cryptographically."
+msgstr "Les certificats sont liés cryptographiquement."
+
+#. module: usl_sign
+msgid "A complete, internally consistent chain was not embedded."
+msgstr "Aucune chaîne complète et cohérente n’est intégrée."
+
+#. module: usl_sign
+msgid "Trust and revocation"
+msgstr "Confiance et révocation"
+
+#. module: usl_sign
+msgid "Not established offline. Use an authoritative validator for trusted-list, qualification, and current revocation status."
+msgstr "Non établies hors ligne. Utilisez un validateur faisant autorité pour la liste de confiance, la qualification et l’état de révocation actuel."
+
+#. module: usl_sign
+msgid "Long-term validation material"
+msgstr "Éléments de validation à long terme"
+
+#. module: usl_sign
+msgid "Revocation or DSS evidence is embedded. Its freshness and trust still require an authoritative validator."
+msgstr "Des preuves de révocation ou DSS sont intégrées. Leur actualité et leur fiabilité nécessitent encore un validateur faisant autorité."
+
+#. module: usl_sign
+msgid "Certificate holder"
+msgstr "Titulaire du certificat"
+
+#. module: usl_sign
+msgid "Certificate issuer"
+msgstr "Émetteur du certificat"
+
+#. module: usl_sign
+msgid "Valid from"
+msgstr "Valide à partir du"
+
+#. module: usl_sign
+msgid "Valid until"
+msgstr "Valide jusqu’au"
+
+#. module: usl_sign
+msgid "Digest"
+msgstr "Empreinte"
+
+#. module: usl_sign
+msgid "PDF profile"
+msgstr "Profil PDF"
+
+#. module: usl_sign
+msgid "Certificate SHA-256"
+msgstr "SHA-256 du certificat"
+
+#. module: usl_sign
+msgid "Signature timestamp verified"
+msgstr "Horodatage de la signature vérifié"
+
+#. module: usl_sign
+msgid "Signature timestamp could not be verified"
+msgstr "L’horodatage de la signature n’a pas pu être vérifié"
+
+#. module: usl_sign
+msgid "Claimed PDF details"
+msgstr "Informations déclarées dans le PDF"
+
+#. module: usl_sign
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_sign
+msgid "Location"
+msgstr "Lieu"
+
+#. module: usl_sign
+msgid "PDF signing time"
+msgstr "Date de signature du PDF"
+
+#. module: usl_sign
+msgid "The PDF contains embedded files. Their bytes were hashed and compared with the USL manifest when present."
+msgstr "Le PDF contient des fichiers intégrés. Leurs octets ont été hachés et comparés au manifeste USL lorsqu’il est présent."
+
+#. module: usl_sign
+msgid "signature(s)"
+msgstr "signature(s)"
+
+#. module: usl_sign
+msgid "What this check proves"
+msgstr "Ce que ce contrôle établit"
+
+#. module: usl_sign
+msgid "The signed byte ranges have not changed."
+msgstr "Les plages d’octets signées n’ont pas changé."
+
+#. module: usl_sign
+msgid "The signature matches the public key in its certificate."
+msgstr "La signature correspond à la clé publique de son certificat."
+
+#. module: usl_sign
+msgid "Embedded evidence matches its signed USL manifest when available."
+msgstr "Les preuves intégrées correspondent à leur manifeste USL signé lorsqu’il est disponible."
+
+#. module: usl_sign
+msgid "What still needs an authoritative validator"
+msgstr "Ce qui nécessite encore un validateur faisant autorité"
+
+#. module: usl_sign
+msgid "Whether the issuer is trusted under a current EU or company trust list."
+msgstr "Si l’émetteur est reconnu par une liste de confiance actuelle de l’UE ou de l’entreprise."
+
+#. module: usl_sign
+msgid "Current or historical certificate revocation status unless complete proof is embedded and validated."
+msgstr "L’état de révocation actuel ou historique du certificat, sauf si une preuve complète est intégrée et validée."
+
+#. module: usl_sign
+msgid "Whether a signature legally qualifies as advanced or qualified."
+msgstr "Si la signature est juridiquement qualifiée d’avancée ou de qualifiée."
+
+#. module: usl_sign
+msgid "Need a formal decision?"
+msgstr "Besoin d’une décision formelle ?"
+
+#. module: usl_sign
+msgid "Use the Sign validation service or another maintained PAdES validator with current trust lists."
+msgstr "Utilisez le service de validation Sign ou un autre validateur PAdES maintenu avec des listes de confiance à jour."
+
+#. module: usl_sign
+msgid "Choose a PDF file. Other formats are not opened."
+msgstr "Choisissez un fichier PDF. Les autres formats ne sont pas ouverts."
+
+#. module: usl_sign
+msgid "Choose one signed PDF or one PDF evidence dossier."
+msgstr "Choisissez un PDF signé ou un dossier de preuves au format PDF."
+
+#. module: usl_sign
+msgid "Intact"
+msgstr "Intacte"
+
+#. module: usl_sign
+msgid "Intact revision"
+msgstr "Révision intacte"
+
+#. module: usl_sign
+msgid "Invalid"
+msgstr "Invalide"
+
+#. module: usl_sign
+msgid "Not fully checked"
+msgstr "Contrôle incomplet"
+
+#. module: usl_sign
+msgid "Not provided"
+msgstr "Non renseigné"
+
+#. module: usl_sign
+msgid "SHA-256 copied."
+msgstr "SHA-256 copié."
+
+#. module: usl_sign
+msgid "The dossier's embedded files are too large to inspect safely (maximum: 100 MB)."
+msgstr "Les fichiers intégrés du dossier sont trop volumineux pour être contrôlés en toute sécurité (maximum : 100 Mo)."
+
+#. module: usl_sign
+msgid "The hash could not be copied. Select it in Details instead."
+msgstr "L’empreinte n’a pas pu être copiée. Sélectionnez-la plutôt dans les informations détaillées."
+
+#. module: usl_sign
+msgid "The local signature checker stopped unexpectedly."
+msgstr "Le vérificateur local de signatures s’est arrêté de manière inattendue."
+
+#. module: usl_sign
+msgid "This PDF could not be inspected."
+msgstr "Ce PDF n’a pas pu être contrôlé."
+
+#. module: usl_sign
+msgid "This PDF is too large to inspect safely (maximum: 100 MB)."
+msgstr "Ce PDF est trop volumineux pour être contrôlé en toute sécurité (maximum : 100 Mo)."
+
+#. module: usl_sign
+msgid "This dossier has too many attachments to inspect safely (maximum: 200)."
+msgstr "Ce dossier contient trop de pièces jointes pour être contrôlé en toute sécurité (maximum : 200)."
+
+#. module: usl_sign
+msgid "Unavailable"
+msgstr "Indisponible"
+
+#. module: usl_sign
+msgid "Unnamed signer"
+msgstr "Signataire sans nom"
+
+#. module: usl_sign
+msgid "The PDF signature byte range is malformed or does not surround its signature container."
+msgstr "La plage d’octets de la signature PDF est incorrecte ou n’entoure pas son conteneur de signature."
+
+#. module: usl_sign
+msgid "This signature covers the current end of the PDF."
+msgstr "Cette signature couvre la fin actuelle du PDF."
+
+#. module: usl_sign
+msgid "%s byte(s) were appended after this signed revision."
+msgstr "%s octet(s) ont été ajoutés après cette révision signée."
+
+#. module: usl_sign
+msgid "No digital signatures found"
+msgstr "Aucune signature numérique trouvée"
+
+#. module: usl_sign
+msgid "The PDF may contain a drawn signature, but no verifiable certificate-based signature was detected."
+msgstr "Le PDF peut contenir une signature dessinée, mais aucune signature vérifiable fondée sur un certificat n’a été détectée."
+
+#. module: usl_sign
+msgid "At least one signature is invalid"
+msgstr "Au moins une signature est invalide"
+
+#. module: usl_sign
+msgid "Do not rely on this file until the failed signature or malformed byte range is explained."
+msgstr "Ne vous fiez pas à ce fichier tant que la signature invalide ou la plage d’octets incorrecte n’est pas expliquée."
+
+#. module: usl_sign
+msgid "Signature validation is incomplete"
+msgstr "La validation des signatures est incomplète"
+
+#. module: usl_sign
+msgid "The file contains signatures, but this browser could not cryptographically verify every one."
+msgstr "Le fichier contient des signatures, mais ce navigateur n’a pas pu toutes les vérifier cryptographiquement."
+
+#. module: usl_sign
+msgid "Signatures are valid, with later changes"
+msgstr "Les signatures sont valides, avec des modifications ultérieures"
+
+#. module: usl_sign
+msgid "The cryptographic signatures check out, but bytes were added after the latest signed revision."
+msgstr "Les signatures cryptographiques sont valides, mais des octets ont été ajoutés après la dernière révision signée."
+
+#. module: usl_sign
+msgid "All detected signatures are intact"
+msgstr "Toutes les signatures détectées sont intactes"
+
+#. module: usl_sign
+msgid "The cryptographic signatures and signed byte ranges check out. Certificate trust still needs an authoritative validator."
+msgstr "Les signatures cryptographiques et les plages d’octets signées sont valides. La confiance du certificat nécessite encore un validateur faisant autorité."
+
+#. module: usl_sign
+msgid "Attachments found; no USL signed manifest found"
+msgstr "Pièces jointes trouvées, mais aucun manifeste USL signé"
+
+#. module: usl_sign
+msgid "The embedded files are listed and hashed, but this browser cannot tie them to a signed USL evidence manifest."
+msgstr "Les fichiers intégrés sont listés et hachés, mais ce navigateur ne peut pas les rattacher à un manifeste de preuves USL signé."
+
+#. module: usl_sign
+msgid "The evidence dossier has integrity problems"
+msgstr "Le dossier de preuves présente des problèmes d’intégrité"
+
+#. module: usl_sign
+msgid "The signed manifest, an embedded artifact, or an embedded PDF signature does not match."
+msgstr "Le manifeste signé, une preuve intégrée ou une signature PDF intégrée ne correspond pas."
+
+#. module: usl_sign
+msgid "The evidence dossier is internally consistent"
+msgstr "Le dossier de preuves est cohérent en interne"
+
+#. module: usl_sign
+msgid "%s manifest artifact(s) match their embedded files. External certificate trust is not established offline."
+msgstr "%s élément(s) du manifeste correspondent aux fichiers intégrés. La confiance externe des certificats n’est pas établie hors ligne."
+
+#. module: usl_sign
+msgid "Signatures are intact, with legacy cryptography"
+msgstr "Les signatures sont intactes, avec une cryptographie ancienne"
+
+#. module: usl_sign
+msgid "The signatures check out, but at least one uses SHA-1. Prefer a current SHA-256 signature when available."
+msgstr "Les signatures sont valides, mais au moins l’une d’elles utilise SHA-1. Préférez une signature SHA-256 actuelle lorsqu’elle est disponible."
+
+#. module: usl_sign
+msgid "Intact · legacy SHA-1"
+msgstr "Intacte · SHA-1 ancien"
+
+#. module: usl_sign
+msgid "The signature matches, but it uses legacy SHA-1 cryptography."
+msgstr "La signature correspond, mais elle utilise l’ancienne cryptographie SHA-1."
+
+#. module: usl_sign
+msgid "Embedded certificate path"
+msgstr "Chemin de certificats intégré"
+
+#. module: usl_sign
+msgid "The embedded issuer link or links verify cryptographically."
+msgstr "Le ou les liens d’émetteur intégrés sont vérifiés cryptographiquement."
+
+#. module: usl_sign
+msgid "Only the signing certificate, or no verifiable issuer link, was embedded."
+msgstr "Seul le certificat de signature, ou aucun lien d’émetteur vérifiable, a été intégré."
+
+#. module: usl_sign
+msgid "What this browser checks"
+msgstr "Ce que ce navigateur vérifie"
+
+#. module: usl_sign
+msgid "Whether each signature covers only its declared PDF revision."
+msgstr "Si chaque signature couvre uniquement la révision PDF qu’elle déclare."
+
+#. module: usl_sign
+msgid "Whether each supported signature matches its certificate public key."
+msgstr "Si chaque signature prise en charge correspond à la clé publique de son certificat."
+
+#. module: usl_sign
+msgid "Whether embedded evidence matches its signed USL manifest when available."
+msgstr "Si les preuves intégrées correspondent à leur manifeste USL signé lorsqu’il est disponible."

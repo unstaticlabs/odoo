@@ -94,6 +94,56 @@ ready before the request is sent. If an identity later becomes unavailable,
 the public journey stops before any signing action and explains the setup and
 review steps.
 
+## Offline signature inspection
+
+**Check Signatures** is a focused mini-app inside Sign for reviewing a signed
+PDF or the PDF/A-3 evidence dossier produced by USL Sign. Here, dossier means a
+PDF with embedded attachments, not a ZIP or ASiC container. Once the Sign page
+and its local PDF.js and worker assets are loaded, document inspection is
+entirely browser-local: the selected file and all embedded attachments remain
+in browser memory, and no upload, RPC or external request carries their
+contents. Files are limited to 100 MB, dossiers to 200 embedded files and 100
+MB of total embedded content, and PDF.js parsing disables document evaluation.
+
+The browser worker uses the pinned PKI.js 3.4.0 library and Web Crypto to:
+
+- reject malformed PDF signature byte ranges and verify the cryptographic CMS
+  value for supported PDF signature subfilters against the exact signed
+  revision;
+- support detached PKCS#7/CAdES and RFC 3161 document timestamps, and bind the
+  RFC 3161 `TSTInfo.messageImprint` to the signed revision; bind the legacy
+  `adbe.pkcs7.sha1` encapsulated digest to that revision while warning that
+  SHA-1 is obsolete; unsupported subfilters remain explicitly inconclusive
+  rather than being reported as invalid;
+- identify later incremental revisions without incorrectly invalidating an
+  earlier intact signature;
+- display the certificate holder and issuer, validity dates, algorithms,
+  fingerprint, embedded chain structure and signature timestamps;
+- extract PDF/A-3 attachments, inspect embedded PDFs, hash every artifact,
+  verify the USL detached evidence-manifest signature and compare its expected
+  artifact hashes, including the privacy-preserving Pocket ID authentication
+  summary.
+
+An intact browser result is deliberately narrower than a DSS validation
+decision. Browser platforms do not expose their trust store to ordinary web
+applications, and an offline page cannot refresh EU trusted lists, OCSP or
+CRLs. The mini-app therefore never labels a signature trusted, advanced or
+qualified and does not validate a PAdES profile, signature policy or PDF/A
+conformance; veraPDF remains the dossier-conformance authority. It explains
+that issuer trust, qualification and current or historical revocation status
+still require the maintained internal EU DSS service or another authoritative
+PAdES validator. Password-protected PDFs and unsupported encodings or
+subfilters may be reported as inconclusive. Browser cryptography also requires
+a secure context, so the page must be opened over HTTPS or localhost.
+
+Using the existing server-side DSS import validation was rejected for this
+surface because it would upload a user-selected document and would not work
+offline. Using Odoo's pinned PDF.js alone was also rejected: it safely parses
+and extracts dossier attachments, but its generic 5.4 build does not provide a
+certificate trust/verification bridge. The bounded PKI.js worker adds local
+cryptographic inspection while keeping DSS as the sole authority for product
+lifecycle and trust decisions.
+
 ## Lifecycle and completion gate
 
 The request lifecycle is:
