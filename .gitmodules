@@ -1,0 +1,3 @@
+[submodule "services/usl-document-renderer"]
+	path = services/usl-document-renderer
+	url = https://github.com/unstaticlabs/unstatic_latex_templates.git
