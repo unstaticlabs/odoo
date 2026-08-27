@@ -269,6 +269,11 @@ status() {
 }
 
 upgrade_qa() {
+  local update_modules="${USL_SIGN_QA_UPDATE_MODULES:-usl_documents,usl_pocketid,usl_sign}"
+  if [[ ! "$update_modules" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
+    printf 'USL_SIGN_QA_UPDATE_MODULES must be a comma-separated Odoo module list.\n' >&2
+    return 2
+  fi
   bootstrap
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build usl-sign-dss
@@ -280,7 +285,7 @@ upgrade_qa() {
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database=odoo_dev \
-    --update=usl_sign \
+    --update="$update_modules" \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn; then
