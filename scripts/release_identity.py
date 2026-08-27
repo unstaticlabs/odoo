@@ -35,6 +35,7 @@ PRODUCT_MODULES = {
     "usl_tese_accounting",
     "usl_tese_payroll",
 }
+ACTION_RISK_POLICY_DIRECTORY = ROOT / "custom-addons/usl_access_control/policy"
 
 
 class ReleaseIdentityError(RuntimeError):
@@ -63,6 +64,44 @@ def sha256_file(path: Path) -> str:
         while chunk := stream.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def action_risk_policy_sha256() -> str:
+    """Return the canonical digest of the reviewed action surface and policy."""
+    payload = {}
+    for key, filename in (
+        ("action_surface", "action_surface.json"),
+        ("action_policy", "action_policy.json"),
+    ):
+        path = ACTION_RISK_POLICY_DIRECTORY / filename
+        if not path.is_file():
+            raise ReleaseIdentityError(
+                f"Action-risk policy artifact is missing: {path}",
+            )
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise ReleaseIdentityError(
+                f"Action-risk policy artifact is invalid JSON: {path}: {error}",
+            ) from error
+        if key == "action_policy":
+            if not isinstance(value, dict):
+                raise ReleaseIdentityError(
+                    f"Action-risk policy artifact must be an object: {path}",
+                )
+            value = {
+                item_key: item_value
+                for item_key, item_value in value.items()
+                if item_key != "qualified_policy_digest"
+            }
+        payload[key] = value
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def manifest(path: Path) -> dict[str, object]:
@@ -146,7 +185,12 @@ def oca_bundle_sha256() -> str:
     return digest.hexdigest()
 
 
-def image_identity(reference: str, commit: str, oca_digest: str) -> dict[str, object]:
+def image_identity(
+    reference: str,
+    commit: str,
+    oca_digest: str,
+    action_risk_digest: str,
+) -> dict[str, object]:
     raw = run("docker", "image", "inspect", reference)
     payload = json.loads(raw)
     if not isinstance(payload, list) or len(payload) != 1:
@@ -156,6 +200,7 @@ def image_identity(reference: str, commit: str, oca_digest: str) -> dict[str, ob
     expected_labels = {
         "org.opencontainers.image.revision": commit,
         "com.unstaticlabs.odoo.oca-bundle-sha256": oca_digest,
+        "com.unstaticlabs.odoo.action-risk-policy-sha256": action_risk_digest,
         "com.unstaticlabs.odoo.runtime": "distribution",
     }
     for key, expected in expected_labels.items():
@@ -194,6 +239,7 @@ def build_identity(
     commit = run("git", "rev-parse", "HEAD")
     oca_pins = verified_oca_pins()
     oca_digest = oca_bundle_sha256()
+    action_risk_digest = action_risk_policy_sha256()
     dump_sha256 = sha256_file(dump)
     try:
         upstream_commit = run(
@@ -219,10 +265,16 @@ def build_identity(
             "bundle_sha256": oca_digest,
             "repositories": oca_pins,
         },
+        "action_risk_policy_sha256": action_risk_digest,
         "product_module_versions": product_module_versions(),
     }
     if image:
-        identity["image"] = image_identity(image, commit, oca_digest)
+        identity["image"] = image_identity(
+            image,
+            commit,
+            oca_digest,
+            action_risk_digest,
+        )
     canonical = json.dumps(identity, sort_keys=True, separators=(",", ":"))
     identity["identity_sha256"] = hashlib.sha256(canonical.encode()).hexdigest()
     return identity

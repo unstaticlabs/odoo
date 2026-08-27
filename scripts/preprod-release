@@ -141,15 +141,57 @@ require_qualified_identity() {
   python3 "$ROOT/scripts/release_identity.py" "${args[@]}" >/dev/null
 }
 
+action_risk_source_gate() {
+  python3 "$ROOT/scripts/action_risk_inventory.py" check-source
+}
+
+action_risk_runtime_gate() {
+  local database="${1:-odoo_dev}"
+  release_compose --profile init run --rm -T \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    -e ACTION_RISK_MODE=check \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --shell-interface=python \
+    < "$ROOT/scripts/odoo/action_risk_inventory.py"
+}
+
+product_asset_gate() {
+  local database="${1:-odoo_dev}"
+  release_compose --profile init run --rm -T \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --shell-interface=python \
+    < "$ROOT/scripts/odoo/compile_product_assets.py"
+}
+
 build_distribution() {
   make oca-addons-sync
+  action_risk_source_gate
   local identity_args=(--source-dir "$USL_ONLINE_DUMP_DIR")
   if [[ "${USL_RELEASE_ALLOW_DIRTY:-0}" != "1" ]]; then
     identity_args+=(--require-clean)
   fi
   identity_args+=(--field oca.bundle_sha256)
-  local oca_digest release_commit
+  local oca_digest action_risk_digest release_commit
   oca_digest="$(
+    python3 "$ROOT/scripts/release_identity.py" "${identity_args[@]}"
+  )"
+  identity_args=(--source-dir "$USL_ONLINE_DUMP_DIR")
+  if [[ "${USL_RELEASE_ALLOW_DIRTY:-0}" != "1" ]]; then
+    identity_args+=(--require-clean)
+  fi
+  identity_args+=(--field action_risk_policy_sha256)
+  action_risk_digest="$(
     python3 "$ROOT/scripts/release_identity.py" "${identity_args[@]}"
   )"
   release_commit="$(git rev-parse HEAD)"
@@ -157,6 +199,7 @@ build_distribution() {
     --target distribution \
     --build-arg "USL_RELEASE_COMMIT=$release_commit" \
     --build-arg "USL_OCA_BUNDLE_SHA256=$oca_digest" \
+    --build-arg "USL_ACTION_RISK_POLICY_SHA256=$action_risk_digest" \
     --tag "$ODOO_IMAGE" \
     "$ROOT"
   require_qualified_identity
@@ -249,9 +292,10 @@ cleanup_clean_install_database() {
 }
 
 clean_install_product() {
+  action_risk_source_gate
   require_qualified_identity
   local product_modules
-  product_modules="rebuild_account_migration,usl_documents_accounting,usl_project,usl_tese_accounting"
+  product_modules="rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll"
   cleanup_clean_install_database
   trap cleanup_clean_install_database EXIT INT TERM
   release_compose --profile init run --rm -T \
@@ -269,6 +313,10 @@ clean_install_product() {
     ODOO_DEV_DB="$clean_install_database" \
     scripts/check-product-database-boundary \
     | tee "$ROOT/artifacts/release/clean-install-boundary.txt"
+  action_risk_runtime_gate "$clean_install_database" \
+    | tee "$ROOT/artifacts/release/clean-install-action-risk.txt"
+  product_asset_gate "$clean_install_database" \
+    | tee "$ROOT/artifacts/release/clean-install-assets.txt"
   trap - EXIT INT TERM
   cleanup_clean_install_database
   printf 'Pre-production clean installation: PASS\n'
@@ -354,11 +402,16 @@ recovery_rehearsal() {
 }
 
 release_gate() {
+  action_risk_source_gate
   require_qualified_identity
   scripts/check-product-migration-boundary
   USL_PRODUCT_BOUNDARY_PREPROD=1 scripts/check-product-database-boundary
   release_compose --profile paperless run --rm --no-deps paperless-preflight
   database_identity 0 > "$ROOT/artifacts/release/database-identity.json"
+  action_risk_runtime_gate \
+    | tee "$ROOT/artifacts/release/action-risk-runtime.txt"
+  product_asset_gate \
+    | tee "$ROOT/artifacts/release/product-assets.txt"
 
   local container_id mounts runtime_image
   container_id="$(release_compose ps -q odoo)"

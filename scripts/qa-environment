@@ -330,6 +330,14 @@ clean_install() {
   scripts/odoo-dev disable-tours
   scripts/check-product-migration-boundary
   scripts/check-product-database-boundary
+  "${compose[@]}" exec -T -e ACTION_RISK_MODE=check \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/action_risk_inventory.py"
+  "${compose[@]}" exec -T \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/compile_product_assets.py"
 }
 
 b2c_qa_bootstrap() {

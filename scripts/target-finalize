@@ -53,6 +53,7 @@ product_modules=(
 )
 product_modules_csv="$(IFS=,; printf '%s' "${product_modules[*]}")"
 
+python3 scripts/action_risk_inventory.py check-source
 scripts/check-product-migration-boundary
 if [[ "$qa_profile" == no-documents ]]; then
   USL_QA_DATA_PROFILE="$qa_profile" \
@@ -80,6 +81,17 @@ scripts/tese-restore product-validate
 scripts/platform-billing-restore product-validate
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e ACTION_RISK_MODE=check \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/action_risk_inventory.py
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/compile_product_assets.py
 
 # The product validators intentionally use the base Compose service and may
 # recreate Odoo without the Pocket ID environment overlay.  Always finish by

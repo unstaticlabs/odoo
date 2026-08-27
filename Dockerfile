@@ -150,14 +150,17 @@ FROM product AS distribution
 
 ARG USL_RELEASE_COMMIT=unverified
 ARG USL_OCA_BUNDLE_SHA256=unverified
+ARG USL_ACTION_RISK_POLICY_SHA256=unverified
 
 LABEL org.opencontainers.image.title="USL Odoo Distribution" \
       org.opencontainers.image.revision="${USL_RELEASE_COMMIT}" \
       com.unstaticlabs.odoo.oca-bundle-sha256="${USL_OCA_BUNDLE_SHA256}" \
+      com.unstaticlabs.odoo.action-risk-policy-sha256="${USL_ACTION_RISK_POLICY_SHA256}" \
       com.unstaticlabs.odoo.runtime="distribution"
 
 ENV USL_RELEASE_COMMIT="${USL_RELEASE_COMMIT}" \
-    USL_OCA_BUNDLE_SHA256="${USL_OCA_BUNDLE_SHA256}"
+    USL_OCA_BUNDLE_SHA256="${USL_OCA_BUNDLE_SHA256}" \
+    USL_ACTION_RISK_POLICY_SHA256="${USL_ACTION_RISK_POLICY_SHA256}"
 
 
 # Browser-capable test image, built only when the test profile is requested.
