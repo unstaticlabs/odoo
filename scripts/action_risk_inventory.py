@@ -1915,6 +1915,43 @@ def compare_surfaces(
 ) -> list[str]:
     """Return actionable module/action drift between two valid-shaped surfaces."""
 
+    def comparable_action(action: Mapping[str, object]) -> dict[str, object]:
+        """Discard registry-local locator noise without hiding behavior drift.
+
+        Source line numbers are useful evidence in the sealed surface, but a
+        comment or an unrelated method inserted earlier in the file must not
+        force thousands of action reviews.  Database record IDs are likewise
+        allocation details: delivered records are identified by their XML ID.
+        Keep source paths semantic so moving an action between files still
+        requires review.
+        """
+
+        comparable = dict(action)
+        sources = []
+        xmlid = action.get("xmlid")
+        for source in action.get("sources", []):
+            if not isinstance(source, dict):
+                sources.append(source)
+                continue
+            path = source.get("path")
+            match = (
+                re.fullmatch(r"database:([^:]+):\d+", path)
+                if isinstance(path, str)
+                else None
+            )
+            if match and isinstance(xmlid, str) and xmlid:
+                path = f"database:{match.group(1)}:{xmlid}"
+            normalized = {
+                field: value
+                for field, value in source.items()
+                if field != "line"
+            }
+            if path is not None:
+                normalized["path"] = path
+            sources.append(normalized)
+        comparable["sources"] = sorted(sources, key=canonical_json)
+        return comparable
+
     errors: list[str] = []
     if expected.get("module_set_sha256") != candidate.get("module_set_sha256"):
         errors.append(
@@ -1965,8 +2002,8 @@ def compare_surfaces(
     for key in sorted(set(expected_actions) - set(candidate_actions)):
         errors.append(f"Removed action leaves stale review: {key}")
     for key in sorted(set(expected_actions) & set(candidate_actions)):
-        expected_action = expected_actions[key]
-        candidate_action = candidate_actions[key]
+        expected_action = comparable_action(expected_actions[key])
+        candidate_action = comparable_action(candidate_actions[key])
         if ignored_action_fields:
             expected_action = {
                 field: value

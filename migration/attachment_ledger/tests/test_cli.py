@@ -83,7 +83,7 @@ class AttachmentClassificationTest(unittest.TestCase):
         self.assertEqual(actions[0]["scope"], "knowledge")
         self.assertEqual(actions[0]["state"], "implemented")
 
-    def test_sample_dashboard_payload_is_explicitly_dropped(self):
+    def test_native_dashboard_payload_is_explicitly_recomputed(self):
         actions = self.classify(
             {
                 "res_model": "spreadsheet.dashboard",
@@ -92,10 +92,35 @@ class AttachmentClassificationTest(unittest.TestCase):
             },
         )
         disposition = next(
+            item for item in actions if item["kind"] == "recompute_distribution_asset"
+        )
+        self.assertEqual(disposition["scope"], "preferences")
+        self.assertEqual(disposition["state"], "implemented")
+
+    def test_enterprise_sample_dashboard_payload_is_explicitly_dropped(self):
+        actions = self.classify(
+            {
+                "res_model": "spreadsheet.dashboard",
+                "res_id": 12,
+                "res_field": "spreadsheet_binary_data",
+            },
+        )
+        disposition = next(
             item for item in actions if item["kind"] == "deliberately_not_copied"
         )
         self.assertEqual(disposition["scope"], "preferences")
         self.assertEqual(disposition["state"], "implemented")
+
+    def test_unknown_dashboard_payload_remains_blocking(self):
+        actions = self.classify(
+            {
+                "res_model": "spreadsheet.dashboard",
+                "res_id": 999,
+                "res_field": "spreadsheet_binary_data",
+            },
+        )
+        self.assertEqual(actions[0]["kind"], "resolve_downstream_owner")
+        self.assertEqual(actions[0]["state"], "pending")
 
     def test_ai_source_pdf_becomes_restricted_business_evidence(self):
         actions = self.classify({"res_model": "ai.agent.source"})

@@ -2210,6 +2210,34 @@ class TestDocuments(TransactionCase):
             )
         self.assertEqual(document.name, "Original title")
 
+    def test_unchanged_document_metadata_does_not_rewrite_paperless(self):
+        tag = self._tag(2309, "Reviewed")
+        correspondent = self._correspondent(2310, "Example Supplier")
+        document_type = self._document_type(2311, "Supplier invoice")
+        document = self._document(
+            2312,
+            name="July supplier invoice",
+            document_date="2026-07-01",
+            correspondent_id=correspondent.id,
+            document_type_id=document_type.id,
+            tag_ids=[Command.set(tag.ids)],
+        )
+        with (
+            patch.object(PaperlessClient, "update_document_metadata") as update,
+            patch.object(PaperlessClient, "get_document") as refresh,
+        ):
+            document.with_user(self.user).update_archive_metadata(
+                {
+                    "name": "July supplier invoice",
+                    "document_date": "2026-07-01",
+                    "correspondent_id": correspondent.id,
+                    "document_type_id": document_type.id,
+                    "tag_ids": [tag.id],
+                },
+            )
+        update.assert_not_called()
+        refresh.assert_not_called()
+
     def test_smart_views_and_advanced_filters_use_stable_metadata_ids(self):
         banking = self._tag(309, "Banking")
         supplier = self._correspondent(310, "Example Bank")

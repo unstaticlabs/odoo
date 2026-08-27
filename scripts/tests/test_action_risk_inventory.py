@@ -804,6 +804,43 @@ class TestDrift(ActionRiskInventoryTestCase):
         args = inventory._parser().parse_args(["check-source"])
         self.assertEqual(args.command, "check-source")
 
+    def test_ignores_nonsemantic_source_locator_drift(self):
+        expected_action = self.action("ui:app.action", "ui", xmlid="app.action")
+        expected_action["sources"] = [
+            {"path": "database:ir.actions.act_window:41", "line": 12},
+        ]
+        candidate_action = self.action("ui:app.action", "ui", xmlid="app.action")
+        candidate_action["sources"] = [
+            {"path": "database:ir.actions.act_window:907", "line": 99},
+        ]
+
+        self.assertEqual(
+            inventory.compare_surfaces(
+                self.surface([expected_action]),
+                self.surface([candidate_action]),
+            ),
+            [],
+        )
+
+    def test_source_file_move_still_requires_review(self):
+        expected_action = self.action("rpc:x.changed", "rpc")
+        expected_action["sources"] = [
+            {"path": "custom-addons/app/models/old.py", "line": 12},
+        ]
+        candidate_action = self.action("rpc:x.changed", "rpc")
+        candidate_action["sources"] = [
+            {"path": "custom-addons/app/models/new.py", "line": 12},
+        ]
+
+        errors = inventory.compare_surfaces(
+            self.surface([expected_action]),
+            self.surface([candidate_action]),
+        )
+        self.assertEqual(
+            errors,
+            ["Changed action requires review: rpc:x.changed (sources)"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

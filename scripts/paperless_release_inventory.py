@@ -68,7 +68,7 @@ vector_status = (
     if vector_rows > 0
     and vector_rows == chunk_rows
     and indexed_documents == vector_documents
-    and vector_documents == document_count
+    and vector_documents == live_documents
     else "partial"
 )
 paperless = {
@@ -96,7 +96,10 @@ vector = {
     "chunk_rows": chunk_rows,
     "indexed_documents": indexed_documents,
     "vector_documents": vector_documents,
-    "expected_indexed_documents": document_count,
+    # Paperless deliberately excludes documents in Trash from semantic search.
+    # The global count remains release evidence, while index parity is against
+    # the live manager used by document_llmindex.
+    "expected_indexed_documents": live_documents,
     "index_sha256": sha256_file(index_path),
     "index_size": index_path.stat().st_size,
     "wal_present": (index_path.with_name(index_path.name + "-wal")).exists(),

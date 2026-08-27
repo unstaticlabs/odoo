@@ -3291,9 +3291,14 @@ class UslDocument(models.Model):
             title = (values.get("name") or "").strip()
             if not title:
                 raise ValidationError(_("A document title is required."))
-            payload["title"] = title
+            if title != self.name:
+                payload["title"] = title
         if "document_date" in values:
-            payload["created"] = values.get("document_date") or None
+            requested_date = fields.Date.to_date(values.get("document_date"))
+            if requested_date != self.document_date:
+                payload["created"] = (
+                    fields.Date.to_string(requested_date) if requested_date else None
+                )
         for local_field, remote_field, model_name in (
             ("correspondent_id", "correspondent", "usl.paperless.correspondent"),
             ("document_type_id", "document_type", "usl.paperless.document.type"),
@@ -3305,7 +3310,8 @@ class UslDocument(models.Model):
             ).exists()
             if record and not record.active:
                 raise ValidationError(_("Choose an active Paperless metadata item."))
-            payload[remote_field] = record.paperless_id if record else None
+            if record != self[local_field]:
+                payload[remote_field] = record.paperless_id if record else None
         if "tag_ids" in values:
             requested = {int(tag_id) for tag_id in values.get("tag_ids") or []}
             tags = self.env["usl.paperless.tag"].search(
@@ -3313,7 +3319,8 @@ class UslDocument(models.Model):
             )
             if set(tags.ids) != requested:
                 raise ValidationError(_("One or more selected tags are unavailable."))
-            payload["tags"] = tags.mapped("paperless_id")
+            if set(tags.ids) != set(self.tag_ids.ids):
+                payload["tags"] = tags.mapped("paperless_id")
         if payload:
             self._paperless().update_document_metadata(self.paperless_id, payload)
             refreshed = self._paperless().get_document(self.paperless_id)

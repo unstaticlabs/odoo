@@ -210,6 +210,10 @@ patch_file(
     "a397d85e482531a4357da017d7b401f0e2566acdb1d4de575ce5e196c46b30af",
     (
         (
+            "import logging\n",
+            "import logging\nimport os\n",
+        ),
+        (
             "def bulk_update_documents(document_ids) -> None:\n",
             "def bulk_update_documents(document_ids, *, skip_llm_index=False) -> None:\n",
         ),
@@ -228,6 +232,29 @@ patch_file(
                 "            document_ids=document_ids,\n"
                 "        )\n"
             ),
+        ),
+        (
+            '''@shared_task
+def update_document_in_llm_index(document) -> None:
+    llm_index_add_or_update_document(document)
+''',
+            '''@shared_task
+def update_document_in_llm_index(document) -> None:
+    # A migration can be resumed with incremental tasks already in Redis.
+    # The worker-side guard makes those tasks harmless while the governed
+    # final bulk update remains the single source of vector-index truth.
+    if os.getenv(
+        "PAPERLESS_USL_DEFER_SEMANTIC_INDEX",
+        "false",
+    ).lower() == "true":
+        logger.info(
+            "Deferring queued semantic indexing for document %s until the "
+            "governed bulk update.",
+            document,
+        )
+        return
+    llm_index_add_or_update_document(document)
+''',
         ),
     ),
 )

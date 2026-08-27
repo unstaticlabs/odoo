@@ -7,7 +7,7 @@ from django.test import TestCase
 from documents.bulk_edit import set_permissions
 from documents.models import Document, PaperlessTask
 from documents.signals.handlers import add_or_update_document_in_llm_index
-from documents.tasks import bulk_update_documents
+from documents.tasks import bulk_update_documents, update_document_in_llm_index
 from guardian.shortcuts import assign_perm
 from paperless_ai.semantic_api import SemanticSearchUnavailable, query_lexical_index
 from rest_framework import status
@@ -120,6 +120,16 @@ class TestPermissionVectorInvariance(TestCase):
 
         enqueue.assert_not_called()
         ai_config.assert_not_called()
+
+    @patch("documents.tasks.llm_index_add_or_update_document")
+    def test_queued_embedding_is_harmless_during_controlled_restore(self, update):
+        with patch.dict(
+            os.environ,
+            {"PAPERLESS_USL_DEFER_SEMANTIC_INDEX": "true"},
+        ):
+            update_document_in_llm_index(self.document.id)
+
+        update.assert_not_called()
 
 
 class TestSemanticSearchApi(APITestCase):

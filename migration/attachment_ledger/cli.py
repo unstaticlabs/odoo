@@ -286,15 +286,28 @@ def classify_attachment(
             ),
         )
 
-    if model == "spreadsheet.dashboard" and row["res_id"] in {1, 2, 7}:
-        result.append(
-            action(
-                "deliberately_not_copied",
-                "preferences",
-                "implemented",
-                "the source contains only packaged sample dashboards, not USL business data",
-            ),
-        )
+    if model == "spreadsheet.dashboard":
+        dashboard_id = row["res_id"]
+        if dashboard_id in {1, 2, 7}:
+            result.append(
+                action(
+                    "recompute_distribution_asset",
+                    "preferences",
+                    "implemented",
+                    "the native target provides the corresponding Accounting, "
+                    "Invoicing, or Expenses reporting",
+                ),
+            )
+        elif dashboard_id in {3, 8, 9, 10, 11, 12}:
+            result.append(
+                action(
+                    "deliberately_not_copied",
+                    "preferences",
+                    "implemented",
+                    "the locked source row is a packaged Enterprise sample "
+                    "dashboard, not USL business data",
+                ),
+            )
     if attachment_id in message_attachment_ids and not restored_scope:
         result.append(
             action(

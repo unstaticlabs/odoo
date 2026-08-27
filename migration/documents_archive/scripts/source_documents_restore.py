@@ -984,21 +984,30 @@ permission_mappings = env["usl.paperless.user.mapping"].search(
 ).filtered(lambda mapping: mapping._identity_is_safe())
 
 
-def existing_document_for(content_sha256):
+def existing_document_for(content_sha256, metadata_hash, company):
     matches = documents.search(
         [
             ("availability_state", "!=", "permanently_deleted"),
+            "|",
+            ("company_id", "=", company.id),
+            ("company_id", "=", False),
             "|",
             ("checksum", "=", content_sha256),
             ("version_ids.checksum", "=", content_sha256),
         ],
     )
-    if len(matches) > 1:
+    exact_matches = matches.filtered(
+        lambda document: document._archive_fingerprint_version(
+            content_sha256,
+            metadata_hash,
+        )[0],
+    )
+    if len(exact_matches) > 1:
         fail(
-            f"target contains {len(matches)} archive roots for SHA-256 "
-            f"{content_sha256}",
+            f"target contains {len(exact_matches)} archive roots for exact "
+            f"SHA-256/classification fingerprint {content_sha256}",
         )
-    return matches
+    return exact_matches
 
 
 def existing_processing_operation_for(content_sha256, company, target):
@@ -1101,6 +1110,13 @@ for index, group in enumerate(groups, start=1):
         if entry["res_model"] == "account.move" and entry["res_id"]
     ]
     target = target_moves[0] if target_moves else None
+    classification = classifications[item["checksum"]]
+    confidentiality = (
+        "private"
+        if any(entry["access_internal"] == "none" for entry in group)
+        else "hr" if classification["hr_restricted"]
+        else "accounting" if classification["accounting_evidence"] else "internal"
+    )
     paperless_content = content
     paperless_filename = item["filename"]
     paperless_mime_type = item["mimetype"]
@@ -1124,7 +1140,32 @@ for index, group in enumerate(groups, start=1):
         for entry in group:
             entry["searchable_source_member"] = member_filename
     paperless_sha256 = hashlib.sha256(paperless_content).hexdigest()
-    existing = existing_document_for(paperless_sha256)
+    if target:
+        archive_context = target.with_context(
+            usl_documents_policy_origin="documents_workspace",
+        )._document_archive_context(None)
+    else:
+        archive_context = {
+            "company_id": company.id,
+            "confidentiality": confidentiality,
+            "accounting_evidence": False,
+            "access_scope": "company",
+            "archive_mode": "automatic",
+            "document_role": "library",
+            "attachment_origin": "documents_workspace",
+            "policy_reason": "generic_documents_upload",
+            "tags": [],
+            "entity_tags": [],
+            "tag_record_ids": [],
+            "tag_paperless_ids": [],
+            "related_records": [],
+        }
+    metadata_hash = documents_model._archive_metadata_hash(archive_context)
+    existing = existing_document_for(
+        paperless_sha256,
+        metadata_hash,
+        company,
+    )
     processing_operation = (
         env["usl.document.operation"]
         if existing
@@ -1186,13 +1227,6 @@ for index, group in enumerate(groups, start=1):
     submitter = users.get(source_owner_ids[0]) if source_owner_ids else admin
     if not submitter or not submitter.has_group("usl_documents.group_documents_manager"):
         submitter = admin
-    classification = classifications[item["checksum"]]
-    confidentiality = (
-        "private"
-        if any(entry["access_internal"] == "none" for entry in group)
-        else "hr" if classification["hr_restricted"]
-        else "accounting" if classification["accounting_evidence"] else "internal"
-    )
     submitted_group_count += 1
     submitted_bytes += len(paperless_content)
     upload = documents_model.with_user(submitter).upload_from_odoo(
@@ -1535,35 +1569,83 @@ for item in completed:
     item.pop("operation", None)
     env.cr.commit()
 
-for (view_users, change_users), grouped_documents in permission_groups.items():
-    payload = client._request(
-        "POST",
-        "/api/documents/bulk_edit/",
-        body={
-            "documents": sorted(document.paperless_id for document in grouped_documents),
-            "method": "set_permissions",
-            "parameters": {
-                "set_permissions": {
-                    "view": {"users": list(view_users), "groups": []},
-                    "change": {"users": list(change_users), "groups": []},
-                },
-                "owner": PAPERLESS_SERVICE_USER_ID,
-                "merge": False,
+
+def load_remote_documents(documents):
+    result = {}
+    for offset in range(0, len(documents), 100):
+        chunk = documents[offset:offset + 100]
+        payload = client._request(
+            "GET",
+            "/api/documents/",
+            query={
+                "id__in": ",".join(str(document.paperless_id) for document in chunk),
+                "full_perms": "true",
+                "page_size": 100,
+                "ordering": "id",
             },
-        },
-    )[0]
-    result = payload.get("result") if isinstance(payload, dict) else payload
-    if result != "OK":
-        fail(
-            "Paperless 3.0.5 returned an incompatible bulk-permission response: "
-            f"{result!r}",
+        )[0]
+        rows = payload.get("results", []) if isinstance(payload, dict) else payload
+        result.update({int(remote["id"]): remote for remote in rows})
+    return result
+
+
+def permissions_match(remote, view_users, change_users):
+    permissions = remote.get("permissions") or {}
+    remote_view = permissions.get("view") or {}
+    remote_change = permissions.get("change") or {}
+    return (
+        int(remote.get("owner") or 0) == PAPERLESS_SERVICE_USER_ID
+        and set(remote_view.get("users") or []) == set(view_users)
+        and set(remote_change.get("users") or []) == set(change_users)
+        and not remote_view.get("groups")
+        and not remote_change.get("groups")
+    )
+
+
+for (view_users, change_users), grouped_documents in permission_groups.items():
+    remote_documents = load_remote_documents(grouped_documents)
+    expected_remote_ids = {document.paperless_id for document in grouped_documents}
+    if set(remote_documents) != expected_remote_ids:
+        fail("Paperless permission read-back returned a different document set")
+    changed_documents = [
+        document
+        for document in grouped_documents
+        if not permissions_match(
+            remote_documents[document.paperless_id], view_users, change_users,
         )
+    ]
+    if changed_documents:
+        payload = client._request(
+            "POST",
+            "/api/documents/bulk_edit/",
+            body={
+                "documents": sorted(
+                    document.paperless_id for document in changed_documents
+                ),
+                "method": "set_permissions",
+                "parameters": {
+                    "set_permissions": {
+                        "view": {"users": list(view_users), "groups": []},
+                        "change": {"users": list(change_users), "groups": []},
+                    },
+                    "owner": PAPERLESS_SERVICE_USER_ID,
+                    "merge": False,
+                },
+            },
+        )[0]
+        result = payload.get("result") if isinstance(payload, dict) else payload
+        if result != "OK":
+            fail(
+                "Paperless 3.0.5 returned an incompatible bulk-permission response: "
+                f"{result!r}",
+            )
+        remote_documents.update(load_remote_documents(changed_documents))
     print(
         "DOCUMENTS_PERMISSION_WRITE="
         + json.dumps(
             {
-                "document_count": len(grouped_documents),
-                "state": "accepted",
+                "document_count": len(changed_documents),
+                "state": "accepted" if changed_documents else "unchanged",
             },
             sort_keys=True,
         ),
@@ -1580,36 +1662,9 @@ for (view_users, change_users), grouped_documents in permission_groups.items():
         ),
         flush=True,
     )
-    remote_documents = {}
-    for offset in range(0, len(grouped_documents), 100):
-        chunk = grouped_documents[offset:offset + 100]
-        payload = client._request(
-            "GET",
-            "/api/documents/",
-            query={
-                "id__in": ",".join(str(document.paperless_id) for document in chunk),
-                "full_perms": "true",
-                "page_size": 100,
-                "ordering": "id",
-            },
-        )[0]
-        results = payload.get("results", []) if isinstance(payload, dict) else payload
-        remote_documents.update({int(remote["id"]): remote for remote in results})
-    expected_remote_ids = {document.paperless_id for document in grouped_documents}
-    if set(remote_documents) != expected_remote_ids:
-        fail("Paperless permission read-back returned a different document set")
     for document in grouped_documents:
         remote = remote_documents[document.paperless_id]
-        permissions = remote.get("permissions") or {}
-        remote_view = permissions.get("view") or {}
-        remote_change = permissions.get("change") or {}
-        if (
-            int(remote.get("owner") or 0) != PAPERLESS_SERVICE_USER_ID
-            or set(remote_view.get("users") or []) != set(view_users)
-            or set(remote_change.get("users") or []) != set(change_users)
-            or remote_view.get("groups")
-            or remote_change.get("groups")
-        ):
+        if not permissions_match(remote, view_users, change_users):
             fail(
                 f"actual Paperless permissions differ for document "
                 f"{document.paperless_id}",

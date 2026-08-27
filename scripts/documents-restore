@@ -521,18 +521,35 @@ serve_target() {
 }
 
 provision_archive_identity() {
-    local setup
-    setup="$(
+    local migration_service_user_id migration_setup runtime_setup
+    runtime_setup="$(
+        "${compose[@]}" --profile paperless exec -T paperless-webserver \
+            python manage.py shell \
+            < deploy/documents/paperless_integration_access.py
+    )"
+    documents_runtime_paperless_token="$(
+        sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$runtime_setup" | tail -n 1
+    )"
+    documents_paperless_service_user_id="$(
+        sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$runtime_setup" | tail -n 1
+    )"
+    migration_setup="$(
         "${compose[@]}" --profile paperless exec -T paperless-webserver \
             python manage.py shell \
             < migration/documents_archive/scripts/paperless_migration_access.py
     )"
-    documents_paperless_token="$(sed -n 's/^DOCUMENTS_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
-    documents_paperless_service_user_id="$(
-        sed -n 's/^DOCUMENTS_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
+    documents_paperless_token="$(
+        sed -n 's/^DOCUMENTS_PAPERLESS_TOKEN=//p' <<<"$migration_setup" | tail -n 1
     )"
-    if [[ -z "$documents_paperless_token" || ! "$documents_paperless_service_user_id" =~ ^[0-9]+$ ]]; then
-        echo "Could not provision the temporary Paperless migration identity." >&2
+    migration_service_user_id="$(
+        sed -n 's/^DOCUMENTS_PAPERLESS_SERVICE_USER_ID=//p' <<<"$migration_setup" \
+            | tail -n 1
+    )"
+    if [[ -z "$documents_runtime_paperless_token" \
+        || -z "$documents_paperless_token" \
+        || ! "$documents_paperless_service_user_id" =~ ^[1-9][0-9]*$ \
+        || ! "$migration_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Could not provision the Paperless runtime and migration identities." >&2
         exit 1
     fi
     trap cleanup_documents_restore EXIT
@@ -547,13 +564,49 @@ deprovision_archive_identity() {
         < migration/documents_archive/scripts/paperless_migration_access_cleanup.py \
         >/dev/null
     documents_paperless_token=""
-    documents_paperless_service_user_id=""
+}
+
+configure_runtime_archive_identity() {
+    local setup runtime_token runtime_service_user_id
+    runtime_token="${documents_runtime_paperless_token:-}"
+    runtime_service_user_id="${documents_paperless_service_user_id:-}"
+    if [[ -z "$runtime_token" || ! "$runtime_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        setup="$(
+            "${compose[@]}" --profile paperless exec -T paperless-webserver \
+                python manage.py shell \
+                < deploy/documents/paperless_integration_access.py
+        )"
+        runtime_token="$(
+            sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1
+        )"
+        runtime_service_user_id="$(
+            sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
+        )"
+    fi
+    if [[ -z "$runtime_token" || ! "$runtime_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Could not restore the permanent Paperless integration identity." >&2
+        return 1
+    fi
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e PAPERLESS_RUNTIME_INTERNAL_URL=http://paperless-webserver:8000 \
+        -e PAPERLESS_RUNTIME_PUBLIC_URL="http://127.0.0.1:$paperless_port" \
+        -e PAPERLESS_RUNTIME_TOKEN="$runtime_token" \
+        -e PAPERLESS_RUNTIME_SERVICE_USER_ID="$runtime_service_user_id" \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < scripts/odoo/documents_runtime_config.py \
+        >/dev/null
 }
 
 cleanup_documents_restore() {
     local cleanup_status=0 exit_status=$?
     trap - EXIT
     deprovision_archive_identity || cleanup_status=$?
+    # Archive migration owns a short-lived superuser token. Restoring the
+    # ordinary integration identity here is part of the boundary: downstream
+    # product stages must never inherit the revoked migration credential.
+    configure_runtime_archive_identity || cleanup_status=$?
     restore_semantic_runtime || cleanup_status=$?
     if ((exit_status == 0 && cleanup_status != 0)); then
         exit_status=$cleanup_status
@@ -680,9 +733,9 @@ case "$command_name" in
         start_archive
         verify_checkpoint
         run_restore
-        finalize_semantic_index
         run_native_attachment_bridge
         wait_for_archive_tasks
+        finalize_semantic_index
         seal_checkpoint
         ;;
     all)
@@ -695,9 +748,9 @@ case "$command_name" in
         verify_checkpoint
         install_module
         run_restore
-        finalize_semantic_index
         run_native_attachment_bridge
         wait_for_archive_tasks
+        finalize_semantic_index
         scripts/check-product-migration-boundary
         seal_checkpoint
         ;;

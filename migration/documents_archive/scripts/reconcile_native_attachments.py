@@ -112,6 +112,22 @@ taxonomy_consolidation = consolidate_expense_tags(migration_client)
 # queue starts so an interrupted run never repeats all archive mutations.
 env.cr.commit()  # noqa: F821 - provided by Odoo shell
 
+# A stopped migration can leave Odoo operations in ``processing`` after the
+# corresponding Paperless task has already reached a terminal state. Settle
+# those operations before the attachment scan so the normal queue method can
+# turn an honest failure into a fresh, idempotent retry. Queuing first would
+# observe ``processing`` and strand the operation until a later run.
+resume_deadline = time.monotonic() + 1800
+while Operation.search_count([("state", "=", "processing")]):
+    Operation.cron_poll_operations()
+    env.cr.commit()  # noqa: F821 - bounded resumable poll checkpoint
+    if not Operation.search_count([("state", "=", "processing")]):
+        break
+    if time.monotonic() >= resume_deadline:
+        message = "Existing Paperless archive operations did not settle before retry."
+        raise RuntimeError(message)
+    time.sleep(0.25)
+
 attachment_domain = [("type", "=", "binary"), ("res_id", ">", 0)]
 # Odoo deliberately adds ``res_field = False`` to generic ir.attachment
 # searches. Name both halves explicitly so the final ledger also classifies

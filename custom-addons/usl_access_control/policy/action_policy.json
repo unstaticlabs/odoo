@@ -92486,7 +92486,7 @@
         "rpc:usl.document.smart.view.synchronize_archive_views": "5eb8542f8f455e07de98dd01a1bf5ec205874e3be822b4973e9b1087d5d70047",
         "rpc:usl.document.sync_from_paperless": "359c663c3a074e07dc329e1b4c810c329a62fc657c5b83719916e3050363fb88",
         "rpc:usl.document.unlink_from_record": "bba95aaec3641398ed8b768a977b011db50dca94bf40e189c14f5150e91fb2ec",
-        "rpc:usl.document.update_archive_metadata": "e18630a30ecf2b1d9d2376caad7593aeb10ded56d93890184b735a5afeac08e6",
+        "rpc:usl.document.update_archive_metadata": "7fe352ea55c60ef38304b91d895e0d02863172288ab9a1e3614b204b33e4dcf9",
         "rpc:usl.document.upload_from_odoo": "b26b29428aad87fde15791fe8d9c39cb0932b6943984a442316643c97a7652b1",
         "rpc:usl.document.upload_new_version": "ad250899ee7a657720ed7cf1da69dd0bd721b606cedf1ea2f3642cfb934a0cff",
         "rpc:usl.document.user.state.copy": "d4e0d35018b365e95d11b6e6dd61e589040978cb9e07110d6ef8467ad8bc5314",
@@ -151811,9 +151811,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:6": "24204864b07c1302702c6584598cede9ab240cabe7c66ef9cf7dc6991aa8e8f0",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:7": "2d08a39ca45b1e271d0e554f4711233ba9c8b705580a086f198ca90acfcbafe8",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.unlink_from_record:sudo:1": "411cee9132b3b30c22713c5f44b3fc4a4f973312ba845b2441d145ab209f4ef0",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:1": "84e81f732335a698b71b30226bd0f204538f03911f7af630acc3c7951f442fa2",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:2": "ac9f844556b45c29882e47f32fad7fce75730f52e218b839c311e816398d7193",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:sudo:1": "9d9d0f141c8ffaa21718ce49156ea454bfe92727f4819eef3112d536e6627167",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:1": "5a785f1ce19219de1c2fb41f1b930f4e31be4ff6bf9d7c3f2628cf37721bbace",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:2": "ede3c747c875d8a3163b3d211ce5e5d65a26d8ef874d689333d1e77010e8761a",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:sudo:1": "cc46f2b954e8a678f83bb4124051c83f2acda780e3f56eee3c0311f0ac7459d3",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.upload_from_odoo:orm_create:1": "3d6880d723162d46834b36305db55ce10502d5314f5070d42e7b4b8087c4c05b",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.upload_from_odoo:orm_create:2": "67dfdd31aea31899db4c8c580700c245bc7a8db9baf1415bd463bf799b9cd711",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.upload_from_odoo:orm_write:1": "15f3dc70235ef0d381b6992a5c52b3e529ba8a20449dcd019eba34c18eea060a",
@@ -174077,6 +174077,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "6007bc6c76b44dc17c2b87ff7e08bb5b90444872aeba59904587424b00205c15",
+  "qualified_policy_digest": "8e432668b94142d312065795752169180fa389802c3da6d0de05d3e51b375940",
   "schema": "usl-action-risk-policy-v1"
 }

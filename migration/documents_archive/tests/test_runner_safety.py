@@ -136,6 +136,14 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("user.is_superuser = False", cleanup)
         self.assertIn("trap cleanup_documents_restore EXIT", runner)
         self.assertIn("deprovision_archive_identity || cleanup_status=$?", runner)
+        self.assertIn("configure_runtime_archive_identity || cleanup_status=$?", runner)
+        self.assertIn("deploy/documents/paperless_integration_access.py", runner)
+        self.assertIn("scripts/odoo/documents_runtime_config.py", runner)
+        self.assertIn("documents_runtime_paperless_token", runner)
+        self.assertIn(
+            '-e DOCUMENTS_PAPERLESS_SERVICE_USER_ID="$documents_paperless_service_user_id"',
+            runner,
+        )
         self.assertIn("restore_semantic_runtime || cleanup_status=$?", runner)
 
     def test_release_inventory_fails_closed_on_every_queue_and_boundary_counter(self):
@@ -190,8 +198,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("enable_semantic_index_deferral", script)
         self.assertIn("finalize_semantic_index", script)
         self.assertLess(
-            script.index("run_restore\n        finalize_semantic_index"),
+            script.index("run_restore\n        run_native_attachment_bridge"),
             script.index("run_native_attachment_bridge", script.index("case \"$command_name\"")),
+        )
+        self.assertLess(
+            script.index("run_native_attachment_bridge\n        wait_for_archive_tasks"),
+            script.index("finalize_semantic_index", script.index("case \"$command_name\"")),
         )
         for command in (
             "document_llmindex migrate",
@@ -209,6 +221,27 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "Deferred semantic indexing is migration-only",
             compose,
         )
+        inventory = (
+            ROOT / "scripts/paperless_release_inventory.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("vector_documents == live_documents", inventory)
+        self.assertIn('"expected_indexed_documents": live_documents', inventory)
+        bridge = (
+            ROOT
+            / "migration/documents_archive/scripts/reconcile_native_attachments.py"
+        ).read_text(encoding="utf-8")
+        self.assertLess(
+            bridge.index("resume_deadline = time.monotonic() + 1800"),
+            bridge.index("attachment_domain ="),
+        )
+        restore = (
+            ROOT / "migration/documents_archive/scripts/source_documents_restore.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "existing_document_for(content_sha256, metadata_hash, company)",
+            restore,
+        )
+        self.assertIn("_archive_fingerprint_version(", restore)
 
     def test_reconstruction_reseals_checkpoint_after_all_document_producers(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
@@ -278,6 +311,17 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             self.assertIn(f'"{model_name}"', restore)
         self.assertIn("unsupported_relationships", restore)
         self.assertIn("preserved_governed_extension_relationship_count", restore)
+
+    def test_repeated_restore_skips_unchanged_permission_writes(self):
+        restore = (
+            ROOT
+            / "migration/documents_archive/scripts/source_documents_restore.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("def permissions_match(", restore)
+        self.assertIn("if changed_documents:", restore)
+        self.assertIn('"state": "accepted" if changed_documents else "unchanged"', restore)
+        self.assertIn("load_remote_documents(changed_documents)", restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")
