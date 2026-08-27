@@ -6,6 +6,7 @@ import {
     hex,
     isPdf,
     joinedSignedBytes,
+    matchManifestArtifacts,
     parsePdfSignatures,
     safeAttachmentName,
     signatureVerificationMode,
@@ -439,44 +440,6 @@ async function verifyDetachedManifest(wrapper) {
         certificate: certificateSummary(leaf),
         certificatePath: await certificatePathSummary(certificates, leaf, new Date()),
     };
-}
-
-function matchManifestArtifacts(manifest, attachments) {
-    if (!manifest) {
-        return {checked: 0, matched: 0, mismatches: []};
-    }
-    const expected = [...(manifest.artifacts || [])];
-    if (manifest.final_sha256) {
-        expected.push({kind: "signed", name: "final signed PDF", sha256: manifest.final_sha256});
-    }
-    const mismatches = [];
-    let matched = 0;
-    for (const item of expected) {
-        const candidate =
-            item.kind === "authentication"
-                ? attachments.find(
-                      (attachment) =>
-                          attachment.name.startsWith("authentication-summary-") &&
-                          attachment.json?.artifact_sha256 === item.sha256
-                  )
-                : attachments.find(
-                      (attachment) =>
-                          attachment.name === item.name ||
-                          attachment.name.endsWith(`-${item.name}`) ||
-                          (item.kind === "signed" && attachment.name.startsWith("final-"))
-                  );
-        if (!candidate) {
-            mismatches.push(`${item.name}: not represented in the dossier`);
-        } else if (
-            item.kind !== "authentication" &&
-            candidate.sha256 !== String(item.sha256 || "").toLowerCase()
-        ) {
-            mismatches.push(`${candidate.name}: SHA-256 does not match the manifest`);
-        } else {
-            matched++;
-        }
-    }
-    return {checked: expected.length, matched, mismatches};
 }
 
 async function inspect(payload) {
