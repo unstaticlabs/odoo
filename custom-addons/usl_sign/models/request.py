@@ -86,6 +86,15 @@ class SignRequest(models.Model):
     def preview(self):
         """Open the validated result, never an editor overlay or unchecked file."""
         self.ensure_one()
+        if self.state == "external_archived":
+            return {
+                "type": "ir.actions.act_url",
+                "url": (
+                    f"/web/content/{self._name}/{self.id}/data/"
+                    f"{quote(self.filename)}?download=false"
+                ),
+                "target": "new",
+            }
         if (
             self.state in {"evidence_incomplete", "completed"}
             and self.validation_status == "valid"
@@ -163,7 +172,7 @@ class SignRequest(models.Model):
     signer_snapshot = fields.Json(readonly=True, copy=False)
     consent_text_snapshot = fields.Text(readonly=True, copy=False)
     recommended_trust = fields.Selection(TRUST_LEVELS, readonly=True, copy=False)
-    requested_trust = fields.Selection(TRUST_LEVELS, default="standard", required=True)
+    requested_trust = fields.Selection(TRUST_LEVELS, default="standard")
     achieved_trust = fields.Selection(TRUST_LEVELS, readonly=True, copy=False)
     recommendation_reason = fields.Text(readonly=True, copy=False)
     recommendation_consequence = fields.Text(readonly=True, copy=False)
@@ -283,6 +292,22 @@ class SignRequest(models.Model):
     )
     last_error = fields.Text(readonly=True, copy=False)
     recovery_action = fields.Char(readonly=True, copy=False)
+    record_kind = fields.Selection(
+        [
+            ("native", "USL Sign"),
+            ("external_archive", "Odoo Online (External)"),
+        ],
+        default="native",
+        required=True,
+        readonly=True,
+        copy=False,
+        index=True,
+        help=(
+            "USL Sign records use this application's signing and validation workflow. "
+            "External records preserve a result produced elsewhere without claiming "
+            "that USL Sign reran those checks."
+        ),
+    )
 
     @api.depends(
         "state",
@@ -422,9 +447,23 @@ class SignRequest(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        external_values = [
+            values
+            for values in vals_list
+            if values.get("record_kind") == "external_archive"
+            or values.get("state") == "external_archived"
+        ]
+        if (
+            external_values
+            and self.env.context.get("usl_sign_external_archive")
+            is not INTERNAL_OPERATION
+        ):
+            raise ValidationError(
+                _("Use the controlled external-record operation for archived results."),
+            )
         records = super().create(vals_list)
         for record in records:
-            if record.data and not record.document_ids:
+            if record.record_kind == "native" and record.data and not record.document_ids:
                 self.env["usl.sign.request.document"].create(
                     {
                         "request_id": record.id,
@@ -433,9 +472,139 @@ class SignRequest(models.Model):
                         "data": record.data,
                     },
                 )
-            record._append_event("request_created", payload={"name": record.name})
-            record.action_compute_recommendation(apply_timing_defaults=True)
+            if record.record_kind == "external_archive":
+                record._append_event(
+                    "external_record_imported",
+                    payload={"source": "Odoo Online", "name": record.name},
+                )
+            else:
+                record._append_event("request_created", payload={"name": record.name})
+                record.action_compute_recommendation(apply_timing_defaults=True)
         return records
+
+    @api.model
+    def _create_external_archive(self, values):
+        """Create an immutable external result without asserting native completion."""
+        forbidden = {
+            "achieved_trust",
+            "completion_certificate",
+            "dossier_data",
+            "evidence_manifest",
+            "external_provider_id",
+            "final_data",
+            "policy_id",
+            "recommended_trust",
+            "requested_trust",
+        }
+        asserted = sorted(field for field in forbidden if values.get(field))
+        if asserted:
+            raise ValidationError(
+                _(
+                    "An external archive cannot assert native proof fields: %(fields)s",
+                    fields=", ".join(asserted),
+                ),
+            )
+        signed_document = self.env["usl.document"].browse(
+            values.get("archive_document_id"),
+        ).exists()
+        source_certificate = self.env["usl.document"].browse(
+            values.get("archive_dossier_document_id"),
+        ).exists()
+        if not signed_document or not source_certificate:
+            raise ValidationError(
+                _("Archive the signed PDF and external certificate before creating the record."),
+            )
+        if not values.get("signer_ids"):
+            raise ValidationError(_("An external signing record must identify its signers."))
+        signer_commands = []
+        for command in values["signer_ids"]:
+            if command[0] != 0:
+                raise ValidationError(
+                    _("External signer rows must be created with their archived record."),
+                )
+            signer_commands.append(
+                (
+                    0,
+                    0,
+                    {
+                        **command[2],
+                        "state": "external_recorded",
+                        "authentication_method": "external_record",
+                        "access_token": False,
+                    },
+                ),
+            )
+        controlled = {
+            **values,
+            "record_kind": "external_archive",
+            "state": "external_archived",
+            "requested_trust": False,
+            "recommended_trust": False,
+            "achieved_trust": False,
+            "authentication_method": "external_record",
+            "validation_status": "not_started",
+            "evidence_status": "not_started",
+            "archive_status": "archived",
+            "active": True,
+            "signer_ids": signer_commands,
+        }
+        record = self.with_context(
+            usl_sign_external_archive=INTERNAL_OPERATION,
+            usl_sign_transition=INTERNAL_OPERATION,
+            usl_sign_freeze=INTERNAL_OPERATION,
+        ).create(controlled)
+        # Never return a recordset carrying the process-local mutation
+        # capability.  The caller receives the archive in its original env.
+        return record.with_env(self.env)
+
+    @api.constrains(
+        "record_kind",
+        "state",
+        "requested_trust",
+        "recommended_trust",
+        "achieved_trust",
+        "validation_status",
+        "evidence_status",
+        "final_data",
+        "completion_certificate",
+        "dossier_data",
+        "policy_id",
+        "archive_status",
+        "archive_document_id",
+        "archive_dossier_document_id",
+    )
+    def _check_external_archive_claims(self):
+        for request in self:
+            if request.record_kind == "native":
+                if not request.requested_trust:
+                    raise ValidationError(_("A USL Sign request needs a signing method."))
+                if request.state == "external_archived":
+                    raise ValidationError(_("A USL Sign request cannot use external archive status."))
+                continue
+            if request.state != "external_archived":
+                raise ValidationError(_("An external archive must remain externally archived."))
+            claimed_fields = {
+                "requested trust": request.requested_trust,
+                "recommended trust": request.recommended_trust,
+                "achieved trust": request.achieved_trust,
+                "native validation": request.validation_status != "not_started",
+                "native evidence": request.evidence_status != "not_started",
+                "native final PDF": request.final_data,
+                "USL completion certificate": request.completion_certificate,
+                "USL proof package": request.dossier_data,
+                "USL policy": request.policy_id,
+                "incomplete Paperless storage": request.archive_status != "archived",
+                "missing signed PDF archive": not request.archive_document_id,
+                "missing source certificate archive": not request.archive_dossier_document_id,
+            }
+            asserted = sorted(label for label, value in claimed_fields.items() if value)
+            if asserted:
+                raise ValidationError(
+                    _(
+                        "An external archive cannot claim %(claims)s.",
+                        claims=", ".join(asserted),
+                    ),
+                )
 
     @api.depends("evidence_ids")
     def _compute_evidence_count(self):
@@ -469,6 +638,9 @@ class SignRequest(models.Model):
                 "The signed document did not pass its checks. Review the issue before continuing.",
             ),
             "completed": _("The final document is ready."),
+            "external_archived": _(
+                "The externally signed document and its source certificate are archived.",
+            ),
             "declined": _(
                 "The signer declined; decide whether to create a replacement.",
             ),
@@ -510,6 +682,7 @@ class SignRequest(models.Model):
 
     @api.depends(
         "state",
+        "record_kind",
         "requested_trust",
         "achieved_trust",
         "validation_status",
@@ -544,6 +717,7 @@ class SignRequest(models.Model):
             "action_required": "checks",
             "validation_failed": "closed",
             "completed": "closed",
+            "external_archived": "closed",
             "declined": "closed",
             "expired": "closed",
             "cancelled": "closed",
@@ -562,6 +736,7 @@ class SignRequest(models.Model):
             "action_required": _("Needs attention"),
             "validation_failed": _("Result rejected"),
             "completed": _("Completed"),
+            "external_archived": _("Odoo Online (External)"),
             "declined": _("Declined"),
             "expired": _("Expired"),
             "cancelled": _("Cancelled"),
@@ -580,7 +755,11 @@ class SignRequest(models.Model):
             )
             signers = request.sudo().signer_ids
             total = len(signers)
-            signed = len(signers.filtered(lambda signer: signer.state == "signed"))
+            signed = len(
+                signers.filtered(
+                    lambda signer: signer.state in {"signed", "external_recorded"},
+                ),
+            )
             request.signer_progress = (
                 _("%(signed)s of %(total)s signed", signed=signed, total=total)
                 if total
@@ -608,9 +787,13 @@ class SignRequest(models.Model):
             )
             request.achieved_trust_short = trust_labels.get(request.achieved_trust, "")
             request.completed_proof_label = (
-                _("Verified")
-                if request.validation_status == "valid"
-                else _("Needs attention")
+                _("Not revalidated")
+                if request.record_kind == "external_archive"
+                else (
+                    _("Verified")
+                    if request.validation_status == "valid"
+                    else _("Needs attention")
+                )
             )
             request.completed_storage_label = (
                 _("Stored")
@@ -634,6 +817,12 @@ class SignRequest(models.Model):
                     "A qualified provider signs the document; the result is checked here before completion.",
                 ),
             }.get(request.requested_trust, "")
+            if request.record_kind == "external_archive":
+                request.requested_trust_short = _("Odoo Online (External)")
+                request.signing_method_summary = _(
+                    "This signed record came from Odoo Online. USL Sign preserved it "
+                    "but did not rerun its signing, identity, trust, or revocation checks.",
+                )
             if request.state == "evidence_incomplete" and request.archive_status == "failed":
                 request.blocking_summary = _(
                     "The document is signed and valid, but its final copy could not be stored. Try again.",
@@ -2934,6 +3123,13 @@ class SignRequest(models.Model):
                 "usl_sign_editor_internal",
             )
         )
+        if (
+            values
+            and not internal
+            and self.filtered(lambda request: request.record_kind == "external_archive")
+            and set(values) - {"message_follower_ids", "activity_ids"}
+        ):
+            raise ValidationError(_("Archived external signing records are immutable."))
         if values and not internal and not self.env.su:
             chatter_fields = {"message_follower_ids", "activity_ids"}
             trust_fields = {"requested_trust", "override_reason"}
@@ -3133,6 +3329,7 @@ class SignRequestSigner(models.Model):
         }
         request_labels = {
             "completed": _("Signed"),
+            "external_archived": _("Recorded externally"),
             "declined": _("Closed after a decline"),
             "expired": _("Expired"),
             "cancelled": _("Cancelled"),
@@ -3140,6 +3337,7 @@ class SignRequestSigner(models.Model):
         }
         signer_labels = {
             "signed": _("Signed"),
+            "external_recorded": _("Recorded externally"),
             "declined": _("Declined"),
             "expired": _("Expired"),
             "cancelled": _("Cancelled"),
@@ -3163,7 +3361,9 @@ class SignRequestSigner(models.Model):
             if signer.state in signer_labels:
                 signer.personal_status = signer_labels[signer.state]
                 signer.personal_next_step = (
-                    _("Open the completed files.")
+                    _("Open the archived signed PDF and Odoo Online certificate.")
+                    if signer.state == "external_recorded"
+                    else _("Open the completed files.")
                     if signer.state == "signed"
                     else _("Nothing else is needed from you.")
                 )
@@ -3203,6 +3403,8 @@ class SignRequestSigner(models.Model):
                 signer.personal_next_step = (
                     _("Open the completed files.")
                     if signer.request_id.state == "completed"
+                    else _("Open the archived signed PDF and Odoo Online certificate.")
+                    if signer.request_id.state == "external_archived"
                     else _("Nothing else is needed from you.")
                 )
             elif signer.request_id.state in {"sent", "viewed", "partial"}:
@@ -3281,8 +3483,9 @@ class SignRequestSigner(models.Model):
         if self.partner_id != self.env.user.partner_id:
             msg = _("Only the assigned signer can open this signing journey.")
             raise AccessError(msg)
-        if self.state == "signed" or self.request_id.state in {
+        if self.state in {"signed", "external_recorded"} or self.request_id.state in {
             "completed",
+            "external_archived",
             "evidence_incomplete",
             "validation_failed",
         }:
