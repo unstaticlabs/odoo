@@ -2207,6 +2207,19 @@ class TestCleanUslSign(TransactionCase):
             enrollment.unlink()
 
     def test_signer_can_cancel_and_retry_a_live_strong_ceremony(self):
+        complete_binding = {
+            "base_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+            "field_values_sha256": hashlib.sha256(b"fields").hexdigest(),
+            "evidence_context_sha256": hashlib.sha256(b"context").hexdigest(),
+        }
+        for missing_field in complete_binding:
+            incomplete_binding = complete_binding | {missing_field: False}
+            with self.subTest(missing_field=missing_field), self.assertRaisesRegex(
+                ValidationError,
+                "require exact base-document",
+            ):
+                self.env["usl.sign.ceremony"].create(incomplete_binding)
+
         enrollment = self.env["usl.sign.enrollment"].create(
             {
                 "partner_id": self.partner_one.id,
@@ -2240,12 +2253,14 @@ class TestCleanUslSign(TransactionCase):
                 "enrollment_id": enrollment.id,
                 "challenge": field_value(b"binding"),
                 "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
-                "base_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "base_document_sha256": complete_binding["base_document_sha256"],
                 "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
                 "candidate_data": field_value(self.pdf),
                 "candidate_layout": sign_request.frozen_layout,
-                "field_values_sha256": hashlib.sha256(b"fields").hexdigest(),
-                "evidence_context_sha256": hashlib.sha256(b"context").hexdigest(),
+                "field_values_sha256": complete_binding["field_values_sha256"],
+                "evidence_context_sha256": complete_binding[
+                    "evidence_context_sha256"
+                ],
                 "evidence_context": {
                     "format": "usl-sign-observed-context-v1",
                     "browser": {},

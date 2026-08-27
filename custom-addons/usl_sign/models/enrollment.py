@@ -8,6 +8,11 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from .constants import INTERNAL_OPERATION
 
 IDENTITY_REVIEW_STANDARD = "usl-identity-review-v1"
+CANDIDATE_BINDING_HASH_FIELDS = (
+    "base_document_sha256",
+    "field_values_sha256",
+    "evidence_context_sha256",
+)
 
 
 class SignEnrollment(models.Model):
@@ -521,7 +526,11 @@ class SignCeremony(models.Model):
     )
     challenge = fields.Binary(required=True, readonly=True)
     challenge_sha256 = fields.Char(required=True, readonly=True, index=True)
-    base_document_sha256 = fields.Char(required=True, readonly=True)
+    # Ceremonies completed before candidate binding was introduced have no
+    # honest value for these three hashes. Keep their preserved evidence
+    # nullable while create()/write() enforce the complete binding on every
+    # ceremony produced by current code.
+    base_document_sha256 = fields.Char(readonly=True)
     document_sha256 = fields.Char(required=True, readonly=True)
     candidate_data = fields.Binary(
         readonly=True,
@@ -534,8 +543,8 @@ class SignCeremony(models.Model):
         copy=False,
         groups="usl_sign.group_sign_evidence_reviewer",
     )
-    field_values_sha256 = fields.Char(required=True, readonly=True)
-    evidence_context_sha256 = fields.Char(required=True, readonly=True)
+    field_values_sha256 = fields.Char(readonly=True)
+    evidence_context_sha256 = fields.Char(readonly=True)
     evidence_context = fields.Json(
         readonly=True,
         copy=False,
@@ -589,10 +598,30 @@ class SignCeremony(models.Model):
             """,
         )
 
+    @api.model_create_multi
+    def create(self, values_list):
+        if any(
+            not values.get(field_name)
+            for values in values_list
+            for field_name in CANDIDATE_BINDING_HASH_FIELDS
+        ):
+            msg = _(
+                "New Strong ceremonies require exact base-document, field-value, "
+                "and evidence-context hashes.",
+            )
+            raise ValidationError(msg)
+        return super().create(values_list)
+
     def write(self, values):
         if self.env.context.get("usl_sign_ceremony_transition") is not INTERNAL_OPERATION:
             msg = "Ceremonies can only change through controlled transitions."
             raise AccessError(msg)
+        if any(
+            field_name in values and not values[field_name]
+            for field_name in CANDIDATE_BINDING_HASH_FIELDS
+        ):
+            msg = _("A Strong ceremony's candidate-binding hashes cannot be cleared.")
+            raise ValidationError(msg)
         return super().write(values)
 
     def unlink(self):

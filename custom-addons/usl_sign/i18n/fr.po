@@ -3814,3 +3814,11 @@ msgstr "Relancer maintenant le contrôle de santé de ce service."
 #. module: usl_sign
 msgid "Validate the fields and publish this template for new signature requests."
 msgstr "Valider les champs et publier ce modèle pour les nouvelles demandes de signature."
+
+#. module: usl_sign
+msgid "New Strong ceremonies require exact base-document, field-value, and evidence-context hashes."
+msgstr "Toute nouvelle cérémonie forte exige les empreintes exactes du document de base, des valeurs des champs et du contexte de preuve."
+
+#. module: usl_sign
+msgid "A Strong ceremony's candidate-binding hashes cannot be cleared."
+msgstr "Les empreintes qui lient une cérémonie forte à son document candidat ne peuvent pas être effacées."
