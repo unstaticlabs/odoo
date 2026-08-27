@@ -3598,3 +3598,151 @@ msgstr "Méthode, résultat et preuves"
 #. module: usl_sign
 msgid "This archived file is not available yet."
 msgstr "Ce fichier archivé n’est pas encore disponible."
+
+#. module: usl_sign
+msgid "Archived external signing record"
+msgstr "Enregistrement de signature externe archivé"
+
+#. module: usl_sign
+msgid "Recorded as signed externally"
+msgstr "Enregistré comme signé à l’extérieur"
+
+#. module: usl_sign
+msgid "Recorded by an external signing system"
+msgstr "Enregistré par un système de signature externe"
+
+#. module: usl_sign
+msgid "USL Sign"
+msgstr "USL Sign"
+
+#. module: usl_sign
+msgid "Odoo Online (External)"
+msgstr "Odoo Online (externe)"
+
+#. module: usl_sign
+msgid "Use the controlled external-record operation for archived results."
+msgstr "Utilisez l’opération contrôlée d’archivage externe pour ces résultats."
+
+#. module: usl_sign
+msgid "Archive the signed PDF and external certificate before creating the record."
+msgstr "Archivez le PDF signé et le certificat externe avant de créer l’enregistrement."
+
+#. module: usl_sign
+msgid "An external signing record must identify its signers."
+msgstr "Un enregistrement de signature externe doit identifier ses signataires."
+
+#. module: usl_sign
+msgid "External signer rows must be created with their archived record."
+msgstr "Les signataires externes doivent être créés avec leur enregistrement archivé."
+
+#. module: usl_sign
+msgid "A USL Sign request needs a signing method."
+msgstr "Une demande USL Sign doit avoir une méthode de signature."
+
+#. module: usl_sign
+msgid "A USL Sign request cannot use external archive status."
+msgstr "Une demande USL Sign ne peut pas utiliser le statut d’archive externe."
+
+#. module: usl_sign
+msgid "An external archive must remain externally archived."
+msgstr "Une archive externe doit conserver son statut d’archive externe."
+
+#. module: usl_sign
+msgid "An external archive cannot assert native proof fields: %(fields)s"
+msgstr "Une archive externe ne peut pas déclarer de preuves natives : %(fields)s"
+
+#. module: usl_sign
+msgid "An external archive cannot claim %(claims)s."
+msgstr "Une archive externe ne peut pas déclarer : %(claims)s."
+
+#. module: usl_sign
+msgid "The externally signed document and its source certificate are archived."
+msgstr "Le document signé à l’extérieur et son certificat d’origine sont archivés."
+
+#. module: usl_sign
+msgid "Not revalidated"
+msgstr "Non revalidé"
+
+#. module: usl_sign
+msgid "Recorded externally"
+msgstr "Enregistré à l’extérieur"
+
+#. module: usl_sign
+msgid "Open the archived signed PDF and Odoo Online certificate."
+msgstr "Ouvrez le PDF signé archivé et le certificat Odoo Online."
+
+#. module: usl_sign
+msgid "Archived external signing records are immutable."
+msgstr "Les enregistrements de signature externe archivés sont immuables."
+
+#. module: usl_sign
+msgid "Odoo certificate"
+msgstr "Certificat Odoo"
+
+#. module: usl_sign
+msgid "Archived Odoo Online signing record"
+msgstr "Enregistrement de signature Odoo Online archivé"
+
+#. module: usl_sign
+msgid "External record"
+msgstr "Enregistrement externe"
+
+#. module: usl_sign
+msgid "Recorded completed on"
+msgstr "Achèvement enregistré le"
+
+#. module: usl_sign
+msgid "Odoo Online certificate in Documents"
+msgstr "Certificat Odoo Online dans Documents"
+
+#. module: usl_sign
+msgid "Preservation status"
+msgstr "État de conservation"
+
+#. module: usl_sign
+msgid "Record type"
+msgstr "Type d’enregistrement"
+
+#. module: usl_sign
+msgid "Paperless storage"
+msgstr "Archivage Paperless"
+
+#. module: usl_sign
+msgid "Signed PDF SHA-256"
+msgstr "SHA-256 du PDF signé"
+
+#. module: usl_sign
+msgid "Recorded by Odoo Online."
+msgstr "Enregistré par Odoo Online."
+
+#. module: usl_sign
+msgid "Files in Documents"
+msgstr "Fichiers dans Documents"
+
+#. module: usl_sign
+msgid "Signing method / source"
+msgstr "Méthode de signature / source"
+
+#. module: usl_sign
+msgid "Recorded"
+msgstr "Enregistré"
+
+#. module: usl_sign
+msgid "Signed PDF in Documents"
+msgstr "PDF signé dans Documents"
+
+#. module: usl_sign
+msgid "This document and its original Odoo Online certificate are preserved in Documents. USL Sign did not rerun the historical signing, identity, certificate, trust, or revocation checks, so this record does not claim native USL completion or verification."
+msgstr "Ce document et son certificat Odoo Online d’origine sont conservés dans Documents. USL Sign n’a pas relancé les contrôles historiques de signature, d’identité, de certificat, de confiance ou de révocation ; cet enregistrement ne prétend donc pas à un achèvement ni à une vérification native par USL."
+
+#. module: usl_sign
+msgid "The signed PDF and original Odoo Online certificate are preserved in Documents. USL Sign did not rerun or certify the historical signing checks."
+msgstr "Le PDF signé et le certificat Odoo Online d’origine sont conservés dans Documents. USL Sign n’a ni relancé ni certifié les contrôles historiques de signature."
+
+#. module: usl_sign
+msgid "This signed record came from Odoo Online. USL Sign preserved it but did not rerun its signing, identity, trust, or revocation checks."
+msgstr "Cet enregistrement signé provient d’Odoo Online. USL Sign l’a conservé sans relancer les contrôles de signature, d’identité, de confiance ou de révocation."
+
+#. module: usl_sign
+msgid "USL Sign records use this application's signing and validation workflow. External records preserve a result produced elsewhere without claiming that USL Sign reran those checks."
+msgstr "Les enregistrements USL Sign utilisent le processus de signature et de validation de cette application. Les enregistrements externes conservent un résultat produit ailleurs sans prétendre qu’USL Sign a relancé ces contrôles."

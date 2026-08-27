@@ -369,7 +369,14 @@ class SignPortalController(PortalSign):
             (
                 "request_id.state",
                 "in",
-                ["sent", "viewed", "partial", "completed", "action_required"],
+                [
+                    "sent",
+                    "viewed",
+                    "partial",
+                    "completed",
+                    "external_archived",
+                    "action_required",
+                ],
             ),
             (
                 "partner_id",
@@ -390,7 +397,9 @@ class SignPortalController(PortalSign):
             },
             "completed": {
                 "label": request.env._("Completed"),
-                "domain": [("request_id.state", "=", "completed")],
+                "domain": [
+                    ("request_id.state", "in", ["completed", "external_archived"]),
+                ],
             },
         }
 
@@ -401,16 +410,22 @@ class SignPortalController(PortalSign):
         partner = request.env.user.partner_id
         if (
             not sign_request
-            or sign_request.state != "completed"
+            or sign_request.state not in {"completed", "external_archived"}
             or not sign_request.signer_ids.filtered(
                 lambda signer: signer.partner_id == partner,
             )
         ):
             return request.not_found()
+        field_name = "data" if sign_request.state == "external_archived" else "final_data"
+        filename = (
+            sign_request.filename
+            if sign_request.state == "external_archived"
+            else sign_request.final_filename
+        )
         stream = request.env["ir.binary"]._get_stream_from(
             sign_request,
-            "final_data",
-            filename=sign_request.final_filename,
+            field_name,
+            filename=filename,
             mimetype="application/pdf",
         )
         return stream.get_response(as_attachment=True)

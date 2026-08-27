@@ -287,6 +287,7 @@ class TestCleanUslSign(TransactionCase):
                 "signed_to_import",
                 "validating",
                 "completed",
+                "external_archived",
                 "evidence_incomplete",
                 "validation_failed",
                 "declined",
@@ -297,6 +298,103 @@ class TestCleanUslSign(TransactionCase):
         )
         state_values = dict(self.env["sign.oca.request"]._fields["state"].selection)
         self.assertEqual(set(state_values), {key for key, _label in REQUEST_STATES})
+
+    def test_external_archive_preserves_result_without_native_completion_claims(self):
+        signed_document = self.env["usl.document"].sudo().create(
+            {
+                "name": "Historical signed PDF",
+                "paperless_id": 991101,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_upload",
+            },
+        )
+        source_certificate = self.env["usl.document"].sudo().create(
+            {
+                "name": "Odoo Online certificate",
+                "paperless_id": 991102,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_upload",
+            },
+        )
+        signed_on = fields.Datetime.to_datetime("2026-02-11 22:39:38")
+        values = {
+            "name": "Historical agreement",
+            "data": field_value(self.pdf),
+            "filename": "historical-signed.pdf",
+            "company_id": self.company.id,
+            "user_id": self.env.user.id,
+            "completed_at": signed_on,
+            "original_sha256": hashlib.sha256(self.pdf).hexdigest(),
+            "archive_document_id": signed_document.id,
+            "archive_dossier_document_id": source_certificate.id,
+            "signer_ids": [
+                (
+                    0,
+                    0,
+                    {
+                        "partner_id": self.partner_one.id,
+                        "role_id": self.role_customer.id,
+                        "sequence": 10,
+                        "signed_on": signed_on,
+                    },
+                ),
+            ],
+        }
+        with self.assertRaisesRegex(ValidationError, "controlled external-record"):
+            self.env["sign.oca.request"].create(
+                {**values, "record_kind": "external_archive"},
+            )
+
+        request = self.env["sign.oca.request"]._create_external_archive(values)
+
+        self.assertEqual(request.state, "external_archived")
+        self.assertEqual(request.record_kind, "external_archive")
+        self.assertFalse(request.requested_trust)
+        self.assertFalse(request.recommended_trust)
+        self.assertFalse(request.achieved_trust)
+        self.assertEqual(request.validation_status, "not_started")
+        self.assertEqual(request.evidence_status, "not_started")
+        self.assertEqual(request.archive_status, "archived")
+        self.assertFalse(request.final_data)
+        self.assertFalse(request.completion_certificate)
+        self.assertFalse(request.dossier_data)
+        self.assertEqual(request.signer_ids.state, "external_recorded")
+        self.assertEqual(request.signer_ids.authentication_method, "external_record")
+        self.assertEqual(request.signer_ids.personal_status, "Recorded externally")
+        self.assertEqual(request.completed_proof_label, "Not revalidated")
+        self.assertEqual(request.requested_trust_short, "Odoo Online (External)")
+        self.assertEqual(request.preview()["type"], "ir.actions.act_url")
+        self.assertEqual(request.event_ids.event_type, "external_record_imported")
+        completed_domain = fields.Domain.AND(
+            [
+                self.env["usl.sign.workspace"]._completed_domain(),
+                [("id", "=", request.id)],
+            ],
+        )
+        self.assertEqual(
+            self.env["sign.oca.request"].search(completed_domain),
+            request,
+        )
+
+        with self.assertRaisesRegex(ValidationError, "external signing records are immutable"):
+            request.write({"name": "Changed historical agreement"})
+        with self.assertRaisesRegex(ValidationError, "completed signer record is immutable"):
+            request.signer_ids.write({"sequence": 20})
+
+        with self.assertRaisesRegex(ValidationError, "cannot claim"):
+            request.with_context(
+                usl_sign_transition=INTERNAL_OPERATION,
+            ).write({"validation_status": "valid"})
+
+    def test_external_archive_rejects_native_proof_inputs(self):
+        with self.assertRaisesRegex(ValidationError, "native proof fields"):
+            self.env["sign.oca.request"]._create_external_archive(
+                {"final_data": field_value(self.pdf)},
+            )
 
     def test_pdf_without_page_dimensions_is_rejected_before_freezing(self):
         stream = BytesIO()
