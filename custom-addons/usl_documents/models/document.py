@@ -2289,6 +2289,9 @@ class UslDocument(models.Model):
         company_id=None,
         confidentiality="internal",
         source="odoo_upload",
+        document_date=None,
+        document_type_id=None,
+        tag_ids=None,
     ):
         if not filename or not content_base64:
             raise ValidationError(_("Choose a non-empty file."))
@@ -2338,6 +2341,17 @@ class UslDocument(models.Model):
             )
         if company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
+        document_type = self.env["usl.paperless.document.type"]
+        if document_type_id:
+            document_type = document_type.browse(int(document_type_id)).exists()
+            if not document_type or not document_type.active:
+                raise ValidationError(_("Choose an active Paperless document type."))
+        requested_tags = {int(tag_id) for tag_id in (tag_ids or [])}
+        tags = self.env["usl.paperless.tag"].search(
+            [("id", "in", list(requested_tags)), ("active", "=", True)],
+        )
+        if set(tags.ids) != requested_tags:
+            raise ValidationError(_("One or more selected tags are unavailable."))
         checksum = hashlib.sha256(content).hexdigest()
         retry_operation = self.env["usl.document.operation"].search(
             [
@@ -2473,7 +2487,13 @@ class UslDocument(models.Model):
         })
         try:
             task_id = self._paperless().upload_multipart(
-                content, filename, content_type, title=filename,
+                content,
+                filename,
+                content_type,
+                title=filename,
+                created=fields.Date.to_string(document_date) if document_date else None,
+                document_type=document_type.paperless_id or None,
+                tags=tags.mapped("paperless_id"),
             )
             operation.sudo().write(
                 {"state": "processing", "paperless_task_id": task_id},

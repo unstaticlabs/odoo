@@ -502,21 +502,40 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/thumb/", raw=True,
         )
 
-    def upload_multipart(self, content, filename, content_type, *, title=None):
+    def upload_multipart(
+        self,
+        content,
+        filename,
+        content_type,
+        *,
+        title=None,
+        created=None,
+        document_type=None,
+        tags=None,
+    ):
         if not self.configured:
             raise PaperlessUnavailable(
                 _("Paperless is not configured. Ask a Documents administrator."),
             )
         boundary = f"----usl-{uuid.uuid4().hex}"
         chunks = []
-        if title:
+
+        def add_field(name, value):
+            if value in (None, False, ""):
+                return
             chunks.append(
                 (
                     f"--{boundary}\r\n"
-                    'Content-Disposition: form-data; name="title"\r\n\r\n'
-                    f"{title}\r\n"
+                    f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                    f"{value}\r\n"
                 ).encode(),
             )
+
+        add_field("title", title)
+        add_field("created", created)
+        add_field("document_type", document_type)
+        for tag in tags or []:
+            add_field("tags", tag)
         safe_filename = self._multipart_filename(filename)
         safe_content_type = self._multipart_content_type(content_type)
         chunks.extend([
