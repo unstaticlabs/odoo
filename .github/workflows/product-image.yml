@@ -34,6 +34,11 @@ jobs:
       - name: Sync pinned OCA add-ons
         run: scripts/sync-oca-addons
 
+      - name: Select qualified Python runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Check reviewed source action inventory
         run: make action-risk-inventory
 

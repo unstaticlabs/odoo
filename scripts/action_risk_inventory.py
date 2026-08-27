@@ -181,13 +181,20 @@ def sha256_json(value: object) -> str:
     return hashlib.sha256(canonical_json(value).encode()).hexdigest()
 
 
-def stable_ast_dump(node: ast.AST) -> str:
-    """Serialize ASTs identically across the supported Python versions."""
+def stable_ast_dump(value: object) -> str:
+    """Serialize semantic AST content without version-specific empty fields."""
 
-    try:
-        return ast.dump(node, include_attributes=False, show_empty=True)
-    except TypeError:  # Python 3.12 always includes empty fields.
-        return ast.dump(node, include_attributes=False)
+    if isinstance(value, ast.AST):
+        fields = []
+        for name in value._fields:
+            child = getattr(value, name, None)
+            if child is None or child == []:
+                continue
+            fields.append(f"{name}={stable_ast_dump(child)}")
+        return f"{type(value).__name__}({', '.join(fields)})"
+    if isinstance(value, list):
+        return f"[{', '.join(stable_ast_dump(item) for item in value)}]"
+    return repr(value)
 
 
 def qualified_policy_digest(

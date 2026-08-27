@@ -93,14 +93,16 @@ class ActionRiskInventoryTestCase(unittest.TestCase):
             "actions": actions,
         }
 
-    def test_stable_ast_dump_includes_empty_fields(self):
+    def test_stable_ast_dump_omits_version_specific_empty_fields(self):
         node = ast.parse("def action(value):\n    return value\n").body[0]
 
         dumped = inventory.stable_ast_dump(node)
 
-        self.assertIn("posonlyargs=[]", dumped)
-        self.assertIn("kw_defaults=[]", dumped)
-        self.assertIn("decorator_list=[]", dumped)
+        self.assertNotIn("posonlyargs", dumped)
+        self.assertNotIn("kw_defaults", dumped)
+        self.assertNotIn("decorator_list", dumped)
+        self.assertIn("args=[arg(arg='value')]", dumped)
+        self.assertIn("Return(value=Name(id='value', ctx=Load()))", dumped)
 
 
 class TestDiscovery(ActionRiskInventoryTestCase):
