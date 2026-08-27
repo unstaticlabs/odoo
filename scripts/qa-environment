@@ -51,6 +51,14 @@ requested_gevent_port="$ODOO_GEVENT_PORT"
 requested_pocket_port="$POCKET_ID_HTTP_PORT"
 requested_paperless_port="$PAPERLESS_HTTP_PORT"
 requested_odoo_image="$ODOO_IMAGE"
+reuse_requested="${USL_QA_REUSE_EXISTING:-0}"
+case "$reuse_requested" in
+  0|1) ;;
+  *)
+    printf 'USL_QA_REUSE_EXISTING must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
 
 case "$COMPOSE_PROJECT_NAME" in
   usl-odoo-qa-?*) ;;
@@ -84,6 +92,8 @@ mkdir -p "$timing_dir"
 timing_file="$timing_dir/${COMPOSE_PROJECT_NAME}-$(date -u +%Y%m%dT%H%M%SZ).tsv"
 report_file="${timing_file%.tsv}.json"
 hydration_controls_file="${timing_file%.tsv}-hydration.json"
+qa_state_dir="$ROOT/artifacts/migration/private/qa-state"
+qa_state_file="$qa_state_dir/$COMPOSE_PROJECT_NAME.json"
 run_started="$(date +%s)"
 cache_result="not-applicable"
 : > "$timing_file"
@@ -126,10 +136,16 @@ payload = {
 if sys.argv[7]:
     manifest = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8"))
     payload.update({
-        "downloaded_bytes": sum(item["size"] for item in manifest["artifacts"].values()),
+        "downloaded_bytes": (
+            0
+            if sys.argv[8] == "warm-hit"
+            else sum(item["size"] for item in manifest["artifacts"].values())
+        ),
         "reused_document_roots": manifest["qualification"]["paperless_documents"],
         "seed_fingerprint": manifest["fingerprint"],
     })
+    if sys.argv[8] == "warm-hit":
+        payload["ocr_submissions"] = 0
 if Path(sys.argv[9]).is_file():
     hydration = json.loads(Path(sys.argv[9]).read_text(encoding="utf-8"))
     payload["hydration_controls"] = hydration
@@ -137,7 +153,7 @@ if Path(sys.argv[9]).is_file():
 Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
-trap 'write_report failed' EXIT
+trap 'rm -f "$qa_state_file"; write_report failed' EXIT
 
 reset_project() {
   local unsafe
@@ -148,6 +164,7 @@ reset_project() {
       "$(usl_format_compose_resources "$unsafe")" >&2
     return 2
   fi
+  rm -f "$qa_state_file"
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
@@ -169,6 +186,101 @@ verify_seed() {
     return 2
   fi
   rm -f "$runtime_json"
+}
+
+qa_state_matches() {
+  [[ -f "$qa_state_file" ]] || return 1
+  python3 - "$qa_state_file" "$qa_seed_manifest" "$COMPOSE_PROJECT_NAME" \
+    "$POCKET_ID_ENV_FILE" "$qa_state_sha256" <<'PY'
+import hashlib
+import json
+import sys
+
+try:
+    state = json.load(open(sys.argv[1], encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    raise SystemExit(1)
+manifest_path = sys.argv[2]
+manifest = json.load(open(manifest_path, encoding="utf-8"))
+manifest_sha = hashlib.sha256(open(manifest_path, "rb").read()).hexdigest()
+expected = {
+    "compose_project": sys.argv[3],
+    "migration_sha256": manifest["identity"]["migration_sha256"],
+    "pocket_environment_sha256": hashlib.sha256(open(sys.argv[4], "rb").read()).hexdigest(),
+    "profile": "full",
+    "schema": "usl-worktree-qa-state-v1",
+    "seed_fingerprint": manifest["fingerprint"],
+    "seed_manifest_sha256": manifest_sha,
+    "worktree_state_sha256": sys.argv[5],
+}
+raise SystemExit(0 if state == expected else 1)
+PY
+}
+
+qa_volumes_present() {
+  local suffix
+  for suffix in \
+    postgres-data odoo-data paperless-postgres-data paperless-broker-data \
+    paperless-data paperless-media paperless-export paperless-consume \
+    paperless-trash pocket-id-data
+  do
+    docker volume inspect "$COMPOSE_PROJECT_NAME-$suffix" >/dev/null 2>&1 \
+      || docker volume inspect "${COMPOSE_PROJECT_NAME}_$suffix" >/dev/null 2>&1 \
+      || return 1
+  done
+}
+
+reuse_qa_target() {
+  "${compose[@]}" up -d --wait db
+  "${compose[@]}" --profile paperless up -d --wait --pull never \
+    paperless-webserver
+  "${compose[@]}" up -d --wait --pull never odoo
+  if [[ "$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev \
+      -c "SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'")" != full ]]; then
+    printf 'The cached QA target is not stamped with the full profile.\n' >&2
+    return 1
+  fi
+  scripts/check-product-migration-boundary
+  scripts/check-product-database-boundary
+}
+
+write_qa_state() {
+  mkdir -p "$qa_state_dir"
+  chmod 700 "$qa_state_dir"
+  python3 - "$qa_state_file" "$qa_seed_manifest" "$COMPOSE_PROJECT_NAME" \
+    "$POCKET_ID_ENV_FILE" "$qa_state_sha256" <<'PY'
+import hashlib
+import json
+import os
+import sys
+import tempfile
+
+path = sys.argv[1]
+manifest_path = sys.argv[2]
+manifest = json.load(open(manifest_path, encoding="utf-8"))
+payload = {
+    "compose_project": sys.argv[3],
+    "migration_sha256": manifest["identity"]["migration_sha256"],
+    "pocket_environment_sha256": hashlib.sha256(open(sys.argv[4], "rb").read()).hexdigest(),
+    "profile": "full",
+    "schema": "usl-worktree-qa-state-v1",
+    "seed_fingerprint": manifest["fingerprint"],
+    "seed_manifest_sha256": hashlib.sha256(open(manifest_path, "rb").read()).hexdigest(),
+    "worktree_state_sha256": sys.argv[5],
+}
+descriptor, temporary = tempfile.mkstemp(prefix=".qa-state-", dir=os.path.dirname(path))
+try:
+    os.fchmod(descriptor, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(payload, stream, indent=2, sort_keys=True)
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+finally:
+    if os.path.exists(temporary):
+        os.unlink(temporary)
+PY
 }
 
 hydrate_seed() {
@@ -360,16 +472,30 @@ if [[ "$profile" == full ]]; then
   fi
   qa_seed_manifest="$qa_seed_dir/manifest.json"
   stage "verify qualified seed (read only)" verify_seed
+  qa_state_sha256="$(PYTHONPATH="$ROOT" python3 -c \
+    'from pathlib import Path; from scripts.qa_seed import qa_state_digest; print(qa_state_digest(Path.cwd()))')"
   cache_result="hit"
 fi
-stage "reset isolated QA project" reset_project
+reuse_existing=0
+if [[ "$profile" == full && "$reuse_requested" == 1 ]] \
+    && qa_state_matches && qa_volumes_present; then
+  reuse_existing=1
+  cache_result="warm-hit"
+fi
+if [[ "$reuse_existing" == 0 ]]; then
+  stage "reset isolated QA project" reset_project
+fi
 case "$profile" in
   full)
-    stage "hydrate qualified seed" hydrate_seed
-    stage "upgrade and finalize current branch" \
-      env USL_QA_DATA_PROFILE=full scripts/target-finalize
-    stage "verify sealed hydration controls and zero OCR" \
-      verify_hydrated_controls
+    if [[ "$reuse_existing" == 1 ]]; then
+      stage "reuse and verify existing QA target" reuse_qa_target
+    else
+      stage "hydrate qualified seed" hydrate_seed
+      stage "upgrade and finalize current branch" \
+        env USL_QA_DATA_PROFILE=full scripts/target-finalize
+      stage "verify sealed hydration controls and zero OCR" \
+        verify_hydrated_controls
+    fi
     stage "multi-company acceptance" make \
       COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME" accounting-multicompany-acceptance
     ;;
@@ -382,7 +508,12 @@ case "$profile" in
     stage "clean product installation" clean_install
     ;;
 esac
-stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
+if [[ "$reuse_existing" == 0 ]]; then
+  stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
+fi
+if [[ "$profile" == full ]]; then
+  write_qa_state
+fi
 
 write_report passed
 trap - EXIT

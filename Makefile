@@ -32,7 +32,7 @@ fi
 endef
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-report migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -69,6 +69,8 @@ help:
 	  '' \
 	  'Data reconstruction' \
 	  '  make qa [PROFILE=full]              Fast isolated QA from qualified cache' \
+	  '  make qa-reuse                       Revalidate this worktree QA target in place' \
+	  '  make qa-clean CONFIRM=qa-volumes    Remove this worktree QA volumes' \
 	  '  make qa PROFILE=no-documents        Full Odoo data without Documents runtime' \
 	  '  make qa PROFILE=documents-smoke     Deterministic Documents sample' \
 	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
@@ -184,6 +186,12 @@ disable-tours:
 
 qa:
 	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
+
+qa-reuse:
+	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 PROFILE=full scripts/qa-environment full
+
+qa-clean:
+	@COMPOSE_PROJECT_NAME= USL_QA_CLEAN_CONFIRM="$(CONFIRM)" scripts/qa-clean
 
 qa-cache-status:
 	@COMPOSE_PROJECT_NAME= scripts/qa-seed status
