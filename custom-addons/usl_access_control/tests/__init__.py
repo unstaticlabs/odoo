@@ -1,1 +1,1 @@
-from . import test_access_control
+from . import test_access_control, test_action_policy

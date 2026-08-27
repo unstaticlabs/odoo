@@ -1,4 +1,8 @@
-from odoo import Command
+import json
+from io import BytesIO
+from unittest.mock import patch
+
+from odoo import SUPERUSER_ID, Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 
@@ -105,6 +109,20 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         self.assertTrue(self.agent.has_group("usl_access_control.group_ai_agent"))
 
+    def test_runtime_policy_resolves_semantic_and_model_operation_guards(self):
+        policy = self.env["base"]._usl_qualified_action_policy()
+        self.assertRegex(policy.qualified_policy_digest, r"^[0-9a-f]{64}$")
+        self.assertEqual(
+            policy.protected_guard("accounting.lock.change").action_key,
+            "guard:accounting.lock.change",
+        )
+        self.assertEqual(
+            policy.model_operation_guard("project.task", "unlink").action_key,
+            "rpc:project.task.unlink",
+        )
+        with self.assertRaises(TypeError):
+            policy.model_operation_guards["project.task", "unlink"] = None
+
     def test_agent_and_irreversible_capability_are_backend_incompatible(self):
         with self.assertRaisesRegex(ValidationError, "incompatible"):
             self.agent.write(
@@ -206,6 +224,38 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             limit=1,
         )
         self.assertTrue(event)
+        self.assertEqual(event.action_key, "rpc:project.task.unlink")
+        self.assertEqual(
+            event.policy_digest,
+            self.env["base"]._usl_qualified_action_policy().qualified_policy_digest,
+        )
+
+    def test_denied_protected_action_log_carries_policy_identity(self):
+        project = self.env["project.project"].create(
+            {"name": "Denial evidence", "company_id": self.company.id},
+        )
+        task = self.env["project.task"].create(
+            {"name": "Keep denial evidence", "project_id": project.id},
+        )
+        with (
+            self.assertLogs(
+                "odoo.addons.usl_access_control.models.base",
+                level="WARNING",
+            ) as captured,
+            self.assertRaisesRegex(AccessError, "Irreversible Actions"),
+        ):
+            task.with_user(self.roger).unlink()
+        line = next(
+            message
+            for message in captured.output
+            if "USL_PROTECTED_ACTION_DENIED" in message
+        )
+        payload = json.loads(line.split("USL_PROTECTED_ACTION_DENIED ", 1)[1])
+        self.assertEqual(payload["action_key"], "rpc:project.task.unlink")
+        self.assertEqual(
+            payload["policy_digest"],
+            self.env["base"]._usl_qualified_action_policy().qualified_policy_digest,
+        )
 
     def test_accounting_remains_reversible_for_reviewer_and_agent(self):
         for user in (self.prosper, self.agent):
@@ -263,6 +313,15 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             {"fiscalyear_lock_date": "2025-12-31"},
         )
         self.assertEqual(str(self.company.fiscalyear_lock_date), "2025-12-31")
+        event = self.env["usl.audit.event"].sudo().search(
+            [
+                ("actor_id", "=", self.valentin.id),
+                ("action_key", "=", "guard:accounting.lock.change"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(event)
+        self.assertTrue(event.policy_digest)
 
         with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
             self.agent.with_user(self.roger).write(
@@ -287,6 +346,28 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         self.assertTrue(server_action)
         with self.assertRaisesRegex(AccessError, "AI Agents"):
             server_action.with_user(self.agent).sudo().run()
+
+    def test_module_lifecycle_and_code_import_are_guarded_at_direct_entry(self):
+        module = self.env["ir.module.module"].search([("name", "=", "base")], limit=1)
+        self.assertTrue(module)
+        with self.assertRaisesRegex(AccessError, "AI Agents"):
+            module.with_user(self.agent).sudo().button_install()
+        with self.assertRaisesRegex(AccessError, "AI Agents"):
+            module.with_user(self.agent).sudo()._import_zipfile(BytesIO(b"not a module"))
+
+    def test_internal_superuser_can_recover_when_policy_loading_fails(self):
+        with patch(
+            "odoo.addons.usl_access_control.models.base.load_action_policy",
+            side_effect=RuntimeError("broken policy fixture"),
+        ) as loader:
+            partner = self.env["res.partner"].with_user(SUPERUSER_ID).create(
+                {"name": "Policy recovery probe"},
+            )
+            self.env["base"].with_user(SUPERUSER_ID)._usl_require_irreversible_action(
+                "module.install",
+            )
+            partner.unlink()
+        loader.assert_not_called()
 
     def test_external_registration_actions_are_guarded_before_provider_calls(self):
         settings = self.env["res.config.settings"].with_user(self.agent).sudo().create(
@@ -326,3 +407,53 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             event.with_user(self.roger).unlink()
         with self.assertRaisesRegex(UserError, "immutable"):
             event.with_user(self.valentin).write({"origin": "administrator-forgery"})
+
+    def test_new_protected_audit_rows_require_policy_identity(self):
+        with self.assertRaisesRegex(ValidationError, "action key and policy digest"):
+            self.env["usl.audit.event"]._record_event(
+                {
+                    "actor_id": self.env.uid,
+                    "actor_is_agent": False,
+                    "event_type": "protected_action",
+                    "model_name": "res.company",
+                    "record_count": 0,
+                    "operation": "action",
+                    "action_name": "unqualified protected action",
+                    "origin": "test",
+                },
+            )
+
+    def test_pre_policy_audit_rows_keep_nullable_policy_identity(self):
+        self.env.cr.execute(
+            """
+            INSERT INTO usl_audit_event (
+                occurred_at, actor_id, actor_is_agent, event_type, outcome,
+                model_name, record_count, operation, action_name, origin,
+                create_uid, create_date, write_uid, write_date
+            ) VALUES (
+                NOW(), %s, FALSE, 'protected_action', 'succeeded',
+                'res.company', 0, 'action', 'legacy protected action', 'migration',
+                %s, NOW(), %s, NOW()
+            ) RETURNING id
+            """,
+            [self.env.uid, self.env.uid, self.env.uid],
+        )
+        event = self.env["usl.audit.event"].browse(self.env.cr.fetchone()[0])
+        self.assertFalse(event.action_key)
+        self.assertFalse(event.policy_digest)
+
+    def test_agent_mutation_policy_identity_remains_optional(self):
+        event = self.env["usl.audit.event"]._record_event(
+            {
+                "actor_id": self.env.uid,
+                "actor_is_agent": True,
+                "event_type": "mutation",
+                "model_name": "project.task",
+                "record_count": 0,
+                "operation": "write",
+                "action_name": "project.task.write",
+                "origin": "agent",
+            },
+        )
+        self.assertFalse(event.action_key)
+        self.assertFalse(event.policy_digest)

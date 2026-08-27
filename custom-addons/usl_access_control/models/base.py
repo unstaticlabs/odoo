@@ -7,59 +7,9 @@ from lxml import etree
 from odoo import SUPERUSER_ID, api, models
 from odoo.exceptions import AccessError
 
+from .action_policy import ActionPolicyConfigurationError, load_action_policy
+
 _logger = logging.getLogger(__name__)
-
-_IRREVERSIBLE_UNLINK_MODELS = frozenset(
-    {
-        "account.move",
-        "account.payment",
-        "b2c.accounting.session",
-        "b2c.channel",
-        "b2c.fulfilment.event",
-        "b2c.order",
-        "b2c.payment.event",
-        "b2c.provider.evidence",
-        "ir.attachment",
-        "mail.message",
-        "mail.tracking.value",
-        "product.product",
-        "product.template",
-        "project.project",
-        "project.task",
-        "purchase.order",
-        "res.partner",
-        "sale.order",
-        "stock.picking",
-        "usl.document",
-        "usl.platform.billing.payout",
-        "usl.platform.billing.session",
-        "usl.tese.payslip",
-    },
-)
-
-_PROTECTED_TECHNICAL_MODELS = frozenset(
-    {
-        "auth.oauth.provider",
-        "base.automation",
-        "ir.actions.server",
-        "ir.config_parameter",
-        "ir.cron",
-        "ir.default",
-        "ir.logging",
-        "ir.model",
-        "ir.model.access",
-        "ir.model.data",
-        "ir.model.fields",
-        "ir.model.fields.selection",
-        "ir.module.module",
-        "ir.rule",
-        "ir.ui.menu",
-        "ir.ui.view",
-        "res.groups",
-        "res.groups.privilege",
-        "usl.oidc.identity",
-    },
-)
 
 _AGENT_AUDIT_EXCLUDED_MODELS = frozenset(
     {
@@ -139,32 +89,79 @@ class Base(models.AbstractModel):
         )
 
     @api.model
-    def _usl_log_denied_protected_action(self, action_name):
+    def _usl_log_denied_protected_action(
+        self,
+        *,
+        action_key,
+        action_name,
+        policy_digest,
+    ):
         _logger.warning(
             "USL_PROTECTED_ACTION_DENIED %s",
             json.dumps(
                 {
                     "action": action_name,
+                    "action_key": action_key,
                     "actor_id": self.env.uid,
                     "actor_is_agent": self._usl_actor_is_agent(),
                     "correlation_id": self._usl_audit_correlation_id(),
                     "model": self._name,
                     "origin": self._usl_audit_origin(),
+                    "policy_digest": policy_digest,
                     "record_ids": self.ids,
                 },
                 sort_keys=True,
             ),
         )
 
-    def _usl_require_irreversible_action(self, action_name):
+    @api.model
+    def _usl_qualified_action_policy(self):
+        try:
+            return load_action_policy()
+        except ActionPolicyConfigurationError as error:
+            _logger.error("USL_ACTION_POLICY_INVALID %s", error)
+            raise AccessError(
+                self.env._(
+                    "The protected-action policy is invalid. "
+                    "Contact a product administrator before retrying this action.",
+                ),
+            ) from error
+
+    def _usl_require_irreversible_action(
+        self,
+        guard_key,
+        action_name=None,
+        *,
+        exact_policy_key=False,
+    ):
         # UID 1 is Odoo's non-interactive internal service identity. Module
-        # loading, migrations and registry maintenance legitimately run here;
-        # sudo() by an ordinary caller keeps that caller's uid and is not this
-        # bypass.
+        # loading, migrations and registry repair must remain possible even
+        # when a policy artifact is absent or malformed. Ordinary sudo() keeps
+        # the caller's uid, so it does not enter this recovery boundary.
         if self.env.uid == SUPERUSER_ID:
             return
+        policy = self._usl_qualified_action_policy()
+        try:
+            entry = (
+                policy.protected_action(guard_key)
+                if exact_policy_key
+                else policy.protected_guard(guard_key)
+            )
+        except ActionPolicyConfigurationError as error:
+            _logger.error("USL_ACTION_POLICY_INVALID %s", error)
+            raise AccessError(
+                self.env._(
+                    "The protected-action policy is invalid. "
+                    "Contact a product administrator before retrying this action.",
+                ),
+            ) from error
+        action_name = action_name or entry.action_name or entry.action_key
         if not self._usl_actor_may_perform_irreversible_actions():
-            self._usl_log_denied_protected_action(action_name)
+            self._usl_log_denied_protected_action(
+                action_key=entry.action_key,
+                action_name=action_name,
+                policy_digest=policy.qualified_policy_digest,
+            )
             if self._usl_actor_is_agent():
                 raise AccessError(
                     self.env._(
@@ -187,6 +184,8 @@ class Base(models.AbstractModel):
                 "record_count": len(self),
                 "operation": "action",
                 "action_name": action_name,
+                "action_key": entry.action_key,
+                "policy_digest": policy.qualified_policy_digest,
                 "origin": self._usl_audit_origin(),
                 "correlation_id": self._usl_audit_correlation_id(),
             },
@@ -267,16 +266,40 @@ class Base(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if self._name in _PROTECTED_TECHNICAL_MODELS:
-            self._usl_require_irreversible_action(f"create {self._name}")
+        policy_entry = (
+            self._usl_qualified_action_policy().model_operation_guard(
+                self._name,
+                "create",
+            )
+            if self.env.uid != SUPERUSER_ID
+            else None
+        )
+        if policy_entry:
+            self._usl_require_irreversible_action(
+                policy_entry.action_key,
+                policy_entry.action_name or f"create {self._name}",
+                exact_policy_key=True,
+            )
         records = super().create(vals_list)
         if records._usl_agent_audit_enabled():
             records._usl_record_agent_mutation("create", values=vals_list)
         return records
 
     def write(self, values):
-        if self._name in _PROTECTED_TECHNICAL_MODELS:
-            self._usl_require_irreversible_action(f"modify {self._name}")
+        policy_entry = (
+            self._usl_qualified_action_policy().model_operation_guard(
+                self._name,
+                "write",
+            )
+            if self.env.uid != SUPERUSER_ID
+            else None
+        )
+        if policy_entry:
+            self._usl_require_irreversible_action(
+                policy_entry.action_key,
+                policy_entry.action_name or f"modify {self._name}",
+                exact_policy_key=True,
+            )
         audit_enabled = self._usl_agent_audit_enabled()
         before = self._usl_audit_before_values(values) if audit_enabled else None
         result = super().write(values)
@@ -285,8 +308,20 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
-        if self and self._name in _PROTECTED_TECHNICAL_MODELS | _IRREVERSIBLE_UNLINK_MODELS:
-            self._usl_require_irreversible_action(f"permanently delete {self._name}")
+        policy_entry = (
+            self._usl_qualified_action_policy().model_operation_guard(
+                self._name,
+                "unlink",
+            )
+            if self and self.env.uid != SUPERUSER_ID
+            else None
+        )
+        if policy_entry:
+            self._usl_require_irreversible_action(
+                policy_entry.action_key,
+                policy_entry.action_name or f"permanently delete {self._name}",
+                exact_policy_key=True,
+            )
         audit_enabled = self._usl_agent_audit_enabled()
         record_ids = self.ids
         before = (

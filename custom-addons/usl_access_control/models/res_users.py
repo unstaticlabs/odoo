@@ -109,7 +109,10 @@ class ResUsers(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._usl_require_irreversible_action("create a user identity")
+        self._usl_require_irreversible_action(
+            "authorization.user.create",
+            "create a user identity",
+        )
         users = super().create(vals_list)
         users._check_usl_agent_irreversible_incompatibility()
         return users
@@ -129,14 +132,20 @@ class ResUsers(models.Model):
         }
         changing_another_identity = self != self.env.user and {"email", "name"} & set(values)
         if sensitive_fields & set(values) or changing_another_identity:
-            self._usl_require_irreversible_action("change user identity or authorization")
+            self._usl_require_irreversible_action(
+                "authorization.user.change",
+                "change user identity or authorization",
+            )
         result = super().write(values)
         if "group_ids" in values:
             self._check_usl_agent_irreversible_incompatibility()
         return result
 
     def unlink(self):
-        self._usl_require_irreversible_action("delete a user identity")
+        self._usl_require_irreversible_action(
+            "authorization.user.delete",
+            "delete a user identity",
+        )
         return super().unlink()
 
 

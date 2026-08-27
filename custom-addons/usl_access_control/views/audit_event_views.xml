@@ -11,6 +11,8 @@
                 <field name="event_type"/>
                 <field name="model_name"/>
                 <field name="action_name"/>
+                <field name="action_key" optional="show"/>
+                <field name="policy_digest" optional="hide"/>
                 <field name="record_count" optional="hide"/>
                 <field name="origin"/>
                 <field name="correlation_id" optional="hide"/>
@@ -37,6 +39,8 @@
                             <field name="record_ids"/>
                             <field name="operation"/>
                             <field name="action_name"/>
+                            <field name="action_key"/>
+                            <field name="policy_digest"/>
                             <field name="origin"/>
                             <field name="correlation_id"/>
                         </group>

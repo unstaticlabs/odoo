@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UslAuditEvent(models.Model):
@@ -51,6 +51,8 @@ class UslAuditEvent(models.Model):
         readonly=True,
     )
     action_name = fields.Char(required=True, readonly=True)
+    action_key = fields.Char(readonly=True, index=True)
+    policy_digest = fields.Char(readonly=True, index=True)
     changes_json = fields.Text(readonly=True)
     origin = fields.Char(required=True, readonly=True)
     correlation_id = fields.Char(readonly=True, index=True)
@@ -58,6 +60,14 @@ class UslAuditEvent(models.Model):
     @api.model
     def _record_event(self, values):
         """Create immutable evidence without granting callers create access."""
+        if values.get("event_type") == "protected_action" and not all(
+            values.get(field_name) for field_name in ("action_key", "policy_digest")
+        ):
+            raise ValidationError(
+                self.env._(
+                    "New protected-action audit events require an action key and policy digest.",
+                ),
+            )
         return self.sudo().with_context(usl_skip_distribution_audit=True).create(values)
 
     def write(self, values):
