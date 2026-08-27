@@ -27,6 +27,7 @@
         "partner_statement",
         "spreadsheet_account",
         "usl_accounting",
+        "usl_document_templates",
         "usl_expense_batch",
         "usl_platform_billing",
         "usl_platform_billing_pocketid",
