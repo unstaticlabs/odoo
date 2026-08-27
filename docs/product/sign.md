@@ -45,14 +45,16 @@ is waiting on others, and which completed results can be retrieved.
 The stable navigation is deliberately small:
 
 - **Request Signature → Templates** opens the native OCA template kanban and
-  its upload/drop authoring journey;
+  its upload/drop authoring journey. Each template card previews the PDF;
 - **Request Signature → Open Requests** contains non-terminal requests owned or
-  explicitly coordinated by the current user;
+  explicitly coordinated by the current user, in a preview-first card view;
 - **Request Signature → Completed** contains only independently validated,
-  fully evidenced and durably archived results;
+  fully evidenced and durably archived results. Its cards reuse the Documents
+  preview language and open the corresponding archived file when authorized;
 - **My Signatures** combines documents awaiting the current user with their
-  earlier signed, completed or closed history and native search filters. A
-  completed row opens the signed record and its proof directly;
+  earlier signed, completed or closed history and native search filters. Cards
+  preview the document and a completed card opens the signed record and its
+  proof directly;
 - **Configuration** contains identity reviews, trust rules, signer roles,
   provider references, signing readiness, daily timestamp proofs and settings,
   each restricted to the relevant role.
@@ -62,6 +64,13 @@ Signers and Documents lead the operational journey; certificate, hash, DSS and
 manifest details remain under Method, result & proof. The primary action and
 current blocker stay visible without requiring users to reconstruct the state
 from chatter.
+
+Sign does not maintain a second document viewer. Its card and form previews
+reuse the Documents app preview component. Archived results use the authorized
+Paperless thumbnail when available; drafts and in-progress requests fall back
+to a lazy, access-checked rendering of the current Odoo PDF. This keeps the
+same visual language without prematurely filing unsigned documents in
+Paperless.
 
 ## Trust guidance
 

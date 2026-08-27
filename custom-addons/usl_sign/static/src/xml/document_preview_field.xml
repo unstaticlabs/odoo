@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignDocumentPreviewField">
+        <section class="usl_sign_document_preview" aria-label="Document preview">
+            <DocumentPreview t-if="previewUrl" url="previewUrl"/>
+            <div t-else="" class="usl_sign_document_preview_placeholder" role="status">
+                <i class="fa fa-file-pdf-o" aria-hidden="true"/>
+                <span>Preview unavailable</span>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="usl_sign.SignDocumentCardPreviewField">
+        <div t-ref="root" class="usl_sign_document_card_preview">
+            <img t-if="thumbnailUrl" t-att-src="thumbnailUrl" alt="Document preview"/>
+            <DocumentPreview t-elif="state.visible &amp;&amp; previewUrl" url="previewUrl"/>
+            <div t-else="" class="usl_sign_document_preview_placeholder" aria-hidden="true">
+                <i class="fa fa-file-pdf-o"/>
+            </div>
+        </div>
+    </t>
+</templates>

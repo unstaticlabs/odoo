@@ -107,13 +107,14 @@ The installed Sign application is document-only. Its navigation is:
 
 - opening **Sign** shows immediate work, blockers, waiting requests and recent
   results; there is no duplicate dashboard menu item;
-- **Request Signature → Templates** for reusable documents and the PDF field
-  editor;
+- **Request Signature → Templates** for previewable reusable documents and the
+  PDF field editor;
 - **Request Signature → Open Requests** for non-terminal requests owned or
-  coordinated by the current user;
-- **Request Signature → Completed** for validated and durably archived results;
-- **My Signatures** for both pending documents and the current user's signing
-  history;
+  coordinated by the current user, shown as document cards by default;
+- **Request Signature → Completed** for previewable, validated and durably
+  archived results;
+- **My Signatures** for previewable pending documents and the current user's
+  signing history;
 - **Configuration** for identity, trust, provider, readiness, timestamp and
   role administration according to group membership.
 
