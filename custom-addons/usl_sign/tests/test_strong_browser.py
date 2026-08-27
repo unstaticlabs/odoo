@@ -717,6 +717,25 @@ class TestSignBrowserJourneys(HttpCase):
                 if (!field || !guide || !submit || !submit.disabled) {
                     throw new Error("Strong did not render the shared incomplete field workspace.");
                 }
+                if (
+                    document.querySelectorAll(".o_sign_oca_footer").length !== 1 ||
+                    document.querySelectorAll("#usl_sign_submission_status").length !== 1
+                ) {
+                    throw new Error("Strong rendered a competing signer action surface.");
+                }
+                if (
+                    typeof window.uslStrongCeremony !== "function" ||
+                    typeof window.uslStrongSign !== "undefined"
+                ) {
+                    throw new Error("Strong did not expose the ceremony-only adapter.");
+                }
+                const ceremonySource = String(window.uslStrongCeremony);
+                if (
+                    ceremonySource.includes("sign_oca_button") ||
+                    ceremonySource.includes("usl_sign_submission_status")
+                ) {
+                    throw new Error("The Strong ceremony still owns shared signer UI state.");
+                }
                 const fieldBox = field.closest(".o_sign_oca_field").getBoundingClientRect();
                 if (fieldBox.width < 20 || fieldBox.height < 20 || !field.textContent.trim()) {
                     throw new Error("The Strong signing field is present but not visibly actionable.");
