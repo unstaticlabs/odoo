@@ -121,6 +121,15 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.assertLess(install_position, scope_position)
         self.assertLess(scope_position, boundary_position)
 
+    def test_compose_passes_worker_budget_to_odoo(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        odoo_service = compose.split("\n  odoo:\n", 1)[1].split(
+            "\n  init-db:\n",
+            1,
+        )[0]
+
+        self.assertIn("ODOO_WORKERS: ${ODOO_WORKERS:-0}", odoo_service)
+
     def _private_json(self, name, value):
         path = self.root / name
         path.write_text(json.dumps(value) + "\n", encoding="utf-8")
