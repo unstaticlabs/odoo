@@ -4936,8 +4936,12 @@ class TestDocuments(TransactionCase):
         )
         document.invalidate_recordset(["paperless_url"])
         self.assertIn(
-            "/documents/185/details", document.with_user(self.user).paperless_url,
+            "/accounts/login/?next=%2Fdocuments%2F185%2Fdetails",
+            document.with_user(self.user).paperless_url,
         )
+        action = document.with_user(self.user).action_open_paperless()
+        self.assertEqual(action["target"], "new")
+        self.assertEqual(action["url"], document.with_user(self.user).paperless_url)
 
     def test_cache_policy_and_direct_link_creation_are_not_client_writable(self):
         document = self._document(186)
