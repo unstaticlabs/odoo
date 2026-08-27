@@ -2,7 +2,40 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from migration.sign_restore.source import match_exports, sha1, validate_source_structure
+from migration.sign_restore.source import (
+    identity_search_domains,
+    match_exports,
+    sha1,
+    validate_source_structure,
+)
+
+
+class TestSignIdentityMatching(unittest.TestCase):
+    def test_user_falls_back_from_source_login_to_linked_partner_email(self):
+        self.assertEqual(
+            identity_search_domains(
+                "res.users",
+                login="odoo@unstaticlabs.com",
+                email="valentin@unstaticlabs.com",
+            ),
+            [
+                ("login", [("login", "=ilike", "odoo@unstaticlabs.com")]),
+                (
+                    "linked partner email",
+                    [("partner_id.email", "=ilike", "valentin@unstaticlabs.com")],
+                ),
+            ],
+        )
+
+    def test_partner_uses_email_without_a_user_login_domain(self):
+        self.assertEqual(
+            identity_search_domains(
+                "res.partner",
+                login="ignored",
+                email="signer@example.com",
+            ),
+            [("email", [("email", "=ilike", "signer@example.com")])],
+        )
 
 
 class TestSignExportMatching(unittest.TestCase):
