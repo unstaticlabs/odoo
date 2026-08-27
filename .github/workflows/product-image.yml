@@ -54,6 +54,20 @@ jobs:
             --database="$TEST_DATABASE" \
             --init="$product_modules" \
             --without-demo=true \
+            --stop-after-init \
+            --log-level=warn
+          docker compose --profile test run --rm -T \
+            -e ODOO_INIT_DB="$TEST_DATABASE" \
+            test odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$TEST_DATABASE" \
+            --shell-interface=python \
+            < scripts/odoo/enforce_product_module_scope.py
+          docker compose --profile test run --rm \
+            -e ODOO_INIT_DB="$TEST_DATABASE" \
+            test odoo --config=/etc/odoo/odoo.conf \
+            --database="$TEST_DATABASE" \
+            --update="$product_modules" \
+            --without-demo=true \
             --test-enable \
             --test-tags=/usl_access_control \
             --stop-after-init \
