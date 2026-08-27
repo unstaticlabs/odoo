@@ -3993,3 +3993,13 @@ msgstr "Choisir cette méthode"
 #. module: usl_sign
 msgid "Selected"
 msgstr "Sélectionnée"
+
+#. module: usl_sign
+#, python-format
+msgid "%s required field remaining"
+msgstr "%s champ obligatoire restant"
+
+#. module: usl_sign
+#, python-format
+msgid "%s required fields remaining"
+msgstr "%s champs obligatoires restants"
