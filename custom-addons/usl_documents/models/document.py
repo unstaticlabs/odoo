@@ -382,7 +382,7 @@ class UslDocument(models.Model):
             try:
                 target_model.check_access("read")
                 visible_target_ids = set(
-                    target_model.search(
+                    target_model.with_context(active_test=False).search(
                         [("id", "in", [link.res_id for link in model_links])],
                     ).ids,
                 )
