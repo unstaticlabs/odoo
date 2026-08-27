@@ -424,6 +424,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("qa-volumes", script)
         self.assertIn("usl_verify_compose_scope", script)
         self.assertIn("usl_compose_active_unsafe_resources", script)
+        self.assertIn("--profile accounting-compat", script)
         self.assertIn("down --volumes --remove-orphans", script)
         self.assertNotIn("docker system prune", script)
 

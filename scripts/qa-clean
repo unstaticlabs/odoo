@@ -38,7 +38,8 @@ compose=(
 if [[ -f "$pocket_env" ]]; then
   compose+=(--env-file "$pocket_env")
 fi
-"${compose[@]}" --profile paperless down --volumes --remove-orphans
+"${compose[@]}" --profile paperless --profile accounting-compat \
+  down --volumes --remove-orphans
 rm -f "$ROOT/artifacts/migration/private/qa-state/$compose_project.json"
 
 printf 'Removed isolated QA containers, network, and volumes: %s\n' \
