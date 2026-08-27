@@ -5039,12 +5039,6 @@ class SignRequestSigner(models.Model):
             "requested_trust": self.request_id.requested_trust,
             "trust_label": dict(TRUST_LEVELS)[self.request_id.requested_trust],
             "consent_text": self.request_id.consent_text_snapshot,
-            "proof_notice": _(
-                "Odoo records the network address observed by the server and "
-                "basic browser and device context. When you consent, your browser "
-                "will also ask whether you want to share an approximate location. "
-                "Declining location does not prevent signing.",
-            ),
             "document_sha256": hashlib.sha256(
                 field_content(self.request_id.data),
             ).hexdigest(),

@@ -3933,8 +3933,8 @@ msgid "I reviewed this document and agree to sign electronically."
 msgstr "J’ai relu ce document et j’accepte de le signer électroniquement."
 
 #. module: usl_sign
-msgid "What proof is recorded?"
-msgstr "Quelles preuves sont enregistrées ?"
+msgid "We record the network address and browser details used to sign. Sharing your approximate location is optional."
+msgstr "Nous enregistrons l’adresse réseau et les informations du navigateur utilisés pour signer. Le partage de votre position approximative est facultatif."
 
 #. module: usl_sign
 msgid "Saving and checking your signature…"
