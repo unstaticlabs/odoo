@@ -3,6 +3,10 @@
     <record id="view_company_rebuild_einvoice_readiness_list" model="ir.ui.view">
         <field name="name">res.company.einvoice.readiness.list</field>
         <field name="model">res.company</field>
+        <!-- This is an action-specific view. Keep native company views as the
+             default for generic res.company actions such as Settings >
+             Users & Companies > Companies. -->
+        <field name="priority" eval="90"/>
         <field name="arch" type="xml">
             <list create="0" delete="0">
                 <field name="name"/>
@@ -21,6 +25,7 @@
     <record id="view_company_rebuild_einvoice_readiness_form" model="ir.ui.view">
         <field name="name">res.company.einvoice.readiness.form</field>
         <field name="model">res.company</field>
+        <field name="priority" eval="90"/>
         <field name="arch" type="xml">
             <form create="0" delete="0">
                 <header>

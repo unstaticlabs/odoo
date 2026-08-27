@@ -932,6 +932,13 @@ class TestTesePayroll(AccountTestInvoicingCommon):
                 "usl_tese_payroll.view_company_form_tese_configuration",
             ).id,
         )
+        self.assertGreater(
+            self.env.ref(
+                "usl_tese_payroll.view_company_form_tese_configuration",
+            ).priority,
+            self.env.ref("base.view_company_form").priority,
+            "The dedicated TESE form must not replace native Company settings",
+        )
         with self.assertRaisesRegex(AccessError, "Accounting Administrator"):
             self.company.with_user(
                 self.workflow_user,

@@ -34,6 +34,9 @@
     <record id="view_company_form_tese_configuration" model="ir.ui.view">
         <field name="name">res.company.form.tese.configuration</field>
         <field name="model">res.company</field>
+        <!-- Selected explicitly by action_open_tese_configuration. It must
+             never replace Odoo's default company form for generic actions. -->
+        <field name="priority" eval="90"/>
         <field name="arch" type="xml">
             <form string="TESE Settings"
                   create="false"
