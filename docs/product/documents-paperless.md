@@ -192,8 +192,11 @@ Odoo separately reconciles the review state of an archive root. It may promote
 available, has a company, synchronized permissions, an existing authoritative
 business relationship, consistent link companies, and a document type or tag.
 Unlinked external intake, policy conflicts, missing records, and permission
-errors remain visible for review. The same bounded reconciler runs every five
-minutes and at the end of the Documents migration.
+errors remain visible for review. Classification is reconciled immediately
+after archive context or a manual business relationship is applied, after a
+completed Paperless synchronization, and at the end of the Documents
+migration. A twice-daily unbounded recovery sweep catches interrupted or
+historical work; it is a safety net rather than the normal processing path.
 
 Two broader alternatives were rejected. Trusting all metadata assigned by
 Paperless would clear the Inbox fastest, but it cannot establish Odoo company

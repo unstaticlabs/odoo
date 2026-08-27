@@ -1611,7 +1611,7 @@ class UslDocument(models.Model):
 
     @api.model
     def cron_reconcile_linked_classification(self):
-        return self.reconcile_linked_classification(limit=1000)
+        return self.reconcile_linked_classification(limit=0)
 
     @api.model
     def sync_from_paperless(self, *, full=False, limit_pages=None, client=None):
@@ -4345,6 +4345,7 @@ class UslDocumentLink(models.Model):
                 ).write(diagnostics)
             if not self.env.context.get("usl_documents_defer_access_sync"):
                 document._recompute_linked_record_access(sync_permissions=True)
+                document.reconcile_linked_classification(limit=1000)
             return existing
         if not document.company_id:
             document.sudo().with_context(usl_documents_policy_write=True).write(
@@ -4385,6 +4386,7 @@ class UslDocumentLink(models.Model):
         )
         if not self.env.context.get("usl_documents_defer_access_sync"):
             document._recompute_linked_record_access(sync_permissions=True)
+            document.reconcile_linked_classification(limit=1000)
         return link
 
     def action_open_record(self):

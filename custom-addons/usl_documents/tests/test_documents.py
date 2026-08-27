@@ -2956,28 +2956,37 @@ class TestDocuments(TransactionCase):
             review_state="needs_attention",
             document_type_id=document_type.id,
         )
-        self.env["usl.document.link"].sudo().with_context(
-            usl_documents_link_policy_write=True,
-        ).create(
+        document._apply_archive_context(
             {
-                "document_id": document.id,
-                "res_model": "res.partner",
-                "res_id": self.partner_a.id,
-                "record_name": self.partner_a.display_name,
                 "company_id": self.company_a.id,
-                "linked_by_id": self.manager.id,
-                "archive_mode": "automatic",
-                "policy_role": "library",
-                "document_role": "library",
-                "attachment_origin": "backfill",
-                "policy_reason": "business_record_default",
+                "confidentiality": "internal",
+                "accounting_evidence": False,
+                "access_scope": "linked_record",
+                "related_records": [
+                    {"model": "res.partner", "id": self.partner_a.id},
+                ],
             },
+            submitted_by=self.manager,
+            access_user=self.env.ref("base.user_root"),
         )
 
-        result = self.env["usl.document"].reconcile_linked_classification()
-
-        self.assertEqual(result["classified"], 1)
         self.assertEqual(document.review_state, "classified")
+        self.assertTrue(
+            document.link_ids.filtered(
+                lambda link: (
+                    link.res_model == "res.partner"
+                    and link.res_id == self.partner_a.id
+                ),
+            ),
+        )
+
+    def test_classification_cron_is_only_a_twice_daily_safety_net(self):
+        cron = self.env.ref(
+            "usl_documents.ir_cron_usl_documents_classification",
+        )
+
+        self.assertEqual(cron.interval_number, 12)
+        self.assertEqual(cron.interval_type, "hours")
 
     def test_archive_automation_preserves_rules_and_enables_learning(self):
         learnable = self._document_type(

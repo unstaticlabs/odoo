@@ -4,6 +4,23 @@ from odoo import _, api, fields, models
 class UslTesePayslip(models.Model):
     _inherit = "usl.tese.payslip"
 
+    @api.model_create_multi
+    def create(self, values_list):
+        payslips = super().create(values_list)
+        payslips._reconcile_documents_after_attachment_change()
+        return payslips
+
+    def write(self, values):
+        result = super().write(values)
+        if "attachment_id" in values:
+            self._reconcile_documents_after_attachment_change()
+        return result
+
+    def _reconcile_documents_after_attachment_change(self):
+        if self.env.context.get("usl_tese_skip_immediate_document_reconciliation"):
+            return {"reconciled": 0, "queued": 0}
+        return self.filtered("attachment_id")._reconcile_archived_payslip_document()
+
     def _document_archive_policy(self, attachment):
         policy = super()._document_archive_policy(attachment)
         if policy["archive_mode"] == "never":
@@ -101,7 +118,6 @@ class UslTesePayslip(models.Model):
         payslips = self.sudo().search(
             [("attachment_id", "!=", False)],
             order="id",
-            limit=500,
         )
         links = self.env["usl.document.link"].sudo().search(
             [
@@ -110,21 +126,30 @@ class UslTesePayslip(models.Model):
                 ("active", "=", True),
             ],
         )
-        by_payslip = {link.res_id: link.document_id for link in links}
+        by_payslip = {}
+        for link in links:
+            by_payslip.setdefault(
+                link.res_id,
+                self.env["usl.document"],
+            )
+            by_payslip[link.res_id] |= link.document_id
         pending = payslips.filtered(
-            lambda payslip: (
-                not by_payslip.get(payslip.id)
-                or by_payslip[payslip.id].document_type_id.name != "Payroll record"
-                or by_payslip[payslip.id].confidentiality != "hr"
-                or not {"HR", "Payroll"}.issubset(
-                    set(by_payslip[payslip.id].tag_ids.mapped("name")),
+            lambda payslip: not any(
+                document.document_type_id.name == "Payroll record"
+                and document.confidentiality == "hr"
+                and {"HR", "Payroll"}.issubset(
+                    set(document.tag_ids.mapped("name")),
                 )
-                or not by_payslip[payslip.id].link_ids.filtered(
-                    lambda link: (
-                        link.active
-                        and link.res_model == "hr.employee"
-                        and link.res_id == payslip.employee_id.id
+                and document.link_ids.filtered(
+                    lambda document_link: (
+                        document_link.active
+                        and document_link.res_model == "hr.employee"
+                        and document_link.res_id == payslip.employee_id.id
                     ),
+                )
+                for document in by_payslip.get(
+                    payslip.id,
+                    self.env["usl.document"],
                 )
             ),
         )
@@ -172,3 +197,34 @@ class UslDocumentLink(models.Model):
 
     def _allowed_models(self):
         return super()._allowed_models() | {"usl.tese.payslip"}
+
+
+class UslDocumentOperation(models.Model):
+    _inherit = "usl.document.operation"
+
+    def write(self, values):
+        result = super().write(values)
+        if values.get("state") != "archived":
+            return result
+        completed = self.filtered(
+            lambda operation: (
+                operation.source_attachment_id
+                and (operation.document_id or operation.target_document_id)
+            ),
+        )
+        if not completed:
+            return result
+        payslips = self.env["usl.tese.payslip"].sudo().search(
+            [
+                (
+                    "attachment_id",
+                    "in",
+                    completed.mapped("source_attachment_id").ids,
+                ),
+            ],
+        )
+        if payslips:
+            payslips.with_context(
+                usl_tese_skip_immediate_document_reconciliation=True,
+            )._reconcile_archived_payslip_document()
+        return result

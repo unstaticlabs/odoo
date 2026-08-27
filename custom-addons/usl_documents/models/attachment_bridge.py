@@ -431,6 +431,7 @@ class UslDocument(models.Model):
                     ),
                 )
             document._recompute_linked_record_access(sync_permissions=True)
+        self.reconcile_linked_classification(limit=1000)
         return True
 
     def _register_trashed_archive_context(

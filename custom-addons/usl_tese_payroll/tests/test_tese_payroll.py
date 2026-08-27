@@ -235,6 +235,14 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             payslip._document_related_records(payslip.attachment_id),
         )
 
+    def test_document_reconciliation_cron_is_a_twice_daily_safety_net(self):
+        cron = self.env.ref(
+            "usl_tese_payroll.ir_cron_tese_reconcile_documents",
+        )
+
+        self.assertEqual(cron.interval_number, 12)
+        self.assertEqual(cron.interval_type, "hours")
+
     def test_prepare_snapshots_profile_and_handles_leap_year(self):
         payslip = self._new_payslip(
             month=2,
