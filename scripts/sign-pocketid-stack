@@ -279,6 +279,7 @@ upgrade_qa() {
     || "${COMPOSE[@]}" build usl-sign-dss
   "${COMPOSE[@]}" up -d --wait \
     db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver
+  provision_pocket
   "${COMPOSE[@]}" stop odoo
   if ! "${COMPOSE[@]}" --profile init run --rm \
     -e ODOO_INIT_DB=odoo_dev \
@@ -367,7 +368,8 @@ opentimestamps_live_smoke() {
 
 configure_paperless_only() {
   load_environment
-  "${COMPOSE[@]}" up -d --wait db paperless-webserver
+  "${COMPOSE[@]}" up -d --wait db pocket-id paperless-webserver
+  provision_pocket
   configure_paperless
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
 }
