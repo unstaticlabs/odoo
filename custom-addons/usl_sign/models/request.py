@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import secrets
+import zipfile
 from datetime import timedelta
 from io import BytesIO
 from urllib.parse import quote
@@ -440,7 +441,7 @@ class SignRequest(models.Model):
                 "completion_certificate", sign_request.completion_filename,
             ),
             "evidence_url": content_url(
-                "evidence_manifest", f"{sign_request.name}-signed-evidence-manifest.json",
+                "evidence_manifest", "evidence-manifest.json",
             )
             if sign_request.evidence_manifest
             else False,
@@ -2411,6 +2412,298 @@ class SignRequest(models.Model):
         pdf.save()
         return stream.getvalue()
 
+    @staticmethod
+    def _dossier_artifact(kind, name, content, mimetype, description):
+        return {
+            "kind": kind,
+            "name": name,
+            "content": content,
+            "sha256": hashlib.sha256(content).hexdigest(),
+            "size": len(content),
+            "mimetype": mimetype,
+            "relationship": "Data" if kind == "signed" else "Supplement",
+            "description": description,
+        }
+
+    def _technical_validation_reports_zip(self):
+        self.ensure_one()
+        reports = self.evidence_ids.filtered(lambda row: row.kind == "validation").sorted(
+            lambda row: (
+                str((row.metadata or {}).get("engine") or ""),
+                str((row.metadata or {}).get("report") or ""),
+                row.sha256,
+                row.name,
+            ),
+        )
+        stream = BytesIO()
+        index = []
+        entries = []
+        for sequence, evidence in enumerate(reports, start=1):
+            extension = {
+                "application/json": "json",
+                "application/xml": "xml",
+                "text/xml": "xml",
+            }.get(evidence.mimetype, "bin")
+            metadata = evidence.metadata or {}
+            engine = str(metadata.get("engine") or "validation").lower()
+            engine = "".join(character if character.isalnum() else "-" for character in engine)
+            engine = "-".join(filter(None, engine.split("-"))) or "validation"
+            report = str(metadata.get("report") or "report").lower()
+            report = "".join(character if character.isalnum() else "-" for character in report)
+            report = "-".join(filter(None, report.split("-"))) or "report"
+            filename = f"{sequence:02d}-{engine}-{report}.{extension}"
+            content = field_content(evidence.data)
+            entries.append((filename, content))
+            index.append(
+                {
+                    "name": filename,
+                    "engine": metadata.get("engine") or "Not recorded",
+                    "report": metadata.get("report") or "validation result",
+                    "sha256": evidence.sha256,
+                    "mimetype": evidence.mimetype,
+                },
+            )
+        with zipfile.ZipFile(
+            stream,
+            mode="w",
+            compression=zipfile.ZIP_DEFLATED,
+            compresslevel=9,
+        ) as archive:
+            index_info = zipfile.ZipInfo("index.json", date_time=(1980, 1, 1, 0, 0, 0))
+            index_info.compress_type = zipfile.ZIP_DEFLATED
+            index_info.external_attr = 0o100644 << 16
+            archive.writestr(
+                index_info,
+                json.dumps(
+                    {
+                        "format": "usl-sign-technical-validation-index-v1",
+                        "reports": index,
+                    },
+                    sort_keys=True,
+                    indent=2,
+                    ensure_ascii=False,
+                ).encode(),
+            )
+            for filename, content in entries:
+                info = zipfile.ZipInfo(filename, date_time=(1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o100644 << 16
+                archive.writestr(info, content)
+        return stream.getvalue()
+
+    def _dossier_artifacts_v2(self):
+        self.ensure_one()
+        source_documents = self.document_ids.sorted(lambda row: (row.sequence, row.id))
+        original = (
+            field_content(source_documents.data)
+            if len(source_documents) == 1
+            else field_content(self.original_data)
+        )
+        original = original or field_content(self.original_data) or field_content(self.final_data)
+        frozen = field_content(self.original_data) or original
+        completed_signers = self.signer_ids.sorted(lambda row: (row.sequence, row.id))
+        signing_summary = {
+            "format": "usl-sign-signing-summary-v2",
+            "request": self.name,
+            "company": self.company_id.name,
+            "completed_at": fields.Datetime.to_string(self.completed_at),
+            "method": self.requested_trust,
+            "achieved_trust": self.achieved_trust,
+            "policy": {
+                "name": (self.policy_snapshot or {}).get("name"),
+                "version": self.policy_version,
+            },
+            "proof": {
+                "signer_attestations": (
+                    len(completed_signers) if self.requested_trust == "standard" else 0
+                ),
+                "personal_pades_signatures": (
+                    len(completed_signers)
+                    if self.requested_trust == "strong_personal"
+                    else 0
+                ),
+                "platform_integrity_seals": (
+                    1 if self.requested_trust in {"standard", "strong_personal"} else 0
+                ),
+                "expected_pdf_signature_count": self._expected_final_signature_count(),
+            },
+            "signers": [
+                {
+                    "name": signer.partner_id.name,
+                    "role": signer.role_id.name,
+                    "order": sequence,
+                    "status": signer.state,
+                    "signed_at": fields.Datetime.to_string(signer.signed_on),
+                    "authentication": signer.authentication_method or None,
+                    "pdf_proof": (
+                        "personal_pades_signature"
+                        if self.requested_trust == "strong_personal"
+                        else "signer_attestation"
+                    ),
+                    "certificate_serial": (
+                        signer.certificate_serial
+                        if self.requested_trust == "strong_personal"
+                        else None
+                    ),
+                }
+                for sequence, signer in enumerate(completed_signers, start=1)
+            ],
+            "documents": [
+                {
+                    "name": document.filename,
+                    "order": sequence,
+                    "annex": document.is_annex,
+                    "sha256": document.source_sha256,
+                }
+                for sequence, document in enumerate(source_documents, start=1)
+            ],
+            "consent_sha256": hashlib.sha256(
+                (self.consent_text_snapshot or "").encode(),
+            ).hexdigest(),
+            "privacy": (
+                "Raw authentication, network, browser, and optional location evidence "
+                "remains in reviewer-only Odoo storage and is not copied into this dossier."
+            ),
+        }
+        signer_names = {
+            signer.id: signer.partner_id.name for signer in completed_signers
+        }
+        event_history = {
+            "format": "usl-sign-event-history-v2",
+            "sanitized": True,
+            "chain_head": self.event_ids.verify_chain().event_hash or None,
+            "events": [
+                {
+                    "sequence": event.sequence,
+                    "event": event.event_type,
+                    "occurred_at": fields.Datetime.to_string(event.occurred_at),
+                    "signer": signer_names.get(event.signer_id.id),
+                    "authentication": event.authentication_method or None,
+                    "state_from": event.state_from or None,
+                    "state_to": event.state_to or None,
+                    "previous_hash": event.previous_hash or None,
+                    "event_hash": event.event_hash,
+                }
+                for event in self.event_ids.sorted(lambda row: row.sequence)
+            ],
+        }
+        validation_summary = {
+            "format": "usl-sign-validation-summary-v2",
+            "authority": "EU DSS",
+            "independent_cross_check": "pyHanko",
+            "trust_limit": (
+                "The browser checker verifies integrity offline. Current trust-list, "
+                "qualification, and revocation decisions require maintained authoritative data."
+            ),
+            "runs": [
+                {
+                    "engine": validation.engine,
+                    "engine_version": validation.engine_version,
+                    "expected_trust": validation.expected_trust,
+                    "achieved_trust": validation.achieved_trust,
+                    "status": validation.status,
+                    "signature_count": validation.signature_count,
+                    "qualified_provider": validation.qualified_provider or None,
+                    "summary": validation.summary,
+                }
+                for validation in self.validation_ids.sorted(
+                    lambda row: (row.create_date, row.id),
+                )
+            ],
+        }
+        chain_evidence = self.evidence_ids.filtered(
+            lambda row: row.kind == "certificate"
+            and (row.metadata or {}).get("operation") == "CMS certificate extraction",
+        ).sorted(
+            lambda row: ((row.metadata or {}).get("signature_count") or 0, row.id),
+            reverse=True,
+        )[:1]
+        if not chain_evidence:
+            msg = "The validated PDF certificate chains are unavailable for the proof package."
+            raise UserError(msg)
+        artifacts = [
+            self._dossier_artifact(
+                "original",
+                "original-document.pdf",
+                original,
+                "application/pdf",
+                "Original document supplied for signing",
+            ),
+            self._dossier_artifact(
+                "frozen",
+                "frozen-document.pdf",
+                frozen,
+                "application/pdf",
+                "Frozen document revision reviewed by the signers",
+            ),
+            self._dossier_artifact(
+                "signed",
+                "signed-document.pdf",
+                field_content(self.final_data),
+                "application/pdf",
+                "Final independently validated signed document",
+            ),
+            self._dossier_artifact(
+                "completion",
+                "completion-certificate.pdf",
+                field_content(self.completion_certificate),
+                "application/pdf",
+                "Human-readable completion receipt",
+            ),
+            self._dossier_artifact(
+                "signing_summary",
+                "signing-summary.json",
+                json.dumps(signing_summary, sort_keys=True, indent=2, ensure_ascii=False).encode(),
+                "application/json",
+                "Plain signing and authentication summary",
+            ),
+            self._dossier_artifact(
+                "event_history",
+                "event-history.json",
+                json.dumps(event_history, sort_keys=True, indent=2, ensure_ascii=False).encode(),
+                "application/json",
+                "Sanitized lifecycle history and integrity hashes",
+            ),
+            self._dossier_artifact(
+                "validation_summary",
+                "validation-summary.json",
+                json.dumps(
+                    validation_summary, sort_keys=True, indent=2, ensure_ascii=False,
+                ).encode(),
+                "application/json",
+                "Plain validation summary and trust limits",
+            ),
+            self._dossier_artifact(
+                "certificate_chains",
+                "certificate-chains.json",
+                field_content(chain_evidence.data),
+                "application/json",
+                "Certificates embedded in every PDF signature",
+            ),
+            self._dossier_artifact(
+                "technical_validation_reports",
+                "technical-validation-reports.zip",
+                self._technical_validation_reports_zip(),
+                "application/zip",
+                "Detailed validation reports with a readable index",
+            ),
+        ]
+        timestamp_evidence = self.evidence_ids.filtered(
+            lambda row: row.kind == "timestamp",
+        ).sorted(lambda row: (row.created_at, row.sha256))
+        for sequence, evidence in enumerate(timestamp_evidence, start=1):
+            extension = "json" if evidence.mimetype == "application/json" else "ots"
+            artifacts.append(
+                self._dossier_artifact(
+                    "timestamp_receipt",
+                    f"timestamp-receipt-{sequence:02d}.{extension}",
+                    field_content(evidence.data),
+                    evidence.mimetype,
+                    "Optional independent timestamp receipt",
+                ),
+            )
+        return artifacts
+
     def _build_completion_evidence(self):
         self.ensure_one()
         certificate = self._completion_certificate_pdf()
@@ -2485,30 +2778,34 @@ class SignRequest(models.Model):
             ).encode(),
             mimetype="application/json",
         )
+        artifacts = self._dossier_artifacts_v2()
         manifest_payload = {
-            "format": "usl-sign-evidence-manifest-v1",
-            "request_id": self.id,
+            "format": "usl-sign-evidence-manifest-v2",
             "request_name": self.name,
-            "company_id": self.company_id.id,
+            "company": self.company_id.name,
             "requested_trust": self.requested_trust,
             "achieved_trust": self.achieved_trust,
-            "original_sha256": self.original_sha256,
+            "original_sha256": next(
+                artifact["sha256"] for artifact in artifacts if artifact["kind"] == "original"
+            ),
+            "frozen_sha256": next(
+                artifact["sha256"] for artifact in artifacts if artifact["kind"] == "frozen"
+            ),
             "final_sha256": self.final_sha256,
             "event_head": head.event_hash if head else None,
             "policy_version": self.policy_version,
-            "policy_snapshot": self.policy_snapshot,
-            "signer_snapshot": self.signer_snapshot,
             "consent_sha256": hashlib.sha256(
                 (self.consent_text_snapshot or "").encode(),
             ).hexdigest(),
             "artifacts": [
                 {
-                    "kind": evidence.kind,
-                    "name": evidence.name,
-                    "sha256": evidence.sha256,
+                    "kind": artifact["kind"],
+                    "name": artifact["name"],
+                    "sha256": artifact["sha256"],
+                    "size": artifact["size"],
+                    "mimetype": artifact["mimetype"],
                 }
-                for evidence in self.evidence_ids
-                if evidence.kind not in {"manifest", "dossier"}
+                for artifact in artifacts
             ],
         }
         manifest = json.dumps(
@@ -2532,14 +2829,14 @@ class SignRequest(models.Model):
         ).encode()
         manifest_evidence = self._create_evidence(
             "manifest",
-            f"{self.name}-signed-evidence-manifest.json",
+            "evidence-manifest.json",
             manifest,
             mimetype="application/json",
         )
         self.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
             {"evidence_manifest": manifest_evidence.data},
         )
-        dossier = self._build_dossier_pdf(manifest)
+        dossier = self._build_dossier_pdf(manifest, artifacts=artifacts)
         try:
             preflight = self._sign_dss_client().validate_pdfa(dossier)
             if not preflight.get("compliant"):
@@ -2554,7 +2851,10 @@ class SignRequest(models.Model):
                 mimetype="application/json",
                 metadata={"engine": "veraPDF", "version": "1.30.2", "profile": "PDF/A-3b"},
             )
-            dossier = self._build_dossier_pdf(manifest)
+            # Rebuild from the exact same signed artifact set. The preflight
+            # result is retained in reviewer-only Odoo evidence so the dossier
+            # cannot invalidate its own already-signed manifest.
+            dossier = self._build_dossier_pdf(manifest, artifacts=artifacts)
             sealed = self._sign_dss_client().seal(
                 dossier,
                 request_reference=f"USL-SIGN-DOSSIER-{self.id}",
@@ -2595,78 +2895,31 @@ class SignRequest(models.Model):
             },
         )
 
-    def _build_dossier_pdf(self, manifest):
+    def _build_dossier_pdf(self, manifest, *, artifacts=None):
         self.ensure_one()
         trust_labels = dict(TRUST_LEVELS)
-        artifacts = [
-            {
-                "name": f"final-{self.final_filename}",
-                "content": field_content(self.final_data),
-                "mimetype": "application/pdf",
-                "relationship": "Data",
-                "description": "Final independently validated signed document",
-            },
-            {
-                "name": f"manifest-{self.name}-signed-evidence-manifest.json",
-                "content": manifest,
-                "mimetype": "application/json",
-                "relationship": "Supplement",
-                "description": "Platform-signed canonical evidence manifest",
-            },
-        ]
-        for evidence in self.evidence_ids.filtered(
-            lambda row: row.kind
-            not in {"authentication", "manifest", "dossier", "signed"},
-        ):
-            artifacts.append(
-                {
-                    "name": f"{evidence.kind}-{evidence.id}-{evidence.name}",
-                    "content": field_content(evidence.data),
-                    "mimetype": evidence.mimetype,
-                    "relationship": "Supplement",
-                    "description": dict(evidence._fields["kind"].selection).get(
-                        evidence.kind, "Evidence artifact",
-                    ),
-                },
-            )
-        for evidence in self.evidence_ids.filtered(
-            lambda row: row.kind == "authentication",
-        ):
-            metadata = evidence.metadata or {}
-            summary = {
-                "format": "usl-sign-authentication-summary-v1",
-                "artifact_sha256": evidence.sha256,
-                "ceremony_id": metadata.get("ceremony_id"),
-                "issuer": metadata.get("issuer"),
-                "subject_fingerprint": metadata.get("subject_fingerprint"),
-                "auth_time": metadata.get("auth_time"),
-                "claims": metadata.get("claims"),
-                "validation": metadata.get("validation"),
-            }
-            artifacts.append(
-                {
-                    "name": f"authentication-summary-{evidence.id}.json",
-                    "content": json.dumps(
-                        summary,
-                        sort_keys=True,
-                        separators=(",", ":"),
-                        ensure_ascii=False,
-                    ).encode(),
-                    "mimetype": "application/json",
-                    "relationship": "Supplement",
-                    "description": "Validated Pocket ID passkey authorization summary",
-                },
-            )
+        artifacts = list(artifacts or self._dossier_artifacts_v2())
+        artifacts.append(
+            self._dossier_artifact(
+                "manifest",
+                "evidence-manifest.json",
+                manifest,
+                "application/json",
+                "Platform-signed canonical evidence manifest",
+            ),
+        )
         result = self._sign_dss_client().build_dossier(
             title=f"{self.company_id.name} signing evidence - {self.name}",
             summary=[
-                "Purpose: audit proof package; use the separately archived signed PDF as the document of record",
-                f"Signed PDF embedded in this package: final-{self.final_filename}",
-                "To extract the original files, open this PDF's attachments panel in a compatible PDF reader",
+                "Purpose: human-auditable proof package; signed-document.pdf is the document of record",
+                "Signature proof: see signing-summary.json for signer attestations, personal signatures, and the platform seal",
+                "Validation: see validation-summary.json for results and the limits of offline checks",
+                "Privacy: raw network, browser, location, and authentication evidence stays in restricted Odoo storage",
+                "Files use stable names; open the PDF attachments panel to extract them",
                 f"Company: {self.company_id.name}",
                 f"Requested trust: {trust_labels.get(self.requested_trust, self.requested_trust)}",
                 f"Achieved trust: {trust_labels.get(self.achieved_trust, self.achieved_trust or 'Not established')}",
-                f"Original SHA-256: {self.original_sha256}",
+                f"Original SHA-256: {next(item['sha256'] for item in artifacts if item['kind'] == 'original')}",
                 f"Final SHA-256: {self.final_sha256}",
                 f"Policy version: {self.policy_version}",
                 "PDF signature validation authority: EU DSS 6.4",
