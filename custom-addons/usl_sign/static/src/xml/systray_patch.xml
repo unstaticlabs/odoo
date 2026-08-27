@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignerMenu" t-inherit="sign_oca.SignerMenu" t-inherit-mode="extension">
+        <xpath expr="//div[@name='activityGroups']" position="replace">
+            <div name="activityGroups" class="usl_sign_systray_requests">
+                <t t-foreach="state.signerGroups" t-as="group" t-key="group.id">
+                    <div class="usl_sign_systray_heading">
+                        <span><strong>Sign now</strong><small>Documents waiting for your signature</small></span>
+                        <span class="badge rounded-pill text-bg-secondary" t-out="group.total_records"/>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a t-foreach="group.items" t-as="item" t-key="item.id"
+                           class="list-group-item list-group-item-action usl_sign_systray_request"
+                           t-att-href="item.url" target="_blank" rel="noopener noreferrer">
+                            <span class="usl_sign_systray_request_icon" aria-hidden="true"><i class="fa fa-file-text-o"/></span>
+                            <span class="min-w-0 flex-grow-1">
+                                <strong class="d-block text-truncate" t-out="item.title"/>
+                                <small class="d-block text-muted text-truncate" t-out="item.subtitle"/>
+                            </span>
+                            <span class="badge text-bg-light" t-out="item.trust"/>
+                            <i class="fa fa-external-link text-muted" aria-hidden="true"/>
+                        </a>
+                    </div>
+                    <button t-if="group.total_records > group.items.length" type="button"
+                            class="btn btn-link w-100 text-start usl_sign_systray_all"
+                            t-on-click="() => this.onClickFilterButton(group)">
+                        View all <t t-out="group.total_records"/> documents
+                    </button>
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

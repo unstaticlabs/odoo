@@ -588,7 +588,7 @@ class SignRequest(models.Model):
                 )
             elif request.state == "validation_failed":
                 request.blocking_summary = _(
-                    "The signed document failed verification. Open Result & proof for details.",
+                    "The signed document failed verification. Open Method, result & proof for details.",
                 )
             else:
                 request.blocking_summary = request.next_step or ""
@@ -2305,7 +2305,11 @@ class SignRequest(models.Model):
                 raise ValidationError(msg)
             if request.archive_status in {"pending", "processing", "archived"} and not force:
                 continue
-            archive_actor = self.env.ref("base.user_root")
+            # Attribute the controlled server-side upload to the requester so
+            # private Documents ownership remains meaningful. ``sudo`` below
+            # supplies the service privilege; the signer never needs archive
+            # permissions.
+            archive_actor = request.user_id
             artifacts = (
                 (
                     "signed_document",
@@ -2482,6 +2486,33 @@ class SignRequest(models.Model):
             archive_complete = bool(
                 request.archive_document_id and request.archive_dossier_document_id,
             )
+            if archive_complete:
+                try:
+                    request._share_archived_files_with_participants()
+                except Exception as error:  # noqa: BLE001
+                    request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+                        {
+                            "archive_status": "failed",
+                            "archive_last_error": (
+                                "The final files are stored, but participant access "
+                                "could not be synchronized with Paperless."
+                            ),
+                            "last_error": "Final archive access synchronization failed.",
+                            "recovery_action": (
+                                "Check Paperless user mappings and permissions, then "
+                                "retry final storage."
+                            ),
+                            "evidence_status": "incomplete",
+                        },
+                    )
+                    request._append_event(
+                        "archive_reconciliation_failed",
+                        payload={
+                            "artifact": "participant_access",
+                            "error": type(error).__name__,
+                        },
+                    )
+                    continue
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
                     "archive_status": "archived" if archive_complete else "processing",

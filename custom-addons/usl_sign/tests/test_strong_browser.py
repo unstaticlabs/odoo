@@ -455,7 +455,7 @@ class TestSignBrowserJourneys(HttpCase):
                     "Status",
                     "Overview",
                     "Files",
-                    "Result & proof",
+                    "Method, result & proof",
                 ]) {{
                     if (!formText.includes(expected)) {{
                         throw new Error(`Request review is missing: ${{expected}}`);
@@ -832,6 +832,24 @@ class TestSignBrowserJourneys(HttpCase):
                 "default_value": initials_field.default_value,
                 "placeholder": "",
             },
+            "8": {
+                "id": 8,
+                "field_id": initials_field.id,
+                "field_type": initials_field.field_type,
+                "kind": "initials",
+                "required": True,
+                "name": initials_field.name,
+                "role_id": role.id,
+                "tabindex": 8,
+                "page": 1,
+                "position_x": 53,
+                "position_y": 56,
+                "width": 24,
+                "height": 8,
+                "value": False,
+                "default_value": initials_field.default_value,
+                "placeholder": "",
+            },
         }
         sign_request = self.env["sign.oca.request"].create(
             {
@@ -931,6 +949,11 @@ class TestSignBrowserJourneys(HttpCase):
                     "document_id": archived.id,
                     "message": "Checksum-identical dossier reused.",
                 },
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "action_sync_permissions",
+                autospec=True,
             ),
         ):
             self.browser_js(
@@ -1054,6 +1077,12 @@ class TestSignBrowserJourneys(HttpCase):
                             "The signature field opened more than one dialog."
                         );
                     }
+                    const signatureName = document.querySelector(
+                        ".modal .o_web_sign_name_input",
+                    );
+                    signatureName.value = "Preferred Legal Name";
+                    signatureName.dispatchEvent(new InputEvent("input", {bubbles: true}));
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                     adoptButton.click();
                     for (
                         let attempt = 0;
@@ -1102,9 +1131,9 @@ class TestSignBrowserJourneys(HttpCase):
                     const initialsName = initialsModal.querySelector(
                         ".o_web_sign_name_input",
                     );
-                    if (initialsName?.value !== "Browser Passkey Signer") {
+                    if (initialsName?.value !== "Preferred Legal Name") {
                         throw new Error(
-                            "The initials suggestion did not use the signer name."
+                            "The initials dialog did not preserve the adopted full name."
                         );
                     }
                     initialsButton.click();
@@ -1121,6 +1150,21 @@ class TestSignBrowserJourneys(HttpCase):
                         '.o_sign_oca_field[data-field="7"] img',
                     )) {
                         throw new Error("The adopted initials were not placed.");
+                    }
+                    const repeatedInitials = iframe.contentDocument?.querySelector(
+                        '.o_sign_oca_field[data-field="8"]',
+                    );
+                    repeatedInitials.click();
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    if (
+                        document.querySelector(".modal") ||
+                        !iframe.contentDocument?.querySelector(
+                            '.o_sign_oca_field[data-field="8"] img',
+                        )
+                    ) {
+                        throw new Error(
+                            "Repeated initials did not reuse the adopted choice automatically."
+                        );
                     }
                     emailInput.value = "invalid-address";
                     emailInput.dispatchEvent(new InputEvent("input", {bubbles: true}));
@@ -1209,6 +1253,10 @@ class TestSignBrowserJourneys(HttpCase):
             sign_request.signatory_data["7"]["value"].startswith(
                 "data:image/png;base64,",
             ),
+        )
+        self.assertEqual(
+            sign_request.signatory_data["8"]["value"],
+            sign_request.signatory_data["7"]["value"],
         )
         consent_evidence = sign_request.evidence_ids.filtered(
             lambda evidence: evidence.kind == "consent",

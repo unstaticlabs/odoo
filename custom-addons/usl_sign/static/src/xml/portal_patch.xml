@@ -28,10 +28,37 @@
             <div>
                 <p class="text-muted">Use the initials you want placed in this document. Your name is shortened to initials automatically; you can also draw or upload them.</p>
                 <NameAndSignature t-props="this.nameAndSignatureProps"/>
+                <label class="form-check mt-3 mb-0">
+                    <input class="form-check-input" type="checkbox" t-att-checked="adoption.autoFill" t-on-change="onAutoFillChanged"/>
+                    <span class="form-check-label">
+                        <strong class="d-block">Automatically fill repeated initials</strong>
+                        <small class="text-muted">Reuse these initials for the remaining Initials fields as you continue through this document.</small>
+                    </span>
+                </label>
                 <div class="mt16 small">By continuing, I agree to use these initials as my electronic initials on this document.</div>
             </div>
             <t t-set-slot="footer">
                 <button class="btn btn-primary" t-att-disabled="this.signature.isSignatureEmpty" t-on-click="this.onClickConfirm">Adopt Initials</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="usl_sign.PersonalSignatureDialog">
+        <Dialog title="'Adopt Your Signature'">
+            <div>
+                <p class="text-muted">Choose the signature you want to use in this document. You can type your full name, draw, or upload it.</p>
+                <NameAndSignature t-props="this.nameAndSignatureProps"/>
+                <label class="form-check mt-3 mb-0">
+                    <input class="form-check-input" type="checkbox" t-att-checked="adoption.autoFill" t-on-change="onAutoFillChanged"/>
+                    <span class="form-check-label">
+                        <strong class="d-block">Automatically fill repeated signatures</strong>
+                        <small class="text-muted">Reuse this signature for the remaining Signature fields as you continue through this document.</small>
+                    </span>
+                </label>
+                <div class="mt16 small">By continuing, I agree to use this electronic signature on this document.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="this.signature.isSignatureEmpty" t-on-click="this.onClickConfirm">Adopt Signature</button>
                 <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
             </t>
         </Dialog>

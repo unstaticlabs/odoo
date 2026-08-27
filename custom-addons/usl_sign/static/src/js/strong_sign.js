@@ -319,10 +319,10 @@
                 const ready = result.state === "active";
                 setPhase(container, ready ? "success" : "identity", {
                     tone: "success",
-                    title: ready ? "Ready for strong signatures" : "Setup complete",
+                    title: ready ? "Ready for strong signatures" : "Pocket ID connected",
                     message: ready
-                        ? "Your reviewed identity is active."
-                        : `${container.dataset.companyName} will review the account link. You do not need to keep this page open.`,
+                        ? "Your reviewed identity is active. You can now complete Strong personal signature requests."
+                        : `${container.dataset.companyName} will now confirm that this account belongs to you. You can close this page; after approval, you can complete Strong personal signature requests.`,
                 });
                 setButtonBusy(button, false, ready ? "Identity ready" : "Setup complete");
                 button.hidden = true;

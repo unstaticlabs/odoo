@@ -41,6 +41,32 @@ class DeclineDocumentDialog extends Component {
 
 class InitialsDialog extends SignatureDialog {
     static template = "usl_sign.InitialsDialog";
+    static props = {
+        ...SignatureDialog.props,
+        autoFillDefault: {type: Boolean, optional: true},
+    };
+
+    setup() {
+        super.setup();
+        this.adoption = useState({autoFill: this.props.autoFillDefault ?? true});
+    }
+
+    onAutoFillChanged(event) {
+        this.adoption.autoFill = event.currentTarget.checked;
+    }
+
+    onClickConfirm() {
+        this.props.uploadSignature({
+            name: this.signature.name,
+            signatureImage: this.signature.getSignatureImage(),
+            autoFill: this.adoption.autoFill,
+        });
+        this.props.close();
+    }
+}
+
+class PersonalSignatureDialog extends InitialsDialog {
+    static template = "usl_sign.PersonalSignatureDialog";
 }
 
 const signatureField = registry.category("sign_oca").get("signature");
@@ -172,14 +198,35 @@ patch(signatureField, {
         if (item.role_id === parent.info.role_id) {
             const openDialog = () => {
                 const initials = item.kind === "initials";
-                parent.dialogService.add(initials ? InitialsDialog : SignatureDialog, {
+                const preferenceKind = initials ? "initials" : "signature";
+                const preferences = (parent.uslSigningPreferences ||= {
+                    name: parent.info.partner.name,
+                    autoFill: true,
+                    initials: null,
+                    signature: null,
+                });
+                const saved = preferences[preferenceKind];
+                if (!item.value && saved?.autoFill) {
+                    this.uploadSignature(parent, item, signatureItem, saved);
+                    return;
+                }
+                parent.dialogService.add(initials ? InitialsDialog : PersonalSignatureDialog, {
                     nameAndSignatureProps: {
                         fontColor: "DarkBlue",
                         ...(initials ? {signatureType: "initial"} : {}),
                     },
-                    defaultName: parent.info.partner.name,
-                    uploadSignature: (data) =>
-                        this.uploadSignature(parent, item, signatureItem, data),
+                    defaultName: preferences.name,
+                    autoFillDefault: preferences.autoFill,
+                    uploadSignature: (data) => {
+                        preferences.name = data.name || preferences.name;
+                        preferences.autoFill = data.autoFill;
+                        preferences[preferenceKind] = {
+                            name: preferences.name,
+                            signatureImage: data.signatureImage,
+                            autoFill: data.autoFill,
+                        };
+                        this.uploadSignature(parent, item, signatureItem, data);
+                    },
                 });
             };
             signatureItem[0].addEventListener("focus_signature", openDialog);
