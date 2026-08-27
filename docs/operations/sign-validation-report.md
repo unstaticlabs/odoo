@@ -115,6 +115,40 @@ the application and use the native workflow of the relevant Odoo business app.
   review motion never claim verification. Motion stops under the browser's
   reduced-motion preference, and the public pages retain static content and
   viewport-unit fallbacks for older browsers.
+- **Requester and notification closure:** Request signatures persists the
+  selected method before field placement, explains its authentication and
+  retained proof, and discloses Strong signer order. Recently completed is
+  capped at five with a direct Completed Documents continuation; completed
+  workspaces are newest first. The Sign notification drawer lists actionable
+  assignments without horizontal overflow at desktop, mobile or zoomed widths.
+- **Unified signer workspace:** Standard and Strong use the same field state
+  model. Every assigned field remains manually fillable; the optional guide
+  only focuses incomplete fields and survives scrolling, resizing and manual
+  edits. Consent records the server-observed connection, bounded browser/device
+  context and the explicit granted, refused or unavailable location outcome.
+  Withholding browser location never blocks signing by itself.
+- **Strong PDF topology:** each signer receives a one-use candidate bound to
+  the unchanged base revision, completed fields, consent, browser evidence,
+  Pocket ID nonce, CSR and short-lived certificate. Personal PAdES revisions
+  are published sequentially under a request lock; the final platform seal is
+  applied only after every personal revision and certificate chain validates.
+  Candidate bytes and browser key context are cleared on every terminal path.
+- **Evidence dossier v2:** new packages use stable human-readable artifact
+  names and contain no database identifiers. The signed manifest covers the
+  original, frozen and signed documents, completion certificate, signing
+  summary, event history, validation summary, certificate chains, technical
+  reports ZIP and optional timestamp receipts. The checker retains v1 and
+  imported-dossier support and never reuses one embedded file for two manifest
+  entries.
+- **Archive operations:** Paperless permission synchronization groups documents
+  with identical ACLs into bounded batches, commits only successful batches and
+  isolates failures. Private QA uses an explicit browser origin, while Odoo's
+  own preview/download remains the authoritative fallback. Sign and Documents
+  share the same governed archive cards, previews, links and permissions.
+- **Administration:** native Settings → Users & Companies → Companies remains
+  unchanged. Accounting Managers receive a separate Settings → Users &
+  Companies → Electronic Invoicing entry for readiness controls; other users
+  cannot see or invoke that specialized action.
 
 ## Trust and evidence behavior
 
@@ -141,72 +175,63 @@ the application and use the native workflow of the relevant Odoo business app.
 
 ## Reproduced validation on this tip
 
-The following checks were run on the saas-19.3 worktree without a physical
-authenticator:
+The following checks were run from this worktree without a physical
+authenticator and with both regulatory live flags set to `0`:
 
-- `scripts/sign-qa-stack test` installed the module in a disposable database
-  and finished 124 post-test entries with zero failures and zero errors. Odoo
-  reported 94 Sign tests, 42 Pocket ID tests and six web-suite wrappers;
-- after the external-archive immutability regression exposed and prompted
-  removal of a controlled-context leak, `scripts/sign-qa-stack test /usl_sign`
-  was rerun cleanly: 88 post-test entries, 94 Sign tests, six web wrappers,
-  zero failures and zero errors;
-- desktop and mobile Sign frontend suites each passed 37 tests and 139
-  assertions. Seven headless Chrome journeys covered dashboard/Request signatures,
-  requester prepare/send/monitor, template creation, the iframe field editor,
-  Standard public signing and archival, identity setup presentation and the
-  Strong signing page;
-- the external-signer authorization regression passed in isolation and in the
-  full suite: a signer can export the frozen document but cannot import,
-  validate, retry, resume, remind or mutate the external journey;
-- `scripts/sign-qa-stack test /usl_documents` finished 103 post-test entries
-  with zero failures and zero errors. Odoo reported 105 Documents tests and
-  six web wrappers; its desktop suite passed 28 tests / 203 assertions and its
-  mobile suite passed 25 tests / 194 assertions;
-- the Pocket ID patch rebuilt with its Go test layer uncached. The OIDC and
-  WebAuthn packages passed. A virtual-authenticator Strong journey then made
-  one fresh passkey assertion and completed a request with OIDC validation,
-  EU DSS validation, complete evidence and Paperless archival. Browser traffic
-  contained no private key material. No physical passkey was requested;
-- the DSS image rebuilt without cache and Maven passed all three Java tests.
-  The deployed service smoke passed CA issuance, separate manifest signing,
-  PAdES construction, complementary pyHanko validation, deterministic PDF/A-3
-  packaging, veraPDF, replay rejection and alteration detection;
-- Paperless acceptance passed direct archival, checksum-idempotent reuse,
-  simulated outage and recovery. Completion required a distinct signed-PDF
-  archive record and proof-package archive record;
-- the Strong worker rebuilt byte-for-byte from its locked source, and its
-  private-key boundary passed. A clean temporary `npm audit` reported zero
-  vulnerabilities;
-- full Ruff validation passed for `usl_sign` and every new Python service/QA
-  utility. Python compilation, JavaScript parsing, XML parsing, shell syntax,
-  PO format, all 15 maintained French catalogues, clean Sign boundary,
-  product/migration source boundary and `git diff --check` passed;
-- a final in-app visual pass covered the dashboard, request entry, ready-request
-  review, Standard signer start and PDF workspace, Strong identity setup,
-  signature checker and Documents-backed signature cards at 1440 px and 390 px.
-  Every checked screen had zero horizontal overflow and zero console errors.
-  Pocket ID account connection and passkey actions were deliberately not opened;
-- the isolated loopback QA bootstrap exposed and fixed an internal hostname
-  routing defect: containers now use Docker's host gateway for a loopback-bound
-  Pocket ID, while private LAN/Tailscale deployments retain their exact bind
-  address. A fresh `odoo_dev` tenant then initialized and reached healthy state;
-- the installed QA image passed `python -m pip check`, and
-  `make user-docs-build` rendered the complete MkDocs site successfully.
+- the final `scripts/sign-qa-stack test /usl_sign` run reported 104 Sign tests,
+  six web wrappers and 98 loaded post-test methods with zero failures or errors.
+  Desktop and mobile frontend suites each passed 40 tests / 147 assertions;
+- `scripts/sign-qa-stack test /usl_documents` reported 108 Documents tests,
+  six web wrappers and 106 loaded post-test methods with zero failures or
+  errors. Desktop passed 28 tests / 203 assertions and mobile passed 25 tests /
+  194 assertions;
+- a clean disposable `scripts/odoo-dev test rebuild_account_migration` run
+  reported 66 distribution Accounting tests, three OCA reconciliation tests,
+  six web wrappers and 53 loaded methods with zero failures or errors. Both
+  electronic-invoice browser tours passed; desktop passed 26 tests / 91
+  assertions and mobile passed 25 tests / 88 assertions. The intentionally
+  logged failed self-check belongs to a negative recovery test;
+- the patched Pocket ID image rebuilt from its pinned source. Its OIDC and
+  WebAuthn Go packages passed. No reviewer rate-limit override was introduced;
+- EU DSS Maven verification passed all five Java tests. The deployed service
+  smoke passed CA issuance, separate manifest signing, PAdES construction,
+  complementary pyHanko validation, deterministic PDF/A-3 packaging, veraPDF,
+  replay rejection and alteration detection;
+- virtual-authenticator Strong request 15 completed with two distinct personal
+  certificates, two intact incremental PAdES revisions, one final platform
+  seal, fresh signed Pocket ID evidence, cleared ceremony secrets, manifest v2
+  and both Paperless archives. The resulting PDF has SHA-256
+  `92488b83b82fd8b3fc47c416fa06ece855b896338edc10d9362b05906b008cba`;
+- Standard direct request 20 and outage/recovery request 21 both completed and
+  archived. Each retained two signer attestations, exactly one platform seal,
+  a distinct signed-PDF archive and a distinct dossier archive. Duplicate
+  submission reused the checksum-identical Paperless objects;
+- `make sign-product-validate` rebuilt both locked browser workers byte for
+  byte and passed the private-key boundary. `npm audit` reported zero
+  vulnerabilities and the installed QA image passed `python -m pip check`;
+- scoped Ruff, Python compilation, JavaScript and shell parsing, XML parsing,
+  `msgfmt`, all 15 French catalogues, action-helper validation, clean Sign
+  boundary, product/migration source boundary and `git diff --check` passed;
+- all eight Sign restoration matcher tests passed, including duplicate export
+  prevention, byte-and-size identity matching and exact external-archive
+  perimeter enforcement;
+- the Impeccable detector returned no findings across Sign source templates,
+  views, JavaScript and styles. Automated desktop/mobile journeys cover manual
+  filling, guide switching, scrolling and resizing, repeated fields, adoption,
+  keyboard use, overflow, Strong fields and recovery states;
+- `make user-docs-build` rendered the complete documentation site. The only
+  output was Material for MkDocs' informational future-MkDocs-2 notice.
 
-The full-product database boundary is not a Sign-only gate: the worktree guard
-correctly refuses the canonical project, while this isolated lightweight QA
-database deliberately does not install unrelated Accounting and Project
-product modules. No canonical database was opened from this feature checkout.
+The feature remains based on the explicitly selected parent
+`ae00fc0fbda702029b684bfc1da72107df8e06d7`. Current `origin/19-usl` adds two
+later documentation-only commits ending at `65b9bd882706`; they touch no file
+changed by this feature and the three-way merge audit reports no conflict. They
+are intentionally not replayed into this pinned feature history.
 
-The final `usl-sign-native-sign-2e96-qa` tenant was rebuilt from empty
-project-scoped PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It
-installed `usl_sign` on `odoo_dev` with `--without-demo`, configured the dedicated
-Pocket ID and Paperless service identities, and seeded only focused synthetic
-document-signing examples. No SQL dump or copied filestore was used. All
-containers reached healthy state. The non-biometric service smoke then passed
-CA, DSS, separate manifest signing, pyHanko cross-validation, deterministic
-PDF/A-3 dossier, veraPDF, platform sealing, replay, and alteration checks.
+The final preserved `usl-sign-native-sign-2e96-qa` tenant is upgraded in place,
+not reset. Its existing `odoo_dev` data, PostgreSQL volume, filestore, identity
+records and Paperless archive remain intact. Odoo and Paperless are exposed
+only on Roger's private address; database, CA and DSS ports remain internal.
 
 The expected registry warning about replacing OCA's coarse request state
 selection remains deliberate: the product requires the exact lifecycle and
