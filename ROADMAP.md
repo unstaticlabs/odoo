@@ -23,6 +23,12 @@ are also active, unmerged workstreams. All four must be reviewed and merged or
 explicitly rejected before the final production qualification; no feature
 worktree, old QA seed or rehearsal candidate can be promoted directly.
 
+The current integration candidate also preserves project-specific task titles
+when browser history rebuilds the Projects action. Its generic desktop
+webclient regression is qualified through merge `602df379352`; an actual
+Projects browser journey and required branch CI remain release gates, so this
+candidate is not yet recorded as merged into `19-usl`.
+
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
 Odoo Online `saas~19.3.1.3` accounting state while keeping
@@ -68,7 +74,9 @@ maturity map is maintained in
 - Scoped read-only accountant access to records, evidence, reports and
   permitted exports without accounting mutation.
 - Native Projects with restored tasks, dependencies, chatter, evidence and
-  analytic links, plus the maintained `usl_project` extensions.
+  analytic links, plus the maintained `usl_project` extensions. The current
+  integration candidate also retains the project name in task browser titles
+  and breadcrumbs across Back/Forward history restoration.
 - Paie TESE records the provider PDF, dated HR/profile context, balanced
   payroll entry and native bank reconciliation without becoming a second
   legal payroll calculator.
@@ -204,7 +212,11 @@ The canonical, evidence-bearing sequence is maintained in the
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
    mail test.**
-9. From clean final `19-usl`, repeat clean install, update, repeated update,
+9. Dynamic Project task history titles — **integrated on the review candidate
+   through merge `602df379352`; 77 focused desktop webclient tests and 320
+   assertions passed. Actual Projects Back/Forward browser acceptance and
+   required branch CI remain pending before merge.**
+10. From clean final `19-usl`, repeat clean install, update, repeated update,
    full local reconstruction and complete product/migration boundary across
    every delivered module after the remaining workstreams are merged.
 

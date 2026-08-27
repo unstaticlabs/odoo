@@ -84,6 +84,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
 | Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
+| Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | integrated on the review candidate through merge `602df379352`; focused desktop webclient suite passed; actual Projects browser acceptance and required branch CI pending |
 
 For every merge:
 
