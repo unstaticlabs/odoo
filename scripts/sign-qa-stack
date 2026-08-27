@@ -27,6 +27,11 @@ export USL_SIGN_POCKETID_POCKET_PORT="${USL_SIGN_POCKETID_POCKET_PORT:-$((19000 
 export USL_SIGN_POCKETID_PAPERLESS_PORT="${USL_SIGN_POCKETID_PAPERLESS_PORT:-$((20000 + OFFSET))}"
 export USL_SIGN_POCKETID_ODOO_HOSTNAME="${USL_SIGN_POCKETID_ODOO_HOSTNAME:-odoo-sign-${SLOT}-qa.localhost}"
 export USL_SIGN_POCKETID_POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-pocket-id-sign-${SLOT}-qa.localhost}"
+export USL_SIGN_POCKETID_PAPERLESS_HOSTNAME="${USL_SIGN_POCKETID_PAPERLESS_HOSTNAME:-paperless-sign-${SLOT}-qa.localhost}"
+export USL_SIGN_POCKETID_PAPERLESS_PUBLIC_URL="${USL_SIGN_POCKETID_PAPERLESS_PUBLIC_URL:-http://$USL_SIGN_POCKETID_PAPERLESS_HOSTNAME:$USL_SIGN_POCKETID_PAPERLESS_PORT}"
+# The per-worktree helper owns these generated URLs. Refreshing only their
+# non-secret Paperless entries keeps existing identities and volumes intact.
+export USL_POCKET_ID_DEV_REFRESH_PUBLIC_URLS=1
 # Custom add-ons stay bind-mounted for immediate branch fidelity. The runtime
 # image is content-addressed so Python dependency changes trigger one rebuild,
 # while unchanged worktrees reuse the cached image safely.
