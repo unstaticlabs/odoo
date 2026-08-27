@@ -387,7 +387,6 @@
             popup = openPocketID();
             onProgress({
                 label: "Preparing…",
-                message: "Preparing your personal signature. Keep this tab open.",
             });
             ceremonyWorker = workerClient();
             const generated = await ceremonyWorker.call("generate", {
@@ -405,8 +404,6 @@
             navigatePocketID(popup, begin.authorization_url);
             onProgress({
                 label: "Waiting for Pocket ID…",
-                message:
-                    "Confirm in Pocket ID. The document stays here; Pocket ID confirms your account.",
             });
             const authorization = await poll(
                 `${base}/status`,
@@ -423,15 +420,12 @@
             }
             onProgress({
                 label: "Applying signature…",
-                message:
-                    "Applying your signature. The result will be validated before it is accepted.",
             });
             const signed = await ceremonyWorker.call("sign", {
                 dataToSign: authorization.data_to_sign,
             });
             onProgress({
                 label: "Validating…",
-                message: "Validating the signed revision. Please keep this tab open.",
             });
             let result;
             try {
@@ -452,7 +446,6 @@
             ceremonyWorker = null;
             onProgress({
                 label: "Signed",
-                message: "Signature saved. Opening the result…",
                 complete: true,
             });
             context.dataset.active = "false";
