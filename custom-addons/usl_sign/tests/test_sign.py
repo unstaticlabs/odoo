@@ -471,9 +471,10 @@ class TestCleanUslSign(TransactionCase):
         preparation_arch = self.env.ref(
             "usl_sign.sign_template_generate_form_usl",
         ).arch_db
-        self.assertIn("usl_sign_method_recommendation", preparation_arch)
-        self.assertIn("Recommended method", preparation_arch)
-        self.assertIn("Availability", preparation_arch)
+        self.assertIn("Choose the signing method", preparation_arch)
+        self.assertIn("This is guidance, not a restriction", preparation_arch)
+        self.assertNotIn("Override reason", preparation_arch)
+        self.assertNotIn("Confirm the context", preparation_arch)
         self.assertIn('widget="usl_sign_method_radio"', preparation_arch)
         action = wizard.generate()
         self.assertEqual(action["type"], "ir.actions.act_window")
@@ -709,6 +710,52 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(result["item"]["role_id"], self.role_employee.id)
         self.assertEqual(result["item"]["tabindex"], 1)
         self.assertEqual(request.editor_revision, 2)
+
+    def test_removing_a_signer_removes_only_their_orphaned_fields(self):
+        request = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+        )
+        for revision, role in enumerate(
+            [self.role_customer, self.role_employee],
+            start=1,
+        ):
+            request.editor_apply_command(
+                str(uuid.uuid4()),
+                revision,
+                {
+                    "action": "create",
+                    "values": {
+                        "field_id": self.text_field.id,
+                        "role_id": role.id,
+                        "page": 1,
+                        "position_x": 10 + revision * 25,
+                        "position_y": 40,
+                        "width": 20,
+                        "height": 5,
+                    },
+                },
+            )
+        removed = request.signer_ids.filtered(
+            lambda signer: signer.role_id == self.role_customer,
+        )
+
+        removed.unlink()
+
+        self.assertEqual(request.signer_ids.role_id, self.role_employee)
+        self.env.cr.execute(
+            "SELECT signatory_data FROM sign_oca_request WHERE id = %s",
+            [request.id],
+        )
+        stored_data = self.env.cr.fetchone()[0]
+        self.assertTrue(stored_data, stored_data)
+        self.assertEqual(
+            {item["role_id"] for item in stored_data.values()},
+            {self.role_employee.id},
+        )
+        self.assertEqual(request.signatory_data, stored_data)
+        self.assertEqual(request.editor_revision, 4)
+        self.assertEqual(request.get_info()["roles"][0]["signer_name"], self.partner_two.name)
 
     def test_template_editor_role_colors_follow_template_company_rules(self):
         other_company = self.env["res.company"].create({"name": "Other Sign Company"})
@@ -957,15 +1004,15 @@ class TestCleanUslSign(TransactionCase):
             "USL identity review checklist · version 1",
         )
 
-    def test_policy_recommendation_and_authorized_override(self):
-        request = self._request(risk_level="material", signer_type="recurring")
+    def test_method_recommendation_is_guidance_not_a_permission_gate(self):
+        request = self._request(
+            user_id=self.sign_user.id,
+            risk_level="material",
+            signer_type="recurring",
+        )
         self.assertEqual(request.recommended_trust, "strong_personal")
         request.requested_trust = "standard"
-        request.override_reason = "Signer is not yet enrolled; routine fallback approved."
-        with self.assertRaises(AccessError):
-            request.with_user(self.sign_user).action_mark_ready()
-        request.coordinator_ids = self.override_user
-        request.with_user(self.override_user).action_mark_ready()
+        request.with_user(self.sign_user).action_mark_ready()
         self.assertEqual(request.state, "ready")
 
     def test_freeze_is_deterministic_and_sent_content_is_immutable(self):
@@ -1446,8 +1493,12 @@ class TestCleanUslSign(TransactionCase):
             page.extract_text()
             for page in PdfReader(BytesIO(strong._completion_certificate_pdf())).pages
         )
-        self.assertIn("Personal PAdES signatures: 2", certificate_text)
-        self.assertIn("Platform signatures: 1 final integrity seal", certificate_text)
+        self.assertIn("Certificate of completion", certificate_text)
+        self.assertIn("2 personal PAdES signature(s)", certificate_text)
+        self.assertIn("final platform seal", certificate_text)
+        self.assertIn("Participants", certificate_text)
+        self.assertIn("Signing history", certificate_text)
+        self.assertNotIn("Policy version", certificate_text)
 
     def test_standard_finalization_rejects_extra_pdf_signatures(self):
         request = self._ready(
@@ -2980,7 +3031,7 @@ class TestCleanUslSign(TransactionCase):
                     "PDF and proof package.",
                 )
 
-    def test_signing_method_is_changed_through_a_focused_permission_gate(self):
+    def test_signing_method_is_changed_through_a_focused_comparison(self):
         request = self._request(user_id=self.sign_user.id)
         action = request.with_user(self.sign_user).action_open_signing_method()
         self.assertEqual(action["res_model"], "usl.sign.request.method")
@@ -2988,21 +3039,19 @@ class TestCleanUslSign(TransactionCase):
             {"request_id": request.id},
         )
         self.assertEqual(method.requested_trust, "standard")
-        self.assertFalse(method.can_override_trust)
         self.assertIn("private links", method.selected_method_summary)
         self.assertIn("required field", method.selected_method_readiness)
         method.requested_trust = "strong_personal"
         self.assertIn("Pocket ID", method.selected_method_summary)
         self.assertIn(self.partner_one.name, method.selected_method_readiness)
-        method.override_reason = "This agreement needs a known signer."
-        with self.assertRaisesRegex(AccessError, "permission to override"):
-            method.action_apply()
+        method.action_apply()
+        self.assertEqual(request.requested_trust, "strong_personal")
 
         view_arch = self.env.ref("usl_sign.sign_request_method_form").arch_db
-        self.assertIn("1. Confirm the context", view_arch)
-        self.assertIn("2. Choose the method", view_arch)
-        self.assertIn("These required details determine the recommendation", view_arch)
-        self.assertNotIn("Change the recommendation inputs", view_arch)
+        self.assertIn("Choose a signing method", view_arch)
+        self.assertIn("Compare what each method asks", view_arch)
+        self.assertNotIn("Confirm the context", view_arch)
+        self.assertNotIn("override_reason", view_arch)
 
     def test_configuration_guidance_uses_business_facing_role_and_capability_copy(self):
         role_labels = dict(

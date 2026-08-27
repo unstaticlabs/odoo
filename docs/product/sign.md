@@ -114,14 +114,15 @@ Document requests have exactly three trust levels:
   requirement or maximum-assurance case. Odoo freezes and exports the exact
   document, then validates the imported result independently before completion.
 
-The versioned policy engine considers the document category, company, signer
-type, relationship, risk/value, enrolment and formal or counterparty
-requirements. The recommendation, business reason and consequence are visible
-before sending. Requested and achieved trust are separate fields. An
-authorized override needs a reason, is recorded in the event chain and never
-silently downgrades the request.
+The requester chooses the signing method directly from a concise comparison of
+signer checks, workflow, PDF signatures and retained proof. Standard is the
+informative default for most agreements; it is guidance, not an approval gate.
+Strong personal is selected when each known signer should add a personal PAdES
+certificate. Qualified external is selected when a formal QES or counterparty
+provider is required. The interface does not ask requesters to classify risk,
+justify a different choice or understand an internal policy model.
 
-Each signing-method choice presents a concise requirements, ceremony and proof
+Each signing-method choice presents concise requirements, ceremony and proof
 summary. Strong requests identify every signer whose personal identity is not
 ready before the request is sent. If an identity later becomes unavailable,
 the public journey stops before any signing action and explains the setup and
@@ -259,7 +260,12 @@ final checks remain.
 After the last signer, Odoo renders the final PDF, asks the internal DSS
 service to apply the USL platform seal, re-reads the persisted bytes and runs
 independent validation. The completion certificate describes the ceremony and
-does not imply a personal, qualified or handwritten-equivalent signature.
+does not imply a personal, qualified or handwritten-equivalent signature. It is
+a compact, paginated signing record: document details and hashes, participants,
+authentication method, UTC signing history, the exact Standard or Strong PDF
+signature semantics, validation outcome and the tamper-evident event-chain
+head. It never exposes an internal policy number or presents optional browser
+location as authoritative identity proof.
 
 ## Strong personal journey
 
@@ -441,7 +447,7 @@ and validation evidence. There is no separate USL delivery option.
   can independently revoke Strong signing access.
 - **Evidence Reviewer** inspects validation and evidence without changing the
   ceremony.
-- **Sign Administrator** manages policies, provider catalog, services and
+- **Sign Administrator** manages signing defaults, provider catalog, services and
   recovery actions.
 
 Global company rules isolate all operational and proof records. Controlled

@@ -1,5 +1,5 @@
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import ValidationError
 
 from .constants import DOCUMENT_CATEGORIES, INTERNAL_OPERATION
 
@@ -103,7 +103,6 @@ class SignTemplateGenerate(models.TransientModel):
     )
     recommendation_reason = fields.Text(readonly=True)
     recommendation_consequence = fields.Text(readonly=True)
-    override_reason = fields.Text()
     journey_availability = fields.Text(string="Before you continue", readonly=True)
     external_provider_id = fields.Many2one(
         "usl.sign.external.provider",
@@ -232,7 +231,7 @@ class SignTemplateGenerate(models.TransientModel):
                 "risk_level": self.risk_level,
                 "formal_qes_required": self.formal_qes_required,
                 "requested_trust": self.requested_trust,
-                "override_reason": self.override_reason,
+                "override_reason": False,
                 "external_provider_id": self.external_provider_id.id,
                 "signing_order": template.signing_order,
                 "reminder_days": template.reminder_days,
@@ -263,13 +262,6 @@ class SignTemplateGenerate(models.TransientModel):
         if self.formal_qes_required and self.requested_trust != "qualified_external":
             msg = "A formal QES requirement cannot be overridden."
             raise ValidationError(msg)
-        if self.requested_trust != self.recommended_trust:
-            if not self.override_reason:
-                msg = "Record why the recommended journey is overridden."
-                raise ValidationError(msg)
-            if not self.env.user.has_group("usl_sign.group_sign_trust_override"):
-                msg = "Trust-level override access is required."
-                raise AccessError(msg)
         request = self._generate()
         return {
             "type": "ir.actions.act_window",
@@ -314,17 +306,12 @@ class SignRequestMethod(models.TransientModel):
         readonly=True,
     )
     recommendation_reason = fields.Text(readonly=True)
-    override_reason = fields.Text()
     selected_method_summary = fields.Char(
         compute="_compute_method_presentation",
         readonly=True,
     )
     selected_method_readiness = fields.Char(
         compute="_compute_method_presentation",
-        readonly=True,
-    )
-    can_override_trust = fields.Boolean(
-        compute="_compute_can_override_trust",
         readonly=True,
     )
     external_provider_id = fields.Many2one(
@@ -344,15 +331,8 @@ class SignRequestMethod(models.TransientModel):
                 values.setdefault("requested_trust", request.requested_trust)
                 values.setdefault("recommended_trust", request.recommended_trust)
                 values.setdefault("recommendation_reason", request.recommendation_reason)
-                values.setdefault("override_reason", request.override_reason)
                 values.setdefault("external_provider_id", request.external_provider_id.id)
         return super().create(vals_list)
-
-    @api.depends_context("uid")
-    def _compute_can_override_trust(self):
-        allowed = self.env.user.has_group("usl_sign.group_sign_trust_override")
-        for wizard in self:
-            wizard.can_override_trust = allowed
 
     @api.depends("requested_trust", "external_provider_id", "request_id.signer_ids")
     def _compute_method_presentation(self):
@@ -463,13 +443,6 @@ class SignRequestMethod(models.TransientModel):
         if self.formal_qes_required and self.requested_trust != "qualified_external":
             msg = "This document requires a qualified external signature."
             raise ValidationError(msg)
-        if self.requested_trust != self.recommended_trust:
-            if not self.override_reason:
-                msg = "Explain why you are choosing a different signing method."
-                raise ValidationError(msg)
-            if not self.env.user.has_group("usl_sign.group_sign_trust_override"):
-                msg = "You do not have permission to override the recommended method."
-                raise AccessError(msg)
         if self.requested_trust == "qualified_external" and not self.external_provider_id:
             msg = "Choose a qualified provider before continuing."
             raise ValidationError(msg)
@@ -480,7 +453,7 @@ class SignRequestMethod(models.TransientModel):
                 "risk_level": self.risk_level,
                 "formal_qes_required": self.formal_qes_required,
                 "requested_trust": self.requested_trust,
-                "override_reason": self.override_reason,
+                "override_reason": False,
                 "external_provider_id": self.external_provider_id.id
                 if self.requested_trust == "qualified_external"
                 else False,
