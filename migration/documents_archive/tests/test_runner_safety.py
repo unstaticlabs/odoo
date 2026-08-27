@@ -1,3 +1,4 @@
+import ast
 import os
 import subprocess
 import unittest
@@ -8,6 +9,24 @@ SCRIPT = ROOT / "scripts/documents-restore"
 QA_SCRIPT = ROOT / "scripts/qa-environment"
 SEED_SCRIPT = ROOT / "scripts/qa-seed"
 TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
+NATIVE_BRIDGE_SCRIPT = (
+    ROOT / "migration/documents_archive/scripts/reconcile_native_attachments.py"
+)
+PAPERLESS_MIGRATION_ACCESS = (
+    ROOT / "migration/documents_archive/scripts/paperless_migration_access.py"
+)
+PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
+    ROOT
+    / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
+)
+RELEASE_INVENTORY = ROOT / "scripts/odoo/documents_release_inventory.py"
+RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
+RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
+MIGRATION_CANDIDATE_SCRIPT = ROOT / "scripts/migration-candidate"
+PRODUCTION_CUTOVER_SCRIPT = ROOT / "scripts/production-cutover"
+EXPENSE_BATCH_MANIFEST = (
+    ROOT / "custom-addons/usl_expense_batch/__manifest__.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -57,9 +76,74 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         script = SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn(
-            "--update=rebuild_account_migration,usl_documents,usl_documents_accounting",
+            "--update=rebuild_account_migration,usl_documents,usl_expense_batch,"
+            "usl_platform_billing,usl_tese_payroll,usl_documents_accounting",
             script,
         )
+
+    def test_expense_batch_declares_its_documents_adapter_dependency(self):
+        manifest = ast.literal_eval(
+            EXPENSE_BATCH_MANIFEST.read_text(encoding="utf-8"),
+        )
+
+        self.assertIn("usl_documents", manifest["depends"])
+
+    def test_native_bridge_checkpoints_progress_before_final_gate(self):
+        script = NATIVE_BRIDGE_SCRIPT.read_text(encoding="utf-8")
+
+        guard = script.index("if blocking_operations or unaccounted:")
+        failure = script.index("raise RuntimeError", guard)
+        final_commit = script.index("env.cr.commit()", failure)
+        self.assertLess(guard, failure)
+        self.assertLess(failure, final_commit)
+        self.assertIn(
+            "Document.sync_from_paperless(full=True, client=migration_client)",
+            script,
+        )
+        self.assertIn("bounded resumable queue checkpoint", script)
+        self.assertIn("Commit every bounded worker pass", script)
+        self.assertIn("usl_documents_trusted_backfill_access=True", script)
+        self.assertIn('(\"res_field\", \"=\", False)', script)
+        self.assertIn('(\"res_field\", \"!=\", False)', script)
+        runner = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            '-e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token"',
+            runner,
+        )
+
+    def test_archive_migration_identity_is_temporary_and_fail_closed(self):
+        access = PAPERLESS_MIGRATION_ACCESS.read_text(encoding="utf-8")
+        cleanup = PAPERLESS_MIGRATION_ACCESS_CLEANUP.read_text(encoding="utf-8")
+        runner = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("user.is_superuser = True", access)
+        self.assertIn("Token.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("UserObjectPermission.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("assign_owner=runtime_user", cleanup)
+        self.assertIn("workflows.update(enabled=False)", cleanup)
+        self.assertIn("user.is_active = False", cleanup)
+        self.assertIn("user.is_superuser = False", cleanup)
+        self.assertIn("trap deprovision_archive_identity EXIT", runner)
+
+    def test_release_inventory_fails_closed_on_every_queue_and_boundary_counter(self):
+        inventory = RELEASE_INVENTORY.read_text(encoding="utf-8")
+
+        for name in (
+            "eligible_attachment_pending",
+            "eligible_attachment_unresolved",
+            "odoo_operations_failed",
+            "odoo_operations_pending",
+            "odoo_operations_processing",
+            "permission_failures",
+            "migration_module_residue",
+        ):
+            self.assertIn(name, inventory)
+        self.assertIn('USL_RELEASE_REQUIRE_COMPLETE") == "1"', inventory)
+        self.assertIn("operation_failure_counts", inventory)
+        self.assertIn("operation.acknowledged", inventory)
+        self.assertIn("attachment.usl_documents_ledger_state", inventory)
+        self.assertIn("resolved_or_acknowledged", inventory)
+        self.assertNotIn("paperless_token\"", inventory.split("print(", 1)[-1])
 
     def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -248,6 +332,59 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("--user paperless --entrypoint python paperless-webserver", script)
         self.assertIn("manage.py document_importer --no-progress-bar", script)
         self.assertIn("verify_hydrated_controls", script)
+
+    def test_paperless_file_writers_run_as_the_runtime_user(self):
+        release = RELEASE_BUNDLE_SCRIPT.read_text(encoding="utf-8")
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+        candidate = MIGRATION_CANDIDATE_SCRIPT.read_text(encoding="utf-8")
+        cutover = PRODUCTION_CUTOVER_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertGreaterEqual(
+            release.count("exec -T --user paperless paperless-webserver"),
+            9,
+        )
+        for command in (
+            "document_index reindex",
+            "document_index optimize",
+            "document_llmindex migrate",
+            "document_llmindex update",
+            "document_llmindex compact",
+            "document_exporter",
+        ):
+            self.assertIn(command, release)
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            recovery,
+        )
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            seed,
+        )
+        self.assertGreaterEqual(
+            candidate.count("exec -T --user paperless paperless-webserver"),
+            3,
+        )
+        self.assertIn(
+            "--user paperless --entrypoint python paperless-webserver",
+            cutover,
+        )
+
+    def test_local_recovery_accepts_only_explicit_isolated_odoo_dev_scopes(self):
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+
+        for script in (recovery, stack):
+            self.assertIn("USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY", script)
+            self.assertIn("USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY", script)
+            self.assertIn("usl-odoo-preprod-*", script)
+            self.assertIn("usl-odoo-paperless-*", script)
+            self.assertNotIn('"$PROJECT" = "*"', script)
+        self.assertIn("LOCAL_DEV_RECOVERY", recovery)
+        self.assertIn("SOURCE_OVERRIDE=()", recovery)
+        self.assertIn("COMPOSE_OVERRIDE=()", stack)
+        self.assertIn("SOURCE_PAPERLESS_OLLAMA_VOLUME", recovery)
+        self.assertIn("paperless-ollama-data.tgz", recovery)
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")

@@ -26,6 +26,10 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
                     "model": "authtoken.token",
                     "fields": {"key": "private"},
                 },
+                {
+                    "model": "paperless_personal_ai.personalaiprofile",
+                    "fields": {"api_key_ciphertext": "encrypted-private"},
+                },
             ]
             (export / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
@@ -33,7 +37,7 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
             stored = json.loads((export / "manifest.json").read_text(encoding="utf-8"))
 
             self.assertEqual(result["sanitized_users"], 1)
-            self.assertEqual(result["removed_credentials"], 1)
+            self.assertEqual(result["removed_credentials"], 2)
             self.assertEqual(len(stored), 1)
             self.assertEqual(stored[0]["fields"]["password"], "!")
             self.assertIsNone(stored[0]["fields"]["last_login"])
@@ -42,6 +46,24 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
             (export / "manifest.json").write_text(json.dumps(stored), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "explicit migration decision"):
                 sanitizer.sanitize(export)
+
+            result = sanitizer.sanitize(export, remove_integrations=True)
+            stored = json.loads((export / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(result["removed_integrations"], 1)
+            self.assertNotIn("socialaccount.socialtoken", {item["model"] for item in stored})
+
+    def test_database_sanitizer_is_clone_guarded_and_removes_identity_material(self):
+        script = (ROOT / "scripts/paperless_release_sanitize.py").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn('confirmation != "paperless-release-clone"', script)
+        self.assertIn('database_name.startswith("paperless_release_")', script)
+        self.assertIn('"paperless_personal_ai.PersonalAIProfile"', script)
+        self.assertIn('"socialaccount.SocialAccount"', script)
+        self.assertIn('"authtoken.Token"', script)
+        self.assertIn("release-disabled-", script)
+        self.assertIn("set_unusable_password", script)
 
     def test_portable_candidate_removes_identity_and_environment_configuration(self):
         with tempfile.TemporaryDirectory() as temporary:

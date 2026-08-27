@@ -152,7 +152,9 @@ production mapping. Archive restore uses the disposable `odoo-migration`
 Paperless owner; target finalization and `make paperless-users` provision the
 runtime `odoo-integration` owner, claim any remaining migration-owned roots,
 map governed Pocket identities, and synchronize exact document-object
-permissions. Run `make paperless-users` after a governed identity, Documents
+permissions. Its temporary administrator token has no password login and is
+revoked and deactivated automatically when restoration succeeds or fails. Run
+`make paperless-users` after a governed identity, Documents
 role, or company assignment changes. Both commands are idempotent and fail
 closed on an ambiguous subject, username, email, role, or remote identity.
 
@@ -167,6 +169,21 @@ fail-closed Paperless workflow before
 enabling web, consume, mail, or API intake. New archive items remain owned by
 the service context until Odoo assigns company/confidentiality and synchronizes
 actual document-object permissions.
+
+Policy reconciliation is idempotent. When the owned workflow already has the
+required trigger sources, fail-closed owner, order, enabled state, and empty
+interactive grants, Odoo must not issue a `PUT`. Likewise, an unchanged full
+metadata synchronization must not invalidate already synchronized object
+permissions. Repeated writes make Paperless schedule avoidable bulk index work
+and can delay normal ingestion behind large OCR documents; increasing worker
+or embedding concurrency is not a substitute for eliminating those writes.
+When a permission or owner change is required, the USL Paperless patch still
+runs the native Tantivy/cache/signal refresh but marks the operation as
+embedding-invariant: permissions are applied to the current document while its
+unchanged BGE-M3 vector is reused. Generic bulk metadata and content edits keep
+the normal vector refresh. A full identity reconciliation should therefore end
+with bounded successful `bulk_update` tasks, no nonterminal task rows and no
+Ollama embedding requests during those permission tasks.
 
 In Paperless, put direct identities in a role that grants model-level read
 access to Documents, Tags, Correspondents, Document types, Custom fields,
@@ -268,7 +285,45 @@ defaults.
 
 The exporter is a portable additional copy, not the operational backup.
 
+## Personal Gemini
+
+Personal Gemini is optional, per-user, and Paperless-only. It must not be
+configured through Paperless's native global LLM settings. The distribution
+migration clears those fields, the frontend hides them, and
+`check_personal_ai_release` rejects any later global value.
+
+The master-key ring is an independently protected Docker secret. The only
+runtime variable is
+`USL_PERSONAL_AI_MASTER_KEYS_PATH=/run/secrets/usl_personal_ai_master_keys`;
+never use an inline value or a variable ending in `_FILE`. Back up the key ring
+separately from the Paperless database and never place it in Paperless exports.
+
+After deployment, migration, restore, or rotation run inside the Paperless
+webserver:
+
+```bash
+python manage.py showmigrations paperless_personal_ai
+python manage.py makemigrations --check --dry-run paperless_personal_ai
+python manage.py check_personal_ai_release
+```
+
+The first command must show `0001_initial` applied, the second must report no
+changes, and the third must print only the active non-secret key identity.
+Then run the backend and exact-source frontend gates described in
+`docs/operations/personal-gemini-runbook.md`.
+
+Users manage their own keys under **My profile → Personal Gemini**. Support may
+explain privacy, disablement, deletion, and provider-side revocation, but must
+never ask for, copy, test, export, or impersonate a user's key. The complete
+privacy, eligibility, rotation, incident-response, and independent-restore
+procedure is maintained in `docs/operations/personal-gemini-runbook.md`.
+
 ## Acceptance and independent restore
+
+For the source-derived portable Odoo/Paperless/Ollama/MCP artifact, use
+[Documents release cohort](documents-release-cohort.md). The workflow below is
+the synthetic/local stack recovery suite; it does not replace the
+digest-bound cohort or its target-architecture gate.
 
 Local QA:
 
@@ -295,6 +350,12 @@ retention, external ingestion, versions, a real automatic matching rule,
 Odoo-initiated Trash attribution and stable restore, direct mapped identities,
 shared Saved View visibility, permissions, outage/resume, and reconciliation.
 
+Trusted `generated_final` attachments enter the ordinary durable operation
+queue with source `odoo_generated` and the evidence role. Acceptance commits
+the queued operation, runs the same archive worker used in production, and
+accepts only an archived or checksum-duplicate result. It does not bypass the
+worker or relabel a generic attachment after ingestion.
+
 The recovery target:
 
 1. exports Paperless;
@@ -319,14 +380,18 @@ were written outside the repository under `/tmp`; that location is evidence
 for the disposable rehearsal, not a production backup destination.
 
 The frontend gate runs the Documents QUnit suite in both desktop and mobile
-presets. It covers native search suggestions and facets, shared native saved
-searches, inline classification, autocomplete quick creation and dismissal,
-native tag facets, large catalogs, Smart View shortcuts, sortable URL-backed
-list ordering, linked-record return navigation, Trash attribution/deletion
-gates, and open-detail overflow. Record the current passed test/assertion count
-from the command output instead of copying a historical count into a release
-claim. Browser review must additionally exercise real archive data at desktop,
-tablet, and mobile widths and report console/network failures honestly.
+presets. It covers Home/My library navigation, role-restricted manager views,
+empty-by-default Archive search, hybrid/exact/semantic modes, background
+include/exclude/only controls, private stars, native-attachment **Keep in
+Documents**, promotion/demotion without archive duplication, native search
+suggestions and facets, shared native saved searches, inline classification,
+autocomplete quick creation and dismissal, native tag facets, large catalogs,
+Smart View shortcuts, sortable URL-backed list ordering, linked-record return
+navigation, Trash attribution/deletion gates, and open-detail overflow. Record
+the current passed test/assertion count from the command output instead of
+copying a historical count into a release claim. Browser review must
+additionally exercise real archive data at desktop, tablet, and mobile widths
+and report console/network failures honestly.
 
 The target stops the isolated restored project after evidence capture and
 preserves its volumes until review. Never pass `--volumes` to a manual cleanup

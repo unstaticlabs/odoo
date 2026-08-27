@@ -10,6 +10,18 @@ before proxying server-side. `usl.document` is the synchronized metadata cache;
 `usl.document.link` is the generic business relationship; operations track
 asynchronous ingestion. Synchronization is stable on `paperless_id`.
 
+Native `ir.attachment` remains the operational upload surface. Durable files
+on supported records are queued only after their final owner is known, so an
+upload never waits for Paperless. The worker reuses archive roots only when the
+content checksum and stable classification-metadata hash both match, creates
+versions when an Odoo attachment changes, applies contextual metadata, and
+mirrors actual linked-record read access to Paperless object permissions.
+Projects and platforms use stable entity-tag mappings; renames update the
+existing tag instead of creating a tag per task, payout or name change.
+Formats Paperless cannot consume (XML, calendar and ZIP files) and inline mail
+images remain on their native records. Reconstruction classifies those files
+explicitly instead of feeding a permanent archive retry loop.
+
 API v10 document payloads carry correspondent, document-type, and tag IDs.
 `usl.paperless.tag`, `usl.paperless.correspondent`, and
 `usl.paperless.document.type` cache those catalogs by stable Paperless ID.
@@ -44,6 +56,9 @@ bounded run, resumes after interruption, and uses full reconciliation to
 refresh catalogs/Saved Views/Trash and mark missing roots without deleting
 relationships. A trashed Paperless root remains the same `usl.document` and
 retains its Odoo links; Restore calls the supported Trash endpoint.
+An automatic native-attachment match to that root preserves Trash, links the
+business record, and remains an explicit review issue until a manager restores
+the archive document.
 
 File versions are persisted as `usl.document.version`: the API current marker
 identifies the current file and `is_root` identifies the received original.
@@ -52,7 +67,9 @@ to the Odoo-authorized root before proxying bytes. Restore downloads an
 authorized old version server-side and submits it to Paperless's supported
 update-version API, creating a new current version instead of mutating history.
 Root duplicate detection searches both the current checksum and historical
-version checksums.
+version checksums and requires the matching version's classification-metadata
+hash. Link targets are deliberately excluded from that metadata hash, so the
+same evidence can be linked across records with the same business context.
 
 Paperless correspondents optionally map to `res.partner`. Archive matching and
 the Paperless name remain remote authority; Odoo owns the mapped business
@@ -72,11 +89,25 @@ The workspace does not expose healthy synchronization state. It returns a
 document-level access error only when permission synchronization failed.
 Checksums, archive IDs, and last access checks are manager diagnostics.
 
+The read-only MCP contract is implemented only by explicit
+`usl.document.mcp_*` facade methods. It covers governed exact/hybrid/semantic
+search, similar-document retrieval, bounded OCR pages, versions, links,
+archive catalogs, and saved views. `mcp_list_saved_views` returns active shared
+views and only the current user's personal views. Passing a returned
+`saved_view_id` to search or similarity adds the view's complete domain and
+stored company, metadata, date, source, confidentiality, review, and link
+filters before Odoo derives the Paperless candidate scope. An empty search
+query browses a metadata-only view without calling Paperless, or replays a
+stored saved-view query. Missing and inaccessible personal views share one
+denial. The facade contains no saved-view write method; lifecycle changes stay
+in the Documents UI.
+
 Configuration keys use the `usl_documents.*` namespace. The service URL and
 token are server-only; the public URL is used solely for permission-synchronized
 individual deep links. Extend supported business models through
-`usl.document.link._allowed_models()` and the link mixin, with explicit company
-and confidentiality tests.
+`usl.document.link._allowed_models()` and `usl.document.link.mixin` archive
+policy, context, relationship and access-trigger hooks, with explicit company
+and confidentiality tests. Do not add a second attachment ingestion path.
 
 `usl_documents` depends on `usl_pocketid` for the canonical Odoo identity
 link. Interactive Odoo and Paperless sessions use distinct confidential Pocket
@@ -111,7 +142,7 @@ isolated synthetic Paperless QA profile.
 
 Real-service validation uses `scripts/documents-acceptance` with an isolated
 Compose project/database. It verifies API compatibility, fail-closed workflow
-ownership, asynchronous upload, OCR search, full-history checksum reuse,
+ownership, asynchronous upload, OCR search, full-history composite-hash reuse,
 multi-link/unlink, version replacement, external ingestion, legal metadata
 hydration, Paperless automatic matching, shared Saved View identity,
 Odoo-generated output retention, permissions, outage/resume, and integrity

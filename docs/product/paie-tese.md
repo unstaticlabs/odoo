@@ -196,5 +196,14 @@ accounting links remain after finalization.
 can open or upload its supporting archive evidence. Paperless owns the archive
 original and OCR; the native payroll/move attachment remains the operational
 posting evidence and Odoo remains authoritative for access and accounting.
+Because a posted TESE PDF may technically belong to its accounting entry, a
+repeatable reconciler reuses that attachment's existing Paperless root and adds
+the payroll record and employee-library relationships. It runs immediately
+when the payslip attachment changes and when its archive operation completes,
+then twice daily as a recovery safety net. It applies the more specific
+**Payroll record**, **HR**, and **Payroll** metadata without uploading a
+duplicate. The payroll form reports processing until that relationship is
+actually present; it no longer treats a shared accounting attachment as proof
+that Documents linking finished.
 
 See [TESE restoration from Odoo Online](../operations/tese-restoration.md).

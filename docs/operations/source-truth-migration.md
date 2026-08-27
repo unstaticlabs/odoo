@@ -314,6 +314,15 @@ Documents accounting extension is revalidated. It is not a filestore copy:
 - unsupported files are retained byte-for-byte in a visible failed migration
   quarantine and keep the stage blocked.
 
+After the legacy Documents archive is restored, the migration service runs the
+delivered native-attachment bridge once across the final business records. It
+reuses Paperless roots by checksum, adds missing task/project, accounting,
+expense, TESE and Platform Billing relationships and classification, and emits
+an external result classifying every durable attachment as archived or
+explicitly excluded. Pending, failed, duplicate or unaccounted eligible files
+block full reconstruction. Repeating the pass creates neither another archive
+root nor another business consequence.
+
 The standalone runner defaults to the isolated `codex-migration-full` project
 and Paperless port `28010`; it refuses development/QA projects and reserved
 ports. Canonical `odoo_dev` is accepted only through the guarded

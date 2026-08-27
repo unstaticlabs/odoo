@@ -15,8 +15,8 @@ from datetime import date, datetime
 
 SOURCE_TAG_ALIASES = {
     "banque revolut": "Revolut",
-    "notes de frais employés": "Employee expenses",
-    "notes de frais employés (copie)": "Employee expenses",
+    "notes de frais employés": "Expenses",
+    "notes de frais employés (copie)": "Expenses",
     "social > paie": "Payroll",
 }
 
@@ -201,7 +201,7 @@ def classify_item(item: dict) -> dict:
         elif move_type in {"out_invoice", "out_refund", "out_receipt"}:
             set_type("Customer invoice", 100)
         elif "notes de frais" in journal_name:
-            tags.add("Employee expenses")
+            tags.add("Expenses")
             set_type("Expense receipt", 100)
         elif journal_type in {"bank", "cash"}:
             tags.add("Banking")

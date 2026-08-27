@@ -216,7 +216,7 @@ PY
     local status=$?
     set +e
     if [[ "$cleanup_export" == 1 ]]; then
-      "${compose[@]}" --profile paperless exec -T paperless-webserver \
+      "${compose[@]}" --profile paperless exec -T --user paperless paperless-webserver \
         rm -rf -- "/usr/src/paperless/export/$export_name" >/dev/null 2>&1
     fi
     if [[ -n "${db_container:-}" ]]; then
@@ -304,9 +304,9 @@ PY
   )"
   export_name="production-candidate-$project-$timestamp"
   cleanup_export=1
-  "${compose[@]}" exec -T paperless-webserver \
+  "${compose[@]}" exec -T --user paperless paperless-webserver \
     mkdir -p "/usr/src/paperless/export/$export_name"
-  "${compose[@]}" exec -T paperless-webserver \
+  "${compose[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_exporter \
     "/usr/src/paperless/export/$export_name" \
     --compare-checksums --delete --no-progress-bar
@@ -321,7 +321,7 @@ PY
   find "$pending/paperless-export" -type f -exec chmod 600 {} +
   tar -C "$pending/paperless-export" -czf "$pending/paperless-export.tgz" .
   rm -rf -- "$pending/paperless-export"
-  "${compose[@]}" exec -T paperless-webserver \
+  "${compose[@]}" exec -T --user paperless paperless-webserver \
     rm -rf -- "/usr/src/paperless/export/$export_name"
   cleanup_export=0
 

@@ -18,6 +18,12 @@
 !debian/odoo.conf
 !docker/
 !docker/**
+!deploy/
+deploy/*
+!deploy/documents/
+deploy/documents/*
+!deploy/documents/paperless-ngx/
+!deploy/documents/paperless-ngx/**
 !odoo/
 !odoo/**
 !setup/

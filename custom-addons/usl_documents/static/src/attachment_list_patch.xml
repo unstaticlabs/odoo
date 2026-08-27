@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.AttachmentList" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-AttachmentButtons')]/button[1]" position="before">
+            <button t-if="this.canKeepInDocuments(attachment)"
+                    class="o_usl_keep_document btn bg-500 w-100 h-100 o-p-1_5 d-flex justify-content-center align-items-center shadow-sm"
+                    type="button"
+                    t-on-click.stop="() => this.keepInDocuments(attachment)"
+                    title="Keep in Documents">
+                <i class="fa fa-bookmark-o o-text-white"
+                   role="img" aria-label="Keep in Documents"/>
+            </button>
+            <button t-elif="this.canOpenInDocuments(attachment)"
+                    class="o_usl_open_document btn bg-500 w-100 h-100 o-p-1_5 d-flex justify-content-center align-items-center shadow-sm"
+                    type="button"
+                    t-on-click.stop="() => this.openInDocuments(attachment)"
+                    title="Open in Documents">
+                <i class="fa fa-folder-open-o o-text-white"
+                   role="img" aria-label="Open in Documents"/>
+            </button>
+            <button t-elif="this.isArchivingInDocuments(attachment)"
+                    class="o_usl_archiving_document btn bg-500 w-100 h-100 o-p-1_5 d-flex justify-content-center align-items-center shadow-sm"
+                    type="button" disabled="disabled"
+                    t-att-title="this.keepInDocumentsDetail(attachment).status_label">
+                <i class="fa fa-circle-o-notch fa-spin o-text-white"
+                   role="img"
+                   t-att-aria-label="this.keepInDocumentsDetail(attachment).status_label"/>
+            </button>
+            <button t-elif="this.hasDocumentsArchiveFailure(attachment)"
+                    class="o_usl_document_failed btn btn-danger w-100 h-100 o-p-1_5 d-flex justify-content-center align-items-center shadow-sm"
+                    type="button" disabled="disabled"
+                    t-att-title="this.keepInDocumentsDetail(attachment).error || this.keepInDocumentsDetail(attachment).status_label">
+                <i class="fa fa-exclamation-triangle"
+                   role="img"
+                   aria-label="Documents archiving needs review"/>
+            </button>
+        </xpath>
+    </t>
+</templates>

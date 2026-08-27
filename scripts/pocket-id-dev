@@ -104,6 +104,30 @@ load_environment() {
   )
   usl_verify_compose_scope \
     "$COMPOSE_PROJECT_NAME" "$ROOT" "Pocket ID helper"
+  verify_existing_pocket_environment
+}
+
+verify_existing_pocket_environment() {
+  local container_id existing_env_file selected_env_file
+  container_id="$("${COMPOSE[@]}" ps -a -q pocket-id 2>/dev/null || true)"
+  [[ -n "$container_id" ]] || return 0
+  existing_env_file="$(
+    docker inspect "$container_id" \
+      --format '{{index .Config.Labels "com.docker.compose.project.environment_file"}}' \
+      2>/dev/null || true
+  )"
+  [[ -n "$existing_env_file" ]] || return 0
+  selected_env_file="$(cd "$(dirname "$ENV_FILE")" && pwd -P)/$(basename "$ENV_FILE")"
+  if [[ "$existing_env_file" == "$selected_env_file" ]]; then
+    return 0
+  fi
+  printf 'Pocket ID project %s was created with a different environment file.\n' \
+    "$COMPOSE_PROJECT_NAME" >&2
+  printf '  Existing: %s\n  Selected: %s\n' \
+    "$existing_env_file" "$selected_env_file" >&2
+  printf 'Re-run with POCKET_ID_ENV_FILE=%s. No containers were changed.\n' \
+    "$existing_env_file" >&2
+  return 2
 }
 
 start_idp() {

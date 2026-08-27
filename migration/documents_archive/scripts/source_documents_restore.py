@@ -35,6 +35,7 @@ from classification import (  # noqa: E402
 from classification import (
     TAG_COLORS as CLASSIFICATION_TAG_COLORS,
 )
+from role_backfill import resolve_link_role, resolve_root_role  # noqa: E402
 from selection import resolve_company_scope, select_groups  # noqa: E402
 
 SOURCE_FILESTORE = Path(
@@ -1355,8 +1356,30 @@ for item in completed:
             ),
         },
     )
+    root_policy = resolve_root_role(
+        record_models=(model_name for model_name, _target_id in target_links),
+        tags=classification["tags"],
+        accounting_evidence=classification["accounting_evidence"],
+        confidentiality=confidentiality,
+        explicit_documents_record=bool(group[0].get("document_id")),
+    )
+    if document.intake_role != root_policy["document_role"]:
+        document.sudo().with_context(usl_documents_policy_write=True).write(
+            {"intake_role": root_policy["document_role"]},
+        )
     for (model_name, _target_id), target in sorted(target_links.items()):
-        document.link_to_record(model_name, target.id)
+        link_policy = resolve_link_role(
+            res_model=model_name,
+            root_policy=root_policy,
+        )
+        document.link_to_record(
+            model_name,
+            target.id,
+            archive_mode=link_policy["archive_mode"],
+            policy_role=link_policy["document_role"],
+            attachment_origin="migration",
+            policy_reason=link_policy["policy_reason"],
+        )
         link = document.sudo().link_ids.filtered(
             lambda candidate: (
                 candidate.res_model == model_name
@@ -1766,6 +1789,10 @@ classification_type_counts = {
         key=str.casefold,
     )
 }
+classification_reconciliation = env[
+    "usl.document"
+].reconcile_linked_classification(limit=0)
+env.cr.commit()
 
 after_attachment_count = all_attachments.search_count([])
 expected_source_documents = sum(
@@ -1851,6 +1878,7 @@ result = {
     "restored_relationships_by_model": relationships_by_model,
     "classification_tag_counts": classification_tag_counts,
     "classification_type_counts": classification_type_counts,
+    "classification_reconciliation": classification_reconciliation,
     "source_added_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,

@@ -1,0 +1,68 @@
+<section class="border-top mt-4 pt-4" aria-labelledby="personal-gemini-heading">
+  <h5 id="personal-gemini-heading" i18n>Personal Gemini</h5>
+  @if (loading()) {
+    <div class="spinner-border spinner-border-sm" role="status">
+      <span class="visually-hidden" i18n>Loading...</span>
+    </div>
+  } @else if (error() && !profile()) {
+    <div class="alert alert-warning" role="alert">{{ error() }}</div>
+  } @else {
+    <div [formGroup]="form">
+      <div class="alert alert-info small" role="note">
+        <span i18n="@@uslPersonalAIPrivacyDisclosure">When you enable a personal Gemini feature, the relevant document text, filename, metadata, and your prompt are sent to Google Gemini under your own account. Local upload, OCR, indexing, search, and MCP operations never use Gemini. Document content is untrusted data and cannot authorize actions.</span>
+      </div>
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">{{ error() }}</div>
+      }
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label" i18n>Provider</label>
+          <input class="form-control" type="text" value="Google Gemini" readonly>
+          <div class="form-text" i18n>The endpoint is fixed by USL.</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="personal-gemini-model" i18n>Approved model</label>
+          <select id="personal-gemini-model" class="form-select" formControlName="model_name">
+            @for (model of profile()?.approved_models; track model) {
+              <option [value]="model">{{ model }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="personal-gemini-key" i18n>Gemini API key</label>
+          <input id="personal-gemini-key" class="form-control" type="password"
+            formControlName="api_key" autocomplete="new-password"
+            [placeholder]="profile()?.api_key_configured ? replaceKeyPlaceholder : enterKeyPlaceholder">
+          <div class="form-text" i18n>The saved key is never displayed again.</div>
+        </div>
+      </div>
+      <div class="form-check form-switch mt-3">
+        <input id="personal-gemini-metadata" class="form-check-input" type="checkbox"
+          formControlName="metadata_suggestions_enabled">
+        <label class="form-check-label" for="personal-gemini-metadata" i18n>
+          Gemini metadata suggestions
+        </label>
+      </div>
+      <div class="form-check form-switch mt-2">
+        <input id="personal-gemini-chat" class="form-check-input" type="checkbox"
+          formControlName="document_chat_enabled">
+        <label class="form-check-label" for="personal-gemini-chat" i18n>
+          Gemini document chat
+        </label>
+      </div>
+      <p class="form-text mt-2 mb-3" i18n>
+        Both features are off by default and may be enabled independently. Suggestions never apply metadata changes automatically, and chat cannot run tools or modify documents.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-primary btn-sm" (click)="save()"
+          [disabled]="saving() || testing()" i18n>Save or replace key</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="testConnection()"
+          [disabled]="saving() || testing() || !profile()?.api_key_configured" i18n>Test connection</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="disable()"
+          [disabled]="saving() || testing()" i18n>Disable both</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteCredential()"
+          [disabled]="saving() || testing() || !profile()?.api_key_configured" i18n>Delete API key</button>
+      </div>
+    </div>
+  }
+</section>

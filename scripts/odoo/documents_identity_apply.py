@@ -62,6 +62,10 @@ for specification in specifications:
         raise RuntimeError(
             f"Paperless user {paperless_user_id} does not match {username!r}",
         )
+    if remote.get("is_active") is not True:
+        raise RuntimeError(
+            f"Paperless user {paperless_user_id} ({username!r}) is inactive",
+        )
     conflicting = env["usl.paperless.user.mapping"].sudo().search(
         [
             ("paperless_user_id", "=", paperless_user_id),

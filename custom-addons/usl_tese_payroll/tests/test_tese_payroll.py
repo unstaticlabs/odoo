@@ -210,6 +210,39 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         payslip.action_post()
         return payslip
 
+    def test_payroll_evidence_uses_hr_context_and_links_accounting_entry(self):
+        payslip = self._posted_payslip()
+        context = payslip._document_archive_context(payslip.attachment_id)
+
+        self.assertEqual(context["document_type"], "Payroll record")
+        self.assertTrue(context["replace_document_type"])
+        self.assertEqual(context["tags"], ["HR", "Payroll"])
+        self.assertEqual(context["confidentiality"], "hr")
+        self.assertTrue(context["accounting_evidence"])
+        self.assertEqual(context["archive_mode"], "mandatory")
+        self.assertEqual(context["document_role"], "evidence")
+        self.assertEqual(context["policy_reason"], "tese_payroll_evidence")
+        self.assertIn(
+            {
+                "model": "hr.employee",
+                "id": payslip.employee_id.id,
+                "document_role": "library",
+            },
+            payslip._document_related_records(payslip.attachment_id),
+        )
+        self.assertIn(
+            {"model": "account.move", "id": payslip.move_id.id},
+            payslip._document_related_records(payslip.attachment_id),
+        )
+
+    def test_document_reconciliation_cron_is_a_twice_daily_safety_net(self):
+        cron = self.env.ref(
+            "usl_tese_payroll.ir_cron_tese_reconcile_documents",
+        )
+
+        self.assertEqual(cron.interval_number, 12)
+        self.assertEqual(cron.interval_type, "hours")
+
     def test_prepare_snapshots_profile_and_handles_leap_year(self):
         payslip = self._new_payslip(
             month=2,
@@ -807,7 +840,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(
             payroll_form.count('name="action_open_documents_workspace"'),
-            2,
+            1,
         )
 
         configuration_menu = self.env.ref(

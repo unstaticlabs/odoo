@@ -8,8 +8,11 @@ never mounts the Odoo filestore. Restarting, upgrading, or restoring Paperless
 does not make Odoo unavailable.
 
 The `usl_documents` add-on extends Odoo through supported models, controllers,
-record rules, views, and one OWL client action. No upstream Odoo core file and
-no Paperless frontend code is copied or patched.
+record rules, views, and one OWL client action. No upstream Odoo core file is
+patched. The Paperless distribution image carries one exact-source,
+hash-guarded backend/frontend overlay for the governed semantic API and
+per-user Gemini settings; it is compiled from the exact Paperless 3.0.5 source
+rather than injected at runtime.
 
 ```text
 Pocket ID
@@ -46,7 +49,11 @@ identity, verifies the remote numeric ID/username, upserts the mapping and
 synchronizes object grants. New or manually changed mappings remain pending
 until **Verify identity** confirms the same contract. Only verified, currently
 safe mappings participate in document-object grants or receive Paperless deep
-links.
+links. The five-minute archive reconciler also verifies that every mapped
+Paperless account still exists, keeps the expected username, and remains
+active. Remote identity drift fails the mapping and revokes its object grants;
+the governed user reconciliation is the only path that repairs the remote
+account lifecycle.
 
 Odoo and Paperless have separate Pocket client IDs, secrets, and callbacks.
 Pocket proves identity but does not supply Odoo companies, Documents roles, or
@@ -64,6 +71,12 @@ accounts, then lets Odoo write exact per-document grants. This avoids a
 first-login race without making Pocket groups an authorization source.
 The non-human Paperless API account remains separate from every interactive
 identity.
+
+Permission and ownership changes do not alter the text embedded by BGE-M3.
+The distribution therefore preserves Paperless's native permission write,
+Tantivy refresh, cache invalidation and document signals while reusing the
+existing vector for permission-only bulk edits. Other metadata or content
+changes retain Paperless's normal embedding refresh.
 
 Local QA retains explicit `username/admin` accounts for repeatable role tests.
 Those mappings carry a QA-only marker that is accepted only when the Odoo
@@ -122,24 +135,158 @@ archive-native Smart View—not a transient shortcut state—is the definition
 synchronized to a Paperless Saved View. Remote OCR and custom-field conditions
 are resolved once before Odoo runs count and page queries, avoiding duplicate
 Paperless requests or inconsistent pagination.
+Every Smart View prepends one permanent, icon-only starred-document shortcut.
+It is a normal additive `is_starred` SearchModel facet, so it filters the
+currently active search and never replaces its company, privacy, text, or
+relationship constraints.
 
-`all_text` is a virtual search field. It calls Paperless's supported full-text
-`query` contract for OCR and archive metadata, then adds only Odoo labels that
-the current user can already read. The combined stable IDs are passed back
-through normal `usl.document` record rules before names, counts, or snippets
-are serialized. When no explicit order is selected, the Paperless relevance
-order is preserved. Explicit compact-list ordering is accepted only through a
-server allowlist of synchronized stored fields.
+`all_text` is a virtual search field. Odoo first derives the stable Paperless
+root IDs permitted by current Documents record rules and allowed companies.
+It sends that complete scope in one POST request to the distribution's bounded
+lexical endpoint. Paperless intersects its own object permissions, applies the
+result as one Tantivy term-set filter, and searches title/OCR, archive metadata,
+and every indexed custom-field name/value in one native query. Plain text keeps
+ordinary French and English punctuation out of the advanced query language.
+An empty scope makes no Paperless request. Odoo adds only local relationship
+labels the current user can already read and rechecks every returned root ID.
+
+The browser publishes that exact lexical result immediately, with a visible
+semantic-refinement banner, then sends the same mandatory scope to the
+authenticated semantic endpoint. Paperless intersects permissions again before
+querying its native vector index. The final ranking always retains the complete
+lexical order and appends only semantic-only IDs, so references, VAT numbers,
+amounts, dates, codes, and ordinary word matches never move behind approximate
+matches. A five-second, scope-sensitive process cache removes the duplicate
+lexical network call made by the refinement pass. The client also keeps the
+already-loaded workspace catalogs and asks the server to omit their invariant
+payload during later keystroke searches. An independent 30-second semantic
+cache includes the Paperless URL, integration-token hash, full authorized
+root scope, query or source document, limit, and facets. It therefore reuses
+only an identical authorized request and never substitutes a stale broader
+scope after permissions change.
+
+Workspace role and linked-record filters batch target visibility through
+Odoo's native record-rule access domain once per linked model. They do not
+cache authorization decisions or check hundreds of target records one by one;
+inactive but readable business records remain valid relationship targets.
+
+**Everywhere** is the progressive hybrid path. **Meaning (Semantic)**
+is an explicit vector-only path. Exact-only
+and meaning-only modes remain bounded advanced options. If the index or Ollama
+is unavailable, hybrid search keeps the already-visible lexical result plus one
+structured warning; a meaning-only request fails honestly. Search never invokes
+a generative model. When no explicit list order is selected, this exact-first
+relevance is preserved.
+Once vector retrieval completes, each scored result carries its bounded cosine
+similarity in that workspace response. The client renders the clamped, rounded
+percentage as a color-coded semantic-similarity chip and offers explicit
+semantic-closeness ordering. The score is query-dependent transient metadata;
+persisting it on `usl.document` was rejected because a later query would make
+that stored value stale and misleading. Semantic ordering was also kept
+opt-in so the default hybrid path continues to put exact lexical matches first.
+Explicit compact-list ordering is accepted only through a server allowlist of
+synchronized stored fields.
+
+The read-only Documents MCP facade exposes this same retrieval boundary rather
+than generic model calls. It lists only accessible shared and caller-owned
+Smart Views, and accepts a returned view ID as an additive candidate scope for
+exact, hybrid, semantic, or similar-document retrieval. Stored structured
+filters are replayed server-side; explicit MCP filters may narrow or replace
+the matching stored value but cannot remove the Smart View domain or Odoo
+record rules. A view with no text query can be browsed without Paperless
+search. Another user's private view and a nonexistent view are
+indistinguishable. Saved-view writes remain in the native Documents UI.
+
+## Personal generative boundary
+
+Gemini is neither an archive dependency nor a search component. Paperless owns
+the two optional personal generation surfaces—metadata suggestions and its
+existing document chat—while Odoo exposes no chat UI and MCP remains strictly
+read-only. Both features are off by default and require the current active
+internal Paperless user to have a governed Pocket mapping, an individual
+encrypted credential, and the relevant personal toggle.
+
+The credential is a one-to-one Paperless profile value encrypted with a random
+AES-256-GCM data key. A versioned deployment master key wraps that data key;
+associated data binds both encryption layers to the user, credential revision,
+and master-key identity. Only a secret-file path is present in process
+environment. The key itself never crosses into Odoo, MCP, browser storage,
+Paperless exports, logs, or exception chains, and an administrator has no API
+for selecting another user's profile.
+
+The provider, OpenAI-compatible Google endpoint, and stable model allowlist
+are distribution constants. Native global generative fields are read-only,
+hidden from the settings UI, cleared by migration, and rejected by the release
+check. The connection test calls only the provider's model-list endpoint and
+sends no document. Metadata generation re-resolves the initiating user and
+document before the external call. Streaming chat rechecks the active mapping,
+toggle, and every context document before synthesis and before emitting each
+chunk. Provider failures are deliberately sanitized because third-party
+exception objects may retain request headers.
+
+Document content is always untrusted prompt context. The fixed chat prompt
+forbids following document instructions and supplies no tools; metadata
+suggestions are returned for user review and never applied automatically.
+Disabling or deleting a profile takes effect on the next authorization check.
+Upload, OCR, local embeddings, Tantivy/vector retrieval, Odoo synchronization,
+and MCP never resolve this configuration and continue during a Gemini outage.
 
 ## Write path
 
-Uploads calculate SHA-256 locally, search both current and historical version
-checksums, and reuse an accessible root before submitting new bytes. A visible
-operation is created, Paperless receives the file, and the durable Odoo link is
-created only after its asynchronous task succeeds. A retry is safe across an
-interrupted Odoo transaction because reconciliation imports the Paperless
-commit before fixture or operation reuse. Failed operations stay visible until
-the user retries or acknowledges them.
+Native Odoo attachments are the operational write path. Creation, final-record
+reparenting and content replacement enqueue a local operation after the Odoo
+file is durable; no Paperless request runs in the user's transaction. Temporary
+composer files, inline images, binary fields, URLs, web assets and unsupported
+models are excluded. Supported evidence stays immediately previewable from its
+ordinary Odoo record while a bounded worker archives it.
+Authoritative formats Paperless cannot consume remain attached to their native
+business records. Reconstruction classifies those exclusions explicitly; it
+does not discard them or misrepresent a failed conversion as missing evidence.
+
+The worker calculates a content SHA-256 and a second SHA-256 over canonical
+business classification: company, confidentiality, accounting-evidence policy,
+access scope, stable tags/entity identities, type, correspondent and document
+date. It searches current and historical versions for that composite identity
+and reuses an accessible root before submitting new bytes. Odoo relationship
+targets are excluded from the metadata hash, so the same binary with the same
+classification on another record adds a relationship; changed content on the
+same attachment becomes a Paperless version. Retry identity is the native
+attachment, content hash and metadata hash. Failed operations stay visible until
+retry or acknowledgement.
+
+The native attachment remains the record's immediate copy throughout this
+flow. Its card reads the latest operation in one bounded query, polls only while
+that operation is active, and exposes **Open in Documents** after completion.
+The action passes the exact authorized `usl.document` identity to the client
+workspace; it does not send a raw Paperless URL to the browser. New on-request
+operations fail before queue creation when the required attachment or polling
+scheduler is inactive.
+
+TESE payslip archiving keeps the root's mandatory HR/accounting evidence role
+and adds three explicit business relationships where available: the payslip,
+its accounting move, and a `library`-role relationship to the attached
+employee. Changing the root intake role to library was rejected because it
+would weaken the payroll evidence classification; the relationship makes the
+same root appear in the employee's accessible Library without another upload.
+
+Content-only reuse was rejected because the same bytes can carry different
+company, HR or accounting meaning. Including target record IDs in the metadata
+hash was also rejected because it would force a redundant archive upload for
+every task or bill link. Paperless automatic duplicate handling remains a final
+safety signal for an unmirrored remote file, but it is not treated as proof that
+Odoo classification matches.
+When an operational attachment matches a root already in Paperless Trash, the
+bridge preserves Trash intent, adds the Odoo relationship, and records a review
+issue on both the source record and archived root. Restoring that root lets the
+same idempotent operation finish; it never creates duplicate bytes or silently
+restores a discarded document.
+
+`usl.document.link.mixin` is the stable extension contract. Product models
+provide archive policy, additive business context, related records and fields
+that may change access. Contextual tags and types are sent with the initial
+Paperless upload. Existing manual metadata wins; conflicting non-empty defaults
+produce a review item. Stable project/platform mappings update one nested tag
+through entity renames and prevent per-record tag growth.
 
 Managed bank statements use this same write path with a stricter completion
 contract. The received PDF remains attached to the source email in Odoo, but a
@@ -164,6 +311,13 @@ The ingestion operation captures company and confidentiality at submission
 time. Successful asynchronous completion applies that exact policy before
 permission synchronization; it must not silently fall back to `Internal` while
 Paperless is processing.
+
+Automatic archives use `linked_record` access. Odoo evaluates real read access
+to any active linked record, stores the resulting permitted internal users for
+search rules, and applies the same identities as Paperless object permissions.
+Controllers recheck linked-record access before every file response. Access
+reductions are fail-closed; portal users are deliberately outside the direct
+Documents/Paperless permission set.
 
 Title, date, tags, correspondent, type, catalog values, matching rules, Saved
 Views, versions, and Trash mutations call a supported Paperless endpoint first

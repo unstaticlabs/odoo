@@ -183,6 +183,28 @@
                         <span class="o_usl_sidebar_label" t-esc="view.name"/>
                     </button>
                 </nav>
+                <div t-if="personalViews.length" class="mt-4">
+                    <small class="o_usl_sidebar_label text-uppercase text-muted fw-semibold">
+                        Saved searches
+                    </small>
+                    <nav class="nav nav-pills flex-column gap-1 mt-2">
+                        <button t-foreach="personalViews" t-as="view" t-key="view.id"
+                                type="button"
+                                t-att-class="'nav-link text-start d-flex align-items-center ' + (state.workspace === view.key ? 'active' : '')"
+                                t-att-title="view.name"
+                                t-on-click="() => this.selectWorkspace(view)">
+                            <i t-att-class="'fa ' + view.icon + ' me-2'"/>
+                            <span class="o_usl_sidebar_label text-truncate flex-grow-1"
+                                  t-esc="view.name"/>
+                            <span class="o_usl_sidebar_label o_usl_sidebar_remove"
+                                  role="button" tabindex="0"
+                                  t-att-aria-label="'Remove saved search ' + view.name"
+                                  t-on-click.stop="(event) => this.removePersonalView(view, event)">
+                                <i class="fa fa-times"/>
+                            </span>
+                        </button>
+                    </nav>
+                </div>
                 <div class="mt-auto pt-4">
                     <div t-if="state.degraded" class="alert alert-warning small mb-0">
                         <strong>Archive unavailable</strong>
@@ -197,12 +219,12 @@
                         Upload a document or choose one from the archive to link it to
                         this record.
                     </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="o_usl_documents_toolbar_row d-flex align-items-center gap-2">
                         <div class="flex-grow-1 o_usl_documents_search">
                             <SearchBar/>
                         </div>
                         <select t-if="state.view === 'cards'"
-                                class="form-select o_usl_sort_select"
+                                class="form-select o_usl_sort_select o_usl_sort_select_full"
                                 t-on-change="setCardSort"
                                 aria-label="Sort documents">
                             <option t-if="cardSort === 'custom'" value="custom"
@@ -221,8 +243,42 @@
                                     t-att-selected="cardSort === 'title'">
                                 Title
                             </option>
+                            <option t-if="canSortBySemantic" value="semantic"
+                                    t-att-selected="cardSort === 'semantic'">
+                                Semantic closeness
+                            </option>
                         </select>
-                        <div class="btn-group">
+                        <label t-if="state.view === 'cards'"
+                               class="o_usl_sort_icon btn btn-outline-secondary mb-0"
+                               title="Sort documents">
+                            <i class="fa fa-sort-amount-desc" aria-hidden="true"/>
+                            <span class="visually-hidden">Sort documents</span>
+                            <select class="o_usl_sort_compact_select"
+                                    t-on-change="setCardSort"
+                                    aria-label="Sort documents">
+                                <option t-if="cardSort === 'custom'" value="custom"
+                                        disabled="disabled" selected="selected">
+                                    Custom sorting
+                                </option>
+                                <option value="recent"
+                                        t-att-selected="cardSort === 'recent'">
+                                    Document date
+                                </option>
+                                <option value="ingested"
+                                        t-att-selected="cardSort === 'ingested'">
+                                    Recently added
+                                </option>
+                                <option value="title"
+                                        t-att-selected="cardSort === 'title'">
+                                    Title
+                                </option>
+                                <option t-if="canSortBySemantic" value="semantic"
+                                        t-att-selected="cardSort === 'semantic'">
+                                    Semantic closeness
+                                </option>
+                            </select>
+                        </label>
+                        <div class="o_usl_view_switch btn-group">
                             <button type="button"
                                     t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
                                     t-on-click="() => this.setView('cards')" title="Card view">
@@ -235,13 +291,44 @@
                             </button>
                         </div>
                         <label t-if="state.canUpload"
-                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')">
-                            <i class="fa fa-upload me-1"/>
-                            <t t-if="state.uploading">Uploading…</t>
-                            <t t-else="">Upload</t>
+                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')"
+                               t-att-title="state.uploading ? 'Uploading document' : 'Upload document'"
+                               t-att-aria-label="state.uploading ? 'Uploading document' : 'Upload document'">
+                            <i class="fa fa-upload o_usl_upload_icon me-1"/>
+                            <span class="o_usl_upload_label">
+                                <t t-if="state.uploading">Uploading…</t>
+                                <t t-else="">Upload</t>
+                            </span>
                             <input type="file" class="d-none" t-on-change="onFileChange"
                                    t-att-disabled="state.uploading"/>
                         </label>
+                    </div>
+                    <div t-if="state.workspace === 'archive_search'"
+                         class="o_usl_archive_search_controls d-flex flex-wrap align-items-center gap-3 mt-3">
+                        <label class="small d-flex align-items-center gap-2 mb-0">
+                            <span class="fw-semibold">Match</span>
+                            <select class="form-select form-select-sm"
+                                    aria-label="Archive search matching"
+                                    t-on-change="(event) => this.updateFilter('searchMode', event)">
+                                <option value="hybrid" t-att-selected="state.searchMode === 'hybrid'">Best match</option>
+                                <option value="exact" t-att-selected="state.searchMode === 'exact'">Exact words</option>
+                                <option value="semantic" t-att-selected="state.searchMode === 'semantic'">Similar meaning</option>
+                            </select>
+                        </label>
+                        <label class="small d-flex align-items-center gap-2 mb-0">
+                            <span class="fw-semibold">Background files</span>
+                            <select class="form-select form-select-sm"
+                                    aria-label="Background document visibility"
+                                    t-on-change="(event) => this.updateFilter('backgroundMode', event)">
+                                <option value="include" t-att-selected="state.backgroundMode === 'include'">Include</option>
+                                <option value="exclude" t-att-selected="state.backgroundMode === 'exclude'">Hide</option>
+                                <option value="only" t-att-selected="state.backgroundMode === 'only'">Only background</option>
+                            </select>
+                        </label>
+                        <span class="small text-muted">
+                            Background files stay out of Home and My library unless you
+                            promote or star them.
+                        </span>
                     </div>
                     <div t-if="smartViewShortcuts.length || visibleTagShortcuts.length"
                          class="o_usl_filter_shortcuts d-flex align-items-center gap-2 mt-3"
@@ -250,11 +337,12 @@
                                 t-key="'shortcut:' + shortcut.id"
                                 type="button"
                                 t-att-data-shortcut-key="shortcut.key"
-                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (shortcut.key === 'starred' ? 'o_usl_favorites_filter ' : '') + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
                                 t-att-title="shortcut.name"
+                                t-att-aria-label="shortcut.name"
                                 t-on-click="() => this.toggleSmartShortcut(shortcut)">
-                            <i t-att-class="'fa ' + shortcut.icon + ' me-1'"/>
-                            <t t-esc="shortcut.name"/>
+                            <i t-att-class="'fa ' + shortcut.icon + (shortcut.key === 'starred' ? '' : ' me-1')"/>
+                            <t t-if="shortcut.key !== 'starred'" t-esc="shortcut.name"/>
                         </button>
                         <span t-if="smartViewShortcuts.length &amp;&amp; visibleTagShortcuts.length"
                               class="o_usl_filter_shortcut_divider" aria-hidden="true"/>
@@ -318,9 +406,27 @@
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <i t-att-class="'fa ' + (state.operation.state === 'failed' ? 'fa-times-circle' : state.operation.state === 'archived' ? 'fa-check-circle' : 'fa-circle-o-notch fa-spin')"/>
                             <strong t-esc="state.operation.name"/>
-                            <span class="text-capitalize" t-esc="state.operation.state"/>
+                            <span t-esc="state.operation.status_label || state.operation.state"/>
                             <span t-if="state.operation.error" t-esc="state.operation.error"/>
                         </div>
+                        <div t-if="['pending', 'uploading', 'processing'].includes(state.operation.state)"
+                             class="small mt-1">
+                            The original remains attached to its Odoo record. Documents will reuse identical archived content when safe or create one linked archive document.
+                        </div>
+                    </div>
+                </div>
+                <div t-if="state.warnings.length" class="px-3 pt-3">
+                    <div t-foreach="state.warnings" t-as="warning"
+                         t-key="warning_index" class="alert alert-warning mb-2">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <span t-esc="warning"/>
+                    </div>
+                </div>
+                <div t-if="state.semanticRefining" class="px-3 pt-3">
+                    <div class="alert alert-info mb-0" role="status">
+                        <i class="fa fa-circle-o-notch fa-spin me-2"/>
+                        <strong>Exact matches are ready.</strong>
+                        Semantic search is still refining these results.
                     </div>
                 </div>
                 <div t-if="state.failedOperations.length" class="px-3 pt-3">
@@ -372,13 +478,19 @@
                     <div t-elif="!state.documents.length"
                          class="h-100 d-flex align-items-center justify-content-center">
                         <div class="o_usl_documents_empty text-center">
-                            <i class="fa fa-inbox fs-1 text-muted mb-3"/>
-                            <h4>No documents found</h4>
-                            <p class="text-muted" t-if="state.query || activeFilterCount">
+                            <i t-att-class="'fa fs-1 text-muted mb-3 ' + (isArchiveSearchEmpty ? 'fa-search' : 'fa-inbox')"/>
+                            <h4 t-if="isArchiveSearchEmpty">Search the archive</h4>
+                            <h4 t-else="">No documents found</h4>
+                            <p class="text-muted" t-if="isArchiveSearchEmpty">
+                                Search by words or meaning, or add a company, date, type,
+                                correspondent, tag, or linked-record facet. Saved searches
+                                remain available in the sidebar.
+                            </p>
+                            <p class="text-muted" t-elif="state.query || activeFilterCount">
                                 Try changing the search or filters.
                             </p>
                             <p class="text-muted" t-elif="state.canUpload">
-                                Drop a file here or upload one. Paperless will classify it.
+                                Drop a file here or upload one to keep it in Documents.
                             </p>
                             <p class="text-muted" t-else="">
                                 No accessible documents match this view.
@@ -415,6 +527,15 @@
                                      t-on-click="() => this.select(document)"
                                      t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
                                 <div class="o_usl_document_thumb">
+                                    <button type="button"
+                                            t-att-class="'o_usl_star_button btn btn-light rounded-circle ' + (document.is_starred ? 'is-starred' : '')"
+                                            t-att-disabled="state.starring[document.id]"
+                                            t-att-title="document.is_starred ? 'Remove star' : 'Star for me'"
+                                            t-att-aria-label="document.is_starred ? 'Remove star' : 'Star for me'"
+                                            t-on-click.stop="() => this.toggleStar(document)"
+                                            t-on-keydown.stop="() => {}">
+                                        <i t-att-class="'fa ' + (document.is_starred ? 'fa-star' : 'fa-star-o')"/>
+                                    </button>
                                     <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"
                                          t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
                                          alt="Document thumbnail"/>
@@ -431,6 +552,13 @@
                                           class="badge text-bg-danger">Unavailable</span>
                                     <span t-if="document.access_error"
                                           class="badge text-bg-danger">Access needs attention</span>
+                                    <span t-if="this.semanticMatchPercent(document) !== null"
+                                          t-att-class="'o_usl_semantic_match ' + this.semanticMatchTone(document)"
+                                          t-att-title="this.semanticMatchLabel(document)"
+                                          t-att-aria-label="this.semanticMatchLabel(document)">
+                                        <i class="fa fa-bullseye" aria-hidden="true"/>
+                                        <t t-esc="this.semanticMatchPercent(document)"/>%
+                                    </span>
                                 </div>
                                 <div class="card-body">
                                     <h6 class="card-title o_usl_document_title mb-1"
@@ -533,6 +661,13 @@
                                                         <i class="fa fa-link me-1"/>
                                                         <t t-esc="document.primary_link.name"/>
                                                     </small>
+                                                    <span t-if="this.semanticMatchPercent(document) !== null"
+                                                          t-att-class="'o_usl_semantic_match is-inline ' + this.semanticMatchTone(document)"
+                                                          t-att-title="this.semanticMatchLabel(document)"
+                                                          t-att-aria-label="this.semanticMatchLabel(document)">
+                                                        <i class="fa fa-bullseye" aria-hidden="true"/>
+                                                        <t t-esc="this.semanticMatchPercent(document)"/>%
+                                                    </span>
                                                 </div>
                                             </div>
                                         </td>
@@ -580,8 +715,14 @@
                 </section>
             </main>
 
+            <div t-if="state.selected"
+                 class="o_usl_documents_detail_backdrop"
+                 aria-hidden="true"
+                 data-testid="document-detail-backdrop"
+                 t-on-click="closeDetail"/>
+
             <aside t-if="state.selected"
-                   class="o_usl_documents_detail border-start bg-white d-flex flex-column"
+                   class="o_usl_documents_detail o_usl_documents_detail_overlay border-start bg-white d-flex flex-column"
                    aria-label="Document details">
                 <header class="p-3 border-bottom">
                     <div class="d-flex justify-content-between align-items-start">
@@ -612,8 +753,17 @@
                                 <i class="fa fa-spinner fa-spin me-1"/>Saving…
                             </span>
                         </div>
-                        <button class="btn-close flex-shrink-0" type="button"
-                                t-on-click="closeDetail" aria-label="Close"/>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <button type="button"
+                                    t-att-class="'btn btn-sm btn-light border ' + (state.selected.is_starred ? 'text-warning' : '')"
+                                    t-att-disabled="state.starring[state.selected.id]"
+                                    t-att-title="state.selected.is_starred ? 'Remove star' : 'Star for me'"
+                                    t-on-click="() => this.toggleStar(state.selected)">
+                                <i t-att-class="'fa ' + (state.selected.is_starred ? 'fa-star' : 'fa-star-o')"/>
+                            </button>
+                            <button class="btn-close" type="button"
+                                    t-on-click="closeDetail" aria-label="Close"/>
+                        </div>
                     </div>
                     <nav t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; (state.selected.archive_available !== false || state.selected.paperless_url)"
                          class="o_usl_detail_header_actions d-flex flex-wrap gap-2 mt-2"
@@ -636,6 +786,20 @@
                            title="Open advanced document tools in Paperless.">
                             <i class="fa fa-external-link me-1" aria-hidden="true"/>Open in Paperless
                         </a>
+                        <button t-if="canPromoteSelected" type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                t-att-disabled="state.changingLibrary"
+                                title="Show this existing archived file in My library without uploading it again."
+                                t-on-click="() => this.setLibraryVisibility(true)">
+                            <i class="fa fa-bookmark-o me-1"/>Add to My library
+                        </button>
+                        <button t-if="canDemoteSelected" type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                t-att-disabled="state.changingLibrary"
+                                title="Hide this relationship from My library without deleting the file or business link."
+                                t-on-click="() => this.setLibraryVisibility(false)">
+                            <i class="fa fa-bookmark me-1"/>Remove from My library
+                        </button>
                     </nav>
                 </header>
                 <div class="flex-grow-1 overflow-auto">

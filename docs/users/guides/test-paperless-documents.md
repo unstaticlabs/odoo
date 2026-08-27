@@ -1,75 +1,70 @@
 # Try the Documents application
 
-This is a task-first guide for the isolated local QA stack. It uses synthetic
-files; the complete Odoo Online archive is handled only by the isolated,
-deterministic migration workflow documented in the operations guide.
+This is a task-first guide for the isolated local QA stack. The current handoff
+contains the source-complete archive plus a clearly named synthetic overlay for
+safe product journeys. Use only the synthetic records and harmless test files
+for changes during the tour.
 
 ## Start QA and sign in
 
-From the repository:
+The source-complete handoff is already deployed as Compose project
+`usl-odoo-paperless-193-0824`. Open:
+
+- Odoo: `http://odoo.localhost:19669/web/login?db=odoo_dev`
+- Paperless: `http://paperless.localhost:19010`
+- Pocket ID: `http://pocket-id.localhost:19411`
+
+The governed QA personas are SSO-only:
+
+| Purpose | Pocket/Odoo/Paperless username |
+| --- | --- |
+| Documents manager and HR reviewer | `documents-manager` |
+| General documents user | `documents-user` |
+| Read-only accounting reviewer | `documents-readonly` |
+| Intentionally empty archive | `documents-restricted` |
+| HR-authorized ordinary user | `documents-hr` |
+| Two-company user | `documents-multi` |
+
+Ask the operator to generate a short-lived link for the persona you are about
+to test, or generate it locally without recording its output in evidence:
 
 ```bash
-make documents-qa-up
-make documents-qa-bootstrap
-make documents-qa-status
+POCKET_ID_ENV_FILE="$PWD/.pocket-id-usl-odoo-paperless-193-0824.env" \
+  scripts/pocket-id-dev one-time-link documents-manager
 ```
 
-Open:
+Replace the last username for another listed persona. Complete enrollment, then
+choose **Pocket ID** on both login screens. Odoo and Paperless use separate
+clients but the same immutable person. Pocket groups do not grant document
+access; Odoo companies and Documents roles remain authoritative. Both buttons
+must reach the same local Pocket tenant without a callback error.
 
-- Odoo: `http://127.0.0.1:18080`
-- Paperless: `http://127.0.0.1:18010`
-- Pocket ID: `http://pocket-id-documents.localhost:18110`
-
-QA passwords are all `admin`:
-
-| Role | Odoo username | Paperless username |
-| --- | --- | --- |
-| Administrator | `admin` | `archive-admin` |
-| General documents user | `documents-user` | `documents-user` |
-| Accountant | `documents-accountant` | `documents-accountant` |
-| HR reviewer | `documents-hr` | `documents-hr` |
-| Other-company restricted user | `documents-restricted` | `documents-restricted` |
-
-Start as `admin/admin`, open **Documents**, and use the seeded synthetic
-archive. Do not run `down --volumes`, `scripts/odoo-dev reset`, or a bare
-`docker compose --profile paperless up`.
-
-The passwords above stay available only for fast local role testing. A separate
-`documents-sso-user` exists for the production authentication path. Generate
-that person's one-hour Pocket setup link with:
-
-```bash
-python3 scripts/pocket_id_dev.py \
-  --env-file .documents-qa-sso.env \
-  one-time-link documents-sso-user
-```
-
-Use it to enroll the Pocket user, then choose Pocket ID on both the Odoo and
-Paperless login screens. The first Paperless login creates that individual
-account through the supported OIDC flow. Run `make documents-qa-bootstrap`
-again to verify/map its new numeric Paperless identity and synchronize object
-permissions. Odoo and Paperless use separate clients but the same immutable
-person. Pocket groups do not add document access; the user must still see
-exactly the documents allowed by their Odoo company and Documents role.
-This first-login exercise belongs only to the isolated synthetic QA identity.
-Canonical `odoo_dev` and reconstructed targets pre-provision governed users and
-their mappings during `make target-finalize`.
-Both **Pocket ID** buttons must reach the same local Pocket tenant without a
-callback error. QA registers Paperless's exact HTTP callback; pre-production
-uses the equivalent HTTPS callback and disables Paperless password login.
+Do not run `down --volumes`, `scripts/odoo-dev reset`, a reconstruction command,
+or a bare `docker compose --profile paperless up` during the tour.
 
 ## 1. Find text inside a document
 
-1. In Documents, type `heliotrope`.
-2. Choose the first suggestion, **Search everywhere for: heliotrope**. It
-   becomes a removable **Search everywhere** facet.
-3. Click the top **Accounting** tag chip. It is applied on top of the search,
-   leaving **Alpine Office Supplies — Invoice SI-2026-0715**.
-4. Open the document and confirm the preview contains the OCR-only sentence.
+First exercise progressive exact-first search:
 
-You should get one authorized result. The preview contains the searched words.
-The panel immediately explains the date, correspondent, type, tags, company,
-and Odoo links. Healthy synchronization and checksum messages are absent.
+1. In Documents, type `INV-QA-2026-0042`.
+2. Choose **Search everywhere**. The exact Alpine invoice
+   must appear first, normally in under one second on the local stack.
+3. While the local BGE-M3 index adds meaning-based matches, an **Exact matches
+   are ready** banner is visible. The exact invoice must remain first after the
+   banner disappears; semantic results may only be appended.
+
+Then exercise meaning-only search:
+
+1. Remove the first facet and type `heliotrope cobalt compliance evidence`.
+2. Choose **Meaning (Semantic)**.
+3. Confirm **Alpine Office Supplies — Invoice SI-2026-0715** is returned, then
+   open it and confirm the preview contains the OCR-only sentence.
+
+The exact marker should identify one authorized invoice; meaning-only search
+may return additional authorized candidates, with the intended invoice near
+the top. The preview contains the searched words. The panel immediately
+explains the date, correspondent, type, tags, company, and Odoo links. Healthy
+synchronization and checksum messages are absent.
 
 Open the search dropdown. It must be Odoo's normal three-column menu:
 
@@ -81,12 +76,19 @@ Open the search dropdown. It must be Odoo's normal three-column menu:
 
 There is no separate **More filters** form.
 
-The initial suggestions deliberately keep only frequent choices: Search
-everywhere, Title, Document content, Tags, Correspondent, Type, Company, and
-Date. Use **Filters > Add Custom Filter** for archive identity, source,
+The initial suggestions deliberately expose exactly two meaning-based choices:
+**Search everywhere** and **Meaning (Semantic)**.
+Title, Document content, Tags, Correspondent, Type, Company, and Date remain
+lexical. Use **Filters > Add Custom Filter** for archive identity, source,
 privacy, review state, availability, mapped Contact, employee, or a Paperless
 custom field. Every choice remains a normal removable Odoo facet and still
-passes through Odoo authorization.
+passes through Odoo authorization. Search uses local BGE-M3 embeddings only;
+Gemini and other generative models are not part of either search path.
+
+To check the one-request custom-field path, use **Filters > Add Custom
+Filter**, select the Paperless invoice-number field, and enter
+`INV-QA-2026-0042`. It must return the same invoice without one Paperless call
+per configured custom field.
 
 The small chips below the search bar are deliberate shortcuts:
 
@@ -204,29 +206,39 @@ Mapping should never create an Odoo Contact automatically, link a document, or
 grant access. A user in another company must not see an inaccessible Contact
 mapping.
 
-## 5. Upload or link from a vendor bill
+## 5. Attach a file from normal business work
 
 1. Open the draft vendor bill with reference
    `USL-DOCS-CEO-QA-BILL`.
-2. Its one smart button should show the current authorized document count.
-3. Click it. Documents opens with a removable **Linked record** facet and the
-   seeded supplier invoice.
-4. Remove that facet. The rest of the authorized archive becomes searchable and
-   an unlinked document offers **Link to this record**.
-5. Upload a harmless PDF or text file with a distinctive sentence.
+2. Add a harmless PDF or text file through the normal attachment/chatter area.
+3. Open it immediately from the bill to prove the Odoo workflow does not wait
+   for Paperless.
+4. Its one **Documents** button briefly shows **processing**, then its archived
+   count increases.
+5. Click **Documents**. The workspace opens with a removable **Linked record**
+   facet and the file has the Accounting/Vendor Bills context, supplier and
+   document type where those defaults were available.
+6. Remove the facet to search the rest of the authorized archive or link an
+   already archived document.
 
-During upload, the same page shows pending/processing state. Odoo says archived
-only after Paperless succeeds. The durable bill relationship then appears, and
-no extra `ir.attachment` binary is created.
+The native attachment remains available because it is the operational Odoo
+copy. Paperless keeps the archive original, OCR and archive versions. Uploading
+the same bytes elsewhere reuses one Paperless root and adds another record
+link.
 
 To review failure UX without using a real business file, switch to **Needs
-review** and use the seeded failed operation. It remains after reload and
-offers **Choose file to retry** or **Dismiss**. A retry of the same bytes is
-idempotent.
+review** and use the deliberate operation 908, `qa-corrupted-upload.pdf`. It
+remains after reload and offers **Choose file to retry** or **Dismiss**. Choose
+a harmless valid PDF if you test retry. Do not dismiss it merely to make the
+release counter green; either outcome is an explicit reviewer decision.
 
-On any supported record with no archived links, the same smart button is
-**Upload**. It still opens Documents with both upload and link-existing
-available; there is no second Archive button.
+Repeat the journey from a project task, expense, TESE payroll record and
+Platform Billing payout. The project file receives one project-level tag—not a
+tag for every task. There is no separate **Archive in Paperless** action.
+
+Stop Paperless briefly and attach another harmless task file. Odoo must accept
+and open it; the **Documents** button shows attention or processing until the
+archive returns and the retry succeeds.
 
 ## 6. Reuse a duplicate
 
@@ -347,25 +359,45 @@ audit reason and leaves an Odoo tombstone. Do not permanently delete a seeded
 business document during ordinary QA.
 
 The seeded **Retention review sample — in Trash** lets you test Restore without
-creating another item. Run `make documents-qa-bootstrap` afterward to return it
-to the intended demo state.
+creating another item. This is a mutable QA handoff, so record that manual
+state change rather than running a seed or reconstruction reset afterward.
 
 ## 12. Check each role
 
-- `documents-user/admin` sees authorized general and accounting material, but
-  not HR/private/other-company items.
-- `documents-accountant/admin` sees the seeded accounting examples—supplier
-  invoice, expense, bank statement, and VAT filing—without unrelated private or
-  HR material. This role is read-only and should not see Upload controls.
-- `documents-hr/admin` also sees **Camille Martin — July payroll evidence**.
-- `documents-restricted/admin` gets an intentional empty archive for the
-  synthetic other company and cannot infer a known title through search,
-  preview, download, version, or copied URL.
+- `documents-manager` can administer all 864 live roots available to the QA
+  manager and complete reviews.
+- `documents-user` sees 30 authorized general/accounting roots, but not
+  HR-private or other-company items.
+- `documents-readonly` sees seven accounting-evidence roots and no Upload or
+  mutation controls.
+- `documents-hr` sees 30 authorized roots, including HR evidence allowed by its
+  company and role.
+- `documents-multi` sees 30 roots across its two active companies and must lose
+  company-specific results when that company is deactivated in the switcher.
+- `documents-restricted` gets an intentional empty archive and cannot infer a
+  known title through search, preview, download, version, or a copied URL.
 
 Search/session state is stored per Odoo user. Switching accounts must not carry
 the prior user's query into the next account.
 
-## 13. Check an outage
+## 13. Check Personal Gemini isolation
+
+In Paperless as one governed QA persona, open **My profile > Personal Gemini**.
+Confirm that:
+
+1. Both optional switches start off and the page explains that the key is
+   personal and encrypted.
+2. There is no Gemini or archive chat UI in Odoo Documents.
+3. Search, OCR, indexing and the Documents MCP continue to use the local archive
+   path with no personal key.
+4. If you deliberately use your own disposable test key, **Test connection**
+   lists models without enabling either feature. Enable one feature, disable it
+   again, delete the key, and confirm the profile returns to an unconfigured
+   state.
+
+Never paste a production or shared organization key into this QA stack.
+
+## 14. Check an outage
 
 The automated safe exercise is:
 
@@ -387,7 +419,7 @@ classification, Odoo links, and version labels visible, hides unavailable
 preview/download actions, and offers **Try again**. After recovery, retry
 without creating duplicate documents or relationships.
 
-## 14. Prove backup and restore
+## 15. Prove backup and restore
 
 Run:
 
@@ -403,7 +435,11 @@ permissions, and orphans. Container startup alone is not a passing result.
 ## Stop QA safely
 
 ```bash
-scripts/documents-stack qa stop
+docker compose \
+  --env-file .pocket-id-usl-odoo-paperless-193-0824.env \
+  -p usl-odoo-paperless-193-0824 \
+  -f compose.yaml -f compose.pocket-id.yaml \
+  --profile paperless stop
 ```
 
 This preserves QA databases, filestore, Paperless media, versions, exports,

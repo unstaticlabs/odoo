@@ -312,6 +312,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="system_rule"/>
+                <field name="group_ids" widget="many2many_tags" optional="show"/>
                 <field name="tag_ids" widget="many2many_tags" optional="show"/>
                 <field name="document_type_ids" widget="many2many_tags" optional="show"/>
                 <field name="active"/>
@@ -338,13 +339,15 @@
                         <group>
                             <field name="scope" readonly="1" force_save="1"/>
                             <field name="system_rule"/>
-                            <field name="days" invisible="system_rule != 'recent'"/>
+                            <field name="days" invisible="system_rule not in ('home', 'recent')"/>
                             <field name="active"/>
                         </group>
                         <group>
                             <field name="icon"/>
                             <field name="sequence"/>
                             <field name="key" readonly="1" force_save="1"/>
+                            <field name="group_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="quick_filter_ids" widget="many2many_tags"
                                    options="{'no_create': True, 'no_quick_create': True}"/>
                         </group>

@@ -205,19 +205,15 @@
                         <button name="action_open_documents_workspace"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-cloud-upload"
-                                string="Upload"
-                                invisible="archived_document_count != 0"
-                                groups="usl_documents.group_documents_hr,usl_documents.group_documents_manager"/>
-                        <button name="action_open_documents_workspace"
-                                type="object"
-                                class="oe_stat_button"
                                 icon="fa-folder-open-o"
-                                invisible="archived_document_count == 0"
+                                title="Open the payroll evidence linked to this record and review any archive processing issue."
                                 groups="usl_documents.group_documents_hr,usl_documents.group_documents_manager">
-                            <field name="archived_document_count"
-                                   widget="statinfo"
-                                   string="Documents"/>
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="archived_document_count"/></span>
+                                <span class="o_stat_text">Documents</span>
+                                <span class="badge rounded-pill text-bg-warning" invisible="document_archive_failure_count == 0"><field name="document_archive_failure_count"/> to review</span>
+                                <span class="text-muted small" invisible="document_archive_pending_count == 0"><field name="document_archive_pending_count"/> processing</span>
+                            </div>
                         </button>
                         <button name="action_open_matching_lines"
                                 type="object"

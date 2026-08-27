@@ -18,6 +18,24 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
+    <record id="ir_cron_usl_documents_attachment_queue" model="ir.cron">
+        <field name="name">Documents: archive Odoo attachments</field>
+        <field name="model_id" ref="model_usl_document_operation"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_process_attachment_queue()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_usl_documents_classification" model="ir.cron">
+        <field name="name">Documents: classify trusted linked records</field>
+        <field name="model_id" ref="model_usl_document"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_reconcile_linked_classification()</field>
+        <field name="interval_number">12</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
 
     <record id="ir_filter_quick_my_uploads" model="ir.filters">
         <field name="name">My uploads</field>
@@ -156,22 +174,41 @@
         <field name="sequence">90</field>
     </record>
 
+    <record id="smart_view_home" model="usl.document.smart.view">
+        <field name="name">Home</field>
+        <field name="key">home</field>
+        <field name="icon">fa-home</field>
+        <field name="sequence">10</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">home</field>
+        <field name="days">30</field>
+    </record>
+    <record id="smart_view_library" model="usl.document.smart.view">
+        <field name="name">My library</field>
+        <field name="key">library</field>
+        <field name="icon">fa-bookmark-o</field>
+        <field name="sequence">20</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">library</field>
+    </record>
     <record id="smart_view_needs_review" model="usl.document.smart.view">
         <field name="name">Needs review</field>
         <field name="key">attention</field>
         <field name="icon">fa-exclamation-circle</field>
-        <field name="sequence">10</field>
+        <field name="sequence">130</field>
         <field name="scope">shared</field>
         <field name="system_rule">attention</field>
+        <field name="active" eval="False"/>
     </record>
     <record id="smart_view_recent" model="usl.document.smart.view">
         <field name="name">Recently added</field>
         <field name="key">recent</field>
         <field name="icon">fa-clock-o</field>
-        <field name="sequence">20</field>
+        <field name="sequence">140</field>
         <field name="scope">shared</field>
         <field name="system_rule">recent</field>
         <field name="days">30</field>
+        <field name="active" eval="False"/>
     </record>
     <record id="smart_view_accounting" model="usl.document.smart.view">
         <field name="name">Accounting</field>
@@ -181,11 +218,19 @@
         <field name="scope">shared</field>
         <field name="system_rule">accounting</field>
     </record>
+    <record id="smart_view_projects" model="usl.document.smart.view">
+        <field name="name">Projects</field>
+        <field name="key">projects</field>
+        <field name="icon">fa-tasks</field>
+        <field name="sequence">40</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">projects</field>
+    </record>
     <record id="smart_view_contracts" model="usl.document.smart.view">
         <field name="name">Contracts &amp; legal</field>
         <field name="key">contracts</field>
         <field name="icon">fa-file-text-o</field>
-        <field name="sequence">40</field>
+        <field name="sequence">50</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
         <field name="archive_native" eval="True"/>
@@ -194,7 +239,7 @@
         <field name="name">Banking</field>
         <field name="key">banking</field>
         <field name="icon">fa-bank</field>
-        <field name="sequence">50</field>
+        <field name="sequence">60</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
         <field name="archive_native" eval="True"/>
@@ -203,7 +248,7 @@
         <field name="name">Tax &amp; reporting</field>
         <field name="key">tax</field>
         <field name="icon">fa-balance-scale</field>
-        <field name="sequence">60</field>
+        <field name="sequence">70</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
         <field name="archive_native" eval="True"/>
@@ -212,23 +257,42 @@
         <field name="name">HR</field>
         <field name="key">hr</field>
         <field name="icon">fa-lock</field>
-        <field name="sequence">70</field>
-        <field name="scope">shared</field>
-        <field name="system_rule">hr</field>
-    </record>
-    <record id="smart_view_all" model="usl.document.smart.view">
-        <field name="name">All documents</field>
-        <field name="key">all</field>
-        <field name="icon">fa-archive</field>
         <field name="sequence">80</field>
         <field name="scope">shared</field>
+        <field name="system_rule">hr</field>
+        <field name="group_ids" eval="[Command.set([ref('group_documents_hr'), ref('group_documents_manager')])]"/>
+    </record>
+    <record id="smart_view_inbox" model="usl.document.smart.view">
+        <field name="name">Inbox / To classify</field>
+        <field name="key">inbox</field>
+        <field name="icon">fa-inbox</field>
+        <field name="sequence">90</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">inbox</field>
+        <field name="group_ids" eval="[Command.set([ref('group_documents_manager')])]"/>
+    </record>
+    <record id="smart_view_archive_search" model="usl.document.smart.view">
+        <field name="name">Archive search</field>
+        <field name="key">archive_search</field>
+        <field name="icon">fa-search</field>
+        <field name="sequence">100</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">archive_search</field>
+    </record>
+    <record id="smart_view_all" model="usl.document.smart.view">
+        <field name="name">All archived</field>
+        <field name="key">all</field>
+        <field name="icon">fa-archive</field>
+        <field name="sequence">120</field>
+        <field name="scope">shared</field>
         <field name="system_rule">all</field>
+        <field name="group_ids" eval="[Command.set([ref('group_documents_manager')])]"/>
     </record>
     <record id="smart_view_trash" model="usl.document.smart.view">
         <field name="name">Trash</field>
         <field name="key">trash</field>
         <field name="icon">fa-trash-o</field>
-        <field name="sequence">90</field>
+        <field name="sequence">110</field>
         <field name="scope">shared</field>
         <field name="system_rule">trash</field>
     </record>

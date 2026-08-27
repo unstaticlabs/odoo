@@ -133,7 +133,11 @@ def upload_document(spec):
             "document_date": spec["date"],
             "correspondent_id": spec["correspondent"].id,
             "document_type_id": spec["document_type"].id,
-            "tag_ids": [tag.id for tag in spec["tags"]],
+            "tag_ids": list(
+                dict.fromkeys(
+                    [*document.tag_ids.ids, *[tag.id for tag in spec["tags"]]],
+                ),
+            ),
         }
     )
     document.with_context(usl_documents_policy_write=True).write(
@@ -863,6 +867,14 @@ if trashed.availability_state == "available":
 documents.search(
     [("availability_state", "in", ("available", "permission_error"))]
 ).action_sync_permissions()
+documents_crons = env["ir.cron"].browse(
+    [
+        env.ref("usl_documents.ir_cron_usl_documents_sync").id,
+        env.ref("usl_documents.ir_cron_usl_documents_poll").id,
+        env.ref("usl_documents.ir_cron_usl_documents_attachment_queue").id,
+    ]
+)
+documents_crons.sudo().write({"active": True})
 env.cr.commit()
 print(
     "DOCUMENTS_QA_READY",
@@ -884,5 +896,6 @@ print(
         "employee_id": employee.id,
         "expense_id": expense.id,
         "policy": policy["workflow_id"],
+        "active_documents_crons": len(documents_crons.filtered("active")),
     },
 )

@@ -1,7 +1,7 @@
 {
     "name": "USL TESE Payroll",
     "summary": "Record provider payroll and keep its accounting liabilities in Odoo",
-    "version": "saas~19.3.1.4.1",
+    "version": "saas~19.3.1.4.4",
     "category": "Human Resources/Payroll",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -15,6 +15,7 @@
     "data": [
         "security/tese_payroll_security.xml",
         "security/ir.model.access.csv",
+        "data/tese_payroll_data.xml",
         "views/tese_settings_revision_views.xml",
         "views/tese_profile_views.xml",
         "views/tese_payslip_views.xml",

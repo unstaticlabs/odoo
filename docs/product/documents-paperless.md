@@ -22,8 +22,14 @@ An active upload remains visible while it is pending or processing. Success
 opens the archived document and gives a short confirmation. Duplicate, failed,
 or ambiguous work stays actionable in **Needs review** or diagnostics rather
 than being described as archived. Failed uploads survive a reload and offer
-**Choose file to retry** or **Dismiss**; retrying the same content remains
-checksum-idempotent.
+**Choose file to retry** or **Dismiss**; retrying the same content and business
+classification remains composite-hash idempotent.
+
+A user normally attaches the file on the bill, task, expense, payroll record
+or other business record where it belongs. That native attachment is usable at
+once. Odoo archives it in the background, adds safe business tags and defaults,
+and updates the record's one **Documents** button. Paperless downtime therefore
+never blocks the business transaction.
 
 ## Authority boundary
 
@@ -45,10 +51,21 @@ The detailed integration contract is in
 ## Find and navigate
 
 The workspace uses Odoo's native search model and SearchBar rather than a
-Documents-only filter form. **Search everywhere** is the first/default
-suggestion and searches Paperless OCR, title, correspondent, type, tags, and
-accessible custom fields together with authorized Odoo link labels. Frequent
-field-specific suggestions remain available for Title, Document content, Tags,
+Documents-only filter form. Its first two suggestions state their behavior:
+**Everywhere** is progressive hybrid search, while **Meaning
+(Semantic)** goes directly to the local BGE-M3 vector
+index. The hybrid path sends one authorization-scoped POST to Paperless's
+native Tantivy index across OCR, title, correspondent, type, tags, and all
+accessible custom fields together, adds authorized Odoo link labels, and shows
+those exact results immediately. A clear banner remains visible while BGE-M3
+adds semantic-only matches; the exact ordering is never displaced. Repeated
+identical lexical searches are cached for five seconds; identical semantic
+requests with the same complete authorization scope are cached for 30 seconds
+so paging and quick reloads do not recompute embeddings. Already-loaded
+workspace catalogs are not rebuilt or resent on each keystroke. If local
+embeddings are unavailable, the exact results remain with a short warning.
+Neither search path calls a generative provider. Frequent field-specific
+suggestions remain available for Title, Document content, Tags,
 Correspondent, Type, Company, and Date. Specialist fields such as archive
 identity, source, privacy, review state, availability, mapped Contact, and
 employee remain available through the native custom-filter menu without
@@ -76,6 +93,25 @@ sequence. The underlying `ir.filters` record remains authoritative but is no
 longer exposed as a separate item that users must open. Personal Favorites
 remain private.
 
+### Optional personal Gemini
+
+An active Pocket-mapped internal user may opt into Gemini from Paperless
+**My profile** without administrator approval. Metadata suggestions and
+Paperless document chat are separate switches and both start off. The user
+supplies and owns their Google API key; USL encrypts it per user, never shows it
+again, and never sends it to Odoo or MCP. Disable stops both features while
+retaining the encrypted key; delete removes the credential and disables both.
+
+Before opt-in, Paperless explains that the relevant document text, filename,
+metadata, and prompt will leave USL for Google Gemini when the user invokes an
+enabled feature. The connection test sends no document. Suggestions remain
+proposals for human review, and chat has no tools or write access. Portal,
+anonymous, inactive, unmapped, and service identities cannot opt in.
+
+Gemini is not used for upload, OCR, indexing, search, synchronization, or MCP.
+Those local/core paths keep working when Gemini is disabled or unavailable.
+There is deliberately no Odoo chat UI.
+
 Managers create shared navigation views under **Configuration > Smart views**.
 A new view receives a stable identity, appears immediately in every authorized
 user's Documents sidebar, and provides **Open Documents** for direct review.
@@ -90,14 +126,36 @@ and returns to the same list position; Forward reopens it. A reload or deep
 link restores the selection. Session state is isolated by Odoo user so one
 person's search is not inherited when another person signs in on the same
 browser.
+The detail panel is an anchored overlay at every desktop and mobile width, so
+opening a result never recomputes or narrows the document grid beneath it. A
+modal was rejected because document detail supports deep links, Back/Forward,
+preview work, and long-form metadata rather than a short interrupting task;
+resizing the list was rejected because it caused disruptive layout shifts.
 
-The shared navigation is **Needs review**, **Recently added**, **Accounting**,
-**Contracts & legal**, **Banking**, **Tax & reporting**, restricted **HR**,
-**All documents**, and **Trash**. Archive-native shared views use Paperless
-Saved View identities and stable tag/type/correspondent IDs. Odoo-only company,
-confidentiality, linked-record, accounting, and HR restrictions compose with
-those views and remain visibly Odoo policy; they are never claimed to exist
-identically in Paperless.
+The primary navigation starts with **Home** and **My library**, then the useful
+business scopes **Accounting**, **Projects**, **Contracts & legal**,
+**Banking**, and **Tax & reporting**. **HR** remains role-restricted.
+Documents managers also receive **Inbox / To classify** and **All archived**;
+ordinary users do not receive these broad operational views. **Archive
+search** is available to Documents users but deliberately opens empty: the
+archive is queried only after the user supplies text or a facet. **Trash**
+remains separate. The former top-level **Needs review** and **Recently added**
+views are retained only as inactive compatibility identities so saved URLs and
+API clients do not break.
+
+**Home** is a working set, not an archive dump. It contains only prominent
+library/evidence relationships that are starred, recently opened, need review,
+or were added recently. **My library** contains every accessible relationship
+whose presentation role is library or evidence. Search controls let a user
+include all authorized background archive material, exclude it, or show only
+background material; this choice never changes authorization. A star and
+recent-open state are private to the current Odoo user and are not written to
+shared Paperless tags or Saved Views.
+
+Archive-native shared views use Paperless Saved View identities and stable
+tag/type/correspondent IDs. Odoo-only company, confidentiality, linked-record,
+accounting, project, and HR restrictions compose with those views and remain
+visibly Odoo policy; they are never claimed to exist identically in Paperless.
 
 Shared archive-native views are globally visible Saved View objects in
 Paperless. Paperless's sidebar is a per-user preference, so a direct user may
@@ -122,6 +180,31 @@ classifier: users teach it by correcting reviewed, non-inbox examples, and
 Paperless retrains periodically. It is probabilistic and local, but it does not
 create an inspectable list of heuristic rules that either application could
 truthfully display.
+
+The catalog synchronizer enables **Learn automatically** for active shared
+tags, correspondents, and document types that still have no explicit rule and
+already occur on at least two documents. Inbox tags are excluded. This setup is
+idempotent, preserves every manually configured expression, and is rerun after
+archive reconstruction as well as during normal synchronization.
+
+Odoo separately reconciles the review state of an archive root. It may promote
+**Needs review** to **Classified** (never to **Reviewed**) only when the root is
+available, has a company, synchronized permissions, an existing authoritative
+business relationship, consistent link companies, and a document type or tag.
+Unlinked external intake, policy conflicts, missing records, and permission
+errors remain visible for review. Classification is reconciled immediately
+after archive context or a manual business relationship is applied, after a
+completed Paperless synchronization, and at the end of the Documents
+migration. A twice-daily unbounded recovery sweep catches interrupted or
+historical work; it is a safety net rather than the normal processing path.
+
+Two broader alternatives were rejected. Trusting all metadata assigned by
+Paperless would clear the Inbox fastest, but it cannot establish Odoo company
+or record authorization and would hide genuinely unassigned files. A one-time
+migration update would clean today's backlog but would regress after future
+intake or a final reconstruction. The combined Paperless-learning and
+authoritative-link reconciliation keeps the archive classifier reusable while
+leaving Odoo's access boundary deterministic.
 
 Each catalog row and form shows the number of non-Trash documents the current
 user may access and opens those documents with a removable native facet.
@@ -177,17 +260,49 @@ An archive correspondent may optionally map to an Odoo Contact:
 
 ## Business records
 
-Supported bills, invoices, journal entries, expenses, partners, companies,
-projects, tasks, and employees expose one Documents smart button:
-
-- with no linked archive items it is **Upload**;
-- with links it is **N Documents**.
+Supported bills, invoices, journal entries, payments, assets, expenses and
+batches, partners, companies, projects, tasks, employees, TESE payroll,
+Platform Billing, declarations and closing workspaces expose one **Documents**
+smart button. It shows the archived count plus a lightweight processing or
+attention state when useful.
 
 The button opens the full Documents workspace in record context. Existing links
 start with a removable **Linked record** facet. Removing it lets the user search
-and **Link to this record**; upload remains available in the same context.
-There is no competing Archive button. Removing a relationship never trashes or
-deletes the archived root.
+and **Link to this record**. Native chatter and attachment controls remain the
+normal upload surface; there is no competing **Archive in Paperless** action.
+Removing a relationship never trashes or deletes the archived root.
+
+Automatic archiving normally keeps supporting attachments in the background
+so routine record evidence does not flood Home. An authorized attachment menu
+offers **Keep in Documents** for a native attachment whose policy is archive on
+request. That action starts asynchronous archiving; the original remains on
+the Odoo record and continues to open normally. Documents reuses an existing
+archive root when content and classification match, otherwise creates one root
+and links it back to the record. Replacing the content of that same attachment
+later creates a new version rather than a second root.
+
+The attachment card shows whether the request is queued, being sent, indexed,
+or needs review. After completion, **Open in Documents** opens that exact
+archive identity in the Documents app. The record smart button shows one native
+state at a time—Documents, Archiving, or Needs review—rather than stacking
+several counters in a broken stat-button layout. If archive schedulers are
+paused, **Keep in Documents** fails before queuing and explicitly confirms that
+the original is safe on the record.
+
+The separate document-detail action can add a background relationship to **My
+library** or remove a library relationship from it. That action changes only
+the Odoo presentation role; it does not archive another file. Required
+evidence cannot be demoted.
+
+Context is additive. Projects receive **Projects** and one stable
+**Project · Name** tag, Platform Billing receives one stable platform tag,
+expenses use the canonical **Expenses** taxonomy, and accounting, HR, payroll,
+tax and closing evidence receive their relevant business type. Existing manual
+tags are never silently erased. A conflicting non-empty classification enters
+**Needs review**, except when a trusted, more-specific business policy
+explicitly replaces a generic type. Access can be narrowed without creating a
+false conflict; a request to relax existing confidentiality still requires
+review.
 
 For a mapped Contact, the same workspace composes archive correspondent mapping
 and explicit Odoo relationships without duplicating results.
@@ -250,6 +365,12 @@ immediately resynchronize affected permissions. An access reduction fails
 closed and rolls the Odoo change back when Paperless cannot revoke the old
 permission safely.
 
+Automatically archived documents are record-scoped: an internal user must be
+able to read at least one active linked Odoo record. Project privacy,
+assignees, collaborators, followers, company selection and product roles are
+re-evaluated when they change. Portal uploaders keep their authorized Odoo
+attachment workflow but do not receive Documents or direct Paperless access.
+
 Canonical target finalization creates the individual Paperless social account,
 links it to the existing Odoo user through that immutable subject, and applies
 the exact authorized document set. The first login therefore authenticates an
@@ -269,4 +390,7 @@ collaborative editors, OCR, classifiers, or retention judgment. It does not
 iframe or copy the Paperless frontend. Existing Odoo attachments remain when
 deliberately archived. Final Odoo-generated legal or accounting outputs may
 have an operational Odoo copy plus a Paperless archival copy; checksum, source,
-and relationship make that deliberate duplication explicit.
+and relationship make that deliberate duplication explicit. A trusted
+`generated_final` origin queues that archival copy as `odoo_generated`
+evidence; it follows the same retry, duplicate, and permission workflow as
+other authoritative archive operations.
