@@ -27,6 +27,7 @@ from source import (  # noqa: E402
     SourceReader,
     canonical_json,
     history_payload,
+    identity_search_domains,
     match_exports,
     redact_historical_links,
     sha256,
@@ -93,16 +94,19 @@ def source_identity(model, source_id, *, email=None, login=None):
             return record
         if len(record) > 1:
             fail(f"Ambiguous restored {model} source identity {source_id}")
-    candidates = records
-    if model == "res.users" and login:
-        candidates = records.search([("login", "=ilike", login)])
-    elif email:
-        candidates = records.search([("email", "=ilike", email)])
-    else:
-        candidates = records.browse()
-    if len(candidates) != 1:
-        fail(f"Could not resolve one target {model} for source id {source_id}")
-    return candidates
+    for identity_name, domain in identity_search_domains(
+        model,
+        login=login,
+        email=email,
+    ):
+        candidates = records.search(domain)
+        if len(candidates) == 1:
+            return candidates
+        if len(candidates) > 1:
+            fail(
+                f"Ambiguous target {model} {identity_name} for source id {source_id}"
+            )
+    fail(f"Could not resolve one target {model} for source id {source_id}")
 
 
 def optional_source_partner(source_id, *, email=None):
