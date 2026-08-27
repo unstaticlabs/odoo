@@ -48,6 +48,18 @@
                             <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
                         </div>
                     </section>
+                    <section class="usl_sign_start_section">
+                        <p class="usl_sign_step_label" invisible="signature_source != 'upload'">Step 3</p>
+                        <p class="usl_sign_step_label" invisible="signature_source != 'template'">Step 2</p>
+                        <h3>Signing method</h3>
+                        <p class="text-muted">Choose how signers confirm and what proof is retained.</p>
+                        <field name="requested_trust" widget="usl_sign_method_radio"
+                               options="{'horizontal': true}" nolabel="1"
+                               class="usl_sign_method_radio"/>
+                        <div class="small text-muted mt-2" role="status" aria-live="polite">
+                            <field name="signing_method_summary" nolabel="1" readonly="1"/>
+                        </div>
+                    </section>
                     <details class="usl_sign_start_more">
                         <summary>Request name, message and linked record</summary>
                         <group class="mt-2">

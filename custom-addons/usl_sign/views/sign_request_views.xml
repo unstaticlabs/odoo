@@ -605,7 +605,7 @@
         <field name="name">sign.oca.request.list.usl.completed</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" default_order="completed_at desc">
+            <list create="0" edit="0" delete="0" default_order="completed_at desc, id desc">
                 <field name="name" string="Document"/>
                 <field name="record_ref" string="Linked record" optional="show"/>
                 <field name="completed_at" string="Completed on"/>
@@ -622,7 +622,7 @@
         <field name="name">sign.oca.request.kanban.usl.completed</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
-            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="completed_at desc" class="o_kanban_small_column usl_sign_document_kanban">
+            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="completed_at desc, id desc" class="o_kanban_small_column usl_sign_document_kanban">
                 <field name="name"/>
                 <field name="document_preview_url"/>
                 <field name="document_thumbnail_url"/>
