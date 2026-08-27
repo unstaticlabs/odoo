@@ -4524,6 +4524,7 @@ msgstr "Factures électroniques"
 #. module: rebuild_account_migration
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_einvoice_readiness
 #: model:ir.ui.menu,name:rebuild_account_migration.menu_rebuild_einvoice_readiness
+#: model:ir.ui.menu,name:rebuild_account_migration.menu_rebuild_einvoice_readiness_settings
 msgid "Electronic Invoicing"
 msgstr "Facturation électronique"
 

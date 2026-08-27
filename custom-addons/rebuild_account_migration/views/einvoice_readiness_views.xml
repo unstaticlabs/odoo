@@ -465,6 +465,12 @@
         action="action_rebuild_einvoice_readiness"
         sequence="5"
         groups="account.group_account_manager"/>
+    <menuitem id="menu_rebuild_einvoice_readiness_settings"
+        name="Electronic Invoicing"
+        parent="base.menu_users"
+        action="action_rebuild_einvoice_readiness"
+        sequence="20"
+        groups="account.group_account_manager"/>
     <menuitem id="menu_rebuild_einvoice_reception"
         name="Incoming E-Invoices"
         parent="account.menu_finance_payables"

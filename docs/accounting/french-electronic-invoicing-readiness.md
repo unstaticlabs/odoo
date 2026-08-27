@@ -34,7 +34,12 @@ must not depend on reconstruction provenance.
 
 ## Business states and actions
 
-**Accounting > Configuration > Invoicing > Electronic Invoicing** exposes one
+**Accounting > Configuration > Invoicing > Electronic Invoicing** and
+**Settings > Users & Companies > Electronic Invoicing** open the same
+company-scoped readiness workspace. The Settings shortcut is visible to
+Accounting managers; the native **Companies** menu remains the place for
+ordinary company details such as address, email and branding. The readiness
+workspace exposes one
 state and the action relevant to it:
 
 | State | Meaning | Primary action |

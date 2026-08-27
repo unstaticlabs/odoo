@@ -18,7 +18,11 @@ Accounting managers use **Configuration** for:
 
 ## E-Invoicing
 
-Open **Configuration > Invoicing > Electronic Invoicing**. Complete the four
+Open **Accounting > Configuration > Invoicing > Electronic Invoicing** or,
+as an Accounting manager, **Settings > Users & Companies > Electronic
+Invoicing**. Both shortcuts open the same readiness workspace. Use the native
+**Settings > Users & Companies > Companies** menu for ordinary company
+details such as the company email address. Complete the four
 business steps: company identity, incoming purchase journal, accounting
 contact and reception self-check.
 
