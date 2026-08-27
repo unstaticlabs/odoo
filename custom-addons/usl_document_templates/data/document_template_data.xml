@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="template_invoice_v1" model="usl.document.template">
+        <field name="name">Invoice and credit note</field>
+        <field name="key">invoice.v1</field>
+        <field name="schema_version">1.0</field>
+        <field name="family">invoice</field>
+        <field name="output_profile">factur-x-base</field>
+    </record>
+    <record id="template_accounting_statement_v1" model="usl.document.template">
+        <field name="name">Accounting statement</field>
+        <field name="key">accounting_statement.v1</field>
+        <field name="schema_version">1.0</field>
+        <field name="family">accounting</field>
+        <field name="output_profile">pdfa-2b</field>
+    </record>
+    <record id="template_official_letter_v1" model="usl.document.template">
+        <field name="name">Official correspondence</field>
+        <field name="key">official_letter.v1</field>
+        <field name="schema_version">1.0</field>
+        <field name="family">letter</field>
+        <field name="output_profile">pdfa-2b</field>
+    </record>
+    <record id="template_sign_completion_v1" model="usl.document.template">
+        <field name="name">Signature completion certificate</field>
+        <field name="key">sign_completion.v1</field>
+        <field name="schema_version">1.0</field>
+        <field name="family">sign</field>
+        <field name="output_profile">pdfa-2b</field>
+    </record>
+
+    <record id="renderer_url" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_url</field>
+        <field name="value">https://usl-document-renderer:8443</field>
+    </record>
+    <record id="renderer_timeout" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_timeout</field>
+        <field name="value">35</field>
+    </record>
+    <record id="renderer_expected_revision" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_expected_revision</field>
+        <field name="value">786cadf86804808674a7f4bcacaa273a588d58e0</field>
+    </record>
+    <record id="renderer_ca_path" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_ca_path</field>
+        <field name="value">/run/secrets/document-renderer/ca.crt</field>
+    </record>
+    <record id="renderer_certificate_path" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_certificate_path</field>
+        <field name="value">/run/secrets/document-renderer/odoo.crt</field>
+    </record>
+    <record id="renderer_private_key_path" model="ir.config_parameter">
+        <field name="key">usl_document_templates.renderer_private_key_path</field>
+        <field name="value">/run/secrets/document-renderer/odoo.key</field>
+    </record>
+</odoo>

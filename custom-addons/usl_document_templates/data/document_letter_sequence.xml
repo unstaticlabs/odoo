@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sequence_document_letter_fallback" model="ir.sequence">
+        <field name="name">Official letters</field>
+        <field name="code">usl.document.letter</field>
+        <field name="prefix">LET/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>
+

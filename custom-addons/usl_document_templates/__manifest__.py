@@ -1,0 +1,27 @@
+{
+    "name": "USL Document Templates",
+    "summary": "Governed LaTeX rendering for official business documents",
+    "version": "saas~19.3.1.0.0",
+    "category": "Productivity/Documents",
+    "author": "Unstatic Labs",
+    "license": "LGPL-3",
+    "depends": [
+        "base_setup",
+        "mail",
+        "web",
+    ],
+    "data": [
+        "security/document_templates_security.xml",
+        "security/ir.model.access.csv",
+        "data/document_template_data.xml",
+        "data/document_letter_sequence.xml",
+        "views/res_config_settings_views.xml",
+        "views/document_letter_views.xml",
+        "views/document_template_views.xml",
+        "report/document_letter_report.xml",
+    ],
+    "application": True,
+    "installable": True,
+    "post_init_hook": "post_init_hook",
+}
+

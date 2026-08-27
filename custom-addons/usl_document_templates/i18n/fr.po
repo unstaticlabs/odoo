@@ -1,0 +1,1436 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_document_templates
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-27 23:19+0000\n"
+"PO-Revision-Date: 2026-08-28 00:00+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "%(identity)s · APE %(ape)s"
+msgstr "%(identity)s · APE %(ape)s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "%(name)s, %(form)s au capital de %(capital)s"
+msgstr "%(name)s, %(form)s au capital de %(capital)s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "%(name)s, %(form)s with share capital of %(capital)s"
+msgstr "%(name)s, %(form)s au capital de %(capital)s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid ""
+"%s\n"
+"\n"
+"Open Settings to correct the company identity or renderer configuration."
+msgstr ""
+"%s\n"
+"\n"
+"Ouvrez les paramètres pour corriger l’identité de la société ou la "
+"configuration du moteur."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "1 Example Street"
+msgstr "1 rue d’Exemple"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "40-character Git commit"
+msgstr "Commit Git de 40 caractères"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "75000 Paris"
+msgstr "75000 Paris"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "<span class=\"o_stat_text\">Official PDF</span>"
+msgstr "<span class=\"o_stat_text\">PDF officiel</span>"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "<span class=\"text-muted ms-3\">Engine: </span>"
+msgstr "<span class=\"text-muted ms-3\">Moteur : </span>"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "<span class=\"text-muted\">Reported revision: </span>"
+msgstr "<span class=\"text-muted\">Révision déclarée : </span>"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid ""
+"A LaTeX output policy and governed template binding must be set together."
+msgstr ""
+"La politique de sortie LaTeX et le modèle gouverné doivent être définis "
+"ensemble."
+
+#. module: usl_document_templates
+#: model:ir.model.constraint,message:usl_document_templates.constraint_usl_document_template_key_unique
+msgid "A document template key must be unique."
+msgstr "La clé d’un modèle de document doit être unique."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid "A governed document report requires at least one business record."
+msgstr ""
+"Un rapport documentaire gouverné requiert au moins un enregistrement métier."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "APE code"
+msgstr "code APE"
+
+#. module: usl_document_templates
+#: model:usl.document.template,name:usl_document_templates.template_accounting_statement_v1
+msgid "Accounting statement"
+msgstr "État comptable"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__family__accounting
+msgid "Accounting statements"
+msgstr "États comptables"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Authorized signatory"
+msgstr "Signataire habilité"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__body
+msgid "Body"
+msgstr "Corps"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "CA bundle"
+msgstr "Autorité de certification"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__state__cancelled
+msgid "Cancelled"
+msgstr "Annulée"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Check renderer"
+msgstr "Vérifier le moteur"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Clear, governed content"
+msgstr "Contenu clair et gouverné"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_ca_path
+msgid "Client CA path"
+msgstr "Chemin de l’autorité de certification"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Client certificate"
+msgstr "Certificat client"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_certificate_path
+msgid "Client certificate path"
+msgstr "Chemin du certificat client"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Client private key"
+msgstr "Clé privée du client"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_private_key_path
+msgid "Client private-key path"
+msgstr "Chemin de la clé privée du client"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Company identity synchronized with Odoo"
+msgstr "Identité de la société synchronisée avec Odoo"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Complete the company address, registration, VAT, APE, logo and colors."
+msgstr ""
+"Complétez l’adresse, l’immatriculation, la TVA, l’APE, le logo et les "
+"couleurs de la société."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Complete: %s"
+msgstr "À compléter : %s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Completed"
+msgstr "Terminé"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Concise subject"
+msgstr "Objet concis"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__superseded_by_ids
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Corrections"
+msgstr "Rectifications"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__supersedes_id
+msgid "Corrects"
+msgstr "Rectifie"
+
+#. module: usl_document_templates
+#: model:ir.ui.menu,name:usl_document_templates.menu_document_letters
+msgid "Correspondence"
+msgstr "Correspondance"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Create Correction"
+msgstr "Créer une rectification"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Current period"
+msgstr "Période courante"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__delivery_method
+msgid "Delivery Method"
+msgstr "Mode d’envoi"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Document Templates"
+msgstr "Modèles de documents"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_currency_id
+msgid "Document currency"
+msgstr "Devise du document"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_actions_report__usl_output_policy
+msgid "Document output policy"
+msgstr "Politique de sortie documentaire"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_template_id
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_template_id
+msgid "Document template"
+msgstr "Modèle de document"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Download PDF"
+msgstr "Télécharger le PDF"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Download preview pack"
+msgstr "Télécharger le dossier d’aperçu"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__state__draft
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_search
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Due:"
+msgstr "Échéance :"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__delivery_method__email
+msgid "Email"
+msgstr "Courriel"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Event-chain head"
+msgstr "Tête de la chaîne d’événements"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__output_profile__factur-x-base
+msgid "Factur-X visual base"
+msgstr "Base visuelle Factur-X"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_template__family
+msgid "Family"
+msgstr "Famille"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Finalize"
+msgstr "Finaliser"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Finalize the letter before printing its official PDF."
+msgstr "Finalisez la lettre avant d’imprimer son PDF officiel."
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__state__finalized
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_search
+msgid "Finalized"
+msgstr "Finalisée"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__finalized_at
+msgid "Finalized At"
+msgstr "Finalisée le"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__finalized_snapshot
+msgid "Finalized Snapshot"
+msgstr "Instantané finalisé"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Finalized official content is immutable. Create a correction instead."
+msgstr "Le contenu officiel finalisé est immuable. Créez une rectification."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "For example SAS, SASU or SARL."
+msgstr "Par exemple SAS, SASU ou SARL."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Four-family preview pack"
+msgstr "Dossier d’aperçu des quatre familles"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "France"
+msgstr "France"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid ""
+"Generate synthetic invoice, accounting, correspondence and signature-"
+"certificate PDFs for the selected company. Preview data has no legal or "
+"accounting value."
+msgstr ""
+"Générez des PDF synthétiques de facture, d’état comptable, de correspondance "
+"et de certificat de signature pour la société sélectionnée. Les données "
+"d’aperçu n’ont aucune valeur juridique ou comptable."
+
+#. module: usl_document_templates
+#: model:ir.ui.menu,name:usl_document_templates.menu_document_governance
+msgid "Governance"
+msgstr "Gouvernance"
+
+#. module: usl_document_templates
+#: model:ir.model,name:usl_document_templates.model_usl_document_template
+msgid "Governed Document Template"
+msgstr "Modèle de document gouverné"
+
+#. module: usl_document_templates
+#: model:ir.actions.act_window,name:usl_document_templates.action_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_template_list
+msgid "Governed Templates"
+msgstr "Modèles gouvernés"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_actions_report__usl_document_template_id
+msgid "Governed document template"
+msgstr "Modèle de document gouverné"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid "Governed document templates require a qweb-pdf report action."
+msgstr ""
+"Les modèles de documents gouvernés nécessitent une action de rapport qweb-"
+"pdf."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_template.py:0
+msgid "Governed templates are upgrade-managed and cannot be deleted."
+msgstr ""
+"Les modèles gouvernés sont gérés par les mises à niveau et ne peuvent pas "
+"être supprimés."
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__delivery_method__hand
+msgid "Hand delivery"
+msgstr "Remise en main propre"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__res_company__usl_document_renderer_status__healthy
+msgid "Healthy"
+msgstr "Opérationnel"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Immutable Git revision embedded in the reviewed renderer image."
+msgstr "Révision Git immuable intégrée à l’image vérifiée du moteur."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Immutable finalized official letter"
+msgstr "Lettre officielle finalisée et immuable"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Immutable template revision"
+msgstr "Révision immuable du modèle"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Income statement preview"
+msgstr "Aperçu du compte de résultat"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Internal service URL"
+msgstr "URL du service interne"
+
+#. module: usl_document_templates
+#: model:usl.document.template,name:usl_document_templates.template_invoice_v1
+msgid "Invoice and credit note"
+msgstr "Facture et avoir"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__family__invoice
+msgid "Invoices and credit notes"
+msgstr "Factures et avoirs"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Isolated renderer"
+msgstr "Moteur de rendu isolé"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_template__key
+msgid "Key"
+msgstr "Clé"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__ir_actions_report__usl_output_policy__latex
+msgid "LaTeX-rendered"
+msgstr "Rendu par LaTeX"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_legal_form
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_legal_form
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Legal form"
+msgstr "Forme juridique"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,help:usl_document_templates.field_res_company__usl_document_legal_form
+#: model:ir.model.fields,help:usl_document_templates.field_res_config_settings__usl_document_legal_form
+msgid "Legal form printed on official documents, for example SAS or SARL."
+msgstr ""
+"Forme juridique imprimée sur les documents officiels, par exemple SAS ou "
+"SARL."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Legal identity"
+msgstr "Identité légale"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_identity_ready
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_identity_ready
+msgid "Legal identity ready"
+msgstr "Identité légale complète"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_identity_message
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_identity_message
+msgid "Legal identity status"
+msgstr "État de l’identité légale"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Letter"
+msgstr "Lettre"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__ir_actions_report__usl_output_policy__machine
+msgid "Machine output"
+msgstr "Sortie machine"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Mark as Sent"
+msgstr "Marquer comme envoyée"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Nice"
+msgstr "Nice"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__ir_actions_report__usl_output_policy__non_official
+msgid "Non-official"
+msgstr "Non officiel"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__res_company__usl_document_renderer_status__unknown
+msgid "Not checked"
+msgstr "Non vérifié"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Nous vous prions d’agréer l’expression de nos salutations distinguées."
+msgstr "Nous vous prions d’agréer l’expression de nos salutations distinguées."
+
+#. module: usl_document_templates
+#: model:res.groups.privilege,name:usl_document_templates.privilege_official_correspondence
+msgid "Official Correspondence"
+msgstr "Correspondance officielle"
+
+#. module: usl_document_templates
+#: model:ir.module.category,name:usl_document_templates.module_category_official_documents
+#: model:ir.ui.menu,name:usl_document_templates.menu_official_documents_root
+msgid "Official Documents"
+msgstr "Documents officiels"
+
+#. module: usl_document_templates
+#: model:ir.model,name:usl_document_templates.model_usl_document_letter
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Official Letter"
+msgstr "Lettre officielle"
+
+#. module: usl_document_templates
+#: model:ir.actions.act_window,name:usl_document_templates.action_document_letters
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_list
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_search
+msgid "Official Letters"
+msgstr "Lettres officielles"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__finalized_attachment_id
+msgid "Official PDF"
+msgstr "PDF officiel"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__family__letter
+#: model:usl.document.template,name:usl_document_templates.template_official_letter_v1
+msgid "Official correspondence"
+msgstr "Correspondance officielle"
+
+#. module: usl_document_templates
+#: model:res.groups,name:usl_document_templates.group_document_letter_manager
+msgid "Official correspondence manager"
+msgstr "Responsable de la correspondance officielle"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Official correspondence preview"
+msgstr "Aperçu de correspondance officielle"
+
+#. module: usl_document_templates
+#: model:res.groups,name:usl_document_templates.group_document_letter_user
+msgid "Official correspondence user"
+msgstr "Utilisateur de la correspondance officielle"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Official document readiness"
+msgstr "État de préparation des documents officiels"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid ""
+"Official documents use the selected company's native identity, address, "
+"registration, tax data, logo and colors."
+msgstr ""
+"Les documents officiels utilisent l’identité, l’adresse, l’immatriculation, "
+"les données fiscales, le logo et les couleurs Odoo de la société "
+"sélectionnée."
+
+#. module: usl_document_templates
+#: model:ir.actions.report,name:usl_document_templates.action_report_document_letter
+msgid "Official letter"
+msgstr "Lettre officielle"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Official letters - %s"
+msgstr "Lettres officielles — %s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Official version %(version)s finalized."
+msgstr "Version officielle %(version)s finalisée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid ""
+"Official-letter lifecycle fields are managed by the correspondence workflow."
+msgstr ""
+"Les champs de cycle de vie d’une lettre officielle sont gérés par le "
+"processus de correspondance."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Only a draft letter can be finalized."
+msgstr "Seule une lettre en brouillon peut être finalisée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Only a draft or finalized letter can be cancelled."
+msgstr "Seule une lettre en brouillon ou finalisée peut être annulée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Only a finalized letter can be marked as sent."
+msgstr "Seule une lettre finalisée peut être marquée comme envoyée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Only a finalized or sent letter can be corrected."
+msgstr "Seule une lettre finalisée ou envoyée peut être rectifiée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Only draft letters can be deleted."
+msgstr "Seules les lettres en brouillon peuvent être supprimées."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_template.py:0
+msgid "Only schema version 1.0 is supported."
+msgstr "Seule la version 1.0 du schéma est prise en charge."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Open Settings"
+msgstr "Ouvrir les paramètres"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Open company"
+msgstr "Ouvrir la société"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Operating income"
+msgstr "Produits d’exploitation"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Operating result"
+msgstr "Résultat d’exploitation"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__delivery_method__other
+msgid "Other"
+msgstr "Autre"
+
+#. module: usl_document_templates
+#: model:ir.ui.menu,name:usl_document_templates.menu_report_output_inventory
+msgid "Output Inventory"
+msgstr "Inventaire des sorties"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_template__output_profile
+msgid "Output Profile"
+msgstr "Profil de sortie"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__output_profile__pdfa-2b
+msgid "PDF/A-2b"
+msgstr "PDF/A-2b"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,help:usl_document_templates.field_res_company__usl_document_share_capital
+#: model:ir.model.fields,help:usl_document_templates.field_res_config_settings__usl_document_share_capital
+msgid "Paid or stated share capital printed on official documents."
+msgstr "Capital social libéré ou déclaré imprimé sur les documents officiels."
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_payload_sha256
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_payload_sha256
+msgid "Payload SHA-256"
+msgstr "Empreinte SHA-256 de la charge utile"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__ir_actions_report__usl_output_policy__pending_migration
+msgid "Pending migration"
+msgstr "Migration en attente"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_expected_revision
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Pinned template revision"
+msgstr "Révision de modèle épinglée"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "Please accept our sincere regards."
+msgstr "Nous vous prions d’agréer l’expression de nos salutations distinguées."
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__delivery_method__postal
+msgid "Postal mail"
+msgstr "Courrier postal"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "President"
+msgstr "Présidence"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Preview attachment list"
+msgstr "Liste d’annexes d’aperçu"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Preview customer"
+msgstr "Client d’aperçu"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Preview document - no legal or accounting value."
+msgstr "Document d’aperçu sans valeur juridique ni comptable."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid ""
+"Preview only. The production certificate is generated from retained signing "
+"evidence."
+msgstr ""
+"Aperçu uniquement. Le certificat de production est généré à partir des "
+"preuves de signature conservées."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Preview recipient"
+msgstr "Destinataire d’aperçu"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Preview signer"
+msgstr "Signataire d’aperçu"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Printed Attachments"
+msgstr "Annexes imprimées"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__attachment_ids
+msgid "Printed attachment list"
+msgstr "Liste des annexes imprimées"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Prior period"
+msgstr "Période précédente"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Professional services - preview data"
+msgstr "Prestations de services — données d’aperçu"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "RCS %(city)s %(registry)s · TVA %(vat)s"
+msgstr "RCS %(city)s %(registry)s · TVA %(vat)s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_rcs_city
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_rcs_city
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "RCS city"
+msgstr "Ville du RCS"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Ready for official documents"
+msgstr "Prêt pour les documents officiels"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__recipient_id
+msgid "Recipient"
+msgstr "Destinataire"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__reference
+msgid "Reference"
+msgstr "Référence"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Registry %(registry)s · VAT %(vat)s"
+msgstr "Immatriculation %(registry)s · TVA %(vat)s"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,help:usl_document_templates.field_res_company__usl_document_rcs_city
+#: model:ir.model.fields,help:usl_document_templates.field_res_config_settings__usl_document_rcs_city
+msgid "Registry city printed as part of the French RCS mention."
+msgstr "Ville du greffe imprimée dans la mention française du RCS."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Registry city used in the RCS mention."
+msgstr "Ville du greffe utilisée dans la mention du RCS."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Render and download the four synthetic reference documents."
+msgstr "Générer et télécharger les quatre documents synthétiques de référence."
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_rendered_at
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_rendered_at
+msgid "Rendered at"
+msgstr "Rendu le"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_company_id
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_company_id
+msgid "Rendered company"
+msgstr "Société du rendu"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_url
+msgid "Renderer URL"
+msgstr "URL du moteur"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_renderer_checked_at
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_checked_at
+msgid "Renderer checked at"
+msgstr "Moteur vérifié le"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Renderer health"
+msgstr "État du moteur"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Renderer is healthy"
+msgstr "Le moteur est opérationnel"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Renderer is healthy."
+msgstr "Le moteur est opérationnel."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Renderer is unavailable"
+msgstr "Le moteur est indisponible"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_renderer_message
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_message
+msgid "Renderer message"
+msgstr "Message du moteur"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_renderer_revision
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_revision
+msgid "Renderer revision"
+msgstr "Révision du moteur"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid ""
+"Renderer revision mismatch: expected %(expected)s, received %(received)s."
+msgstr ""
+"Révision du moteur incorrecte : %(expected)s attendue, %(received)s reçue."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "Renderer setting %s is not configured."
+msgstr "Le paramètre %s du moteur n’est pas configuré."
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_timeout
+msgid "Renderer timeout"
+msgstr "Délai maximal du moteur"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_renderer_version
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_renderer_version
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_renderer_version
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_renderer_version
+msgid "Renderer version"
+msgstr "Version du moteur"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid ""
+"Report %(report)s is bound to %(template)s but %(model)s has no document "
+"adapter."
+msgstr ""
+"Le rapport %(report)s est lié à %(template)s, mais %(model)s ne possède "
+"aucun adaptateur documentaire."
+
+#. module: usl_document_templates
+#: model:ir.actions.act_window,name:usl_document_templates.action_report_output_inventory
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_report_output_inventory_list
+msgid "Report Output Inventory"
+msgstr "Inventaire des sorties de rapports"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Request timeout"
+msgstr "Délai maximal de la requête"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,help:usl_document_templates.field_res_company__usl_document_renderer_enabled
+msgid "Route governed official documents through the isolated LaTeX renderer."
+msgstr ""
+"Acheminer les documents officiels gouvernés vers le moteur LaTeX isolé."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "SAS"
+msgstr "SAS"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "SIREN / registry number"
+msgstr "SIREN / numéro d’immatriculation"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_template__schema_version
+msgid "Schema Version"
+msgstr "Version du schéma"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Searchable professional PDF"
+msgstr "PDF professionnel avec texte indexable"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_letter__state__sent
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_search
+msgid "Sent"
+msgstr "Envoyée"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__sent_at
+msgid "Sent At"
+msgstr "Envoyée le"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid ""
+"Server-side paths only; certificate material is never stored in Odoo "
+"attachments or sent to browsers."
+msgstr ""
+"Chemins côté serveur uniquement ; les certificats ne sont jamais stockés "
+"dans les pièces jointes Odoo ni envoyés aux navigateurs."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Services"
+msgstr "Services"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_share_capital
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_config_settings__usl_document_share_capital
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Share capital"
+msgstr "Capital social"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "Share capital cannot be negative."
+msgstr "Le capital social ne peut pas être négatif."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__signatory_id
+msgid "Signatory"
+msgstr "Signataire"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__signatory_title
+msgid "Signatory Title"
+msgstr "Fonction du signataire"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__family__sign
+msgid "Signature completion"
+msgstr "Achèvement de la signature"
+
+#. module: usl_document_templates
+#: model:usl.document.template,name:usl_document_templates.template_sign_completion_v1
+msgid "Signature completion certificate"
+msgstr "Certificat d’achèvement de signature"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Sincerely,"
+msgstr "Cordialement,"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__ir_actions_report__usl_output_policy__source_passthrough
+msgid "Source passthrough"
+msgstr "Source conservée telle quelle"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__usl_document_template__output_profile__standard
+msgid "Standard PDF"
+msgstr "PDF standard"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__state
+msgid "State"
+msgstr "État"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_search
+msgid "Status"
+msgstr "Statut"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__subject
+msgid "Subject"
+msgstr "Objet"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Subtotal"
+msgstr "Sous-total"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid ""
+"Synthetic completion evidence for layout review only; no signature is "
+"represented."
+msgstr ""
+"Preuve d’achèvement synthétique destinée uniquement à la vérification de la "
+"mise en page ; aucune signature n’est représentée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Synthetic preview - not an accounting statement."
+msgstr "Aperçu synthétique — ne constitue pas un état comptable."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Synthetic preview - not an invoice."
+msgstr "Aperçu synthétique — ne constitue pas une facture."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Synthetic preview data"
+msgstr "Données d’aperçu synthétiques"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Synthetic preview pack - no legal value"
+msgstr "Dossier d’aperçu synthétique sans valeur juridique"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_ir_attachment__usl_document_template_revision
+#: model:ir.model.fields,field_description:usl_document_templates.field_product_document__usl_document_template_revision
+msgid "Template revision"
+msgstr "Révision du modèle"
+
+#. module: usl_document_templates
+#: model:ir.ui.menu,name:usl_document_templates.menu_document_templates
+msgid "Templates"
+msgstr "Modèles"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "The RCS city must contain a valid city name."
+msgstr "La ville du RCS doit contenir un nom de ville valide."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "The company logo must be a PNG or JPEG image."
+msgstr "Le logo de la société doit être une image PNG ou JPEG."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer URL must use HTTPS."
+msgstr "L’URL du moteur de rendu doit utiliser HTTPS."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer is unavailable. Try again or open Settings."
+msgstr ""
+"Le moteur de rendu est indisponible. Réessayez ou ouvrez les paramètres."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer mTLS credentials are invalid."
+msgstr "Les identifiants mTLS du moteur de rendu sont invalides."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer reported an unhealthy state."
+msgstr "Le moteur de rendu a signalé un état non opérationnel."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer returned an invalid PDF."
+msgstr "Le moteur de rendu a renvoyé un PDF invalide."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The document renderer returned an invalid response."
+msgstr "Le moteur de rendu a renvoyé une réponse invalide."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.report_document_letter
+msgid "The governed PDF is produced by the USL LaTeX renderer."
+msgstr "Le PDF gouverné est produit par le moteur LaTeX USL."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid "The governed document renderer is disabled for this company."
+msgstr "Le moteur de documents gouvernés est désactivé pour cette société."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "The legal form contains unsupported characters."
+msgstr "La forme juridique contient des caractères non pris en charge."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "The legal identity is incomplete: %s"
+msgstr "L’identité légale est incomplète : %s"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid ""
+"The letter body contains an unsupported %(tag)s block. Use paragraphs, "
+"headings, lists, or tables."
+msgstr ""
+"Le corps de la lettre contient un bloc %(tag)s non pris en charge. Utilisez "
+"des paragraphes, des titres, des listes ou des tableaux."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "The letter body must contain printable text."
+msgstr "Le corps de la lettre doit contenir du texte imprimable."
+
+#. module: usl_document_templates
+#: model:ir.model.constraint,message:usl_document_templates.constraint_usl_document_letter_reference_company_unique
+msgid "The letter reference must be unique within a company."
+msgstr "La référence de la lettre doit être unique au sein d’une société."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid ""
+"The recipient needs a name and complete postal address before an official "
+"letter can be finalized."
+msgstr ""
+"Le destinataire doit avoir un nom et une adresse postale complète avant la "
+"finalisation d’une lettre officielle."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid ""
+"The renderer must be healthy and match the pinned template revision. Covered "
+"reports never fall back silently."
+msgstr ""
+"Le moteur doit être opérationnel et correspondre à la révision de modèle "
+"épinglée. Les rapports couverts ne basculent jamais silencieusement vers un "
+"autre moteur."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The renderer payload digest did not match the request."
+msgstr ""
+"L’empreinte de la charge utile renvoyée par le moteur ne correspond pas à la "
+"requête."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The renderer response exceeds the allowed PDF size."
+msgstr "La réponse du moteur dépasse la taille de PDF autorisée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "The renderer used an unexpected template revision."
+msgstr "Le moteur a utilisé une révision de modèle inattendue."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_template.py:0
+msgid "The template key is not part of the governed catalog."
+msgstr "La clé du modèle ne fait pas partie du catalogue gouverné."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "This letter can only use official_letter.v1."
+msgstr "Cette lettre peut uniquement utiliser official_letter.v1."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "This letter has no finalized PDF."
+msgstr "Cette lettre ne possède aucun PDF finalisé."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "This letter state transition is not allowed."
+msgstr "Cette transition d’état de la lettre n’est pas autorisée."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "This synthetic document previews the official correspondence layout."
+msgstr ""
+"Ce document synthétique présente la mise en page de la correspondance "
+"officielle."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "Total"
+msgstr "Total"
+
+#. module: usl_document_templates
+#: model:ir.model,name:usl_document_templates.model_usl_document_renderer
+msgid "USL Document Renderer Client"
+msgstr "Client du moteur de documents USL"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_res_company__usl_document_renderer_enabled
+msgid "USL document renderer"
+msgstr "Moteur de documents USL"
+
+#. module: usl_document_templates
+#: model:ir.model.fields.selection,name:usl_document_templates.selection__res_company__usl_document_renderer_status__error
+msgid "Unavailable"
+msgstr "Indisponible"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "VAT 20%"
+msgstr "TVA 20 %"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "VAT number"
+msgstr "numéro de TVA"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Verify mTLS connectivity, service health and the pinned revision."
+msgstr ""
+"Vérifier la connectivité mTLS, l’état du service et la révision épinglée."
+
+#. module: usl_document_templates
+#: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__version
+msgid "Version"
+msgstr "Version"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "Visual review"
+msgstr "Vérification visuelle"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid ""
+"Write the official correspondence. Use short paragraphs, headings, lists and "
+"simple tables."
+msgstr ""
+"Rédigez la correspondance officielle avec des paragraphes courts, des "
+"titres, des listes et des tableaux simples."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "You cannot issue correspondence for this company."
+msgstr "Vous ne pouvez pas émettre de correspondance pour cette société."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/ir_actions_report.py:0
+msgid "You cannot render documents for this company."
+msgstr "Vous ne pouvez pas générer de documents pour cette société."
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "city"
+msgstr "ville"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "company logo"
+msgstr "logo de la société"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "company name"
+msgstr "nom de la société"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "country"
+msgstr "pays"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "legal form"
+msgstr "forme juridique"
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.res_config_settings_view_form_document_templates
+msgid "mTLS trust paths"
+msgstr "Chemins de confiance mTLS"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_renderer.py:0
+msgid "none"
+msgstr "aucune"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "postal code"
+msgstr "code postal"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "registered address"
+msgstr "adresse du siège social"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_company.py:0
+msgid "share capital"
+msgstr "capital social"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/document_letter.py:0
+msgid "unknown"
+msgstr "inconnu"

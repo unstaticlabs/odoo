@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_usl_document_template_user,usl.document.template user,model_usl_document_template,base.group_user,1,0,0,0
+access_usl_document_template_system,usl.document.template system,model_usl_document_template,base.group_system,1,0,0,0
+access_usl_document_letter_user,usl.document.letter user,model_usl_document_letter,usl_document_templates.group_document_letter_user,1,1,1,1
