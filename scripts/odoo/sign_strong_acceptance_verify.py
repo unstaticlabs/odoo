@@ -72,11 +72,11 @@ def valid_ceremony(ceremony):
             auth_time
             and int(ceremony.create_date.timestamp())
             <= int(auth_time.timestamp())
-            <= int(auth_upper_bound.timestamp())
+            <= int(auth_upper_bound.timestamp()),
         ),
         "binding_digest": bool(
             ceremony.challenge_sha256 == binding_digest.hex()
-            and ceremony.oidc_nonce == expected_oidc_nonce
+            and ceremony.oidc_nonce == expected_oidc_nonce,
         ),
         "document_binding": bool(
             ceremony.binding_payload.get("document_sha256") == ceremony.document_sha256
@@ -86,11 +86,11 @@ def valid_ceremony(ceremony):
             and ceremony.binding_payload.get("public_key_sha256")
             == ceremony.public_key_sha256
             and ceremony.binding_payload.get("consent_sha256")
-            == ceremony.consent_sha256
+            == ceremony.consent_sha256,
         ),
         "short_lived_certificate": bool(
             timedelta(0) < certificate_lifetime <= timedelta(minutes=10, seconds=5)
-            and ceremony.certificate_not_after > ceremony.authorized_at
+            and ceremony.certificate_not_after > ceremony.authorized_at,
         ),
         "signed_oidc_token": bool(ceremony.oidc_id_token),
     }

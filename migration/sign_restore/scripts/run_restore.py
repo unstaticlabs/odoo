@@ -104,9 +104,9 @@ def source_identity(model, source_id, *, email=None, login=None):
             return candidates
         if len(candidates) > 1:
             fail(
-                f"Ambiguous target {model} {identity_name} for source id {source_id}"
+                f"Ambiguous target {model} {identity_name} for source id {source_id}",
             )
-    fail(f"Could not resolve one target {model} for source id {source_id}")
+    return fail(f"Could not resolve one target {model} for source id {source_id}")
 
 
 def optional_source_partner(source_id, *, email=None):

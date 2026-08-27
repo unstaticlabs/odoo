@@ -348,15 +348,15 @@ class SignStart(models.TransientModel):
         summaries = {
             "standard": _(
                 "Private links record each signer’s consent and actions. The final "
-                "PDF receives one platform integrity seal."
+                "PDF receives one platform integrity seal.",
             ),
             "strong_personal": _(
                 "Each signer needs an approved identity and fresh Pocket ID passkey. "
-                "Personal PDF signatures are applied one after another, in signer order."
+                "Personal PDF signatures are applied one after another, in signer order.",
             ),
             "qualified_external": _(
                 "A reviewed external provider applies the qualified signature. You "
-                "will choose that provider before sending."
+                "will choose that provider before sending.",
             ),
         }
         for wizard in self:
