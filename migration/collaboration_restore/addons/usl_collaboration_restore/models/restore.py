@@ -619,7 +619,7 @@ class UslCollaborationRestoreRun(models.Model):
     def _knowledge_pdf(title, rendered_html):
         """Create a stable Paperless-compatible reading copy of a legacy article."""
         stream = io.BytesIO()
-        page_width, page_height = A4
+        _page_width, page_height = A4
         pdf = canvas.Canvas(
             stream,
             pagesize=A4,
@@ -856,6 +856,12 @@ class UslCollaborationRestoreRun(models.Model):
             "date_from": "2024-01-10",
             "date_to": "2026-08-31",
             "source_company_ids": [1, 8],
+            # Collaboration restores the original source messages and their
+            # attachment relations immediately after this native materializer.
+            # Do not create Accounting's synthetic attachment note here: it
+            # can notify existing expense followers and would be replaced by
+            # the source message in the same transaction anyway.
+            "defer_attachment_chatter_to_collaboration": True,
             "source_host": os.environ.get("COLLABORATION_SOURCE_DB_HOST", "accounting-source-db"),
             "source_port": int(os.environ.get("COLLABORATION_SOURCE_DB_PORT", "5432")),
             "source_user": os.environ.get("COLLABORATION_SOURCE_DB_USER", "odoo"),
@@ -928,21 +934,58 @@ class UslCollaborationRestoreRun(models.Model):
             name for name in ("mail.notification", "mail.mail", "sms.sms", "mail.push")
             if name in self.env
         )
+        side_effect_ids_before = {
+            name: set(self.env[name].sudo().search([]).ids)
+            for name in side_effect_models
+        }
         side_effect_before = {
-            name: self.env[name].sudo().search_count([]) for name in side_effect_models
+            name: len(ids)
+            for name, ids in side_effect_ids_before.items()
         }
 
         def assert_no_delivery_state(stage):
-            current = {
-                name: self.env[name].sudo().search_count([])
+            current_ids = {
+                name: set(self.env[name].sudo().search([]).ids)
                 for name in side_effect_models
             }
-            if current != side_effect_before:
+            if current_ids != side_effect_ids_before:
+                delta = {
+                    name: {
+                        "created": sorted(ids - side_effect_ids_before[name]),
+                        "removed": sorted(side_effect_ids_before[name] - ids),
+                    }
+                    for name, ids in current_ids.items()
+                    if ids != side_effect_ids_before[name]
+                }
+                details = {}
+                for name, changes in delta.items():
+                    if not changes["created"]:
+                        continue
+                    Model = self.env[name].sudo()
+                    diagnostic_fields = [
+                        field_name
+                        for field_name in (
+                            "subject",
+                            "model",
+                            "res_id",
+                            "mail_message_id",
+                            "state",
+                            "email_from",
+                            "email_to",
+                        )
+                        if field_name in Model._fields
+                    ]
+                    details[name] = Model.browse(changes["created"]).read(
+                        diagnostic_fields,
+                    )
                 raise RuntimeError(
                     f"Collaboration restoration produced outbound delivery state "
-                    f"during {stage}: {side_effect_before} -> {current}",
+                    f"during {stage}: {delta}; records={details}",
                 )
-            return current
+            return {
+                name: len(ids)
+                for name, ids in current_ids.items()
+            }
         payload = self._source_payload()
         source_messages_by_id = {row["id"]: row for row in payload["messages"]}
         actual = {
@@ -1698,9 +1741,9 @@ class UslCollaborationRestoreRun(models.Model):
                     "id": row["id"], "disposition": "external_archive", "source": row,
                 })
                 continue
-            note = row["note"] or ""
+            note = row["note"] or False
             if not row["user_id"]:
-                note += "<p><em>The source activity had no assignee. It is assigned to Roger, its source creator, for review.</em></p>"
+                note = (note or "") + "<p><em>The source activity had no assignee. It is assigned to Roger, its source creator, for review.</em></p>"
             existing = self._bound_record("mail.activity", row["id"], "mail.activity")
             if not existing:
                 traced = self._traced("mail.activity", row["id"], "mail.activity")
@@ -1933,9 +1976,11 @@ class UslCollaborationRestoreRun(models.Model):
                         f"No target mail domain can receive source alias {row['id']}",
                     )
                 if configured_name == (row.get("source_alias_domain") or "").strip().lower():
-                    raise RuntimeError(
-                        "COLLABORATION_TARGET_MAIL_DOMAIN must not reuse the source Odoo Online domain",
+                    message = (
+                        "COLLABORATION_TARGET_MAIL_DOMAIN must not reuse the "
+                        "source Odoo Online domain"
                     )
+                    raise RuntimeError(message)
                 candidates = self.env["mail.alias.domain"].sudo().search([
                     ("name", "=", configured_name),
                 ], limit=2)

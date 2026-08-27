@@ -17,11 +17,12 @@ Accounting v1 is engineering-complete for internal daily use. The current
 `19-usl` baseline is not yet the final production release. Expense Analytics
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
-through merge `64c1f2b1207`. Paperless 3.0 and Native Sign remain independently
-reviewable workstreams. Collaboration History and Distribution Access Control
-are also active, unmerged workstreams. All four must be reviewed and merged or
-explicitly rejected before the final production qualification; no feature
-worktree, old QA seed or rehearsal candidate can be promoted directly.
+through merge `64c1f2b1207`. Collaboration History is integrated on the
+current release candidate through merge `c2be4c7429a`. Paperless 3.0, Native
+Sign and Distribution Access Control remain independently reviewable,
+unmerged workstreams. All three must be merged or explicitly rejected before
+the final production qualification; no feature worktree, old QA seed or
+rehearsal candidate can be promoted directly.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -101,6 +102,11 @@ maturity map is maintained in
   readiness. It is ready but deliberately inactive.
 - Complete Accounting attachment reconstruction preserves source metadata,
   native record/chatter links and access inheritance.
+- Source-backed Collaboration history restores native chatter, tracking,
+  followers, activities, recipients, reactions and attachment relationships
+  across rebuilt business records without recreating outbound delivery queues.
+  Unsupported technical history remains sealed private evidence, and the
+  temporary restore module is removed from the delivered database.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
 ### Integrated migration and release foundations
@@ -141,14 +147,27 @@ That focused evidence does not promote the earlier full seed to a final
 release candidate. A new full reconstruction is still required after the
 remaining workstreams merge.
 
+The 27 August Collaboration integration candidate completed another canonical
+reconstruction from the same locked source. Its two Collaboration passes were
+identical at 50,005 messages, 36,946 tracking values, 5,862 followers and 895
+activities. Finalization retained 49,451 visible messages and 554 restricted
+archives, removed every temporary migration model/field/table/XML ID, and
+passed the 14-module product database boundary. Identity and Documents
+qualification retained 798 live Paperless records and produced zero changes on
+the second synchronization. The shared reusable QA seed was not published from
+the integration branch because publication is correctly restricted to a clean
+`19-usl` checkout. These results qualify this merge but, like all earlier
+rehearsals, must be repeated after the remaining workstreams merge.
+
 The current candidate's isolated clean-install and repeated-update check passes
 for all fourteen presently delivered product modules with no migration registry
 or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
 module-installation evidence, not a substitute for the final full migration.
 
-The rehearsal is not a production admission candidate. The strict whole-source
-gate still identifies eight incomplete scopes, the attachment ledger has 115
-pending source attachment IDs, and the separately governed physical
+The rehearsal is not a production admission candidate. Collaboration closes
+its source scope, but the strict whole-source gate still identifies five
+incomplete scopes, the attachment ledger has ten pending source attachment
+IDs, and the separately governed physical
 opening-stock count is still not evidenced. B2C itself now has complete honest
 dispositions: nine aliases are exactly verified, 100 are explicitly not
 applicable, all 180 source-ledger moves have monthly session links, all 40
@@ -195,9 +214,10 @@ The canonical, evidence-bearing sequence is maintained in the
 4. Review and merge Paperless 3.0 and requalify the official export/import and
    zero-OCR paths.
 5. Review and merge Native Sign with signing evidence and permission gates.
-6. Review and merge Collaboration History, then close the corresponding
-   strict source scope and attachment dispositions without importing
-   migration-only provenance into the product.
+6. Collaboration History — **integrated on the current release candidate;
+   clean reconstruction, repeated import and product-boundary qualification
+   passed; its source scope and attachment relationships are closed without
+   migration-only provenance or outbound delivery state in the product**.
 7. Review and merge Distribution Access Control and repeat named-persona,
    multi-company and record-rule acceptance.
 8. Monthly bank-statement email ingestion — **merged at `64c1f2b1207`; clean

@@ -12,14 +12,29 @@ Operation = env["usl.document.operation"].sudo()  # noqa: F821
 Link = env["usl.document.link"].sudo()  # noqa: F821
 Document = env["usl.document"].sudo()  # noqa: F821
 Parameter = env["ir.config_parameter"].sudo()  # noqa: F821
+Evidence = env.get("b2c.provider.evidence")  # noqa: F821
+
+evidence_links = (
+    Evidence.sudo().search([("archived_document_id", "!=", False)])
+    if Evidence is not None and "archived_document_id" in Evidence._fields
+    else Evidence
+)
 
 counts = {
     "operations": Operation.search_count([]),
     "links": Link.search_count([]),
     "documents": Document.with_context(active_test=False).search_count([]),
+    "b2c_evidence_links": len(evidence_links) if evidence_links else 0,
 }
 Operation.search([]).unlink()
 Link.search([]).unlink()
+if evidence_links:
+    # The delivered relationship remains restrictive. Only this explicitly
+    # confirmed one-shot reset may detach it before rebuilding the same locked
+    # archive; the final B2C pass restores every checksum-backed link.
+    evidence_links.with_context(b2c_evidence_import=True).write(
+        {"archived_document_id": False},
+    )
 Document.with_context(active_test=False).search([]).unlink()
 
 Parameter.search(

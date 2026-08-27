@@ -22,13 +22,21 @@ update passed all fourteen delivered product modules. These are valid current
 rehearsal results, not a final production candidate: later feature merges
 invalidate them for release admission.
 
-Paperless 3.0, Native Sign, Collaboration History and Distribution Access
-Control remain active, unmerged workstreams. Their final commits must be
+Collaboration History is integrated on the current release candidate.
+Paperless 3.0, Native Sign and Distribution Access Control remain active,
+unmerged workstreams. Their final commits must be
 reviewed and merged into `19-usl` before a new complete qualification. The
-strict source gate also still reports eight incomplete scopes and 115 pending
+strict source gate now reports five incomplete scopes and ten pending
 source attachment IDs, and the physical opening-stock count is not yet
 available. No feature worktree, old QA seed or rehearsal candidate may be
 promoted directly.
+
+The 27 August integration candidate also completed a canonical reconstruction,
+an identical second Collaboration import, finalization and product-boundary
+qualification. The resulting `odoo_dev` has 14 delivered modules, no migration
+registry/schema residue and 798 stable live Documents records. Publishing the
+shared reusable QA seed remains deliberately deferred until the same result is
+run from a clean `19-usl` checkout.
 
 ### Current production-candidate checklist
 
@@ -44,10 +52,11 @@ promoted directly.
   delivered modules with no migration registry or schema residue.
 - [ ] Review and merge Paperless 3.0.
 - [ ] Review and merge Native Sign.
-- [ ] Review and merge Collaboration History.
+- [x] Integrate Collaboration History with source-backed chatter, activities,
+  tracking and evidence, zero outbound delivery state and no migration residue.
 - [ ] Review and merge Distribution Access Control.
 - [ ] Resolve or explicitly translate every strict whole-source gap and all
-  115 pending source attachment IDs; no silent drop or blanket waiver.
+  ten pending source attachment IDs; no silent drop or blanket waiver.
 - [ ] Obtain and execute the governed physical opening-stock count; do not
   fabricate historical stock.
 - [ ] Repeat static checks, clean install/update, full reconstruction, source

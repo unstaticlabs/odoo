@@ -532,6 +532,16 @@ case "$command_name" in
         require_checkpoint=1
         verify_checkpoint
         ;;
+    seal-checkpoint)
+        if [[ "$canonical_target" != 1 || "$restore_profile" != full ]]; then
+            echo "Final archive checkpoint sealing requires the canonical full target." >&2
+            exit 2
+        fi
+        validate_source
+        require_source_bindings
+        start_archive
+        seal_checkpoint
+        ;;
     serve)
         "${compose[@]}" --profile accounting-compat up -d --wait db
         serve_target
@@ -541,7 +551,7 @@ case "$command_name" in
         validate_runtime
         ;;
     *)
-        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|checkpoint-status|serve|status]" >&2
+        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|checkpoint-status|seal-checkpoint|serve|status]" >&2
         exit 2
         ;;
 esac

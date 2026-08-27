@@ -4995,10 +4995,20 @@ class TestRebuildAccountMigration(TransactionCase):
             "payment_mode": "own_account",
             "total_amount_currency": 1.0,
         })
+        mail_count = self.env["mail.mail"].sudo().search_count([])
+        activity_count = self.env["mail.activity"].sudo().search_count([])
         restored_expense.with_user(manager).with_context(
             rebuild_source_materialization=True,
         ).action_submit()
         self.assertEqual(restored_expense.state, "submitted")
+        self.assertEqual(
+            self.env["mail.mail"].sudo().search_count([]),
+            mail_count,
+        )
+        self.assertEqual(
+            self.env["mail.activity"].sudo().search_count([]),
+            activity_count,
+        )
         historical_expense = self.env["hr.expense"].with_context(
             rebuild_source_expense_price_unit=52.0,
         ).create({

@@ -3,6 +3,15 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 PATH = Path(__file__).parents[1] / "addons/usl_collaboration_restore/routing.py"
+RESTORE_PATH = Path(__file__).parents[1] / "addons/usl_collaboration_restore/models/restore.py"
+ACCOUNTING_IMPORT_PATH = (
+    Path(__file__).parents[2]
+    / "accounting_restore/addons/usl_accounting_restore/models/import_run.py"
+)
+PROJECT_VALIDATION_PATH = (
+    Path(__file__).parents[2]
+    / "project_restore/addons/usl_project_restore/scripts/validate_restore.py"
+)
 SPEC = spec_from_file_location("collaboration_routing", PATH)
 routing = module_from_spec(SPEC)
 SPEC.loader.exec_module(routing)
@@ -55,6 +64,43 @@ class RoutingTest(unittest.TestCase):
         self.assertEqual(
             routing.route_technical_table("mail_blacklist"),
             "private_archive",
+        )
+
+    def test_late_expense_materialization_defers_synthetic_attachment_chatter(self):
+        restore_source = RESTORE_PATH.read_text()
+        accounting_source = ACCOUNTING_IMPORT_PATH.read_text()
+        project_validation_source = PROJECT_VALIDATION_PATH.read_text()
+
+        self.assertIn(
+            '"defer_attachment_chatter_to_collaboration": True',
+            restore_source,
+        )
+        self.assertIn(
+            'options.get("defer_attachment_chatter_to_collaboration")',
+            accounting_source,
+        )
+        self.assertIn(
+            'values["login"] = row["login"]',
+            accounting_source,
+        )
+        self.assertNotIn(
+            'values = {\n                "login": row["login"],',
+            accounting_source,
+        )
+        self.assertIn("side_effect_before = {", restore_source)
+        self.assertIn(
+            '"outbound_side_effect_counts_before": side_effect_before',
+            restore_source,
+        )
+        self.assertIn("collaboration_fallback_note", project_validation_source)
+        self.assertIn(
+            'str(activity.note or "") == collaboration_fallback_note',
+            project_validation_source,
+        )
+        self.assertIn("semantic_activity_type", project_validation_source)
+        self.assertIn(
+            'expected_activity_type = f"semantic:{row[\'activity_type_id\']}"',
+            project_validation_source,
         )
 
 

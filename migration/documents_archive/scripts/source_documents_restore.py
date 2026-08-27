@@ -72,6 +72,12 @@ QUALIFIED_SEARCHABLE_DERIVATIVES = {
         "kind": "corrupt base64-wrapped supplier invoice",
     },
 }
+GOVERNED_POST_DOCUMENTS_LINK_MODELS = {
+    "b2c.accounting.session",
+    "b2c.fulfilment.event",
+    "b2c.order",
+    "b2c.payment.event",
+}
 
 
 def fail(message):
@@ -1729,11 +1735,20 @@ actual_relationships = {
         [("document_id", "in", migrated_document_ids), ("active", "=", True)],
     )
 }
-if actual_relationships != expected_relationships:
+unexpected_relationships = actual_relationships - expected_relationships
+governed_extension_relationships = {
+    relationship
+    for relationship in unexpected_relationships
+    if relationship[1] in GOVERNED_POST_DOCUMENTS_LINK_MODELS
+}
+unsupported_relationships = (
+    unexpected_relationships - governed_extension_relationships
+)
+if expected_relationships - actual_relationships or unsupported_relationships:
     fail(
         "the finalized business relationship set is not deterministic; "
         f"missing={sorted(expected_relationships - actual_relationships)}, "
-        f"unexpected={sorted(actual_relationships - expected_relationships)}",
+        f"unexpected={sorted(unsupported_relationships)}",
     )
 relationships_by_model = {
     model_name: sum(
@@ -1849,6 +1864,16 @@ result = {
     "excluded_empty_source_document_types": excluded_empty_source_document_types,
     "restored_relationship_count": len(expected_relationships),
     "restored_relationships_by_model": relationships_by_model,
+    "preserved_governed_extension_relationship_count": len(
+        governed_extension_relationships,
+    ),
+    "preserved_governed_extension_relationships_by_model": {
+        model_name: sum(
+            relationship[1] == model_name
+            for relationship in governed_extension_relationships
+        )
+        for model_name in sorted(GOVERNED_POST_DOCUMENTS_LINK_MODELS)
+    },
     "classification_tag_counts": classification_tag_counts,
     "classification_type_counts": classification_type_counts,
     "source_added_dates_preserved": len(completed),

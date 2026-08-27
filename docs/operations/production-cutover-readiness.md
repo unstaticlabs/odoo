@@ -81,7 +81,7 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | active feature branch; review and merge pending |
 | Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
-| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | active feature branch; review, merge and strict-scope validation pending |
+| Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | integrated on the current release candidate; clean reconstruction, repeated import and final product-boundary requalification passed |
 | Distribution Access Control | final named-persona, company and record-rule policy across delivered applications | active feature branch; review, merge and multi-company acceptance pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
 
@@ -109,8 +109,17 @@ partial `odoo_dev` installation is not final-target evidence.
   validation.
 - [ ] Merge Paperless 3.0 and Native Sign after independent review and
   validation.
-- [ ] Merge Collaboration History and Distribution Access Control after
-  independent review and validation.
+- [x] Integrate Collaboration History after independent review and preserve its
+  exact reviewed ancestry and archive ref.
+- [x] Reconstruct and finalize canonical `odoo_dev` from the locked source on
+  the integrated Collaboration candidate. The second Collaboration import was
+  identical, the final database retained 14 product modules with no migration
+  registry/schema residue, and 798 live Documents records remained stable on
+  identity synchronization. Shared QA-seed publication was intentionally not
+  performed from the integration branch; publication remains restricted to a
+  clean `19-usl` checkout.
+- [ ] Merge Distribution Access Control after independent review and
+  validation.
 - [ ] Confirm no active release branch contains unmerged product or migration
   final state.
 - [ ] Run static Python, JavaScript, shell, XML, Compose, manifest, French and
@@ -145,10 +154,10 @@ partial `odoo_dev` installation is not final-target evidence.
   migration-critical discrepancy. No blanket waiver is permitted.
 
 The currently known strict-source blockers are not generic “migration debt.”
-They are the eight named scopes `ai_configuration`, `attachments`,
-`collaboration`, `knowledge`, `preferences`, `sales_marketing`, `signing` and
-`studio`, including 115 pending source attachment IDs. Collaboration and Sign
-have active implementation workstreams; the other scopes still need a
+They are the five named scopes `ai_configuration`, `attachments`,
+`preferences`, `sales_marketing` and `studio`, including ten pending source
+attachment IDs. Collaboration, Knowledge and signing evidence now have
+implemented source-backed dispositions; the remaining scopes still need a
 source-backed product translation or an explicit, reviewed disposition. The
 physical opening-stock count is a separate operational prerequisite because
 the source contains no defensible historical quantity truth.

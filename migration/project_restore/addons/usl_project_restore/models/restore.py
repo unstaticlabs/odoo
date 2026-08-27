@@ -2432,7 +2432,7 @@ class ProjectSourceReader:
             "activity_types": self._rows(
                 cursor,
                 """
-                    SELECT id, name, active, category, summary, icon,
+                    SELECT id, name, res_model, active, category, summary, icon,
                            decoration_type, delay_count, delay_unit, delay_from
                       FROM mail_activity_type
                      WHERE id IN (

@@ -75,10 +75,37 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "A Documents run cannot reset and reuse the Paperless archive together.",
             script,
         )
+        self.assertIn("seal-checkpoint)", script)
+        self.assertIn(
+            "Final archive checkpoint sealing requires the canonical full target.",
+            script,
+        )
         checkpoint = (
             ROOT / "migration/documents_archive/checkpoint.py"
         ).read_text(encoding="utf-8")
         self.assertIn("Run the normal fresh reconstruction", checkpoint)
+
+    def test_reconstruction_reseals_checkpoint_after_all_document_producers(self):
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        b2c_stage = target.index(
+            'run_stage "finalize B2C relationships and Documents links"',
+        )
+        collaboration_stage = target.index(
+            'run_stage "restore Collaboration history"',
+        )
+        checkpoint_stage = target.index(
+            'run_stage "seal final Documents archive checkpoint"',
+        )
+        self.assertLess(b2c_stage, collaboration_stage)
+        self.assertLess(collaboration_stage, checkpoint_stage)
+        checkpoint = (
+            ROOT / "migration/documents_archive/checkpoint.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            '"migration/collaboration_restore/addons/usl_collaboration_restore"',
+            checkpoint,
+        )
 
     def test_canonical_reset_clears_target_mirror_before_archive_volumes(self):
         script = SCRIPT.read_text(encoding="utf-8")
@@ -95,6 +122,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('env["usl.document.operation"]', reset)
         self.assertIn('env["usl.document.link"]', reset)
         self.assertIn('env["usl.document"]', reset)
+        self.assertIn('env.get("b2c.provider.evidence")', reset)
+        self.assertIn("with_context(b2c_evidence_import=True).write", reset)
+        self.assertLess(
+            reset.index("with_context(b2c_evidence_import=True).write"),
+            reset.index('Document.with_context(active_test=False).search([]).unlink()'),
+        )
 
     def test_restore_uses_all_mapped_companies_for_archive_policy(self):
         restore = (
@@ -109,6 +142,15 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertNotIn("QUALIFIED_SOURCE", restore)
         self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
         self.assertIn("source contains unsupported Documents URL references", restore)
+        for model_name in (
+            "b2c.accounting.session",
+            "b2c.fulfilment.event",
+            "b2c.order",
+            "b2c.payment.event",
+        ):
+            self.assertIn(f'"{model_name}"', restore)
+        self.assertIn("unsupported_relationships", restore)
+        self.assertIn("preserved_governed_extension_relationship_count", restore)
 
     def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
         script = SCRIPT.read_text(encoding="utf-8")

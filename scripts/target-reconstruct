@@ -551,6 +551,18 @@ else
   else
     printf 'Collaboration restoration: skipped by partial QA profile %s.\n' "$qa_profile"
   fi
+  if [[ "$documents_enabled" == 1 ]]; then
+    # B2C archives its locked provider files and Collaboration archives
+    # retained Knowledge/folder evidence after the source Documents stage.
+    # Seal only after every governed archive producer has finished.
+    run_stage "seal final Documents archive checkpoint" env \
+      DOCUMENTS_CANONICAL_TARGET=1 \
+      DOCUMENTS_RESTORE_PROFILE=full \
+      DOCUMENTS_TARGET_DATABASE=odoo_dev \
+      COMPOSE_PROJECT_NAME="$compose_project" \
+      scripts/documents-restore seal-checkpoint
+    stop_product
+  fi
   run_stage "finalize migration boundary" finalize_migration_boundary
   migration_finalized=1
 fi

@@ -133,6 +133,12 @@ class AccountAnalyticLine(models.Model):
 class HrExpenseRestore(models.Model):
     _inherit = "hr.expense"
 
+    def update_activities_and_mails(self):
+        """Keep historical materialization free of live workflow effects."""
+        if self.env.context.get("rebuild_source_materialization"):
+            return None
+        return super().update_activities_and_mails()
+
     def _compute_price_unit(self):
         super()._compute_price_unit()
         source_price_unit = self.env.context.get(
@@ -144,5 +150,5 @@ class HrExpenseRestore(models.Model):
 
     def _check_rebuild_required_receipt(self):
         if self.env.context.get("rebuild_source_materialization"):
-            return
+            return None
         return super()._check_rebuild_required_receipt()
