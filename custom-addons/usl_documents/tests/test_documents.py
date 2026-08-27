@@ -830,11 +830,11 @@ class TestDocuments(TransactionCase):
                 for index in range(3)
             ],
         )
-        first = self.env["usl.document.operation"].queue_existing_attachments(
+        first = self.env["usl.document.operation"]._queue_existing_attachments(
             after_id=attachments[0].id - 1,
             limit=2,
         )
-        second = self.env["usl.document.operation"].queue_existing_attachments(
+        second = self.env["usl.document.operation"]._queue_existing_attachments(
             after_id=first["last_id"],
             limit=2,
         )

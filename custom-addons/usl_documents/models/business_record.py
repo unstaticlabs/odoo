@@ -224,7 +224,7 @@ class DocumentLinkMixin(models.AbstractModel):
             raise UserError(_("Only stored binary attachments can be archived."))
         # Keep Odoo's operational copy available immediately. The archive worker
         # performs every Paperless call after the user's transaction has committed.
-        operation = self.env["usl.document.operation"].queue_attachment(
+        operation = self.env["usl.document.operation"]._queue_attachment(
             attachment,
             source=source,
             force_on_request=True,

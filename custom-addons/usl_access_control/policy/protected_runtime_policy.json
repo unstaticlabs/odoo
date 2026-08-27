@@ -1956,6 +1956,16 @@
       "classification": "protected"
     },
     {
+      "action_key": "rpc:usl.document.context.tag.unlink",
+      "action_name": "permanently delete usl.document.context.tag",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.context.tag",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.document.link.unlink",
       "action_name": "permanently delete usl.document.link",
       "classification": "protected",
@@ -2876,6 +2886,16 @@
       "classification": "protected"
     },
     {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
       "action_key": "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
@@ -2897,6 +2917,11 @@
     },
     {
       "action_key": "server_action:usl_tese_payroll.action_run_tese_diagnostics",
+      "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2936,7 +2961,7 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "1dbeb11683115f2b39f5cac8dbd54652829a7d9b1d14640ae8dcd34eea25aad0",
-  "runtime_policy_sha256": "e6556994361e16df04936a5086024a87401177ce1db91b5a9f3bf47401893cad",
+  "qualified_policy_digest": "6007bc6c76b44dc17c2b87ff7e08bb5b90444872aeba59904587424b00205c15",
+  "runtime_policy_sha256": "710aac0a79ed84024f587135bfce1eb72cbcdf9570c61141a6b38cac34564a78",
   "schema": "usl-action-risk-protected-runtime-v1"
 }

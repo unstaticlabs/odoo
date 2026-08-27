@@ -72,6 +72,7 @@ usl-online-dump/
 /oca-src/
 /accounting_compat/private/
 /artifacts/accounting-compat/private/
+/artifacts/action-risk/
 /artifacts/b2c-restore/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/

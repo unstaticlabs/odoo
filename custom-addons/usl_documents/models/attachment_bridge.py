@@ -48,7 +48,7 @@ class DocumentContextTag(models.Model):
     )
 
     @api.model
-    def ensure_for_descriptor(self, descriptor, company):
+    def _ensure_for_descriptor(self, descriptor, company):
         namespace = str(descriptor.get("namespace") or "").strip()
         res_model = str(descriptor.get("model") or "").strip()
         res_id = int(descriptor.get("id") or 0)
@@ -240,7 +240,7 @@ class UslDocument(models.Model):
         for name in context.get("tags") or []:
             tags |= self._ensure_context_tag(name)
         for descriptor in context.get("entity_tags") or []:
-            tags |= self.env["usl.document.context.tag"].ensure_for_descriptor(
+            tags |= self.env["usl.document.context.tag"]._ensure_for_descriptor(
                 descriptor, company,
             )
         document_type = self._ensure_context_document_type(
@@ -731,7 +731,7 @@ class IrAttachment(models.Model):
                 refresh=refresh,
             )
             if eligible:
-                queued |= self.env["usl.document.operation"].queue_attachment(
+                queued |= self.env["usl.document.operation"]._queue_attachment(
                     attachment,
                     source=(
                         "odoo_generated"
@@ -1106,7 +1106,7 @@ class UslDocumentOperation(models.Model):
         return True
 
     @api.model
-    def queue_attachment(
+    def _queue_attachment(
         self,
         attachment,
         *,
@@ -1403,7 +1403,7 @@ class UslDocumentOperation(models.Model):
         cursor = parameters.get_int(
             "usl_documents.attachment_backfill_cursor", 0,
         )
-        result = self.queue_existing_attachments(after_id=cursor, limit=200)
+        result = self._queue_existing_attachments(after_id=cursor, limit=200)
         parameters.set_int(
             "usl_documents.attachment_backfill_cursor", result["last_id"],
         )
@@ -1414,7 +1414,7 @@ class UslDocumentOperation(models.Model):
         return result
 
     @api.model
-    def queue_existing_attachments(self, *, after_id=0, limit=200):
+    def _queue_existing_attachments(self, *, after_id=0, limit=200):
         attachments = self.env["ir.attachment"].sudo().search(
             [
                 ("id", ">", int(after_id)),
