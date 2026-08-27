@@ -336,6 +336,21 @@ test("changing the signer immediately recolors the PDF field", async () => {
     cleanup();
 });
 
+test("a stale field for a removed signer is ignored instead of crashing the editor", () => {
+    const {fixture, item, page, cleanup} = editorFixture();
+    fixture.info.roles = [ROLE_TWO];
+    fixture.roleLabel = UslSignTemplateEditor.prototype.roleLabel;
+
+    const rendered = UslSignTemplateEditor.prototype.renderField.call(fixture, item);
+
+    expect(rendered).toBe(undefined);
+    expect(page.querySelectorAll(".o_sign_oca_field")).toHaveCount(0);
+    expect(UslSignTemplateEditor.prototype.roleLabel.call(fixture, undefined)).toBe(
+        "Unassigned signer"
+    );
+    cleanup();
+});
+
 test("autosaves are ordered and a failed update restores the visible field", async () => {
     const calls = [];
     const queueFixture = {

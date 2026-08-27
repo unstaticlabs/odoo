@@ -42,8 +42,6 @@ test("selected signing method is visible without relying on :has()", async () =>
 
     expect(".o_radio_item.is-selected").toHaveCount(1);
     expect(".o_radio_item.is-selected").toHaveText(/Strong personal/);
-    expect(".o_radio_item.is-selected .fa-info-circle").toHaveAttribute(
-        "title",
-        /approved signing identity/,
-    );
+    expect(".o_radio_item.is-selected").toHaveText(/Approved identity and Pocket ID passkey/);
+    expect(".o_radio_item.is-selected").toHaveText(/personal PAdES signature per signer/);
 });

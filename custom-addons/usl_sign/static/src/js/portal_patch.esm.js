@@ -341,7 +341,10 @@ patch(checkField, {
 patch(signatureField, {
     generate(parent, item, signatureItem) {
         const input = $(
-            renderToString("sign_oca.sign_iframe_field_signature", {item})
+            renderToString("sign_oca.sign_iframe_field_signature", {
+                item,
+                placeholder: item.kind === "initials" ? _t("Add initials") : _t("Add signature"),
+            })
         )[0];
         if (item.role_id === parent.info.role_id) {
             const openDialog = () => {
@@ -436,7 +439,7 @@ patch(SignOcaPdfPortal.prototype, {
     setup() {
         super.setup(...arguments);
         this.dialog = useService("dialog");
-        this.uslGuide = useState({enabled: false, remaining: 0, current: 0});
+        this.uslGuide = useState({remaining: 0, current: 0});
         this.uslLocation = useState({status: "idle", payload: {status: "unavailable"}});
         this.uslLocationPromise = null;
         onWillUnmount(() => this.uslFieldGuide?.destroy());
@@ -534,15 +537,6 @@ patch(SignOcaPdfPortal.prototype, {
         return LOCATION_MESSAGES[this.uslLocation.status] || LOCATION_MESSAGES.unavailable;
     },
 
-    toggleGuide() {
-        this.uslGuide.enabled = !this.uslGuide.enabled;
-        if (this.uslGuide.enabled) {
-            this.uslFieldGuide?.move(1);
-        } else {
-            this.uslFieldGuide?.cancelNavigation();
-        }
-    },
-
     previousIncompleteField() {
         this.uslFieldGuide?.move(-1);
     },
@@ -584,7 +578,38 @@ patch(SignOcaPdfPortal.prototype, {
                 #editorModeButtons, #printButton, #downloadButton, #secondaryPrint,
                 #secondaryDownload, #viewBookmark, #openFile, #sidebarToggleButton,
                 #viewFindButton, #secondaryToolbarToggle { display: none !important; }
-                [role="button"][aria-label^="Add "] { cursor: pointer; }
+                .o_sign_oca_field {
+                    box-sizing: border-box;
+                    min-height: 2rem;
+                    overflow: visible;
+                    z-index: 20;
+                    background: rgba(255, 244, 204, .96) !important;
+                    border: 2px solid #9b6b00;
+                    border-radius: .35rem;
+                    box-shadow: 0 .15rem .45rem rgba(0, 0, 0, .16);
+                }
+                .o_sign_oca_field:focus-within,
+                .o_sign_oca_field:hover {
+                    border-color: #714b67;
+                    box-shadow: 0 .2rem .65rem rgba(113, 75, 103, .28);
+                }
+                .o_sign_oca_field input,
+                .o_sign_oca_field [role="button"] {
+                    box-sizing: border-box;
+                    min-width: 100%;
+                    min-height: 100%;
+                    padding: .25rem .4rem;
+                    color: #211a1f;
+                    background: transparent;
+                    border: 0;
+                    font: 600 13px/1.25 system-ui, sans-serif;
+                }
+                .o_sign_oca_field [role="button"] {
+                    display: grid;
+                    place-items: center;
+                    cursor: pointer;
+                }
+                .o_sign_oca_field img { object-fit: contain; }
                 .usl_sign_field_target { outline: 3px solid #714b67 !important; outline-offset: 3px; }
             `;
             iframeDocument.head.append(style);
@@ -684,7 +709,7 @@ patch(SignOcaPdfPortal.prototype, {
             }
             this._setSubmissionState(button, {
                 busy: false,
-                label: _t("Confirm and sign"),
+                label: _t("Sign"),
             });
         }
     },

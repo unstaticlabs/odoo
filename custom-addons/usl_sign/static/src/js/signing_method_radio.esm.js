@@ -4,23 +4,33 @@ import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {RadioField, radioField} from "@web/views/fields/radio/radio_field";
 
-const METHOD_HELP = {
-    standard: _t(
-        "Requirements: no passkey or identity review. How it works: each signer uses a private link and confirms consent; one platform seal protects the final PDF. Proof kept: each signer’s attestation and actions, validation results, the sealed PDF, and its proof package."
-    ),
-    strong_personal: _t(
-        "Requirements: every signer needs an approved signing identity and a fresh Pocket ID passkey confirmation. How it works: personal PDF signatures are applied sequentially, then a platform seal protects the final PDF. Proof kept: identity review, passkey authorization, personal certificate chains, validation results, the signed PDF, and its proof package."
-    ),
-    qualified_external: _t(
-        "Requirements: a reviewed qualified-signature provider. How it works: Odoo freezes and exports the PDF, then checks the signed file when it returns. Proof kept: provider evidence, validation results, the signed PDF, and its proof package."
-    ),
+const METHOD_DETAILS = {
+    standard: {
+        recommendation: _t("Recommended for most agreements"),
+        summary: _t("Simple signing with a strong audit trail."),
+        authentication: _t("Private link and explicit consent"),
+        pdf: _t("One final platform integrity seal"),
+        evidence: _t("Signer actions, consent, validation, and dossier"),
+    },
+    strong_personal: {
+        summary: _t("Personal digital signatures for higher assurance."),
+        authentication: _t("Approved identity and Pocket ID passkey"),
+        pdf: _t("One personal PAdES signature per signer, then a platform seal"),
+        evidence: _t("Identity review, authorization, certificates, validation, and dossier"),
+    },
+    qualified_external: {
+        summary: _t("Qualified signing through an approved external provider."),
+        authentication: _t("The provider verifies each signer"),
+        pdf: _t("Qualified signature returned by the provider"),
+        evidence: _t("Provider proof, independent validation, and dossier"),
+    },
 };
 
 export class SigningMethodRadio extends RadioField {
     static template = "usl_sign.SigningMethodRadio";
 
-    helpFor(value) {
-        return METHOD_HELP[value] || "";
+    detailsFor(value) {
+        return METHOD_DETAILS[value] || {};
     }
 }
 

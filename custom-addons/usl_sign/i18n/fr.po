@@ -3822,3 +3822,114 @@ msgstr "Toute nouvelle cérémonie forte exige les empreintes exactes du documen
 #. module: usl_sign
 msgid "A Strong ceremony's candidate-binding hashes cannot be cleared."
 msgstr "Les empreintes qui lient une cérémonie forte à son document candidat ne peuvent pas être effacées."
+#. module: usl_sign
+msgid "Unassigned signer"
+msgstr "Signataire non attribué"
+
+#. module: usl_sign
+msgid "Add initials"
+msgstr "Ajouter les initiales"
+
+#. module: usl_sign
+msgid "Add signature"
+msgstr "Ajouter la signature"
+
+#. module: usl_sign
+msgid "Recommended for most agreements"
+msgstr "Recommandée pour la plupart des accords"
+
+#. module: usl_sign
+msgid "Simple signing with a strong audit trail."
+msgstr "Signature simple avec une piste d’audit solide."
+
+#. module: usl_sign
+msgid "Private link and explicit consent"
+msgstr "Lien privé et consentement explicite"
+
+#. module: usl_sign
+msgid "One final platform integrity seal"
+msgstr "Un sceau d’intégrité final de la plateforme"
+
+#. module: usl_sign
+msgid "Signer actions, consent, validation, and dossier"
+msgstr "Actions des signataires, consentement, validation et dossier"
+
+#. module: usl_sign
+msgid "Personal digital signatures for higher assurance."
+msgstr "Signatures numériques personnelles pour une assurance renforcée."
+
+#. module: usl_sign
+msgid "Approved identity and Pocket ID passkey"
+msgstr "Identité approuvée et clé d’accès Pocket ID"
+
+#. module: usl_sign
+msgid "One personal PAdES signature per signer, then a platform seal"
+msgstr "Une signature PAdES personnelle par signataire, puis un sceau de la plateforme"
+
+#. module: usl_sign
+msgid "Identity review, authorization, certificates, validation, and dossier"
+msgstr "Contrôle d’identité, autorisation, certificats, validation et dossier"
+
+#. module: usl_sign
+msgid "Qualified signing through an approved external provider."
+msgstr "Signature qualifiée par un prestataire externe approuvé."
+
+#. module: usl_sign
+msgid "The provider verifies each signer"
+msgstr "Le prestataire vérifie chaque signataire"
+
+#. module: usl_sign
+msgid "Qualified signature returned by the provider"
+msgstr "Signature qualifiée renvoyée par le prestataire"
+
+#. module: usl_sign
+msgid "Provider proof, independent validation, and dossier"
+msgstr "Preuve du prestataire, validation indépendante et dossier"
+
+#. module: usl_sign
+msgid "Fill the highlighted fields on the document."
+msgstr "Remplissez les champs surlignés dans le document."
+
+#. module: usl_sign
+msgid "Select a field on the page, or use the guide."
+msgstr "Sélectionnez un champ dans la page ou utilisez le guide."
+
+#. module: usl_sign
+msgid "Confirm below to finish."
+msgstr "Confirmez ci-dessous pour terminer."
+
+#. module: usl_sign
+msgid "I reviewed this document and agree to sign electronically."
+msgstr "J’ai relu ce document et j’accepte de le signer électroniquement."
+
+#. module: usl_sign
+msgid "What proof is recorded?"
+msgstr "Quelles preuves sont enregistrées ?"
+
+#. module: usl_sign
+msgid "Saving and checking your signature…"
+msgstr "Enregistrement et vérification de votre signature…"
+
+#. module: usl_sign
+msgid "Signer check"
+msgstr "Contrôle du signataire"
+
+#. module: usl_sign
+msgid "Proof kept"
+msgstr "Preuves conservées"
+
+#. module: usl_sign
+msgid "Compare what each method asks of signers and what proof it keeps."
+msgstr "Comparez ce que chaque méthode demande aux signataires et les preuves qu’elle conserve."
+
+#. module: usl_sign
+msgid "Continue to fields"
+msgstr "Continuer vers les champs"
+
+#. module: usl_sign
+msgid "Compare the signer check, PDF signature, and retained proof."
+msgstr "Comparez le contrôle du signataire, la signature PDF et les preuves conservées."
+
+#. module: usl_sign
+msgid "This is guidance, not a restriction."
+msgstr "Il s’agit d’une recommandation, pas d’une restriction."
