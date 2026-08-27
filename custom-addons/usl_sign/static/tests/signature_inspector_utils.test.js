@@ -178,3 +178,31 @@ test("manifest matching never reuses one embedded file for two artifacts", () =>
         "source “agreement.pdf”: not represented in the dossier",
     ]);
 });
+
+test("manifest v2 requires exact stable artifact names and hashes", () => {
+    const signedHash = "7".repeat(64);
+    const summaryHash = "8".repeat(64);
+    const manifest = {
+        format: "usl-sign-evidence-manifest-v2",
+        final_sha256: signedHash,
+        artifacts: [
+            {kind: "signed", name: "signed-document.pdf", sha256: signedHash},
+            {kind: "signing_summary", name: "signing-summary.json", sha256: summaryHash},
+        ],
+    };
+    expect(
+        matchManifestArtifacts(manifest, [
+            {name: "signed-document.pdf", sha256: signedHash},
+            {name: "signing-summary.json", sha256: summaryHash},
+        ])
+    ).toEqual({checked: 2, matched: 2, mismatches: []});
+
+    const tampered = matchManifestArtifacts(manifest, [
+        {name: "signed-document.pdf", sha256: signedHash},
+        {name: "legacy-signing-summary.json", sha256: summaryHash},
+    ]);
+    expect(tampered.matched).toBe(1);
+    expect(tampered.mismatches).toEqual([
+        "signing_summary “signing-summary.json”: not represented in the dossier",
+    ]);
+});
