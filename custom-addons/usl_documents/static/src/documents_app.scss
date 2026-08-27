@@ -505,6 +505,13 @@
         overflow: hidden;
     }
 
+    .o_usl_documents_detail_backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: rgba(15, 23, 42, 0.12);
+    }
+
     .o_usl_documents_detail {
         position: absolute;
         inset: 0 0 0 auto;

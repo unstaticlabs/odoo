@@ -669,6 +669,53 @@ test("review banner completes review without opening the technical record", asyn
     );
 });
 
+test("clicking outside the document panel closes it", async () => {
+    const document = {
+        id: 73,
+        name: "Outside-click contract",
+        paperless_id: 173,
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: false,
+        document_type: "Contract",
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        archive_available: true,
+        links: [],
+        versions: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_documents_detail").toHaveCount(1);
+    expect("[data-testid='document-detail-backdrop']").toHaveCount(1);
+    await contains("#usl_document_title").click();
+    expect(".o_usl_documents_detail").toHaveCount(1);
+
+    await contains("[data-testid='document-detail-backdrop']").click();
+
+    expect(".o_usl_documents_detail").toHaveCount(0);
+    expect("[data-testid='document-detail-backdrop']").toHaveCount(0);
+});
+
 test("review banner explains a blocking decision without a technical detour", async () => {
     const document = {
         id: 72,

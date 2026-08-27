@@ -715,6 +715,12 @@
                 </section>
             </main>
 
+            <div t-if="state.selected"
+                 class="o_usl_documents_detail_backdrop"
+                 aria-hidden="true"
+                 data-testid="document-detail-backdrop"
+                 t-on-click="closeDetail"/>
+
             <aside t-if="state.selected"
                    class="o_usl_documents_detail o_usl_documents_detail_overlay border-start bg-white d-flex flex-column"
                    aria-label="Document details">
