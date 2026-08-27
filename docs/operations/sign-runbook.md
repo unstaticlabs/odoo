@@ -257,6 +257,12 @@ expiration, refusal and cancellation. Confirm that:
 - the completion certificate uses cautious Standard wording;
 - archive failure leaves the request incomplete and retry recovers safely.
 
+Run `scripts/sign-qa-stack archive-acceptance` against the isolated QA slot.
+It creates two synthetic Standard signers, asserts two evidence attestations
+and exactly one platform integrity seal, confirms both final Paperless files,
+then exercises a controlled archive outage and recovery without purging the
+queue.
+
 ## Strong-personal acceptance
 
 Use a real platform authenticator in a supported browser. Record the browser,
