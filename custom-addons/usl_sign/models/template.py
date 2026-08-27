@@ -2,6 +2,7 @@ import hashlib
 import re
 import uuid
 from io import BytesIO
+from urllib.parse import quote
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
@@ -171,6 +172,19 @@ class SignTemplate(models.Model):
         ],
         compute="_compute_default_trust",
     )
+    document_preview_url = fields.Char(
+        compute="_compute_document_preview_url",
+        string="Document preview",
+    )
+
+    @api.depends("filename")
+    def _compute_document_preview_url(self):
+        for template in self:
+            filename = template.filename or f"{template.name}.pdf"
+            template.document_preview_url = (
+                f"/web/content/{template._name}/{template.id}/data/"
+                f"{quote(filename)}?download=false"
+            )
 
     @api.depends("item_ids.role_id")
     def _compute_signer_role_count(self):

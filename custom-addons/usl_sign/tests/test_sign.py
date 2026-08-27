@@ -1578,6 +1578,15 @@ class TestCleanUslSign(TransactionCase):
             set(participant_links.mapped("res_id")),
             {request.user_id.partner_id.id, self.partner_one.id},
         )
+        # This test mocks the external permission synchronizer above. Mirror
+        # its successful terminal state before exercising the Documents
+        # thumbnail branch; an unsynchronized archive must deliberately fall
+        # back to the access-checked signed PDF preview.
+        (archived_signed | archived_dossier).with_context(
+            usl_documents_cache_write=True,
+        ).write(
+            {"permission_sync_state": "synchronized"},
+        )
         participant_user = new_test_user(
             self.env,
             login="usl-sign-document-participant",
@@ -1589,6 +1598,23 @@ class TestCleanUslSign(TransactionCase):
             [("id", "in", [archived_signed.id, archived_dossier.id])],
         )
         self.assertEqual(visible_documents, archived_signed | archived_dossier)
+        participant_request = request.with_user(participant_user)
+        self.assertIn("/final_data/", participant_request.document_preview_url)
+        self.assertEqual(
+            participant_request.document_thumbnail_url,
+            f"/usl_documents/{archived_signed.id}/thumbnail",
+        )
+        participant_signer = request.signer_ids.filtered(
+            lambda signer: signer.partner_id == participant_user.partner_id,
+        ).with_user(participant_user)
+        self.assertEqual(
+            participant_signer.document_preview_url,
+            participant_request.document_preview_url,
+        )
+        self.assertEqual(
+            participant_signer.document_thumbnail_url,
+            participant_request.document_thumbnail_url,
+        )
         self.assertTrue(
             all(isinstance(payload, str) for _filename, payload in archive_uploads),
         )
@@ -1861,12 +1887,34 @@ class TestCleanUslSign(TransactionCase):
 
         completed_action = self.env.ref("usl_sign.completed_documents_action")
         self.assertIn("managed_by_current_user", completed_action.domain)
+        self.assertEqual(completed_action.view_mode, "kanban,list,form")
+        self.assertEqual(
+            completed_action.view_ids.sorted("sequence")[:1].view_id,
+            self.env.ref("usl_sign.sign_request_completed_kanban_usl"),
+        )
         completed_list = self.env.ref("usl_sign.sign_request_completed_list_usl")
         self.assertIn('string="Open signed PDF"', completed_list.arch)
         self.assertIn('name="completed_at"', completed_list.arch)
         self.assertIn('name="completed_proof_label"', completed_list.arch)
         self.assertIn('name="completed_storage_label"', completed_list.arch)
         self.assertNotIn('name="expires_at"', completed_list.arch)
+        completed_cards = self.env.ref(
+            "usl_sign.sign_request_completed_kanban_usl",
+        ).arch
+        self.assertIn('widget="usl_sign_document_card_preview"', completed_cards)
+        self.assertIn('string="Documents"', completed_cards)
+        self.assertIn('string="Open PDF"', completed_cards)
+
+        my_signatures_action = self.env.ref("usl_sign.my_signatures_action")
+        self.assertEqual(my_signatures_action.view_mode, "kanban,list,form")
+        my_signature_cards = self.env.ref("usl_sign.my_signature_kanban_usl").arch
+        self.assertIn('action="action_open_my_signature"', my_signature_cards)
+        self.assertIn('widget="usl_sign_document_card_preview"', my_signature_cards)
+
+        open_action = self.env.ref("usl_sign.sign_request_action")
+        self.assertEqual(open_action.view_mode, "kanban,list,form,activity")
+        open_cards = self.env.ref("usl_sign.sign_request_kanban_usl").arch
+        self.assertIn('widget="usl_sign_document_card_preview"', open_cards)
 
         template_cards = self.env.ref("usl_sign.sign_template_kanban_usl").arch
         for label in ["Place fields", "Use template", "New version", "Use and sign myself"]:
@@ -1874,6 +1922,7 @@ class TestCleanUslSign(TransactionCase):
         for legacy_label in [">Configure<", ">Send<", ">Sign Now<"]:
             self.assertNotIn(legacy_label, template_cards)
         self.assertIn("signer_role_count != 1", template_cards)
+        self.assertIn('widget="usl_sign_document_card_preview"', template_cards)
 
         template_form = self.env.ref("usl_sign.sign_template_form_usl").arch
         self.assertIn('string="Place fields"', template_form)
