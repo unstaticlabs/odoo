@@ -74,6 +74,7 @@ usl-online-dump/
 /artifacts/accounting-compat/private/
 /artifacts/action-risk/
 /artifacts/agent/
+/artifacts/usl-document-templates/
 /artifacts/b2c-restore/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
@@ -85,6 +86,7 @@ usl-online-dump/
 /.pocket-id-*.env
 /.documents-personal-ai-keys.json
 /.agent/
+/private/document-renderer-certs/
 
 # impeccable-ignore-start
 # Keep the shared Impeccable configuration and review records, but ignore

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CERT_DIR="$ROOT/private/document-renderer-certs"
+
+if ! command -v openssl >/dev/null 2>&1; then
+    printf 'OpenSSL is required to generate renderer credentials.\n' >&2
+    exit 2
+fi
+
+mkdir -p "$CERT_DIR"
+chmod 700 "$ROOT/private" "$CERT_DIR"
+if [[ -e "$CERT_DIR/ca.key" ]]; then
+    for required in ca.crt renderer.crt renderer.key odoo.crt odoo.key; do
+        if [[ ! -f "$CERT_DIR/$required" ]]; then
+            printf 'Renderer credential set is incomplete; missing %s.\n' \
+                "$CERT_DIR/$required" >&2
+            exit 1
+        fi
+    done
+    printf 'Renderer credentials already exist at %s; leaving them unchanged.\n' "$CERT_DIR"
+    exit 0
+fi
+for partial in ca.crt renderer.crt renderer.key odoo.crt odoo.key; do
+    if [[ -e "$CERT_DIR/$partial" ]]; then
+        printf 'Renderer credential set is incomplete; found %s without ca.key.\n' \
+            "$CERT_DIR/$partial" >&2
+        exit 1
+    fi
+done
+
+openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 825 \
+    -subj "/CN=USL Local Document Renderer CA" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "keyUsage=critical,keyCertSign,cRLSign" \
+    -keyout "$CERT_DIR/ca.key" -out "$CERT_DIR/ca.crt"
+openssl req -newkey rsa:3072 -sha256 -nodes \
+    -subj "/CN=usl-document-renderer" \
+    -keyout "$CERT_DIR/renderer.key" -out "$CERT_DIR/renderer.csr"
+openssl x509 -req -sha256 -days 397 \
+    -in "$CERT_DIR/renderer.csr" \
+    -CA "$CERT_DIR/ca.crt" -CAkey "$CERT_DIR/ca.key" -CAcreateserial \
+    -extfile <(printf 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nsubjectAltName=DNS:usl-document-renderer\nextendedKeyUsage=serverAuth\n') \
+    -out "$CERT_DIR/renderer.crt"
+openssl req -newkey rsa:3072 -sha256 -nodes \
+    -subj "/CN=odoo-document-client" \
+    -keyout "$CERT_DIR/odoo.key" -out "$CERT_DIR/odoo.csr"
+openssl x509 -req -sha256 -days 397 \
+    -in "$CERT_DIR/odoo.csr" \
+    -CA "$CERT_DIR/ca.crt" -CAkey "$CERT_DIR/ca.key" -CAcreateserial \
+    -extfile <(printf 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=clientAuth\n') \
+    -out "$CERT_DIR/odoo.crt"
+rm "$CERT_DIR/renderer.csr" "$CERT_DIR/odoo.csr" "$CERT_DIR/ca.srl"
+chmod 600 "$CERT_DIR/ca.key"
+chmod 444 "$CERT_DIR/ca.crt" "$CERT_DIR/renderer.crt" \
+    "$CERT_DIR/renderer.key" "$CERT_DIR/odoo.crt" "$CERT_DIR/odoo.key"
+printf 'Generated isolated renderer credentials at %s.\n' "$CERT_DIR"
