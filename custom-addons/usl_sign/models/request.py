@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import secrets
+import textwrap
 import zipfile
 from datetime import timedelta
 from io import BytesIO
@@ -1167,13 +1168,6 @@ class SignRequest(models.Model):
         if self.formal_qes_required and self.requested_trust != "qualified_external":
             msg = "A formal QES requirement cannot be overridden."
             raise ValidationError(msg)
-        if self.requested_trust != self.recommended_trust:
-            if not self.override_reason:
-                msg = "Record why the recommended trust level is overridden."
-                raise ValidationError(msg)
-            if not self.env.user.has_group("usl_sign.group_sign_trust_override"):
-                msg = "Trust-level override access is required."
-                raise AccessError(msg)
         if self.requested_trust == "qualified_external" and not self.external_provider_id:
             msg = "Choose a reviewed external provider before sending."
             raise ValidationError(msg)
@@ -2347,68 +2341,204 @@ class SignRequest(models.Model):
         trust_labels = dict(TRUST_LEVELS)
         stream = BytesIO()
         pdf = canvas.Canvas(stream, pagesize=A4)
-        _width, height = A4
+        width, height = A4
+        left = 48
+        right = width - 48
+        page_number = 0
+        y = 0
+
+        def footer():
+            pdf.setStrokeColorRGB(0.82, 0.82, 0.82)
+            pdf.line(left, 38, right, 38)
+            pdf.setFillColorRGB(0.35, 0.35, 0.35)
+            pdf.setFont("Helvetica", 7.5)
+            pdf.drawString(left, 25, self.company_id.name)
+            pdf.drawRightString(right, 25, f"Completion certificate · page {page_number}")
+
+        def new_page():
+            nonlocal page_number, y
+            if page_number:
+                footer()
+                pdf.showPage()
+            page_number += 1
+            pdf.setFillColorRGB(0.15, 0.12, 0.14)
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(left, height - 44, self.company_id.name)
+            pdf.setFont("Helvetica", 8)
+            pdf.drawRightString(right, height - 44, "SIGNING RECORD")
+            y = height - 72
+
+        def ensure(space):
+            if y - space < 55:
+                new_page()
+
+        def wrapped(value, width_chars=90):
+            value = str(value or "—")
+            return textwrap.wrap(
+                value,
+                width=width_chars,
+                break_long_words=True,
+                break_on_hyphens=False,
+            ) or ["—"]
+
+        def paragraph(value, *, font="Helvetica", size=9, leading=12, indent=0):
+            nonlocal y
+            lines = wrapped(value, max(35, int((right - left - indent) / (size * 0.52))))
+            ensure(leading * len(lines) + 2)
+            pdf.setFont(font, size)
+            pdf.setFillColorRGB(0.18, 0.18, 0.18)
+            for line in lines:
+                pdf.drawString(left + indent, y, line)
+                y -= leading
+
+        def section(title, intro=None):
+            nonlocal y
+            ensure(45)
+            y -= 8
+            pdf.setFillColorRGB(0.15, 0.12, 0.14)
+            pdf.setFont("Helvetica-Bold", 13)
+            pdf.drawString(left, y, title)
+            y -= 17
+            if intro:
+                paragraph(intro, size=8.5, leading=11)
+            y -= 3
+
+        def fact(label, value):
+            nonlocal y
+            lines = wrapped(value, 72)
+            ensure(max(17, 11 * len(lines)))
+            pdf.setFillColorRGB(0.38, 0.38, 0.38)
+            pdf.setFont("Helvetica-Bold", 8)
+            pdf.drawString(left, y, label.upper())
+            pdf.setFillColorRGB(0.12, 0.12, 0.12)
+            pdf.setFont("Helvetica", 8.5)
+            for index, line in enumerate(lines):
+                pdf.drawString(left + 128, y - (index * 11), line)
+            y -= max(17, 11 * len(lines))
+
+        def signer_authentication(signer):
+            labels = dict(AUTHENTICATION_METHODS)
+            return labels.get(signer.authentication_method, signer.authentication_method or "Secure signing link")
+
         pdf.setTitle(f"Completion certificate - {self.name}")
-        pdf.setFont("Helvetica-Bold", 18)
-        pdf.drawString(50, height - 60, f"{self.company_id.name} completion certificate")
-        pdf.setFont("Helvetica", 10)
-        lines = [
-            f"Request: {self.name}",
-            f"Company: {self.company_id.name}",
-            f"Requested trust: {trust_labels.get(self.requested_trust, self.requested_trust)}",
-            f"Achieved trust: {trust_labels.get(self.achieved_trust, self.achieved_trust or 'Not established')}",
-            f"Original SHA-256: {self.original_sha256}",
-            f"Final SHA-256: {self.final_sha256}",
-            f"Policy version: {self.policy_version}",
-            f"Validation: EU DSS 6.4 - {self.validation_status}",
-        ]
-        if self.requested_trust == "standard":
-            lines.extend(
-                [
-                    f"Signer attestations: {len(self.signer_ids)}",
-                    "PDF signatures: 1 platform integrity seal",
-                ],
-            )
-        elif self.requested_trust == "strong_personal":
-            lines.extend(
-                [
-                    f"Personal PAdES signatures: {len(self.signer_ids)}",
-                    "Platform signatures: 1 final integrity seal",
-                ],
-            )
-        y = height - 95
-        for line in lines:
-            pdf.drawString(50, y, line)
-            y -= 17
-        y -= 10
-        pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(50, y, "Signers")
-        y -= 18
-        pdf.setFont("Helvetica", 10)
-        for signer in self.signer_ids.sorted(lambda row: (row.sequence, row.id)):
-            pdf.drawString(
-                50,
-                y,
-                f"{signer.partner_id.name} — {signer.role_id.name} — {signer.state} — {signer.authentication_method or ''}",
-            )
-            y -= 17
-        head = self.event_ids.verify_chain()
-        if head:
-            y -= 10
-            pdf.drawString(50, y, f"Evidence event head: {head.event_hash}")
-        pdf.setFont("Helvetica-Oblique", 8)
+        new_page()
+        pdf.setFont("Helvetica-Bold", 22)
+        pdf.setFillColorRGB(0.13, 0.11, 0.12)
+        pdf.drawString(left, y, "Certificate of completion")
+        y -= 25
+        paragraph(self.name, font="Helvetica-Bold", size=11, leading=14)
+        paragraph(
+            "A readable summary of who was invited, what they confirmed, and how the completed document is protected.",
+            size=9,
+            leading=12,
+        )
+
+        section("Document details")
+        fact("Status", "Signing complete; validation passed" if self.validation_status == "valid" else (self.validation_status or self.state))
+        fact("Created by", self.user_id.name or "—")
+        fact("Created", fields.Datetime.to_string(self.create_date))
+        fact("Completed", fields.Datetime.to_string(self.completed_at) if self.completed_at else "Not completed when this record was produced")
+        fact("Signing method", trust_labels.get(self.requested_trust, self.requested_trust))
+        fact("Original SHA-256", self.original_sha256)
+        fact("Completed SHA-256", self.final_sha256)
+
+        section(
+            "Participants",
+            "Each participant is listed with the identity check and proof retained for this request.",
+        )
+        for number, signer in enumerate(
+            self.signer_ids.sorted(lambda row: (row.sequence, row.id)), start=1,
+        ):
+            ensure(88)
+            pdf.setFillColorRGB(0.95, 0.94, 0.95)
+            pdf.roundRect(left, y - 66, right - left, 70, 5, fill=1, stroke=0)
+            pdf.setFillColorRGB(0.12, 0.12, 0.12)
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(left + 12, y - 12, f"{number}. {signer.partner_id.name}")
+            pdf.setFont("Helvetica", 8.5)
+            pdf.drawString(left + 12, y - 27, signer.partner_id.email or "No email recorded")
+            pdf.drawString(left + 12, y - 42, f"Role: {signer.role_id.name} · {signer_authentication(signer)}")
+            signed_at = fields.Datetime.to_string(signer.signed_on) if signer.signed_on else "Not signed"
+            pdf.drawString(left + 12, y - 57, f"Signed: {signed_at}")
+            y -= 82
+
+        section("Signature proof")
         if self.requested_trust == "strong_personal":
-            footer = (
-                "Personal PAdES signatures identify each signer; the final platform seal only protects integrity.",
-                "This certificate summarizes evidence; EU DSS remains authoritative for trust and revocation.",
+            paragraph(
+                f"{len(self.signer_ids)} personal PAdES signature(s) identify the individual signers. "
+                "A final platform seal protects the integrity of the completed document.",
+                font="Helvetica-Bold",
             )
+            for signer in self.signer_ids.sorted(lambda row: (row.sequence, row.id)):
+                fact(
+                    signer.partner_id.name,
+                    f"Personal certificate serial: {signer.certificate_serial or 'not recorded'}",
+                )
         else:
-            footer = (
-                "Signer attestations and the platform seal are not personal, advanced, qualified, certified,",
-                "or handwritten-equivalent signatures. EU DSS remains authoritative for validation.",
+            paragraph(
+                f"{len(self.signer_ids)} signer attestation(s) are recorded in the evidence history. "
+                "The PDF contains one platform integrity seal; it is not a personal certificate for a signer.",
+                font="Helvetica-Bold",
             )
-        pdf.drawString(50, 50, footer[0])
-        pdf.drawString(50, 40, footer[1])
+        fact("Validation", f"EU DSS 6.4 · {self.validation_status or 'not recorded'}")
+
+        section(
+            "Signing history",
+            "Times are recorded in UTC. Network addresses are server-observed; browser location is optional and is never presented as authoritative identity proof.",
+        )
+        event_labels = {
+            "request_created": "Request created",
+            "document_frozen": "Document frozen for signing",
+            "request_sent": "Invitations made available",
+            "document_viewed": "Document viewed",
+            "email_otp_verified": "Email code verified",
+            "strong_identity_verified": "Strong identity verified",
+            "signer_signed": "Signer completed their fields",
+            "standard_signature_recorded": "Signer attestation recorded",
+            "strong_personal_signature_applied": "Personal PDF signature applied",
+            "validation_started": "Final validation started",
+            "evidence_package_built": "Evidence package built",
+            "request_completed": "Request completed",
+        }
+        visible_events = self.event_ids.filtered(
+            lambda event: event.event_type in event_labels or event.signer_id,
+        ).sorted(lambda event: event.sequence)
+        for event in visible_events:
+            actor = (
+                event.signer_id.partner_id.name
+                if event.signer_id
+                else event.actor_id.name
+                if event.actor_id
+                else "System"
+            )
+            detail = f"{fields.Datetime.to_string(event.occurred_at)} · {actor}"
+            if event.ip_address:
+                detail += f" · network {event.ip_address}"
+            fact(event_labels.get(event.event_type, event.event_type.replace("_", " ").title()), detail)
+
+        head = self.event_ids.verify_chain()
+        section("Integrity and verification")
+        ensure(78)
+        pdf.setFillColorRGB(0.90, 0.97, 0.92)
+        pdf.roundRect(left, y - 57, right - left, 62, 5, fill=1, stroke=0)
+        pdf.setFillColorRGB(0.08, 0.34, 0.19)
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(left + 12, y - 17, "Integrity checks passed" if self.validation_status == "valid" else "Review validation status")
+        pdf.setFont("Helvetica", 8.5)
+        statement = (
+            "The completed PDF and evidence history hashes match this request. "
+            "Current trust-list and revocation decisions remain the responsibility of an authoritative validator."
+        )
+        for index, line in enumerate(wrapped(statement, 88)):
+            pdf.drawString(left + 12, y - 33 - (index * 10), line)
+        y -= 74
+        fact("Evidence-chain head", head.event_hash if head else "No event chain recorded")
+        paragraph(
+            "This certificate is a human-readable summary. The signed PDF, evidence manifest, validation reports, and protected raw evidence are the authoritative technical record.",
+            size=8.5,
+            leading=11,
+        )
+        footer()
         pdf.save()
         return stream.getvalue()
 
@@ -5000,4 +5130,46 @@ class SignRequestSigner(models.Model):
         if self.filtered(lambda signer: signer.request_id.state != "draft"):
             msg = "Signers can only be removed while the request is a draft."
             raise ValidationError(msg)
-        return super().unlink()
+        requests = self.mapped("request_id")
+        removed_roles_by_request = {request.id: set() for request in requests}
+        for signer in self:
+            removed_roles_by_request[signer.request_id.id].add(signer.role_id.id)
+        result = super().unlink()
+        requests.invalidate_recordset(
+            ["signer_ids", "signatory_data", "editor_revision", "editor_operation_log"],
+        )
+        for request in requests:
+            orphaned_role_ids = removed_roles_by_request[request.id] - set(
+                self.search([("request_id", "=", request.id)]).mapped("role_id").ids,
+            )
+            if not orphaned_role_ids:
+                continue
+            existing_data = request.signatory_data or {}
+            signatory_data = {
+                str(key): value
+                for key, value in existing_data.items()
+                if int(value.get("role_id") or 0) not in orphaned_role_ids
+            }
+            removed_field_count = len(existing_data) - len(signatory_data)
+            if not removed_field_count:
+                continue
+            request.write(
+                {
+                    "signatory_data": signatory_data,
+                    "editor_revision": request.editor_revision + 1,
+                    "editor_operation_log": {},
+                },
+            )
+            request.invalidate_recordset(
+                ["signatory_data", "editor_revision", "editor_operation_log"],
+            )
+            request.message_post(
+                body=_(
+                    "Removed %(count)s signing field(s) assigned only to the removed signer.",
+                    count=removed_field_count,
+                ),
+            )
+        self.env["sign.oca.request"].invalidate_model(
+            ["signer_ids", "signatory_data", "editor_revision", "editor_operation_log"],
+        )
+        return result

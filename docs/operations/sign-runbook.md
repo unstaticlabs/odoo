@@ -146,8 +146,8 @@ Configuration entries answer distinct operational questions:
   safe action. It stores health results, never credentials.
 - **Daily Timestamp Proofs** exposes signed closed-day manifests and portable
   OpenTimestamps evidence.
-- **Settings** contains company policy and delivery defaults. Keep final-dossier
-  delivery enabled unless a reviewed company policy says otherwise.
+- **Settings** contains signing, timestamp and delivery defaults. Keep final-dossier
+  delivery enabled unless the company has a documented exception.
 
 The lower-level `scripts/sign-pocketid-stack` helper remains available for
 Pocket patch, archive and virtual-authenticator acceptance. Those commands may
@@ -222,7 +222,8 @@ acceptance but leaves Standard and Strong local validation available. Monitor
 
 In each company:
 
-1. review the versioned recommendation policies and their business wording;
+1. review the plain-language Standard, Strong personal and Qualified external
+   method guidance shown to requesters;
 2. assign Sign User, Template Manager, Identity Reviewer, Evidence Reviewer
    and Sign Administrator roles by least privilege;
 3. test DSS connectivity and the CA health check from Sign settings;
@@ -409,7 +410,7 @@ downgrade or manual completion option.
 ## Evidence and archival operations
 
 In **Sign → Configuration → Settings**, keep **Send signers a copy of the final
-signed document** enabled unless company policy explicitly forbids signer
+signed document** enabled unless a documented company requirement forbids signer
 delivery. The signing application queues signer delivery only after validation
 and both Paperless archives have completed.
 

@@ -19,36 +19,16 @@
                     <field name="signer_ids" nolabel="1">
                         <list editable="bottom" create="0" delete="0"><field name="role_id" string="Signing role" force_save="1"/><field name="partner_id" string="Person"/></list>
                     </field>
-                    <h3 class="h5 mt-4">2. Confirm the signing method</h3>
-                    <div class="card bg-light border-0 mb-3 usl_sign_method_recommendation"><div class="card-body p-3">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-12 col-md-5">
-                                <div class="text-muted small mb-1">Recommended</div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white border text-primary flex-shrink-0 usl_sign_method_icon"><i class="fa fa-shield" title="Recommended method" aria-hidden="true"/></span>
-                                    <field name="recommended_trust" nolabel="1" readonly="1" class="fw-semibold"/>
-                                    <field name="policy_id" invisible="1"/>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-7">
-                                <div class="text-muted small mb-1">Before you continue</div>
-                                <div class="d-flex align-items-start gap-2">
-                                    <i class="fa fa-info-circle text-muted mt-1 flex-shrink-0" title="Availability" aria-hidden="true"/>
-                                    <field name="journey_availability" nolabel="1" readonly="1" class="text-body"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div></div>
+                    <h3 class="h5 mt-4">2. Choose the signing method</h3>
+                    <p class="text-muted mb-2">Compare the signer check, PDF signature, and retained proof.</p>
+                    <field name="policy_id" invisible="1"/>
+                    <div class="small text-muted mb-3">Suggested: <field name="recommended_trust" nolabel="1" readonly="1" class="d-inline fw-semibold"/>. This is guidance, not a restriction.</div>
                     <div class="usl_sign_method_choice">
-                        <label for="requested_trust" string="Signing method" class="o_form_label fw-semibold d-block mb-1"/>
-                        <p class="small text-muted mb-2">Choose how each signer confirms and what proof is kept.</p>
                         <field name="requested_trust" widget="usl_sign_method_radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
                     </div>
+                    <div class="alert alert-light border mt-3 mb-0" role="status"><field name="journey_availability" nolabel="1" readonly="1"/></div>
                     <div class="card mt-3" invisible="requested_trust != 'qualified_external'"><div class="card-body">
                         <field name="external_provider_id" string="Qualified provider" required="requested_trust == 'qualified_external'"/>
-                    </div></div>
-                    <div class="card border-warning mt-3" invisible="requested_trust == recommended_trust"><div class="card-body">
-                        <field name="override_reason" string="Why choose a different method?" required="requested_trust != recommended_trust" placeholder="Record why the recommendation is not right for this document."/>
                     </div></div>
                     <h3 class="h5 mt-4">3. Add a message</h3>
                     <field name="message" nolabel="1" placeholder="Optional note shown with the invitation."/>
@@ -56,15 +36,11 @@
                         <summary class="text-muted">More options</summary>
                         <group class="mt-2">
                             <field name="record_ref"/>
-                            <field name="document_category" string="Document type"/>
-                            <field name="signer_type" string="Relationship to signer"/>
-                            <field name="risk_level" string="Business risk"/>
-                            <field name="formal_qes_required"/>
+                            <field name="document_category" invisible="1"/>
+                            <field name="signer_type" invisible="1"/>
+                            <field name="risk_level" invisible="1"/>
+                            <field name="formal_qes_required" invisible="1"/>
                         </group>
-                        <div class="text-muted small">
-                            <field name="recommendation_reason" nolabel="1" readonly="1"/>
-                            <field name="recommendation_consequence" nolabel="1" readonly="1"/>
-                        </div>
                     </details>
                 </sheet>
                 <footer>
