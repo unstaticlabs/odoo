@@ -2109,6 +2109,36 @@ msgid "Ready to sign"
 msgstr "Prêt à signer"
 
 #. module: usl_sign
+#. odoo-javascript
+msgid "Click to start"
+msgstr "Cliquez pour commencer"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Next"
+msgstr "Suivant"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Start the field guide"
+msgstr "Démarrer le guide des champs"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Go to the next required field"
+msgstr "Aller au prochain champ obligatoire"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "All required fields are complete"
+msgstr "Tous les champs obligatoires sont remplis"
+
+#. module: usl_sign
+#. odoo-javascript
+msgid "Fill the highlighted fields directly, or use the guide on the left."
+msgstr "Remplissez directement les champs mis en évidence, ou utilisez le guide à gauche."
+
+#. module: usl_sign
 msgid "Waiting for your turn"
 msgstr "En attente de votre tour"
 
