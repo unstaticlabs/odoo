@@ -36,7 +36,7 @@ summary = {
     "shared_currency_rates": {},
     "multi_company_expenses": {},
     "journeys": {},
-    "reviewer_isolation": {},
+    "reviewer_scope": {},
 }
 
 for company in companies:
@@ -204,6 +204,9 @@ if reviewer and main_company and media_company:
     media_move_count = reviewer_env["account.move"].search_count([
         ("company_id", "=", media_company.id),
     ])
+    main_move_count = reviewer_env["account.move"].search_count([
+        ("company_id", "=", main_company.id),
+    ])
     media_custom_counts = {
         model_name: reviewer_env[model_name].search_count([
             ("company_id", "=", media_company.id),
@@ -215,16 +218,21 @@ if reviewer and main_company and media_company:
             "rebuild.account.declaration",
         )
     }
-    summary["reviewer_isolation"] = {
+    reviewer_companies = set(reviewer.company_ids.mapped("name"))
+    required_reviewer_companies = {main_company.name, media_company.name}
+    summary["reviewer_scope"] = {
         "login": reviewer.login,
-        "allowed_companies": reviewer.company_ids.mapped("name"),
+        "allowed_companies": sorted(reviewer_companies),
+        "main_move_count": main_move_count,
         "media_move_count": media_move_count,
         "media_custom_counts": media_custom_counts,
     }
-    if media_move_count or any(media_custom_counts.values()):
-        errors.append("Main-company reviewer can read USL MEDIA records")
+    if not required_reviewer_companies.issubset(reviewer_companies):
+        errors.append("Accounting reviewer lacks the approved two-company scope")
+    if not main_move_count or not media_move_count:
+        errors.append("Accounting reviewer cannot read both companies' ledgers")
 else:
-    errors.append("The reconstructed read-only accountant is missing")
+    errors.append("The reconstructed Accounting reviewer is missing")
 
 if media_company:
     try:
