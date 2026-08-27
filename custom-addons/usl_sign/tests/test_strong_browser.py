@@ -719,9 +719,9 @@ class TestSignBrowserJourneys(HttpCase):
                 }
                 if (
                     document.querySelectorAll(".o_sign_oca_footer").length !== 1 ||
-                    document.querySelectorAll("#usl_sign_submission_status").length !== 1
+                    document.querySelector("#usl_sign_submission_status")
                 ) {
-                    throw new Error("Strong rendered a competing signer action surface.");
+                    throw new Error("Strong rendered a competing or duplicate signer status surface.");
                 }
                 if (
                     typeof window.uslStrongCeremony !== "function" ||
@@ -1372,6 +1372,15 @@ class TestSignBrowserJourneys(HttpCase):
                         {once: true},
                     );
                     button.click();
+                    if (
+                        !button.textContent.includes("Saving and checking your signature") ||
+                        document.getElementById("usl_sign_submission_spinner").classList.contains(
+                            "d-none",
+                        ) ||
+                        document.querySelector("#usl_sign_submission_status")
+                    ) {
+                        throw new Error("Signing progress is not shown once on the primary button.");
+                    }
                 })();
                 """,
                 ready="Boolean(document.getElementById('sign_oca_button'))",

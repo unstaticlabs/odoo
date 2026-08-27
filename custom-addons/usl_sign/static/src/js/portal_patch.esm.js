@@ -627,13 +627,10 @@ patch(SignOcaPdfPortal.prototype, {
             : _t("%s required fields remaining", this.uslGuide.remaining);
     },
 
-    _setSubmissionState(button, {busy = true, label, message, complete = false}) {
+    _setSubmissionState(button, {busy = true, label, complete = false}) {
         const consent = document.getElementById("usl_sign_consent");
         const spinner = document.getElementById("usl_sign_submission_spinner");
         const buttonLabel = document.getElementById("usl_sign_submission_label");
-        const status = document.getElementById("usl_sign_submission_status");
-        const statusMessage =
-            message || (complete ? _t("Signature saved. Opening the result…") : "");
         button.dataset.submitting = busy ? "true" : "false";
         button.setAttribute("aria-busy", busy ? "true" : "false");
         spinner?.classList.toggle("d-none", !busy || complete);
@@ -642,16 +639,6 @@ patch(SignOcaPdfPortal.prototype, {
         }
         if (consent) {
             consent.disabled = busy;
-        }
-        status?.classList.toggle("d-none", !busy && !statusMessage);
-        if (status) {
-            const statusText = status.querySelector("span");
-            if (statusText && statusMessage) {
-                statusText.textContent = statusMessage;
-            }
-            const statusIcon = status.querySelector("i");
-            statusIcon?.classList.toggle("fa-lock", !complete);
-            statusIcon?.classList.toggle("fa-check-circle", complete);
         }
         this._syncConsentState();
     },
@@ -801,7 +788,10 @@ patch(SignOcaPdfPortal.prototype, {
         error?.classList.add("d-none");
         const submissionError = document.getElementById("usl_sign_submission_error");
         submissionError?.classList.add("d-none");
-        this._setSubmissionState(button, {busy: true, label: _t("Finalizing…")});
+        this._setSubmissionState(button, {
+            busy: true,
+            label: _t("Saving and checking your signature…"),
+        });
         try {
             const location = await this._requestLocationOnce();
             const context = browserContext();
