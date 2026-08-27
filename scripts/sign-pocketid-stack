@@ -191,11 +191,11 @@ configure_paperless() {
   setup="$(
     "${COMPOSE[@]}" exec -T paperless-webserver \
       python manage.py shell \
-      < "$ROOT/deploy/documents/paperless_sign_qa_init.py"
+      < "$ROOT/deploy/documents/paperless_integration_access.py"
   )"
-  token="$(sed -n 's/^USL_SIGN_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
+  token="$(sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
   service_user_id="$(
-    sed -n 's/^USL_SIGN_PAPERLESS_SERVICE_ID=//p' <<<"$setup" | tail -n 1
+    sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
   )"
   if [[ -z "$token" || ! "$service_user_id" =~ ^[1-9][0-9]*$ ]]; then
     printf 'Could not prepare the Paperless Sign integration identity.\n' >&2
