@@ -29,14 +29,19 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_ADMIN_PASSWORD": "a" * 32,
             "ODOO_DB_PASSWORD": "p" * 32,
             "ODOO_DB_NAME": "odoo_production",
+            "ODOO_DB_MAXCONN": "12",
             "ODOO_INIT_DB": "odoo_production",
             "ODOO_DB_FILTER": "^odoo_production$",
             "ODOO_GEVENT_PORT": "18072",
             "ODOO_HTTP_PORT": "18069",
             "ODOO_IMAGE": self.image,
             "ODOO_LIST_DB": "False",
+            "ODOO_LIMIT_MEMORY_HARD": "1342177280",
+            "ODOO_LIMIT_MEMORY_SOFT": "1073741824",
+            "ODOO_LIMIT_REQUEST": "8192",
             "ODOO_MAX_CRON_THREADS": "0",
             "ODOO_PUBLIC_BASE_URL": "https://odoo.usl.example",
+            "ODOO_WORKERS": "4",
             "PAPERLESS_ALLOWED_HOSTS": "documents.usl.example,paperless-webserver",
             "PAPERLESS_DB_NAME": "paperless",
             "PAPERLESS_DB_PASSWORD": "d" * 32,
@@ -91,6 +96,28 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 changed[key] = value
                 with self.assertRaisesRegex(cutover.CutoverError, message):
                     cutover.validate_environment(changed, self.candidate)
+
+    def test_unsafe_odoo_resource_budgets_are_rejected(self):
+        for key, value, message in (
+            ("ODOO_WORKERS", "0", "HTTP workers"),
+            ("ODOO_DB_MAXCONN", "33", "database pool"),
+            ("ODOO_DB_MAXCONN", "14", "connection budget"),
+            ("ODOO_LIMIT_MEMORY_SOFT", "536870911", "memory limits"),
+            ("ODOO_LIMIT_MEMORY_HARD", "1140850688", "128 MiB headroom"),
+            ("ODOO_LIMIT_REQUEST", "999", "request recycling"),
+        ):
+            with self.subTest(key=key, value=value):
+                changed = dict(self.values)
+                changed[key] = value
+                with self.assertRaisesRegex(cutover.CutoverError, message):
+                    cutover.validate_environment(changed, self.candidate)
+
+    def test_non_integer_odoo_resource_budget_is_rejected(self):
+        changed = dict(self.values)
+        changed["ODOO_DB_MAXCONN"] = "many"
+
+        with self.assertRaisesRegex(cutover.CutoverError, "must be integers"):
+            cutover.validate_environment(changed, self.candidate)
 
     def test_compose_rejects_managed_pocket_and_public_staging_ports(self):
         config = {

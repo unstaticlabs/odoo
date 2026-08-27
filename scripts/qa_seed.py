@@ -14,7 +14,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-SCHEMA = "usl-qa-reconstruction-seed-v2"
+SCHEMA = "usl-qa-reconstruction-seed-v3"
 MIGRATION_INPUTS = (
     "Dockerfile",
     "accounting_compat",
@@ -25,6 +25,7 @@ MIGRATION_INPUTS = (
     "custom-addons",
     "deploy/documents",
     "migration",
+    "oca-patches",
     "scripts/accounting-compat",
     "scripts/accounting-restore",
     "scripts/attachment-ledger",
@@ -40,7 +41,6 @@ MIGRATION_INPUTS = (
     "scripts/product-restore",
     "scripts/project-restore",
     "scripts/qa-seed",
-    "scripts/qa-environment",
     "scripts/qa_seed.py",
     "scripts/production-cutover",
     "scripts/production_cutover.py",
@@ -53,14 +53,28 @@ MIGRATION_INPUTS = (
     "scripts/target-reconstruct",
     "scripts/tese-restore",
 )
+QA_STATE_INPUTS = (*MIGRATION_INPUTS, "scripts/qa-environment")
 IGNORED_PARTS = {
     ".git",
     "__pycache__",
     "private",
     ".ruff_cache",
     ".pytest_cache",
+    "i18n",
+    "static",
+    "tests",
+    "views",
 }
-IGNORED_SUFFIXES = {".pyc", ".log"}
+IGNORED_SUFFIXES = {".pyc", ".log", ".md"}
+QA_STATE_IGNORED_PARTS = {
+    ".git",
+    "__pycache__",
+    "private",
+    ".ruff_cache",
+    ".pytest_cache",
+    "tests",
+}
+QA_STATE_IGNORED_SUFFIXES = {".pyc", ".log", ".md"}
 REQUIRED_ARTIFACTS = (
     "odoo.dump",
     "odoo-filestore.tgz",
@@ -111,26 +125,31 @@ def tree_digest(path: Path) -> tuple[str, int, int]:
     return digest.hexdigest(), len(files), total_size
 
 
-def _migration_files(root: Path) -> list[Path]:
+def _identity_files(
+    root: Path,
+    inputs: tuple[str, ...],
+    ignored_parts: set[str],
+    ignored_suffixes: set[str],
+) -> list[Path]:
     files = []
-    for relative in MIGRATION_INPUTS:
+    for relative in inputs:
         path = root / relative
         if not path.exists():
-            raise SeedError(f"migration identity input is missing: {relative}")
+            raise SeedError(f"cache identity input is missing: {relative}")
         candidates = [path] if path.is_file() else path.rglob("*")
         files.extend(
             candidate
             for candidate in candidates
             if candidate.is_file()
-            and not set(candidate.relative_to(root).parts).intersection(IGNORED_PARTS)
-            and candidate.suffix not in IGNORED_SUFFIXES
+            and not set(candidate.relative_to(root).parts).intersection(ignored_parts)
+            and candidate.suffix not in ignored_suffixes
         )
     return sorted(set(files), key=lambda item: item.relative_to(root).as_posix())
 
 
-def migration_digest(root: Path) -> str:
+def _content_digest(root: Path, files: list[Path]) -> str:
     digest = hashlib.sha256()
-    for path in _migration_files(root):
+    for path in files:
         relative = path.relative_to(root).as_posix().encode()
         content = path.read_bytes()
         digest.update(len(relative).to_bytes(4, "big"))
@@ -138,6 +157,25 @@ def migration_digest(root: Path) -> str:
         digest.update(len(content).to_bytes(8, "big"))
         digest.update(content)
     return digest.hexdigest()
+
+
+def migration_digest(root: Path) -> str:
+    return _content_digest(
+        root,
+        _identity_files(root, MIGRATION_INPUTS, IGNORED_PARTS, IGNORED_SUFFIXES),
+    )
+
+
+def qa_state_digest(root: Path) -> str:
+    return _content_digest(
+        root,
+        _identity_files(
+            root,
+            QA_STATE_INPUTS,
+            QA_STATE_IGNORED_PARTS,
+            QA_STATE_IGNORED_SUFFIXES,
+        ),
+    )
 
 
 def compose_runtime(config: dict, image_ids: dict[str, str]) -> dict:
@@ -308,8 +346,6 @@ def verify(args: argparse.Namespace) -> dict:
     manifest = read_json(seed_dir / "manifest.json")
     if manifest.get("schema") != SCHEMA:
         raise SeedError("seed schema is missing or unsupported")
-    if manifest.get("created_from_commit") != args.commit:
-        raise SeedError("seed release commit differs from the current checkout")
     expected_identity = identity(
         args.root.resolve(),
         args.source_dump.resolve(),

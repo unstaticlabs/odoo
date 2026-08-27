@@ -5,6 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_DIR="${ROOT_DIR}/oca-src"
 ADDONS_DIR="${ROOT_DIR}/oca-addons"
 PATCH_DIR="${ROOT_DIR}/oca-patches/saas-19.3"
+COMMON_GIT_DIR="$(git -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir)"
+MAIN_CHECKOUT="$(cd "$(dirname "${COMMON_GIT_DIR}")" && pwd -P)"
+SHARED_SRC_DIR="${USL_OCA_SHARED_SRC_DIR:-${MAIN_CHECKOUT}/oca-src}"
 
 mkdir -p "${SRC_DIR}" "${ADDONS_DIR}"
 
@@ -14,16 +17,27 @@ sync_repo() {
     local branch="$3"
     local commit="$4"
     local path="${SRC_DIR}/${name}"
+    local shared_path="${SHARED_SRC_DIR}/${name}"
 
     if [[ ! -d "${path}/.git" ]]; then
-        git clone --depth 1 --branch "${branch}" "${url}" "${path}"
-    else
-        git -C "${path}" remote set-url origin "${url}"
-        git -C "${path}" fetch --depth 1 origin "${branch}"
+        if [[ "${shared_path}" != "${path}" \
+            && -d "${shared_path}/.git" \
+            && "$(git -C "${shared_path}" cat-file -t "${commit}" 2>/dev/null || true)" == commit ]]; then
+            # Seed from the main checkout without a network fetch. --no-local
+            # keeps the new checkout independent even when the shared pinned
+            # repository is shallow or later pruned.
+            git clone --no-local --no-checkout "${shared_path}" "${path}"
+        else
+            git clone --depth 1 --branch "${branch}" "${url}" "${path}"
+        fi
     fi
 
-    git -C "${path}" fetch --depth 1 origin "${commit}" || true
-    git -C "${path}" checkout --detach "${commit}"
+    git -C "${path}" remote set-url origin "${url}"
+    if [[ "$(git -C "${path}" cat-file -t "${commit}" 2>/dev/null || true)" != commit ]]; then
+        git -C "${path}" fetch --depth 1 origin "${branch}"
+        git -C "${path}" fetch --depth 1 origin "${commit}" || true
+    fi
+    git -C "${path}" checkout --quiet --detach "${commit}"
     # These are ignored, exact-pin vendor checkouts. Restore the pinned tree
     # before applying the tracked SaaS integration patches so repeated syncs
     # are deterministic and never accumulate generated adaptations.

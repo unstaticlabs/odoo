@@ -1,1 +1,1 @@
-from . import test_documents
+from . import test_documents, test_performance
