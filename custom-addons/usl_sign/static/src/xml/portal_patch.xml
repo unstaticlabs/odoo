@@ -72,14 +72,40 @@
                 </div>
                 <div class="usl_sign_portal_instruction">
                     <strong>Review and sign</strong>
-                    <span>Complete the required fields, then confirm below.</span>
+                    <span t-if="info.requested_trust === 'strong_personal'">Complete the required fields, then confirm your identity with Pocket ID.</span>
+                    <span t-else="">Complete the required fields, then confirm below.</span>
                 </div>
-                <span class="badge rounded-pill text-bg-light border"><i class="fa fa-lock me-1"/> Private signing session</span>
+                <span class="badge rounded-pill text-bg-light border">
+                    <i class="fa fa-lock me-1"/>
+                    <t t-out="info.requested_trust === 'strong_personal' ? 'Strong personal signature' : 'Private signing session'"/>
+                </span>
             </header>
         </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">
             <div class="o_sign_validation_buttons">
+                <div class="usl_sign_field_guide" role="group" aria-label="Optional field guide">
+                    <div>
+                        <strong>
+                            <t t-if="uslGuide.remaining"><t t-out="uslGuide.remaining"/> required field<t t-if="uslGuide.remaining !== 1">s</t> left</t>
+                            <t t-else="">All required fields are complete</t>
+                        </strong>
+                        <span>Fill fields directly on the document, or use the optional guide.</span>
+                    </div>
+                    <div class="usl_sign_field_guide_actions">
+                        <button type="button" class="btn btn-outline-secondary" t-on-click="toggleGuide">
+                            <i class="fa fa-compass me-1" aria-hidden="true"/>
+                            <t t-out="uslGuide.enabled ? 'Stop guide' : 'Guide me'"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" aria-label="Previous incomplete field" t-att-disabled="!uslGuide.enabled || !uslGuide.remaining" t-on-click="previousIncompleteField">
+                            <i class="fa fa-arrow-up" aria-hidden="true"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" aria-label="Next incomplete field" t-att-disabled="!uslGuide.enabled || !uslGuide.remaining" t-on-click="nextIncompleteField">
+                            <i class="fa fa-arrow-down" aria-hidden="true"/>
+                        </button>
+                    </div>
+                </div>
                 <div class="usl_sign_consent" role="group" aria-labelledby="usl_sign_consent_title">
+                    <p class="usl_sign_proof_notice"><i class="fa fa-info-circle" aria-hidden="true"/><t t-out="info.proof_notice"/></p>
                     <label class="usl_sign_consent_choice" for="usl_sign_consent">
                         <input id="usl_sign_consent" class="form-check-input" type="checkbox" t-on-change="(ev) => this._onConsentChanged(ev)"/>
                         <span>
@@ -87,6 +113,10 @@
                             <span>I reviewed this document and agree to sign it electronically.</span>
                         </span>
                     </label>
+                    <p class="usl_sign_location_status" role="status" aria-live="polite">
+                        <i t-attf-class="fa #{uslLocation.status === 'requesting' ? 'fa-circle-o-notch fa-spin' : uslLocation.status === 'granted' ? 'fa-map-marker' : 'fa-info-circle'}" aria-hidden="true"/>
+                        <t t-out="locationMessage"/>
+                    </p>
                     <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
                     <div id="usl_sign_submission_error" class="alert alert-warning py-2 mt-2 mb-0 d-none" role="alert" tabindex="-1"></div>
                 </div>
