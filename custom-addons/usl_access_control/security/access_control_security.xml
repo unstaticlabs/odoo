@@ -79,6 +79,7 @@
             Command.link(ref('project.group_project_manager')),
             Command.link(ref('usl_b2c.group_b2c_manager')),
             Command.link(ref('usl_documents.group_documents_manager')),
+            Command.link(ref('usl_document_templates.group_document_letter_manager')),
             Command.link(ref('usl_platform_billing.group_platform_billing_manager')),
             Command.link(ref('group_irreversible_actions'))
         ]"/>
