@@ -72,6 +72,13 @@
                                             Nothing needs attention here.
                                         </div>
                                     </div>
+                                    <div t-if="content.more_action" class="card-footer bg-transparent">
+                                        <button type="button" class="btn btn-link px-0"
+                                                t-on-click="() => this.viewMore(content.more_action)">
+                                            Show more
+                                            <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                                        </button>
+                                    </div>
                                 </div>
                             </section>
                         </t>

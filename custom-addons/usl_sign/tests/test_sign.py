@@ -1991,6 +1991,7 @@ class TestCleanUslSign(TransactionCase):
             self.env.ref("usl_sign.sign_request_completed_kanban_usl"),
         )
         completed_list = self.env.ref("usl_sign.sign_request_completed_list_usl")
+        self.assertIn('default_order="completed_at desc, id desc"', completed_list.arch)
         self.assertIn('string="Open signed PDF"', completed_list.arch)
         self.assertIn('name="completed_at"', completed_list.arch)
         self.assertIn('name="completed_proof_label"', completed_list.arch)
@@ -1999,6 +2000,7 @@ class TestCleanUslSign(TransactionCase):
         completed_cards = self.env.ref(
             "usl_sign.sign_request_completed_kanban_usl",
         ).arch
+        self.assertIn('default_order="completed_at desc, id desc"', completed_cards)
         self.assertIn('widget="usl_sign_document_card_preview"', completed_cards)
         self.assertIn('string="Documents"', completed_cards)
         self.assertIn('string="Open PDF"', completed_cards)
@@ -2038,6 +2040,49 @@ class TestCleanUslSign(TransactionCase):
         self.assertTrue(item["due"])
         self.assertNotEqual(item["due"], "2026-09-23 20:20:27")
         self.assertNotIn(":27", item["due"])
+
+    def test_dashboard_limits_recently_completed_and_links_to_full_view(self):
+        completed = self.env["sign.oca.request"]
+        for index in range(6):
+            request = self._request(
+                name=f"Completed request {index}",
+                user_id=self.sign_user.id,
+            )
+            request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+                {
+                    "state": "completed",
+                    "validation_status": "valid",
+                    "evidence_status": "complete",
+                    "archive_status": "archived",
+                    "final_data": field_value(self.pdf),
+                    "final_filename": f"completed-{index}.pdf",
+                    "completion_certificate": field_value(self.pdf),
+                    "completion_filename": f"certificate-{index}.pdf",
+                    "dossier_data": field_value(self.pdf),
+                    "dossier_filename": f"dossier-{index}.pdf",
+                    "completed_at": fields.Datetime.to_datetime(
+                        f"2026-08-{index + 1:02d} 12:00:00",
+                    ),
+                },
+            )
+            completed |= request
+
+        section = self.env["usl.sign.workspace"].with_user(
+            self.sign_user,
+        ).get_landing()["sections"]["completed"]
+
+        self.assertGreaterEqual(section["count"], 6)
+        self.assertEqual(len(section["items"]), 5)
+        self.assertEqual(
+            section["more_action"],
+            "usl_sign.completed_documents_action",
+        )
+        visible_ids = [item["id"] for item in section["items"]]
+        expected_ids = completed.sorted(
+            lambda row: (row.completed_at, row.id),
+            reverse=True,
+        )[:5].ids
+        self.assertEqual(visible_ids, expected_ids)
 
     def test_strong_requests_surface_identity_setup_before_sending(self):
         request = self._request(
@@ -2341,6 +2386,70 @@ class TestCleanUslSign(TransactionCase):
         )
         self.assertEqual(request.signer_ids.mapped("sequence"), [10, 20])
         self.assertEqual(request.responsible_message, "Please review and sign.")
+
+    def test_one_off_upload_persists_strong_method_before_field_placement(self):
+        start = self.env["usl.sign.start"].with_user(self.sign_user).create(
+            {
+                "document_data": field_value(self.pdf),
+                "document_filename": "ordered_agreement.pdf",
+                "signer_partner_ids": [
+                    (6, 0, [self.partner_one.id, self.partner_two.id]),
+                ],
+                "requested_trust": "strong_personal",
+            },
+        )
+
+        action = start.action_continue()
+        request = self.env["sign.oca.request"].search(
+            [
+                ("name", "=", "ordered agreement"),
+                ("user_id", "=", self.sign_user.id),
+            ],
+            limit=1,
+        )
+
+        self.assertEqual(action["tag"], "usl_sign_request_configure")
+        self.assertEqual(request.requested_trust, "strong_personal")
+        self.assertTrue(request.signing_order)
+        self.assertIn("one after another", start.signing_method_summary)
+
+    def test_template_start_carries_selected_method_into_prepare_request(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Strong template",
+                "data": field_value(self.pdf),
+                "filename": "strong-template.pdf",
+                "company_id": self.company.id,
+            },
+        )
+        self.env["sign.oca.template.item"].create(
+            {
+                "template_id": template.id,
+                "field_id": self.env.ref("sign_oca.sign_field_signature").id,
+                "role_id": self.role_customer.id,
+                "required": True,
+                "page": 1,
+                "position_x": 10,
+                "position_y": 10,
+                "width": 25,
+                "height": 8,
+            },
+        )
+        template.action_mark_ready()
+        start = self.env["usl.sign.start"].with_user(self.sign_user).create(
+            {
+                "signature_source": "template",
+                "template_id": template.id,
+                "requested_trust": "strong_personal",
+            },
+        )
+
+        action = start.action_continue()
+
+        self.assertEqual(
+            action["context"]["default_requested_trust"],
+            "strong_personal",
+        )
 
     def test_my_signatures_uses_human_statuses_and_clear_actions(self):
         request = self._request(user_id=self.sign_user.id)

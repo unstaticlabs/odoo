@@ -50,6 +50,10 @@ export class SignLanding extends Component {
         return this.action.doAction("usl_sign.signature_inspector_action");
     }
 
+    viewMore(actionXmlId) {
+        return this.action.doAction(actionXmlId);
+    }
+
     async openItem(item) {
         if (item.action.type === "call") {
             try {
