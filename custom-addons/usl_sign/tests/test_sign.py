@@ -1526,6 +1526,11 @@ class TestCleanUslSign(TransactionCase):
             patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()),
             upload,
             patch.object(
+                type(self.env["usl.document"]),
+                "action_sync_permissions",
+                autospec=True,
+            ) as sync_permissions,
+            patch.object(
                 type(self.env["mail.thread"]), "message_notify", autospec=True,
             ) as notify,
         ):
@@ -1548,15 +1553,42 @@ class TestCleanUslSign(TransactionCase):
             request._reconcile_archive()
             notify.assert_called_once()
             self.assertTrue(notify.call_args.kwargs["attachment_ids"])
+            self.assertTrue(sync_permissions.called)
         self.assertEqual(request.state, "completed")
         self.assertEqual(request.archive_status, "archived")
         self.assertEqual(request.archive_document_id, archived_signed)
         self.assertEqual(request.archive_dossier_document_id, archived_dossier)
+        self.assertEqual(
+            request.action_open_archived_signed_document()["res_id"],
+            archived_signed.id,
+        )
+        self.assertEqual(
+            request.action_open_archived_proof_package()["res_id"],
+            archived_dossier.id,
+        )
         self.assertTrue(request.dossier_filename.endswith("-proof-package.pdf"))
         self.assertEqual(
             set(archive_call_users),
-            {self.env.ref("base.user_root").id},
+            {request.user_id.id},
         )
+        participant_links = (
+            archived_signed.link_ids | archived_dossier.link_ids
+        ).filtered(lambda link: link.res_model == "res.partner")
+        self.assertEqual(
+            set(participant_links.mapped("res_id")),
+            {request.user_id.partner_id.id, self.partner_one.id},
+        )
+        participant_user = new_test_user(
+            self.env,
+            login="usl-sign-document-participant",
+            groups="usl_sign.group_sign_user,usl_documents.group_documents_user",
+            company_id=self.company.id,
+            partner_id=self.partner_one.id,
+        )
+        visible_documents = self.env["usl.document"].with_user(participant_user).search(
+            [("id", "in", [archived_signed.id, archived_dossier.id])],
+        )
+        self.assertEqual(visible_documents, archived_signed | archived_dossier)
         self.assertTrue(
             all(isinstance(payload, str) for _filename, payload in archive_uploads),
         )
@@ -1886,6 +1918,13 @@ class TestCleanUslSign(TransactionCase):
         request_form = self.env.ref("usl_sign.sign_request_form_usl").arch
         self.assertIn("Check before you send", request_form)
         self.assertIn("Signer identity setup is required before sending", request_form)
+        self.assertIn('string="Method, result &amp; proof"', request_form)
+        self.assertNotIn('string="Signing method" name="signing_method"', request_form)
+        self.assertIn("Final storage is in progress", request_form)
+        self.assertIn("action_open_archived_signed_document", request_form)
+        result_page = self.env.ref("usl_sign.portal_sign_result").arch
+        self.assertIn("Download the document as it is now", result_page)
+        self.assertIn("not the final document", result_page)
 
     def test_my_identity_has_one_direct_form_journey(self):
         self.assertFalse(
@@ -1972,6 +2011,20 @@ class TestCleanUslSign(TransactionCase):
             internal_signer,
         ).sign_oca_request_user_count()
         self.assertEqual(sum(group["total_records"] for group in pencil_groups), 1)
+        self.assertEqual(
+            pencil_groups[0]["items"],
+            [
+                {
+                    "id": own_signer.id,
+                    "title": request.name,
+                    "subtitle": (
+                        f"From {request.user_id.name} · Sign as {own_signer.role_id.name}"
+                    ),
+                    "trust": request.requested_trust_short,
+                    "url": f"/sign/user/{own_signer.id}",
+                },
+            ],
+        )
         pencil_action = internal_signer.with_user(
             internal_signer,
         ).action_open_usl_sign_requests()

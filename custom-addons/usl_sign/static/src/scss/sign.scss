@@ -1057,12 +1057,24 @@
     height: 3rem;
     place-items: center;
     color: #fff;
-    background: currentColor;
+    background: #403a3e;
     border-radius: 50%;
 
     i {
         color: #fff;
     }
+}
+
+.usl_sign_inspector_verdict.is-success .usl_sign_inspector_verdict_icon {
+    background: #124f2f;
+}
+
+.usl_sign_inspector_verdict.is-warning .usl_sign_inspector_verdict_icon {
+    background: #704400;
+}
+
+.usl_sign_inspector_verdict.is-danger .usl_sign_inspector_verdict_icon {
+    background: #81242a;
 }
 
 .usl_sign_inspector_results {
@@ -1076,6 +1088,50 @@
 
 .usl_sign_inspector_primary {
     min-width: 0;
+}
+
+.usl_sign_systray_requests {
+    width: 28rem;
+    max-width: 100vw;
+}
+
+.usl_sign_systray_heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .85rem 1rem .7rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+
+    span:first-child,
+    small {
+        display: block;
+    }
+}
+
+.usl_sign_systray_request {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .75rem;
+    padding: .8rem 1rem;
+}
+
+.usl_sign_systray_request_icon {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    place-items: center;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(113, 75, 103, .1);
+    border-radius: .5rem;
+}
+
+.usl_sign_systray_all {
+    padding: .7rem 1rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    text-decoration: none;
 }
 
 .usl_sign_inspector_section {

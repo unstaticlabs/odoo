@@ -889,5 +889,6 @@ class StrongSignController(http.Controller):
             "status": "success",
             "company_id": signer.request_id.company_id.id,
             "request_name": signer.request_id.name,
+            "request_id": signer.request_id.id,
         }
         return {"ok": True, "redirect": redirect}
