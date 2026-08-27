@@ -16,6 +16,21 @@ from odoo.addons.rebuild_account_migration.models.closing import (
 )
 
 
+RENDERED_PDF = b"%PDF-1.7\n" + (b"0" * 12_000) + b"\n%%EOF\n"
+RENDER_RESULT = {
+    "pdf": RENDERED_PDF,
+    "template_revision": "reviewed-template",
+    "payload_sha256": "c" * 64,
+    "renderer_version": "1.0.0",
+}
+COMPANY_PAYLOAD = {
+    "name": "Rendered company",
+    "legal_identity_lines": ["SAS · RCS Paris"],
+    "primary_color": "714B67",
+    "footer_label": "Rendered company",
+}
+
+
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
 class TestDeclarationAndClosing(TransactionCase):
     @classmethod
@@ -395,11 +410,33 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn(b'Lock dates', shared_strings)
 
         wizard.export_format = "pdf"
-        wizard.action_generate_export()
+        renderer = self.env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT),
+        ):
+            wizard.action_generate_export()
         pdf_payload = bytes(wizard.export_file)
         self.assertTrue(pdf_payload.startswith(b"%PDF"))
         self.assertGreater(len(pdf_payload), 10_000)
-        self.assertIn(b"ReportLab PDF Library", pdf_payload)
+        pdf_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            pdf_metadata["document_render"]["template_revision"],
+            "reviewed-template",
+        )
+        export_attachment = self.env["ir.attachment"].search(
+            [
+                ("res_model", "=", wizard._name),
+                ("res_id", "=", wizard.id),
+                ("res_field", "=", "export_file"),
+            ],
+            limit=1,
+        )
+        self.assertEqual(export_attachment.usl_document_payload_sha256, "c" * 64)
         self.assertEqual(len(closing.package_attachment_ids), 2)
 
         closing_decision.action_record()
@@ -1329,13 +1366,59 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         )
 
         wizard.export_format = "pdf"
-        wizard.action_generate_export()
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT),
+        ):
+            wizard.action_generate_export()
         self.assertTrue(bytes(wizard.export_file).startswith(b"%PDF"))
         pdf_metadata = json.loads(wizard.export_metadata)
         self.assertEqual(
             {company["id"] for company in pdf_metadata["companies"]},
             {self.first_company.id, self.second_company.id},
         )
+
+    def test_pdf_adapter_uses_the_exact_selected_rows_and_display_rules(self):
+        wizard = self._wizard(
+            export_format="pdf",
+            display_unit="thousands",
+            amount_rounding="whole",
+        )
+        rows = [
+            {
+                "account_code": "706000",
+                "account_name": "Professional services",
+                "opening_debit": "0.00",
+                "opening_credit": "0.00",
+                "debit": "1250.49",
+                "credit": "0.00",
+                "closing_balance": "1250.49",
+                "row_level": 2,
+                "hierarchy_kind": "account",
+            }
+        ]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            result = wizard._pdf_payload(rows, return_result=True)
+
+        self.assertEqual(result, RENDER_RESULT)
+        payload = render.call_args.args[2]
+        self.assertEqual(payload["rows"][0]["level"], 2)
+        self.assertIn("1", payload["rows"][0]["values"])
+        self.assertTrue(any("Milliers" in item for item in payload["filters"]))
+        self.assertEqual(payload["orientation"], "landscape")
 
     def test_combined_report_rejects_different_company_currencies(self):
         usd = self.env.ref("base.USD")

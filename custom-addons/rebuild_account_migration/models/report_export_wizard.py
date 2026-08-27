@@ -1520,19 +1520,53 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.ensure_one()
         self._prepare_dynamic_filters()
         self._validate_filter_scope()
+        render_result = None
         if self.report_type == "fec":
             payload, filename, metadata = self._fec_export_payload()
         else:
             rows = self._visible_preview_rows(self._report_rows())
-            payload = self._export_payload(rows)
+            render_result = (
+                self._pdf_payload(rows, return_result=True)
+                if self.export_format == "pdf"
+                else None
+            )
+            payload = (
+                render_result["pdf"]
+                if render_result
+                else self._export_payload(rows)
+            )
             filename = self._export_filename()
             metadata = self._export_metadata(len(rows))
+            if render_result:
+                metadata["document_render"] = {
+                    "template_key": "accounting_statement.v1",
+                    "template_revision": render_result["template_revision"],
+                    "payload_sha256": render_result["payload_sha256"],
+                    "renderer_version": render_result["renderer_version"],
+                    "rendered_company_id": self.company_id.id,
+                    "rendered_at": fields.Datetime.to_string(
+                        fields.Datetime.now(),
+                    ),
+                }
         self.write({
             "export_file": BinaryBytes(payload),
             "export_filename": filename,
             "export_metadata": json.dumps(metadata, indent=2, sort_keys=True),
         })
-        self._attach_generated_closing_package(payload, filename)
+        export_attachment = self.env["ir.attachment"].sudo().search([
+            ("res_model", "=", self._name),
+            ("res_id", "=", self.id),
+            ("res_field", "=", "export_file"),
+        ], limit=1, order="id desc")
+        closing_attachment = self._attach_generated_closing_package(
+            payload,
+            filename,
+        )
+        if render_result:
+            provenance = self._usl_accounting_attachment_provenance(
+                render_result,
+            )
+            (export_attachment | closing_attachment).write(provenance)
         return {
             "type": "ir.actions.act_window",
             "name": f"Export — {self._report_type_label()}",
@@ -1540,6 +1574,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "res_id": self.id,
             "view_mode": "form",
             "target": "current",
+        }
+
+    def _usl_accounting_attachment_provenance(self, render_result):
+        self.ensure_one()
+        template = self.env.ref(
+            "usl_document_templates.template_accounting_statement_v1",
+        )
+        return {
+            "usl_document_template_id": template.id,
+            "usl_document_template_revision": (
+                render_result["template_revision"]
+            ),
+            "usl_document_payload_sha256": (
+                render_result["payload_sha256"]
+            ),
+            "usl_document_renderer_version": (
+                render_result["renderer_version"]
+            ),
+            "usl_document_company_id": self.company_id.id,
+            "usl_document_rendered_at": fields.Datetime.now(),
         }
 
     def _attach_generated_closing_package(self, payload, filename):
@@ -3168,7 +3222,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
         return localized.strftime("%d/%m/%Y %H:%M")
 
-    def _pdf_payload(self, rows):
+    def _legacy_reportlab_pdf_payload(self, rows):
         try:
             from reportlab.lib import colors  # noqa: PLC0415
             from reportlab.lib.enums import (  # noqa: PLC0415
@@ -3925,6 +3979,180 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )])
         document.build(story)
         return output.getvalue()
+
+    def _pdf_payload(self, rows, *, return_result=False):
+        """Render the canonical report rows without changing their business truth."""
+        self.ensure_one()
+        metadata = self._export_metadata(len(rows))
+        columns = self._report_export_columns(rows)
+        label_candidates = (
+            "label",
+            "line_name",
+            "field_label",
+            "account_name",
+            "partner_name",
+            "asset_name",
+            "details",
+            "statement_name",
+            "section",
+        )
+        label_field = next(
+            (
+                field_name
+                for field_name in label_candidates
+                if any(field_name == key for key, _label in columns)
+            ),
+            columns[0][0],
+        )
+        value_columns = [
+            (field_name, label)
+            for field_name, label in columns
+            if field_name != label_field
+        ]
+        if not value_columns:
+            value_columns = [("__value__", "Valeur")]
+
+        def display_value(row, field_name):
+            if field_name == "__value__":
+                return ""
+            value = self._report_export_row_value(row, field_name)
+            if value in (None, "", False):
+                return ""
+            if field_name not in MONETARY_REPORT_FIELDS:
+                return str(value)
+            try:
+                amount = Decimal(str(value))
+                amount /= Decimal(
+                    str(metadata["display_unit_factor"] or 1),
+                )
+                decimal_places = metadata["amount_decimal_places"]
+                amount = amount.quantize(
+                    Decimal(1).scaleb(-decimal_places),
+                    rounding=ROUND_HALF_UP,
+                )
+                return (
+                    f"{amount:,.{decimal_places}f}"
+                    .replace(",", " ")
+                    .replace(".", ",")
+                )
+            except (ArithmeticError, TypeError, ValueError):
+                return str(value)
+
+        rendered_rows = []
+        for row in rows:
+            role = self._report_presentation_role(row)
+            try:
+                level = int(row.get("row_level") or row.get("level") or 0)
+            except (TypeError, ValueError):
+                level = 0
+            rendered_rows.append({
+                "label": str(
+                    self._report_export_row_value(row, label_field) or ""
+                ),
+                "level": min(max(level, 0), 6),
+                "emphasis": role,
+                "values": [
+                    display_value(row, field_name)
+                    for field_name, _label in value_columns
+                ],
+            })
+        if not rendered_rows:
+            rendered_rows.append({
+                "label": "Aucune donnée pour le périmètre sélectionné.",
+                "level": 0,
+                "emphasis": "empty",
+                "values": ["" for _column in value_columns],
+            })
+
+        companies = self._selected_companies()
+        filters = [
+            f"Société : {', '.join(companies.mapped('display_name'))}",
+            (
+                f"Période : {self._display_export_date(metadata['date_from'])}"
+                f" – {self._display_export_date(metadata['date_to'])}"
+            ),
+            (
+                "Écritures : toutes"
+                if self.target_move == "all"
+                else "Écritures : comptabilisées"
+            ),
+            (
+                f"Unité : {metadata['display_unit_label']}"
+                f" · Arrondi : {metadata['amount_rounding_label']}"
+            ),
+        ]
+        if self.comparison_mode != "none":
+            filters.append(
+                "Comparaison : "
+                f"{self._display_export_date(metadata['comparison_date_from'])}"
+                " – "
+                f"{self._display_export_date(metadata['comparison_date_to'])}"
+            )
+        if self.hide_zero_accounts:
+            filters.append("Lignes sans mouvement masquées")
+
+        basis_note = (
+            "Document préparatoire produit à partir des écritures et contrôles "
+            "du périmètre sélectionné. Il ne constitue ni une attestation "
+            "professionnelle ni, à lui seul, une annexe légale."
+            if self.report_type == "french_annual"
+            else (
+                "Dossier de préparation et de revue de clôture. Il ne vaut "
+                "ni déclaration déposée ni validation par un professionnel "
+                "externe."
+                if self.report_type == "closing_package"
+                else (
+                    "État produit à partir des lignes de la session comptable "
+                    "affichée. Les filtres, unités et règles d’arrondi ci-dessus "
+                    "font partie de sa traçabilité."
+                )
+            )
+        )
+        locale = (
+            "fr_FR"
+            if (self.company_id.partner_id.lang or "").startswith("fr")
+            else "en_US"
+        )
+        company_payload, assets = (
+            self.company_id._usl_document_renderer_company_payload(locale)
+        )
+        company_payload.update({
+            "primary_color": metadata["document"]["primary_color"],
+            "footer_label": metadata["document"]["footer_label"],
+        })
+        template = self.env.ref(
+            "usl_document_templates.template_accounting_statement_v1",
+        )
+        result = self.env["usl.document.renderer"].render(
+            template,
+            company_payload,
+            {
+                "title": metadata["report_name"],
+                "reference": (
+                    f"{self.report_type.upper()} · "
+                    f"{metadata['date_from']}–{metadata['date_to']}"
+                ),
+                "date": (
+                    f"Au {self._display_export_date(metadata['date_to'])}"
+                ),
+                "orientation": (
+                    "landscape"
+                    if len(value_columns) > 4
+                    else "portrait"
+                ),
+                "label_column": dict(columns).get(
+                    label_field,
+                    self._report_client_label_column(),
+                ),
+                "columns": [label for _field_name, label in value_columns],
+                "filters": filters,
+                "rows": rendered_rows,
+                "basis_note": basis_note,
+            },
+            locale,
+            assets,
+        )
+        return result if return_result else result["pdf"]
 
     def _report_rows(self):
         self.ensure_one()
