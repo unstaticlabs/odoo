@@ -163,13 +163,29 @@ def read_source():
         unassigned = rows(
             cursor,
             """
-            SELECT attachment.id AS attachment_id, attachment.name AS filename,
+            SELECT attachment.id AS attachment_id,
+                   CASE
+                     WHEN attachment.res_model = 'spreadsheet.dashboard'
+                     THEN 'Legacy dashboard - ' || COALESCE(
+                       dashboard.name->>'en_US',
+                       dashboard.name->>'fr_FR',
+                       attachment.res_id::text
+                     ) || '.json'
+                     ELSE attachment.name
+                   END AS filename,
                    attachment.store_fname, attachment.checksum,
                    attachment.file_size, attachment.mimetype,
                    attachment.create_uid, attachment.create_date AS attachment_create_date,
                    COALESCE(attachment.res_model, '') AS source_res_model
               FROM ir_attachment attachment
-             WHERE COALESCE(attachment.res_model, '') IN ('', 'ai.agent.source')
+              LEFT JOIN spreadsheet_dashboard dashboard
+                ON attachment.res_model = 'spreadsheet.dashboard'
+               AND dashboard.id = attachment.res_id
+             WHERE (
+                    COALESCE(attachment.res_model, '') IN ('', 'ai.agent.source')
+                    OR attachment.res_model = 'spreadsheet.dashboard'
+                       AND attachment.res_id IN (3, 8, 9, 10, 11, 12)
+                   )
                AND attachment.type = 'binary'
                AND attachment.name != 'res.company.scss'
                AND NOT EXISTS (
@@ -384,7 +400,8 @@ def group_source(source):
                 "res_id": 0,
                 "access_internal": (
                     "none"
-                    if attachment.get("source_res_model") == "ai.agent.source"
+                    if attachment.get("source_res_model")
+                    in {"ai.agent.source", "spreadsheet.dashboard"}
                     else "edit"
                 ),
                 "access_via_link": "none",

@@ -278,13 +278,22 @@ def classify_attachment(
             ),
         )
 
-    if model == "spreadsheet.dashboard":
+    if model == "spreadsheet.dashboard" and row["res_id"] in {1, 2, 7}:
         result.append(
             action(
-                "restore_preference_payload",
+                "recompute_native_dashboard",
                 "preferences",
-                "pending",
-                "the dashboard definition is user-visible configuration data",
+                "implemented",
+                "the source Invoicing, Accounting or Expenses dashboard has a maintained native Distribution reporting replacement",
+            ),
+        )
+    elif model == "spreadsheet.dashboard":
+        result.append(
+            action(
+                "archive_unsupported_dashboard_evidence",
+                "documents",
+                "implemented",
+                "the unsupported Enterprise dashboard definition is preserved byte-for-byte as restricted evidence without installing its runtime module",
             ),
         )
     elif model == "ai.agent.source":

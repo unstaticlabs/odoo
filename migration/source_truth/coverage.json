@@ -34,7 +34,7 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, unassigned enterprise evidence, the private strategy PDF and unsupported dashboard definitions have implemented destinations, while collaboration and signing actions remain gated"
     },
     "documents": {
       "status": "implemented",
@@ -74,7 +74,7 @@
     "preferences": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "user filters, exports, dashboards and favorites are not globally reconstructed"
+      "evidence": "three source dashboards have maintained native Distribution replacements and six unsupported Enterprise definitions are routed to restricted evidence; user filters, saved exports, import mappings, digest settings and per-user favorites still require explicit dispositions"
     },
     "product_master": {
       "status": "implemented",

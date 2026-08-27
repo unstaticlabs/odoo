@@ -148,15 +148,17 @@ partial `odoo_dev` installation is not final-target evidence.
 
 The currently known strict-source blockers are not generic “migration debt.”
 They are the four named scopes `attachments`, `collaboration`, `preferences`
-and `signing`, including 107 pending source attachment IDs. Collaboration and
+and `signing`, including 98 pending source attachment IDs. Collaboration and
 Sign have active implementation workstreams; preferences and remaining file
 relationships still need a source-backed product translation or an explicit,
 reviewed disposition. Knowledge, experimental AI configuration, unused
 sales/marketing configuration and the superseded Studio model are approved
 non-product source dispositions and no longer block the strict gate. The one
 real strategy PDF formerly attached to AI configuration is retained separately
-as restricted business evidence; the final reconstruction must prove that
-archive route. The physical opening-stock count is a separate operational
+as restricted business evidence. Three native dashboard definitions are
+recomputed in maintained Distribution reporting, while six unsupported
+Enterprise definitions are retained privately. The final reconstruction must
+prove both archive routes. The physical opening-stock count is a separate operational
 prerequisite because the source contains no defensible historical quantity
 truth.
 

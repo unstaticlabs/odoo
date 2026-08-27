@@ -159,7 +159,11 @@ actions continue to keep the attachment gate blocked until their own stages
 pass. The seven unused Knowledge cover URLs contain no source bytes and are
 explicitly discarded. AI configuration is not migrated, but its one genuine
 business file, `2601 GBC Updated Vision and Strategy.pdf`, is routed to the
-restricted Documents archive with no AI runtime dependency.
+restricted Documents archive with no AI runtime dependency. The native
+Invoicing, Accounting and Expenses dashboards are recomputed in maintained
+Distribution reporting. Six unsupported Enterprise dashboard definitions are
+archived byte-for-byte as restricted evidence rather than installing their
+runtime modules.
 
 ## Deterministic reconstruction
 
@@ -231,13 +235,15 @@ opening-stock evidence item also remains blocking for B2C operational release
 even though it is not a fact contained in the source database.
 
 The current 27 August audit reports four incomplete scopes: `attachments`,
-`collaboration`, `preferences` and `signing`. The attachment ledger reports 107
-pending source attachment IDs, represented by 64 collaboration actions, nine
-preference actions and 50 Sign actions. Action totals can overlap when one
-attachment has more than one relationship; 107 is the distinct file-level
-count. The strategy PDF route and the approved no-copy dispositions are
-implemented and unit-tested, but they must still be proven by the next clean
-full reconstruction before production qualification.
+`collaboration`, `preferences` and `signing`. The attachment ledger reports 98
+pending source attachment IDs, represented by 64 collaboration actions and 50
+Sign actions. Action totals overlap when one attachment has more than one
+relationship; 98 is the distinct file-level count. The preferences scope is
+still blocked by native saved filters, exports, import mappings, digest
+settings and per-user favorites, not by unexplained dashboard files. The
+strategy PDF and dashboard archive routes are implemented and unit-tested, but
+they must still be proven by the next clean full reconstruction before
+production qualification.
 
 ### B2C commerce stage
 

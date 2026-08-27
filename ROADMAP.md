@@ -155,7 +155,7 @@ module-installation evidence, not a substitute for the final full migration.
 
 The rehearsal is not a production admission candidate. The strict whole-source
 gate now identifies four incomplete scopes—attachments, Collaboration,
-preferences and Sign—the attachment ledger has 107 pending source attachment
+preferences and Sign—the attachment ledger has 98 pending source attachment
 IDs, and the separately governed physical
 opening-stock count is still not evidenced. B2C itself now has complete honest
 dispositions: nine aliases are exactly verified, 100 are explicitly not
