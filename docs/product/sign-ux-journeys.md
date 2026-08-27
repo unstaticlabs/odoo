@@ -98,11 +98,12 @@ without interrupting everyday work.
 - **Goal:** see what needs signing and retrieve what was already signed.
 - **Ideal path:** My Signatures → Ready to sign or Signed by me → review/sign or
   open the result.
-- **Primary action:** select a pending row to review and sign, or select a
-  completed row to open the signed record and its proof directly.
+- **Primary action:** select a pending card to review and sign, or select a
+  completed card to open the signed record and its proof directly.
 - **Expectation:** personal status and overall document status are separate;
-  waiting for another signer is not presented as an error. The Sign drawer
-  names each pending document and opens that signing journey in a new tab.
+  waiting for another signer is not presented as an error. Each card previews
+  the document before action. The Sign drawer names each pending document and
+  opens that signing journey in a new tab.
 - **Release check:** identity matching and company rules prevent sibling
   contacts or unrelated users from seeing or signing a document.
 
@@ -159,9 +160,11 @@ without interrupting everyday work.
   timestamp details.
 - **Primary action:** **Download signed PDF**.
 - **Expectation:** achieved method, completion time, validation, storage and
-  timestamp are summarized in plain language. Paperless opens only for users
-  whose personal identity and document permission are synchronized; the Odoo
-  copy remains available to authorized users.
+  timestamp are summarized in plain language. The default card view previews
+  the final page using the shared Documents presentation and offers both the
+  signed PDF and its Documents record. Paperless opens only for users whose
+  personal identity and document permission are synchronized; the Odoo copy
+  remains available to authorized users.
 - **Release check:** only fully validated and archived requests appear as
   completed. Alteration detection, checksum-identical archive retry, timestamp
   confirmation and multi-company evidence access are covered.

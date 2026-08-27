@@ -264,6 +264,14 @@ class SignRequest(models.Model):
     blocking_summary = fields.Char(compute="_compute_workspace_presentation")
     signing_method_summary = fields.Char(compute="_compute_workspace_presentation")
     due_date_summary = fields.Char(compute="_compute_workspace_presentation")
+    document_preview_url = fields.Char(
+        compute="_compute_document_presentation",
+        string="Document preview",
+    )
+    document_thumbnail_url = fields.Char(
+        compute="_compute_document_presentation",
+        string="Document thumbnail",
+    )
     has_signing_fields = fields.Boolean(compute="_compute_workspace_presentation")
     strong_enrollment_missing = fields.Boolean(compute="_compute_workspace_presentation")
     strong_enrollment_summary = fields.Char(compute="_compute_workspace_presentation")
@@ -275,6 +283,50 @@ class SignRequest(models.Model):
     )
     last_error = fields.Text(readonly=True, copy=False)
     recovery_action = fields.Char(readonly=True, copy=False)
+
+    @api.depends(
+        "state",
+        "validation_status",
+        "filename",
+        "final_filename",
+        "archive_document_id",
+        "archive_document_id.availability_state",
+        "archive_document_id.permission_sync_state",
+    )
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_document_presentation(self):
+        can_use_documents = self.env.user.has_group(
+            "usl_documents.group_documents_user",
+        )
+        for sign_request in self:
+            field_name = "data"
+            filename = sign_request.filename or f"{sign_request.name}.pdf"
+            if (
+                sign_request.state in {"evidence_incomplete", "completed"}
+                and sign_request.validation_status == "valid"
+                and sign_request.final_filename
+            ):
+                field_name = "final_data"
+                filename = sign_request.final_filename
+            sign_request.document_preview_url = (
+                f"/web/content/{sign_request._name}/{sign_request.id}/{field_name}/"
+                f"{quote(filename)}?download=false"
+            )
+            sign_request.document_thumbnail_url = False
+            document = sign_request.archive_document_id
+            if not can_use_documents or not document:
+                continue
+            try:
+                document.check_access("read")
+            except AccessError:
+                continue
+            if (
+                document.availability_state == "available"
+                and document.permission_sync_state == "synchronized"
+            ):
+                sign_request.document_thumbnail_url = (
+                    f"/usl_documents/{document.id}/thumbnail"
+                )
 
     @api.model
     def _sign_business_record_models(self):
@@ -3041,6 +3093,21 @@ class SignRequestSigner(models.Model):
     requested_trust_short = fields.Char(
         related="request_id.requested_trust_short",
         string="Trust",
+        readonly=True,
+    )
+    document_name = fields.Char(
+        related="request_id.name",
+        string="Document",
+        readonly=True,
+    )
+    document_preview_url = fields.Char(
+        related="request_id.document_preview_url",
+        string="Document preview",
+        readonly=True,
+    )
+    document_thumbnail_url = fields.Char(
+        related="request_id.document_thumbnail_url",
+        string="Document thumbnail",
         readonly=True,
     )
 
