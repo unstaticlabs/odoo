@@ -425,7 +425,7 @@ class UslIdentityRestoreRun(models.Model):
 
         return [translate(term) for term in domain]
 
-    def _restore_preferences(self, source, users, xmlids):
+    def _restore_preferences(self, source, users):
         actual_filter_ids = {row["id"] for row in source["filters"]}
         if actual_filter_ids != EXPECTED_FILTER_IDS:
             raise RuntimeError(
@@ -528,6 +528,30 @@ class UslIdentityRestoreRun(models.Model):
                 ),
             },
         }
+
+    def restore_preferences(self, source):
+        """Finalize saved filters after their business targets exist."""
+        self.ensure_one()
+        if self.status != "passed":
+            raise RuntimeError(
+                "Identity business restoration must pass before preferences",
+            )
+        users = {
+            row["id"]: self._traced("res.users", row["id"])
+            for row in source["users"]
+        }
+        missing_users = sorted(
+            source_id for source_id, user in users.items() if not user
+        )
+        if missing_users:
+            raise RuntimeError(
+                f"Saved preferences reference missing users: {missing_users}",
+            )
+        dispositions = self._restore_preferences(source, users)
+        statistics = dict(self.statistics_json or {})
+        statistics["preference_dispositions"] = dispositions
+        self.write({"statistics_json": statistics})
+        return dispositions
 
     def restore(self, source):
         self.ensure_one()
@@ -853,8 +877,6 @@ class UslIdentityRestoreRun(models.Model):
         )
         self._audit_dates("res.partner.bank", banks, source["banks"])
 
-        preference_dispositions = self._restore_preferences(source, users, xmlids)
-
         counts = {
             "companies": len(companies),
             "industries": len(industries),
@@ -892,7 +914,10 @@ class UslIdentityRestoreRun(models.Model):
                             for _user_id, group_id, xmlid in deferred_user_groups
                         },
                     ),
-                    "preference_dispositions": preference_dispositions,
+                    # Project stages and tags do not exist yet. A governed
+                    # post-Project step resolves every saved-filter reference
+                    # before this temporary module can be finalized.
+                    "preference_dispositions": {"status": "deferred"},
                 },
             },
         )

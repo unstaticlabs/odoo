@@ -381,57 +381,74 @@ assert all(
 ), {"digests": parity, "examples": parity_examples}
 
 preference_dispositions = run.statistics_json["preference_dispositions"]
-assert preference_dispositions["filters"]["migrated"] == sorted(MIGRATED_FILTER_IDS)
-assert preference_dispositions["filters"]["native_recomputed"] == sorted(
-    NATIVE_FILTER_IDS,
-)
-assert preference_dispositions["filters"][
-    "deliberately_not_copied_sales_marketing"
-] == sorted(DROPPED_SALES_MARKETING_FILTER_IDS)
-assert preference_dispositions["exports"]["native_recomputed"] == sorted(
-    NATIVE_EXPORT_IDS,
-)
-assert preference_dispositions["exports"][
-    "deliberately_not_copied_sales_marketing"
-] == sorted(DROPPED_SALES_MARKETING_EXPORT_IDS)
-assert preference_dispositions["exports"][
-    "deliberately_not_copied_ai_experiments"
-] == sorted(DROPPED_AI_EXPORT_IDS)
-
-filter_users = {}
-for relation in source["filter_users"]:
-    filter_users.setdefault(relation["filter_id"], []).append(
-        users[relation["user_id"]].id,
+if preference_dispositions.get("status") == "deferred":
+    assert not env["ir.filters"].sudo().search(
+        [("name", "in", [
+            row["name"]
+            for row in source["filters"]
+            if row["id"] in MIGRATED_FILTER_IDS
+        ])],
     )
-action_xmlids = {
-    row["res_id"]: row["xmlid"]
-    for row in source["xmlids"]
-    if row["model"] == "ir.actions.act_window"
-}
-target_filter_ids = preference_dispositions["filters"]["target_ids"]
-assert len(target_filter_ids) == len(MIGRATED_FILTER_IDS)
-for row, target_id in zip(
-    [item for item in source["filters"] if item["id"] in MIGRATED_FILTER_IDS],
-    target_filter_ids,
-    strict=True,
-):
-    target = env["ir.filters"].sudo().browse(target_id).exists()
-    assert target, f"Saved filter {row['id']} is missing"
-    action_xmlid = action_xmlids.get(row["action_id"])
-    action = env.ref(action_xmlid, raise_if_not_found=False) if action_xmlid else False
-    if row["id"] == 14:
-        action = env.ref(
-            "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
+else:
+    assert preference_dispositions["filters"]["migrated"] == sorted(
+        MIGRATED_FILTER_IDS,
+    )
+    assert preference_dispositions["filters"]["native_recomputed"] == sorted(
+        NATIVE_FILTER_IDS,
+    )
+    assert preference_dispositions["filters"][
+        "deliberately_not_copied_sales_marketing"
+    ] == sorted(DROPPED_SALES_MARKETING_FILTER_IDS)
+    assert preference_dispositions["exports"]["native_recomputed"] == sorted(
+        NATIVE_EXPORT_IDS,
+    )
+    assert preference_dispositions["exports"][
+        "deliberately_not_copied_sales_marketing"
+    ] == sorted(DROPPED_SALES_MARKETING_EXPORT_IDS)
+    assert preference_dispositions["exports"][
+        "deliberately_not_copied_ai_experiments"
+    ] == sorted(DROPPED_AI_EXPORT_IDS)
+
+    filter_users = {}
+    for relation in source["filter_users"]:
+        filter_users.setdefault(relation["filter_id"], []).append(
+            users[relation["user_id"]].id,
         )
-    assert target.name == row["name"]
-    assert target.model_id == row["model_id"]
-    assert target.domain == repr(run._translate_filter_domain(row))
-    assert target.context == (row["context"] or "{}")
-    assert target.sort == (row["sort"] or "[]")
-    assert target.is_default == bool(row["is_default"])
-    assert target.active == bool(row["active"])
-    assert target.action_id.id == (action.id if action else False)
-    assert sorted(target.user_ids.ids) == sorted(filter_users.get(row["id"], []))
+    action_xmlids = {
+        row["res_id"]: row["xmlid"]
+        for row in source["xmlids"]
+        if row["model"] == "ir.actions.act_window"
+    }
+    target_filter_ids = preference_dispositions["filters"]["target_ids"]
+    assert len(target_filter_ids) == len(MIGRATED_FILTER_IDS)
+    for row, target_id in zip(
+        [item for item in source["filters"] if item["id"] in MIGRATED_FILTER_IDS],
+        target_filter_ids,
+        strict=True,
+    ):
+        target = env["ir.filters"].sudo().browse(target_id).exists()
+        assert target, f"Saved filter {row['id']} is missing"
+        action_xmlid = action_xmlids.get(row["action_id"])
+        action = (
+            env.ref(action_xmlid, raise_if_not_found=False)
+            if action_xmlid
+            else False
+        )
+        if row["id"] == 14:
+            action = env.ref(
+                "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
+            )
+        assert target.name == row["name"]
+        assert target.model_id == row["model_id"]
+        assert target.domain == repr(run._translate_filter_domain(row))
+        assert target.context == (row["context"] or "{}")
+        assert target.sort == (row["sort"] or "[]")
+        assert target.is_default == bool(row["is_default"])
+        assert target.active == bool(row["active"])
+        assert target.action_id.id == (action.id if action else False)
+        assert sorted(target.user_ids.ids) == sorted(
+            filter_users.get(row["id"], []),
+        )
 
 # Credential-bearing source fields are intentionally absent from the reader and
 # cannot enter the target. Authentication is re-enrolled through Pocket ID.

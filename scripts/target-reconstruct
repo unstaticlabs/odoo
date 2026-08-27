@@ -526,6 +526,9 @@ else
   stop_product
   run_stage "restore Projects" restore_projects_for_reconstruction
   stop_product
+  run_stage "finalize source-backed saved preferences" \
+    scripts/identity-restore preferences
+  stop_product
   if [[ "$documents_enabled" == 1 ]]; then
     run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
       DOCUMENTS_CANONICAL_RESET="$documents_reset" \

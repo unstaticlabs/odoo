@@ -239,6 +239,14 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('run_stage "restore Collaboration history"'),
         )
         self.assertLess(
+            script.index('run_stage "restore Projects"'),
+            script.index('run_stage "finalize source-backed saved preferences"'),
+        )
+        self.assertLess(
+            script.index('run_stage "finalize source-backed saved preferences"'),
+            script.index('run_stage "finalize migration boundary"'),
+        )
+        self.assertLess(
             script.index('run_stage "restore Collaboration history"'),
             script.index('run_stage "finalize migration boundary"'),
         )

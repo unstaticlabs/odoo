@@ -81,6 +81,10 @@ case "$command_name" in
     install) install_module ;;
     import) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_restore.py ;;
     validate) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py ;;
+    preferences)
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_preferences.py
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py
+        ;;
     finalize)
         run_shell migration/identity_restore/addons/usl_identity_restore/scripts/finalize_restore.py
         scripts/check-product-migration-boundary
@@ -93,7 +97,7 @@ case "$command_name" in
         scripts/check-product-migration-boundary
         ;;
     *)
-        echo "Usage: scripts/identity-restore [install|import|validate|finalize|all]" >&2
+        echo "Usage: scripts/identity-restore [install|import|validate|preferences|finalize|all]" >&2
         exit 2
         ;;
 esac
