@@ -3,7 +3,7 @@
 
 import {patch} from "@web/core/utils/patch";
 import {registry} from "@web/core/registry";
-import {Component, useState} from "@odoo/owl";
+import {Component, onWillUnmount, useState} from "@odoo/owl";
 import {Dialog} from "@web/core/dialog/dialog";
 import {SignatureDialog} from "@web/core/signature/signature_dialog";
 import {_t} from "@web/core/l10n/translation";
@@ -87,6 +87,152 @@ const AUTOCOMPLETE_BY_KIND = {
     role: "organization-title",
 };
 
+const LOCATION_MESSAGES = {
+    idle: _t("Location has not been requested yet."),
+    requesting: _t("Waiting for your location choice…"),
+    granted: _t("Approximate browser location will be included in the protected proof."),
+    refused: _t("Location was declined. You can still sign."),
+    unavailable: _t("Location is unavailable. You can still sign."),
+    unsupported: _t("This browser does not provide location. You can still sign."),
+    timeout: _t("Location did not respond in time. You can still sign."),
+};
+
+function browserContext() {
+    const hints = navigator.userAgentData;
+    return {
+        user_agent: navigator.userAgent || "",
+        platform: navigator.platform || "",
+        language: navigator.language || "",
+        languages: Array.from(navigator.languages || []).slice(0, 20),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+        hardware_concurrency: navigator.hardwareConcurrency || 0,
+        device_memory: navigator.deviceMemory || 0,
+        max_touch_points: navigator.maxTouchPoints || 0,
+        screen: {
+            width: window.screen?.width || 0,
+            height: window.screen?.height || 0,
+            color_depth: window.screen?.colorDepth || 0,
+            pixel_ratio: window.devicePixelRatio || 1,
+        },
+        viewport: {
+            width: window.innerWidth || 0,
+            height: window.innerHeight || 0,
+        },
+        client_hints: hints
+            ? {
+                  brands: Array.from(hints.brands || []).slice(0, 10),
+                  mobile: Boolean(hints.mobile),
+                  platform: hints.platform || "",
+              }
+            : {},
+    };
+}
+
+class FieldGuide {
+    constructor(parent) {
+        this.parent = parent;
+        this.viewer = parent.iframe.el.contentDocument.getElementById("viewerContainer");
+        this.currentId = null;
+        this.navigationToken = 0;
+        this.cancelNavigation = this.cancelNavigation.bind(this);
+        this.refresh = this.refresh.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+        this.viewer?.addEventListener("wheel", this.cancelNavigation, {passive: true});
+        this.viewer?.addEventListener("touchstart", this.cancelNavigation, {passive: true});
+        this.viewer?.addEventListener("pointerdown", this.cancelNavigation, {passive: true});
+        window.addEventListener("resize", this.handleResize, {passive: true});
+        this.refresh();
+    }
+
+    destroy() {
+        this.viewer?.removeEventListener("wheel", this.cancelNavigation);
+        this.viewer?.removeEventListener("touchstart", this.cancelNavigation);
+        this.viewer?.removeEventListener("pointerdown", this.cancelNavigation);
+        window.removeEventListener("resize", this.handleResize);
+    }
+
+    cancelNavigation() {
+        this.navigationToken += 1;
+        if (this.viewer) {
+            this.viewer.scrollTo({top: this.viewer.scrollTop, behavior: "auto"});
+        }
+    }
+
+    handleResize() {
+        this.cancelNavigation();
+        this.refresh();
+    }
+
+    incompleteIds() {
+        return Object.values(this.parent.info.items)
+            .filter(
+                (item) =>
+                    item.required &&
+                    item.role_id === this.parent.info.role_id &&
+                    !registry.category("sign_oca").get(item.field_type).check(item)
+            )
+            .sort(
+                (left, right) =>
+                    (Number(left.tabindex) || 0) - (Number(right.tabindex) || 0) ||
+                    (Number(left.page) || 0) - (Number(right.page) || 0) ||
+                    (Number(left.position_y) || 0) - (Number(right.position_y) || 0) ||
+                    (Number(left.position_x) || 0) - (Number(right.position_x) || 0) ||
+                    Number(left.id) - Number(right.id)
+            )
+            .map((item) => String(item.id));
+    }
+
+    refresh() {
+        const ids = this.incompleteIds();
+        if (this.currentId && !ids.includes(this.currentId)) {
+            this.currentId = null;
+        }
+        this.parent.uslGuide.remaining = ids.length;
+        this.parent.uslGuide.current = this.currentId
+            ? ids.indexOf(this.currentId) + 1
+            : 0;
+        return ids;
+    }
+
+    move(direction) {
+        const ids = this.refresh();
+        if (!ids.length) {
+            this.currentId = null;
+            return;
+        }
+        const currentIndex = ids.indexOf(this.currentId);
+        const nextIndex =
+            currentIndex < 0
+                ? direction > 0
+                    ? 0
+                    : ids.length - 1
+                : (currentIndex + direction + ids.length) % ids.length;
+        this.currentId = ids[nextIndex];
+        this.parent.uslGuide.current = nextIndex + 1;
+        this.focus(this.currentId);
+    }
+
+    focus(itemId) {
+        const field = this.parent.items[itemId];
+        if (!field?.isConnected) {
+            this.refresh();
+            return;
+        }
+        const token = ++this.navigationToken;
+        field.classList.add("usl_sign_field_target");
+        field.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+        window.setTimeout(() => {
+            field.classList.remove("usl_sign_field_target");
+            if (token !== this.navigationToken || !field.isConnected) {
+                return;
+            }
+            field
+                .querySelector('input, button, [role="button"], [tabindex]')
+                ?.focus({preventScroll: true});
+        }, 350);
+    }
+}
+
 function generateWithOcaRoleCompatibility(item, generate) {
     const hadRole = Object.prototype.hasOwnProperty.call(item, "role");
     const previousRole = item.role;
@@ -154,10 +300,12 @@ patch(textField, {
         input.addEventListener("pointerdown", keepFieldFocus);
         input.addEventListener("click", keepFieldFocus);
         signatureItem[0].addEventListener("focus_signature", () => input.focus());
-        // Keep the live value in the submission payload, but do not ask OCA to
-        // recalculate while the user is typing: that replaces the iframe input.
+        // Keep the submission, guide and confirmation state current on every
+        // edit. OCA's completion check only updates state; it does not replace
+        // the live iframe control.
         input.addEventListener("input", (event) => {
             item.value = event.currentTarget.value;
+            parent.checkFilledAll();
         });
         input.addEventListener("change", (event) => {
             item.value = event.currentTarget.value;
@@ -218,14 +366,33 @@ patch(signatureField, {
                     defaultName: preferences.name,
                     autoFillDefault: preferences.autoFill,
                     uploadSignature: (data) => {
+                        const autoFill = data.autoFill ?? preferences.autoFill ?? true;
                         preferences.name = data.name || preferences.name;
-                        preferences.autoFill = data.autoFill;
+                        preferences.autoFill = autoFill;
                         preferences[preferenceKind] = {
                             name: preferences.name,
                             signatureImage: data.signatureImage,
-                            autoFill: data.autoFill,
+                            autoFill,
                         };
                         this.uploadSignature(parent, item, signatureItem, data);
+                        if (autoFill) {
+                            for (const candidate of Object.values(parent.info.items)) {
+                                if (
+                                    candidate.id === item.id ||
+                                    candidate.value ||
+                                    candidate.role_id !== parent.info.role_id ||
+                                    candidate.kind !== item.kind
+                                ) {
+                                    continue;
+                                }
+                                this.uploadSignature(
+                                    parent,
+                                    candidate,
+                                    $(parent.items[candidate.id] || []),
+                                    data
+                                );
+                            }
+                        }
                     },
                 });
             };
@@ -269,23 +436,35 @@ patch(SignOcaPdfPortal.prototype, {
     setup() {
         super.setup(...arguments);
         this.dialog = useService("dialog");
+        this.uslGuide = useState({enabled: false, remaining: 0, current: 0});
+        this.uslLocation = useState({status: "idle", payload: {status: "unavailable"}});
+        this.uslLocationPromise = null;
+        onWillUnmount(() => this.uslFieldGuide?.destroy());
     },
 
     checkToSign() {
-        super.checkToSign(...arguments);
+        this.to_sign = this.to_sign_update;
+        $(this.signOcaFooter.el).show();
         this._syncConsentState();
+        this.uslFieldGuide?.refresh();
     },
 
     checkSignItemsCompletion() {
         return Object.values(this.info.items)
             .filter(
                 (item) =>
+                    item.required &&
                     item.role_id === this.info.role_id &&
                     !registry.category("sign_oca").get(item.field_type).check(item)
             )
             .sort((left, right) => left.tabindex - right.tabindex)
             .map((item) => ({data: item, el: this.items[item.id]}))
             .filter(({el}) => Boolean(el));
+    },
+
+    checkFilledAll() {
+        super.checkFilledAll(...arguments);
+        this.uslFieldGuide?.refresh();
     },
 
     _syncConsentState() {
@@ -295,18 +474,81 @@ patch(SignOcaPdfPortal.prototype, {
             return;
         }
         const isSubmitting = button.dataset.submitting === "true";
-        button.disabled = !this.to_sign_update || !consent.checked || isSubmitting;
+        const locationPending = ["idle", "requesting"].includes(this.uslLocation.status);
+        button.disabled =
+            !this.to_sign_update || !consent.checked || isSubmitting || locationPending;
         consent.closest(".usl_sign_consent_choice")?.classList.toggle(
             "is-checked",
             consent.checked
         );
     },
 
-    _onConsentChanged(event) {
+    async _onConsentChanged(event) {
         if (event.currentTarget.checked) {
             document.getElementById("usl_sign_consent_error")?.classList.add("d-none");
+            await this._requestLocationOnce();
         }
         this._syncConsentState();
+    },
+
+    async _requestLocationOnce() {
+        if (this.uslLocationPromise) {
+            return this.uslLocationPromise;
+        }
+        if (!navigator.geolocation) {
+            this.uslLocation.status = "unsupported";
+            this.uslLocation.payload = {status: "unsupported"};
+            return this.uslLocation.payload;
+        }
+        this.uslLocation.status = "requesting";
+        this._syncConsentState();
+        this.uslLocationPromise = new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) =>
+                    resolve({
+                        status: "granted",
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                    }),
+                (error) => {
+                    const statuses = {
+                        [error.PERMISSION_DENIED]: "refused",
+                        [error.POSITION_UNAVAILABLE]: "unavailable",
+                        [error.TIMEOUT]: "timeout",
+                    };
+                    resolve({status: statuses[error.code] || "unavailable"});
+                },
+                {enableHighAccuracy: false, maximumAge: 0, timeout: 8000}
+            );
+        }).then((payload) => {
+            this.uslLocation.payload = payload;
+            this.uslLocation.status = payload.status;
+            this._syncConsentState();
+            return payload;
+        });
+        return this.uslLocationPromise;
+    },
+
+    get locationMessage() {
+        return LOCATION_MESSAGES[this.uslLocation.status] || LOCATION_MESSAGES.unavailable;
+    },
+
+    toggleGuide() {
+        this.uslGuide.enabled = !this.uslGuide.enabled;
+        if (this.uslGuide.enabled) {
+            this.uslFieldGuide?.move(1);
+        } else {
+            this.uslFieldGuide?.cancelNavigation();
+        }
+    },
+
+    previousIncompleteField() {
+        this.uslFieldGuide?.move(-1);
+    },
+
+    nextIncompleteField() {
+        this.uslFieldGuide?.move(1);
     },
 
     _setSubmissionState(button, {busy, label, complete = false}) {
@@ -343,6 +585,7 @@ patch(SignOcaPdfPortal.prototype, {
                 #secondaryDownload, #viewBookmark, #openFile, #sidebarToggleButton,
                 #viewFindButton, #secondaryToolbarToggle { display: none !important; }
                 [role="button"][aria-label^="Add "] { cursor: pointer; }
+                .usl_sign_field_target { outline: 3px solid #714b67 !important; outline-offset: 3px; }
             `;
             iframeDocument.head.append(style);
         }
@@ -361,6 +604,15 @@ patch(SignOcaPdfPortal.prototype, {
                 }
             });
         }
+        this.uslFieldGuide?.refresh();
+    },
+
+    navigate() {
+        const iframeDocument = this.iframe.el.contentDocument;
+        iframeDocument.querySelector(".o_sign_sign_item_navigator")?.remove();
+        iframeDocument.querySelector(".o_sign_sign_item_navline")?.remove();
+        this.uslFieldGuide?.destroy();
+        this.uslFieldGuide = new FieldGuide(this);
     },
 
     async _onClickSign(ev) {
@@ -388,15 +640,29 @@ patch(SignOcaPdfPortal.prototype, {
         submissionError?.classList.add("d-none");
         this._setSubmissionState(button, {busy: true, label: _t("Finalizing…")});
         try {
-            const position = await this.getLocation();
+            const location = await this._requestLocationOnce();
+            const context = browserContext();
+            if (this.info.requested_trust === "strong_personal") {
+                if (typeof window.uslStrongSign !== "function") {
+                    throw new Error("Strong signing is unavailable.");
+                }
+                await window.uslStrongSign({
+                    button,
+                    items: this.info.items,
+                    documentSha256: this.info.document_sha256,
+                    location,
+                    browserContext: context,
+                });
+                return;
+            }
             const action = await this.rpc(
                 `/sign_oca/sign/${this.signer_id}/${this.access_token}`,
                 {
                     items: this.info.items,
                     document_sha256: this.info.document_sha256,
                     consent: true,
-                    latitude: position?.coords?.latitude,
-                    longitude: position?.coords?.longitude,
+                    location,
+                    browser_context: context,
                 }
             );
             this._setSubmissionState(button, {
@@ -409,6 +675,7 @@ patch(SignOcaPdfPortal.prototype, {
             if (submissionError) {
                 submissionError.textContent =
                     rpcError?.data?.message ||
+                    rpcError?.message ||
                     _t(
                         "The signature could not be submitted. Reload the document and try again."
                     );

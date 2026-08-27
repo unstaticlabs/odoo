@@ -94,13 +94,19 @@
         wrapper around OCA Sign so the upstream module remains untouched while
         its portal application receives its assets and bootstrap code.
     -->
+    <template id="secure_web_layout" name="Nonce-bearing signing layout" inherit_id="web.layout" primary="True">
+        <xpath expr="//script[@id='web.layout.odooscript']" position="attributes">
+            <attribute name="t-att-nonce">script_nonce if script_nonce else None</attribute>
+        </xpath>
+    </template>
+
     <template id="portal_sign_document" name="Company signing document">
         <t t-set="head">
             <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
             <meta name="robots" content="noindex,nofollow"/>
             <t t-call-assets="oca_sign.assets_frontend_sign" t-js="false"/>
             <t t-call-assets="oca_sign.assets_frontend_sign" t-css="false"/>
-            <script type="text/javascript">
+            <script type="text/javascript" t-att-nonce="script_nonce if strong_signing else None">
                 odoo.define("usl_sign.document_portal", ["@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm"], function (require) {
                     const { initDocumentToSign } = require("@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm");
                     initDocumentToSign(document, <t t-out="json.dumps(sign_oca_backend_info)"/>)
@@ -114,14 +120,22 @@
                         });
                 });
             </script>
+            <script t-if="strong_signing" type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js" t-att-nonce="script_nonce"/>
         </t>
-        <t t-call="web.layout"
+        <t t-call="usl_sign.secure_web_layout"
            html_data="{'lang': sign_oca_backend_info['lang']}"
            head="head"
            body_classname.f="o_web_client o_portal_sign_document_body">
             <main id="usl_sign_loading" class="container py-5" role="status" aria-live="polite">
                 <p>Opening your document…</p>
             </main>
+            <div t-if="strong_signing"
+                 id="usl_strong_sign_context"
+                 hidden="hidden"
+                 data-active="false"
+                 t-att-data-signer-id="signer.id"
+                 t-att-data-access-token="access_token"
+                 t-att-data-certificate-subject="certificate_subject"/>
         </t>
     </template>
 
@@ -237,88 +251,6 @@
                 </section>
             </main>
         </t>
-    </template>
-
-    <template id="strong_sign_page" name="Strong personal signature">
-        <html lang="en">
-            <head>
-                <meta charset="utf-8"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                <meta name="robots" content="noindex,nofollow"/>
-                <title>Review and sign · <t t-out="signer.request_id.company_id.name"/></title>
-                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
-            </head>
-            <body class="usl-sign-secure-body">
-                <main id="usl_strong_sign"
-                      class="usl-sign-shell"
-                      data-phase="review"
-                      t-att-data-signer-id="signer.id"
-                      t-att-data-access-token="access_token"
-                      t-att-data-certificate-subject="certificate_subject">
-                    <t t-set="company" t-value="signer.request_id.company_id"/>
-                    <t t-call="usl_sign.secure_company_brand"/>
-
-                    <section class="usl-sign-hero">
-                        <div>
-                            <h1>Review and confirm this signature</h1>
-                            <p class="usl-sign-lead">Review the document first. Pocket ID will then confirm your account before this document-bound signature is applied.</p>
-                        </div>
-                        <div class="usl-sign-hero__progress">
-                            <t t-set="motion_variant" t-value="'journey'"/>
-                            <t t-call="usl_sign.sign_motion"/>
-                            <ol class="usl-sign-steps" aria-label="Signing progress">
-                                <li data-step="review" class="is-current"><span>1</span>Review</li>
-                                <li data-step="identity"><span>2</span>Confirm</li>
-                                <li data-step="complete">
-                                    <span>3</span>
-                                    <b data-finish-label="" data-finish-pending="Finish" data-finish-complete="Done">Finish</b>
-                                </li>
-                            </ol>
-                        </div>
-                    </section>
-
-                    <section class="usl-sign-card usl-sign-document-card">
-                        <header class="usl-sign-document-card__header">
-                            <div>
-                                <h2 t-out="signer.request_id.name"/>
-                                <p class="usl-sign-document-meta">Signing as <strong t-out="signer.partner_id.name"/> · <span t-out="signer.role_id.name"/></p>
-                            </div>
-                            <span class="usl-sign-level-badge">Strong personal</span>
-                        </header>
-                        <iframe class="usl-sign-document" t-att-src="'/sign_oca/content/%s/%s' % (signer.id, access_token)" title="Document to review"/>
-                    </section>
-
-                    <section class="usl-sign-action-card">
-                        <label class="usl-sign-consent" for="usl_strong_consent">
-                            <input id="usl_strong_consent" type="checkbox"/>
-                            <span>
-                                <strong>I have reviewed this document and agree to sign it.</strong>
-                                <small>Your confirmation applies only to this document.</small>
-                            </span>
-                        </label>
-                        <button id="usl_strong_sign_button" class="usl-sign-button usl-sign-button--wide" type="button" disabled="disabled">
-                            <span class="usl-sign-button__spinner" aria-hidden="true"/>
-                            <i class="fa fa-shield" aria-hidden="true"/>
-                            <span class="usl-sign-button__label">Confirm and sign</span>
-                        </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID opens in a separate window to confirm your account. It never receives the document.</p>
-                        <div id="usl_strong_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
-                            <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
-                            <span><strong data-status-title=""/><small data-status-message=""/></span>
-                            <button class="usl-sign-cancel-attempt" type="button" data-cancel-attempt="" hidden="hidden">Cancel</button>
-                        </div>
-                    </section>
-
-                    <details class="usl-sign-technical-details">
-                        <summary>Security details</summary>
-                        <p><strong>Document fingerprint</strong><code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
-                        <p>This browser creates a one-use signing key for this exact PDF. The private key never leaves this page, and the result is checked before it is accepted.</p>
-                        <p>This method is designed for advanced-signature requirements. Formal classification still requires independent legal and security review.</p>
-                    </details>
-                </main>
-                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
-            </body>
-        </html>
     </template>
 
     <template id="strong_identity_required_page" name="Strong signing identity required">

@@ -350,146 +350,142 @@
         container.dataset.ready = "true";
     }
 
-    function initializeStrongSigning(container) {
-        const button = document.getElementById("usl_strong_sign_button");
-        const consent = document.getElementById("usl_strong_consent");
-        const cancelButton = container.querySelector("[data-cancel-attempt]");
-        let active = false;
-        let cancelled = false;
+    function setPortalStatus(title, message, tone = "info") {
+        const status = document.getElementById("usl_sign_submission_status");
+        if (!status) {
+            return;
+        }
+        status.classList.remove("d-none");
+        const icon = status.querySelector(".fa");
+        if (icon) {
+            icon.className = `fa ${
+                tone === "success"
+                    ? "fa-check-circle"
+                    : tone === "danger"
+                      ? "fa-exclamation-circle"
+                      : "fa-circle-o-notch fa-spin"
+            }`;
+        }
+        const text = status.querySelector("span");
+        if (text) {
+            text.textContent = `${title} ${message}`.trim();
+        }
+    }
+
+    async function submitPortalStrongSignature({
+        button,
+        items,
+        documentSha256,
+        location,
+        browserContext,
+    }) {
+        const context = document.getElementById("usl_strong_sign_context");
+        if (!context || context.dataset.active === "true") {
+            throw new JourneyError("service");
+        }
+        if (!window.isSecureContext || !window.crypto?.subtle || !window.Worker) {
+            throw new JourneyError("browser_key");
+        }
+        let ceremonyWorker;
+        let ceremonyId;
         let popup;
+        let finalized = false;
         let callbackFailed = false;
-        installUnloadGuard(() => active);
-        window.addEventListener("message", (event) => {
+        const base = `/sign/strong/${context.dataset.signerId}/${context.dataset.accessToken}`;
+        const onCallback = (event) => {
             if (
                 event.origin === window.location.origin &&
                 event.data?.type === "usl-sign-pocketid-result"
             ) {
                 callbackFailed = event.data.successful === false;
             }
-        });
-        cancelButton?.addEventListener("click", () => {
-            cancelled = true;
+        };
+        context.dataset.active = "true";
+        window.addEventListener("message", onCallback);
+        try {
+            popup = openPocketID();
+            setButtonBusy(button, true, "Preparing…");
+            setPortalStatus("Preparing your personal signature.", "Keep this tab open.");
+            ceremonyWorker = workerClient();
+            const generated = await ceremonyWorker.call("generate", {
+                commonName: context.dataset.certificateSubject,
+            });
+            const begin = await rpc(`${base}/begin`, {
+                csr_pem: generated.csrPem,
+                consent: true,
+                items,
+                document_sha256: documentSha256,
+                location,
+                browser_context: browserContext,
+            });
+            ceremonyId = begin.ceremony_id;
+            navigatePocketID(popup, begin.authorization_url);
+            setButtonBusy(button, true, "Waiting for Pocket ID…");
+            setPortalStatus(
+                "Confirm in Pocket ID.",
+                "The document stays here; Pocket ID confirms your account."
+            );
+            const authorization = await poll(
+                `${base}/status`,
+                {ceremony_id: ceremonyId},
+                ["authorized", "completed"],
+                begin.expires_in,
+                () => false
+            );
             popup?.close();
-        });
-
-        consent.addEventListener("change", () => {
-            if (!active) {
-                button.disabled = !consent.checked;
-            }
-        });
-
-        button.addEventListener("click", async () => {
-            if (!consent.checked || active) {
-                consent.focus();
+            if (authorization.state === "completed") {
+                window.location.assign(authorization.redirect || "/sign/result/success");
                 return;
             }
-            let ceremonyWorker;
-            let ceremonyId;
-            let finalized = false;
-            const base = `/sign/strong/${container.dataset.signerId}/${container.dataset.accessToken}`;
-            cancelled = false;
-            callbackFailed = false;
-            active = true;
-            cancelButton.hidden = false;
+            setButtonBusy(button, true, "Applying signature…");
+            setPortalStatus(
+                "Applying your signature.",
+                "The result will be validated before it is accepted."
+            );
+            const signed = await ceremonyWorker.call("sign", {
+                dataToSign: authorization.data_to_sign,
+            });
+            setButtonBusy(button, true, "Validating…");
+            setPortalStatus("Validating the signed revision.", "Please keep this tab open.");
+            let result;
             try {
-                popup = openPocketID();
-                setButtonBusy(button, true, "Preparing…");
-                setPhase(container, "preparing", {
-                    title: "Preparing your signature",
-                    message: "Keep this page open.",
+                result = await rpc(`${base}/finalize`, {
+                    ceremony_id: ceremonyId,
+                    signature: signed.signature,
                 });
-                ceremonyWorker = workerClient();
-                const generated = await ceremonyWorker.call("generate", {
-                    commonName: container.dataset.certificateSubject,
-                });
-                const begin = await rpc(`${base}/begin`, {
-                    csr_pem: generated.csrPem,
-                    consent: true,
-                });
-                ceremonyId = begin.ceremony_id;
-                navigatePocketID(popup, begin.authorization_url);
-                setButtonBusy(button, true, "Waiting for Pocket ID…");
-                setPhase(container, "identity", {
-                    title: "Confirm in Pocket ID",
-                    message: "Follow the prompt in the Pocket ID window.",
-                });
-                const authorization = await poll(
-                    `${base}/status`,
-                    {ceremony_id: ceremonyId},
-                    ["authorized", "completed"],
-                    begin.expires_in,
-                    () => cancelled
-                );
-                popup?.close();
-                if (authorization.state === "completed") {
-                    window.location.assign(authorization.redirect || "/sign/result/success");
-                    return;
+                finalized = true;
+            } catch (finalizeError) {
+                const recovered = await rpc(`${base}/status`, {ceremony_id: ceremonyId});
+                if (recovered.state !== "completed") {
+                    throw finalizeError;
                 }
-                setButtonBusy(button, true, "Applying signature…");
-                setPhase(container, "signing", {
-                    title: "Adding your signature",
-                    message: "This usually takes only a moment.",
-                });
-                const signed = await ceremonyWorker.call("sign", {
-                    dataToSign: authorization.data_to_sign,
-                });
-                setButtonBusy(button, true, "Validating…");
-                setPhase(container, "validating", {
-                    title: "Checking the result",
-                    message: "Please keep this page open.",
-                });
-                let result;
-                try {
-                    result = await rpc(`${base}/finalize`, {
-                        ceremony_id: ceremonyId,
-                        signature: signed.signature,
-                    });
-                    finalized = true;
-                } catch (finalizeError) {
-                    // A response can be lost after the server safely commits.
-                    // Ask for the authoritative ceremony state before offering retry.
-                    const recovered = await rpc(`${base}/status`, {ceremony_id: ceremonyId});
-                    if (recovered.state !== "completed") {
-                        throw finalizeError;
-                    }
-                    finalized = true;
-                    result = {redirect: recovered.redirect || "/sign/result/success"};
-                }
-                await safelyDestroy(ceremonyWorker);
-                ceremonyWorker = null;
-                setPhase(container, "success", {
-                    tone: "success",
-                    title: "Signed",
-                    message: "Your signature has been saved.",
-                });
-                setButtonBusy(button, true, "Signed");
-                await delay(450);
-                active = false;
-                window.location.assign(result.redirect);
-            } catch (error) {
-                if (!callbackFailed) {
-                    popup?.close();
-                }
-                if (!finalized) {
-                    await safelyCancel(base, ceremonyId);
-                }
-                await safelyDestroy(ceremonyWorker);
-                ceremonyWorker = null;
-                const failure = friendlyFailure(error, "signing");
-                setPhase(container, "error", {tone: "danger", ...failure});
-                setButtonBusy(button, false, "Try again");
-                button.disabled = !consent.checked;
-            } finally {
-                active = false;
-                cancelButton.hidden = true;
+                finalized = true;
+                result = {redirect: recovered.redirect || "/sign/result/success"};
             }
-        });
-
-        setPhase(container, "review");
-        setButtonBusy(button, false, "Confirm and sign");
-        button.disabled = !consent.checked;
-        container.dataset.ready = "true";
+            await safelyDestroy(ceremonyWorker);
+            ceremonyWorker = null;
+            setPortalStatus("Signed.", "Opening your result…", "success");
+            window.location.assign(result.redirect);
+        } catch (error) {
+            if (!callbackFailed) {
+                popup?.close();
+            }
+            if (!finalized) {
+                await safelyCancel(base, ceremonyId);
+            }
+            await safelyDestroy(ceremonyWorker);
+            const failure = friendlyFailure(error, "signing");
+            setPortalStatus(failure.title, failure.message, "danger");
+            const publicError = new JourneyError(error.code || "service");
+            publicError.message = `${failure.title}. ${failure.message}`;
+            throw publicError;
+        } finally {
+            context.dataset.active = "false";
+            window.removeEventListener("message", onCallback);
+        }
     }
+
+    window.uslStrongSign = submitPortalStrongSignature;
 
     function initializeCallback(container) {
         const successful = container.dataset.successful === "true";
@@ -510,33 +506,20 @@
 
     function initialize() {
         const enrollment = document.getElementById("usl_strong_enrollment");
-        const signing = document.getElementById("usl_strong_sign");
+        const portalSigning = document.getElementById("usl_strong_sign_context");
         const callback = document.getElementById("usl_pocketid_callback");
         if (callback) {
             initializeCallback(callback);
             return;
         }
-        if (!enrollment && !signing) {
-            return;
-        }
-        if (
-            signing &&
-            (!window.isSecureContext || !window.crypto?.subtle || !window.Worker)
-        ) {
-            const action = signing.querySelector(".usl-sign-button");
-            action.disabled = true;
-            setPhase(signing, "error", {
-                tone: "danger",
-                title: "A secure browser is required",
-                message: "Open this page over HTTPS in a current browser, or ask the sender for another signing option.",
-            });
+        if (!enrollment && !portalSigning) {
             return;
         }
         if (enrollment) {
             initializeEnrollment(enrollment);
         }
-        if (signing) {
-            initializeStrongSigning(signing);
+        if (portalSigning) {
+            installUnloadGuard(() => portalSigning.dataset.active === "true");
         }
     }
 
