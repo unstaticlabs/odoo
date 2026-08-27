@@ -1177,6 +1177,21 @@ class TestFrenchEinvoiceReception(
             ).id,
             manager_visible,
         )
+        settings_readiness_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_einvoice_readiness_settings",
+        )
+        self.assertIn(settings_readiness_menu.id, manager_visible)
+        self.assertNotIn(settings_readiness_menu.id, reviewer_visible)
+        self.assertEqual(
+            settings_readiness_menu.parent_id,
+            self.env.ref("base.menu_users"),
+        )
+        self.assertEqual(
+            settings_readiness_menu.action,
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_einvoice_readiness",
+            ),
+        )
         readiness_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_einvoice_readiness",
         )
