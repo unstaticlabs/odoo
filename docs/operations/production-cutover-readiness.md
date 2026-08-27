@@ -102,16 +102,12 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | integrated on the current release candidate; clean reconstruction, repeated import and final product-boundary requalification passed |
 | Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | integrated on the current consolidated candidate; action inventory regeneration and final merged-registry acceptance remain |
 | Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | active feature branch; review and merge or explicit rejection pending |
-| Project/task browser title | preserve dynamic action titles in browser history | active one-commit feature branch; review and merge or explicit rejection pending |
 | Monthly bank statement ingestion | idempotent statement ingestion from approved mail sources with visible failures | merged through `64c1f2b1207`; clean product/OCA suites and repeated `odoo_dev` upgrade passed; private OFX adoption and real inbound routing remain cut-over gates |
+| Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | integrated on the review candidate through merge `602df379352`; focused desktop webclient suite passed; actual Projects browser acceptance and required branch CI pending |
 
-The five currently unmerged heads are
-`origin/codex/fix-seamless-paperless-documents`,
-`origin/codex/native-sign`, `origin/codex/distribution-access-control`,
-`origin/codex/migration-performance-cache`, and
-`origin/codex/fix-project-task-browser-title`. Feature-branch evidence is not
-release evidence; each head must receive its own Lead Developer integration
-review.
+Native Sign is the remaining product head to review on this consolidated
+candidate. Feature-branch evidence is not release evidence; its exact reviewed
+tip still requires Lead Developer integration and requalification.
 
 For every merge:
 

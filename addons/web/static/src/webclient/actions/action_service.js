@@ -61,6 +61,7 @@ const actionRegistry = registry.category("actions");
  * @property {number} [index]
  * @property {boolean} [newWindow]
  * @property {boolean} [forceLeave]
+ * @property {string} [displayName]
  */
 
 export async function clearUncommittedChanges(env, { forceLeave } = {}) {
@@ -141,7 +142,7 @@ export function makeActionManager(env, router = _router) {
             !ev.detail.error
         ) {
             rpcBus.trigger("CLEAR-CACHES", "/web/action/load");
-            const virtualStack = await _controllersFromState(router.current);
+            const { controllers: virtualStack } = await _controllersFromState(router.current);
             const nextStack = [...virtualStack, controllerStack[controllerStack.length - 1]];
             nextStack[nextStack.length - 1].config.breadcrumbs.splice(
                 0,
@@ -161,15 +162,16 @@ export function makeActionManager(env, router = _router) {
      *
      * @private
      * @param {object} state
-     * @returns {Promise<object[]>} an array of virtual controllers
+     * @returns {Promise<{ controllers: object[], state: object }>} the virtual controllers and
+     *  resolved state
      */
     async function _controllersFromState(state) {
         const currentState = JSON.parse(browser.sessionStorage.getItem("current_state") || "{}");
         if (router.stateToUrl(currentState) === router.stateToUrl(state)) {
-            state = currentState;
+            state = { ...currentState, ...state, actionStack: currentState.actionStack };
         }
         if (!state?.actionStack?.length) {
-            return [];
+            return { controllers: [], state };
         }
         // The last controller will be created by doAction and won't be virtual
         const controllers = state.actionStack
@@ -230,9 +232,9 @@ export function makeActionManager(env, router = _router) {
             // the form view and the multi-record view.
             const bcControllers = await _loadBreadcrumbs(controllers.slice(0, -1));
             controllers.at(-1).lazy = true;
-            return [...bcControllers, controllers.at(-1)];
+            return { controllers: [...bcControllers, controllers.at(-1)], state };
         }
-        return _loadBreadcrumbs(controllers);
+        return { controllers: await _loadBreadcrumbs(controllers), state };
     }
 
     /**
@@ -507,6 +509,10 @@ export function makeActionManager(env, router = _router) {
         delete lastAction.context?.allowed_company_ids;
         if (lastAction.help) {
             lastAction.help = markup(lastAction.help);
+        }
+        const displayName = state.actionStack?.at(-1)?.displayName;
+        if (displayName !== undefined) {
+            options.displayName = displayName;
         }
         if (state.action) {
             const context = {};
@@ -1259,6 +1265,9 @@ export function makeActionManager(env, router = _router) {
             views,
             ..._getViewInfo(view, action, views, options.props),
         });
+        if (options.displayName !== undefined) {
+            controller.displayName = options.displayName;
+        }
         action.controllers[view.type] = controller;
 
         const newStackLastController = options.newStack?.at(-1);
@@ -1270,7 +1279,8 @@ export function makeActionManager(env, router = _router) {
                 // If the current action has a multi-record view, we add the last
                 // controller to the breadcrumb controllers.
                 delete newStackLastController.lazy;
-                newStackLastController.displayName = action.display_name || action.name || "";
+                newStackLastController.displayName ||=
+                    action.display_name || action.name || "";
                 newStackLastController.action = action;
                 newStackLastController.props.type = multiView[1];
             } else {
@@ -1323,7 +1333,11 @@ export function makeActionManager(env, router = _router) {
                 action,
                 ..._getActionInfo(action, { ...props, ...options.props }),
             });
-            controller.displayName ||= clientAction.displayName?.toString() || "";
+            if (options.displayName !== undefined) {
+                controller.displayName = options.displayName;
+            } else {
+                controller.displayName ||= clientAction.displayName?.toString() || "";
+            }
             return _updateUI(controller, options);
         } else {
             const next = await clientAction(env, action, options);
@@ -1784,8 +1798,8 @@ export function makeActionManager(env, router = _router) {
             browser.sessionStorage.removeItem("current_lang");
             browser.sessionStorage.removeItem("current_state");
         }
-        const newStack = await _controllersFromState(state);
-        const actionParams = _getActionParams(state);
+        const { controllers: newStack, state: resolvedState } = await _controllersFromState(state);
+        const actionParams = _getActionParams(resolvedState);
         if (actionParams) {
             // Params valid => performs a "doAction"
             const { actionRequest, options } = actionParams;

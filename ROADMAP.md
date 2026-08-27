@@ -18,12 +18,12 @@ Accounting v1 is engineering-complete for internal daily use. The current
 is integrated at `aae5994a7ec`, and B2C sales/inventory is integrated through
 merge `368812b2868`. Monthly bank-statement email ingestion is integrated
 through merge `64c1f2b1207`. Paperless 3.0, the schema-v3 migration-cache/
-Documents-performance follow-up, and Collaboration History are integrated on
-the current review candidate with their reviewed ancestry preserved. Native
-Sign, Distribution Access Control, and the project/task browser-title fix
-remain independently reviewable workstreams. They must be merged or explicitly
-rejected before final production qualification; no feature worktree, old QA
-seed, or rehearsal candidate can be promoted directly.
+Documents-performance follow-up, Collaboration History, Distribution Access
+Control, and the project/task browser-title fix are integrated on the current
+review candidate with their reviewed ancestry preserved. Native Sign remains
+the final independently reviewable product workstream. It must be merged or
+explicitly rejected before final production qualification; no feature worktree,
+old QA seed, or rehearsal candidate can be promoted directly.
 
 The combined Documents review candidate preserves the exact reviewed tips of
 both feature branches through explicit merge commits. Its five affected product
@@ -46,6 +46,12 @@ migration safety tests pass. End-to-end migration timing, source-complete
 vector parity on the new path and production AMD64 qualification remain open.
 The pre-optimization reconstruction was stopped because later bind-mounted
 stages could no longer represent one exact commit.
+
+The current integration candidate also preserves project-specific task titles
+when browser history rebuilds the Projects action. Its generic desktop
+webclient regression is qualified through merge `602df379352`; an actual
+Projects browser journey and required branch CI remain release gates, so this
+candidate is not yet recorded as merged into `19-usl`.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -92,7 +98,9 @@ maturity map is maintained in
 - Scoped read-only accountant access to records, evidence, reports and
   permitted exports without accounting mutation.
 - Native Projects with restored tasks, dependencies, chatter, evidence and
-  analytic links, plus the maintained `usl_project` extensions.
+  analytic links, plus the maintained `usl_project` extensions. The current
+  integration candidate also retains the project name in task browser titles
+  and breadcrumbs across Back/Forward history restoration.
 - Paie TESE records the provider PDF, dated HR/profile context, balanced
   payroll entry and native bank reconciliation without becoming a second
   legal payroll calculator.
@@ -296,7 +304,11 @@ The canonical, evidence-bearing sequence is maintained in the
    product/OCA suites and repeated canonical upgrade passed. Production still
    requires the private OFX cut-over preview/apply/repeat and a routed synthetic
    mail test.**
-10. From clean final `19-usl`, repeat clean install, update, repeated update,
+10. Dynamic Project task history titles — **integrated on the review candidate
+   through merge `602df379352`; 77 focused desktop webclient tests and 320
+   assertions passed. Actual Projects Back/Forward browser acceptance and
+   required branch CI remain pending before merge.**
+11. From clean final `19-usl`, repeat clean install, update, repeated update,
    full local reconstruction and complete product/migration boundary across
    every delivered module after the remaining workstreams are merged.
 

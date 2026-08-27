@@ -1714,6 +1714,81 @@ describe(`new urls`, () => {
         ]);
     });
 
+    test("restore the current action display name from the navigation state", async () => {
+        defineActions([
+            {
+                id: 9002,
+                name: "Tasks",
+                res_model: "partner",
+                type: "ir.actions.act_window",
+                views: [
+                    [false, "list"],
+                    [false, "form"],
+                ],
+            },
+        ]);
+        const state = {
+            action: 9002,
+            actionStack: [
+                {
+                    action: 9002,
+                    displayName: "My Project",
+                    view_type: "list",
+                },
+            ],
+        };
+        browser.sessionStorage.setItem("current_state", JSON.stringify(state));
+        redirect("/odoo/action-9002");
+
+        await mountWebClient();
+
+        expect(getService("title").getParts()).toEqual({ action: "My Project" });
+        expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual([
+            "My Project",
+        ]);
+    });
+
+    test("restore a dynamic multi-record display name when loading its form view", async () => {
+        defineActions([
+            {
+                id: 9002,
+                name: "Tasks",
+                res_model: "partner",
+                type: "ir.actions.act_window",
+                views: [
+                    [false, "list"],
+                    [false, "form"],
+                ],
+            },
+        ]);
+        const state = {
+            action: 9002,
+            actionStack: [
+                {
+                    action: 9002,
+                    displayName: "My Project",
+                    view_type: "list",
+                },
+                {
+                    action: 9002,
+                    displayName: "First record",
+                    resId: 1,
+                    view_type: "form",
+                },
+            ],
+            resId: 1,
+        };
+        browser.sessionStorage.setItem("current_state", JSON.stringify(state));
+        redirect("/odoo/action-9002/1");
+
+        await mountWebClient();
+
+        expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual([
+            "My Project",
+            "First record",
+        ]);
+    });
+
     test(`properly reload breadcrumb (state)`, async () => {
         onRpc("/web/action/load_breadcrumbs", () => {
             expect.step(`load_breadcrumbs shouldn't be called`);

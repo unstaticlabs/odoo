@@ -97,18 +97,30 @@ into USL product modules.
 
 ## Deliberate Odoo-core divergence
 
-The fork keeps upstream Odoo core unchanged except for two documented
-Accounting files:
+The fork keeps upstream Odoo core unchanged except for three documented
+files:
 
 - `addons/account/models/account_move.py`;
-- `addons/account/wizard/account_resequence.py`.
+- `addons/account/wizard/account_resequence.py`;
+- `addons/web/static/src/webclient/actions/action_service.js`.
 
-Both route journal sequence and resequencing behavior through the same
-company-governed fiscal-year calculation used by reports, declarations and
-closing. Upstream SaaS 19.3 has no sufficient extension point for this case.
-The trade-off, tests and removal rule are documented in the
+The two Accounting files route journal sequence and resequencing behavior
+through the same company-governed fiscal-year calculation used by reports,
+declarations and closing. Upstream SaaS 19.3 has no sufficient extension point
+for this case. The trade-off, tests and removal rule are documented in the
 [fiscal-year boundary contract](../accounting/fiscal-year-boundaries.md) and
 [custom add-on architecture](../accounting/custom-addon-architecture.md#upstream-core-patches).
+
+The webclient patch preserves a dynamic action display name from Odoo's
+navigation state when browser history rebuilds the current controller. This
+keeps project-specific task titles in the browser tab and breadcrumb instead
+of falling back to the static **Tasks** action name. Changing that static name
+cannot represent multiple projects, while a custom add-on cannot safely patch
+the private action-manager closure where history controllers are rebuilt. The
+patch is limited to restoring the already-authoritative navigation-state
+label, has focused webclient regression coverage, and should be removed when
+upstream Odoo preserves dynamic display names on history restoration.
+
 No other product-specific Odoo-core divergence is permitted without an
 explicit architecture decision and regression evidence.
 
@@ -159,9 +171,9 @@ The Distribution intentionally does **not**:
 - ship source-dump importers or migration diagnostics in the end-user product.
 
 Paperless 3.0, Collaboration History, the migration-performance cache, and
-Distribution Access Control are consolidated on the current production-
-migration readiness candidate with their reviewed ancestry preserved. Native
-Sign and the project/task browser-title fix remain named release workstreams.
+Distribution Access Control and the project/task browser-title fix are
+consolidated on the current production-migration readiness candidate with their
+reviewed ancestry preserved. Native Sign remains the named release workstream.
 Neither feature worktrees nor integration/archive branches are production
 authority; the consolidated result must pass final qualification and land on
 `19-usl` through an auditable merge commit.
