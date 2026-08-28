@@ -126,8 +126,25 @@ assert_ports_available() {
 
 provision_pocket() {
   "${COMPOSE[@]}" up -d --wait pocket-id
-  USL_POCKET_ID_ADMIN_API_URL="http://$BIND_ADDRESS:$POCKET_PORT" \
-    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
+  pocket_admin provision
+}
+
+pocket_admin() {
+  "${COMPOSE[@]}" run --rm --no-deps \
+    --entrypoint python3 \
+    -e USL_POCKET_ID_ADMIN_API_URL=http://pocket-id:1411 \
+    -e USL_POCKET_ID_ALLOW_COMPOSE_ADMIN=1 \
+    -v "$ROOT/scripts:/mnt/usl-scripts:ro" \
+    -v "$ENV_FILE:/run/usl-pocket-id.env:ro" \
+    init-db /mnt/usl-scripts/pocket_id_dev.py \
+    --env-file /run/usl-pocket-id.env "$@"
+}
+
+login_link() {
+  local username="${2:?Usage: scripts/sign-pocketid-stack login-link USER [TTL]}"
+  local ttl="${3:-1h}"
+  load_environment
+  pocket_admin one-time-link "$username" --ttl "$ttl"
 }
 
 initialize_odoo() {
@@ -283,6 +300,12 @@ upgrade_qa() {
     return 2
   fi
   bootstrap
+  if ! docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1 \
+      || ! docker run --rm "$ODOO_IMAGE" python3 -c \
+        'import importlib.metadata; importlib.metadata.version("opentimestamps")' \
+        >/dev/null 2>&1; then
+    "${COMPOSE[@]}" build odoo
+  fi
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build usl-sign-dss
   docker image inspect "${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:5ab496f8d8f9}" \
@@ -297,6 +320,7 @@ upgrade_qa() {
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database=odoo_dev \
+    --init=usl_sign \
     --update="$update_modules" \
     --without-demo=true \
     --stop-after-init \
@@ -304,6 +328,8 @@ upgrade_qa() {
     "${COMPOSE[@]}" up -d --wait odoo
     return 1
   fi
+  configure_paperless
+  seed_qa
   "${COMPOSE[@]}" up -d --wait odoo
 }
 
@@ -490,6 +516,7 @@ case "${1:-help}" in
   smoke) smoke_services ;;
   opentimestamps-live-smoke) opentimestamps_live_smoke ;;
   configure-paperless) configure_paperless_only ;;
+  login-link) login_link "$@" ;;
   archive-acceptance) archive_acceptance ;;
   passkey-acceptance) passkey_acceptance ;;
   strong-acceptance-prepare) strong_acceptance_prepare "$@" ;;
@@ -499,7 +526,7 @@ case "${1:-help}" in
   strong-acceptance) strong_acceptance ;;
   help|*)
     printf '%s\n' \
-      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|upgrade|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|upgrade|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|login-link USER [TTL]|archive-acceptance|passkey-acceptance|strong-acceptance' \
       '       scripts/sign-pocketid-stack info' \
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
       '       scripts/sign-pocketid-stack test [ODOO_TEST_TAGS]' \
