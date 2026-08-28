@@ -170676,12 +170676,12 @@
         "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_check_renderer:1": "8a7a79684bfa5fb56271c54588d9f32bf0789f42c19e4f55dfd19d9ad2a96520",
         "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_preview_pack:1": "f5ca3739ba086a38b7f4477f7e109da8ab02fbc96ab837373b0a332bc00197ae",
         "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:open_company:1": "13a5073752452e525ccb15ee7c903741cbdec5835efe1ece4c66a9c2ba8703c8",
-        "ui:usl_document_templates.view_document_letter_form:button:object:action_cancel:1": "2510c2cf0f5e1f7d8c26e0d9fcc7eae532d33ad2617a7c21e600fd82357ad3bf",
-        "ui:usl_document_templates.view_document_letter_form:button:object:action_create_correction:1": "6226cf13839f06182dec50be2905660d2f0da503fdc8f8b2a07d3278cf392187",
-        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:1": "19759208397f9ef0012fa9dfdf376b03e5e739beb4c254f0f8404a0499ff9509",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_cancel:1": "45f264c58623a986fb1cf5c90d8c277d47bb8bf43cecb82dc3f109c969cf2f2c",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_create_correction:1": "f2966b4e977ed650f6f15cc497af0542af757b4552860c5a9db7ffa06a40d6a8",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:1": "310ae21260850507ba1f371588469b831d8f3f6cf6bc49aa705de31fdf4127a2",
         "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:2": "8ef61e062954c18c8f14bf720db488cdf48a0e974baba0037cf502884fe74e56",
-        "ui:usl_document_templates.view_document_letter_form:button:object:action_finalize:1": "743ecd8bbf0ca2e25b6f0042b4e37a5c753523aca64704cca51e36b9b3039083",
-        "ui:usl_document_templates.view_document_letter_form:button:object:action_mark_sent:1": "e3b408b4476debaa0bdcedd39c47d1b880bac74283b403883248fe23cd28a7dd"
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_finalize:1": "2f4fcc3f87a0bcd9988df6e25b0269a8d54dbc2e2789f276d2178f6478ed2261",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_mark_sent:1": "0346ec7df1af6db769514f02408af02d77970880c4250c8e3fcc5e0ae1127857"
       }
     },
     {
@@ -174139,6 +174139,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "5805c9780fdf2938adec38fdb6ff20e3e0b60e362346105ab55937ee5b171317",
+  "qualified_policy_digest": "cfc9c93169ab2da6bfd8e803f03cd7c58c28d4dfa5141be89446e32f73a14c91",
   "schema": "usl-action-risk-policy-v1"
 }
