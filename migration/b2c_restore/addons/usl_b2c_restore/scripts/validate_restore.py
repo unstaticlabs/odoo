@@ -218,9 +218,9 @@ assert env["stock.picking"].sudo().search_count([]) == 0
 assert env["stock.quant"].sudo().search_count([]) == 0
 
 env.cr.execute("SELECT count(*) FROM account_move")
-assert env.cr.fetchone()[0] == 5425
+assert env.cr.fetchone()[0] == 5434
 env.cr.execute("SELECT count(*) FROM account_move_line")
-assert env.cr.fetchone()[0] == 12991
+assert env.cr.fetchone()[0] == 13024
 env.cr.execute("SELECT count(*) FROM account_partial_reconcile")
 assert env.cr.fetchone()[0] == 2861
 
