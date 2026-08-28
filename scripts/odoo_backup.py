@@ -452,6 +452,20 @@ def _restic_json(command: list[str], env: dict[str, str]) -> Any:
         raise BackupError(f"Restic returned invalid JSON for {' '.join(command)}") from exc
 
 
+def preflight(_args: argparse.Namespace) -> None:
+    environment = restic_environment()
+    print(
+        json.dumps(
+            {
+                "repository": environment["RESTIC_REPOSITORY"],
+                "stage": "preflight",
+                "status": "passed",
+            },
+            sort_keys=True,
+        )
+    )
+
+
 def push(args: argparse.Namespace) -> None:
     scheduled = args.backup_id is None
     state = read_pipeline_state(phases={"prepared"}) if scheduled else None
@@ -744,6 +758,8 @@ def manifest_field(args: argparse.Namespace) -> None:
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     commands = value.add_subparsers(dest="command", required=True)
+    preflight_cmd = commands.add_parser("preflight")
+    preflight_cmd.set_defaults(handler=preflight)
     prepare_cmd = commands.add_parser("prepare")
     prepare_cmd.add_argument("--backup-id")
     prepare_cmd.add_argument("--mode", choices=("live", "quiesced"), default="live")

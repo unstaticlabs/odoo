@@ -214,15 +214,30 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertNotIn("production restore", self.restore_wrapper.lower())
         self.assertNotIn("dropdb", self.restore_wrapper)
 
+    def test_shared_volumes_require_backup_ownership(self) -> None:
+        for wrapper in (self.backup_wrapper, self.restore_wrapper):
+            self.assertIn("backup volume ownership check failed", wrapper)
+            self.assertIn('com.unstaticlabs.owner', wrapper)
+
+    def test_cleanup_preflights_every_volume_before_removal(self) -> None:
+        preflight = self.restore_wrapper.index("# Validate the complete deletion set")
+        down = self.restore_wrapper.index("compose down --remove-orphans", preflight)
+        remove = self.restore_wrapper.index('docker volume rm "$volume"', down)
+        self.assertLess(preflight, down)
+        self.assertLess(down, remove)
+
     def test_create_runs_all_stages_in_order(self) -> None:
+        preflight = self.backup_wrapper.index("run_tool preflight preflight")
         prepare = self.backup_wrapper.index("run_tool prepare prepare")
         push = self.backup_wrapper.index("run_tool push push", prepare)
         verify = self.backup_wrapper.index('odoo-backup\" verify', push)
+        self.assertLess(preflight, prepare)
         self.assertLess(prepare, push)
         self.assertLess(push, verify)
 
     def test_komodo_services_have_zero_argument_stage_commands(self) -> None:
         for command in (
+            '["preflight"]',
             '["prepare", "--mode", "live"]',
             '["push"]',
             '["restore-fetch"]',

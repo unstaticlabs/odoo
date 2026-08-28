@@ -42,6 +42,9 @@ ensure_shared_volume() {
       --label com.unstaticlabs.owner=odoo-production-backup \
       --label com.unstaticlabs.lifecycle=preserve \
       "$volume" >/dev/null
+  elif [[ "$(docker volume inspect "$volume" --format '{{index .Labels "com.unstaticlabs.owner"}}')" != "odoo-production-backup" ]]; then
+    echo "backup volume ownership check failed: $volume" >&2
+    exit 1
   fi
 }
 
@@ -72,6 +75,7 @@ command_create() {
   ensure_shared_volumes
   local backup_id snapshot final_snapshot
   backup_id="$(date -u +%Y%m%dt%H%M%Sz)-$(git -C "$ROOT" rev-parse --short=8 HEAD)"
+  run_tool preflight preflight
   run_tool prepare prepare --backup-id "$backup_id" --mode "$mode"
   snapshot="$(run_tool push push --backup-id "$backup_id" | snapshot_from_output)"
   final_snapshot="$("$ROOT/scripts/odoo-backup" verify "$snapshot" | snapshot_from_output)"
@@ -96,6 +100,7 @@ command_stage() {
   case "$stage" in
     prepare)
       [[ $# -ge 1 && $# -le 2 ]] || { usage >&2; exit 2; }
+      run_tool preflight preflight
       run_tool prepare prepare --backup-id "$1" --mode "${2:-live}"
       ;;
     push)

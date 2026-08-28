@@ -24,6 +24,14 @@ x-restic: &restic
   RESTIC_CACHE_DIR: /cache
 
 services:
+  preflight:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+    networks:
+      - egress
+    command: ["preflight"]
+
   prepare:
     <<: *backup-tool
     environment:

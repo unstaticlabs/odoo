@@ -47,6 +47,9 @@ ensure_shared_volume() {
       --label com.unstaticlabs.owner=odoo-production-backup \
       --label com.unstaticlabs.lifecycle=preserve \
       "$volume" >/dev/null
+  elif [[ "$(docker volume inspect "$volume" --format '{{index .Labels "com.unstaticlabs.owner"}}')" != "odoo-production-backup" ]]; then
+    echo "backup volume ownership check failed: $volume" >&2
+    exit 1
   fi
 }
 
@@ -93,7 +96,7 @@ destroy_clone() {
   [[ "$confirmation" == "$clone_id" ]] || { echo "cleanup refused: confirmation must exactly equal $clone_id" >&2; exit 1; }
   configure_clone "$clone_id"
   project="$COMPOSE_PROJECT_NAME"
-  compose down --remove-orphans
+  # Validate the complete deletion set before stopping or removing anything.
   for expected_volume in clone-db-data clone-filestore restore-scratch; do
     volume="${project}_${expected_volume}"
     if docker volume inspect "$volume" >/dev/null 2>&1; then
@@ -101,6 +104,12 @@ destroy_clone() {
         echo "cleanup refused: $volume is not owned by $project" >&2
         exit 1
       }
+    fi
+  done
+  compose down --remove-orphans
+  for expected_volume in clone-db-data clone-filestore restore-scratch; do
+    volume="${project}_${expected_volume}"
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
       docker volume rm "$volume" >/dev/null
     fi
   done

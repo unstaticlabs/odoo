@@ -29,6 +29,9 @@ The pipeline is deliberately split:
 prepare -> push -> restore -> verify
 ```
 
+- the Prepare stage first runs `preflight`, which sees only the Restic
+  configuration and fails on absent or cross-environment bindings before any
+  source data is touched;
 - `prepare` can reach the production PostgreSQL network and mounts the Odoo
   data volume read-only. It has no R2 credentials.
 - `push` can read only staged artifacts and R2 bindings. It cannot reach the
@@ -124,6 +127,9 @@ The following non-secret configuration is mandatory:
   digest reference;
 - `ODOO_PRODUCTION_DB_NAME`, host, port and user;
 - `ODOO_PRODUCTION_FILESTORE_VOLUME` and `ODOO_PRODUCTION_DB_NETWORK`;
+- staging, state, and cache volumes carrying the immutable label
+  `com.unstaticlabs.owner=odoo-production-backup` (the wrappers create missing
+  volumes with this label and reject pre-existing foreign volumes);
 - `RESTIC_REPOSITORY`, ending in
   `/usl-backups/odoo-production/prod` for production or a distinct
   `/qualification/<id>` path for acceptance testing.
@@ -192,7 +198,8 @@ the internal clone network.
 Declare one Komodo procedure with concurrency limited to one run, failure
 alerts enabled, timezone `Europe/Paris`, and these four stages:
 
-1. **Prepare:** `RunStackService(prepare)`.
+1. **Prepare:** `RunStackService(preflight)`, then
+   `RunStackService(prepare)`.
 2. **Push:** `RunStackService(push)`.
 3. **Restore:** `RunStackService(restore-fetch)`, then
    `RunStackService(restore-apply)`, then `RunStackService(neutralize)`.
