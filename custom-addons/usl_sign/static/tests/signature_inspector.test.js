@@ -1,6 +1,6 @@
 import {animationFrame, expect, test} from "@odoo/hoot";
 import {defineMailModels} from "@mail/../tests/mail_test_helpers";
-import {mountWithCleanup} from "@web/../tests/web_test_helpers";
+import {contains, mountWithCleanup} from "@web/../tests/web_test_helpers";
 
 import {SignatureInspector} from "../src/js/signature_inspector.esm";
 
@@ -75,6 +75,7 @@ test("result view leads with integrity and keeps trust limitations explicit", as
     expect(".usl_sign_signature_result").toHaveText(/Alice Example/);
     expect(".usl_sign_check_list").toHaveText(/public key verifies this signature/);
     expect(".usl_sign_inspector_technical").toHaveText(/PDF signature metadata/);
+    await contains(".usl_sign_inspector_technical summary").click();
     expect(".usl_sign_inspector_technical").toHaveText(
         /Browser location collected by USL Sign is separate, restricted evidence/
     );

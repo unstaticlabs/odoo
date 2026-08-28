@@ -1,7 +1,7 @@
 import {expect, test} from "@odoo/hoot";
-import {animationFrame, mockFetch} from "@odoo/hoot-mock";
+import {animationFrame} from "@odoo/hoot-mock";
 import {defineMailModels} from "@mail/../tests/mail_test_helpers";
-import {mountWithCleanup} from "@web/../tests/web_test_helpers";
+import {mountWithCleanup, onRpc} from "@web/../tests/web_test_helpers";
 
 import {
     SignDocumentCardPreviewField,
@@ -39,7 +39,7 @@ test("document preview has an explicit unavailable state", async () => {
 });
 
 test("document cards render the shared preview instead of the raw URL", async () => {
-    mockFetch(() =>
+    onRpc("/web/content/sign.oca.request/4/data/file.pdf", () =>
         new Response("Document preview", {
             headers: {"Content-Type": "text/plain"},
         })
