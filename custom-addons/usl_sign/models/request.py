@@ -13,7 +13,7 @@ from markupsafe import escape
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from odoo import _, api, fields, models
+from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request as http_request
 from odoo.tools import config
@@ -1134,7 +1134,12 @@ class SignRequest(models.Model):
         )[:1]
         if existing:
             return existing
-        return self.env["usl.sign.evidence"].with_context(
+        # Evidence is emitted by the controlled Sign workflow on behalf of a
+        # signer.  Authentication evidence is deliberately hidden from normal
+        # Sign users by record rules, so its creation cannot depend on the
+        # signer's read scope.  Keep the signer/request attribution explicit
+        # while using the service user only for this append-only write.
+        return self.env["usl.sign.evidence"].with_user(SUPERUSER_ID).with_context(
             usl_sign_evidence_create=INTERNAL_OPERATION,
         ).create(
             {
@@ -4207,7 +4212,10 @@ class SignRequestSigner(models.Model):
         an existing assignment instead of creating notification duplicates.
         """
         activity_type = self.env.ref("usl_sign.mail_activity_type_sign_document")
-        activity_model = self.env["mail.activity"].sudo()
+        # Sign-owned reminders are maintained by this controlled workflow.
+        # UID 1 bypasses the distribution's user-facing permanent-deletion
+        # guard without granting signers a general activity deletion right.
+        activity_model = self.env["mail.activity"].with_user(SUPERUSER_ID)
         for signer in self.exists():
             if (
                 signer.state not in {"notified", "viewed", "authorized"}
@@ -4274,7 +4282,7 @@ class SignRequestSigner(models.Model):
 
     def _close_internal_signing_activities(self):
         if self:
-            self.sudo().activity_unlink(
+            self.with_user(SUPERUSER_ID).activity_unlink(
                 ["usl_sign.mail_activity_type_sign_document"],
             )
         return True

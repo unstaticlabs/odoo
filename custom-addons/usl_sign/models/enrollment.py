@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from odoo import _, api, fields, models
+from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -229,7 +229,10 @@ class SignEnrollment(models.Model):
                 "status_reason": "Pocket ID identity reviewed",
             },
         )
-        self.sudo().activity_ids.unlink()
+        # These are workflow reminders owned by this controlled approval, not
+        # user-selected audit records.  Ordinary reviewers must be able to
+        # complete the workflow while direct activity deletion stays guarded.
+        self.with_user(SUPERUSER_ID).activity_ids.unlink()
         waiting_requests = self.env["sign.oca.request"].sudo().search(
             [
                 ("state", "=", "waiting_enrollment"),
@@ -627,3 +630,18 @@ class SignCeremony(models.Model):
     def unlink(self):
         msg = "Strong-signature ceremonies are evidence and cannot be deleted."
         raise AccessError(msg)
+
+
+class IrActionsServer(models.Model):
+    _inherit = "ir.actions.server"
+
+    def _usl_server_action_requires_irreversible(self):
+        """Keep the read-only “My Signing Identity” menu usable by signers."""
+        self.ensure_one()
+        own_identity = self.env.ref(
+            "usl_sign.my_sign_identity_server_action",
+            raise_if_not_found=False,
+        )
+        if own_identity and self == own_identity:
+            return False
+        return super()._usl_server_action_requires_irreversible()

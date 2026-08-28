@@ -51,11 +51,21 @@ class AccountFiscalPosition(models.Model):
 class IrActionsServer(models.Model):
     _inherit = "ir.actions.server"
 
+    def _usl_server_action_requires_irreversible(self):
+        """Let installed product modules identify an exact recoverable action.
+
+        The default stays closed: arbitrary, technical and newly created server
+        actions still require the irreversible-actions capability.
+        """
+        self.ensure_one()
+        return True
+
     def run(self):
-        self._usl_require_irreversible_action(
-            "automation.server_action.execute",
-            "execute a server action",
-        )
+        if any(action._usl_server_action_requires_irreversible() for action in self):
+            self._usl_require_irreversible_action(
+                "automation.server_action.execute",
+                "execute a server action",
+            )
         return super().run()
 
 

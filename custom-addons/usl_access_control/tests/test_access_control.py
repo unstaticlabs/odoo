@@ -342,8 +342,14 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
                 "usl.access.probe",
                 "forbidden",
             )
-        server_action = self.env["ir.actions.server"].search([], limit=1)
-        self.assertTrue(server_action)
+        server_action = self.env["ir.actions.server"].with_user(SUPERUSER_ID).create(
+            {
+                "name": "Unclassified executable action",
+                "model_id": self.env.ref("base.model_res_partner").id,
+                "state": "code",
+                "code": "action = False",
+            },
+        )
         with self.assertRaisesRegex(AccessError, "AI Agents"):
             server_action.with_user(self.agent).sudo().run()
 
