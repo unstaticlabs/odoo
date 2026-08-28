@@ -130,6 +130,25 @@ class FilestoreTest(unittest.TestCase):
                 odoo_backup.filestore_metadata(root, [])
 
 
+class DatabaseEvidenceTest(unittest.TestCase):
+    def test_missing_required_tables_fail_clearly(self) -> None:
+        cursor = mock.Mock()
+        cursor.fetchone.return_value = (False,)
+        with self.assertRaisesRegex(odoo_backup.BackupError, "missing required table"):
+            odoo_backup.table_counts(cursor)
+
+    def test_all_required_tables_are_counted(self) -> None:
+        cursor = mock.Mock()
+        cursor.fetchone.side_effect = [
+            *((True,) for _table in odoo_backup.COUNT_TABLES),
+            *((3,) for _table in odoo_backup.COUNT_TABLES),
+        ]
+        self.assertEqual(
+            odoo_backup.table_counts(cursor),
+            {table: 3 for table in odoo_backup.COUNT_TABLES},
+        )
+
+
 class SecretBoundaryTest(unittest.TestCase):
     def test_requires_dedicated_production_repository(self) -> None:
         environment = {

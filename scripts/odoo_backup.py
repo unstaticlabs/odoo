@@ -290,6 +290,9 @@ def db_connection(database: str):
 
 
 def table_counts(cursor: Any) -> dict[str, int]:
+    missing = [table for table in COUNT_TABLES if not table_exists(cursor, table)]
+    if missing:
+        fail(f"database is missing required table(s): {', '.join(missing)}")
     counts: dict[str, int] = {}
     for table in COUNT_TABLES:
         cursor.execute(f'SELECT count(*) FROM "{table}"')  # fixed allow-list
