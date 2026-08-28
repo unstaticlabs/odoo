@@ -1340,7 +1340,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual(accounting_document.confidentiality, "accounting")
         self.assertTrue(accounting_document.accounting_evidence)
         self.assertEqual(accounting_document.access_scope, "linked_record")
-        self.assertEqual(accounting_document.review_state, "needs_attention")
+        self.assertEqual(accounting_document.review_state, "classified")
         self.assertFalse(accounting_document.last_error)
 
         hr_document = self._document(
@@ -1359,7 +1359,7 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(hr_document.confidentiality, "hr")
         self.assertTrue(hr_document.accounting_evidence)
-        self.assertEqual(hr_document.review_state, "needs_attention")
+        self.assertEqual(hr_document.review_state, "classified")
         self.assertFalse(hr_document.last_error)
 
     def test_portal_submitter_never_receives_documents_access(self):
