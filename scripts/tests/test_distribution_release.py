@@ -16,11 +16,12 @@ SPEC.loader.exec_module(distribution_release)
 COMMIT = "a" * 40
 DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
+BACKUP_TOOL_IMAGE = "ghcr.io/unstaticlabs/usl-odoo-backup"
 
 
 def artifact() -> dict:
     return {
-        "schema": "usl-distribution-release/v1",
+        "schema": "usl-distribution-release/v2",
         "source": {"repository": "unstaticlabs/odoo", "commit_sha": COMMIT},
         "image": {
             "name": IMAGE,
@@ -28,22 +29,36 @@ def artifact() -> dict:
             "digest": DIGEST,
             "digest_reference": f"{IMAGE}@{DIGEST}",
         },
+        "backup_tool": {
+            "name": BACKUP_TOOL_IMAGE,
+            "tag": f"sha-{COMMIT}",
+            "digest": "sha256:" + "c" * 64,
+            "digest_reference": f"{BACKUP_TOOL_IMAGE}@sha256:{'c' * 64}",
+        },
         "build": {
             "workflow_run_id": 123,
             "workflow_run_attempt": 1,
             "workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/123",
         },
         "attestations": {
-            "oci_sbom": "generated",
-            "buildkit_provenance": "generated",
-            "github_provenance": "generated",
+            name: {
+                "oci_sbom": "generated",
+                "buildkit_provenance": "generated",
+                "github_provenance": "generated",
+            }
+            for name in ("distribution", "backup_tool")
         },
     }
 
 
 class DistributionReleaseContractTest(unittest.TestCase):
     def test_accepts_exact_immutable_identity(self) -> None:
-        self.assertEqual(distribution_release.validate(artifact(), commit=COMMIT, image=IMAGE)["schema"], "usl-distribution-release/v1")
+        self.assertEqual(
+            distribution_release.validate(
+                artifact(), commit=COMMIT, image=IMAGE, backup_tool_image=BACKUP_TOOL_IMAGE
+            )["schema"],
+            "usl-distribution-release/v2",
+        )
 
     def test_rejects_mutable_or_mismatched_tag(self) -> None:
         value = copy.deepcopy(artifact())
@@ -53,14 +68,20 @@ class DistributionReleaseContractTest(unittest.TestCase):
 
     def test_rejects_mismatched_digest_reference(self) -> None:
         value = copy.deepcopy(artifact())
-        value["image"]["digest_reference"] = f"{IMAGE}@sha256:{'c' * 64}"
+        value["image"]["digest_reference"] = f"{IMAGE}@sha256:{'e' * 64}"
         with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "digest_reference"):
             distribution_release.validate(value)
 
     def test_rejects_unverified_attestation(self) -> None:
         value = copy.deepcopy(artifact())
-        value["attestations"]["github_provenance"] = "not-run"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "github_provenance"):
+        value["attestations"]["backup_tool"]["github_provenance"] = "not-run"
+        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.github_provenance"):
+            distribution_release.validate(value)
+
+    def test_rejects_mutable_backup_tool_tag(self) -> None:
+        value = copy.deepcopy(artifact())
+        value["backup_tool"]["tag"] = "latest"
+        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.tag"):
             distribution_release.validate(value)
 
 
@@ -88,6 +109,26 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("docker/metadata-action", self.workflow)
         self.assertNotRegex(self.workflow, r"(?m)^\s*(?:tags:|-).*latest")
         self.assertNotIn("type=ref,event=branch", self.workflow)
+
+    def test_backup_tool_uses_the_same_immutable_identity_boundary(self) -> None:
+        self.assertIn("BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup", self.workflow)
+        self.assertIn("file: docker/backup.Dockerfile", self.workflow)
+        self.assertIn("digest_reference=$BACKUP_TOOL_IMAGE@$digest", self.workflow)
+        self.assertIn("backup_tool_digest_reference:", self.workflow)
+        self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
+
+    def test_pr_qualification_builds_but_never_pushes_backup_tool(self) -> None:
+        qualify = self.workflow.split("\n  publish:\n", 1)[0]
+        self.assertIn("Build backup tool without publishing", qualify)
+        self.assertIn("push: false", qualify)
+        self.assertNotIn("docker/login-action", qualify)
+        self.assertNotIn("RESTIC_PASSWORD", qualify)
+
+    def test_both_release_images_receive_sbom_and_provenance(self) -> None:
+        publish = self.workflow.split("\n  publish:\n", 1)[1]
+        self.assertGreaterEqual(publish.count("provenance: mode=max"), 2)
+        self.assertGreaterEqual(publish.count("sbom: true"), 2)
+        self.assertGreaterEqual(publish.count("uses: actions/attest@"), 2)
 
     def test_only_19_usl_pushes_can_publish(self) -> None:
         self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'", self.workflow)

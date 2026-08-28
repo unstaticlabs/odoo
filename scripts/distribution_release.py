@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "usl-distribution-release/v1"
+SCHEMA = "usl-distribution-release/v2"
 COMMIT = re.compile(r"[0-9a-f]{40}")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 IMAGE = re.compile(r"ghcr\.io/[a-z0-9][a-z0-9._/-]*")
@@ -34,8 +34,33 @@ def _exact_keys(value: object, expected: set[str], context: str) -> dict[str, An
     return value
 
 
-def validate(payload: object, *, commit: str | None = None, image: str | None = None) -> dict[str, Any]:
-    root = _exact_keys(payload, {"schema", "source", "image", "build", "attestations"}, "artifact")
+def _validate_image(value: object, *, context: str, commit: str) -> dict[str, Any]:
+    image_value = _exact_keys(value, {"name", "tag", "digest", "digest_reference"}, context)
+    if not isinstance(image_value["name"], str) or not IMAGE.fullmatch(image_value["name"]):
+        raise ReleaseArtifactError(f"{context}.name must be a lowercase ghcr.io reference")
+    expected_tag = f"sha-{commit}"
+    if image_value["tag"] != expected_tag:
+        raise ReleaseArtifactError(f"{context}.tag must be {expected_tag!r}")
+    if not isinstance(image_value["digest"], str) or not DIGEST.fullmatch(image_value["digest"]):
+        raise ReleaseArtifactError(f"{context}.digest must be a lowercase sha256 digest")
+    expected_reference = f"{image_value['name']}@{image_value['digest']}"
+    if image_value["digest_reference"] != expected_reference:
+        raise ReleaseArtifactError(f"{context}.digest_reference must be {expected_reference!r}")
+    return image_value
+
+
+def validate(
+    payload: object,
+    *,
+    commit: str | None = None,
+    image: str | None = None,
+    backup_tool_image: str | None = None,
+) -> dict[str, Any]:
+    root = _exact_keys(
+        payload,
+        {"schema", "source", "image", "backup_tool", "build", "attestations"},
+        "artifact",
+    )
     if root["schema"] != SCHEMA:
         raise ReleaseArtifactError(f"unsupported schema: {root['schema']!r}")
 
@@ -45,17 +70,10 @@ def validate(payload: object, *, commit: str | None = None, image: str | None = 
     if not isinstance(source["commit_sha"], str) or not COMMIT.fullmatch(source["commit_sha"]):
         raise ReleaseArtifactError("source.commit_sha must be a full lowercase Git SHA")
 
-    image_value = _exact_keys(root["image"], {"name", "tag", "digest", "digest_reference"}, "image")
-    if not isinstance(image_value["name"], str) or not IMAGE.fullmatch(image_value["name"]):
-        raise ReleaseArtifactError("image.name must be a lowercase ghcr.io reference")
-    expected_tag = f"sha-{source['commit_sha']}"
-    if image_value["tag"] != expected_tag:
-        raise ReleaseArtifactError(f"image.tag must be {expected_tag!r}")
-    if not isinstance(image_value["digest"], str) or not DIGEST.fullmatch(image_value["digest"]):
-        raise ReleaseArtifactError("image.digest must be a lowercase sha256 digest")
-    expected_reference = f"{image_value['name']}@{image_value['digest']}"
-    if image_value["digest_reference"] != expected_reference:
-        raise ReleaseArtifactError(f"image.digest_reference must be {expected_reference!r}")
+    image_value = _validate_image(root["image"], context="image", commit=source["commit_sha"])
+    backup_tool = _validate_image(
+        root["backup_tool"], context="backup_tool", commit=source["commit_sha"]
+    )
 
     build = _exact_keys(root["build"], {"workflow_run_id", "workflow_run_attempt", "workflow_url"}, "build")
     if not isinstance(build["workflow_run_id"], int) or build["workflow_run_id"] < 1:
@@ -68,17 +86,25 @@ def validate(payload: object, *, commit: str | None = None, image: str | None = 
     if build["workflow_url"] != expected_url:
         raise ReleaseArtifactError(f"build.workflow_url must be {expected_url!r}")
 
-    attestations = _exact_keys(
-        root["attestations"], {"oci_sbom", "buildkit_provenance", "github_provenance"}, "attestations"
-    )
-    for key in ("oci_sbom", "buildkit_provenance", "github_provenance"):
-        if attestations[key] != "generated":
-            raise ReleaseArtifactError(f"attestations.{key} must be 'generated'")
+    attestations = _exact_keys(root["attestations"], {"distribution", "backup_tool"}, "attestations")
+    for artifact_name in ("distribution", "backup_tool"):
+        artifact_attestations = _exact_keys(
+            attestations[artifact_name],
+            {"oci_sbom", "buildkit_provenance", "github_provenance"},
+            f"attestations.{artifact_name}",
+        )
+        for key in ("oci_sbom", "buildkit_provenance", "github_provenance"):
+            if artifact_attestations[key] != "generated":
+                raise ReleaseArtifactError(
+                    f"attestations.{artifact_name}.{key} must be 'generated'"
+                )
 
     if commit is not None and source["commit_sha"] != commit:
         raise ReleaseArtifactError("artifact commit does not match the requested commit")
     if image is not None and image_value["name"] != image:
         raise ReleaseArtifactError("artifact image does not match the requested image")
+    if backup_tool_image is not None and backup_tool["name"] != backup_tool_image:
+        raise ReleaseArtifactError("artifact backup tool image does not match the requested image")
     return root
 
 
@@ -92,18 +118,32 @@ def create(arguments: argparse.Namespace) -> int:
             "digest": arguments.digest,
             "digest_reference": f"{arguments.image}@{arguments.digest}",
         },
+        "backup_tool": {
+            "name": arguments.backup_tool_image,
+            "tag": arguments.tag,
+            "digest": arguments.backup_tool_digest,
+            "digest_reference": f"{arguments.backup_tool_image}@{arguments.backup_tool_digest}",
+        },
         "build": {
             "workflow_run_id": arguments.workflow_run_id,
             "workflow_run_attempt": arguments.workflow_run_attempt,
             "workflow_url": arguments.workflow_url,
         },
         "attestations": {
-            "oci_sbom": "generated",
-            "buildkit_provenance": "generated",
-            "github_provenance": "generated",
+            name: {
+                "oci_sbom": "generated",
+                "buildkit_provenance": "generated",
+                "github_provenance": "generated",
+            }
+            for name in ("distribution", "backup_tool")
         },
     }
-    validate(payload, commit=arguments.commit, image=arguments.image)
+    validate(
+        payload,
+        commit=arguments.commit,
+        image=arguments.image,
+        backup_tool_image=arguments.backup_tool_image,
+    )
     output = Path(arguments.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=output.parent, delete=False) as stream:
@@ -121,7 +161,12 @@ def validate_file(arguments: argparse.Namespace) -> int:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ReleaseArtifactError(f"cannot read {path}: {error}") from error
-    validate(payload, commit=arguments.commit, image=arguments.image)
+    validate(
+        payload,
+        commit=arguments.commit,
+        image=arguments.image,
+        backup_tool_image=arguments.backup_tool_image,
+    )
     print(f"Valid {SCHEMA}: {path}")
     return 0
 
@@ -135,6 +180,8 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--image", required=True)
     create_command.add_argument("--tag", required=True)
     create_command.add_argument("--digest", required=True)
+    create_command.add_argument("--backup-tool-image", required=True)
+    create_command.add_argument("--backup-tool-digest", required=True)
     create_command.add_argument("--workflow-run-id", required=True, type=int)
     create_command.add_argument("--workflow-run-attempt", required=True, type=int)
     create_command.add_argument("--workflow-url", required=True)
@@ -144,6 +191,7 @@ def parser() -> argparse.ArgumentParser:
     validate_command.add_argument("path")
     validate_command.add_argument("--commit")
     validate_command.add_argument("--image")
+    validate_command.add_argument("--backup-tool-image")
     validate_command.set_defaults(handler=validate_file)
     return command
 
