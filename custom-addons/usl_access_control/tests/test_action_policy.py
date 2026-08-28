@@ -31,14 +31,16 @@ class TestActionPolicyLoader(BaseCase):
         self,
         *,
         actions,
+        server_actions=None,
         qualified_policy_digest="a" * 64,
         runtime_policy_sha256=None,
-        schema="usl-action-risk-protected-runtime-v1",
+        schema="usl-action-risk-protected-runtime-v2",
     ):
         policy = {
             "actions": actions,
             "qualified_policy_digest": qualified_policy_digest,
             "schema": schema,
+            "server_actions": server_actions or [],
         }
         policy["runtime_policy_sha256"] = (
             runtime_policy_sha256 or action_policy._runtime_policy_digest(policy)
@@ -92,8 +94,35 @@ class TestActionPolicyLoader(BaseCase):
             "rpc:project.task.unlink",
         )
         self.assertIsNone(policy.model_operation_guard("project.task", "write"))
+        self.assertIsNone(policy.server_action_classification("server_action:missing"))
         with self.assertRaises(TypeError):
             policy.entries["guard:new"] = None
+
+    def test_loads_reviewed_server_action_classifications(self):
+        self._write_policy(
+            actions=[],
+            server_actions=[
+                {
+                    "action_key": "server_action:project.open_tasks",
+                    "classification": "read_only",
+                },
+                {
+                    "action_key": "server_action:stock.validate_picking",
+                    "classification": "operational",
+                },
+            ],
+        )
+
+        policy = action_policy.load_action_policy()
+
+        self.assertEqual(
+            policy.server_action_classification("server_action:project.open_tasks"),
+            "read_only",
+        )
+        self.assertEqual(
+            policy.server_action_classification("server_action:stock.validate_picking"),
+            "operational",
+        )
 
     def test_rejects_non_protected_and_duplicate_model_enforcement(self):
         enforcement = {
@@ -202,5 +231,25 @@ class TestActionPolicyLoader(BaseCase):
         with self.assertRaisesRegex(
             action_policy.ActionPolicyConfigurationError,
             "unsupported fields",
+        ):
+            action_policy.load_action_policy()
+
+    def test_rejects_invalid_reviewed_server_actions(self):
+        self._write_policy(
+            actions=[],
+            server_actions=[
+                {
+                    "action_key": "server_action:z.last",
+                    "classification": "operational",
+                },
+                {
+                    "action_key": "server_action:a.first",
+                    "classification": "operational",
+                },
+            ],
+        )
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "unique and sorted",
         ):
             action_policy.load_action_policy()

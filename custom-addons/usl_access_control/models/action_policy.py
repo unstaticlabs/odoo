@@ -12,7 +12,7 @@ _POLICY_DIRECTORY = Path(__file__).resolve().parent.parent / "policy"
 _SURFACE_FILE = _POLICY_DIRECTORY / "action_surface.json"
 _POLICY_FILE = _POLICY_DIRECTORY / "action_policy.json"
 _RUNTIME_POLICY_FILE = _POLICY_DIRECTORY / "protected_runtime_policy.json"
-_RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v1"
+_RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
 _RUNTIME_POLICY_MAX_BYTES = 512 * 1024
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
@@ -33,6 +33,7 @@ class ActionPolicyEntry:
 class ActionPolicy:
     entries: dict[str, ActionPolicyEntry]
     model_operation_guards: dict[tuple[str, str], ActionPolicyEntry]
+    server_actions: dict[str, str]
     qualified_policy_digest: str
 
     def protected_action(self, action_key):
@@ -54,6 +55,9 @@ class ActionPolicy:
 
     def model_operation_guard(self, model_name, operation):
         return self.model_operation_guards.get((model_name, operation))
+
+    def server_action_classification(self, action_key):
+        return self.server_actions.get(action_key)
 
 
 def _read_json(path, *, max_bytes=None):
@@ -178,6 +182,52 @@ def _model_operation_guards(entries):
     return result
 
 
+def _load_server_actions(runtime_policy):
+    records = runtime_policy.get("server_actions")
+    if not isinstance(records, list):
+        message = "Protected runtime policy server_actions must be an array."
+        raise ActionPolicyConfigurationError(message)
+    classifications = {
+        "operational",
+        "protected",
+        "read_only",
+        "recoverable",
+        "system_internal",
+        "transport",
+    }
+    result = {}
+    previous_key = None
+    for values in records:
+        if not isinstance(values, dict) or set(values) != {
+            "action_key",
+            "classification",
+        }:
+            message = (
+                "Every reviewed server action requires only an action key and "
+                "classification."
+            )
+            raise ActionPolicyConfigurationError(message)
+        action_key = values.get("action_key")
+        classification = values.get("classification")
+        if not isinstance(action_key, str) or not action_key.startswith(
+            "server_action:",
+        ):
+            message = "Reviewed server actions require stable server_action keys."
+            raise ActionPolicyConfigurationError(message)
+        if previous_key is not None and action_key <= previous_key:
+            message = (
+                "Reviewed server actions must be unique and sorted by action_key."
+            )
+            raise ActionPolicyConfigurationError(message)
+        if classification not in classifications:
+            raise ActionPolicyConfigurationError(
+                f"Server action {action_key!r} has invalid classification {classification!r}.",
+            )
+        previous_key = action_key
+        result[action_key] = classification
+    return result
+
+
 @lru_cache(maxsize=1)
 def load_action_policy():
     runtime_policy = _read_json(
@@ -213,5 +263,6 @@ def load_action_policy():
     return ActionPolicy(
         entries=MappingProxyType(entries),
         model_operation_guards=MappingProxyType(_model_operation_guards(entries)),
+        server_actions=MappingProxyType(_load_server_actions(runtime_policy)),
         qualified_policy_digest=qualified_digest,
     )

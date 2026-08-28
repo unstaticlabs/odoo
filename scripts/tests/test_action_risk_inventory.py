@@ -641,6 +641,21 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             errors,
         )
 
+    def test_reviewed_fixed_code_execution_can_be_operational(self):
+        action = self.action(
+            "server_action:project.action_server_share_project",
+            "server_action",
+            risk_flags=["arbitrary_execution"],
+        )
+        surface = self.surface([action])
+        policy = self.policy(
+            {
+                action["key"]: self.entry(action, "operational"),
+            },
+        )
+
+        self.assertEqual(inventory.validate_inventory(surface, policy), [])
+
     def test_rejects_wrong_and_duplicate_model_operation_enforcement(self):
         action = self.action(
             "rpc:x.thing.unlink", "rpc", model="x.thing", method="unlink",
@@ -709,6 +724,17 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
 
     def test_compiles_exact_protected_runtime_policy_and_rejects_drift(self):
         surface, policy = self._valid_inventory()
+        server_action = self.action(
+            "server_action:test.fixed_operation",
+            "server_action",
+        )
+        surface["actions"].append(server_action)
+        surface["actions"].sort(key=lambda action: action["key"])
+        surface["surface_sha256"] = inventory.surface_digest(surface)
+        policy["actions"][server_action["key"]] = self.entry(
+            server_action,
+            "operational",
+        )
         runtime_policy = inventory.build_runtime_policy(surface, policy)
         expected_keys = sorted(
             key
@@ -718,6 +744,15 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         self.assertEqual(
             [entry["action_key"] for entry in runtime_policy["actions"]],
             expected_keys,
+        )
+        self.assertEqual(
+            runtime_policy["server_actions"],
+            [
+                {
+                    "action_key": server_action["key"],
+                    "classification": "operational",
+                },
+            ],
         )
         self.assertEqual(
             runtime_policy["qualified_policy_digest"],

@@ -51,22 +51,63 @@ class AccountFiscalPosition(models.Model):
 class IrActionsServer(models.Model):
     _inherit = "ir.actions.server"
 
+    def _usl_check_qualified_execution(self):
+        policy = self._usl_qualified_action_policy()
+        external_ids = self.sudo().get_external_id()
+        for action in self:
+            xmlid = external_ids.get(action.id)
+            action_key = f"server_action:{xmlid}" if xmlid else False
+            classification = (
+                policy.server_action_classification(action_key)
+                if action_key
+                else None
+            )
+            if classification == "protected":
+                action._usl_require_irreversible_action(
+                    action_key,
+                    f"execute protected server action {action.name}",
+                    exact_policy_key=True,
+                )
+            elif classification is None:
+                action._usl_require_irreversible_action(
+                    "automation.server_action.execute",
+                    f"execute unreviewed server action {action.name}",
+                )
+
     def run(self):
-        self._usl_require_irreversible_action(
-            "automation.server_action.execute",
-            "execute a server action",
-        )
+        self._usl_check_qualified_execution()
         return super().run()
+
+
+class IrAttachment(models.Model):
+    _inherit = "ir.attachment"
+
+    def _usl_governed_attachments(self):
+        governed = self.browse()
+        for attachment in self:
+            if not attachment.res_model or not attachment.res_id:
+                continue
+            model = self.env.registry.get(attachment.res_model)
+            if model is not None and model._transient:
+                continue
+            governed |= attachment
+        return governed
+
+    def unlink(self):
+        governed = self._usl_governed_attachments()
+        if governed:
+            governed._usl_require_irreversible_action(
+                "evidence.attachment.delete",
+                "permanently delete attachment evidence from a business record",
+            )
+        return super().unlink()
 
 
 class IrCron(models.Model):
     _inherit = "ir.cron"
 
     def method_direct_trigger(self):
-        self._usl_require_irreversible_action(
-            "automation.cron.run_manual",
-            "run a scheduled action manually",
-        )
+        self.ir_actions_server_id._usl_check_qualified_execution()
         return super().method_direct_trigger()
 
 
