@@ -3633,6 +3633,89 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(manifest.archive_status, "archived")
         self.assertEqual(manifest.archive_document_id, archived)
 
+    def test_daily_timestamp_dossier_queues_as_private_sign_evidence(self):
+        first_day = fields.Date.today() - timedelta(days=1)
+        request = self._request()
+        request._append_event(
+            "timestamp_archive_context_test",
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
+                self.company,
+                first_day,
+            )
+        dossier = _pdf()
+        manifest._operational_write(
+            {
+                "proof_dossier": field_value(dossier),
+                "proof_dossier_sha256": hashlib.sha256(dossier).hexdigest(),
+            },
+        )
+
+        class Paperless:
+            configured = True
+
+            @staticmethod
+            def search(*args, **kwargs):
+                del args, kwargs
+                return {"results": []}
+
+            @staticmethod
+            def upload_multipart(*args, **kwargs):
+                del args, kwargs
+                return "timestamp-dossier-task"
+
+            @staticmethod
+            def task(task_id):
+                self.assertEqual(task_id, "timestamp-dossier-task")
+                return None
+
+        metadata_ids = itertools.count(990100)
+
+        def create_metadata(kind, values):
+            del kind
+            return {**values, "id": next(metadata_ids)}
+
+        with (
+            patch.object(
+                type(self.env["usl.document"]),
+                "_paperless",
+                return_value=Paperless(),
+            ),
+            patch(
+                "odoo.addons.usl_documents.models.metadata."
+                "PaperlessClient.create_metadata",
+                side_effect=create_metadata,
+            ),
+        ):
+            self.assertFalse(manifest._archive_timestamp_dossier())
+
+        operation = manifest.archive_operation_id
+        self.assertEqual(manifest.archive_status, "processing")
+        self.assertEqual(operation.state, "processing")
+        self.assertEqual(operation.res_model, manifest._name)
+        self.assertEqual(operation.res_id, manifest.id)
+        self.assertEqual(operation.source, "odoo_generated")
+        self.assertEqual(operation.confidentiality, "private")
+        self.assertEqual(operation.document_role, "evidence")
+        self.assertEqual(
+            operation.policy_reason,
+            "sign_daily_timestamp_evidence",
+        )
+        self.assertEqual(
+            operation.context_json["tags"],
+            ["Sign", "Timestamp proof"],
+        )
+        self.assertEqual(
+            operation.context_json["document_type"],
+            "Signature timestamp proof",
+        )
+
     def test_confirmed_archived_daily_proof_leaves_the_cron_queue(self):
         first_day = fields.Date.today() - timedelta(days=1)
         with patch(

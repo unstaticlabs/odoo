@@ -54,6 +54,7 @@ MANIFEST_OPERATION_FIELDS = {
 
 class SignDailyManifest(models.Model):
     _name = "usl.sign.daily.manifest"
+    _inherit = ["usl.document.link.mixin"]
     _description = "Signed Daily Signature Evidence Manifest"
     _order = "manifest_date desc, company_id, id desc"
     _rec_name = "name"
@@ -175,6 +176,24 @@ class SignDailyManifest(models.Model):
             manifest.proof_dossier_filename = (
                 f"sign-evidence-{day}-timestamp-proof.pdf"
             )
+
+    def _document_archive_context(self, attachment=None):
+        self.ensure_one()
+        values = super()._document_archive_context(attachment)
+        values.update(
+            {
+                "archive_mode": "automatic",
+                "document_role": "evidence",
+                "policy_reason": "sign_daily_timestamp_evidence",
+                "confidentiality": "private",
+                "accounting_evidence": False,
+                "access_scope": "linked_record",
+                "tags": ["Sign", "Timestamp proof"],
+                "document_type": "Signature timestamp proof",
+                "document_date": fields.Date.to_string(self.manifest_date),
+            },
+        )
+        return values
 
     @staticmethod
     def _canonical_json(payload, *, indent=None):
@@ -823,6 +842,10 @@ class SignDailyManifest(models.Model):
                 )
                 return False
         except Exception as error:  # noqa: BLE001 -- shared recovery UX
+            _logger.exception(
+                "Paperless rejected daily timestamp dossier %s",
+                self.id,
+            )
             self._operational_write(
                 {
                     "anchoring_status": "confirmed",
