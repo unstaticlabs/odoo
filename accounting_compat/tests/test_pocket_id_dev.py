@@ -355,6 +355,32 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             users_by_profile["accountant_reviewer"]["create_if_missing"],
         )
 
+    def test_sign_qa_policy_uses_profiles_owned_by_the_base_sso_module(self):
+        values = {
+            "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
+            "POCKET_ID_PROSPER_ODOO_EMAIL": "",
+            "POCKET_ID_PROSPER_ID": "prosper-subject",
+            "POCKET_ID_ROGER_ID": "roger-subject",
+            "POCKET_ID_VALENTIN_ID": "valentin-subject",
+        }
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY": "1"},
+                clear=True,
+            ),
+            patch("builtins.print") as print_mock,
+        ):
+            POCKET_ID_DEV.odoo_policy(values)
+        policy = json.loads(print_mock.call_args.args[0])
+        users_by_login = {entry["login"]: entry for entry in policy}
+
+        self.assertEqual(
+            users_by_login["roger@unstaticlabs.com"]["profile"],
+            "collaborator",
+        )
+        self.assertEqual(users_by_login["prosper"]["profile"], "collaborator")
+
     def test_paperless_policy_uses_immutable_pocket_people(self):
         values = {
             "POCKET_ID_PROSPER_EMAIL": "prosper@example.test",

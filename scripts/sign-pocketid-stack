@@ -140,6 +140,7 @@ initialize_odoo() {
   local policy
   policy="$(USL_POCKET_ID_POLICY_SINGLE_COMPANY=1 \
     USL_POCKET_ID_POLICY_CLEAN_DATABASE=1 \
+    USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY=1 \
     python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" odoo-policy)"
   "${COMPOSE[@]}" --profile init run --rm -T \
     -e ODOO_INIT_DB=odoo_dev \
