@@ -1,7 +1,7 @@
 import datetime as dt
 from unittest.mock import patch
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.tests import TransactionCase, tagged
 
 
@@ -70,3 +70,40 @@ class TestBankStatementHygiene(TransactionCase):
         self.assertEqual(overview.bank_checkpoint_status, "expected")
         action = overview.action_open_bank_checkpoint()
         self.assertEqual(action["res_model"], "account.bank.ingestion")
+
+    def test_accounting_reviewer_can_open_overview_without_setup_access(self):
+        reviewer = self.env["res.users"].with_context(no_reset_password=True).create(
+            {
+                "name": "Bank overview reviewer",
+                "login": "bank-overview-reviewer@example.invalid",
+                "email": "bank-overview-reviewer@example.invalid",
+                "company_id": self.env.company.id,
+                "company_ids": [Command.set(self.env.company.ids)],
+                "group_ids": [
+                    Command.set(
+                        [
+                            self.env.ref("account.group_account_user").id,
+                        ]
+                    )
+                ],
+            }
+        )
+        self.assertFalse(self.config.with_user(reviewer).has_access("read"))
+
+        overview = self.env["rebuild.account.overview"].search(
+            [("company_id", "=", self.env.company.id)],
+            limit=1,
+        )
+        values = overview.with_user(reviewer).read(
+            [
+                "bank_checkpoint_config_id",
+                "bank_checkpoint_status",
+                "bank_checkpoint_period",
+                "bank_checkpoint_next_action",
+            ]
+        )[0]
+
+        self.assertFalse(values["bank_checkpoint_config_id"])
+        self.assertFalse(values["bank_checkpoint_status"])
+        self.assertFalse(values["bank_checkpoint_period"])
+        self.assertFalse(values["bank_checkpoint_next_action"])
