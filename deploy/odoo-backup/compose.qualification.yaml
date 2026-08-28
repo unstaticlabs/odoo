@@ -1,0 +1,25 @@
+# Explicit local qualification overlay. It substitutes a named-volume Restic
+# repository and a locally built Odoo image; production must never load this
+# file. Identity checks still use immutable-shaped test values supplied by the
+# caller, while the production Compose file remains digest-only by policy.
+services:
+  push:
+    volumes:
+      - qualification-restic:/restic
+  restore-fetch:
+    volumes:
+      # Restic restore is data-read-only but still writes a short-lived lock.
+      - qualification-restic:/restic
+  finalize:
+    volumes:
+      - qualification-restic:/restic
+  neutralize:
+    image: ${ODOO_QUALIFICATION_SOURCE_IMAGE:-usl-odoo-backup-qualification-odoo:local}
+  verify:
+    environment:
+      USL_NEUTRALIZER_IMAGE_DIGEST: ${USL_SOURCE_IMAGE_DIGEST:-}
+
+volumes:
+  qualification-restic:
+    external: true
+    name: ${ODOO_BACKUP_QUALIFICATION_REPOSITORY_VOLUME:-usl-odoo-backup-qualification-repository}

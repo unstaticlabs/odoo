@@ -44,6 +44,13 @@ def default_output(identifier: str) -> Path:
     return ROOT / "artifacts" / "agent" / "handoffs" / f"{identifier}.json"
 
 
+def evidence_summary(evidence: list[str], notes: str) -> str:
+    sentences = [item.strip().rstrip(".") for item in [*evidence, notes] if item.strip()]
+    if not sentences:
+        return "No evidence recorded."
+    return ". ".join(sentences) + "."
+
+
 def initial_payload(identifier: str, goal: str, acceptance: list[str], base: str) -> dict[str, Any]:
     paths = changed_paths(base)
     qa = qa_status_payload()
@@ -317,8 +324,7 @@ def render(value: dict[str, Any]) -> str:
             ]
         )
         for journey in manual:
-            evidence = ", ".join(journey["evidence"]) or "No linked artifact"
-            notes = f"{evidence}. {journey['notes']}".strip()
+            notes = evidence_summary(journey["evidence"], journey["notes"])
             lines.append(
                 f"| {result_label(journey['result'])} | {markdown(journey['journey'])} | {markdown(notes)} |"
             )

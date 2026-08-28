@@ -157,7 +157,10 @@ migration/QA, integration, release and limitation sections. A collapsed,
 delimited canonical JSON block remains suitable for validation and later AI
 Pipelines. The local artifact is intentionally ignored. Readiness validation
 rejects stale branch, head, worktree or base evidence, dirty state, unpushed
-head and invalid commit attribution. A Feature Developer then stops without
+head and invalid commit attribution. The PR helper uses the contract's
+validated `feature.base`, stripping only the local `origin/` qualifier, so an
+explicit stacked handoff opens against its parent feature branch rather than
+silently retargeting to `19-usl`. A Feature Developer then stops without
 merging or cleanup.
 
 ## Lead Developer integration
@@ -190,8 +193,9 @@ becomes canonical:
 2. Enable a GitHub organization/repository ruleset for `19-usl`: no direct
    pushes, reviewed PRs, required agent-process and product checks, no
    self-approval, merge commits only, and narrowly controlled bypass actors.
-3. Add the production CI pipeline with backup/preflight, module/data upgrade,
-   deploy, verification, and tested recovery. Set
+3. Activate the production backup stack, then add the deployment pipeline with
+   preflight, quiesced checkpoint, module/data upgrade, digest deployment,
+   verification, and tested recovery. Set
    `continuous_deployment_enabled` only when that pipeline is admitted.
 4. Remove any temporary cutover exception that is no longer active. Do not
    retain the Online dump as a rollback assumption.

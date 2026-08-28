@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_FILE="$ROOT/deploy/odoo-backup/compose.yaml"
+COMPOSE_ARGS=(--file "$COMPOSE_FILE")
+case "${ODOO_BACKUP_QUALIFICATION:-}" in
+  "") ;;
+  local) COMPOSE_ARGS+=(--file "$ROOT/deploy/odoo-backup/compose.qualification.yaml");;
+  r2) COMPOSE_ARGS+=(--file "$ROOT/deploy/odoo-backup/compose.r2-qualification.yaml");;
+  *) echo "ODOO_BACKUP_QUALIFICATION must be unset, local, or r2" >&2; exit 2;;
+esac
+export ODOO_BACKUP_CACHE_VOLUME="${ODOO_BACKUP_CACHE_VOLUME:-usl-odoo-production-restic-cache}"
+export ODOO_BACKUP_STATE_VOLUME="${ODOO_BACKUP_STATE_VOLUME:-usl-odoo-production-backup-state}"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/odoo-restore clone <64-character-snapshot-id> [--clone-id ID] [--destroy-after-success]
+  scripts/odoo-restore destroy <clone-id> --confirm <clone-id>
+
+Clone creates only isolated volumes and an internal Docker network. There is
+no command that restores over production.
+EOF
+}
+
+valid_id() {
+  [[ "$1" =~ ^[a-z0-9][a-z0-9._-]{7,63}$ ]]
+}
+
+configure_clone() {
+  local clone_id="$1"
+  valid_id "$clone_id" || { echo "unsafe clone id: $clone_id" >&2; exit 2; }
+  export COMPOSE_PROJECT_NAME="usl-odoo-${clone_id}"
+  export ODOO_BACKUP_CLONE_PASSWORD
+  ODOO_BACKUP_CLONE_PASSWORD="$(python3 -c 'import hashlib,sys; print(hashlib.sha256(("usl-throwaway-clone:"+sys.argv[1]).encode()).hexdigest())' "$clone_id")"
+}
+
+compose() {
+  docker compose "${COMPOSE_ARGS[@]}" --profile restore --profile backup "$@"
+}
+
+ensure_shared_volume() {
+  local volume="$1"
+  if ! docker volume inspect "$volume" >/dev/null 2>&1; then
+    docker volume create \
+      --label com.unstaticlabs.owner=odoo-production-backup \
+      --label com.unstaticlabs.lifecycle=preserve \
+      "$volume" >/dev/null
+  elif [[ "$(docker volume inspect "$volume" --format '{{index .Labels "com.unstaticlabs.owner"}}')" != "odoo-production-backup" ]]; then
+    echo "backup volume ownership check failed: $volume" >&2
+    exit 1
+  fi
+}
+
+ensure_shared_volumes() {
+  ensure_shared_volume "$ODOO_BACKUP_CACHE_VOLUME"
+  ensure_shared_volume "$ODOO_BACKUP_STATE_VOLUME"
+}
+
+run_tool() {
+  local service="$1"
+  shift
+  compose run --rm --no-deps "$service" "$@"
+}
+
+stage_restore() {
+  local snapshot="$1" clone_id="$2" source_image
+  [[ "$snapshot" =~ ^[0-9a-f]{64}$ ]] || { echo "snapshot must be the full 64-character Restic ID" >&2; exit 2; }
+  configure_clone "$clone_id"
+  ensure_shared_volumes
+  if docker ps -a --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" --format '{{.ID}}' | grep -q .; then
+    echo "restore project already exists: $COMPOSE_PROJECT_NAME" >&2
+    exit 1
+  fi
+  source_image="$(run_tool restore-fetch restore-fetch --snapshot "$snapshot" --clone-id "$clone_id" | awk '/^ghcr\.io\/unstaticlabs\/usl-odoo@sha256:[0-9a-f]{64}$/ {value=$0} END {if (!value) exit 1; print value}')"
+  export ODOO_SOURCE_IMAGE="$source_image"
+  compose up --detach --wait clone-db
+  run_tool restore-apply restore-apply --clone-id "$clone_id"
+  compose run --rm --no-deps neutralize
+  printf 'Restored and neutralized clone %s from %s\n' "$clone_id" "$snapshot"
+}
+
+stage_verify() {
+  local snapshot="$1" clone_id="$2"
+  [[ "$snapshot" =~ ^[0-9a-f]{64}$ ]] || { echo "snapshot must be the full 64-character Restic ID" >&2; exit 2; }
+  configure_clone "$clone_id"
+  ensure_shared_volumes
+  export ODOO_SOURCE_IMAGE
+  ODOO_SOURCE_IMAGE="$(run_tool restore-fetch manifest-field --clone-id "$clone_id" --field source-image)"
+  run_tool verify verify --clone-id "$clone_id"
+}
+
+destroy_clone() {
+  local clone_id="$1" confirmation="$2" expected_volume volume project
+  [[ "$confirmation" == "$clone_id" ]] || { echo "cleanup refused: confirmation must exactly equal $clone_id" >&2; exit 1; }
+  configure_clone "$clone_id"
+  project="$COMPOSE_PROJECT_NAME"
+  # Validate the complete deletion set before stopping or removing anything.
+  for expected_volume in clone-db-data clone-filestore restore-scratch; do
+    volume="${project}_${expected_volume}"
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
+      [[ "$(docker volume inspect "$volume" --format '{{index .Labels "com.docker.compose.project"}}')" == "$project" ]] || {
+        echo "cleanup refused: $volume is not owned by $project" >&2
+        exit 1
+      }
+    fi
+  done
+  compose down --remove-orphans
+  for expected_volume in clone-db-data clone-filestore restore-scratch; do
+    volume="${project}_${expected_volume}"
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
+      docker volume rm "$volume" >/dev/null
+    fi
+  done
+  printf 'Destroyed isolated restore clone %s\n' "$clone_id"
+}
+
+case "${1:-}" in
+  clone)
+    shift
+    snapshot="${1:-}"
+    shift || true
+    clone_id="restore-${snapshot:0:12}-$(date -u +%Y%m%dt%H%M%Sz)"
+    destroy_after=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --clone-id) clone_id="${2:-}"; shift 2;;
+        --destroy-after-success) destroy_after=1; shift;;
+        *) usage >&2; exit 2;;
+      esac
+    done
+    stage_restore "$snapshot" "$clone_id"
+    stage_verify "$snapshot" "$clone_id"
+    if [[ "$destroy_after" == 1 ]]; then
+      destroy_clone "$clone_id" "$clone_id"
+    else
+      printf 'Clone retained. Inspect with project %s; remove with:\n  scripts/odoo-restore destroy %s --confirm %s\n' "$COMPOSE_PROJECT_NAME" "$clone_id" "$clone_id"
+    fi
+    ;;
+  destroy)
+    shift
+    clone_id="${1:-}"
+    shift || true
+    [[ "${1:-}" == "--confirm" && -n "${2:-}" && $# -eq 2 ]] || { usage >&2; exit 2; }
+    destroy_clone "$clone_id" "$2"
+    ;;
+  stage-restore)
+    shift; [[ $# -eq 2 ]] || { usage >&2; exit 2; }; stage_restore "$1" "$2";;
+  stage-verify)
+    shift; [[ $# -eq 2 ]] || { usage >&2; exit 2; }; stage_verify "$1" "$2";;
+  -h|--help|help) usage;;
+  *) usage >&2; exit 2;;
+esac

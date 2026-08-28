@@ -193,8 +193,31 @@ def commits(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def merge_readiness_error(value: object) -> str | None:
+    if not isinstance(value, dict):
+        return "handoff root is not an object"
+    readiness = value.get("readiness")
+    if not isinstance(readiness, dict):
+        return "handoff readiness is missing"
+    status = readiness.get("status")
+    if status not in {"READY TO MERGE", "READY TO MERGE WITH DOCUMENTED FOLLOW-UP"}:
+        return f"handoff readiness is {status!r}, not merge-ready"
+    return None
+
+
+def feature_commit_base(value: object) -> str | None:
+    if not isinstance(value, dict):
+        return None
+    feature = value.get("feature")
+    if not isinstance(feature, dict):
+        return None
+    base = feature.get("base")
+    return base if isinstance(base, str) and base else None
+
+
 def feature_ready(arguments: argparse.Namespace) -> int:
     errors: list[str] = []
+    handoff_value: object = None
     branch = branch_name()
     if branch in {"<detached>", policy()["development_branch"]}:
         errors.append(f"feature readiness is invalid from {branch!r}")
@@ -210,6 +233,14 @@ def feature_ready(arguments: argparse.Namespace) -> int:
     )
     if validation.returncode:
         errors.append("handoff is invalid or stale")
+    else:
+        try:
+            handoff_value = load_json(handoff)
+            readiness_error = merge_readiness_error(handoff_value)
+        except (AgentError, OSError):
+            readiness_error = "handoff cannot be read for readiness"
+        if readiness_error:
+            errors.append(readiness_error)
     upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}", check=False)
     if not upstream:
         errors.append("feature branch has no upstream remote")
@@ -217,7 +248,7 @@ def feature_ready(arguments: argparse.Namespace) -> int:
         errors.append(f"feature branch must track origin/{branch}, not {upstream}")
     elif git("rev-parse", upstream, check=False) != head_sha():
         errors.append(f"remote {upstream} is not at local HEAD")
-    if commits(argparse.Namespace(base=None, strict=True)):
+    if commits(argparse.Namespace(base=feature_commit_base(handoff_value), strict=True)):
         errors.append("agent commit attribution is invalid")
     if show(errors):
         return 1

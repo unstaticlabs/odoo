@@ -43,6 +43,7 @@ class AgentInterfaceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.github = load_script("github")
+        cls.handoff = load_script("handoff")
         cls.verify = load_script("verify")
 
     def test_context_json_is_structured_and_secret_free(self) -> None:
@@ -148,6 +149,49 @@ class AgentInterfaceTests(unittest.TestCase):
             with self.subTest(branch=branch), mock.patch.object(self.github, "branch_name", return_value=branch):
                 with self.assertRaises(self.github.AgentError):
                     self.github.ensure_feature_branch()
+
+    def test_pull_request_base_supports_validated_stacks(self) -> None:
+        self.assertEqual(
+            "codex/production-release-foundation",
+            self.github.pull_request_base(
+                {"feature": {"base": "origin/codex/production-release-foundation"}}
+            ),
+        )
+
+    def test_pull_request_base_rejects_unsafe_handoff_value(self) -> None:
+        with self.assertRaises(self.github.AgentError):
+            self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
+
+    def test_feature_ready_rejects_not_ready_contract(self) -> None:
+        self.assertIn(
+            "not merge-ready",
+            self.verify.merge_readiness_error(
+                {"readiness": {"status": "NOT READY TO MERGE"}}
+            ),
+        )
+
+    def test_feature_ready_accepts_documented_follow_up(self) -> None:
+        self.assertIsNone(
+            self.verify.merge_readiness_error(
+                {"readiness": {"status": "READY TO MERGE WITH DOCUMENTED FOLLOW-UP"}}
+            )
+        )
+
+    def test_feature_ready_uses_handoff_base_for_stacked_commits(self) -> None:
+        self.assertEqual(
+            "origin/codex/production-release-foundation",
+            self.verify.feature_commit_base(
+                {"feature": {"base": "origin/codex/production-release-foundation"}}
+            ),
+        )
+
+    def test_handoff_evidence_renders_as_sentences(self) -> None:
+        self.assertEqual(
+            "Snapshot restored. Counts matched. Verification passed.",
+            self.handoff.evidence_summary(
+                ["Snapshot restored.", "Counts matched"], "Verification passed."
+            ),
+        )
 
     def test_feature_start_refuses_protected_and_detached_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
