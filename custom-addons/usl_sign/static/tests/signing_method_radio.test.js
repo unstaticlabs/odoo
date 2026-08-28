@@ -37,8 +37,13 @@ test("signing methods render as comparable selectable columns", async () => {
     expect(".o_radio_item.is-selected").toHaveCount(1);
     expect(".o_radio_item.is-selected").toHaveText(/Standard/);
     expect(".usl_sign_method_card").toHaveCount(3);
+    expect(".usl_sign_method_card .usl_sign_method_card_radio").toHaveCount(3);
+    expect(".usl_sign_method_card .usl_sign_method_card_icon").toHaveCount(3);
     expect(".usl_sign_method_card .usl_sign_method_facts").toHaveCount(3);
     expect(".usl_sign_method_card .usl_sign_method_select").toHaveCount(3);
+    expect(".usl_sign_method_card:nth-child(2) .usl_sign_method_recommendation").toHaveText(
+        "Recommended"
+    );
     expect(".usl_sign_method_card").toHaveText(/Signer check/);
     expect(".usl_sign_method_card").toHaveText(/Signed PDF/);
     expect(".usl_sign_method_card").toHaveText(/Proof kept/);
@@ -53,6 +58,6 @@ test("signing methods render as comparable selectable columns", async () => {
     expect(".o_radio_item.is-selected").toHaveText(/Personal PAdES per signer/);
     expect(".o_radio_item.is-selected .usl_sign_method_select").toHaveText("Selected");
     expect(".o_radio_item:not(.is-selected) .usl_sign_method_select").toHaveText(
-        /Choose this method/
+        /Choose/
     );
 });
