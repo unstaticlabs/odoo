@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_document_letter_list" model="ir.ui.view">
+        <field name="name">usl.document.letter.list</field>
+        <field name="model">usl.document.letter</field>
+        <field name="arch" type="xml">
+            <list string="Official Letters"
+                  decoration-muted="state == 'cancelled'">
+                <field name="date"/>
+                <field name="reference"/>
+                <field name="version" optional="hide"/>
+                <field name="recipient_id"/>
+                <field name="subject"/>
+                <field name="delivery_method" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state in ('finalized', 'sent')"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_document_letter_search" model="ir.ui.view">
+        <field name="name">usl.document.letter.search</field>
+        <field name="model">usl.document.letter</field>
+        <field name="arch" type="xml">
+            <search string="Official Letters">
+                <field name="reference"/>
+                <field name="recipient_id"/>
+                <field name="subject"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="finalized" string="Finalized" domain="[('state', '=', 'finalized')]"/>
+                <filter name="sent" string="Sent" domain="[('state', '=', 'sent')]"/>
+                <separator/>
+                <filter name="company" string="Company" context="{'group_by': 'company_id'}"/>
+                <filter name="state" string="Status" context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_document_letter_form" model="ir.ui.view">
+        <field name="name">usl.document.letter.form</field>
+        <field name="model">usl.document.letter</field>
+        <field name="arch" type="xml">
+            <form string="Official Letter">
+                <header>
+                    <button name="action_finalize"
+                            type="object"
+                            string="Finalize"
+                            help="Freeze the letter content and create its immutable official PDF."
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_mark_sent"
+                            type="object"
+                            string="Mark as Sent"
+                            help="Record that the finalized letter has been delivered through the selected method."
+                            class="btn-primary"
+                            invisible="state != 'finalized'"/>
+                    <button name="action_download_pdf"
+                            type="object"
+                            string="Download PDF"
+                            invisible="not finalized_attachment_id"/>
+                    <button name="action_create_correction"
+                            type="object"
+                            string="Create Correction"
+                            help="Create a new draft version linked to this issued letter; the original remains unchanged."
+                            invisible="state not in ('finalized', 'sent')"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            help="Cancel this draft."
+                            invisible="state != 'draft'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,finalized,sent,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_download_pdf"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-pdf-o"
+                                invisible="not finalized_attachment_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Official PDF</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="reference"/>
+                        <h1>
+                            <field name="reference" readonly="1"/>
+                        </h1>
+                        <field name="subject"
+                               placeholder="Concise subject"
+                               readonly="state != 'draft'"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="recipient_id"
+                                   context="{'show_address': 1}"
+                                   readonly="state != 'draft'"/>
+                            <field name="delivery_method" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="signatory_id" readonly="state != 'draft'"/>
+                            <field name="signatory_title"
+                                   placeholder="President"
+                                   readonly="state != 'draft'"/>
+                            <field name="version" readonly="1"/>
+                            <field name="supersedes_id" invisible="not supersedes_id" readonly="1"/>
+                            <field name="finalized_at" invisible="not finalized_at" readonly="1"/>
+                            <field name="sent_at" invisible="not sent_at" readonly="1"/>
+                            <field name="finalized_attachment_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Letter" name="letter_body">
+                            <field name="body"
+                                   widget="html"
+                                   readonly="state != 'draft'"
+                                   placeholder="Write the official correspondence. Use short paragraphs, headings, lists and simple tables."/>
+                        </page>
+                        <page string="Attachment List" name="letter_attachments">
+                            <p class="text-muted">
+                                Only filenames appear in the letter PDF. The original files are not merged or embedded.
+                            </p>
+                            <field name="attachment_ids"
+                                   widget="many2many_binary"
+                                   readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Corrections"
+                              name="letter_corrections"
+                              invisible="not superseded_by_ids">
+                            <field name="superseded_by_ids" readonly="1">
+                                <list>
+                                    <field name="reference"/>
+                                    <field name="version"/>
+                                    <field name="date"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_document_letters" model="ir.actions.act_window">
+        <field name="name">Official Letters</field>
+        <field name="res_model">usl.document.letter</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_document_letter_search"/>
+        <field name="context">{'search_default_draft': 1}</field>
+    </record>
+
+    <menuitem id="menu_official_documents_root"
+              name="Official Documents"
+              sequence="45"
+              groups="group_document_letter_user"/>
+    <menuitem id="menu_document_letters"
+              name="Correspondence"
+              parent="menu_official_documents_root"
+              action="action_document_letters"
+              sequence="10"
+              groups="group_document_letter_user"/>
+</odoo>

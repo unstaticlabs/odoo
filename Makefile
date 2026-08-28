@@ -10,6 +10,7 @@ USER_DOCS_PORT ?= 8079
 USER_DOCS_VENV ?= .venv-docs
 USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
+ODOO_DEV_DB ?= odoo_dev
 TESE_QA_GENERATION ?= 01
 MODULE ?=
 SERVICE ?=
@@ -34,7 +35,7 @@ fi
 endef
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-report migration-source-gate migration-outbound-safety attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -62,6 +63,8 @@ help:
 	  '  make status                         Show service ownership, health, and URLs' \
 	  '  make logs [SERVICE=odoo]            Follow all or one service log' \
 	  '  make stop                           Stop containers and preserve data' \
+	  '  make document-renderer-certs        Generate isolated local mTLS credentials' \
+	  '  make document-renderer-check        Verify the pinned renderer submodule' \
 	  '' \
 	  'Access and recovery' \
 	  '  make login-link USER=username       Create a local one-time sign-in link' \
@@ -134,6 +137,12 @@ help-advanced:
 doctor:
 	@$(ODOO_DEV) doctor
 
+document-renderer-certs:
+	@scripts/generate-document-renderer-certs
+
+document-renderer-check:
+	@scripts/check-document-renderer-submodule
+
 status:
 	@$(ODOO_DEV) status
 
@@ -190,10 +199,10 @@ paperless-users:
 disable-tours:
 	$(ODOO_DEV) disable-tours
 
-qa:
+qa: document-renderer-check
 	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
 
-qa-reuse:
+qa-reuse: document-renderer-check
 	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 PROFILE=full scripts/qa-environment full
 
 qa-clean:
@@ -655,7 +664,7 @@ user-docs-deps: $(USER_DOCS_VENV)/.requirements-ready
 user-docs-serve: user-docs-deps
 	$(USER_DOCS_PYTHON) -m mkdocs serve --config-file mkdocs.yml --dev-addr $(USER_DOCS_HOST):$(USER_DOCS_PORT)
 
-user-docs-build: user-docs-deps
+user-docs-build: user-docs-deps document-renderer-check
 	$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml
 
 action-helpers:
@@ -667,7 +676,7 @@ action-risk-discover:
 		-e ACTION_RISK_MODE=discover \
 		-e USL_EINVOICE_LIVE_ENABLED=0 \
 		-e USL_EREPORTING_LIVE_ENABLED=0 \
-		odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+		odoo odoo shell --config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
 		< scripts/odoo/action_risk_inventory.py \
 		> "$(ACTION_RISK_RUNTIME_CANDIDATE)"
 	python3 scripts/action_risk_inventory.py discover \
@@ -691,12 +700,12 @@ action-risk-runtime: action-risk-inventory
 		-e USL_EINVOICE_LIVE_ENABLED=0 \
 		-e USL_EREPORTING_LIVE_ENABLED=0 \
 		odoo odoo shell \
-		--config=/etc/odoo/odoo.conf --database=odoo_dev \
+		--config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
 		< scripts/odoo/action_risk_inventory.py
 
-product-assets:
+product-assets: document-renderer-check
 	docker compose -p $(COMPOSE_PROJECT) exec -T odoo odoo shell \
-		--config=/etc/odoo/odoo.conf --database=odoo_dev \
+		--config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
 		< scripts/odoo/compile_product_assets.py
 
 french-translations:

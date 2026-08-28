@@ -546,19 +546,25 @@ def _ensure_client(
         client = api.request("POST", "/api/oidc/clients", payload)
     credentials = client.get("credentials", {}) if isinstance(client, dict) else {}
     configured_secrets = (
-        credentials.get("secrets", [])
+        credentials.get("secrets")
         if isinstance(credentials, dict)
-        else []
+        else None
     )
-    if not any(
-        isinstance(item, dict) and item.get("isActive", True)
-        for item in configured_secrets
-    ):
-        api.request(
-            "POST",
-            f"/api/oidc/clients/{client_id}/secrets",
-            {"secret": secret},
-        )
+    if isinstance(configured_secrets, list):
+        if not any(
+            isinstance(item, dict) and item.get("isActive", True)
+            for item in configured_secrets
+        ):
+            api.request(
+                "POST",
+                f"/api/oidc/clients/{client_id}/secrets",
+                {"secret": secret},
+            )
+    else:
+        # Pocket ID versions and response shapes differ here. Fall back to
+        # the dedicated plural endpoint so an existing environment-owned
+        # secret is detected by prefix and is never rotated on deployment.
+        _ensure_client_secret(api, client_id, secret)
     api.request(
         "PUT",
         f"/api/oidc/clients/{client_id}/allowed-user-groups",
@@ -567,6 +573,26 @@ def _ensure_client(
     if not isinstance(client, dict) or client.get("id") != client_id:
         raise PocketIDError("Pocket ID did not return the configured OIDC client.")
     return client
+
+
+def _ensure_client_secret(api: PocketIDAPI, client_id: str, secret: str) -> None:
+    """Keep the environment-owned secret present without rotating it on deploy."""
+    secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
+    if not isinstance(secrets, list) or any(
+        not isinstance(item, dict) for item in secrets
+    ):
+        raise PocketIDError("Pocket ID returned an invalid OIDC client secret list.")
+    expected_prefix = secret[:4] if len(secret) > 4 else ""
+    if any(
+        item.get("prefix") == expected_prefix and item.get("isActive") is True
+        for item in secrets
+    ):
+        return
+    api.request(
+        "POST",
+        f"/api/oidc/clients/{client_id}/secrets",
+        {"secret": secret},
+    )
 
 
 def provision(values: dict[str, str]) -> None:

@@ -58,6 +58,49 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
         ):
             self.assertNotIn(model_name, self.env.registry)
 
+    def test_specialized_company_views_do_not_replace_native_settings(self):
+        """Action-specific company screens must not win default view lookup."""
+        native_form = self.env.ref("base.view_company_form")
+        native_list = self.env.ref("base.view_company_tree")
+        specialized_views = (
+            (
+                "rebuild_account_migration."
+                "view_company_rebuild_einvoice_readiness_list",
+                native_list,
+            ),
+            (
+                "rebuild_account_migration."
+                "view_company_rebuild_einvoice_readiness_form",
+                native_form,
+            ),
+        )
+        for xmlid, native_view in specialized_views:
+            specialized_view = self.env.ref(xmlid)
+            self.assertGreater(
+                specialized_view.priority,
+                native_view.priority,
+                f"{xmlid} must remain action-specific",
+            )
+
+        einvoice_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_einvoice_readiness",
+        )
+        self.assertEqual(
+            einvoice_action.view_ids.mapped("view_id"),
+            self.env[
+                "ir.ui.view"
+            ].browse([
+                self.env.ref(
+                    "rebuild_account_migration."
+                    "view_company_rebuild_einvoice_readiness_list",
+                ).id,
+                self.env.ref(
+                    "rebuild_account_migration."
+                    "view_company_rebuild_einvoice_readiness_form",
+                ).id,
+            ]),
+        )
+
     def test_company_scoped_custom_models_have_record_rules(self):
         """A public product model must never rely on UI company domains."""
         Model = self.env["ir.model"].sudo()

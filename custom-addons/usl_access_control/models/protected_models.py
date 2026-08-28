@@ -259,6 +259,32 @@ class UslDocument(models.Model):
         ).action_permanently_delete_from_trash()
 
 
+class UslDocumentLetter(models.Model):
+    _inherit = "usl.document.letter"
+
+    def action_finalize(self):
+        self._usl_require_irreversible_action(
+            "documents.letter.finalize",
+            "issue an immutable official letter",
+        )
+        return super().action_finalize()
+
+    def action_mark_sent(self):
+        self._usl_require_irreversible_action(
+            "documents.letter.mark_sent",
+            "record an official letter as sent",
+        )
+        return super().action_mark_sent()
+
+    def action_cancel(self):
+        if any(letter.state == "finalized" for letter in self):
+            self._usl_require_irreversible_action(
+                "documents.letter.cancel_issued",
+                "cancel an issued official letter",
+            )
+        return super().action_cancel()
+
+
 class PdpRegistration(models.TransientModel):
     _inherit = "pdp.registration"
 
