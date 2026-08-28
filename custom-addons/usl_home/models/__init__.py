@@ -1,5 +1,1 @@
-from . import home_favorite
-from . import home_service
-from . import res_users
-from . import res_users_settings
-
+from . import home_favorite, home_service, res_users, res_users_settings

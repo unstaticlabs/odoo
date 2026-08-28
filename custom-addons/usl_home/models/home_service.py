@@ -6,7 +6,6 @@ from odoo.exceptions import AccessError, UserError
 from .home_favorite import PROVIDER_KEYS
 from .res_users_settings import WIDGET_KEYS
 
-
 AI_DISCOVERY_TAGS = {
     "agent ready",
     "agent failed",
@@ -100,7 +99,7 @@ class UslHomeService(models.AbstractModel):
                     "target_type": "provider",
                     "provider_key": key,
                     "sequence": sequence * 10,
-                }
+                },
             )
         settings.usl_home_favorites_initialized = True
 
@@ -151,7 +150,7 @@ class UslHomeService(models.AbstractModel):
         if provider_key not in PROVIDER_KEYS:
             raise UserError(self.env._("This Home destination is not available."))
         allowed = {choice["key"]: choice["name"] for choice in self._available_provider_choices(
-            self.env["usl.home.favorite"].search([("user_id", "=", self.env.uid)])
+            self.env["usl.home.favorite"].search([("user_id", "=", self.env.uid)]),
         )}
         if provider_key not in allowed:
             raise UserError(self.env._("This Home destination is already added or unavailable."))
@@ -161,7 +160,7 @@ class UslHomeService(models.AbstractModel):
                 "target_type": "provider",
                 "provider_key": provider_key,
                 "sequence": (self.env["usl.home.favorite"].search_count([("user_id", "=", self.env.uid)]) + 1) * 10,
-            }
+            },
         )
         return self._favorite_summary(favorite)
 
@@ -208,10 +207,11 @@ class UslHomeService(models.AbstractModel):
     @api.model
     def _favorite_action_record(self, favorite):
         if favorite.action_id:
-            action = favorite.action_id.exists()
-            return self.env[action.type].browse(action.id).exists() if action else action
+            action = favorite.action_id.sudo().exists()
+            return self.env[action.type].sudo().browse(action.id).exists() if action else action
         if favorite.action_xmlid:
-            return self.env.ref(favorite.action_xmlid, raise_if_not_found=False)
+            action = self.env.ref(favorite.action_xmlid, raise_if_not_found=False)
+            return action.sudo() if action else action
         return False
 
     @api.model
@@ -304,7 +304,7 @@ class UslHomeService(models.AbstractModel):
                     "res_id": activity.res_id,
                     "deadline": fields.Date.to_string(activity.date_deadline),
                     "bucket": bucket,
-                }
+                },
             )
         return {"items": items, "today": fields.Date.to_string(today)}
 
@@ -345,14 +345,14 @@ class UslHomeService(models.AbstractModel):
         start, tomorrow, due_soon = self._user_date_bounds()
         signals = {
             "overdue": Task.search_count(
-                [*open_domain, ("date_deadline", "!=", False), ("date_deadline", "<", start)]
+                [*open_domain, ("date_deadline", "!=", False), ("date_deadline", "<", start)],
             ),
             "due_soon": Task.search_count(
-                [*open_domain, ("date_deadline", ">=", start), ("date_deadline", "<", due_soon)]
+                [*open_domain, ("date_deadline", ">=", start), ("date_deadline", "<", due_soon)],
             ),
             "waiting": Task.search_count([*open_domain, ("state", "=", "04_waiting_normal")]),
             "changes_requested": Task.search_count(
-                [*open_domain, ("state", "=", "02_changes_requested")]
+                [*open_domain, ("state", "=", "02_changes_requested")],
             ),
         }
         return {"stages": stages, "signals": signals, "today_end": tomorrow}
@@ -371,7 +371,7 @@ class UslHomeService(models.AbstractModel):
             ("is_closed", "=", False),
         ]
         review_stages = self.env["project.task.type"].search(
-            [("project_ids", "in", workspace_ids), ("name", "=ilike", "Review")]
+            [("project_ids", "in", workspace_ids), ("name", "=ilike", "Review")],
         )
         seen = set()
         ranked = []
@@ -404,7 +404,7 @@ class UslHomeService(models.AbstractModel):
                 row[0],
                 row[1].date_deadline or date.max,
                 row[1].id,
-            )
+            ),
         )
         return {
             "items": [
@@ -416,7 +416,7 @@ class UslHomeService(models.AbstractModel):
                     "deadline": fields.Date.to_string(task.date_deadline) if task.date_deadline else False,
                 }
                 for _rank, task, status in ranked[:5]
-            ]
+            ],
         }
 
     @api.model

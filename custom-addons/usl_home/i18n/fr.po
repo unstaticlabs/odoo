@@ -200,7 +200,7 @@ msgstr "Bloqué"
 
 #. module: usl_home
 msgid "Review"
-msgstr "À vérifier"
+msgstr "Vérifier"
 
 #. module: usl_home
 msgid "Your Home layout could not be saved."

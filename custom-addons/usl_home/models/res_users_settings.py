@@ -1,7 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
-
 WIDGET_KEYS = (
     "activities",
     "my_tasks",
