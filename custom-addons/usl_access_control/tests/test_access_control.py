@@ -2,6 +2,8 @@ import json
 from io import BytesIO
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import SUPERUSER_ID, Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import call_kw
@@ -544,6 +546,31 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         self.assertTrue(event)
         self.assertEqual(event.outcome, "succeeded")
+
+    def test_official_letter_view_hides_irreversible_lifecycle_actions(self):
+        letter_manager = self._create_user(
+            "access.letter.manager",
+            self.env.ref("usl_document_templates.group_document_letter_manager"),
+        )
+        view = self.env.ref("usl_document_templates.view_document_letter_form")
+        ordinary_arch = etree.fromstring(
+            self.env["usl.document.letter"]
+            .with_user(letter_manager)
+            .get_view(view_id=view.id, view_type="form")["arch"],
+        )
+        self.assertFalse(ordinary_arch.xpath("//button[@name='action_finalize']"))
+        self.assertFalse(ordinary_arch.xpath("//button[@name='action_mark_sent']"))
+        self.assertFalse(ordinary_arch.xpath("//button[@string='Cancel Issued']"))
+        self.assertEqual(len(ordinary_arch.xpath("//button[@name='action_cancel']")), 1)
+
+        authorized_arch = etree.fromstring(
+            self.env["usl.document.letter"]
+            .with_user(self.valentin)
+            .get_view(view_id=view.id, view_type="form")["arch"],
+        )
+        self.assertTrue(authorized_arch.xpath("//button[@name='action_finalize']"))
+        self.assertTrue(authorized_arch.xpath("//button[@name='action_mark_sent']"))
+        self.assertTrue(authorized_arch.xpath("//button[@string='Cancel Issued']"))
 
     def test_company_rules_remain_separate_from_roles(self):
         other_invoice = self._draft_invoice(self.env.user, company=self.other_company)
