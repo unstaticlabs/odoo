@@ -1005,7 +1005,14 @@ def restore_source(args: argparse.Namespace) -> dict[str, Any]:
     restore_log = PRIVATE_ARTIFACTS / "source-restore-strict.log"
     pg_env = source_postgres_env()
 
-    run(compose_args("up", "-d", SOURCE_DB_SERVICE), env=pg_env)
+    # A previous canonical Documents reset can remove and recreate the project
+    # network while leaving the stopped source container behind. Recreate this
+    # disposable, volume-backed service so it is always attached to the current
+    # owned network before the dump is restored and queried read-only.
+    run(
+        compose_args("up", "-d", "--force-recreate", SOURCE_DB_SERVICE),
+        env=pg_env,
+    )
     wait_for_postgres_service(SOURCE_DB_SERVICE)
     run(compose_args("exec", "-T", SOURCE_DB_SERVICE, "dropdb", "-U", "odoo", "--if-exists", "--force", SOURCE_DB))
     run(compose_args("exec", "-T", SOURCE_DB_SERVICE, "createdb", "-U", "odoo", "-E", "UTF8", "-T", "template0", SOURCE_DB))

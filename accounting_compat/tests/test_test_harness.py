@@ -21,6 +21,20 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_source_restore_recreates_service_after_network_rotation(self):
+        harness = (REPOSITORY_ROOT / "accounting_compat" / "cli.py").read_text(
+            encoding="utf-8",
+        )
+        restore = harness.split("\ndef restore_source(", 1)[1].split(
+            "\ndef installed_modules(",
+            1,
+        )[0]
+
+        self.assertIn(
+            'compose_args("up", "-d", "--force-recreate", SOURCE_DB_SERVICE)',
+            restore,
+        )
+
     def test_import_exit_137_is_reported_as_resource_exhaustion(self):
         evidence = classify_product_import_failure(137, "registry loaded\nKilled\n")
 
