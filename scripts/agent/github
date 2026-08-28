@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import re
@@ -13,7 +14,18 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib import AgentError, ROOT, branch_name, git, head_sha, load_json, policy, run, write_json  # noqa: E402
+from lib import (  # noqa: E402
+    AgentError,
+    ROOT,
+    branch_name,
+    dirty_entries,
+    git,
+    head_sha,
+    load_json,
+    policy,
+    run,
+    write_json,
+)
 
 
 STATE_ROOT = Path(os.environ.get("USL_AGENT_STATE_DIR", ROOT / ".agent"))
@@ -257,6 +269,154 @@ def pr(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def merge_queue_policy() -> dict[str, Any]:
+    value = policy().get("github", {}).get("merge_queue")
+    if not isinstance(value, dict):
+        raise AgentError("agent/policy.json has no reviewed github.merge_queue configuration")
+    return value
+
+
+def ruleset_update_payload(ruleset: dict[str, Any]) -> dict[str, Any]:
+    payload = {
+        key: copy.deepcopy(ruleset[key])
+        for key in ("name", "target", "enforcement", "conditions", "rules")
+        if key in ruleset
+    }
+    bypass_actors = ruleset.get("bypass_actors")
+    if isinstance(bypass_actors, list):
+        payload["bypass_actors"] = copy.deepcopy(bypass_actors)
+    return payload
+
+
+def configure_merge_queue_ruleset(ruleset: dict[str, Any], configuration: dict[str, Any]) -> dict[str, Any]:
+    if ruleset.get("target") != "branch" or ruleset.get("enforcement") != "active":
+        raise AgentError("The configured merge-queue ruleset must be an active branch ruleset")
+    conditions = ruleset.get("conditions", {}).get("ref_name", {})
+    includes = conditions.get("include", [])
+    development_ref = f"refs/heads/{policy()['development_branch']}"
+    if "~DEFAULT_BRANCH" not in includes and development_ref not in includes:
+        raise AgentError(f"Ruleset {ruleset.get('name')!r} does not target {development_ref}")
+
+    result = ruleset_update_payload(ruleset)
+    rules = result.get("rules")
+    if not isinstance(rules, list):
+        raise AgentError("Ruleset has no mutable rules list")
+    by_type = {rule.get("type"): rule for rule in rules if isinstance(rule, dict)}
+    if "required_linear_history" in by_type:
+        raise AgentError("Refusing merge-queue configuration while required_linear_history forbids merge commits")
+    pull_request = by_type.get("pull_request")
+    if not isinstance(pull_request, dict) or not isinstance(pull_request.get("parameters"), dict):
+        raise AgentError("Ruleset must retain its existing pull_request protection")
+    pull_request["parameters"]["allowed_merge_methods"] = ["merge"]
+
+    required_checks = by_type.get("required_status_checks")
+    if not isinstance(required_checks, dict):
+        required_checks = {"type": "required_status_checks", "parameters": {}}
+        rules.append(required_checks)
+    parameters = required_checks.setdefault("parameters", {})
+    existing_checks = parameters.get("required_status_checks", [])
+    if not isinstance(existing_checks, list):
+        raise AgentError("Ruleset required_status_checks parameters are invalid")
+    contexts = {
+        check.get("context")
+        for check in existing_checks
+        if isinstance(check, dict) and isinstance(check.get("context"), str)
+    }
+    for context in configuration["required_status_checks"]:
+        if context not in contexts:
+            existing_checks.append({"context": context})
+    parameters["required_status_checks"] = existing_checks
+    parameters["strict_required_status_checks_policy"] = False
+
+    queue_parameters = {
+        key: configuration[key]
+        for key in (
+            "check_response_timeout_minutes",
+            "grouping_strategy",
+            "max_entries_to_build",
+            "max_entries_to_merge",
+            "merge_method",
+            "min_entries_to_merge",
+            "min_entries_to_merge_wait_minutes",
+        )
+    }
+    merge_queue = by_type.get("merge_queue")
+    if not isinstance(merge_queue, dict):
+        merge_queue = {"type": "merge_queue", "parameters": queue_parameters}
+        rules.append(merge_queue)
+    else:
+        merge_queue["parameters"] = queue_parameters
+    return result
+
+
+def verify_merge_queue_prerequisite(repository: str, after_sha: str) -> None:
+    if not re.fullmatch(r"[0-9a-f]{40}", after_sha):
+        raise AgentError("--after-sha must be the 40-character lowercase head SHA of the prerequisite PR")
+    development = policy()["development_branch"]
+    if branch_name() != development or dirty_entries():
+        raise AgentError(f"Merge-queue activation requires the clean authoritative {development} checkout")
+    configured = identity()
+    if configured.get("agent", {}).get("name") != "Lead Agent":
+        raise AgentError("Merge-queue activation is reserved for the Lead Agent after prerequisite review and merge")
+    remote_head = gh("api", f"repos/{repository}/git/ref/heads/{development}", "--jq", ".object.sha")
+    if head_sha() != remote_head:
+        raise AgentError(f"Local {development} is not at the current GitHub tip {remote_head}; fetch and update first")
+    comparison = gh("api", f"repos/{repository}/compare/{after_sha}...{development}", "--jq", ".status")
+    if comparison not in {"ahead", "identical"}:
+        raise AgentError(f"Prerequisite {after_sha} is not an ancestor of GitHub {development}")
+    workflow_requirements = {
+        ROOT / ".github" / "workflows" / "agent-process.yml": (
+            "  merge_group:\n    types: [checks_requested]",
+        ),
+        ROOT / ".github" / "workflows" / "product-image.yml": (
+            "  merge_group:\n    types: [checks_requested]",
+            "if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'",
+        ),
+    }
+    for path, required_fragments in workflow_requirements.items():
+        text = path.read_text(encoding="utf-8")
+        if any(fragment not in text for fragment in required_fragments):
+            raise AgentError(f"Prerequisite merge-group protections are missing from {path.relative_to(ROOT)}")
+
+
+def merge_queue(arguments: argparse.Namespace) -> int:
+    status(arguments)
+    configured = identity()
+    repository = configured["repository"]
+    verify_merge_queue_prerequisite(repository, arguments.after_sha)
+    configuration = merge_queue_policy()
+    summaries = json.loads(gh("api", f"repos/{repository}/rulesets"))
+    matches = [item for item in summaries if item.get("name") == configuration["ruleset"]]
+    if len(matches) != 1:
+        raise AgentError(
+            f"Expected exactly one ruleset named {configuration['ruleset']!r}; found {len(matches)}"
+        )
+    ruleset_id = matches[0]["id"]
+    current = json.loads(gh("api", f"repos/{repository}/rulesets/{ruleset_id}"))
+    repository_settings = json.loads(gh("api", f"repos/{repository}"))
+    if not repository_settings.get("allow_merge_commit"):
+        raise AgentError("Repository merge commits are disabled; refusing an ancestry-breaking queue configuration")
+    desired = configure_merge_queue_ruleset(current, configuration)
+    if ruleset_update_payload(current) == desired:
+        print(f"Merge queue already matches policy in ruleset {configuration['ruleset']!r} ({ruleset_id}).")
+        return 0
+    if not arguments.apply:
+        print(json.dumps(desired, indent=2, sort_keys=True))
+        print("Dry run only. Re-run with --apply after reviewing this preserved-rules payload.")
+        return 0
+    STATE_ROOT.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=STATE_ROOT, delete=False) as temporary:
+        payload_path = Path(temporary.name)
+        json.dump(desired, temporary, indent=2, sort_keys=True)
+        temporary.write("\n")
+    try:
+        gh("api", f"repos/{repository}/rulesets/{ruleset_id}", "--method", "PUT", "--input", str(payload_path))
+    finally:
+        payload_path.unlink(missing_ok=True)
+    print(f"Configured merge queue in ruleset {configuration['ruleset']!r} ({ruleset_id}).")
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description="Use a worktree-isolated GitHub agent identity.")
     commands = result.add_subparsers(dest="command", required=True)
@@ -278,6 +438,10 @@ def parser() -> argparse.ArgumentParser:
     pr_command.add_argument("--title")
     pr_command.add_argument("--draft", action="store_true")
     pr_command.set_defaults(handler=pr)
+    queue_command = commands.add_parser("merge-queue")
+    queue_command.add_argument("--after-sha", required=True)
+    queue_command.add_argument("--apply", action="store_true")
+    queue_command.set_defaults(handler=merge_queue)
     return result
 
 

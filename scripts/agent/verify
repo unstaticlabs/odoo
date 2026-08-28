@@ -19,6 +19,7 @@ from lib import (  # noqa: E402
     git,
     head_sha,
     load_json,
+    merge_candidate_error,
     policy,
     validate_schema,
 )
@@ -97,6 +98,20 @@ def check_policy() -> list[str]:
     github = value.get("github", {})
     if github.get("repository") != "unstaticlabs/odoo" or github.get("credential_transport") != "isolated-https":
         errors.append("agent/policy.json must retain the governed repository and isolated HTTPS transport")
+    merge_queue = github.get("merge_queue", {})
+    expected_queue = {
+        "ruleset": "USL Distribution",
+        "required_status_checks": ["contracts", "Qualify repository and image"],
+        "check_response_timeout_minutes": 120,
+        "grouping_strategy": "ALLGREEN",
+        "max_entries_to_build": 2,
+        "max_entries_to_merge": 1,
+        "merge_method": "MERGE",
+        "min_entries_to_merge": 1,
+        "min_entries_to_merge_wait_minutes": 0,
+    }
+    if merge_queue != expected_queue:
+        errors.append("agent/policy.json must retain the reviewed 19-usl merge-queue configuration")
     if value.get("production", {}).get("deployment_owner") != "ci":
         errors.append("agent/policy.json must assign production deployment to CI")
     if value.get("qa", {}).get("compose_project_prefix") != "usl-odoo-qa-":
@@ -274,6 +289,8 @@ def lead_start(arguments: argparse.Namespace) -> int:
         errors.append("handoff does not target the canonical development branch")
     if not git("rev-parse", "--verify", f"{feature['head_sha']}^{{commit}}", check=False):
         errors.append("handoff head SHA is not available locally; fetch the feature branch")
+    elif candidate_error := merge_candidate_error(feature["base"], feature["head_sha"]):
+        errors.append(f"feature is not queue-eligible: {candidate_error}")
     if show(errors):
         return 1
     print(f"Lead review may begin for {feature['branch']} at {feature['head_sha']}.")

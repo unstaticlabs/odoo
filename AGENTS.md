@@ -54,6 +54,14 @@ distribution-level core patch and the tradeoff is documented.
   operation has no non-browser path, stop and report the limitation instead of
   using a browser workaround. This does not restrict browser-based Odoo product
   or Worktree-QA validation.
+- Ordinary integration uses GitHub's merge queue. A clean pushed feature head
+  is queue-eligible when Git can construct a conflict-free candidate with the
+  latest fetched `origin/19-usl`; the feature branch does not need to contain
+  that target tip. Manual catch-up is reserved for real conflicts,
+  dependency/stack changes, generated-state reconciliation, or a failed
+  `merge_group` qualification. Queue candidates run every required workflow,
+  while image/package/release/deployment publication remains restricted to an
+  actual push to `refs/heads/19-usl`.
 - Because both roles use `@elio-usl`, the Lead Agent cannot provide independent
   approval for a PR authored by that account and must never self-approve.
   Valentin or another authorized independent human must approve before the
@@ -86,6 +94,9 @@ distribution-level core patch and the tradeoff is documented.
   During `migration-transition`, new GitHub checks are advisory. Post-cutover,
   activate required checks and branch protection as documented in
   `docs/operations/agent-development.md`; do not infer activation from prose.
+  Its `github.merge_queue` block is the reviewed desired queue configuration;
+  the Lead applies it only through the guarded post-merge procedure documented
+  there.
 
 Repository-owned Agent Skills have one canonical source under `agent-skills/`.
 Codex and Claude discover the same content through `.agents/skills/` and
