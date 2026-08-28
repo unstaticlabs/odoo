@@ -944,29 +944,90 @@
     }
 }
 
+.modal:has(.usl_sign_start_wizard) .modal-dialog {
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+}
+
 .usl_sign_start_wizard {
     .o_form_sheet {
-        max-width: 68rem;
+        max-width: 70rem;
     }
 }
 
 .usl_sign_start_intro {
-    max-width: 62ch;
+    max-width: 70ch;
 }
 
 .usl_sign_start_source {
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
 
     .o_horizontal {
-        gap: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .o_radio_item {
+        position: relative;
+        margin: 0;
+        padding: 0;
+
+        .o_radio_input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .o_form_label {
+            display: inline-flex;
+            min-height: 2.75rem;
+            align-items: center;
+            gap: .625rem;
+            margin: 0;
+            padding: .625rem .875rem;
+            border-radius: var(--border-radius, .375rem);
+            color: var(--o-gray-900, #212529);
+            cursor: pointer;
+
+            &::before {
+                width: 1rem;
+                color: var(--o-brand-primary, #714b67);
+                font-family: FontAwesome;
+                text-align: center;
+            }
+        }
+
+        &:first-child .o_form_label::before {
+            content: "\f093";
+        }
+
+        &:nth-child(2) .o_form_label::before {
+            content: "\f0c1";
+        }
+
+        &:hover .o_form_label {
+            background: var(--o-gray-100, #f8f9fa);
+        }
+
+        .o_radio_input:checked + .o_form_label {
+            color: var(--o-brand-primary, #714b67);
+            background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+        }
+
+        .o_radio_input:focus-visible + .o_form_label {
+            outline: 2px solid var(--o-action, #017e84);
+            outline-offset: 2px;
+        }
     }
 }
 
 .usl_sign_start_grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem 1.5rem;
-    margin-top: 1.5rem;
+    gap: 1.5rem;
+    margin-top: 1.75rem;
 }
 
 .usl_sign_start_block {
@@ -988,16 +1049,32 @@
     }
 }
 
-.usl_sign_start_template,
-.usl_sign_start_details,
+.usl_sign_start_choice {
+    min-height: 10.25rem;
+    padding: 1.25rem;
+    border: 1px solid var(--o-border-color, #dee2e6);
+    border-radius: .75rem;
+    background: var(--o-view-background-color, #fff);
+
+    .o_field_many2many_tags,
+    .o_field_binary {
+        margin-top: .25rem;
+    }
+}
+
 .usl_sign_start_method {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
     border-top: 1px solid var(--o-border-color, #dee2e6);
 }
 
+.usl_sign_start_details {
+    margin-top: 2rem;
+}
+
 .usl_sign_start_details .usl_sign_start_grid {
-    margin-top: 0;
+    gap: 1.25rem 2rem;
+    margin-top: 1rem;
 }
 
 .usl_sign_start_field {
@@ -1006,6 +1083,11 @@
     .o_field_widget {
         width: 100%;
     }
+
+    .o_field_text textarea {
+        min-height: 6.5rem;
+        resize: vertical;
+    }
 }
 
 .usl_sign_start_field_wide {
@@ -1013,10 +1095,10 @@
 }
 
 .usl_sign_start_method > p {
-    margin: -.375rem 0 1rem;
+    margin: -.25rem 0 1.5rem;
 }
 
-.usl_sign_method_radio.o_field_radio .o_horizontal {
+.usl_sign_method_comparison.o_horizontal {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
@@ -1054,7 +1136,7 @@
             flex-direction: column;
             width: 100%;
             min-height: 100%;
-            padding: 1.25rem;
+            padding: 1rem;
             cursor: pointer;
         }
 
@@ -1065,58 +1147,95 @@
 
         &.is-selected {
             border-color: var(--o-brand-primary, #714b67);
-            outline: 1px solid var(--o-brand-primary, #714b67);
             background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .04);
         }
     }
 }
 
-.usl_sign_method_card_header {
+.usl_sign_start_template_next {
+    display: flex;
+    min-height: 4rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: .25rem;
+}
+
+.usl_sign_method_card_top {
     display: flex;
     min-width: 0;
-    min-height: 1.75rem;
+    min-height: 2rem;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: .5rem;
+}
 
-    > strong {
-        color: var(--o-gray-900, #212529);
-        font-size: 1.125rem;
-        line-height: 1.25;
-    }
+.usl_sign_method_card_radio {
+    display: inline-flex;
+    width: 1.375rem;
+    height: 1.375rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--o-gray-600, #6c757d);
+    border-radius: 50%;
+    color: transparent;
+    font-size: .55rem;
+}
 
-    .badge {
-        max-width: 8rem;
-        white-space: normal;
-    }
+.is-selected .usl_sign_method_card_radio {
+    border-color: var(--o-brand-primary, #714b67);
+    color: var(--o-brand-primary, #714b67);
+}
+
+.usl_sign_method_recommendation {
+    margin-left: auto;
+    padding: .375rem .625rem;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+    font-weight: 500;
+}
+
+.usl_sign_method_card_icon {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    margin-left: auto;
+    border-radius: 50%;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+    font-size: 1rem;
+}
+
+.usl_sign_method_recommendation + .usl_sign_method_card_icon {
+    margin-left: 0;
+}
+
+.usl_sign_method_card_title {
+    margin-top: .875rem;
+    color: var(--o-gray-900, #212529);
+    font-size: 1.125rem;
+    line-height: 1.25;
 }
 
 .usl_sign_method_card_fit {
-    margin-top: .65rem;
-    color: var(--o-brand-primary, #714b67);
-    font-size: .8125rem;
-    font-weight: 600;
-    line-height: 1.35;
-}
-
-.usl_sign_method_card_summary {
-    min-height: 2.75rem;
-    margin-top: .35rem;
+    min-height: 2.5rem;
+    margin-top: .25rem;
     color: var(--o-gray-700, #495057);
     font-size: .875rem;
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
 .usl_sign_method_facts {
     display: grid;
     flex: 1 1 auto;
-    margin: 1rem 0;
-    border-top: 1px solid var(--o-border-color, #dee2e6);
+    gap: 1rem;
+    margin: 1.25rem 0;
 
     div {
         min-width: 0;
-        padding: .75rem 0;
-        border-bottom: 1px solid var(--o-border-color, #dee2e6);
     }
 
     dt {
@@ -1124,7 +1243,7 @@
         align-items: center;
         gap: .35rem;
         color: var(--o-gray-600, #6c757d);
-        font-size: .75rem;
+        font-size: .8125rem;
         font-weight: 600;
 
         .fa {
@@ -1135,12 +1254,16 @@
     }
 
     dd {
-        margin: .3rem 0 0 1.35rem;
+        margin: .25rem 0 0 1.35rem;
         color: var(--o-gray-900, #212529);
         font-size: .8125rem;
         font-weight: 400;
         line-height: 1.4;
     }
+}
+
+.usl_sign_method_select {
+    min-height: 2.5rem;
 }
 
 .usl_sign_method_select {
@@ -2094,6 +2217,16 @@
 }
 
 @media (max-width: 767.98px) {
+    .modal:has(.usl_sign_start_wizard) .modal-dialog {
+        width: calc(100% - 1rem);
+        margin: .5rem auto;
+    }
+
+    .usl_sign_start_wizard .o_form_sheet {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
     .usl_sign_start_grid {
         grid-template-columns: minmax(0, 1fr);
         gap: 1.25rem;
@@ -2103,12 +2236,21 @@
         grid-column: auto;
     }
 
-    .usl_sign_method_radio.o_field_radio .o_horizontal {
+    .usl_sign_method_comparison.o_horizontal {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .usl_sign_method_card_summary {
-        min-height: auto;
+    .usl_sign_start_choice {
+        min-height: 0;
+    }
+
+    .usl_sign_start_source .o_horizontal {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .usl_sign_start_source .o_radio_item .o_form_label {
+        width: 100%;
     }
 }
 

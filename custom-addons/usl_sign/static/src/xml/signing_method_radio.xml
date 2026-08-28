@@ -15,21 +15,29 @@
                            t-att-id="`${this.id}_${item[0]}`"
                            t-on-change="() => this.onChange(item)"/>
                     <label class="form-check-label o_form_label" t-att-for="`${this.id}_${item[0]}`">
-                        <span class="usl_sign_method_card_header">
-                            <strong t-out="this.detailsFor(item[0]).title"/>
-                            <span t-if="this.detailsFor(item[0]).recommendation" class="badge rounded-pill text-bg-light border" t-out="this.detailsFor(item[0]).recommendation"/>
+                        <span class="usl_sign_method_card_top">
+                            <span class="usl_sign_method_card_radio" aria-hidden="true">
+                                <i class="fa fa-circle"/>
+                            </span>
+                            <span t-if="this.detailsFor(item[0]).recommendation" class="badge rounded-pill usl_sign_method_recommendation">
+                                <i class="fa fa-star me-1" aria-hidden="true"/>
+                                <t t-out="this.detailsFor(item[0]).recommendation"/>
+                            </span>
+                            <span class="usl_sign_method_card_icon" aria-hidden="true">
+                                <i t-attf-class="fa {{ this.detailsFor(item[0]).icon }}"/>
+                            </span>
                         </span>
+                        <strong class="usl_sign_method_card_title" t-out="this.detailsFor(item[0]).title"/>
                         <span class="usl_sign_method_card_fit" t-out="this.detailsFor(item[0]).fit"/>
-                        <span class="usl_sign_method_card_summary" t-out="this.detailsFor(item[0]).summary"/>
                         <dl class="usl_sign_method_facts">
                             <div><dt><i class="fa fa-user-o" aria-hidden="true"/>Signer check</dt><dd t-out="this.detailsFor(item[0]).authentication"/></div>
                             <div><dt><i class="fa fa-file-pdf-o" aria-hidden="true"/>Signed PDF</dt><dd t-out="this.detailsFor(item[0]).pdf"/></div>
                             <div><dt><i class="fa fa-shield" aria-hidden="true"/>Proof kept</dt><dd t-out="this.detailsFor(item[0]).evidence"/></div>
                         </dl>
-                        <span t-attf-class="btn w-100 usl_sign_method_select {{ item[0] === this.value ? 'btn-primary' : 'btn-outline-primary' }}">
+                        <span aria-hidden="true" class="btn btn-outline-primary w-100 usl_sign_method_select">
                             <i t-if="item[0] === this.value" class="fa fa-check me-1" aria-hidden="true"/>
                             <t t-if="item[0] === this.value">Selected</t>
-                            <t t-else="">Choose this method</t>
+                            <t t-else="">Choose</t>
                         </span>
                     </label>
                 </div>
