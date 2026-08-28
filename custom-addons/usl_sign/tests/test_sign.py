@@ -2439,6 +2439,13 @@ class TestCleanUslSign(TransactionCase):
         completed_cards = self.env.ref(
             "usl_sign.sign_request_completed_kanban_usl",
         ).arch
+        for completed_view in [completed_list.arch, completed_cards]:
+            self.assertIn('create="0"', completed_view)
+            self.assertIn('string="New request"', completed_view)
+            self.assertIn('type="action"', completed_view)
+            self.assertIn(f'name="{self.env.ref("usl_sign.sign_start_action").id}"', completed_view)
+            self.assertIn('display="always"', completed_view)
+            self.assertIn('groups="usl_sign.group_sign_user"', completed_view)
         self.assertIn('default_order="completed_at desc, id desc"', completed_cards)
         self.assertIn('widget="usl_sign_document_card_preview"', completed_cards)
         self.assertIn('string="Documents"', completed_cards)
