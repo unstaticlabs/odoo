@@ -169,6 +169,8 @@ class OrchestrationPolicyTest(unittest.TestCase):
         cls.backup_wrapper = (ROOT / "scripts/odoo-backup").read_text(encoding="utf-8")
         cls.restore_wrapper = (ROOT / "scripts/odoo-restore").read_text(encoding="utf-8")
         cls.dockerfile = (ROOT / "docker/backup.Dockerfile").read_text(encoding="utf-8")
+        cls.qualification = (ROOT / "deploy/odoo-backup/compose.qualification.yaml").read_text(encoding="utf-8")
+        cls.r2_qualification = (ROOT / "deploy/odoo-backup/compose.r2-qualification.yaml").read_text(encoding="utf-8")
 
     def test_backup_runtime_inputs_are_digest_pinned(self) -> None:
         self.assertIn("postgres:16-bookworm@sha256:", self.dockerfile)
@@ -217,6 +219,19 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertIn('os.environ.get("PGHOST") != "clone-db"', source)
         self.assertIn('!= "odoo_restore"', source)
         self.assertIn("USL_RESTORE_RESET_CONFIRMED", source)
+
+    def test_local_qualification_overlay_is_opt_in(self) -> None:
+        self.assertIn("ODOO_BACKUP_QUALIFICATION", self.backup_wrapper)
+        self.assertNotIn("ODOO_BACKUP_COMPOSE_OVERRIDE", self.backup_wrapper)
+        self.assertIn("qualification-restic:/restic", self.qualification)
+        self.assertIn("ODOO_QUALIFICATION_SOURCE_IMAGE", self.qualification)
+
+    def test_r2_qualification_cannot_inject_production_resources(self) -> None:
+        self.assertIn("ODOO_QUALIFICATION_SOURCE_IMAGE", self.r2_qualification)
+        self.assertNotIn("volumes:", self.r2_qualification)
+        self.assertNotIn("networks:", self.r2_qualification)
+        self.assertNotIn("source-data", self.r2_qualification)
+        self.assertNotIn("production-db", self.r2_qualification)
 
     def test_cli_never_uses_latest_snapshot(self) -> None:
         self.assertNotRegex(self.backup_wrapper, r"(?:restore|verify)\s+latest")

@@ -3,6 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$ROOT/deploy/odoo-backup/compose.yaml"
+COMPOSE_ARGS=(--file "$COMPOSE_FILE")
+case "${ODOO_BACKUP_QUALIFICATION:-}" in
+  "") ;;
+  local) COMPOSE_ARGS+=(--file "$ROOT/deploy/odoo-backup/compose.qualification.yaml");;
+  r2) COMPOSE_ARGS+=(--file "$ROOT/deploy/odoo-backup/compose.r2-qualification.yaml");;
+  *) echo "ODOO_BACKUP_QUALIFICATION must be unset, local, or r2" >&2; exit 2;;
+esac
 export ODOO_BACKUP_STAGING_VOLUME="${ODOO_BACKUP_STAGING_VOLUME:-usl-odoo-production-backup-staging}"
 export ODOO_BACKUP_STATE_VOLUME="${ODOO_BACKUP_STATE_VOLUME:-usl-odoo-production-backup-state}"
 export ODOO_BACKUP_CACHE_VOLUME="${ODOO_BACKUP_CACHE_VOLUME:-usl-odoo-production-restic-cache}"
@@ -25,7 +32,7 @@ EOF
 }
 
 compose() {
-  docker compose --file "$COMPOSE_FILE" --profile backup --profile restore "$@"
+  docker compose "${COMPOSE_ARGS[@]}" --profile backup --profile restore "$@"
 }
 
 ensure_shared_volume() {

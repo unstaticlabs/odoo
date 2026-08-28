@@ -11,6 +11,9 @@
 !odoo-bin
 !requirements.txt
 !setup.py
+!scripts/
+scripts/*
+!scripts/odoo_backup.py
 
 !addons/
 !addons/**
