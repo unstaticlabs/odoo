@@ -37,8 +37,8 @@ Lead creates a visible Codex Desktop task for each implementation or repair,
 then returns control immediately so work can proceed in parallel. It must not
 poll, synchronously wait, or leave `19-usl - Lead` hanging. Coding sends that
 persistent task an asynchronous message when a Lead decision is genuinely
-needed and again when the PR and handoff are ready. Notification is not
-approval.
+needed. Final handoff follows the routing gate described below; notification is
+not approval.
 
 ## Start Coding Agent work
 
@@ -78,6 +78,19 @@ Coding task titles are work-first and type-last; use, for example,
 Branches named by the workflow use `codex/<type>-<work-slug>`, where `<type>` is
 `feat`, `fix`, `chore`, `docs`, `perf`, `refactor`, `test`, `ci`, or `build`.
 Preserve explicit user-provided names and archive conventions.
+
+Every started Coding task states one of these exact Lead handoff modes in its
+prompt:
+
+- `automatic`: send the final contract to Lead as soon as the PR and handoff
+  are ready.
+- `human-approved after Feature/Worktree-QA review`: present the ready work to
+  the designated human and wait for explicit approval before sending the final
+  contract to Lead.
+
+If the task does not specify a mode, use the human-approved mode. This gate
+controls only when the Lead review task receives the work. Human handoff
+approval is not GitHub PR approval and does not authorize Lead to merge.
 
 ## Isolated GitHub identity
 
@@ -176,6 +189,21 @@ effects, upgrade modules, forward/recovery procedures, data-loss and
 irreversibility risk, resources preserved, overlaps, known issues, unverified
 assumptions, release steps, post-merge checks, verdict and blockers.
 
+Also add exactly one canonical line to `integration.concerns`:
+
+```text
+Lead handoff: automatic
+```
+
+or:
+
+```text
+Lead handoff: human-approved after Feature/Worktree-QA review
+```
+
+The PR renderer exposes `integration.concerns`, so the generated PR records the
+same routing choice without changing the machine-readable v1 schema.
+
 Validate and preview it:
 
 ```bash
@@ -196,19 +224,29 @@ validated `feature.base`, stripping only the local `origin/` qualifier, so an
 explicit stacked handoff opens against its parent feature branch rather than
 silently retargeting to `19-usl`.
 
-After opening the ready PR, use Codex Desktop's supported task-to-task message
+After opening the ready PR, apply the selected gate. Automatic mode proceeds
+immediately. Human-approved mode presents the PR, implementation evidence,
+Worktree-QA status, validation, and blockers to the designated human,
+explicitly asks approval to hand off to Lead, and stops until that approval is
+affirmative.
+
+When the gate opens, read the final v1 artifact after it contains the final
+head SHA and PR URL. Use Codex Desktop's supported task-to-task message
 capability to notify the task titled exactly `19-usl - Lead`. Resolve that task
 by title when possible; do not hardcode a historical task identifier into
 repository policy. The message contains branch, commit, PR URL, exact
-validation and results, and blockers or `none`. Use the same fields when a
-genuine Lead decision blocks implementation. If direct task messaging is
-unavailable, state that limitation in the Coding task's final report so the
-handoff can be relayed manually.
+validation and results, and blockers or `none`, followed by the complete
+machine-readable JSON contract verbatim. A summary, rendered PR body, or link
+without the complete contract is not an effective handoff. Use the same
+summary fields when a genuine Lead decision blocks implementation, but do not
+label that earlier request as final handoff. If direct task messaging is
+unavailable, state that limitation and include the complete contract in the
+Coding task's final report for manual delivery.
 
-The notification is asynchronous and is not approval. After the ready
-notification, the Coding Agent leaves its branch, worktree, QA resources, and
-evidence intact and stops without polling or waiting for the Lead. It waits
-only when genuinely blocked on a decision.
+The final notification is asynchronous and is not approval. After it is sent,
+the Coding Agent leaves its branch, worktree, QA resources, and evidence intact
+and stops without polling or waiting for the Lead. It waits only when genuinely
+blocked on a decision.
 
 ## Lead Agent integration
 

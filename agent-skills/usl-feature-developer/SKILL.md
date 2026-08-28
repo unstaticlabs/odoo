@@ -20,6 +20,9 @@ Own the requested implementation through a merge-ready pull request, then stop. 
 5. Rename the visible Codex task on a best-effort, non-blocking basis using a
    work-first, type-last title such as `Bank statements - Feature`,
    `FEC generation - Fix`, or `Agent identities - Chore`.
+6. Read the task's Lead handoff mode: `automatic` or
+   `human-approved after Feature/Worktree-QA review`. If it is omitted, use the
+   human-approved mode. Keep the selected mode visible in the Coding task.
 
 Use `codex/<type>-<work-slug>` for a branch you name, where `<type>` is `feat`,
 `fix`, `chore`, `docs`, `perf`, `refactor`, `test`, `ci`, or `build`. Preserve an
@@ -67,15 +70,30 @@ If a branch must catch up, fetch first, inspect both histories and local state, 
    contract; do not paste raw JSON or hand-edit generated evidence. The
    machine-readable contract remains available in a collapsed section, and the
    generated artifact remains ignored local state.
-6. Notify the persistent Codex task titled exactly `19-usl - Lead` through the
-   supported task-to-task messaging capability. Include branch, commit, PR URL,
-   validation, and blockers. Send the same structured facts earlier whenever a
-   genuine Lead decision blocks progress. If direct messaging is unavailable,
-   state that limitation in the final report for manual handoff.
-7. Treat notification as asynchronous handoff, not approval. After the ready
-   notification, leave the branch, worktree, QA resources, and other named
-   evidence available for independent review and stop without polling, waiting
-   for a reply, merging, or deploying. Wait only when genuinely blocked on a
-   Lead decision.
+6. Add exactly one of these lines to the v1 contract's
+   `integration.concerns`, then validate it and update the generated PR body:
+   `Lead handoff: automatic` or
+   `Lead handoff: human-approved after Feature/Worktree-QA review`. This is how
+   the selected mode remains machine-readable without changing the v1 schema.
+7. In automatic mode, proceed when the PR and final contract are ready. In
+   human-approved mode, present the PR, implementation evidence, Worktree-QA
+   status, validation, and blockers to the designated human and explicitly ask
+   approval to hand off to Lead. Stop without messaging Lead until approval is
+   affirmative. That approval authorizes handoff only; it is not GitHub PR
+   approval and does not authorize merge.
+8. When the gate is open, read the final contract after it contains the final
+   head SHA and PR URL, and send the complete JSON verbatim through the
+   supported task-to-task messaging capability to the persistent Codex task
+   titled exactly `19-usl - Lead`. Accompany it with branch, commit, PR URL,
+   validation, and blockers. A summary or PR link without the full contract is
+   not an effective handoff. Send the same structured facts earlier whenever a
+   genuine Lead decision blocks progress, but do not mislabel that request as
+   the final handoff.
+9. If direct messaging is unavailable, state that limitation in the final
+   report and include the complete contract for manual delivery. Otherwise,
+   treat the message as asynchronous handoff, not approval. Leave the branch,
+   worktree, QA resources, and other named evidence available and stop without
+   polling, waiting for a reply, merging, or deploying. Wait only when
+   genuinely blocked on a Lead decision.
 
 Use `docs/operations/agent-development.md` for command examples, the contract field guide, and transition details.

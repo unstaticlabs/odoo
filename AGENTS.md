@@ -19,7 +19,10 @@ distribution-level core patch and the tradeoff is documented.
 - The Lead Agent dispatches implementation and conflict repair to visible,
   separate Codex tasks backed by isolated Coding Agent worktrees, then returns
   control immediately. It must not keep the Lead task occupied by polling or
-  synchronously waiting for Coding work.
+  synchronously waiting for Coding work. Every dispatched task must state one
+  Lead handoff mode: `automatic` or
+  `human-approved after Feature/Worktree-QA review`. If none is stated, use the
+  human-approved mode.
 - A **Coding Agent** owns all implementation through a clean, pushed,
   merge-ready PR and structured handoff. It must not merge its own work, delete
   its worktree, or clean review resources. Use the `usl-feature-developer`
@@ -46,12 +49,18 @@ distribution-level core patch and the tradeoff is documented.
   approval for a PR authored by that account and must never self-approve.
   Valentin or another authorized independent human must approve before the
   Lead merges an otherwise green PR.
-- A Coding Agent sends the persistent Lead task an asynchronous message when
-  Lead input is genuinely required and again when its PR and handoff are ready.
-  Include branch, commit, PR URL, validation, and blockers. Notification is not
-  approval; after the ready notification, stop without waiting for a reply. If
-  direct task messaging is unavailable, report that limitation for manual
-  handoff.
+- A Coding Agent records the selected Lead handoff mode in its task and as a
+  canonical `integration.concerns` line in the v1 handoff so the generated PR
+  displays it. In automatic mode, notify Lead when the PR and handoff are
+  ready. In human-approved mode, stop and obtain explicit human approval after
+  Feature/Worktree-QA review before notifying Lead. Handoff approval authorizes
+  routing to Lead; it is not GitHub PR approval or merge authority.
+- An effective Lead handoff sends the complete, final machine-readable v1
+  contract directly to the persistent `19-usl - Lead` Codex task, together
+  with branch, commit, PR URL, validation, and blockers. A summary alone is not
+  a handoff. After sending, stop without waiting for a reply. If direct task
+  messaging is unavailable, report that limitation and provide the complete
+  contract for manual delivery.
 - Preserve shared Docker infrastructure, canonical dumps, persistent databases,
   intentional caches and resources owned by other worktrees. Cleanup requires
   proven ownership; uncertainty means preserve and document.

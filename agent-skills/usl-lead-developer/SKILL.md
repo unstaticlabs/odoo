@@ -23,7 +23,9 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
    explicit branch and base. Coding branch names normally use
    `codex/<type>-<work-slug>` with `feat`, `fix`, `chore`, `docs`, `perf`,
    `refactor`, `test`, `ci`, or `build`; preserve user-provided names and
-   archive conventions.
+   archive conventions. Include one Lead handoff mode in every task prompt:
+   `automatic` or `human-approved after Feature/Worktree-QA review`. If the
+   requester does not choose, use the human-approved mode.
 4. After dispatch, return control immediately. Do not synchronously poll or
    wait for the Coding task and do not leave `19-usl - Lead` hanging; Coding
    will message this task when input or review is needed.
@@ -31,10 +33,17 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
    the local credential source for newly provisioned Coding worktrees. Copy
    only that profile into the new worktree's ignored `.agent/gh/`; each Coding
    task must configure and verify its own worktree-local author separately.
+6. A human approval at the handoff gate authorizes Coding to route the work to
+   Lead; it is separate from the independent GitHub PR approval required for
+   merge.
 
 ## Establish review state
 
-1. Read `AGENTS.md`, the PR's generated summary, acceptance criteria, verification, migration, QA, limitations, and release sections. Treat the collapsed delimited contract as the exact machine-readable source when validating or materializing the handoff.
+1. Read `AGENTS.md` and the complete machine-readable v1 contract sent directly
+   in the Coding task's handoff message. Validate or materialize that exact
+   contract, and cross-check its generated PR summary, acceptance criteria,
+   verification, migration, QA, limitations, release sections, branch, head,
+   PR URL, and handoff-mode line. A summary-only message is not a valid handoff.
 2. Fetch the latest remote state while keeping the authoritative `19-usl`
    checkout clean; inspect feature refs without creating a purpose branch.
 3. Materialize the handoff locally if needed and run `scripts/agent/verify lead-start --handoff PATH`.
@@ -63,7 +72,9 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
 4. Confirm post-merge CI results and hand the merged state to CI for any governed release process.
 5. Only after merge and CI are satisfactory, remove feature-specific QA resources with the exact project confirmation. Never remove foreign, shared, canonical, or persistent resources.
 
-Coding notifications are asynchronous status and never approval. If
+Coding notifications are asynchronous status and never approval. Receipt of a
+contract confirms only that the selected automatic or human-approved handoff
+gate opened; it does not constitute GitHub approval or authorize merge. If
 qualification fails, dispatch or send a concrete repair request tied to
 evidence and stop the merge. See `docs/operations/agent-development.md` for the
 integration checklist and transition limitations.
