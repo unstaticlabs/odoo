@@ -1615,12 +1615,8 @@ msgstr "Choisissez un modèle prêt. Vous attribuerez ensuite chaque rôle de si
 #. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
-msgid ""
-"Choose a signed PDF or evidence dossier to check its digital signatures and embedded "
-"proof."
-msgstr ""
-"Choisissez un PDF signé ou un dossier de preuves pour vérifier ses signatures "
-"numériques et les preuves intégrées."
+msgid "Check a signed PDF or evidence dossier without sending it to Odoo."
+msgstr "Vérifiez un PDF signé ou un dossier de preuves sans l’envoyer à Odoo."
 
 #. module: usl_sign
 #: model:ir.model,name:usl_sign.model_usl_sign_request_method
@@ -9203,8 +9199,8 @@ msgstr "facultatif"
 #. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
-msgid "or choose a PDF from your Mac"
-msgstr "ou choisissez un PDF sur votre Mac"
+msgid "or choose a PDF"
+msgstr "ou choisissez un PDF"
 
 #. module: usl_sign
 #. odoo-python
