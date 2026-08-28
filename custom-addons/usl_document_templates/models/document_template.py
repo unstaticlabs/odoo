@@ -39,14 +39,21 @@ class UslDocumentTemplate(models.Model):
             if template.key not in {
                 "invoice.v1",
                 "accounting_statement.v1",
+                "accounting_statement.v2",
                 "official_letter.v1",
                 "sign_completion.v1",
             }:
                 raise ValidationError(_("The template key is not part of the governed catalog."))
-            if template.schema_version != "1.0":
-                raise ValidationError(_("Only schema version 1.0 is supported."))
+            expected_schema = (
+                "2.0"
+                if template.key == "accounting_statement.v2"
+                else "1.0"
+            )
+            if template.schema_version != expected_schema:
+                raise ValidationError(
+                    _("The schema version does not match the governed template."),
+                )
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_module_uninstall(self):
         raise UserError(_("Governed templates are upgrade-managed and cannot be deleted."))
-

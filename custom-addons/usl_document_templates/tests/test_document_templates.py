@@ -122,7 +122,7 @@ class TestDocumentTemplates(TransactionCase):
         self.assertEqual(english["invoice.v1"]["due_date_label"], "Due:")
         self.assertEqual(french["invoice.v1"]["due_date_label"], "Échéance :")
         self.assertEqual(
-            french["accounting_statement.v1"]["title"],
+            french["accounting_statement.v2"]["title"],
             "Aperçu du compte de résultat",
         )
 
