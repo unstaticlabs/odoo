@@ -47,8 +47,8 @@ the application and use the native workflow of the relevant Odoo business app.
   coordinates.
 - **Simple PDF requests:** Request signatures defaults to upload, accepts one or
   more signers, derives the document name, and opens field placement
-  immediately. Optional naming, message, record linking and template reuse stay
-  available without interrupting the common journey.
+  immediately. Naming, message and record linking remain visible in the main
+  form; template reuse stays available without interrupting the common journey.
 - **Requests:** Open Requests contains only requests owned or coordinated by
   the current user. The form leads with people, signing method, deadline,
   progress and one next action. Verification and file fingerprints stay in a
