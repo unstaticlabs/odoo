@@ -5188,7 +5188,18 @@ class UslDocumentOperation(models.Model):
             order="create_date, id",
             limit=100,
         )
-        return operations.poll()
+        backfill = operations.filtered(
+            lambda item: item.attachment_origin == "backfill",
+        )
+        live = operations - backfill
+        result = live.poll()
+        if backfill:
+            result.update(
+                backfill.with_context(
+                    usl_documents_trusted_backfill_access=True,
+                ).poll(),
+            )
+        return result
 
 
 class UslPaperlessUserMapping(models.Model):
