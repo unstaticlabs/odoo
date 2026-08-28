@@ -276,6 +276,12 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertIn("usl_documents.sync", sql)
         self.assertIn("DELETE FROM ir_config_parameter", sql)
 
+    def test_usl_accounting_neutralization_forces_demo_einvoice_transport(self) -> None:
+        sql = (ROOT / "custom-addons/usl_accounting/data/neutralize.sql").read_text(encoding="utf-8")
+        self.assertIn("account_peppol.edi.mode", sql)
+        self.assertIn("'demo'", sql)
+        self.assertIn("ON CONFLICT", sql)
+
     def test_restore_verifies_native_side_effect_boundaries(self) -> None:
         source = (ROOT / "scripts/odoo_backup.py").read_text(encoding="utf-8")
         for boundary in (
