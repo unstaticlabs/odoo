@@ -214,7 +214,7 @@ class ResCompany(models.Model):
                 )
             return [
                 document_env._(
-                    "%(name)s — %(form)s au capital de %(capital)s",
+                    "%(name)s — %(form)s · Capital social : %(capital)s",
                     name=self.name.upper(),
                     form=self.usl_document_legal_form,
                     capital=capital,
@@ -228,7 +228,7 @@ class ResCompany(models.Model):
             ]
         return [
             document_env._(
-                "%(name)s, %(form)s with share capital of %(capital)s",
+                "%(name)s — %(form)s · Share capital: %(capital)s",
                 name=self.name,
                 form=self.usl_document_legal_form,
                 capital=self.with_context(lang=locale).currency_id.format(

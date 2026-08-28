@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SUBMODULE="services/usl-document-renderer"
-EXPECTED="55f238622fc84cd4177ccaba52fcab7c842ce42f"
+EXPECTED="c6eaed4590138f28bc09c4aa76d4ebfb4aa2c327"
 
 cd "$ROOT"
 url="$(git config -f .gitmodules --get "submodule.${SUBMODULE}.url" || true)"

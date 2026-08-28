@@ -98,8 +98,8 @@ class TestDocumentTemplates(TransactionCase):
             lang="en_US"
         )._usl_document_renderer_company_payload("fr_FR")
 
-        self.assertIn("with share capital", english["legal_identity_lines"][0])
-        self.assertIn("au capital de", french["legal_identity_lines"][0])
+        self.assertIn("Share capital:", english["legal_identity_lines"][0])
+        self.assertIn("Capital social :", french["legal_identity_lines"][0])
 
     def test_french_identity_distinguishes_siren_and_siret(self):
         self.company.company_registry = "98398295000021"
@@ -159,6 +159,19 @@ class TestDocumentTemplates(TransactionCase):
         ):
             with self.assertRaisesRegex(UserError, "revision mismatch"):
                 renderer.health()
+
+    def test_generation_label_uses_the_operator_timezone(self):
+        renderer = self.env["usl.document.renderer"].with_context(
+            tz="Europe/Paris",
+        )
+
+        self.assertEqual(
+            renderer._generated_at_label(
+                fields.Datetime.to_datetime("2026-08-28 03:29:00"),
+                "fr_FR",
+            ),
+            "Généré le 28/08/2026 à 05:29 CEST",
+        )
 
     def test_letter_finalization_is_immutable_and_correction_is_versioned(self):
         letter = self._letter()
