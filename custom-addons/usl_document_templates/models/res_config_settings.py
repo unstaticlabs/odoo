@@ -96,6 +96,9 @@ class ResConfigSettings(models.TransientModel):
         today = fields.Date.to_string(fields.Date.context_today(self))
         return {
             "invoice.v1": {
+                "qualification_label": document_env._(
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                ),
                 "kind": "invoice",
                 "number": "PREVIEW/2026/0001",
                 "date": today,
@@ -135,6 +138,9 @@ class ResConfigSettings(models.TransientModel):
                 ],
             },
             "accounting_statement.v1": {
+                "qualification_label": document_env._(
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                ),
                 "title": document_env._("Income statement preview"),
                 "reference": "PREVIEW-ACCOUNTING",
                 "date": today,
@@ -167,6 +173,9 @@ class ResConfigSettings(models.TransientModel):
                 ),
             },
             "official_letter.v1": {
+                "qualification_label": document_env._(
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                ),
                 "reference": "PREVIEW-LETTER",
                 "date": today,
                 "recipient": {
@@ -205,6 +214,9 @@ class ResConfigSettings(models.TransientModel):
                 "attachments": [document_env._("Preview attachment list")],
             },
             "sign_completion.v1": {
+                "qualification_label": document_env._(
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                ),
                 "reference": "PREVIEW-SIGN",
                 "completed_at": today,
                 "summary": document_env._(

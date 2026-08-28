@@ -53,7 +53,12 @@ class UslDocumentLetter(models.Model):
         "usl_document_letter_attachment_rel",
         "letter_id",
         "attachment_id",
-        string="Printed attachment list",
+        string="Attachment names printed",
+        help=(
+            "Only the filenames are listed in the letter PDF; the files are "
+            "neither merged into nor embedded in it."
+        ),
+        check_company=True,
     )
     state = fields.Selection(
         selection=[
@@ -226,6 +231,7 @@ class UslDocumentLetter(models.Model):
     def _current_snapshot(self):
         self.ensure_one()
         recipient = self.recipient_id
+        self.attachment_ids.check_access("read")
         if not recipient.name or not recipient.street or not recipient.zip or not recipient.city:
             raise ValidationError(
                 _(

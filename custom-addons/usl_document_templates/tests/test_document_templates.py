@@ -198,3 +198,18 @@ class TestDocumentTemplates(TransactionCase):
         self.recipient.street = False
         with self.assertRaisesRegex(ValidationError, "complete postal address"):
             letter._current_snapshot()
+
+    def test_letter_rejects_cross_company_printed_attachment(self):
+        other_company = self.env["res.company"].create({"name": "Other company"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "foreign-evidence.pdf",
+                "raw": PDF,
+                "mimetype": "application/pdf",
+                "company_id": other_company.id,
+            }
+        )
+        letter = self._letter()
+
+        with self.assertRaisesRegex(UserError, "company inconsistencies"):
+            letter.attachment_ids = attachment

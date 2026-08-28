@@ -69,8 +69,8 @@
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
-                            help="Cancel this draft or record the cancellation of a finalized letter without deleting its evidence."
-                            invisible="state not in ('draft', 'finalized')"/>
+                            help="Cancel this draft."
+                            invisible="state != 'draft'"/>
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,finalized,sent,cancelled"/>
@@ -126,7 +126,10 @@
                                    readonly="state != 'draft'"
                                    placeholder="Write the official correspondence. Use short paragraphs, headings, lists and simple tables."/>
                         </page>
-                        <page string="Printed Attachments" name="letter_attachments">
+                        <page string="Attachment List" name="letter_attachments">
+                            <p class="text-muted">
+                                Only filenames appear in the letter PDF. The original files are not merged or embedded.
+                            </p>
                             <field name="attachment_ids"
                                    widget="many2many_binary"
                                    readonly="state != 'draft'"/>

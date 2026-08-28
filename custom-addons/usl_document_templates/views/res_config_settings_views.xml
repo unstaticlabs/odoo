@@ -17,6 +17,7 @@
                 <app string="Document Templates"
                      name="usl_document_templates"
                      groups="base.group_system">
+                    <field name="usl_document_currency_id" invisible="1"/>
                     <block title="Official document readiness"
                            name="usl_document_identity">
                         <setting string="Legal identity"
@@ -57,7 +58,10 @@
                                    decoration-danger="usl_document_renderer_status == 'error'"/>
                             <div class="content-group mt-2">
                                 <field name="usl_document_renderer_message" readonly="1"/>
-                                <field name="usl_document_renderer_checked_at" readonly="1"/>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_checked_at" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_checked_at" readonly="1" class="col-lg-8"/>
+                                </div>
                             </div>
                             <button name="action_usl_document_check_renderer"
                                     type="object"
@@ -83,12 +87,18 @@
                         <setting string="mTLS trust paths"
                                  help="Server-side paths only; certificate material is never stored in Odoo attachments or sent to browsers.">
                             <div class="content-group">
-                                <label for="usl_document_renderer_ca_path" string="CA bundle"/>
-                                <field name="usl_document_renderer_ca_path" placeholder="/run/secrets/renderer-ca.crt"/>
-                                <label for="usl_document_renderer_certificate_path" string="Client certificate"/>
-                                <field name="usl_document_renderer_certificate_path" placeholder="/run/secrets/odoo-renderer.crt"/>
-                                <label for="usl_document_renderer_private_key_path" string="Client private key"/>
-                                <field name="usl_document_renderer_private_key_path" placeholder="/run/secrets/odoo-renderer.key"/>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_ca_path" string="CA bundle" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_ca_path" placeholder="/run/secrets/renderer-ca.crt" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_certificate_path" string="Client certificate" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_certificate_path" placeholder="/run/secrets/odoo-renderer.crt" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_private_key_path" string="Client private key" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_private_key_path" placeholder="/run/secrets/odoo-renderer.key" class="col-lg-8"/>
+                                </div>
                             </div>
                         </setting>
                         <setting string="Request timeout">
@@ -112,4 +122,3 @@
         </field>
     </record>
 </odoo>
-
