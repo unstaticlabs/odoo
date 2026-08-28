@@ -1,31 +1,16 @@
-## Product goal
+<!--
+Feature Developers: replace this entire template with the exact output of:
 
-Link the Odoo Project task and summarize the observable outcome and acceptance
-criteria. The Odoo task remains the product/work authority; this PR is the
-engineering and review authority.
+  scripts/agent/handoff render PATH
 
-## Engineering handoff
+The helper generates a review-first GitHub Markdown summary and retains the
+validated machine-readable contract in a collapsed section. Do not paste a raw
+JSON handoff or edit generated evidence independently of its source contract.
+-->
 
-Feature Developers: replace the placeholder below with the exact output of
-`scripts/agent/handoff render PATH`. Do not edit only the prose while leaving a
-stale JSON contract.
+## Handoff not generated
 
-<!-- usl-feature-handoff:start -->
-```json
-{
-  "schema": "usl-feature-handoff/v1",
-  "readiness": {
-    "status": "NOT READY TO MERGE",
-    "rationale": "Replace this placeholder with a validated handoff.",
-    "blockers": ["Missing canonical feature handoff."]
-  }
-}
-```
-<!-- usl-feature-handoff:end -->
-
-## Lead Developer review
-
-- [ ] Reviewed the actual diff against the latest `origin/19-usl`.
-- [ ] Independently qualified applicable migration, accounting, security and UI risks.
-- [ ] Confirmed final integration checks on the exact candidate.
-- [ ] Confirmed production deployment remains owned by CI.
+Run the Feature Developer handoff workflow before requesting Lead Developer
+review. A generated PR body includes the goal, acceptance criteria, change
+scope, decisions, verification evidence, migration and QA qualification,
+integration concerns, release notes, limitations, and review checklist.

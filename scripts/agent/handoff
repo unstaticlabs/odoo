@@ -195,25 +195,209 @@ def load_and_validate(path: Path, check_repository: bool) -> tuple[dict[str, Any
     return value, semantic_errors(value, check_repository)
 
 
+def markdown(value: Any) -> str:
+    if value is None or value == "":
+        return "—"
+    return str(value).replace("|", "\\|").replace("\r\n", "<br>").replace("\n", "<br>")
+
+
+def bullets(values: list[str], empty: str = "None.") -> list[str]:
+    if not values:
+        return [empty]
+    return [f"- {markdown(value)}" for value in values]
+
+
+def yes_no(value: bool) -> str:
+    return "Yes" if value else "No"
+
+
 def render(value: dict[str, Any]) -> str:
     feature = value["feature"]
     readiness = value["readiness"]
+    changes = value["changes"]
+    migration = value["migration"]
+    qa = value["qa"]
     lines = [
-        "## Engineering handoff",
+        "## Summary",
         "",
-        f"**Outcome:** {value['goal']['summary']}",
-        f"**Source:** `{feature['branch']}` at `{feature['head_sha']}`",
-        f"**Readiness:** {readiness['status']} — {readiness['rationale']}",
+        markdown(value["goal"]["summary"]),
         "",
-        "The JSON block below is the canonical Feature Developer → Lead Developer contract.",
+        f"> **{readiness['status']}** — {markdown(readiness['rationale'])}",
         "",
-        START_MARKER,
-        "```json",
-        json.dumps(value, indent=2, sort_keys=False),
-        "```",
-        END_MARKER,
+        "| Source | Value |",
+        "| --- | --- |",
+        f"| Branch | `{markdown(feature['branch'])}` |",
+        f"| Base | `{markdown(feature['base'])}` at `{feature['base_sha']}` |",
+        f"| Head | `{feature['head_sha']}` |",
+        f"| Feature | `{markdown(feature['identifier'])}` |",
+        f"| Developer | `@{markdown(feature['developer_github_login'])}` |",
+        f"| Product task | {markdown(feature['product_task'])} |",
+        "",
+        "## Acceptance criteria",
+        "",
+        *bullets(value["goal"]["acceptance"]),
+        "",
+        "## Change scope",
+        "",
+        "| Area | Value |",
+        "| --- | --- |",
+        f"| Odoo modules | {markdown(', '.join(changes['modules']) if changes['modules'] else 'None')} |",
+        f"| User-facing | {yes_no(changes['user_facing'])} |",
+        f"| Database schema changed | {yes_no(changes['database_schema_changed'])} |",
+        f"| Configuration changed | {yes_no(changes['configuration_changed'])} |",
+        f"| Dependencies changed | {yes_no(changes['dependencies_changed'])} |",
+        "",
+        "<details>",
+        f"<summary>Changed paths ({len(changes['paths'])})</summary>",
+        "",
+        *bullets([f"`{path}`" for path in changes["paths"]]),
+        "",
+        "</details>",
+        "",
+        "## Architecture decisions",
         "",
     ]
+    if value["decisions"]:
+        for decision in value["decisions"]:
+            lines.extend(
+                [
+                    f"### {markdown(decision['decision'])}",
+                    "",
+                    markdown(decision["rationale"]),
+                    "",
+                    "Alternatives considered:",
+                    "",
+                    *bullets(decision["alternatives"]),
+                    "",
+                ]
+            )
+    else:
+        lines.extend(["No material architecture decision was required.", ""])
+
+    lines.extend(
+        [
+            "## Verification",
+            "",
+            "### Automated",
+            "",
+            "| Result | Command | Notes |",
+            "| --- | --- | --- |",
+        ]
+    )
+    automated = value["verification"]["automated"]
+    if automated:
+        for check in automated:
+            lines.append(
+                f"| **{check['result'].upper()}** | `{markdown(check['command'])}` | {markdown(check['notes'])} |"
+            )
+    else:
+        lines.append("| NOT RUN | — | No automated evidence recorded. |")
+    lines.extend(
+        [
+            "",
+            "### Manual and product QA",
+            "",
+            "| Result | Journey | Evidence and notes |",
+            "| --- | --- | --- |",
+        ]
+    )
+    manual = value["verification"]["manual"]
+    if manual:
+        for journey in manual:
+            evidence = ", ".join(journey["evidence"]) or "No linked artifact"
+            notes = f"{evidence}. {journey['notes']}".strip()
+            lines.append(
+                f"| **{journey['result'].upper()}** | {markdown(journey['journey'])} | {markdown(notes)} |"
+            )
+    else:
+        lines.append("| NOT RUN | — | No manual journey recorded. |")
+
+    lines.extend(
+        [
+            "",
+            "## Migration and QA",
+            "",
+            "| Qualification | Value |",
+            "| --- | --- |",
+            f"| Migration required | {yes_no(migration['required'])} |",
+            f"| Modules to upgrade | {markdown(', '.join(migration['modules_to_upgrade']) if migration['modules_to_upgrade'] else 'None')} |",
+            f"| Data-loss risk | **{migration['data_loss_risk'].upper()}** |",
+            f"| Irreversible | {yes_no(migration['irreversible'])} |",
+            f"| QA required / status | {yes_no(qa['required'])} / **{qa['status']}** |",
+            f"| QA environment | {markdown(qa['environment'])} |",
+            f"| QA URL | {markdown(qa['url'])} |",
+            f"| QA authentication | {markdown(qa['authentication'])} |",
+            "",
+            "### Forward procedure",
+            "",
+            *bullets(migration["forward"]),
+            "",
+            "### Recovery procedure",
+            "",
+            *bullets(migration["recovery"]),
+            "",
+            "## Integration and release notes",
+            "",
+            "### Integration concerns",
+            "",
+            *bullets(value["integration"]["concerns"]),
+            "",
+            "### Concurrent-work overlaps",
+            "",
+            *bullets(value["integration"]["overlaps"]),
+            "",
+            "### Special release steps",
+            "",
+            *bullets(value["release"]["special_steps"]),
+            "",
+            "### Rollback notes",
+            "",
+            *bullets(value["release"]["rollback_notes"]),
+            "",
+            "### Post-merge checks",
+            "",
+            *bullets(value["release"]["post_merge_checks"]),
+            "",
+            "## Limitations and ownership",
+            "",
+            "### Known issues",
+            "",
+            *bullets(value["known_issues"]),
+            "",
+            "### Unverified assumptions",
+            "",
+            *bullets(value["unverified_assumptions"]),
+            "",
+            "### Preserved resources",
+            "",
+            *bullets(value["resources"]["preserved"]),
+            "",
+            "### Lead Developer cleanup",
+            "",
+            *bullets(value["resources"]["cleanup"]),
+            "",
+            "## Lead Developer review",
+            "",
+            "- [ ] Reviewed the actual diff against the latest target branch.",
+            "- [ ] Independently qualified migration, accounting, security, and UI risks where applicable.",
+            "- [ ] Reconciled overlapping work and validated the exact integration candidate.",
+            "- [ ] Confirmed post-merge CI ownership; no manual production deployment is included.",
+            "",
+            "<details>",
+            "<summary>Machine-readable handoff contract (v1)</summary>",
+            "",
+            "This canonical JSON is retained for validation and future orchestration. The review summary above is generated from the same contract.",
+            "",
+            START_MARKER,
+            "```json",
+            json.dumps(value, indent=2, sort_keys=False),
+            "```",
+            END_MARKER,
+            "",
+            "</details>",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 

@@ -101,6 +101,32 @@ class AgentContractTests(unittest.TestCase):
         rendered = self.handoff.render(value)
         self.assertEqual(value, self.handoff.extract_body(rendered))
 
+    def test_rendered_contract_is_review_first_github_markdown(self) -> None:
+        value = self.handoff.initial_payload(
+            "agent-contract-test", "Readable PR handoff.", ["Reviewers see useful evidence first."], "origin/19-usl"
+        )
+        value["verification"]["automated"] = [
+            {"command": "python3 -m unittest", "result": "passed", "notes": "Focused tests passed."}
+        ]
+        rendered = self.handoff.render(value)
+        self.assertIn("## Summary", rendered)
+        self.assertIn("## Acceptance criteria", rendered)
+        self.assertIn("| **PASSED** | `python3 -m unittest` |", rendered)
+        self.assertIn("<summary>Machine-readable handoff contract (v1)</summary>", rendered)
+        self.assertLess(rendered.index("## Verification"), rendered.index("```json"))
+
+    def test_rendered_tables_escape_github_markdown_cells(self) -> None:
+        value = self.handoff.initial_payload(
+            "agent-contract-test", "Preserve a | table cell.", ["Line one\nline two"], "origin/19-usl"
+        )
+        value["verification"]["automated"] = [
+            {"command": "one | two", "result": "passed", "notes": "First\nsecond"}
+        ]
+        rendered = self.handoff.render(value)
+        self.assertIn("Preserve a \\| table cell.", rendered)
+        self.assertIn("`one \\| two`", rendered)
+        self.assertIn("First<br>second", rendered)
+
     def test_pr_validation_is_advisory_but_strict_mode_blocks(self) -> None:
         value = self.handoff.initial_payload(
             "agent-contract-test", "Test PR enforcement.", ["Stale PR evidence is reported."], "origin/19-usl"
