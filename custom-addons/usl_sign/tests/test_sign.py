@@ -17,6 +17,7 @@ from cryptography.x509.oid import NameOID
 
 from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
+from odoo.service.model import call_kw
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfReader, PdfWriter
@@ -31,6 +32,7 @@ from odoo.addons.usl_sign.models.constants import (
     REQUEST_STATES,
     TRUST_LEVELS,
 )
+from odoo.addons.usl_sign.models.service_status import CAPABILITIES
 from odoo.addons.usl_sign.services import (
     DSSClient,
     DSSRejectedError,
@@ -3185,6 +3187,35 @@ class TestCleanUslSign(TransactionCase):
             qualified.with_user(self.sign_admin)._refresh_checks()
         self.assertEqual(qualified.status, "action_required")
         self.assertEqual(qualified.diagnostic_code, "qualified_trust_unavailable")
+
+    def test_service_status_check_all_accepts_list_header_invocation(self):
+        health_model = self.env["usl.sign.service.health"].with_user(self.sign_admin)
+        health = health_model._ensure_company(self.company)
+        model_type = type(health)
+
+        with patch.object(
+            model_type,
+            "_refresh_checks",
+            autospec=True,
+            return_value=True,
+        ) as refresh:
+            for ids in ([], health[:2].ids):
+                action = call_kw(
+                    health_model,
+                    "action_refresh_company",
+                    [ids],
+                    {},
+                )
+                self.assertEqual(action, {"type": "ir.actions.client", "tag": "reload"})
+
+        self.assertEqual(refresh.call_count, 2)
+        for call in refresh.call_args_list:
+            refreshed = call.args[0]
+            self.assertEqual(refreshed.company_id, self.company)
+            self.assertEqual(
+                set(refreshed.mapped("code")),
+                {code for code, _label, _sequence in CAPABILITIES},
+            )
 
     def test_service_status_fails_closed_for_stale_cron_and_other_company(self):
         health_model = self.env["usl.sign.service.health"]

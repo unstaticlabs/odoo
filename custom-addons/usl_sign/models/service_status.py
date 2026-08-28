@@ -137,7 +137,6 @@ class SignServiceHealth(models.Model):
         )
         return self.browse(rows.ids)
 
-    @api.model
     def action_refresh_company(self):
         self._check_admin()
         records = self._ensure_company(self.env.company)
