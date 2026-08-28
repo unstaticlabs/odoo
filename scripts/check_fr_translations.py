@@ -13,6 +13,11 @@ FORMAT_TOKEN = re.compile(
     r"|%[#0+\-]?(?:\d+|\*)?(?:\.\d+|\.\*)?[hlL]?[diouxXeEfFgGcrs]",
 )
 HTML_TAG = re.compile(r"</?[A-Za-z][^>]*>")
+VISIBLE_HTML_ATTRIBUTE = re.compile(
+    r"(?P<prefix>\b(?:alt|aria-label|title)\s*=\s*)"
+    r"(?P<quote>['\"])(?P<value>.*?)(?P=quote)",
+    re.IGNORECASE,
+)
 # "Match" is deliberately not a one-word glossary entry: accounting actions use
 # rapprochement/lettrage while metadata predicates use correspondance. The exact
 # entries below cover only surfaces whose business context is unambiguous.
@@ -53,7 +58,6 @@ GLOSSARY = {
     "Ready for production": "Prêt pour la production",
     "Ready for Review": "Prêt pour vérification",
     "Ready for review": "Prêt pour vérification",
-    "Receipt": "Justificatif",
     "Review": "Vérifier",
     "Review Required": "Vérification requise",
     "Review State": "État de la vérification",
@@ -142,6 +146,28 @@ BAD_TRANSLATION_PATTERNS = {
 REQUIRED_OCCURRENCES = {
     "Accounting": "model:ir.ui.menu,name:account.menu_finance",
 }
+CONTEXTUAL_GLOSSARY = {
+    (
+        "Receipt",
+        "model:ir.model.fields,field_description:"
+        "rebuild_account_migration.field_hr_expense__rebuild_receipt_state",
+    ): "Justificatif",
+}
+
+
+def _html_structure(value: str) -> list[str]:
+    """Ignore translated accessibility copy while preserving HTML structure."""
+
+    return sorted(
+        VISIBLE_HTML_ATTRIBUTE.sub(
+            lambda match: (
+                f"{match.group('prefix')}{match.group('quote')}__TEXT__"
+                f"{match.group('quote')}"
+            ),
+            tag,
+        )
+        for tag in HTML_TAG.findall(value)
+    )
 
 
 def main() -> int:
@@ -158,6 +184,7 @@ def main() -> int:
     entries_by_source: dict[str, list[tuple[Path, str]]] = {}
     entries_by_module: dict[str, set[str]] = {}
     occurrences_by_source: dict[str, set[str]] = {}
+    translations_by_occurrence: dict[tuple[str, str], list[tuple[Path, str]]] = {}
     catalogues = sorted(args.addons.glob("*/i18n/fr.po"))
     if not catalogues:
         errors.append(f"no French catalogues found below {args.addons}")
@@ -183,9 +210,7 @@ def main() -> int:
                     FORMAT_TOKEN.findall(translation),
                 ):
                     errors.append(f"{path}: formatting tokens changed for {entry.msgid!r}")
-                if sorted(HTML_TAG.findall(entry.msgid)) != sorted(
-                    HTML_TAG.findall(translation),
-                ):
+                if _html_structure(entry.msgid) != _html_structure(translation):
                     errors.append(f"{path}: HTML structure changed for {entry.msgid!r}")
                 for pattern, guidance in BAD_TRANSLATION_PATTERNS.items():
                     if pattern.search(translation):
@@ -194,6 +219,11 @@ def main() -> int:
                         )
                 entries_by_source.setdefault(entry.msgid, []).append((path, translation))
                 entries_by_module[module_name].add(entry.msgid)
+                for occurrence, _line in entry.occurrences:
+                    translations_by_occurrence.setdefault(
+                        (entry.msgid, occurrence),
+                        [],
+                    ).append((path, translation))
 
     if args.reference_po:
         if not args.reference_po.is_file():
@@ -236,6 +266,18 @@ def main() -> int:
     for source, occurrence in REQUIRED_OCCURRENCES.items():
         if occurrence not in occurrences_by_source.get(source, set()):
             errors.append(f"{source!r} must translate {occurrence}")
+
+    for key, expected in CONTEXTUAL_GLOSSARY.items():
+        source, occurrence = key
+        translations = translations_by_occurrence.get(key, [])
+        if not translations:
+            errors.append(f"{source!r} must translate {occurrence}")
+        for path, translation in translations:
+            if translation != expected:
+                errors.append(
+                    f"{path}: {source!r} at {occurrence} must use {expected!r}, "
+                    f"not {translation!r}",
+                )
 
     if errors:
         print("French translation validation failed:")  # noqa: T201
