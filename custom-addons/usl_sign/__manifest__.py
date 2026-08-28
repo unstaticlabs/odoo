@@ -62,6 +62,7 @@
             "usl_sign/static/src/scss/sign.scss",
         ],
         "web.assets_unit_tests": [
+            "usl_sign/static/src/js/portal_utils.esm.js",
             "usl_sign/static/tests/document_preview_field.test.js",
             "usl_sign/static/tests/enrollment_actions.test.js",
             "usl_sign/static/tests/editor_utils.test.js",
@@ -71,11 +72,13 @@
             "usl_sign/static/tests/signature_inspector_utils.test.js",
             "usl_sign/static/tests/signature_inspector.test.js",
             "usl_sign/static/tests/signing_method_radio.test.js",
+            "usl_sign/static/tests/portal_utils.test.js",
         ],
         "web.assets_tests": [
             ("remove", "sign_oca/static/src/tests/sign_tour.esm.js"),
         ],
         "oca_sign.assets_frontend_sign": [
+            "usl_sign/static/src/js/portal_utils.esm.js",
             "usl_sign/static/src/js/portal_patch.esm.js",
             "usl_sign/static/src/xml/portal_patch.xml",
             "usl_sign/static/src/scss/sign.scss",
