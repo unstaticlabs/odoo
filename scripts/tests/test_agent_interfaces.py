@@ -149,6 +149,18 @@ class AgentInterfaceTests(unittest.TestCase):
                 with self.assertRaises(self.github.AgentError):
                     self.github.ensure_feature_branch()
 
+    def test_pull_request_base_supports_validated_stacks(self) -> None:
+        self.assertEqual(
+            "codex/production-release-foundation",
+            self.github.pull_request_base(
+                {"feature": {"base": "origin/codex/production-release-foundation"}}
+            ),
+        )
+
+    def test_pull_request_base_rejects_unsafe_handoff_value(self) -> None:
+        with self.assertRaises(self.github.AgentError):
+            self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
+
     def test_feature_start_refuses_protected_and_detached_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

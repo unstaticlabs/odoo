@@ -11,7 +11,11 @@ Own the requested feature through a merge-ready pull request, then stop. Never m
 
 1. Read `AGENTS.md`, then the product, accounting, operations, or user specifications relevant to the task.
 2. Run `scripts/agent/context` and `scripts/agent/verify feature-start` before editing.
-3. Work only in a dedicated branch and worktree based on the current `origin/19-usl`. Preserve other worktrees, shared Docker infrastructure, databases, dumps, caches, and secrets.
+3. Work only in a dedicated branch and worktree, normally based on current
+   `origin/19-usl`. For an explicitly requested stacked change, base it on the
+   approved parent feature head and record that exact base in the handoff.
+   Preserve other worktrees, shared Docker infrastructure, databases, dumps,
+   caches, and secrets.
 4. Compare at least two credible implementation choices for material decisions, including native Odoo and maintained OCA behavior where relevant.
 
 If a branch must catch up, fetch first, inspect both histories and local state, and choose a rebase or merge deliberately. Never discard uncommitted work. Re-run relevant validation after resolving conflicts. Do not force-push unless the branch is agent-owned and rewriting it is explicitly acceptable.
@@ -31,7 +35,12 @@ If a branch must catch up, fetch first, inspect both histories and local state, 
 2. Run `scripts/agent/github status`, then publish only through `scripts/agent/github push`. Do not use the existing SSH remote or a human credential profile.
 3. Create the v1 contract with `scripts/agent/handoff init`, replace its draft evidence with actual results, and validate it with `scripts/agent/handoff validate PATH --repository`.
 4. Make the worktree clean, push the exact head, and run `scripts/agent/verify feature-ready --handoff PATH`.
-5. Open or update the ready PR with `scripts/agent/github pr --handoff PATH`. The helper renders a review-first GitHub Markdown body from the contract; do not paste raw JSON or hand-edit generated evidence. The machine-readable contract remains available in a collapsed section, and the generated artifact remains ignored local state.
+5. Open or update the ready PR with `scripts/agent/github pr --handoff PATH`.
+   The helper uses the validated `feature.base` as the GitHub PR base, including
+   for stacked PRs, and renders a review-first GitHub Markdown body from the
+   contract; do not paste raw JSON or hand-edit generated evidence. The
+   machine-readable contract remains available in a collapsed section, and the
+   generated artifact remains ignored local state.
 6. Leave the branch, worktree, QA resources, and other named evidence available for independent review. Stop without merging or deploying.
 
 Use `docs/operations/agent-development.md` for command examples, the contract field guide, and transition details.

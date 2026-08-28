@@ -157,7 +157,10 @@ migration/QA, integration, release and limitation sections. A collapsed,
 delimited canonical JSON block remains suitable for validation and later AI
 Pipelines. The local artifact is intentionally ignored. Readiness validation
 rejects stale branch, head, worktree or base evidence, dirty state, unpushed
-head and invalid commit attribution. A Feature Developer then stops without
+head and invalid commit attribution. The PR helper uses the contract's
+validated `feature.base`, stripping only the local `origin/` qualifier, so an
+explicit stacked handoff opens against its parent feature branch rather than
+silently retargeting to `19-usl`. A Feature Developer then stops without
 merging or cleanup.
 
 ## Lead Developer integration

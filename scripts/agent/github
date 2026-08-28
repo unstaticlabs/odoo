@@ -150,6 +150,23 @@ def ensure_feature_branch() -> str:
     return branch
 
 
+def pull_request_base(handoff: dict[str, Any]) -> str:
+    raw = handoff.get("feature", {}).get("base")
+    if not isinstance(raw, str) or not raw:
+        raise AgentError("Handoff feature.base is required for pull-request creation")
+    base = raw.removeprefix("origin/")
+    check = subprocess.run(
+        ["git", "check-ref-format", "--branch", base],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    if check.returncode:
+        raise AgentError(f"Handoff feature.base is not a safe branch: {raw!r}")
+    return base
+
+
 def push(_arguments: argparse.Namespace) -> int:
     status(_arguments)
     branch = ensure_feature_branch()
@@ -186,6 +203,7 @@ def pr(arguments: argparse.Namespace) -> int:
         check=True,
     )
     value = load_json(handoff)
+    base = pull_request_base(value)
     title = arguments.title or value["goal"]["summary"]
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", dir=STATE_ROOT, delete=False) as temporary:
         body_path = Path(temporary.name)
@@ -210,12 +228,15 @@ def pr(arguments: argparse.Namespace) -> int:
                 cwd=ROOT,
                 check=True,
             )
-            gh("pr", "edit", str(item["number"]), "--repo", repository_slug(), "--title", title, "--body-file", str(body_path))
+            gh(
+                "pr", "edit", str(item["number"]), "--repo", repository_slug(),
+                "--base", base, "--title", title, "--body-file", str(body_path),
+            )
             url = item["url"]
             action = "Updated"
         else:
             arguments_list = [
-                "pr", "create", "--repo", repository_slug(), "--base", policy()["development_branch"],
+                "pr", "create", "--repo", repository_slug(), "--base", base,
                 "--head", branch, "--title", title, "--body-file", str(body_path),
             ]
             if arguments.draft:
