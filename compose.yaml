@@ -410,7 +410,7 @@ services:
 
   usl-document-renderer:
     profiles: ["document-renderer"]
-    image: ${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:786cadf86804}
+    image: ${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:4b609561fbd5}
     build:
       context: services/usl-document-renderer
       args:
