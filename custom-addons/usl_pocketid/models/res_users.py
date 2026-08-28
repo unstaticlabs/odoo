@@ -1,7 +1,7 @@
 import secrets
 import time
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessDenied, UserError, ValidationError
 from odoo.http import request
 
@@ -872,7 +872,11 @@ class ResUsers(models.Model):
             lambda identity: identity.issuer == provider.usl_oidc_issuer,
         ):
             raise PocketIDAccessDenied(PocketIDReason.IDENTITY_CONFLICT)
-        return self.env["usl.oidc.identity"].sudo().create(
+        # The verified OIDC callback is a bounded internal identity-linking
+        # service, not an administrator editing a security binding over RPC.
+        # Use Odoo's internal service identity so the distribution's generic
+        # irreversible-action guard remains enforced for direct model writes.
+        return self.env["usl.oidc.identity"].with_user(SUPERUSER_ID).create(
             {
                 "issuer": provider.usl_oidc_issuer,
                 "subject": claims["sub"],
@@ -902,7 +906,10 @@ class ResUsers(models.Model):
                 "oauth_access_token": access_token,
             },
         )
-        identity.sudo().write(
+        # Claims have already passed issuer, audience, nonce, group and subject
+        # validation. Persist only bounded login metadata as the internal
+        # service; direct identity administration stays protected.
+        identity.with_user(SUPERUSER_ID).write(
             {
                 "last_login_at": fields.Datetime.now(),
                 "last_email": claims.get("email"),

@@ -437,6 +437,51 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         attachment.with_user(self.valentin).unlink()
         self.assertFalse(attachment.exists())
 
+    def test_validated_pocketid_login_does_not_require_irreversible_permission(self):
+        provider = self.env.ref("usl_pocketid.provider_pocketid")
+        provider._usl_pocketid_environment_write(
+            {
+                "enabled": True,
+                "usl_oidc_issuer": "https://identity.example.test",
+            },
+        )
+        user = self._create_user("access.signer", self.env.ref("base.group_user"))
+        user.write(
+            {
+                "usl_pocketid_access": True,
+                "usl_identity_classification": "active",
+            },
+        )
+        identity = self.env["usl.oidc.identity"].create(
+            {
+                "issuer": provider.usl_oidc_issuer,
+                "subject": "access-signing-subject",
+                "provider_id": provider.id,
+                "user_id": user.id,
+            },
+        )
+        with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
+            identity.with_user(self.roger).sudo().write(
+                {"last_display_name": "Untrusted direct edit"},
+            )
+
+        _database, _login, _token, resolved_identity = (
+            self.env["res.users"].with_user(self.roger)._usl_pocketid_login(
+                provider,
+                {
+                    "iss": provider.usl_oidc_issuer,
+                    "sub": identity.subject,
+                    "email": user.email,
+                    "name": "Validated signer",
+                },
+                "validated-access-token",
+            )
+        )
+
+        self.assertEqual(resolved_identity, identity)
+        self.assertEqual(identity.last_display_name, "Validated signer")
+        self.assertTrue(identity.last_login_at)
+
     def test_module_lifecycle_and_code_import_are_guarded_at_direct_entry(self):
         module = self.env["ir.module.module"].search([("name", "=", "base")], limit=1)
         self.assertTrue(module)
