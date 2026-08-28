@@ -870,6 +870,51 @@ class TestCleanUslSign(TransactionCase):
         request.cancel()
         self.assertFalse(self.env["mail.activity"].search_count(activity_domain))
 
+    def test_ordinary_internal_signer_can_complete_and_close_own_activity(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-ordinary-completion",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "ordinary-completion@example.test"
+        request = self._ready(
+            self._request(partners=[internal_signer.partner_id]),
+        )
+        request.with_context(
+            usl_sign_share_confirmed=INTERNAL_OPERATION,
+        ).action_send()
+        signer = request.signer_ids
+        activity_domain = [
+            ("activity_type_id", "=", self.env.ref("usl_sign.mail_activity_type_sign_document").id),
+            ("res_model", "=", signer._name),
+            ("res_id", "=", signer.id),
+            ("user_id", "=", internal_signer.id),
+            ("active", "=", True),
+        ]
+        self.assertEqual(self.env["mail.activity"].search_count(activity_domain), 1)
+        session_token = "ordinary-signer-session"
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {
+                "session_token_sha256": hashlib.sha256(session_token.encode()).hexdigest(),
+                "session_expires_at": fields.Datetime.now() + timedelta(minutes=30),
+            },
+        )
+        items = self._items(request, signer.role_id, internal_signer.name)
+        with patch.object(
+            type(signer),
+            "_activate_next_signer_or_finish",
+            return_value=True,
+        ):
+            signer.with_user(internal_signer).action_sign(
+                items,
+                access_token=session_token,
+                document_sha256=hashlib.sha256(field_content(request.data)).hexdigest(),
+                consent=True,
+            )
+        self.assertEqual(signer.state, "signed")
+        self.assertFalse(self.env["mail.activity"].search_count(activity_domain))
+
     def test_share_confirmation_grants_internal_signer_access_and_activity(self):
         internal_signer = new_test_user(
             self.env,
