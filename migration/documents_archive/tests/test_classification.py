@@ -118,6 +118,34 @@ class DocumentsClassificationTest(unittest.TestCase):
         self.assertNotIn("Revolut Savings EUR", flexible["tags"])
         self.assertEqual(flexible["document_type"], "Bank statement")
 
+    def test_unassigned_bank_export_has_deterministic_business_classification(self):
+        result = classify_item(
+            self.item(
+                document_id=None,
+                kind="unassigned_evidence",
+                filename="EUR_savings_monthly-statement_01-Dec-2025_01-Jun-2026.csv",
+            ),
+        )
+
+        self.assertEqual(result["document_type"], "Bank statement")
+        self.assertEqual(result["tags"], ["Accounting", "Banking"])
+        self.assertTrue(result["accounting_evidence"])
+        self.assertFalse(result["needs_attention"])
+
+    def test_locked_private_strategy_is_classified_without_copying_ai_config(self):
+        result = classify_item(
+            self.item(
+                attachment_id=1611,
+                document_id=None,
+                kind="restricted_unassigned_evidence",
+                filename="2601 GBC Updated Vision and Strategy.pdf",
+            ),
+        )
+
+        self.assertEqual(result["document_type"], "Product document")
+        self.assertEqual(result["tags"], ["Product"])
+        self.assertFalse(result["needs_attention"])
+
     def test_hr_folder_is_restricted_and_linkable(self):
         result = classify_item(
             self.item(folder_path="Employees - Unstatic Labs / Valentin Viennot"),

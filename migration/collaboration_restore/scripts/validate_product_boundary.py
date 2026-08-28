@@ -29,9 +29,9 @@ if sidecar != actual_evidence_sha:
 if payload.get("source_dump_sha256") != "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f":
     raise RuntimeError("Product validation evidence has the wrong source identity")
 if (
-    payload.get("visible_message_count") != 49385
+    payload.get("visible_message_count") != 49186
     or payload.get("external_message_count") != 0
-    or payload.get("deliberately_not_copied_message_count") != 620
+    or payload.get("deliberately_not_copied_message_count") != 819
 ):
     raise RuntimeError("Product validation evidence has incomplete message dispositions")
 if any(payload.get("outbound_side_effect_delta", {}).values()):
@@ -166,6 +166,6 @@ if len(legacy_rules) != 9 or len(legacy_declarations) != 36 or legacy_rules.filt
     raise RuntimeError("Final retired declaration history differs")
 print(json.dumps({
     "status": "passed",
-    "visible_messages": 49385,
-    "deliberately_not_copied_messages": 620,
+    "visible_messages": 49186,
+    "deliberately_not_copied_messages": 819,
 }, sort_keys=True))

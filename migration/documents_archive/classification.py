@@ -298,6 +298,26 @@ def classify_item(item: dict) -> dict:
         tags.add("Product")
         set_type("Product document", 70)
 
+    if item.get("kind") == "unassigned_evidence":
+        bank_export_markers = (
+            "account-statement",
+            "monthly-statement",
+            "flexible-cash-funds",
+        )
+        if filename.endswith(".csv") and any(
+            marker in filename for marker in bank_export_markers
+        ):
+            tags.update({"Accounting", "Banking"})
+            accounting_evidence = True
+            set_type("Bank statement", 80)
+
+    if (
+        item.get("kind") == "restricted_unassigned_evidence"
+        and item.get("attachment_id") == 1611
+    ):
+        tags.add("Product")
+        set_type("Product document", 70)
+
     return {
         "tags": sorted(tags, key=str.casefold),
         "document_type": document_type,

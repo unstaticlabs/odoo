@@ -242,11 +242,14 @@ obsolete AI index, embeddings or agent configuration. There are no pending
 attachment actions.
 
 Knowledge is not a Distribution product. Its 66 source messages are default or
-demo content and are deliberately not copied. The 554 additional deliberately
-omitted Collaboration messages are generated technical configuration notes
-without customer or operational narrative. Both decisions are represented in
-the checksum-sealed source disposition evidence, not by permanent compatibility
-models or a shadow archive inside Odoo.
+demo content and are deliberately not copied. Another 554 omitted Collaboration
+messages are generated technical configuration notes without customer or
+operational narrative. The 199 messages attached only to 83 retired Documents
+folders and the default tutorial URL are also retained solely in sealed
+migration evidence; their file move/trash history is already represented by
+the final binary archive. Migration must not generate placeholder PDFs for
+these nodes. These decisions do not add permanent compatibility models or a
+shadow archive inside Odoo.
 
 The separate physical opening-stock evidence item remains a B2C operational
 go-live prerequisite even though it is not a fact contained in the source

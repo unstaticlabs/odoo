@@ -711,6 +711,14 @@ PY
     deprovision_archive_identity
 }
 
+reconcile_locked_classification() {
+    "${compose[@]}" --profile project-migration run --rm -T \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reconcile_locked_classification.py
+}
+
 case "$command_name" in
     prepare-target)
         # Install the product models and security before identity restoration so
@@ -770,6 +778,23 @@ case "$command_name" in
         start_archive
         seal_checkpoint
         ;;
+    reconcile-locked-classification)
+        if [[ "$canonical_target" != 1 || "$restore_profile" != full ]]; then
+            echo "Locked Documents classification reconciliation requires the canonical full target." >&2
+            exit 2
+        fi
+        start_archive
+        reconcile_locked_classification
+        ;;
+    semantic-finalize)
+        if [[ "$canonical_target" != 1 || "$restore_profile" != full ]]; then
+            echo "Documents semantic finalization requires the canonical full target." >&2
+            exit 2
+        fi
+        start_archive
+        semantic_runtime_deferred=1
+        finalize_semantic_index
+        ;;
     serve)
         "${compose[@]}" --profile accounting-compat up -d --wait db
         serve_target
@@ -779,7 +804,7 @@ case "$command_name" in
         validate_runtime
         ;;
     *)
-        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|checkpoint-status|seal-checkpoint|serve|status]" >&2
+        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|checkpoint-status|seal-checkpoint|reconcile-locked-classification|semantic-finalize|serve|status]" >&2
         exit 2
         ;;
 esac

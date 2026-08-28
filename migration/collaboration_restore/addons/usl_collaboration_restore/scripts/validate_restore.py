@@ -17,9 +17,9 @@ expected = {
     "mail_queue": 31,
     "attachment_relations": 556,
     "cross_accounting_parent_links": 1643,
-    "visible_messages": 49385,
+    "visible_messages": 49186,
     "external_messages": 0,
-    "deliberately_not_copied_messages": 620,
+    "deliberately_not_copied_messages": 819,
 }
 actual = {name: run.statistics_json.get(name) for name in expected}
 if actual != expected:
@@ -29,7 +29,7 @@ if not evidence.is_file():
     raise RuntimeError("Collaboration disposition evidence is missing")
 if len(env["usl.collaboration.restore.mapping"].sudo().search([
     ("source_model", "=", "mail.message"),
-])) != 49385:
+])) != 49186:
     raise RuntimeError("Collaboration source bindings are incomplete")
 if env["mail.message.reaction"].sudo().search_count([]) < 2:
     raise RuntimeError("Source reactions were not restored")
@@ -48,7 +48,7 @@ dropped_messages = [
     for row in dispositions["messages"]
     if row["disposition"] == "deliberately_not_copied"
 ]
-if len(dropped_messages) != 620:
+if len(dropped_messages) != 819:
     raise RuntimeError("Approved Collaboration exclusions differ")
 roger_assignments = [
     row for row in dispositions["activities"]

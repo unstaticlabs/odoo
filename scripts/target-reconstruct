@@ -304,9 +304,9 @@ if collaboration_path.is_file() and collaboration_path.stat().st_mtime >= int(sy
     collaboration = json.loads(collaboration_path.read_text(encoding="utf-8"))
     collaboration_summary = collaboration.get("summary") or {
         "complete": (
-            collaboration.get("visible_message_count") == 49385
+            collaboration.get("visible_message_count") == 49186
             and collaboration.get("external_message_count") == 0
-            and collaboration.get("deliberately_not_copied_message_count") == 620
+            and collaboration.get("deliberately_not_copied_message_count") == 819
             and len(collaboration.get("dispositions", {}).get("messages", [])) == 50005
             and len(collaboration.get("dispositions", {}).get("tracking", [])) == 36946
             and len(collaboration.get("dispositions", {}).get("followers", [])) == 5862
@@ -578,7 +578,7 @@ else
   fi
   if [[ "$documents_enabled" == 1 ]]; then
     # B2C archives its locked provider files and Collaboration archives
-    # retained legacy Documents/folder evidence after the source Documents
+    # retained source-backed Documents evidence after the source Documents
     # stage. Approved demo Knowledge content is deliberately not copied.
     # Seal only after every governed archive producer has finished.
     run_stage "seal final Documents archive checkpoint" env \

@@ -6,6 +6,20 @@ from classification import classify_group
 
 PROFILES = {"full", "accounting", "hr", "smoke"}
 
+# The locked source predates consistent company ownership on Documents. These
+# are semantic translations of that frozen snapshot, not runtime heuristics.
+_PRIMARY_COMPANY_FOLDER_ROOTS = {"Finance", "Legal", "Products"}
+_SOURCE_DOCUMENT_COMPANY_OVERRIDES = {848: 8}
+_SOURCE_ATTACHMENT_COMPANY_OVERRIDES = {
+    583: 1,
+    587: 1,
+    591: 1,
+    612: 1,
+    1611: 1,
+    2011: 1,
+    2016: 1,
+}
+
 
 def _company_id(item):
     return item.get("company_id") or item.get("folder_company_id")
@@ -42,6 +56,33 @@ def resolve_company_scope(group):
             f"{authoritative_company_ids}",
         )
     company_id = authoritative_company_ids[0] if authoritative_company_ids else None
+    company_inference = None
+    if company_id is None:
+        inferred_company_ids = set()
+        for item in authoritative_items:
+            document_id = item.get("document_id")
+            if document_id in _SOURCE_DOCUMENT_COMPANY_OVERRIDES:
+                inferred_company_ids.add(
+                    _SOURCE_DOCUMENT_COMPANY_OVERRIDES[document_id],
+                )
+                continue
+            folder_root = (item.get("folder_path") or "").partition(" / ")[0]
+            if item.get("kind") == "document" and folder_root in _PRIMARY_COMPANY_FOLDER_ROOTS:
+                inferred_company_ids.add(1)
+                continue
+            attachment_id = item.get("attachment_id")
+            if attachment_id in _SOURCE_ATTACHMENT_COMPANY_OVERRIDES:
+                inferred_company_ids.add(
+                    _SOURCE_ATTACHMENT_COMPANY_OVERRIDES[attachment_id],
+                )
+        if len(inferred_company_ids) > 1:
+            raise ValueError(
+                "locked source company translations conflict: "
+                f"{sorted(inferred_company_ids)}",
+            )
+        if inferred_company_ids:
+            company_id = inferred_company_ids.pop()
+            company_inference = "locked_source_semantic_ledger"
     superseded_company_ids = sorted(
         company for company in source_company_ids if company != company_id
     )
@@ -61,6 +102,7 @@ def resolve_company_scope(group):
         )
     return {
         "company_id": company_id,
+        "company_inference": company_inference,
         "source_company_ids": source_company_ids,
         "superseded_inactive_company_ids": superseded_company_ids,
     }

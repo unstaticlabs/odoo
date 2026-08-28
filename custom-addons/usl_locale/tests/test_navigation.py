@@ -1,10 +1,33 @@
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.usl_locale.models.ir_ui_menu import DEEMPHASIZED_ROOT_MENU_XMLIDS
+from odoo.addons.usl_locale.models.ir_ui_menu import (
+    DEEMPHASIZED_ROOT_MENU_XMLIDS,
+    PRIMARY_ROOT_MENU_XMLIDS,
+    TRAILING_ROOT_MENU_XMLIDS,
+    order_root_menu_items,
+)
 
 
 @tagged("post_install", "-at_install", "usl_locale")
 class TestFocusedAppLauncher(TransactionCase):
+    def test_distribution_root_menu_order_preserves_unspecified_apps(self):
+        unspecified = "usl_tese_payroll.menu_tese_payroll_root"
+        unordered = [
+            *reversed(PRIMARY_ROOT_MENU_XMLIDS),
+            TRAILING_ROOT_MENU_XMLIDS[1],
+            unspecified,
+            TRAILING_ROOT_MENU_XMLIDS[0],
+        ]
+
+        self.assertEqual(
+            order_root_menu_items(unordered, lambda xmlid: xmlid),
+            [
+                *PRIMARY_ROOT_MENU_XMLIDS,
+                unspecified,
+                *TRAILING_ROOT_MENU_XMLIDS,
+            ],
+        )
+
     def test_distribution_deemphasizes_expected_root_menus(self):
         self.assertEqual(
             DEEMPHASIZED_ROOT_MENU_XMLIDS,

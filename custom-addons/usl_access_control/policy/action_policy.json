@@ -13633,7 +13633,7 @@
         "rpc:l10n_fr.fec.export.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:l10n_fr.fec.export.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:l10n_fr.fec.export.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
-        "rpc:l10n_fr.fec.export.wizard.create_fec_report_action": "2ef723cdba8b3197831fe2bf6c472b5e5b5cc87a15510aa1656c7e151b356afd",
+        "rpc:l10n_fr.fec.export.wizard.create_fec_report_action": "53b01023b5e0ec696c93c54d8c8cfbcf066ad94e6503f78447566b53e538b4d6",
         "rpc:l10n_fr.fec.export.wizard.default_get": "531c4e60eff823f31cb08216674ab0f9a37f109ed87115c57b19c04a114bdb51",
         "rpc:l10n_fr.fec.export.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:l10n_fr.fec.export.wizard.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
@@ -39263,7 +39263,7 @@
         "rpc:res.users.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:res.users.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:res.users.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:usl.document.document_detail": "bc62d6f7517dc3eaa52b1d6c8183cb614d46d9ef24ff3aa083f01eabe201817d",
+        "rpc:usl.document.document_detail": "088a31052567d7701b02462765ce72f634b597a9a6bb4d0ef926117d756639b8",
         "rpc:wizard.ir.model.menu.create.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:wizard.ir.model.menu.create.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:wizard.ir.model.menu.create.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -52884,7 +52884,7 @@
         "rpc:ir.ui.menu.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
         "rpc:ir.ui.menu.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
         "rpc:ir.ui.menu.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
-        "rpc:ir.ui.menu.load_menus_root": "c98ca6de1fb66134b9fc0364fe58be55ef3a8f13cec29acbab9ad5144c9860e5",
+        "rpc:ir.ui.menu.load_menus_root": "b7f55783c618d0ee340744916bd0f2f5d6d90d9808da6f5615573f53567ab0fc",
         "rpc:ir.ui.menu.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
         "rpc:ir.ui.menu.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:ir.ui.menu.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
@@ -124577,7 +124577,7 @@
         "rpc:ir.ui.menu.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:ir.ui.menu.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:ir.ui.menu.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
-        "rpc:ir.ui.menu.load_menus": "2a6609e69b9726aedcf88f86997281d5009dd0bb342c59ef727595b92d4514e8",
+        "rpc:ir.ui.menu.load_menus": "290fe96c3c094f39fb0fc83da72feea2126e5a0d8d791fcc4754b29d1b941d8a",
         "rpc:ir.ui.menu.load_web_menus": "dc8ee0c71dc17678135f8da3fa4d7c36e5d61f9cea062be6761b928987d2e1a4",
         "rpc:ir.ui.menu.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:ir.ui.menu.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
@@ -145917,11 +145917,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:4",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:5",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:4",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:5",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:6",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_document_type:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_document_type:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_tag:orm_create:1",
@@ -149514,6 +149516,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -149527,6 +149532,9 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:6": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_document_type:orm_create:1": {
@@ -151595,15 +151603,17 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.create:orm_create:1": "970ae4fc3221320789e68e37ac0281c070868e840b7f17dc07e5b3bcf615f3a8",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.unlink:orm_unlink:1": "9e6acdef6aa95cd7284da8bd6f97eaa9252579062af4958a9579cc10bc44bc9d",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.write:orm_write:1": "c2b8fa259f6740156dc54a072b89020a630d79321dda80a82a0022bb1598e05f",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "ff1188ca9994f549172b41a5cbb4a364d30f103f8b0734ae540affa4b6d8bd7b",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:2": "92b4159375c7cc8bdebc6d6f7037d76299d977776251ba2b013950716ef4f94b",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:3": "bc603781f4cc4d9954da8fc0ba9bc2e68e824c55876713b6d873a5838885b909",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:4": "2c368e40df1c8047f4b591565f4b4e90609d16a68264e2ced9539963e8aa6284",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:1": "e458f9c36d3b003452ea2cba1eec69316ab5e885da7aa312095c8adf0c2f7c73",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:2": "177b4eefd824b1703333a094ec0a2942a30728b7dc54c2768845423c7d392329",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:3": "d403c65461a826192c23e7e8657490d350fe95628b1040f6843853ab957e8d9e",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:4": "3a443ce720b757519666b1330940b4e310431d0eef8bfe4c5a216a6684c1dae4",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:5": "465e20fafb7f8620fa98cda05294d89deaac2f65cd1148cd45ab0e4c976e714b",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "ec6a9a325e57a82c49225feb37bf7510a887bd5f5e86ff8a49ceb1c64f7ea4e1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:2": "a9b4d54d0f699189f19fcf04b73b9cb42597c2075595b38c961ade7a09ce99a3",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:3": "42ab24724cb59f6622015dcd347a7471f2b4c98a5f11d2d65cc2cd7efa2b01d6",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:4": "b557c231a30fac0603a36d058f5107c067ad741af9c4916bd92bba981a0dda5c",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:5": "98f83f2015e4bc5c8fa4cc8e7e78e4c4573eae9f4841bbf6c97b7e5d05821e00",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:1": "b9fbf5427386c993505b59e3f6ce003302382c901e2276387d8162ef89bfcb3d",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:2": "7a218c9a4e8ac8fadba361559d583170859acf43a04019face497d5bfaad8dd6",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:3": "00a8483173d5c4e9b9aacacaa53c08968edd763c10191505feea5bc7f1d204f1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:4": "d0677966db349ce8602a844b814ff29f1e300c4a242faf885a37261701959d6e",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:5": "f672fd03d3d97ba76e7a16c92fdb24952a46d9f52cb2aeddccb1b9b8d988fa4b",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:sudo:6": "2cbbe9551a6e0c898418241e2361ab64ea4ed74c93bd1a93e7565c15a6b4e67e",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_document_type:orm_create:1": "7e1a2b54021d05229d5385fbe3a9ba27442d91ca78418badcb9b7f04c5d76289",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_document_type:sudo:1": "9142c8d5000c6b6eb8a16d79e67440aa5881a2d54abe50276ef07fa6e91b1517",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._ensure_context_tag:orm_create:1": "b72903df6137fea46f4470d49470d1d745bb3f14dc9ff1dfc55e5471fc33fa5c",
@@ -151663,10 +151673,10 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:3": "6d1d472ebc8c80bed03d4600e294c93bbb1c607786405fd29c310a24316fad03",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:sudo:1": "c1c6b9b5d58f4392252ee7143a5193e872da06daf934a30ea610ac5c5077f594",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:sudo:2": "52a6fe3e4ac917e26417abb39db405ff3399b34b9ffca50756b775e946e907ba",
-        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:1": "70ffa8f37a01e5adc6aa293992597882986d7da5d91f32f3df5db65e9ad4c18f",
-        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:2": "e8f09dee2a662b94fd02b5429b87cce616f73fa094b0c85d4318617625ec33db",
-        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:3": "85e8959db52569bd5b0cc37c741c4b456973fa4a97892f3814562a01d9a6ddee",
-        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_document_archive_status:sudo:1": "479ec330adbcef10babd8f2161ea5c9dbb859999087a4e7e237985624c6a1533",
+        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:1": "f816feafba74f3a14e415fa775892c78c9680c5b47b7a4d55a750caeecc7833c",
+        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:2": "00edb26a2cb360dfe33c112c1226beb236b2516dc7784804fa21adc6c4848f42",
+        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:3": "2dc9f166017b2e94fffb5b78ec89fd9b0ab42435c5a50587b3e3e8b653518449",
+        "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_document_archive_status:sudo:1": "07803316dc87e4f44d439df12a3771f2aadedcd07f2431eace2e156f14baf9b7",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1": "70f0254f387e43226b043a4cfac954abd0b15e1a9e799a0ef5ce9cd6ce6224a8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": "d9c79d87a5b3f18973f99a74df6ffcf3e15ff7dca76ddf69895e949610c68050",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": "a8d95971d557be7da2686d518b3335e8f036ad4ccc2cc07bd8bedb9a7e94fd34",
@@ -162612,6 +162622,7 @@
         "client:project:addons/project/static/src/views/analytic_account_form/analytic_account_form_controller.js:if:rpc:1",
         "client:stock_account:addons/stock_account/static/src/stock_valuation/controller.js:if:rpc:1",
         "route:http:ANY:/account/init_tests_shared_js_python",
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>",
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_invoice:1",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_vendor_bill:1",
@@ -163206,6 +163217,11 @@
         "route:http:ANY:/account/init_tests_shared_js_python": {
           "targets": [
             "rpc:ir.config_parameter.get_str"
+          ]
+        },
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>": {
+          "targets": [
+            "rpc:l10n_fr.fec.export.wizard.generate_fec"
           ]
         },
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python": {
@@ -165762,6 +165778,7 @@
         "client:project:addons/project/static/src/views/analytic_account_form/analytic_account_form_controller.js:if:rpc:1": "26db2507236674e5b1a20d32987690877907bae804c97fd51e432dae85f06b11",
         "client:stock_account:addons/stock_account/static/src/stock_valuation/controller.js:if:rpc:1": "5beee0f36b0b33b0f5caa5ce03e5f836429243213aceacdf86656baf32fad763",
         "route:http:ANY:/account/init_tests_shared_js_python": "eaeb15ea0f3c8df4bb57b1ca96c89bc34e1bf6211610228c54193cbd3a5d2070",
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>": "c6ae80d8ddea33570ab42a1bc60048f7d16f9c643cecadefea5eaa4df2f1392d",
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python": "ccb7a30f4dd3aad5fe1519351083a934189fb4d606495711ad51a61a0a35a052",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_invoice:1": "9ececcccc6b3e5080ed51ea206174c1a3b20ba95eaca7787f8acd323bb41a067",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_vendor_bill:1": "636b1de62215c73228ad1b897ded95782536bbdd4f25683cd54166c25ca0956f",
@@ -174077,6 +174094,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "a14252a7ba2d00b71d8c16f0c7fe9d654a07907b4ece382e8b4b61cd891427c9",
+  "qualified_policy_digest": "9fc39515733a4a3b3d3dfbd1744f170d8c57517802991b11b7585646b1e9bbf5",
   "schema": "usl-action-risk-policy-v1"
 }

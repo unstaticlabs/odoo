@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from odoo import SUPERUSER_ID, Command
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.service.model import call_kw
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -122,6 +123,15 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         with self.assertRaises(TypeError):
             policy.model_operation_guards["project.task", "unlink"] = None
+
+    def test_document_detail_keeps_model_rpc_contract(self):
+        with self.assertRaisesRegex(ValidationError, "no longer exists"):
+            call_kw(
+                self.env["usl.document"],
+                "document_detail",
+                [0],
+                {},
+            )
 
     def test_agent_and_irreversible_capability_are_backend_incompatible(self):
         with self.assertRaisesRegex(ValidationError, "incompatible"):

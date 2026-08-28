@@ -175,6 +175,7 @@ class RebuildAccountClosingPeriod(models.Model):
 class UslDocument(models.Model):
     _inherit = "usl.document"
 
+    @api.model
     def document_detail(self, document_id, check_archive=False):
         result = super().document_detail(document_id, check_archive=check_archive)
         result["can_permanently_delete"] = self._usl_actor_may_perform_irreversible_actions()

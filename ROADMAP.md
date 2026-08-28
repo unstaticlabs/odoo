@@ -198,11 +198,12 @@ Templating system are decided.
 The 27 August Collaboration integration candidate completed another canonical
 reconstruction from the same locked source. Its two Collaboration passes were
 identical at 50,005 messages, 36,946 tracking values, 5,862 followers and 895
-activities. After product review, 49,385 operational messages are retained and
-620 messages are deliberately not copied: 66 default/demo Knowledge messages
-and 554 generated configuration notifications or tracking events with no
-customer or operational content. Their exact disposition is checksum-sealed
-outside the product; no parallel archive model is delivered. Finalization
+activities. After product review, 49,186 operational messages are retained and
+819 messages are deliberately not copied: 66 default/demo Knowledge messages,
+554 generated configuration notifications or tracking events with no customer
+or operational content, and 199 retired Documents folder/URL activity messages.
+Their exact disposition is checksum-sealed outside the product; no placeholder
+PDF or parallel archive model is delivered. Finalization
 removed every temporary migration model/field/table/XML ID and passed the
 product database boundary. Identity and Documents qualification retained the
 source-backed Paperless archive and produced zero changes on repeated
