@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.parse import urlsplit
 
 from odoo.tests import HttpCase, tagged
@@ -697,6 +697,12 @@ class TestSignBrowserJourneys(HttpCase):
             type(sign_request.signer_ids),
             "_send_signer_invitation",
             return_value=True,
+        ), patch.object(
+            type(sign_request),
+            "_sign_dss_client",
+            return_value=Mock(
+                prepare_signing_fields=lambda document, fields: document,
+            ),
         ):
             sign_request.action_send()
         signer = sign_request.signer_ids
@@ -708,7 +714,7 @@ class TestSignBrowserJourneys(HttpCase):
         page = response.text
         self.assertIn('id="usl_strong_sign_context"', page)
         self.assertIn("usl_sign.document_portal", page)
-        self.assertIn("/usl_sign/static/src/js/strong_sign.js", page)
+        self.assertNotIn("/usl_sign/static/src/js/strong_sign.js", page)
         self.assertNotIn('id="usl_strong_sign_button"', page)
         self.assertNotIn("Exact document SHA-256", page)
         self.assertNotIn("Pocket ID verified", page)
