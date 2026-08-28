@@ -29,7 +29,7 @@
                                         <td class="o_td_quantity text-end"></td>
                                         <td class="o_td_quantity text-end"></td>
                                         <td class="o_td_quantity text-end"></td>
-                                        
+
                                     </tr>
                                     <tr t-foreach="docs.filtered(lambda quant: quant.location_id.id == location.id)" t-as="line">
                                         <td groups="stock.group_stock_multi_locations"></td>
