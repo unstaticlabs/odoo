@@ -418,6 +418,10 @@ class PocketIDAPI:
                 or (
                     not SAFE_LOCALHOST_PATTERN.fullmatch(hostname)
                     and not _is_private_qa_hostname(hostname)
+                    and not (
+                        hostname == "pocket-id"
+                        and os.getenv("USL_POCKET_ID_ALLOW_COMPOSE_ADMIN") == "1"
+                    )
                 )
             ):
                 raise PocketIDError(
@@ -734,27 +738,13 @@ def _ensure_client(
         client = api.request("PUT", f"/api/oidc/clients/{client_id}", payload)
     else:
         client = api.request("POST", "/api/oidc/clients", payload)
-    credentials = client.get("credentials", {}) if isinstance(client, dict) else {}
-    configured_secrets = (
-        credentials.get("secrets")
-        if isinstance(credentials, dict)
-        else None
+    _ensure_client_secret(
+        api,
+        client_id,
+        secret,
+        existing=bool(matches),
+        client=client,
     )
-    if isinstance(configured_secrets, list):
-        if not any(
-            isinstance(item, dict) and item.get("isActive", True)
-            for item in configured_secrets
-        ):
-            api.request(
-                "POST",
-                f"/api/oidc/clients/{client_id}/secrets",
-                {"secret": secret},
-            )
-    else:
-        # Pocket ID versions and response shapes differ here. Fall back to
-        # the dedicated plural endpoint so an existing environment-owned
-        # secret is detected by prefix and is never rotated on deployment.
-        _ensure_client_secret(api, client_id, secret)
     api.request(
         "PUT",
         f"/api/oidc/clients/{client_id}/allowed-user-groups",
@@ -765,16 +755,49 @@ def _ensure_client(
     return client
 
 
-def _ensure_client_secret(api: PocketIDAPI, client_id: str, secret: str) -> None:
+def _ensure_client_secret(
+    api: PocketIDAPI,
+    client_id: str,
+    secret: str,
+    *,
+    existing: bool,
+    client: dict[str, object],
+) -> None:
     """Keep the environment-owned secret present without rotating it on deploy."""
-    secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
+    credentials = client.get("credentials")
+    embedded_secrets = (
+        credentials.get("secrets", []) if isinstance(credentials, dict) else []
+    )
+    if isinstance(embedded_secrets, list) and any(
+        isinstance(item, dict) and item.get("isActive", True)
+        for item in embedded_secrets
+    ):
+        return
+    try:
+        secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
+    except PocketIDError as error:
+        # Pocket ID 2.12 supports one write-only secret through the singular
+        # endpoint. Existing QA clients already own the environment secret;
+        # rotating it on every refresh would invalidate active OIDC sessions.
+        if (
+            "returned HTTP 404" not in str(error)
+            or "API endpoint not found" not in str(error)
+        ):
+            raise
+        if not existing:
+            api.request(
+                "POST",
+                f"/api/oidc/clients/{client_id}/secret",
+                {"secret": secret},
+            )
+        return
     if not isinstance(secrets, list) or any(
         not isinstance(item, dict) for item in secrets
     ):
         raise PocketIDError("Pocket ID returned an invalid OIDC client secret list.")
     expected_prefix = secret[:4] if len(secret) > 4 else ""
     if any(
-        item.get("prefix") == expected_prefix and item.get("isActive") is True
+        item.get("prefix") == expected_prefix and item.get("isActive", True)
         for item in secrets
     ):
         return

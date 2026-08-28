@@ -51,11 +51,7 @@ export USL_SIGN_DSS_IMAGE="${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4-${DSS_RUNTIME_
 if [[ "${1:-}" == "login-link" ]]; then
   username="${2:?Usage: scripts/sign-qa-stack login-link USER [TTL]}"
   ttl="${3:-1h}"
-  admin_bind_address="${USL_SIGN_POCKETID_BIND_ADDRESS:-127.0.0.1}"
-  export USL_POCKET_ID_ADMIN_API_URL="${USL_POCKET_ID_ADMIN_API_URL:-http://$admin_bind_address:$USL_SIGN_POCKETID_POCKET_PORT}"
-  exec python3 "$ROOT/scripts/pocket_id_dev.py" \
-    --env-file "$USL_SIGN_POCKETID_ENV_FILE" \
-    one-time-link "$username" --ttl "$ttl"
+  exec "$ROOT/scripts/sign-pocketid-stack" login-link "$username" "$ttl"
 fi
 
 exec "$ROOT/scripts/sign-pocketid-stack" "$@"
