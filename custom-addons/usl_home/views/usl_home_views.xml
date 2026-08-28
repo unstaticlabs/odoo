@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_usl_home" model="ir.actions.client">
+        <field name="name">Home</field>
+        <field name="tag">usl_home.Home</field>
+        <field name="path">home</field>
+    </record>
+
+    <menuitem
+        id="menu_usl_home_root"
+        name="Home"
+        action="action_usl_home"
+        sequence="1"
+        groups="base.group_user"
+        web_icon="usl_home,static/description/icon.svg"
+    />
+</odoo>

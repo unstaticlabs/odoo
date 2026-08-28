@@ -77,6 +77,7 @@ help:
 	  '  make qa PROFILE=no-documents        Full Odoo data without Documents runtime' \
 	  '  make qa PROFILE=documents-smoke     Deterministic Documents sample' \
 	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
+	  '  make qa PROFILE=home                Focused isolated Home cockpit review' \
 	  '  make qa-cache-status                Check shared cache compatibility' \
 	  '  make qa-cache-refresh               Full fresh migration and atomic cache refresh' \
 	  '  make qa-cache-resume                Revalidate Accounting and resume a failed refresh' \
