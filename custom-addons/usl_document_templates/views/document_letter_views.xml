@@ -50,27 +50,27 @@
                             string="Finalize"
                             help="Freeze the letter content and create its immutable official PDF."
                             class="btn-primary"
-                            invisible="state != 'draft'"/>
+                            invisible="not id or state != 'draft'"/>
                     <button name="action_mark_sent"
                             type="object"
                             string="Mark as Sent"
                             help="Record that the finalized letter has been delivered through the selected method."
                             class="btn-primary"
-                            invisible="state != 'finalized'"/>
+                            invisible="not id or state != 'finalized'"/>
                     <button name="action_download_pdf"
                             type="object"
                             string="Download PDF"
-                            invisible="not finalized_attachment_id"/>
+                            invisible="not id or not finalized_attachment_id"/>
                     <button name="action_create_correction"
                             type="object"
                             string="Create Correction"
                             help="Create a new draft version linked to this issued letter; the original remains unchanged."
-                            invisible="state not in ('finalized', 'sent')"/>
+                            invisible="not id or state not in ('finalized', 'sent')"/>
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
                             help="Cancel this draft."
-                            invisible="state != 'draft'"/>
+                            invisible="not id or state != 'draft'"/>
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,finalized,sent,cancelled"/>
