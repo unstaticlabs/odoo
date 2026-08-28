@@ -161,6 +161,21 @@ class AgentInterfaceTests(unittest.TestCase):
         with self.assertRaises(self.github.AgentError):
             self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
 
+    def test_feature_ready_rejects_not_ready_contract(self) -> None:
+        self.assertIn(
+            "not merge-ready",
+            self.verify.merge_readiness_error(
+                {"readiness": {"status": "NOT READY TO MERGE"}}
+            ),
+        )
+
+    def test_feature_ready_accepts_documented_follow_up(self) -> None:
+        self.assertIsNone(
+            self.verify.merge_readiness_error(
+                {"readiness": {"status": "READY TO MERGE WITH DOCUMENTED FOLLOW-UP"}}
+            )
+        )
+
     def test_feature_start_refuses_protected_and_detached_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

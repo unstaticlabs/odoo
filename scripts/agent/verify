@@ -193,6 +193,18 @@ def commits(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def merge_readiness_error(value: object) -> str | None:
+    if not isinstance(value, dict):
+        return "handoff root is not an object"
+    readiness = value.get("readiness")
+    if not isinstance(readiness, dict):
+        return "handoff readiness is missing"
+    status = readiness.get("status")
+    if status not in {"READY TO MERGE", "READY TO MERGE WITH DOCUMENTED FOLLOW-UP"}:
+        return f"handoff readiness is {status!r}, not merge-ready"
+    return None
+
+
 def feature_ready(arguments: argparse.Namespace) -> int:
     errors: list[str] = []
     branch = branch_name()
@@ -210,6 +222,13 @@ def feature_ready(arguments: argparse.Namespace) -> int:
     )
     if validation.returncode:
         errors.append("handoff is invalid or stale")
+    else:
+        try:
+            readiness_error = merge_readiness_error(load_json(handoff))
+        except (AgentError, OSError):
+            readiness_error = "handoff cannot be read for readiness"
+        if readiness_error:
+            errors.append(readiness_error)
     upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}", check=False)
     if not upstream:
         errors.append("feature branch has no upstream remote")
