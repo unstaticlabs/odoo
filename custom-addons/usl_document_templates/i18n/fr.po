@@ -784,13 +784,13 @@ msgstr "Signataire d’aperçu"
 
 #. module: usl_document_templates
 #: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
-msgid "Printed Attachments"
-msgstr "Annexes imprimées"
+msgid "Attachment List"
+msgstr "Liste des pièces jointes"
 
 #. module: usl_document_templates
 #: model:ir.model.fields,field_description:usl_document_templates.field_usl_document_letter__attachment_ids
-msgid "Printed attachment list"
-msgstr "Liste des annexes imprimées"
+msgid "Attachment names printed"
+msgstr "Noms des pièces jointes imprimés"
 
 #. module: usl_document_templates
 #. odoo-python
@@ -1434,3 +1434,24 @@ msgstr "capital social"
 #: code:addons/usl_document_templates/models/document_letter.py:0
 msgid "unknown"
 msgstr "inconnu"
+
+#. module: usl_document_templates
+#. odoo-python
+#: code:addons/usl_document_templates/models/res_config_settings.py:0
+msgid "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+msgstr "ÉCHANTILLON SYNTHÉTIQUE DE QUALIFICATION — DOCUMENT FICTIF"
+
+#. module: usl_document_templates
+#: model:ir.model.fields,help:usl_document_templates.field_usl_document_letter__attachment_ids
+msgid "Only the filenames are listed in the letter PDF; the files are neither merged into nor embedded in it."
+msgstr "Seuls les noms de fichiers figurent dans le PDF de la lettre ; les fichiers n’y sont ni fusionnés ni incorporés."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Only filenames appear in the letter PDF. The original files are not merged or embedded."
+msgstr "Seuls les noms de fichiers figurent dans le PDF de la lettre. Les fichiers originaux ne sont ni fusionnés ni incorporés."
+
+#. module: usl_document_templates
+#: model_terms:ir.ui.view,arch_db:usl_document_templates.view_document_letter_form
+msgid "Cancel this draft."
+msgstr "Annuler ce brouillon."
