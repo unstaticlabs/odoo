@@ -39,8 +39,8 @@ without interrupting everyday work.
   send.
 - **Primary actions:** **Request signatures**, **Place signing fields**, **Send for signature**.
 - **Expectation:** the PDF name, Standard method, Customer field group and
-  sensible reminder settings are preselected. Optional request metadata stays
-  under **Request name, message and linked record**.
+  sensible reminder settings are preselected. Request name, message and linked
+  record stay visible as ordinary request details.
 - **Release check:** malformed PDF, missing email, unsaved fields and sending
   failure each have a specific recovery message.
 
