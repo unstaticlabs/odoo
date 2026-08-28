@@ -1648,6 +1648,33 @@ class TestDocuments(TransactionCase):
         self.assertEqual(detail["review_state"], "reviewed")
         self.assertFalse(detail["can_mark_reviewed"])
 
+    def test_authoritative_links_do_not_duplicate_business_review(self):
+        tag = self._tag(14101, "Accounting")
+        authoritative = self._document(
+            14102,
+            review_state="needs_attention",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        authoritative.link_to_record(
+            "res.partner",
+            self.partner_a.id,
+            archive_mode="mandatory",
+            policy_role="evidence",
+            attachment_origin="direct_record",
+            policy_reason="authoritative_test_evidence",
+        )
+        manual = self._document(
+            14103,
+            review_state="needs_attention",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        manual.link_to_record("res.partner", self.partner_a.id)
+
+        self.env["usl.document"].reconcile_linked_classification(limit=0)
+
+        self.assertEqual(authoritative.review_state, "reviewed")
+        self.assertEqual(manual.review_state, "classified")
+
     def test_company_change_cannot_conflict_with_an_active_business_link(self):
         self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
         document = self._document(1408, company_id=self.company_a.id)

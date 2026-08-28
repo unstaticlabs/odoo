@@ -188,12 +188,15 @@ already occur on at least two documents. Inbox tags are excluded. This setup is
 idempotent, preserves every manually configured expression, and is rerun after
 archive reconstruction as well as during normal synchronization.
 
-Odoo separately reconciles the review state of an archive root. It may promote
-**Needs attention** to **Ready for review** (never to **Reviewed**) only when the root is
-available, has a company, synchronized permissions, an existing authoritative
-business relationship, consistent link companies, and a document type or tag.
-Unlinked external intake, policy conflicts, missing records, and permission
-errors remain visible for review. Classification is reconciled immediately
+Odoo separately reconciles the review state of an archive root. It promotes
+**Needs attention** to **Reviewed** when a mandatory evidence relationship or a
+direct-record/final-output relationship proves that the owning Odoo workflow
+already reviewed the business context. A complete but manually created
+Documents relationship moves only to **Ready for review**. Checksum-locked
+migration classifications also finish as **Reviewed** so historical evidence
+does not create a duplicate approval backlog. Unlinked external intake, policy
+conflicts, missing records, and permission errors remain visible for review.
+Classification is reconciled immediately
 after archive context or a manual business relationship is applied, after a
 completed Paperless synchronization, and at the end of the Documents
 migration. A twice-daily unbounded recovery sweep catches interrupted or

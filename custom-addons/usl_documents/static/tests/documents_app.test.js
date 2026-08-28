@@ -1025,6 +1025,13 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         ".o_usl_filter_shortcuts > .o_usl_tag_chip"
     ).toHaveCount(6);
     expect(".o_usl_more_tags summary").toHaveText(/More tags \(14\)/);
+    expect(
+        Number(
+            getComputedStyle(
+                document.querySelector(".o_usl_documents_toolbar")
+            ).zIndex
+        )
+    ).toBeGreaterThan(2);
     await contains(".o_usl_more_tags summary").click();
     await contains(".o_usl_more_tags input").fill("deliberately long");
     expect(".o_usl_more_tags_results .dropdown-item").toHaveCount(1);
