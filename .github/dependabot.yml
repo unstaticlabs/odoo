@@ -164,6 +164,11 @@ updates:
       time: "06:00"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 5
+    # This image is built from deploy/documents/paperless-ngx/Dockerfile and
+    # qualified by the repository release workflow. It is not a Docker Hub
+    # dependency; its public base images are covered by the Docker entry above.
+    ignore:
+      - dependency-name: "usl-paperless-ngx"
     groups:
       compatible-service-updates:
         patterns:
@@ -184,6 +189,11 @@ updates:
       time: "06:15"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 3
+    # Qualification intentionally uses the Distribution release image. Its
+    # immutable digest is supplied by release admission, not discovered as a
+    # public dependency by Dependabot.
+    ignore:
+      - dependency-name: "unstaticlabs/usl-odoo"
     groups:
       compatible-backup-service-updates:
         patterns:

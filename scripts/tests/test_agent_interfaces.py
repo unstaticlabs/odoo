@@ -321,6 +321,11 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertIn("scripts/agent/verify repository", agent_workflow)
         self.assertNotIn("dependabot[bot]", product_workflow)
 
+    def test_dependabot_ignores_repository_built_compose_images(self) -> None:
+        configuration = (ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8")
+        self.assertIn('dependency-name: "usl-paperless-ngx"', configuration)
+        self.assertIn('dependency-name: "unstaticlabs/usl-odoo"', configuration)
+
 
 if __name__ == "__main__":
     unittest.main()
