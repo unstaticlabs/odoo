@@ -68,7 +68,7 @@ Primary entry points:
   one-command qualified build, reconstruction, gate, deployment and rollback.
 
 The integration baseline is upstream commit
-`aef56898d9ea5a97948af04c03ae101d17b8b4a3`. The source dump and generated
+`363b4bb23a56139ca237c833a8348a662b8387f6`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -81,7 +81,7 @@ installation and developer documentation is available from
 
 This Distribution includes two local workflows for Odoo `saas~19.3` Community. The
 branch is pinned to upstream commit
-`aef56898d9ea5a97948af04c03ae101d17b8b4a3`. Local development uses one
+`363b4bb23a56139ca237c833a8348a662b8387f6`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
