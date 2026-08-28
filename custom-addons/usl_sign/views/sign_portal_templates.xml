@@ -120,7 +120,6 @@
                         });
                 });
             </script>
-            <script t-if="strong_signing" type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js" t-att-nonce="script_nonce"/>
         </t>
         <t t-call="usl_sign.secure_web_layout"
            html_data="{'lang': sign_oca_backend_info['lang']}"

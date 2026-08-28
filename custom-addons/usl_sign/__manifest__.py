@@ -78,6 +78,9 @@
             ("remove", "sign_oca/static/src/tests/sign_tour.esm.js"),
         ],
         "oca_sign.assets_frontend_sign": [
+            # Keep the ceremony adapter in the same fingerprinted bundle as
+            # the shared signer workspace so they cannot load independently.
+            "usl_sign/static/src/js/strong_sign.js",
             "usl_sign/static/src/js/portal_utils.esm.js",
             "usl_sign/static/src/js/portal_patch.esm.js",
             "usl_sign/static/src/xml/portal_patch.xml",

@@ -2735,7 +2735,7 @@ class TestCleanUslSign(TransactionCase):
         )
         portal_page = self.env.ref("usl_sign.portal_sign_document").arch
         self.assertIn("usl_strong_sign_context", portal_page)
-        self.assertIn("strong_sign.js", portal_page)
+        self.assertNotIn("strong_sign.js", portal_page)
 
     def test_signing_result_state_distinguishes_pending_final_and_checks(self):
         sign_request = self._request(
