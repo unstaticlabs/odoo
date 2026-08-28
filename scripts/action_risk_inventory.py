@@ -79,6 +79,7 @@ PRODUCT_MODULES = frozenset(
         "usl_platform_billing_pocketid",
         "usl_pocketid",
         "usl_project",
+        "usl_sign",
         "usl_tese_accounting",
         "usl_tese_payroll",
     },
