@@ -821,6 +821,27 @@ class TestSignBrowserJourneys(HttpCase):
                 ) {
                     throw new Error("The Strong field guide did not reach the final signature.");
                 }
+                const guideLine = iframe.contentDocument.querySelector(
+                    ".o_sign_sign_item_navline",
+                );
+                const targetBox = signatureField.closest(
+                    ".o_sign_oca_field",
+                ).getBoundingClientRect();
+                const lineStartX = Number.parseFloat(guideLine.style.left);
+                const lineStartY = Number.parseFloat(guideLine.style.top);
+                const lineLength = Number.parseFloat(guideLine.style.width);
+                const lineAngle = Number.parseFloat(
+                    guideLine.style.transform.match(/rotate\\(([-0-9.]+)rad\\)/)?.[1],
+                );
+                const lineEndX = lineStartX + Math.cos(lineAngle) * lineLength;
+                const lineEndY = lineStartY + Math.sin(lineAngle) * lineLength;
+                if (
+                    guideLine.hidden ||
+                    Math.abs(lineEndX - (targetBox.left - 3)) > 2 ||
+                    Math.abs(lineEndY - (targetBox.top + targetBox.height / 2)) > 2
+                ) {
+                    throw new Error("The field guide line did not terminate on its target field.");
+                }
                 console.log("test successful");
             })();
             """,
