@@ -8,7 +8,7 @@
   `627e0e52995de4a93f3c4e55db545bbc3d1c11c7`, preserved as
   `archive/19-usl-pre-saas-19.3-20260824`.
 - Online source: Odoo `saas~19.3.1.3`, dump SHA-256
-  `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+  `ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`.
 - Multi-company source: `a9d27c4b8f164142f9d120a41b15c29d3b76b2e3`, preserved as
   `archive/feat-multicompany-accounting-pre-saas-19.3-20260824`.
 

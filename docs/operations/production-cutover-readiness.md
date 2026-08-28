@@ -21,7 +21,7 @@ is a rehearsal input, not the final frozen source:
 
 - `dump.sql` modified 23 August 2026, 118,560,508 bytes;
 - dump SHA-256
-  `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`;
+  `ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`;
 - package size approximately 403 MiB, including approximately 290 MiB of
   filestore and 2,029 filestore files.
 

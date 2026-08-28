@@ -20,7 +20,7 @@ from .parsers import (
     load_csv,
 )
 
-EXPECTED_DUMP_SHA256 = "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+EXPECTED_DUMP_SHA256 = "ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1"
 SOURCE_FILESTORE = Path(
     os.getenv("B2C_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
 ).resolve()

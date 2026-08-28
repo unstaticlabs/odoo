@@ -26,7 +26,7 @@ if [[ ! -f "$source_dump_dir/dump.sql" ]]; then
   exit 2
 fi
 source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
-expected_sha256="0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+expected_sha256="ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1"
 if [[ "$source_sha256" != "$expected_sha256" ]]; then
   printf 'Collaboration source SHA-256 changed: %s\n' "$source_sha256" >&2
   exit 2

@@ -177,7 +177,7 @@ maturity map is maintained in
 
 These foundations and the B2C work are now part of local `19-usl`. After Docker
 capacity was increased, a fresh full reconstruction of source dump
-`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`
+`ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`
 completed on 26 August and published a reusable sanitized QA seed. The run
 proved repeatable Product, Accounting, Identity, B2C, HR, Projects, Documents,
 Paie TESE and Platform Billing restoration, 645 archived Paperless documents,

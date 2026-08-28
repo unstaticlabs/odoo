@@ -26,7 +26,7 @@ actual_evidence_sha = hashlib.sha256(evidence.read_bytes()).hexdigest()
 sidecar = evidence.with_suffix(".json.sha256").read_text(encoding="utf-8").split()[0]
 if sidecar != actual_evidence_sha:
     raise RuntimeError("Collaboration evidence checksum seal is invalid")
-if payload.get("source_dump_sha256") != "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f":
+if payload.get("source_dump_sha256") != "ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1":
     raise RuntimeError("Product validation evidence has the wrong source identity")
 if (
     payload.get("visible_message_count") != 49186
