@@ -53,7 +53,7 @@ jobs:
           COMPOSE_PROJECT_NAME: usl-odoo-action-risk-${{ github.run_id }}-${{ github.run_attempt }}
           TEST_DATABASE: odoo_action_risk_${{ github.run_id }}_${{ github.run_attempt }}
         run: |
-          product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+          product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_home,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
           docker compose --profile test run --rm \
             -e ODOO_INIT_DB="$TEST_DATABASE" \
             test odoo --config=/etc/odoo/odoo.conf \
