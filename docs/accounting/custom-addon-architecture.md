@@ -2,7 +2,7 @@
 
 Status: accepted architecture decision
 Baseline: Odoo Community `saas~19.3` at
-`aef56898d9ea5a97948af04c03ae101d17b8b4a3`
+`1777f212a9d1a55fe70d5389a3decbf896ceff0b`
 
 ## Decision
 

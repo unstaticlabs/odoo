@@ -128,3 +128,88 @@ a fresh product reconstruction, product/migration boundary checks and the
 French catalogue and user-documentation gates. The shared full-QA cache is not
 refreshed by a linked worktree; that release-only gate remains separate from
 this integration candidate.
+
+## Upstream ancestry refresh: 28 August 2026
+
+The Distribution merged the latest fetched `upstream/saas-19.3` tip as a real
+second parent, preserving both histories:
+
+- Distribution base: `e3f0430053f260bd58c2c836e2f485b5e0a56335`;
+- previous integrated upstream: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`;
+- refreshed upstream: `1777f212a9d1a55fe70d5389a3decbf896ceff0b`,
+  fetched on 28 August 2026;
+- exact upstream range:
+  `aef56898d9ea5a97948af04c03ae101d17b8b4a3..1777f212a9d1a55fe70d5389a3decbf896ceff0b`;
+- delta: 64 commits, 124 files, 1,614 insertions and 188 deletions.
+
+There are no upstream release-note, migration-directory, Python dependency,
+container, Compose or deployment-workflow changes in the range. The incoming
+manifest changes add the `hr_skills_event` browser-test assets and the
+`l10n_tr` backend asset extension. Stored-schema changes are limited to
+partial B-tree indexes for Accounting analytic lines and payment destination
+accounts, plus a POS payment index that is outside the delivered product
+module set. A normal installed-module update creates the applicable indexes;
+no destructive data rewrite or one-shot product migration is required.
+
+The merge had no literal conflicts. The only file changed by both lines was
+`addons/account/models/account_move.py`. Upstream added cash-rounding access
+handling and sequence-suffix-aware gap detection; USL's independent
+company-governed fiscal-year sequence domain remains intact. Dropping the USL
+patch was rejected because upstream still provides no equivalent extension
+point. Replaying or cherry-picking the upstream range was also rejected in
+favor of the ancestry-preserving merge. A separate compatibility commit
+removes trailing whitespace introduced in the stock inventory report.
+
+The reviewed incoming behavior covers Accounting cash-basis reversals,
+self-billing journals and sequence gaps; ORM grouping sets and access domains;
+Peppol and French PDP multi-company registration; HR, stock, sales, POS,
+Website, Mail and browser assets; security group references; database
+neutralization; and PDF AcroForm handling. The Community/Enterprise boundary
+is unchanged. No custom add-on consumes a removed API. `usl_locale` composes
+the new `l10n_tr` session payload through `super()`, and the French PDP shortcut
+still passes through USL's guarded registration override with both live flags
+disabled.
+
+The exact 167-module action surface was rediscovered and reviewed. Existing
+risk classifications were retained for changed implementations; the two new
+private Accounting and stock compute `sudo()` sinks are `system_internal` and
+have no direct RPC, controller, UI, client, server-action or cron entry point.
+The refreshed policy covers 55,146 source actions and 47,069 runtime actions.
+
+Qualification evidence on the isolated `usl-odoo-qa-afa2ab82` project:
+
+- the 154-module delivered clean registry installed, upgraded twice, compiled
+  all 36 product bundles, passed source and database product/migration
+  boundaries, and materialized both applicable new Accounting indexes;
+- focused upstream Accounting sequence/date, sale access, stock, grouping-set,
+  Peppol and offline French PDP tests passed;
+- `rebuild_account_migration_unit`, `usl_accounting_unit`,
+  `usl_access_control`, and `usl_locale` with `l10n_tr` passed;
+- the French translation gate passed for all 18 product catalogues;
+- `USL_EINVOICE_LIVE_ENABLED=0` and `USL_EREPORTING_LIVE_ENABLED=0`
+  remained enforced throughout.
+
+The isolated QA status is partial, not a release attestation. The clean-profile
+wrapper exposed pre-existing disposable-fixture mismatches for the Prosper
+Pocket ID email; after aligning only that owned test record, its Odoo identity
+policy passed. The Documents finalizer then stopped because the clean fixture
+had no Paperless configuration. The new upstream HR Skills browser tour fails
+at its first Employees-app selector in both demo and no-demo modes. The full
+Web Hoot suite reaches Chromium but reports 18 existing font-dependent column
+width assertions on the ARM test image; the changed text-field tests did not
+report a failure. The 154-module clean registry also cannot satisfy the older
+167-module runtime action-policy contract after the repository's deliberate
+optional-module pruning, while the exact unpruned 167-module registry passes.
+These failures were preserved as evidence rather than converted into unrelated
+product or QA-framework changes.
+
+Forward upgrade is CI-owned: quiesce writers, take and verify a consistent
+database-and-filestore checkpoint, deploy the exact qualified image, update all
+installed modules, verify the two delivered Accounting indexes, repeat the
+product/database boundaries, action-risk inventory, ledger and live-flag
+checks, then admit the candidate. Database neutralization intentionally clears
+SMTP credentials on copied databases and must not be applied to the live
+production database. If admission fails, stop the candidate, restore the
+matched database and filestore checkpoint, and redeploy the prior
+`e3f0430053f260bd58c2c836e2f485b5e0a56335` release image. The historical
+Online dump is not a rollback, and no reverse migration is claimed.
