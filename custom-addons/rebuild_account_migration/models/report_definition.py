@@ -213,6 +213,7 @@ def _report_seed_values(report_type, name):
     default_groups = {
         "trial_balance": "section",
         "general_ledger": "account",
+        "journal_report": "journal",
         "partner_ledger": "partner",
         "customer_statement": "partner",
         "open_items": "partner",
@@ -224,8 +225,22 @@ def _report_seed_values(report_type, name):
         "french_profit_loss_2024": "section",
         "sig_caf_2024": "section",
         "tax_report": "section",
+        "tax_report_group_account_tax": "account",
+        "tax_report_group_tax_account": "section",
+        "ec_sales_list": "section",
+        "oss_sales": "section",
+        "oss_imports": "section",
+        "bank_reconciliation": "journal",
+        "currency_report": "section",
+        "cash_flow": "section",
         "analytic_report": "analytic",
         "analytic_pivot": "analytic",
+        "fixed_assets": "account",
+        "fixed_asset_group_account": "account",
+        "depreciation_schedule": "section",
+        "deferred_schedule": "account",
+        "french_tax_package": "section",
+        "closing_package": "section",
     }
     return {
         "name": name,
@@ -240,7 +255,7 @@ def _report_seed_values(report_type, name):
             else "account_asset_management" if schedule
             else "rebuild_account_migration"
         ),
-        "definition_version": "saas~19.3.4",
+        "definition_version": "saas~19.3.5",
         "active": report_type != "french_profit_loss_2024",
         "lifecycle": (
             "deprecated"

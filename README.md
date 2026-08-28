@@ -19,6 +19,12 @@ authorized through Odoo. Files attached to supported business records remain
 immediately usable in Odoo and are archived asynchronously with their record,
 company and safe classification context.
 
+Official human-readable PDFs use the governed USL LaTeX document system.
+Customer invoices and credit notes, canonical accounting statements and
+official correspondence retain Odoo's report, mail, portal and attachment
+workflows while rendering in an isolated, pinned service. Machine exports and
+third-party originals remain native or source passthrough.
+
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
 inactive**: no directory registration, production provider endpoint, scheduled
@@ -43,6 +49,9 @@ Primary entry points:
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
   for reconstruction and parity evidence.
+- [LaTeX document system](docs/product/latex-document-system.md) and its
+  [operations runbook](docs/operations/document-renderer-runbook.md) for the
+  governed renderer, output classifications and deployment contract.
 - [Accounting restoration boundary](migration/accounting_restore/README.md)
   for the one-off importer lifecycle and finalization contract.
 - [Multi-company Accounting](docs/accounting/multi-company-accounting.md) for
@@ -195,6 +204,12 @@ Other useful variables:
 - `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: Odoo's standard
   development ports `8069` and `8072`.
 - `ODOO_WORKERS`, `ODOO_PROXY_MODE`, `ODOO_DB_FILTER`, and limits: deployment-oriented runtime controls.
+- `USL_DOCUMENT_RENDERER_IMAGE`: immutable reviewed renderer image; production
+  must use a registry digest, while local development defaults to the exact
+  submodule revision tag.
+- `USL_DOCUMENT_RENDERER_URL`: internal HTTPS endpoint used by Odoo. The
+  Compose default is `https://usl-document-renderer:8443` and has no host
+  route.
 - `USL_EINVOICE_LIVE_ENABLED`: external reception guard; default `0` and set
   to `1` only during the documented production activation.
 - `USL_EREPORTING_LIVE_ENABLED`: separate regulatory-flow guard; default `0`

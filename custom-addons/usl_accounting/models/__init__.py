@@ -17,5 +17,6 @@ from . import (
     multi_company_setup,
     payment_suggestion,
     immediate_settlement,
+    invoice_document,
     readonly_evidence,
 )

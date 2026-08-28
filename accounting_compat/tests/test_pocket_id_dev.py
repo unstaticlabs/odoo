@@ -138,6 +138,56 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertEqual(payloads[0]["id"], "documents-subject")
         self.assertEqual(payloads[0]["userGroupIds"], ["documents-group"])
 
+    def test_client_secret_uses_pocket_id_multiple_secret_api(self):
+        api = Mock()
+        api.request.side_effect = [
+            [],
+            {
+                "id": "secret-id",
+                "prefix": "qa-s",
+                "isActive": True,
+                "secret": "qa-secret-value-for-tests",
+            },
+        ]
+
+        POCKET_ID_DEV._ensure_client_secret(
+            api,
+            "odoo-client",
+            "qa-secret-value-for-tests",
+        )
+
+        self.assertEqual(
+            api.request.call_args_list,
+            [
+                unittest.mock.call(
+                    "GET",
+                    "/api/oidc/clients/odoo-client/secrets",
+                ),
+                unittest.mock.call(
+                    "POST",
+                    "/api/oidc/clients/odoo-client/secrets",
+                    {"secret": "qa-secret-value-for-tests"},
+                ),
+            ],
+        )
+
+    def test_client_secret_is_not_rotated_when_active_prefix_matches(self):
+        api = Mock()
+        api.request.return_value = [
+            {"id": "secret-id", "prefix": "qa-s", "isActive": True},
+        ]
+
+        POCKET_ID_DEV._ensure_client_secret(
+            api,
+            "odoo-client",
+            "qa-secret-value-for-tests",
+        )
+
+        api.request.assert_called_once_with(
+            "GET",
+            "/api/oidc/clients/odoo-client/secrets",
+        )
+
     def test_policy_reuses_source_aligned_logins_without_synthetic_odoo_email(self):
         values = {
             "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",

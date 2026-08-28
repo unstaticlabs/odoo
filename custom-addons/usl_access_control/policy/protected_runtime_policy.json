@@ -36,6 +36,21 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:documents.letter.cancel_issued",
+      "action_name": "documents letter cancel_issued",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.letter.finalize",
+      "action_name": "documents letter finalize",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.letter.mark_sent",
+      "action_name": "documents letter mark_sent",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:documents.permanent_delete",
       "action_name": "permanently delete a document",
       "classification": "protected"
@@ -1691,9 +1706,54 @@
       "classification": "protected"
     },
     {
+      "action_key": "rpc:usl.document.letter.action_cancel",
+      "action_name": "cancel an issued official letter",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.action_finalize",
+      "action_name": "issue an immutable official letter",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.action_mark_sent",
+      "action_name": "record an official letter as sent",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.unlink",
+      "action_name": "permanently delete usl.document.letter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.letter",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.document.permanently_delete_from_trash",
       "action_name": "permanently delete a document",
       "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.renderer.unlink",
+      "action_name": "permanently delete usl.document.renderer",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.renderer",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.template.unlink",
+      "action_name": "permanently delete usl.document.template",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.template",
+        "operation": "unlink"
+      }
     },
     {
       "action_key": "rpc:usl.document.unlink",
@@ -1891,8 +1951,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "a949a7aa8cff54ff4b58f02abc57d0824cb6ff871a24f479a8cb39bc4833730f",
-  "runtime_policy_sha256": "60366ece176a381e5b5ca896e0485acfd2b32d61981c078fe1d94f5b45ab5967",
+  "qualified_policy_digest": "5805c9780fdf2938adec38fdb6ff20e3e0b60e362346105ab55937ee5b171317",
+  "runtime_policy_sha256": "f5adf8b3d73f81273eb95e4fba08e38003d563c937b2592578dc42d8f8e9f558",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {

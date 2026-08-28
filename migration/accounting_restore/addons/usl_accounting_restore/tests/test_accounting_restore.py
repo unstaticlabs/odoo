@@ -5966,6 +5966,35 @@ class TestRebuildAccountMigration(TransactionCase):
             "2027-09-30",
         )
         self.assertIn("monthly periodicity", company.rebuild_declaration_profile_evidence)
+        self.assertEqual(company.usl_document_legal_form, "SASU")
+        self.assertEqual(company.usl_document_share_capital, 1_000.0)
+        self.assertEqual(company.usl_document_rcs_city, "Paris")
+        self.assertEqual(company.ape, "74.20Z")
+
+    def test_document_identity_enrichment_uses_durable_siren(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        values = import_run._french_document_identity_values({
+            "id": 42,
+            "vat": "FR48983982950",
+            "company_registry": "98398295000021",
+        })
+
+        self.assertEqual(values, {
+            "usl_document_legal_form": "SASU à capital variable",
+            "usl_document_share_capital": 1_000.0,
+            "usl_document_rcs_city": "Paris",
+            "ape": "62.01Z",
+            "street": "60 rue François Ier",
+            "street2": False,
+        })
+        self.assertEqual(
+            import_run._french_document_identity_values({
+                "company_registry": "99000100000001",
+                "vat": False,
+            }),
+            {},
+        )
 
     def test_declaration_profile_mapping_does_not_depend_on_source_id(self):
         import_run = self.env["rebuild.account.import.run"]
