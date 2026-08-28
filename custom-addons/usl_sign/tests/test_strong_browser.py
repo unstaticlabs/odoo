@@ -23,6 +23,16 @@ class TestSignBrowserJourneys(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
+        cls.company.write(
+            {
+                "street": "1 rue de la Paix",
+                "zip": "75001",
+                "city": "Paris",
+                # Exercise the governed built-in wordmark used by the
+                # document renderer when no custom company logo is set.
+                "company_registry": "983982950",
+            },
+        )
         cls.partner = cls.env["res.partner"].create(
             {
                 "name": "Browser Passkey Signer",
