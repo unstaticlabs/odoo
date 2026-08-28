@@ -544,11 +544,21 @@ def _ensure_client(
         client = api.request("PUT", f"/api/oidc/clients/{client_id}", payload)
     else:
         client = api.request("POST", "/api/oidc/clients", payload)
-    api.request(
-        "POST",
-        f"/api/oidc/clients/{client_id}/secret",
-        {"secret": secret},
+    credentials = client.get("credentials", {}) if isinstance(client, dict) else {}
+    configured_secrets = (
+        credentials.get("secrets", [])
+        if isinstance(credentials, dict)
+        else []
     )
+    if not any(
+        isinstance(item, dict) and item.get("isActive", True)
+        for item in configured_secrets
+    ):
+        api.request(
+            "POST",
+            f"/api/oidc/clients/{client_id}/secrets",
+            {"secret": secret},
+        )
     api.request(
         "PUT",
         f"/api/oidc/clients/{client_id}/allowed-user-groups",
