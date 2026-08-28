@@ -23,6 +23,33 @@ const WIDGET_LABELS = {
     accounting: _t("Accounting & Compliance Alerts"),
 };
 
+const WIDGET_ICONS = {
+    activities: "fa-clock-o",
+    my_tasks: "fa-check-square-o",
+    favorites: "fa-bookmark-o",
+    ai_pipelines: "fa-magic",
+    accounting: "fa-shield",
+};
+
+const FAVORITE_ICONS = {
+    tasks: "fa-check-square-o",
+    project: "fa-folder-open-o",
+    accounting: "fa-balance-scale",
+    ai: "fa-magic",
+    view: "fa-filter",
+    record: "fa-file-text-o",
+    destination: "fa-location-arrow",
+};
+
+const ACCOUNTING_ICONS = {
+    closing: "fa-lock",
+    declarations: "fa-calendar-check-o",
+    reviews: "fa-eye",
+    bank: "fa-bank",
+    evidence: "fa-paperclip",
+    hygiene: "fa-shield",
+};
+
 export class UslHome extends Component {
     static template = "usl_home.Home";
     static props = { "*": true };
@@ -84,6 +111,18 @@ export class UslHome extends Component {
 
     widgetLabel(key) {
         return WIDGET_LABELS[key];
+    }
+
+    widgetIcon(key) {
+        return WIDGET_ICONS[key] || "fa-circle-o";
+    }
+
+    favoriteIcon(key) {
+        return FAVORITE_ICONS[key] || FAVORITE_ICONS.destination;
+    }
+
+    accountingIcon(key) {
+        return ACCOUNTING_ICONS[key] || "fa-exclamation-circle";
     }
 
     async loadConfiguration() {

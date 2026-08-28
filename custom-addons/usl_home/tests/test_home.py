@@ -187,6 +187,8 @@ class TestUslHome(TransactionCase):
         )._favorite_summary(inaccessible.with_user(self.other_user))
         self.assertFalse(summary["available"])
         self.assertEqual(summary["name"], "Destination unavailable")
+        self.assertFalse(summary["kind_label"])
+        self.assertEqual(summary["icon"], "destination")
 
     def test_provider_favorite_resolves_native_my_tasks_action(self):
         favorite = self.env["usl.home.favorite"].with_user(self.project_user).create(
@@ -201,6 +203,11 @@ class TestUslHome(TransactionCase):
         ).resolve_favorite(favorite.id)
         self.assertTrue(result["available"])
         self.assertEqual(result["action"]["res_model"], "project.task")
+        summary = self.env["usl.home.service"].with_user(
+            self.project_user,
+        )._favorite_summary(favorite)
+        self.assertEqual(summary["kind_label"], "Project")
+        self.assertEqual(summary["icon"], "tasks")
 
     def test_saved_view_reconstructs_exact_native_action_and_is_user_private(self):
         action = self.env.ref("project.action_view_my_task")

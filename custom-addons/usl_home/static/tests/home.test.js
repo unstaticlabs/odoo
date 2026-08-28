@@ -14,7 +14,15 @@ const configuration = {
     },
     available_widgets: ["activities", "my_tasks", "favorites", "ai_pipelines", "accounting"],
     active_company: { id: 1, name: "Unstatic Labs" },
-    favorites: [{ id: 9, name: "My Tasks", available: true, kind: "provider", company_name: false }],
+    favorites: [{
+        id: 9,
+        name: "My Tasks",
+        available: true,
+        kind: "provider",
+        kind_label: "Project",
+        icon: "tasks",
+        company_name: false,
+    }],
     available_destinations: [],
 };
 
@@ -53,6 +61,8 @@ test("renders the complete native Home hierarchy from independent providers", as
     expect(".o_usl_home_widget[data-widget='activities']").toHaveText(/Review launch readiness/);
     expect(".o_usl_home_widget[data-widget='my_tasks']").toHaveText(/In Progress/);
     expect(".o_usl_home_widget[data-widget='favorites']").toHaveText(/My Tasks/);
+    expect(".o_usl_home_favorite_main").toHaveText(/Project/);
+    expect(".o_usl_home_favorite_icon .fa-check-square-o").toHaveCount(1);
     expect(".o_usl_home_widget[data-widget='ai_pipelines']").toHaveText(/No AI pipeline work needs you/);
     expect(".o_usl_home_widget[data-widget='accounting']").toHaveText(/Bank items to review/);
 });

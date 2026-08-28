@@ -213,3 +213,31 @@ msgstr "« %s » a été ajouté à l’accueil."
 #. module: usl_home
 msgid "This destination could not be added."
 msgstr "Cette destination n’a pas pu être ajoutée."
+
+#. module: usl_home
+msgid "Done"
+msgstr "Terminé"
+
+#. module: usl_home
+msgid "Project"
+msgstr "Projet"
+
+#. module: usl_home
+msgid "Accounting"
+msgstr "Comptabilité"
+
+#. module: usl_home
+msgid "AI workspace"
+msgstr "Espace IA"
+
+#. module: usl_home
+msgid "Saved view"
+msgstr "Vue enregistrée"
+
+#. module: usl_home
+msgid "Record"
+msgstr "Enregistrement"
+
+#. module: usl_home
+msgid "Workflow"
+msgstr "Flux de travail"

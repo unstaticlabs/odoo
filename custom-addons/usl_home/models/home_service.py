@@ -167,11 +167,37 @@ class UslHomeService(models.AbstractModel):
     @api.model
     def _favorite_summary(self, favorite):
         available = self._favorite_is_available(favorite)
+        kind_label = False
+        icon = "destination"
+        if available:
+            if favorite.target_type == "provider":
+                provider_metadata = {
+                    "my_tasks": (self.env._("Project"), "tasks"),
+                    "accounting_hygiene": (self.env._("Accounting"), "accounting"),
+                    "ai_pipelines": (self.env._("AI workspace"), "ai"),
+                }
+                kind_label, icon = provider_metadata.get(
+                    favorite.provider_key,
+                    (self.env._("Workflow"), "destination"),
+                )
+            elif favorite.filter_id:
+                kind_label, icon = self.env._("Saved view"), "view"
+            elif (
+                favorite.res_model == "project.task"
+                and (favorite.context_json or {}).get("active_id")
+            ):
+                kind_label, icon = self.env._("Project"), "project"
+            elif favorite.target_type == "record":
+                kind_label, icon = self.env._("Record"), "record"
+            else:
+                kind_label, icon = self.env._("Workflow"), "destination"
         return {
             "id": favorite.id,
             "name": favorite.name if available else self.env._("Destination unavailable"),
             "available": available,
             "kind": favorite.target_type,
+            "kind_label": kind_label,
+            "icon": icon,
             "company_name": favorite.company_id.display_name if available and favorite.company_id else False,
         }
 
