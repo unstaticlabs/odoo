@@ -65,6 +65,8 @@ services:
 
   test:
     depends_on:
+      usl-document-renderer:
+        condition: service_started
       usl-sign-dss:
         condition: service_healthy
       usl-sign-step-ca:
@@ -77,3 +79,8 @@ services:
       USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA: ${USL_SIGN_POCKETID_PRIVATE_QA:-0}
     extra_hosts: !override
       - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:${USL_SIGN_POCKETID_CONTAINER_HOST_ADDRESS:-host-gateway}"
+    volumes:
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+    networks:
+      - default
+      - document-renderer
