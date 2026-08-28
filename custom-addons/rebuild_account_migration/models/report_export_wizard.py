@@ -4175,6 +4175,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "aged_payable": "aging",
             "executive_summary": "metrics",
             "cash_flow": "metrics",
+            "sig_caf_2024": "metrics",
             "depreciation_schedule": "schedule",
             "deferred_schedule": "schedule",
             "fixed_assets": "schedule",
@@ -4442,6 +4443,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         template = self.env.ref(
             "usl_document_templates.template_accounting_statement_v2",
         )
+        qualification_label = self.env.context.get(
+            "usl_document_qualification_label",
+        )
         result = self.env["usl.document.renderer"].render(
             template,
             company_payload,
@@ -4468,6 +4472,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "context": context,
                 "controls": controls,
                 "basis_note": basis_note,
+                **(
+                    {"qualification_label": str(qualification_label)}
+                    if qualification_label
+                    else {}
+                ),
                 **({"front_matter": front_matter} if front_matter else {}),
             },
             locale,

@@ -137,14 +137,13 @@ class AccountAnalyticLine(models.Model):
             return tuple(value)
         return value
 
-    @staticmethod
-    def _usl_pivot_label(value):
+    def _usl_pivot_label(self, value):
         if isinstance(value, BaseModel):
-            return value.display_name or _("Not specified")
+            return value.display_name or self.env._("Not specified")
         if isinstance(value, (date, datetime)):
             return value.strftime("%d/%m/%Y")
         if value in (None, False, ""):
-            return _("Not specified")
+            return self.env._("Not specified")
         return str(value)
 
     @api.model
