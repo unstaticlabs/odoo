@@ -2,7 +2,6 @@ import base64
 import hashlib
 import json
 import secrets
-import textwrap
 import zipfile
 from datetime import timedelta
 from io import BytesIO
@@ -10,8 +9,6 @@ from urllib.parse import quote
 
 from cryptography import x509
 from markupsafe import escape
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 
 from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -2392,209 +2389,305 @@ class SignRequest(models.Model):
 
     def _completion_certificate_pdf(self):
         self.ensure_one()
-        trust_labels = dict(TRUST_LEVELS)
-        stream = BytesIO()
-        pdf = canvas.Canvas(stream, pagesize=A4)
-        width, height = A4
-        left = 48
-        right = width - 48
-        page_number = 0
-        y = 0
+        return self._completion_certificate_render()["pdf"]
 
-        def footer():
-            pdf.setStrokeColorRGB(0.82, 0.82, 0.82)
-            pdf.line(left, 38, right, 38)
-            pdf.setFillColorRGB(0.35, 0.35, 0.35)
-            pdf.setFont("Helvetica", 7.5)
-            pdf.drawString(left, 25, self.company_id.name)
-            pdf.drawRightString(right, 25, f"Completion certificate · page {page_number}")
+    def _completion_certificate_locale(self):
+        self.ensure_one()
+        language = self.company_id.partner_id.lang or self.env.lang or "en_US"
+        return "fr_FR" if language.startswith("fr") else "en_US"
 
-        def new_page():
-            nonlocal page_number, y
-            if page_number:
-                footer()
-                pdf.showPage()
-            page_number += 1
-            pdf.setFillColorRGB(0.15, 0.12, 0.14)
-            pdf.setFont("Helvetica-Bold", 10)
-            pdf.drawString(left, height - 44, self.company_id.name)
-            pdf.setFont("Helvetica", 8)
-            pdf.drawRightString(right, height - 44, "SIGNING RECORD")
-            y = height - 72
+    def _completion_certificate_payload(self, locale=None):
+        self.ensure_one()
+        locale = locale or self._completion_certificate_locale()
+        document = self.with_context(lang=locale, tz="UTC")
+        french = locale == "fr_FR"
 
-        def ensure(space):
-            if y - space < 55:
-                new_page()
+        def translated(english, french_text):
+            return french_text if french else english
 
-        def wrapped(value, width_chars=90):
-            value = str(value or "—")
-            return textwrap.wrap(
-                value,
-                width=width_chars,
-                break_long_words=True,
-                break_on_hyphens=False,
-            ) or ["—"]
+        def date_label(value):
+            if not value:
+                return translated("Not recorded", "Non enregistré")
+            return f"{format_datetime(document.env, value, tz='UTC', dt_format='medium')} UTC"
 
-        def paragraph(value, *, font="Helvetica", size=9, leading=12, indent=0):
-            nonlocal y
-            lines = wrapped(value, max(35, int((right - left - indent) / (size * 0.52))))
-            ensure(leading * len(lines) + 2)
-            pdf.setFont(font, size)
-            pdf.setFillColorRGB(0.18, 0.18, 0.18)
-            for line in lines:
-                pdf.drawString(left + indent, y, line)
-                y -= leading
-
-        def section(title, intro=None):
-            nonlocal y
-            ensure(45)
-            y -= 8
-            pdf.setFillColorRGB(0.15, 0.12, 0.14)
-            pdf.setFont("Helvetica-Bold", 13)
-            pdf.drawString(left, y, title)
-            y -= 17
-            if intro:
-                paragraph(intro, size=8.5, leading=11)
-            y -= 3
-
-        def fact(label, value):
-            nonlocal y
-            lines = wrapped(value, 72)
-            ensure(max(17, 11 * len(lines)))
-            pdf.setFillColorRGB(0.38, 0.38, 0.38)
-            pdf.setFont("Helvetica-Bold", 8)
-            pdf.drawString(left, y, label.upper())
-            pdf.setFillColorRGB(0.12, 0.12, 0.12)
-            pdf.setFont("Helvetica", 8.5)
-            for index, line in enumerate(lines):
-                pdf.drawString(left + 128, y - (index * 11), line)
-            y -= max(17, 11 * len(lines))
-
-        def signer_authentication(signer):
-            labels = dict(AUTHENTICATION_METHODS)
-            return labels.get(signer.authentication_method, signer.authentication_method or "Secure signing link")
-
-        pdf.setTitle(f"Completion certificate - {self.name}")
-        new_page()
-        pdf.setFont("Helvetica-Bold", 22)
-        pdf.setFillColorRGB(0.13, 0.11, 0.12)
-        pdf.drawString(left, y, "Certificate of completion")
-        y -= 25
-        paragraph(self.name, font="Helvetica-Bold", size=11, leading=14)
-        paragraph(
-            "A readable summary of who was invited, what they confirmed, and how the completed document is protected.",
-            size=9,
-            leading=12,
-        )
-
-        section("Document details")
-        fact("Status", "Signing complete; validation passed" if self.validation_status == "valid" else (self.validation_status or self.state))
-        fact("Created by", self.user_id.name or "—")
-        fact("Created", fields.Datetime.to_string(self.create_date))
-        fact("Completed", fields.Datetime.to_string(self.completed_at) if self.completed_at else "Not completed when this record was produced")
-        fact("Signing method", trust_labels.get(self.requested_trust, self.requested_trust))
-        fact("Original SHA-256", self.original_sha256)
-        fact("Completed SHA-256", self.final_sha256)
-
-        section(
-            "Participants",
-            "Each participant is listed with the identity check and proof retained for this request.",
-        )
-        for number, signer in enumerate(
-            self.signer_ids.sorted(lambda row: (row.sequence, row.id)), start=1,
-        ):
-            ensure(88)
-            pdf.setFillColorRGB(0.95, 0.94, 0.95)
-            pdf.roundRect(left, y - 66, right - left, 70, 5, fill=1, stroke=0)
-            pdf.setFillColorRGB(0.12, 0.12, 0.12)
-            pdf.setFont("Helvetica-Bold", 10)
-            pdf.drawString(left + 12, y - 12, f"{number}. {signer.partner_id.name}")
-            pdf.setFont("Helvetica", 8.5)
-            pdf.drawString(left + 12, y - 27, signer.partner_id.email or "No email recorded")
-            pdf.drawString(left + 12, y - 42, f"Role: {signer.role_id.name} · {signer_authentication(signer)}")
-            signed_at = fields.Datetime.to_string(signer.signed_on) if signer.signed_on else "Not signed"
-            pdf.drawString(left + 12, y - 57, f"Signed: {signed_at}")
-            y -= 82
-
-        section("Signature proof")
-        if self.requested_trust == "strong_personal":
-            paragraph(
-                f"{len(self.signer_ids)} personal PAdES signature(s) identify the individual signers. "
-                "A final platform seal protects the integrity of the completed document.",
-                font="Helvetica-Bold",
-            )
-            for signer in self.signer_ids.sorted(lambda row: (row.sequence, row.id)):
-                fact(
-                    signer.partner_id.name,
-                    f"Personal certificate serial: {signer.certificate_serial or 'not recorded'}",
-                )
-        else:
-            paragraph(
-                f"{len(self.signer_ids)} signer attestation(s) are recorded in the evidence history. "
-                "The PDF contains one platform integrity seal; it is not a personal certificate for a signer.",
-                font="Helvetica-Bold",
-            )
-        fact("Validation", f"EU DSS 6.4 · {self.validation_status or 'not recorded'}")
-
-        section(
-            "Signing history",
-            "Times are recorded in UTC. Network addresses are server-observed; browser location is optional and is never presented as authoritative identity proof.",
-        )
         event_labels = {
-            "request_created": "Request created",
-            "document_frozen": "Document frozen for signing",
-            "request_sent": "Invitations made available",
-            "document_viewed": "Document viewed",
-            "email_otp_verified": "Email code verified",
-            "strong_identity_verified": "Strong identity verified",
-            "signer_signed": "Signer completed their fields",
-            "standard_signature_recorded": "Signer attestation recorded",
-            "strong_personal_signature_applied": "Personal PDF signature applied",
-            "validation_started": "Final validation started",
-            "evidence_package_built": "Evidence package built",
-            "request_completed": "Request completed",
+            "request_created": translated("Request created", "Demande créée"),
+            "document_frozen": translated(
+                "Document frozen for signing", "Document figé pour signature",
+            ),
+            "request_sent": translated("Invitations made available", "Invitations mises à disposition"),
+            "document_viewed": translated("Document viewed", "Document consulté"),
+            "email_otp_verified": translated("Email code verified", "Code reçu par e-mail vérifié"),
+            "strong_identity_verified": translated("Strong identity verified", "Identité renforcée vérifiée"),
+            "standard_signature_applied": translated("Signer attestation recorded", "Attestation du signataire enregistrée"),
+            "strong_personal_signature_applied": translated("Personal PDF signature applied", "Signature PDF personnelle apposée"),
+            "validation_started": translated("Final validation started", "Validation finale démarrée"),
+            "validation_passed": translated("Cryptographic validation passed", "Validation cryptographique réussie"),
+            "evidence_package_built": translated("Evidence package built", "Dossier de preuves créé"),
+            "request_completed": translated("Request completed", "Demande terminée"),
         }
+        location_labels = {
+            "granted": translated(
+                "Browser-reported location provided (not authoritative)",
+                "Localisation transmise par le navigateur (non vérifiée)",
+            ),
+            "refused": translated("Location permission declined", "Autorisation de localisation refusée"),
+            "unavailable": translated("Location unavailable", "Localisation indisponible"),
+            "unsupported": translated("Location unsupported by the browser", "Localisation non prise en charge par le navigateur"),
+            "timeout": translated("Location request timed out", "Délai de localisation dépassé"),
+        }
+        location_by_signer = {
+            evidence.signer_id.id: (evidence.metadata or {}).get("location_status")
+            for evidence in self.evidence_ids.filtered(
+                lambda row: row.kind == "authentication" and row.signer_id,
+            )
+            if (evidence.metadata or {}).get("location_status")
+        }
+        head = self.event_ids.verify_chain()
+        if not head:
+            raise UserError(_("The completion certificate requires an intact event history."))
+
+        source_documents = self.document_ids.sorted(lambda row: (row.sequence, row.id))
+        files = [
+            {"name": source.filename, "sha256": source.source_sha256}
+            for source in source_documents
+        ]
+        if not files:
+            files = [
+                {
+                    "name": self.original_filename or self.filename or self.name,
+                    "sha256": self.original_sha256,
+                },
+            ]
+
+        authentication_labels = {
+            "secure_link": translated(
+                "Secure invitation link", "Lien d’invitation sécurisé",
+            ),
+            "email_otp": translated(
+                "Secure link plus email verification code",
+                "Lien sécurisé et code de vérification reçu par e-mail",
+            ),
+            "pocket_id": "Pocket ID",
+            "portal": translated("Odoo portal account", "Compte portail Odoo"),
+            "pocket_id_passkey": translated(
+                "Fresh Pocket ID passkey", "Clé d’accès Pocket ID récente",
+            ),
+            "external_provider": translated(
+                "External qualified-signature provider",
+                "Prestataire externe de signature qualifiée",
+            ),
+            "external_record": translated(
+                "Recorded by an external signing system",
+                "Enregistré par un système de signature externe",
+            ),
+        }
+        signer_state_labels = {
+            "draft": translated("Draft", "Brouillon"),
+            "notified": translated("Notified", "Notifié"),
+            "viewed": translated("Viewed", "Consulté"),
+            "authorized": translated("Authorized", "Autorisé"),
+            "signed": translated("Signed", "Signé"),
+            "external_recorded": translated(
+                "Recorded as signed externally", "Signature externe enregistrée",
+            ),
+            "declined": translated("Declined", "Refusé"),
+            "expired": translated("Expired", "Expiré"),
+            "cancelled": translated("Cancelled", "Annulé"),
+        }
+        signers = []
+        for signer in self.signer_ids.sorted(lambda row: (row.sequence, row.id)):
+            verification = authentication_labels.get(
+                signer.authentication_method,
+                signer.authentication_method
+                or translated("Secure invitation link", "Lien d’invitation sécurisé"),
+            )
+            if self.requested_trust == "strong_personal":
+                certificate = signer.certificate_serial or translated("serial not recorded", "numéro non enregistré")
+                verification = translated(
+                    f"{verification}; personal certificate {certificate}",
+                    f"{verification} ; certificat personnel {certificate}",
+                )
+                signature_kind = translated("Personal PAdES signature", "Signature PAdES personnelle")
+            elif self.requested_trust == "qualified_external":
+                signature_kind = translated("External provider signature", "Signature du prestataire externe")
+            else:
+                signature_kind = translated(
+                    "Signer attestation; not a personal PDF certificate",
+                    "Attestation du signataire ; pas un certificat PDF personnel",
+                )
+            signers.append(
+                {
+                    "name": signer.partner_id.name,
+                    "email": signer.partner_id.email or "",
+                    "role": signer.role_id.with_context(lang=locale).name,
+                    "verification": verification,
+                    "signed_at": date_label(signer.signed_on),
+                    "status": signer_state_labels.get(signer.state, signer.state),
+                    "signature_kind": signature_kind,
+                },
+            )
+
         visible_events = self.event_ids.filtered(
             lambda event: event.event_type in event_labels or event.signer_id,
         ).sorted(lambda event: event.sequence)
+        events = []
         for event in visible_events:
-            actor = (
-                event.signer_id.partner_id.name
-                if event.signer_id
-                else event.actor_id.name
-                if event.actor_id
-                else "System"
+            actor_partner = event.signer_id.partner_id or event.actor_id.partner_id
+            actor = actor_partner.name if actor_partner else translated("System", "Système")
+            if actor_partner and actor_partner.email:
+                actor = f"{actor} · {actor_partner.email}"
+            event_payload = (event.payload or {}).get("payload") or {}
+            location_status = event_payload.get("location_status") or (
+                location_by_signer.get(event.signer_id.id) if event.signer_id else None
             )
-            detail = f"{fields.Datetime.to_string(event.occurred_at)} · {actor}"
-            if event.ip_address:
-                detail += f" · network {event.ip_address}"
-            fact(event_labels.get(event.event_type, event.event_type.replace("_", " ").title()), detail)
+            events.append(
+                {
+                    "action": event_labels.get(
+                        event.event_type,
+                        event.event_type.replace("_", " ").capitalize(),
+                    ),
+                    "actor": actor,
+                    "timestamp": date_label(event.occurred_at),
+                    "network_address": event.ip_address or "",
+                    "location": location_labels.get(location_status, ""),
+                    "proof_hash": event.event_hash,
+                },
+            )
 
-        head = self.event_ids.verify_chain()
-        section("Integrity and verification")
-        ensure(78)
-        pdf.setFillColorRGB(0.90, 0.97, 0.92)
-        pdf.roundRect(left, y - 57, right - left, 62, 5, fill=1, stroke=0)
-        pdf.setFillColorRGB(0.08, 0.34, 0.19)
-        pdf.setFont("Helvetica-Bold", 11)
-        pdf.drawString(left + 12, y - 17, "Integrity checks passed" if self.validation_status == "valid" else "Review validation status")
-        pdf.setFont("Helvetica", 8.5)
-        statement = (
-            "The completed PDF and evidence history hashes match this request. "
-            "Current trust-list and revocation decisions remain the responsibility of an authoritative validator."
+        if self.requested_trust == "strong_personal":
+            signature_structure = translated(
+                f"{len(signers)} personal PAdES signature(s), followed by 1 final platform integrity seal",
+                f"{len(signers)} signature(s) PAdES personnelle(s), puis 1 sceau d’intégrité final de la plateforme",
+            )
+        elif self.requested_trust == "qualified_external":
+            signature_structure = translated(
+                "External provider signature independently validated by the platform",
+                "Signature du prestataire externe validée indépendamment par la plateforme",
+            )
+        else:
+            signature_structure = translated(
+                f"{len(signers)} signer attestation(s) and 1 final platform integrity seal",
+                f"{len(signers)} attestation(s) de signataire et 1 sceau d’intégrité final de la plateforme",
+            )
+
+        validation = self.validation_ids.sorted(lambda row: (row.create_date, row.id))[-1:]
+        validation_summary = translated(
+            "No validation run recorded",
+            "Aucune validation enregistrée",
         )
-        for index, line in enumerate(wrapped(statement, 88)):
-            pdf.drawString(left + 12, y - 33 - (index * 10), line)
-        y -= 74
-        fact("Evidence-chain head", head.event_hash if head else "No event chain recorded")
-        paragraph(
-            "This certificate is a human-readable summary. The signed PDF, evidence manifest, validation reports, and protected raw evidence are the authoritative technical record.",
-            size=8.5,
-            leading=11,
+        if validation:
+            validation_summary = translated(
+                f"{validation.engine} {validation.engine_version}: {validation.status}; {validation.signature_count} PDF signature(s)",
+                f"{validation.engine} {validation.engine_version} : {validation.status} ; {validation.signature_count} signature(s) PDF",
+            )
+        created_event = self.event_ids.filtered(lambda event: event.event_type == "request_created")[:1]
+        created_by = {
+            "name": self.user_id.name,
+            "email": self.user_id.email or "",
+        }
+        if created_event and created_event.ip_address:
+            created_by["network_address"] = created_event.ip_address
+        return {
+            "reference": self.name,
+            "title": self.name,
+            "created_at": date_label(self.create_date),
+            "created_by": created_by,
+            "completed_at": date_label(self.completed_at or fields.Datetime.now()),
+            "summary": translated(
+                "All required participants completed the request and the final PDF passed cryptographic validation. This certificate reports retained evidence without making a legal qualification decision.",
+                "Tous les participants requis ont terminé la demande et le PDF final a passé la validation cryptographique. Ce certificat décrit les preuves conservées sans décider de leur qualification juridique.",
+            ),
+            "files": files,
+            "final_document": {
+                "name": self.final_filename,
+                "sha256": self.final_sha256,
+                "signature_structure": signature_structure,
+            },
+            "signers": signers,
+            "events": events,
+            "evidence": [
+                {
+                    "label": translated(
+                        "Signed document SHA-256", "SHA-256 du document signé",
+                    ),
+                    "value": self.final_sha256,
+                },
+                {"label": translated("Event-chain head", "Tête de chaîne des événements"), "value": head.event_hash},
+                {"label": translated("Signature structure", "Structure des signatures"), "value": signature_structure},
+                {"label": translated("Cryptographic validation", "Validation cryptographique"), "value": validation_summary},
+                {
+                    "label": translated("Evidence manifest", "Manifeste des preuves"),
+                    "value": translated(
+                        "Generated and platform-signed after this certificate",
+                        "Généré et signé par la plateforme après ce certificat",
+                    ),
+                },
+            ],
+            "delivery": [
+                {
+                    "label": translated("Signed document", "Document signé"),
+                    "status": translated(
+                        "Prepared for Odoo Documents and the configured private Paperless archive",
+                        "Préparé pour Documents Odoo et l’archive Paperless privée configurée",
+                    ),
+                },
+                {
+                    "label": translated("Evidence dossier", "Dossier de preuves"),
+                    "status": translated(
+                        "This certificate becomes its visible cover; signed evidence files are embedded in PDF/A-3",
+                        "Ce certificat devient sa couverture visible ; les preuves signées sont intégrées au PDF/A-3",
+                    ),
+                },
+            ],
+            "disclaimer": translated(
+                "This certificate is a readable index of retained evidence. The signed PDF, signed evidence manifest, validation reports and protected raw evidence are the authoritative technical record. Current trust-list, qualification and revocation decisions require a maintained authoritative validator.",
+                "Ce certificat est un index lisible des preuves conservées. Le PDF signé, le manifeste de preuves signé, les rapports de validation et les preuves brutes protégées constituent le dossier technique de référence. Les décisions actuelles de confiance, de qualification et de révocation nécessitent un validateur faisant autorité et maintenu à jour.",
+            ),
+        }
+
+    def _completion_certificate_render(self):
+        self.ensure_one()
+        if not self.company_id.usl_document_renderer_enabled:
+            raise UserError(_("The governed document renderer is disabled for this company."))
+        locale = self._completion_certificate_locale()
+        company, assets = self.company_id._usl_document_renderer_company_payload(locale)
+        template = self.env.ref("usl_document_templates.template_sign_completion_v1")
+        return self.env["usl.document.renderer"].render(
+            template,
+            company,
+            self._completion_certificate_payload(locale),
+            locale,
+            assets=assets,
         )
-        footer()
-        pdf.save()
-        return stream.getvalue()
+
+    def _stamp_completion_renderer_provenance(self, rendered, evidence):
+        self.ensure_one()
+        template = self.env.ref("usl_document_templates.template_sign_completion_v1")
+        attachments = self.env["ir.attachment"].with_user(SUPERUSER_ID).search(
+            [
+                ("res_model", "=", evidence._name),
+                ("res_id", "=", evidence.id),
+                ("res_field", "=", "data"),
+            ],
+        )
+        attachments |= self.env["ir.attachment"].with_user(SUPERUSER_ID).search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("res_field", "=", "completion_certificate"),
+            ],
+        )
+        attachments.write(
+            {
+                "usl_document_template_id": template.id,
+                "usl_document_template_revision": rendered["template_revision"],
+                "usl_document_payload_sha256": rendered["payload_sha256"],
+                "usl_document_renderer_version": rendered["renderer_version"],
+                "usl_document_company_id": self.company_id.id,
+                "usl_document_rendered_at": fields.Datetime.now(),
+            },
+        )
 
     @staticmethod
     def _dossier_artifact(kind, name, content, mimetype, description):
@@ -2890,12 +2983,19 @@ class SignRequest(models.Model):
 
     def _build_completion_evidence(self):
         self.ensure_one()
-        certificate = self._completion_certificate_pdf()
+        rendered = self._completion_certificate_render()
+        certificate = rendered["pdf"]
         certificate_evidence = self._create_evidence(
             "completion",
             f"{self.name}-completion-certificate.pdf",
             certificate,
             mimetype="application/pdf",
+            metadata={
+                "template": "sign_completion.v1",
+                "template_revision": rendered["template_revision"],
+                "payload_sha256": rendered["payload_sha256"],
+                "renderer_version": rendered["renderer_version"],
+            },
         )
         self.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
             {
@@ -2903,6 +3003,7 @@ class SignRequest(models.Model):
                 "completion_filename": certificate_evidence.name,
             },
         )
+        self._stamp_completion_renderer_provenance(rendered, certificate_evidence)
         head = self.event_ids.verify_chain()
         snapshot_payload = {
             "format": "usl-sign-frozen-snapshot-v1",
@@ -3110,6 +3211,7 @@ class SignRequest(models.Model):
                 "Archive format: PDF/A-3b with associated evidence files",
             ],
             artifacts=artifacts,
+            cover=field_content(self.completion_certificate),
         )
         return base64.b64decode(result["document"])
 

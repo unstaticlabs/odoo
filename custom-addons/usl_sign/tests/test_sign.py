@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 
 from odoo import fields
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import call_kw
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
@@ -160,6 +160,15 @@ def _pyhanko_valid(count=1):
             }
             for index in range(count)
         ],
+    }
+
+
+def _renderer_result(pdf):
+    return {
+        "pdf": pdf,
+        "template_revision": "5ab496f8d8f9ce0c38a1ca87cbd3116de2facad6",
+        "payload_sha256": "a" * 64,
+        "renderer_version": "1.3.0",
     }
 
 
@@ -1568,16 +1577,64 @@ class TestCleanUslSign(TransactionCase):
                 FakeDSS.validate(self.pdf, "strong_personal"),
                 _pyhanko_valid(),
             )
-        certificate_text = "\n".join(
-            page.extract_text()
-            for page in PdfReader(BytesIO(strong._completion_certificate_pdf())).pages
+        standard_payload = standard._completion_certificate_payload("en_US")
+        self.assertIn(
+            "2 signer attestation(s) and 1 final platform integrity seal",
+            standard_payload["final_document"]["signature_structure"],
         )
-        self.assertIn("Certificate of completion", certificate_text)
-        self.assertIn("2 personal PAdES signature(s)", certificate_text)
-        self.assertIn("final platform seal", certificate_text)
-        self.assertIn("Participants", certificate_text)
-        self.assertIn("Signing history", certificate_text)
-        self.assertNotIn("Policy version", certificate_text)
+        self.assertTrue(
+            all(
+                "not a personal PDF certificate" in signer["signature_kind"]
+                for signer in standard_payload["signers"]
+            ),
+        )
+        strong_payload = strong._completion_certificate_payload("en_US")
+        self.assertIn(
+            "2 personal PAdES signature(s), followed by 1 final platform integrity seal",
+            strong_payload["final_document"]["signature_structure"],
+        )
+        self.assertEqual(
+            {signer["signature_kind"] for signer in strong_payload["signers"]},
+            {"Personal PAdES signature"},
+        )
+        self.assertIn(
+            "personal-certificate-one", strong_payload["signers"][0]["verification"],
+        )
+
+    def test_completion_certificate_reports_granted_location_honestly(self):
+        request = self._request()
+        signer = request.signer_ids
+        request._create_evidence(
+            "authentication",
+            "observed-context.json",
+            b'{"location":{"status":"granted"}}',
+            mimetype="application/json",
+            signer=signer,
+            metadata={"location_status": "granted"},
+        )
+        request._append_event(
+            "document_viewed",
+            signer=signer,
+            payload={"location_status": "granted"},
+        )
+        payload = request._completion_certificate_payload("en_US")
+        signer_events = [event for event in payload["events"] if event["actor"]]
+        self.assertIn(
+            "Browser-reported location provided (not authoritative)",
+            {event["location"] for event in signer_events},
+        )
+
+    def test_completion_certificate_has_no_renderer_fallback(self):
+        request = self._request()
+        with patch.object(
+            type(request),
+            "_completion_certificate_render",
+            side_effect=UserError("synthetic renderer outage"),
+        ):
+            with self.assertRaisesRegex(UserError, "synthetic renderer outage"):
+                request._build_completion_evidence()
+        self.assertFalse(request.completion_certificate)
+        self.assertFalse(request.evidence_ids.filtered(lambda row: row.kind == "completion"))
 
     def test_standard_finalization_rejects_extra_pdf_signatures(self):
         request = self._ready(
@@ -1987,6 +2044,11 @@ class TestCleanUslSign(TransactionCase):
         )
         with (
             patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()),
+            patch.object(
+                type(request),
+                "_completion_certificate_render",
+                return_value=_renderer_result(self.pdf),
+            ),
             upload,
             patch.object(
                 type(self.env["usl.document"]),
@@ -2190,6 +2252,7 @@ class TestCleanUslSign(TransactionCase):
                 "final_data": field_value(self.pdf),
                 "final_filename": "Routine-agreement-signed.pdf",
                 "final_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "completion_certificate": field_value(self.pdf),
                 "achieved_trust": "standard",
             },
         )
@@ -2232,6 +2295,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(signed_artifact["content"], self.pdf)
         self.assertEqual(signed_artifact["mimetype"], "application/pdf")
         self.assertEqual(signed_artifact["relationship"], "Data")
+        self.assertEqual(captured["cover"], self.pdf)
         self.assertIn(
             "Purpose: human-auditable proof package; signed-document.pdf is the document of record",
             captured["summary"],
@@ -3869,3 +3933,30 @@ class TestCleanUslSign(TransactionCase):
             client(Response(422, "The PDF contains no signature revision.")).health()
         with self.assertRaisesRegex(DSSUnavailableError, "temporarily unavailable"):
             client(Response(503, "The service is temporarily unavailable.")).health()
+
+    def test_dss_client_sends_the_latex_certificate_as_dossier_cover(self):
+        captured = {}
+
+        class Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return {"ok": True, "document": base64.b64encode(self.pdf).decode()}
+
+        class Session:
+            @staticmethod
+            def post(*args, **kwargs):
+                del args
+                captured.update(kwargs["json"])
+                return Response()
+
+        client = DSSClient(base_url="http://dss.example.test", session=Session())
+        client.allow_plaintext = True
+        client.build_dossier(
+            title="Signing evidence",
+            summary=["Readable evidence"],
+            artifacts=[],
+            cover=self.pdf,
+        )
+        self.assertEqual(base64.b64decode(captured["coverDocument"]), self.pdf)

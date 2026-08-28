@@ -433,7 +433,7 @@ services:
       USL_RENDER_CONCURRENCY: "2"
       USL_RENDER_TIMEOUT_SECONDS: "30"
     volumes:
-      - ./private/document-renderer-certs:/run/secrets/document-renderer:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
     networks:
       - document-renderer
 
@@ -586,7 +586,7 @@ services:
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
-      - ./private/document-renderer-certs:/run/secrets/document-renderer:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ./scripts/sign-services-smoke.py:/usr/local/bin/usl-sign-services-smoke:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
     networks:

@@ -83,6 +83,7 @@ load_environment() {
   export USL_SIGN_STEP_CA_DIR="$SECRET_ROOT/step-ca"
   export USL_SIGN_DSS_SECRET_DIR="$SECRET_ROOT/dss"
   export USL_SIGN_ODOO_SECRET_DIR="$SECRET_ROOT/odoo"
+  export USL_DOCUMENT_RENDERER_CERT_DIR="$SECRET_ROOT/document-renderer"
   export USL_SIGN_STEP_CA_ENV_FILE="$SECRET_ROOT/step-ca.env"
   export USL_SIGN_DSS_ENV_FILE="$SECRET_ROOT/dss.env"
   export USL_SIGN_ODOO_ENV_FILE="$SECRET_ROOT/odoo.env"
@@ -96,6 +97,7 @@ load_environment() {
     "${COMPOSE_FILES[@]}"
     --profile sign
     --profile paperless
+    --profile document-renderer
   )
 }
 
@@ -105,6 +107,8 @@ bootstrap() {
   if [[ ! -f "$SECRET_ROOT/step-ca/config/ca.json" ]]; then
     USL_SIGN_SECRET_ROOT="$SECRET_ROOT" "$ROOT/scripts/sign-services-bootstrap"
   fi
+  USL_DOCUMENT_RENDERER_CERT_DIR="$USL_DOCUMENT_RENDERER_CERT_DIR" \
+    "$ROOT/scripts/generate-document-renderer-certs" >/dev/null
 }
 
 assert_ports_available() {
@@ -133,7 +137,7 @@ initialize_odoo() {
     --config=/etc/odoo/odoo.conf \
     --database=odoo_dev \
     --init=usl_sign \
-    --update=usl_pocketid,usl_sign \
+    --update=usl_document_templates,usl_pocketid,usl_sign \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn
@@ -228,8 +232,10 @@ start() {
     || "${COMPOSE[@]}" build pocket-id
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build usl-sign-dss
-  "${COMPOSE[@]}" --profile sign --profile paperless up -d \
-    db pocket-id usl-sign-step-ca usl-sign-dss \
+  docker image inspect "${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:5ab496f8d8f9}" \
+    >/dev/null 2>&1 || "${COMPOSE[@]}" build usl-document-renderer
+  "${COMPOSE[@]}" --profile sign --profile paperless --profile document-renderer up -d \
+    db pocket-id usl-document-renderer usl-sign-step-ca usl-sign-dss \
     paperless-webserver
   provision_pocket
   prepare_fresh_qa_database
@@ -237,7 +243,8 @@ start() {
   configure_paperless
   seed_qa
   touch "$QA_READY_MARKER"
-  "${COMPOSE[@]}" --profile sign --profile paperless up -d --wait odoo
+  "${COMPOSE[@]}" --profile sign --profile paperless --profile document-renderer \
+    up -d --wait odoo
   printf '\nOdoo: %s/web/login?db=odoo_dev\n' "$ODOO_PUBLIC_BASE_URL"
   printf 'Pocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Paperless: %s\n' "$PAPERLESS_PUBLIC_URL"
@@ -270,7 +277,7 @@ status() {
 }
 
 upgrade_qa() {
-  local update_modules="${USL_SIGN_QA_UPDATE_MODULES:-usl_documents,usl_pocketid,usl_sign}"
+  local update_modules="${USL_SIGN_QA_UPDATE_MODULES:-usl_document_templates,usl_documents,usl_pocketid,usl_sign}"
   if [[ ! "$update_modules" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
     printf 'USL_SIGN_QA_UPDATE_MODULES must be a comma-separated Odoo module list.\n' >&2
     return 2
@@ -278,8 +285,11 @@ upgrade_qa() {
   bootstrap
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build usl-sign-dss
+  docker image inspect "${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:5ab496f8d8f9}" \
+    >/dev/null 2>&1 || "${COMPOSE[@]}" build usl-document-renderer
   "${COMPOSE[@]}" up -d --wait \
-    db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver
+    db pocket-id usl-document-renderer usl-sign-step-ca usl-sign-dss \
+    paperless-webserver
   provision_pocket
   "${COMPOSE[@]}" stop odoo
   if ! "${COMPOSE[@]}" --profile init run --rm \
