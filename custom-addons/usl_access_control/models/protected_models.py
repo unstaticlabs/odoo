@@ -58,6 +58,13 @@ class IrActionsServer(models.Model):
         actions still require the irreversible-actions capability.
         """
         self.ensure_one()
+        classifier = getattr(
+            super(),
+            "_usl_product_server_action_requires_irreversible",
+            None,
+        )
+        if classifier:
+            return classifier()
         return True
 
     def run(self):
