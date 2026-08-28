@@ -1690,8 +1690,14 @@ msgstr "Choisi pour chaque demande"
 #. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
-msgid "Claimed PDF details"
-msgstr "Informations déclarées dans le PDF"
+msgid "PDF signature metadata"
+msgstr "Métadonnées de la signature PDF"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
+msgid "Browser location collected by USL Sign is separate, restricted evidence; it is not embedded in the signed PDF."
+msgstr "La localisation recueillie par USL Sign est une preuve distincte à accès restreint ; elle n’est pas intégrée au PDF signé."
 
 #. module: usl_sign
 #. odoo-javascript
@@ -5132,6 +5138,12 @@ msgstr "PDF uniquement · jusqu'à 100 Mo · vérifié localement"
 #: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
 msgid "PDF profile"
 msgstr "Profil PDF"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
+msgid "PDF-declared location"
+msgstr "Localisation déclarée dans le PDF"
 
 #. module: usl_sign
 #. odoo-javascript

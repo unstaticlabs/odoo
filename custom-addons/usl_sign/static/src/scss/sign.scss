@@ -1997,6 +1997,13 @@
         cursor: pointer;
     }
 
+    > p {
+        max-width: 65ch;
+        margin: .5rem 0 0;
+        color: var(--usl-inspector-muted);
+        font-size: .875rem;
+    }
+
     dl {
         margin-top: .75rem;
         padding: 1rem;
