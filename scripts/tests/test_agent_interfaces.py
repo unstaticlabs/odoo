@@ -176,6 +176,14 @@ class AgentInterfaceTests(unittest.TestCase):
             )
         )
 
+    def test_feature_ready_uses_handoff_base_for_stacked_commits(self) -> None:
+        self.assertEqual(
+            "origin/codex/production-release-foundation",
+            self.verify.feature_commit_base(
+                {"feature": {"base": "origin/codex/production-release-foundation"}}
+            ),
+        )
+
     def test_feature_start_refuses_protected_and_detached_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
