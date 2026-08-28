@@ -25,6 +25,9 @@ class DocumentLinkMixin(models.AbstractModel):
         the caller's environment: record rules remain the final authority and
         no inaccessible document contributes to a badge.
         """
+        for record in self:
+            record.archived_document_count = 0
+
         counts = {record_id: set() for record_id in self.ids}
         if not counts:
             return
@@ -73,6 +76,10 @@ class DocumentLinkMixin(models.AbstractModel):
         # A status count is safe to expose on an already-authorized business
         # record. The technical operation itself retains its stricter owner /
         # administrator rules.
+        for record in self:
+            record.document_archive_pending_count = 0
+            record.document_archive_failure_count = 0
+
         Operation = self.env["usl.document.operation"].sudo()
         pending_states = {"pending", "uploading", "processing"}
         failure_states = {"failed", "duplicate"}
@@ -94,8 +101,11 @@ class DocumentLinkMixin(models.AbstractModel):
             )
             target[record_id] = target.get(record_id, 0) + count
         for record in self:
-            record.document_archive_pending_count = pending_by_record[record.id]
-            record.document_archive_failure_count = failures_by_record[record.id]
+            record.document_archive_pending_count = pending_by_record.get(record.id, 0)
+            record.document_archive_failure_count = failures_by_record.get(
+                record.id,
+                0,
+            )
 
     def action_open_documents_workspace(self):
         self.ensure_one()

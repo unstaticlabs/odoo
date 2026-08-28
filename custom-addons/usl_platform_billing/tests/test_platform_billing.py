@@ -223,6 +223,13 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             payout._document_related_records(),
         )
 
+    def test_new_session_document_counters_are_zero(self):
+        session = self.env["usl.platform.billing.session"].new({})
+
+        self.assertEqual(session.archived_document_count, 0)
+        self.assertEqual(session.document_archive_pending_count, 0)
+        self.assertEqual(session.document_archive_failure_count, 0)
+
     def test_session_list_defaults_to_all_records(self):
         action = self.env.ref(
             "usl_platform_billing.action_platform_billing_sessions",
