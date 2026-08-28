@@ -74,10 +74,52 @@ class DocumentsSelectionTest(unittest.TestCase):
             selection.resolve_company_scope(group),
             {
                 "company_id": 8,
+                "company_inference": None,
                 "source_company_ids": [1, 8],
                 "superseded_inactive_company_ids": [1],
             },
         )
+
+    def test_locked_companyless_business_folders_are_translated(self):
+        legal = item(
+            200,
+            company=None,
+            folder_path="Legal / Registrations",
+        )
+        media = item(
+            848,
+            company=None,
+            folder_path="Legal / Contracts / Digidom",
+        )
+        bank_export = item(
+            0,
+            company=None,
+            document_id=None,
+            attachment_id=583,
+            kind="unassigned_evidence",
+        )
+
+        self.assertEqual(selection.resolve_company_scope([legal])["company_id"], 1)
+        self.assertEqual(selection.resolve_company_scope([media])["company_id"], 8)
+        self.assertEqual(
+            selection.resolve_company_scope([bank_export])["company_id"],
+            1,
+        )
+        self.assertEqual(
+            selection.resolve_company_scope([legal])["company_inference"],
+            "locked_source_semantic_ledger",
+        )
+
+    def test_unqualified_companyless_evidence_remains_for_review(self):
+        evidence = item(
+            0,
+            company=None,
+            document_id=None,
+            attachment_id=512,
+            kind="unassigned_evidence",
+        )
+
+        self.assertIsNone(selection.resolve_company_scope([evidence])["company_id"])
 
     def test_active_cross_company_relationships_are_rejected(self):
         group = [

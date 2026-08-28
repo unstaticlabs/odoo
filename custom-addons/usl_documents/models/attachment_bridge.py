@@ -366,28 +366,36 @@ class UslDocument(models.Model):
                     (confidentiality, incoming_confidentiality),
                     key=confidentiality_order.get,
                 )
-                # A trusted business context may safely narrow access.  Only a
-                # request to relax an already stricter root remains ambiguous.
-                if stricter_confidentiality != incoming_confidentiality:
-                    conflicts.append(_("confidentiality"))
+                # Multiple trusted records may legitimately require different
+                # audiences for the same bytes. Preserve the strictest scope;
+                # this is deterministic and never broadens access.
                 confidentiality = stricter_confidentiality
             access_scopes = {
                 document.access_scope,
                 context.get("access_scope"),
             }
             if conflicts:
+                conflict_template = _(
+                    "This file is linked from records suggesting different "
+                    "archive metadata (%s). Review its classification.",
+                )
                 document.sudo().with_context(
                     usl_documents_cache_write=True,
                 ).write(
                     {
                         "review_state": "needs_attention",
-                        "last_error": _(
-                            "This file is linked from records suggesting different "
-                            "archive metadata (%s). Review its classification.",
-                        )
-                        % ", ".join(conflicts),
+                        "last_error": conflict_template % ", ".join(conflicts),
                     },
                 )
+            else:
+                conflict_prefix = _(
+                    "This file is linked from records suggesting different "
+                    "archive metadata (%s). Review its classification.",
+                ).partition("%s")[0]
+                if (document.last_error or "").startswith(conflict_prefix):
+                    document.sudo().with_context(
+                        usl_documents_cache_write=True,
+                    ).write({"last_error": False})
             policy = {
                 "company_id": document.company_id.id or context.get("company_id"),
                 "confidentiality": confidentiality or "internal",

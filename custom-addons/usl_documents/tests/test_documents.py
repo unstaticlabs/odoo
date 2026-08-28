@@ -1321,7 +1321,7 @@ class TestDocuments(TransactionCase):
         self.assertNotEqual(operation.metadata_hash, existing.metadata_hash)
         upload.assert_called_once()
 
-    def test_duplicate_context_keeps_additive_and_restrictive_policy(self):
+    def test_duplicate_context_uses_strictest_confidentiality_without_review_error(self):
         accounting_document = self._document(
             140,
             confidentiality="accounting",
@@ -1341,7 +1341,7 @@ class TestDocuments(TransactionCase):
         self.assertTrue(accounting_document.accounting_evidence)
         self.assertEqual(accounting_document.access_scope, "linked_record")
         self.assertEqual(accounting_document.review_state, "needs_attention")
-        self.assertIn("confidentiality", accounting_document.last_error)
+        self.assertFalse(accounting_document.last_error)
 
         hr_document = self._document(
             141,
@@ -1360,6 +1360,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual(hr_document.confidentiality, "hr")
         self.assertTrue(hr_document.accounting_evidence)
         self.assertEqual(hr_document.review_state, "needs_attention")
+        self.assertFalse(hr_document.last_error)
 
     def test_portal_submitter_never_receives_documents_access(self):
         portal_user = mail_new_test_user(
