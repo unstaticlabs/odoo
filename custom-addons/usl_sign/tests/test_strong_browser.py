@@ -1393,6 +1393,13 @@ class TestSignBrowserJourneys(HttpCase):
                         !processingStatus?.textContent.includes(
                             "Saving and checking your signature",
                         ) ||
+                        !processing.querySelector(
+                            ".usl_sign_processing_spinner_track",
+                        ) ||
+                        !processing.querySelector(".usl_sign_processing_spinner") ||
+                        processing.querySelector(
+                            ".usl_sign_processing_check, .usl_sign_processing_seal",
+                        ) ||
                         getComputedStyle(iframe).display !== "none" ||
                         getComputedStyle(document.querySelector(".o_sign_oca_footer")).display !==
                             "none" ||
@@ -1405,6 +1412,11 @@ class TestSignBrowserJourneys(HttpCase):
                                 activeElement: document.activeElement?.id,
                                 text: processing?.textContent.trim(),
                                 status: processingStatus?.textContent.trim(),
+                                prematureSuccess: Boolean(
+                                    processing.querySelector(
+                                        ".usl_sign_processing_check, .usl_sign_processing_seal",
+                                    ),
+                                ),
                                 iframeDisplay: getComputedStyle(iframe).display,
                                 footerDisplay: getComputedStyle(
                                     document.querySelector(".o_sign_oca_footer"),
