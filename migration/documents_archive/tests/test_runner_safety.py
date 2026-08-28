@@ -654,6 +654,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
 
     def test_clean_paperless_bootstrap_is_digest_pinned(self):
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        native_override = (ROOT / "compose.ollama-native.yaml").read_text(
+            encoding="utf-8",
+        )
+        ollama_runtime = (ROOT / "scripts/lib/ollama-runtime.sh").read_text(
+            encoding="utf-8",
+        )
         stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
 
@@ -671,6 +677,14 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertIn("paperless-model-init", stack)
         self.assertIn("Paperless BGE-M3 bootstrap digest is not pinned", stack)
+        self.assertIn("depends_on: !reset {}", native_override)
+        self.assertIn("host.docker.internal:11434", native_override)
+        self.assertIn("refusing a silent CPU-container fallback", ollama_runtime)
+        self.assertIn(
+            "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+            ollama_runtime,
+        )
+        self.assertIn('USL_OLLAMA_RUNTIME_SELECTED" == container', stack)
         self.assertIn("prepare_personal_ai_keyring", target)
         self.assertIn(
             "Production migration requires USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
@@ -705,6 +719,23 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "2f2658d62790e460ca65a42722b13c4a",
             content,
         )
+
+    def test_embedding_batch_size_is_qualified(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        overlay = (
+            ROOT / "deploy/documents/paperless-ngx/apply_overlay.py"
+        ).read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+        inventory = (ROOT / "scripts/paperless_release_inventory.py").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:-32", compose)
+        self.assertIn("Paperless embedding batch size is not qualified", compose)
+        self.assertIn("embed_batch_size=settings.LLM_EMBEDDING_BATCH_SIZE", overlay)
+        self.assertIn("PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE", overlay)
+        self.assertIn("Paperless embedding batch size is not qualified at 32", stack)
+        self.assertIn('"embedding_batch_size"', inventory)
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")

@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 source "$ROOT/scripts/lib/migration-addons.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 command_name="${1:-all}"
 canonical_target="${DOCUMENTS_CANONICAL_TARGET:-0}"
@@ -195,6 +196,7 @@ export PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000
 export USL_POCKET_ID_ENABLED=0
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
+usl_prepare_ollama_runtime "$ROOT"
 
 if [[ "$canonical_target" == 1 ]]; then
     compose=(
@@ -206,6 +208,9 @@ if [[ "$canonical_target" == 1 ]]; then
     fi
 else
     compose=(docker compose -p "$compose_project")
+fi
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+    compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
 fi
 
 validate_source() {

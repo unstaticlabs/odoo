@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 usage() {
   printf '%s\n' \
@@ -104,6 +105,10 @@ if [[ "$ENVIRONMENT" = "preprod" \
     && "$PROJECT" = usl-odoo-paperless-* ]]; then
   COMPOSE_OVERRIDE=()
 fi
+usl_prepare_ollama_runtime "$ROOT"
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+  COMPOSE_OVERRIDE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+fi
 COMPOSE=(
   docker compose
   "${ENV_FILES[@]}"
@@ -119,8 +124,6 @@ SERVICES=(
   paperless-preflight
   paperless-db
   paperless-broker
-  paperless-ollama
-  paperless-model-init
   paperless-model-preflight
   paperless-trash-init
   paperless-gotenberg
@@ -128,6 +131,11 @@ SERVICES=(
   paperless-webserver
   odoo
 )
+OLLAMA_SERVICES=()
+if [[ "$USL_OLLAMA_RUNTIME_SELECTED" == container ]]; then
+  OLLAMA_SERVICES=(paperless-ollama paperless-model-init)
+  SERVICES+=("${OLLAMA_SERVICES[@]}")
+fi
 UPDATE_MODULES="usl_locale,usl_pocketid,usl_documents,usl_documents_accounting"
 [[ "$UPDATE_MODULES" =~ ^[A-Za-z0-9_,]+$ ]] || {
   printf 'Refusing unsafe Documents module update list: %s\n' "$UPDATE_MODULES" >&2
@@ -177,8 +185,12 @@ validate_config() {
     printf 'Paperless embedding chunk size is not frozen at 512.\n' >&2
     return 1
   }
-  grep -Fq "ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca" <<<"$config" || {
-    printf 'Ollama 0.30.11 is not pinned by qualified digest.\n' >&2
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: \"32\"" <<<"$config" || {
+    printf 'Paperless embedding batch size is not qualified at 32.\n' >&2
+    return 1
+  }
+  grep -Fq "ollama/ollama:0.32.15@sha256:57d60e686821ea81a7748a3ec8141308c8b8f95b27105713954abf7a6529e700" <<<"$config" || {
+    printf 'Ollama 0.32.15 is not pinned by qualified digest.\n' >&2
     return 1
   }
   grep -Fq "ghcr.io/pocket-id/pocket-id:v2.14.0@sha256:01540977dcf4c7b41b1159f34d68e4632f2658d62790e460ca65a42722b13c4a" <<<"$config" || {
@@ -355,9 +367,9 @@ case "$COMMAND" in
       --stop-after-init \
       --log-level=warn
     "${COMPOSE[@]}" up -d --wait --pull never \
-      db paperless-preflight paperless-db paperless-broker paperless-ollama \
-      paperless-model-preflight \
-      paperless-gotenberg paperless-tika paperless-webserver
+      db paperless-preflight paperless-db paperless-broker \
+      paperless-model-preflight paperless-gotenberg paperless-tika \
+      paperless-webserver "${OLLAMA_SERVICES[@]}"
     ensure_paperless_access
     ensure_personal_ai_release
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
