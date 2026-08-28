@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-28T07:41:18+02:00",
+  "title": "Design System: USL Home",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Working Canvas",
+        "tonalRamp": ["#222426", "#3d4042", "#5b5e61", "#7b7e81", "#9da0a2", "#c0c2c4", "#e1e3e4", "#f8f9fa"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Operational Surface",
+        "tonalRamp": ["#262626", "#414141", "#606060", "#808080", "#a1a1a1", "#c3c3c3", "#e3e3e3", "#ffffff"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline Border",
+        "tonalRamp": ["#252728", "#414344", "#5f6263", "#7f8283", "#a0a3a4", "#c1c4c5", "#dee2e6", "#f5f7f8"]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Primary Text",
+        "tonalRamp": ["#151719", "#212529", "#3f4347", "#606468", "#828588", "#a5a7a9", "#c9cacc", "#eff0f0"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Metadata",
+        "tonalRamp": ["#1f2224", "#34383b", "#4f5356", "#6c757d", "#899096", "#a8adb1", "#c9cccf", "#eef0f1"]
+      },
+      "brand": {
+        "role": "primary",
+        "displayName": "Odoo Brand",
+        "tonalRamp": ["#261923", "#3b2936", "#533b4b", "#714b67", "#8d687f", "#aa879e", "#c8a9bd", "#eedde8"]
+      },
+      "action": {
+        "role": "secondary",
+        "displayName": "Operational Action",
+        "tonalRamp": ["#002526", "#003b3d", "#005456", "#017e84", "#2b999e", "#61b5b9", "#9bd1d3", "#d8eeee"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Exception Red",
+        "tonalRamp": ["#3a0b10", "#61141d", "#8a202b", "#b72d3b", "#dc3545", "#e86f7b", "#f1a8ae", "#fbe0e3"]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Due-Today Amber",
+        "tonalRamp": ["#2c1c00", "#4a3000", "#6c4800", "#9a6700", "#bb872a", "#d6a85e", "#eccb9b", "#fbecd7"]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Clear-State Green",
+        "tonalRamp": ["#082c1a", "#0d4729", "#12643b", "#198754", "#46a172", "#76ba95", "#afd5bd", "#e0f0e6"]
+      },
+      "soft": {
+        "role": "neutral",
+        "displayName": "Soft Operational Fill",
+        "tonalRamp": ["#202122", "#393b3c", "#555758", "#727475", "#929495", "#b4b6b7", "#d7d9da", "#f9fafb"]
+      },
+      "skeleton": {
+        "role": "neutral",
+        "displayName": "Skeleton Gray",
+        "tonalRamp": ["#252626", "#404142", "#5e6061", "#7e8081", "#9fa1a2", "#c0c2c3", "#e9ecef", "#f7f8f9"]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Home Title",
+        "purpose": "Identifies the Home surface beneath the native Odoo navbar."
+      },
+      "headline": {
+        "displayName": "Widget Heading",
+        "purpose": "Names a routing card or customization group."
+      },
+      "body": {
+        "displayName": "Operational Body",
+        "purpose": "Carries actions, row titles, descriptions, and configuration copy."
+      },
+      "label": {
+        "displayName": "Status Label",
+        "purpose": "Carries timing, pipeline state, and compact operational metadata."
+      },
+      "signal": {
+        "displayName": "Task Signal",
+        "purpose": "Keeps task-summary counts scannable without giving them dashboard-KPI prominence."
+      },
+      "alertCount": {
+        "displayName": "Accounting Alert Count",
+        "purpose": "Keeps exception counts legible inside the dense five-destination accounting row."
+      },
+      "clearStateIcon": {
+        "displayName": "Clear-State Icon",
+        "purpose": "Sizes the decorative success icon above concise empty-state text."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "border-feedback",
+        "value": "140ms ease-out",
+        "purpose": "Softens widget boundary feedback without lift or translation."
+      },
+      {
+        "name": "loading-shimmer",
+        "value": "1.3s ease-in-out infinite",
+        "purpose": "Moves the neutral skeleton gradient while a widget is loading; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "single-column",
+        "value": "991.98px"
+      },
+      {
+        "name": "single-column-destinations",
+        "value": "767.98px"
+      },
+      {
+        "name": "compact-mobile",
+        "value": "575.98px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Responsive Header Actions",
+      "kind": "button",
+      "description": "The native Refresh and Customize controls remain a paired, equal-width action row when the compact header stacks.",
+      "html": "<div class=\"ds-header-actions\"><button class=\"ds-header-refresh\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M20 6v5h-5M4 18v-5h5M6.1 9a7 7 0 0 1 11.5-2.6L20 9M4 15l2.4 2.6A7 7 0 0 0 17.9 15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>Refresh</button><button class=\"ds-header-customize\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg>Customize</button></div>",
+      "css": ".ds-header-actions { display: flex; gap: .5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } .ds-header-actions button { display: inline-flex; min-height: 2.375rem; align-items: center; justify-content: center; gap: .35rem; padding: .375rem .75rem; border: 1px solid var(--border-color, #dee2e6); border-radius: .25rem; font: inherit; } .ds-header-actions svg { width: 1rem; height: 1rem; } .ds-header-refresh { background: var(--o-gray-100, #f8f9fa); color: var(--o-main-text-color, #212529); } .ds-header-customize { background: var(--o-gray-600, #6c757d); color: #fff; } .ds-header-actions button:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: 2px; } @media (max-width: 575.98px) { .ds-header-actions button { min-width: 0; flex: 1 1 0; } }"
+    },
+    {
+      "name": "Widget Card",
+      "kind": "card",
+      "refersTo": "widget-card",
+      "description": "The flat, bordered container used for every Home routing group.",
+      "html": "<article class=\"ds-widget\"><header><span class=\"ds-widget-icon\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M12 7v5l3 2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg></span><div><h2>Activities</h2><p>What needs you now</p></div></header><div class=\"ds-widget-body\">Current work appears here.</div></article>",
+      "css": ".ds-widget { overflow: hidden; color: var(--o-main-text-color, #212529); background: var(--o-view-background-color, #fff); border: 1px solid var(--border-color, #dee2e6); border-radius: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; transition: border-color 140ms ease-out; } .ds-widget:hover { border-color: color-mix(in srgb, var(--border-color, #dee2e6) 65%, var(--o-gray-600, #6c757d)); } .ds-widget header { display: flex; align-items: center; gap: .75rem; padding: 1rem 1rem .9rem; } .ds-widget-icon { display: inline-flex; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); color: #9a6700; } .ds-widget-icon svg { width: 1rem; height: 1rem; } .ds-widget h2 { margin: 0; font-size: 1.08rem; font-weight: 650; } .ds-widget p { margin: .2rem 0 0; color: var(--o-gray-600, #6c757d); font-size: .875rem; } .ds-widget-body { padding: .75rem 1rem 1rem; border-top: 1px solid var(--border-color, #dee2e6); }"
+    },
+    {
+      "name": "Attention Row",
+      "kind": "custom",
+      "refersTo": "attention-row",
+      "description": "A compact direct record route with a semantic marker, truncated context, and fixed trailing timing.",
+      "html": "<button class=\"ds-attention-row\"><span class=\"ds-attention-icon\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M12 7v5l3 2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg></span><span class=\"ds-attention-copy\"><strong>Approve supplier invoice</strong><small>INV/2026/0042 · Vendor Bill</small></span><span class=\"ds-attention-time\">Today</span></button>",
+      "css": ".ds-attention-row { display: flex; width: 100%; min-height: 3.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .2rem 1rem; border: 0; border-top: 1px solid color-mix(in srgb, var(--border-color, #dee2e6) 72%, transparent); background: transparent; color: var(--o-main-text-color, #212529); text-align: left; font: inherit; } .ds-attention-row:hover { background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); } .ds-attention-row:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: 2px; } .ds-attention-icon { display: inline-flex; width: 1.75rem; height: 1.75rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, #9a6700 11%, var(--o-view-background-color, #fff)); color: #9a6700; } .ds-attention-icon svg { width: .9rem; height: .9rem; } .ds-attention-copy { min-width: 0; flex: 1 1 auto; } .ds-attention-copy strong, .ds-attention-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-attention-copy small { margin-top: .15rem; color: var(--o-gray-600, #6c757d); } .ds-attention-time { flex: 0 0 auto; color: #9a6700; font-size: .78rem; font-weight: 600; }"
+    },
+    {
+      "name": "Pipeline Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "A compact text status that keeps review neutral and reinforces blocked or failed states with a danger tint.",
+      "html": "<span class=\"ds-status-chip\" data-status=\"blocked\">Blocked</span>",
+      "css": ".ds-status-chip { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: color-mix(in srgb, var(--o-danger, #dc3545) 10%, var(--o-view-background-color, #fff)); color: var(--o-danger, #dc3545); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: .78rem; font-weight: 600; } .ds-status-chip:not([data-status='blocked']):not([data-status='failed']) { background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); color: var(--o-main-text-color, #212529); }"
+    },
+    {
+      "name": "Favorite Destination",
+      "kind": "nav",
+      "refersTo": "favorite-destination",
+      "description": "A dense saved route with destination-kind icon, exact context, and company metadata.",
+      "html": "<button class=\"ds-favorite\"><span class=\"ds-favorite-icon\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 5h12v14H6zM9 9h6M9 13h6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></span><span class=\"ds-favorite-main\"><strong>Unpaid customer invoices</strong><small>View · USL</small></span><b aria-hidden=\"true\">→</b></button>",
+      "css": ".ds-favorite { display: flex; width: 100%; min-height: 3.5rem; align-items: center; gap: .75rem; padding: 0; border: 0; border-top: 1px solid color-mix(in srgb, var(--border-color, #dee2e6) 75%, transparent); background: transparent; color: var(--o-main-text-color, #212529); text-align: left; font: inherit; } .ds-favorite:hover:not(:disabled) { color: var(--o-action, #017e84); } .ds-favorite:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: 2px; } .ds-favorite-icon { display: inline-flex; width: 2rem; height: 2rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); color: var(--o-action, #017e84); } .ds-favorite-icon svg { width: 1rem; height: 1rem; } .ds-favorite-main { min-width: 0; flex: 1 1 auto; line-height: 1.35; } .ds-favorite strong, .ds-favorite small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-favorite small { margin-top: .15rem; color: var(--o-gray-600, #6c757d); font-size: .75rem; } .ds-favorite b { font-weight: 400; }"
+    },
+    {
+      "name": "Task Signal Strip",
+      "kind": "custom",
+      "description": "A compact four-cell workload summary whose active counts use semantic color while inactive values stay neutral.",
+      "html": "<div class=\"ds-signals\"><div data-signal=\"overdue\" data-active=\"true\"><strong>3</strong><span>Overdue</span></div><div data-signal=\"due\" data-active=\"true\"><strong>8</strong><span>Due in 7 days</span></div><div data-signal=\"waiting\"><strong>2</strong><span>Waiting</span></div><div data-signal=\"changes\" data-active=\"true\"><strong>1</strong><span>Changes requested</span></div></div>",
+      "css": ".ds-signals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); color: var(--o-main-text-color, #212529); border-block: 1px solid var(--border-color, #dee2e6); background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } .ds-signals div { padding: .8rem .65rem; border-right: 1px solid var(--border-color, #dee2e6); } .ds-signals div:last-child { border-right: 0; } .ds-signals strong, .ds-signals span { display: block; } .ds-signals strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; } .ds-signals span { margin-top: .15rem; color: var(--o-gray-600, #6c757d); font-size: .75rem; } .ds-signals [data-active='true'][data-signal='overdue'] strong, .ds-signals [data-active='true'][data-signal='changes'] strong { color: var(--o-danger, #dc3545); } .ds-signals [data-active='true'][data-signal='due'] strong { color: #9a6700; } @media (max-width: 575.98px) { .ds-signals { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ds-signals div:nth-child(2) { border-right: 0; } .ds-signals div:nth-child(-n+2) { border-bottom: 1px solid var(--border-color, #dee2e6); } }"
+    },
+    {
+      "name": "Accounting Alert",
+      "kind": "button",
+      "refersTo": "accounting-alert",
+      "description": "A key-specific semantic icon and bold count route into one accounting or compliance exception set.",
+      "html": "<button class=\"ds-accounting-alert\"><span class=\"ds-alert-icon\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 10V8a5 5 0 0 1 10 0v2M6 10h12v10H6z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></span><span class=\"ds-alert-copy\"><strong>12</strong><small>Bills to review</small></span><b aria-hidden=\"true\">→</b></button>",
+      "css": ".ds-accounting-alert { display: grid; width: 100%; min-height: 4.75rem; grid-template-columns: auto 1fr auto; align-items: center; gap: .6rem; padding: .75rem; border: 1px solid var(--border-color, #dee2e6); border-radius: 12px; background: transparent; color: var(--o-main-text-color, #212529); text-align: left; font: inherit; } .ds-accounting-alert:hover { border-color: var(--o-action, #017e84); background: color-mix(in srgb, var(--o-gray-100, #f8f9fa) 82%, var(--o-view-background-color, #fff)); } .ds-accounting-alert:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: 2px; } .ds-alert-icon { display: inline-flex; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, #9a6700 10%, var(--o-view-background-color, #fff)); color: #9a6700; } .ds-alert-icon svg { width: 1rem; height: 1rem; } .ds-alert-copy { min-width: 0; } .ds-alert-copy strong, .ds-alert-copy small { display: block; } .ds-alert-copy strong { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-alert-copy small { margin-top: .1rem; color: var(--o-gray-600, #6c757d); line-height: 1.25; } .ds-accounting-alert b { font-weight: 400; }"
+    },
+    {
+      "name": "Loading Skeleton",
+      "kind": "custom",
+      "refersTo": "skeleton-row",
+      "description": "Three neutral rows reserve widget space while its data loads.",
+      "html": "<div class=\"ds-loading\" role=\"status\"><span></span><span></span><span></span><i>Loading</i></div>",
+      "css": ".ds-loading { display: grid; gap: .65rem; } .ds-loading span { height: 3.25rem; border-radius: 8px; background: linear-gradient(90deg, var(--o-gray-200, #e9ecef), var(--o-gray-100, #f8f9fa), var(--o-gray-200, #e9ecef)); background-size: 200% 100%; animation: ds-loading 1.3s ease-in-out infinite; } .ds-loading i { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; } @keyframes ds-loading { to { background-position: -200% 0; } } @media (prefers-reduced-motion: reduce) { .ds-loading span { animation: none; } }"
+    },
+    {
+      "name": "Customization Panel",
+      "kind": "custom",
+      "description": "The secondary panel for choosing visible widgets and their order.",
+      "html": "<section class=\"ds-customize\"><div><h2>Your Home</h2><p>Choose what is visible.</p></div><label><input type=\"checkbox\" checked> Activities</label></section>",
+      "css": ".ds-customize { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(260px, 1.3fr); gap: 1rem 2rem; padding: 1rem 1.25rem; border: 1px solid var(--border-color, #dee2e6); border-radius: 12px; background: var(--o-view-background-color, #fff); color: var(--o-main-text-color, #212529); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } .ds-customize h2 { margin: 0 0 .25rem; font-size: 1.1rem; } .ds-customize p { margin: 0; color: var(--o-gray-600, #6c757d); } .ds-customize label { display: flex; align-items: center; gap: .5rem; min-height: 2.25rem; border-bottom: 1px solid color-mix(in srgb, var(--border-color, #dee2e6) 75%, transparent); } .ds-customize input:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: 2px; } @media (max-width: 575.98px) { .ds-customize { grid-template-columns: 1fr; } }"
+    },
+    {
+      "name": "Add to Home Menu Item",
+      "kind": "nav",
+      "description": "The native cog-menu command that saves the current destination to Home.",
+      "html": "<button class=\"ds-add-home\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m3 11 9-7 9 7v9h-6v-6H9v6H3v-9Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/></svg><span>Add to Home</span></button>",
+      "css": ".ds-add-home { display: flex; width: 100%; align-items: center; gap: .25rem; padding: .5rem 1rem; border: 0; background: transparent; color: var(--o-main-text-color, #212529); text-align: left; font: inherit; } .ds-add-home:hover { background: var(--o-gray-100, #f8f9fa); } .ds-add-home:focus-visible { outline: 3px solid color-mix(in srgb, var(--o-brand-primary, #714b67) 40%, transparent); outline-offset: -3px; } .ds-add-home svg { width: 1rem; height: 1rem; flex: 0 0 auto; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Routing Desk",
+    "overview": "USL Home is a calm daily operating surface inside the native Odoo 19 shell. It behaves like a well-arranged desk: current obligations are easy to scan, exact working destinations are easy to resume, and human-review or accounting exceptions remain visible without turning Home into a dashboard product.\n\nThe surface inherits Odoo and Bootstrap typography, controls, navbar behavior, icon set, semantic variables, and action language. Its own visual contribution is deliberately restrained: a light canvas, content-sized white cards, fine borders, compact operational copy, softly backed metadata and icons, and a small amount of semantic color reserved for state. Customization is available but visually secondary to action and continuation.",
+    "keyCharacteristics": [
+      "Native Odoo shell and control vocabulary.",
+      "Activities and My Tasks lead the daily scan.",
+      "Flat, bordered cards with compact, content-sized interiors.",
+      "Exact destinations and exceptions are presented as dense direct action rows.",
+      "Modernized icons clarify widget purpose, destination kind, and exception class without becoming ornament.",
+      "Semantic color communicates urgency or completion; it does not decorate.",
+      "Customization changes visibility and order without creating a separate dashboard-builder world."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic-Only Color Rule",
+        "body": "Status colors report urgency, failure, blockage, or completion; neutral surfaces carry everything else.",
+        "section": "colors"
+      },
+      {
+        "name": "The Theme-Inheritance Rule",
+        "body": "Use Odoo CSS variables with safe fallbacks so Home follows the active backend theme instead of establishing a competing palette.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Hero Rule",
+        "body": "Home is an Operate surface: its title identifies the place and never expands into a promotional hero.",
+        "section": "typography"
+      },
+      {
+        "name": "The One-Line Scan Rule",
+        "body": "Row titles and metadata truncate with ellipses where needed so timing, status, and actions remain visible.",
+        "section": "typography"
+      },
+      {
+        "name": "The Content-Sized Card Rule",
+        "body": "Cards follow their content and use `margin-top: auto` only to align a card's own footer; do not manufacture a dashboard-like wall of equal-height panels.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Do not add ambient shadows to Home cards; boundary, tone, and spacing provide the hierarchy.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the native Odoo navbar, button variants, dropdowns, icons, typography, and semantic variables.",
+      "Do keep Activities, tasks, resumable destinations, human handoffs, and accounting exceptions scannable as direct routes.",
+      "Do keep the two-column desktop favorite density, exact destination metadata, and one-column narrow-screen reading order.",
+      "Do pair semantic icon and count treatments with textual labels; color is reinforcement, never the only signal.",
+      "Do use visible focus, semantic roles, accessible names, keyboard activation, and reduced-motion behavior.",
+      "Do keep errors local to their widget and retain successful content elsewhere on Home.",
+      "Do collapse the card grid and signal groups at the shipped responsive breakpoints."
+    ],
+    "donts": [
+      "Don't turn Home into an app launcher, analytics dashboard, or alternate navigation shell.",
+      "Don't add decorative gradients, promotional hero typography, dense charting, or ornamental status color.",
+      "Don't replace Odoo-owned theme tokens, native button variants, or native Font Awesome icons with a custom shell or parallel design system.",
+      "Don't use shadow to manufacture hierarchy that the shipped borders, surfaces, and spacing already provide.",
+      "Don't expose customization controls during routine use or let customization dominate the first viewport.",
+      "Don't hide unavailable, failed, or blocked states without an explanation or next action."
+    ]
+  }
+}

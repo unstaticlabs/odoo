@@ -287,6 +287,7 @@ The production custom-module boundaries are:
 - `usl_expense_batch`: optional contextual Expense Batches with native
   analytic inheritance, visible line exceptions and mixed-payer review;
 - `usl_project`: the ongoing Projects product extensions;
+- `usl_home`: the personalized native launcher and operational attention cockpit;
 - `usl_tese_payroll`: external-provider payroll evidence, Accounting and HR
   workflow without legal payroll calculation;
 - `usl_documents`: the Odoo Documents workspace, Paperless synchronization

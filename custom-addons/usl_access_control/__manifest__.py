@@ -29,6 +29,8 @@
         "web.assets_backend": [
             "usl_access_control/static/src/js/accounting_readonly.js",
             "usl_access_control/static/src/xml/accounting_readonly.xml",
+        ],
+        "usl_documents.assets_workspace": [
             "usl_access_control/static/src/xml/documents_access.xml",
         ],
     },

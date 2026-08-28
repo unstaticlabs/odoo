@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_home.Home">
+        <main class="o_usl_home" aria-label="Home">
+            <header class="o_usl_home_header">
+                <p t-if="state.activeCompany" class="o_usl_home_scope">
+                    <i class="fa fa-building-o" aria-hidden="true"/>
+                    <t t-esc="state.activeCompany.name"/>
+                </p>
+                <div class="o_usl_home_header_actions">
+                    <button class="btn btn-light" type="button" t-on-click="this.refreshAll">
+                        <i class="fa fa-refresh me-1" aria-hidden="true"/>Refresh
+                    </button>
+                    <button class="btn btn-secondary" type="button" t-on-click="() => this.state.customize = !this.state.customize" t-att-aria-expanded="state.customize">
+                        <i class="fa me-1" t-att-class="state.customize ? 'fa-check' : 'fa-sliders'" aria-hidden="true"/><t t-if="state.customize">Done</t><t t-else="">Customize</t>
+                    </button>
+                </div>
+            </header>
+
+            <section t-if="state.customize" class="o_usl_home_customize" aria-labelledby="usl-home-customize-title">
+                <div>
+                    <h2 id="usl-home-customize-title">Your Home</h2>
+                    <p>Choose what is visible. Drag cards or use the arrow controls to change their order.</p>
+                </div>
+                <div class="o_usl_home_customize_widgets">
+                    <div t-foreach="configurableWidgets" t-as="widget" t-key="widget.key" class="o_usl_home_customize_row">
+                        <label>
+                            <input type="checkbox" t-att-checked="widget.visible" t-on-change="() => this.toggleWidget(widget.key)"/>
+                            <t t-esc="widget.label"/>
+                        </label>
+                        <span>
+                            <button class="btn btn-link btn-sm" type="button" t-on-click="() => this.moveWidget(widget.key, -1)" t-att-aria-label="`Move ${widget.label} earlier`">
+                                <i class="fa fa-arrow-up" aria-hidden="true"/>
+                            </button>
+                            <button class="btn btn-link btn-sm" type="button" t-on-click="() => this.moveWidget(widget.key, 1)" t-att-aria-label="`Move ${widget.label} later`">
+                                <i class="fa fa-arrow-down" aria-hidden="true"/>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <div t-if="state.availableDestinations.length" class="o_usl_home_customize_destinations">
+                    <strong>Add a destination</strong>
+                    <button t-foreach="state.availableDestinations" t-as="destination" t-key="destination.key" class="btn btn-outline-secondary btn-sm" type="button" t-on-click="() => this.addProvider(destination.key)">
+                        <i class="fa fa-plus me-1" aria-hidden="true"/><t t-esc="destination.name"/>
+                    </button>
+                </div>
+            </section>
+
+            <div t-if="state.loadingConfiguration" class="o_usl_home_configuration_state" role="status">
+                <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"/> Preparing Home…
+            </div>
+            <div t-elif="state.configurationError" class="o_usl_home_configuration_state o_usl_home_error" role="alert">
+                <span>Home could not be loaded.</span>
+                <button class="btn btn-link" type="button" t-on-click="this.loadConfiguration">Try again</button>
+            </div>
+            <section t-else="" class="o_usl_home_grid" t-ref="grid" aria-label="Home widgets">
+                <article t-foreach="visibleWidgets" t-as="widgetKey" t-key="widgetKey" class="o_usl_home_widget" t-att-data-widget="widgetKey">
+                    <header class="o_usl_home_widget_header">
+                        <div class="o_usl_home_widget_title">
+                            <span class="o_usl_home_widget_icon" t-att-data-widget="widgetKey">
+                                <i class="fa" t-att-class="this.widgetIcon(widgetKey)" aria-hidden="true"/>
+                            </span>
+                            <div>
+                                <h2 t-esc="widgetLabel(widgetKey)"/>
+                                <p t-if="widgetKey === 'activities'">What needs you now</p>
+                                <p t-elif="widgetKey === 'my_tasks'">Your workload by real project state</p>
+                                <p t-elif="widgetKey === 'favorites'">Resume the exact place you use</p>
+                                <p t-elif="widgetKey === 'ai_pipelines'">Human review, blockers, and failures</p>
+                                <p t-elif="widgetKey === 'accounting' and widgetState(widgetKey).data"><t t-esc="widgetState(widgetKey).data.company.name"/></p>
+                            </div>
+                        </div>
+                        <button t-if="state.customize" class="o_usl_home_drag btn btn-link" type="button" aria-label="Drag to reorder widget">
+                            <i class="fa fa-th" aria-hidden="true"/>
+                        </button>
+                    </header>
+
+                    <t t-if="widgetKey !== 'favorites'">
+                        <div t-if="widgetState(widgetKey).loading" class="o_usl_home_loading" role="status">
+                            <span class="o_usl_home_skeleton"/><span class="o_usl_home_skeleton"/><span class="o_usl_home_skeleton"/>
+                            <span class="visually-hidden">Loading</span>
+                        </div>
+                        <div t-elif="widgetState(widgetKey).error" class="o_usl_home_widget_state" role="alert">
+                            <p>This part of Home is unavailable.</p>
+                            <button class="btn btn-link" type="button" t-on-click="() => this.loadWidget(widgetKey)">Try again</button>
+                        </div>
+                    </t>
+
+                    <t t-if="widgetKey === 'activities' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
+                        <ol t-if="widgetState(widgetKey).data.items.length" class="o_usl_home_attention_list">
+                            <li t-foreach="widgetState(widgetKey).data.items" t-as="item" t-key="item.id">
+                                <button type="button" t-on-click="() => this.openRecord(item.res_model, item.res_id)">
+                                    <span class="o_usl_home_attention_icon" t-att-data-status="item.bucket">
+                                        <i class="fa" t-att-class="item.bucket === 'overdue' ? 'fa-exclamation' : item.bucket === 'today' ? 'fa-clock-o' : 'fa-calendar-o'" aria-hidden="true"/>
+                                    </span>
+                                    <span class="o_usl_home_item_main">
+                                        <strong t-esc="item.summary"/>
+                                        <small><t t-esc="item.record_name"/> · <t t-esc="item.model_name"/></small>
+                                    </span>
+                                    <span class="o_usl_home_timing" t-att-data-status="item.bucket" t-esc="activityTiming(item)"/>
+                                </button>
+                            </li>
+                        </ol>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty">
+                            <i class="fa fa-check-circle" aria-hidden="true"/><p>No activities need your attention.</p>
+                        </div>
+                        <footer><button class="btn btn-link" type="button" t-on-click="this.openAllActivities">Show all activities <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></button></footer>
+                    </t>
+
+                    <t t-if="widgetKey === 'my_tasks' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
+                        <div class="o_usl_home_task_signals">
+                            <div data-signal="overdue" t-att-data-active="widgetState(widgetKey).data.signals.overdue ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.overdue"/><span>Overdue</span></div>
+                            <div data-signal="due" t-att-data-active="widgetState(widgetKey).data.signals.due_soon ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.due_soon"/><span>Due in 7 days</span></div>
+                            <div data-signal="waiting" t-att-data-active="widgetState(widgetKey).data.signals.waiting ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.waiting"/><span>Waiting</span></div>
+                            <div data-signal="changes" t-att-data-active="widgetState(widgetKey).data.signals.changes_requested ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.changes_requested"/><span>Changes requested</span></div>
+                        </div>
+                        <ul t-if="widgetState(widgetKey).data.stages.length" class="o_usl_home_stage_list">
+                            <li t-foreach="widgetState(widgetKey).data.stages" t-as="stage" t-key="stage.id"><span t-esc="stage.name"/><strong t-esc="stage.count"/></li>
+                        </ul>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><p>No open tasks are assigned to you.</p></div>
+                        <footer><button class="btn btn-primary" type="button" t-on-click="this.openMyTasks">Open My Tasks <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></button></footer>
+                    </t>
+
+                    <t t-if="widgetKey === 'favorites'">
+                        <ul t-if="state.favorites.length" class="o_usl_home_favorites">
+                            <li t-foreach="state.favorites" t-as="favorite" t-key="favorite.id" t-att-class="favorite.available ? '' : 'is-unavailable'">
+                                <button class="o_usl_home_favorite_open" type="button" t-on-click="() => this.openFavorite(favorite)" t-att-disabled="!favorite.available">
+                                    <span class="o_usl_home_favorite_icon" t-att-data-kind="favorite.icon">
+                                        <i class="fa" t-att-class="favorite.available ? this.favoriteIcon(favorite.icon) : 'fa-ban'" aria-hidden="true"/>
+                                    </span>
+                                    <span class="o_usl_home_favorite_main">
+                                        <strong t-esc="favorite.name"/>
+                                        <small t-if="favorite.kind_label or favorite.company_name">
+                                            <t t-if="favorite.kind_label" t-esc="favorite.kind_label"/>
+                                            <t t-if="favorite.kind_label and favorite.company_name"> · </t>
+                                            <t t-if="favorite.company_name" t-esc="favorite.company_name"/>
+                                        </small>
+                                    </span>
+                                    <i t-if="favorite.available" class="fa fa-arrow-right" aria-hidden="true"/>
+                                </button>
+                                <span t-if="state.customize or !favorite.available" class="o_usl_home_favorite_controls">
+                                    <button t-if="state.customize" class="btn btn-link btn-sm" type="button" t-on-click="() => this.moveFavorite(favorite, -1)" t-att-aria-label="`Move ${favorite.name} earlier`"><i class="fa fa-arrow-up" aria-hidden="true"/></button>
+                                    <button t-if="state.customize" class="btn btn-link btn-sm" type="button" t-on-click="() => this.moveFavorite(favorite, 1)" t-att-aria-label="`Move ${favorite.name} later`"><i class="fa fa-arrow-down" aria-hidden="true"/></button>
+                                    <button class="btn btn-link btn-sm text-danger" type="button" t-on-click="() => this.removeFavorite(favorite)" t-att-aria-label="`Remove ${favorite.name}`"><i class="fa fa-times" aria-hidden="true"/></button>
+                                </span>
+                            </li>
+                        </ul>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty">
+                            <p>No favorite views yet.</p><small>Open a workflow and choose “Add to Home” from its action menu.</small>
+                        </div>
+                    </t>
+
+                    <t t-if="widgetKey === 'ai_pipelines' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
+                        <ul t-if="widgetState(widgetKey).data.items.length" class="o_usl_home_pipeline_list">
+                            <li t-foreach="widgetState(widgetKey).data.items" t-as="item" t-key="item.id">
+                                <button type="button" t-on-click="() => this.openRecord('project.task', item.id)">
+                                    <span class="o_usl_home_attention_icon" t-att-data-status="item.status"><i class="fa" t-att-class="item.status === 'failed' ? 'fa-exclamation' : item.status === 'blocked' ? 'fa-ban' : 'fa-eye'" aria-hidden="true"/></span>
+                                    <span class="o_usl_home_item_main"><strong t-esc="item.name"/><small t-esc="item.project"/></span>
+                                    <span class="o_usl_home_status" t-att-data-status="item.status" t-esc="item.status === 'failed' ? 'Failed' : item.status === 'blocked' ? 'Blocked' : 'Review'"/>
+                                </button>
+                            </li>
+                        </ul>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><i class="fa fa-check-circle" aria-hidden="true"/><p>No AI pipeline work needs you.</p></div>
+                        <footer><button class="btn btn-link" type="button" t-on-click="this.openAiPipelines">Open AI Pipelines <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></button></footer>
+                    </t>
+
+                    <t t-if="widgetKey === 'accounting' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
+                        <div t-if="widgetState(widgetKey).data.alerts.length" class="o_usl_home_accounting_alerts">
+                            <button t-foreach="widgetState(widgetKey).data.alerts" t-as="alert" t-key="alert.key" type="button" t-on-click="() => this.openAccountingAlert(alert.key)">
+                                <span class="o_usl_home_alert_icon" t-att-data-status="alert.status"><i class="fa" t-att-class="this.accountingIcon(alert.key)" aria-hidden="true"/></span>
+                                <span><strong class="o_usl_home_alert_count" t-esc="alert.count"/><small t-esc="alert.label"/></span>
+                                <i class="fa fa-arrow-right" aria-hidden="true"/>
+                            </button>
+                        </div>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><i class="fa fa-check-circle" aria-hidden="true"/><p>No accounting or compliance alerts for this company.</p></div>
+                    </t>
+                </article>
+                <div t-if="!visibleWidgets.length" class="o_usl_home_all_hidden">
+                    <p>All Home widgets are hidden.</p>
+                    <button class="btn btn-secondary" type="button" t-on-click="() => this.state.customize = true">Customize Home</button>
+                </div>
+            </section>
+        </main>
+    </t>
+</templates>

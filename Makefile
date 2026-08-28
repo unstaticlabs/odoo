@@ -81,6 +81,7 @@ help:
 	  '  make qa PROFILE=no-documents        Full Odoo data without Documents runtime' \
 	  '  make qa PROFILE=documents-smoke     Deterministic Documents sample' \
 	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
+	  '  make qa PROFILE=home                Focused isolated Home cockpit review' \
 	  '  make qa-cache-status                Check shared cache compatibility' \
 	  '  make qa-cache-refresh               Full fresh migration and atomic cache refresh' \
 	  '  make qa-cache-resume                Revalidate Accounting and resume a failed refresh' \
@@ -204,7 +205,8 @@ qa: document-renderer-check
 	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
 
 qa-reuse: document-renderer-check
-	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 PROFILE=full scripts/qa-environment full
+	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 \
+		PROFILE="$${PROFILE:-full}" scripts/qa-environment "$${PROFILE:-full}"
 
 qa-clean:
 	@COMPOSE_PROJECT_NAME= USL_QA_CLEAN_CONFIRM="$(CONFIRM)" scripts/qa-clean

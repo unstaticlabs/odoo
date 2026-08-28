@@ -11,6 +11,7 @@ DEEMPHASIZED_ROOT_MENU_XMLIDS = (
 )
 
 PRIMARY_ROOT_MENU_XMLIDS = (
+    "usl_home.menu_usl_home_root",
     "project.menu_main_pm",
     "usl_documents.menu_usl_documents_root",
     "account.menu_finance",

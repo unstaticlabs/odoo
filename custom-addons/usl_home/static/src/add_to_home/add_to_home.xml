@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_home.AddToHome">
+        <DropdownItem class="'o_usl_add_to_home'" onSelected.bind="this.addToHome">
+            <i class="fa fa-fw fa-home me-1" aria-hidden="true"/>Add to Home
+        </DropdownItem>
+    </t>
+</templates>

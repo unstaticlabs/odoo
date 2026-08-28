@@ -1,0 +1,659 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#  * usl_home
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-28 11:23+0000\n"
+"PO-Revision-Date: 2026-08-28 11:24+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "A valid record destination is required."
+msgstr "Une destination d’enregistrement valide est requise."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "AI Pipelines"
+msgstr "Pipelines IA"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "AI Pipelines is not available."
+msgstr "Les pipelines IA ne sont pas disponibles."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "AI workspace"
+msgstr "Espace IA"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting"
+msgstr "Comptabilité"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Accounting & Compliance Alerts"
+msgstr "Alertes comptables et de conformité"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting Hygiene"
+msgstr "Qualité comptable"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting Hygiene is not available."
+msgstr "La qualité comptable n’est pas disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting alerts are not available."
+msgstr "Les alertes comptables ne sont pas disponibles."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting hygiene issues"
+msgstr "Problèmes de qualité comptable"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Accounting reviews pending"
+msgstr "Vérifications comptables en attente"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__action_id
+msgid "Action"
+msgstr "Action"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Activities"
+msgstr "Activités"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Add a destination"
+msgstr "Ajouter une destination"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/add_to_home/add_to_home.xml:0
+msgid "Add to Home"
+msgstr "Ajouter à l’accueil"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "All Home widgets are hidden."
+msgstr "Tous les blocs de l’accueil sont masqués."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "An Odoo action is required."
+msgstr "Une action Odoo est requise."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Bank items to review"
+msgstr "Éléments bancaires à vérifier"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Changes requested"
+msgstr "Modifications demandées"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid ""
+"Choose what is visible. Drag cards or use the arrow controls to change their "
+"order."
+msgstr ""
+"Choisissez les éléments visibles. Faites glisser les blocs ou utilisez les "
+"flèches pour modifier leur ordre."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Closing blockers"
+msgstr "Blocages de clôture"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Customize"
+msgstr "Personnaliser"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Customize Home"
+msgstr "Personnaliser l’accueil"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Declarations requiring attention"
+msgstr "Déclarations à vérifier"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Destination unavailable"
+msgstr "Destination indisponible"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_res_users__display_name
+#: model:ir.model.fields,field_description:usl_home.field_res_users_settings__display_name
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__display_name
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_service__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Done"
+msgstr "Terminé"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Drag to reorder widget"
+msgstr "Faire glisser pour réordonner le bloc"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Due in 7 days"
+msgstr "À échéance sous 7 jours"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Favorite Views"
+msgstr "Vues favorites"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__filter_id
+msgid "Filter"
+msgstr "Filtre"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+#: model:ir.actions.client,name:usl_home.action_usl_home
+#: model:ir.ui.menu,name:usl_home.menu_usl_home_root
+msgid "Home"
+msgstr "Accueil"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Home could not be loaded."
+msgstr "L’accueil n’a pas pu être chargé."
+
+#. module: usl_home
+#: model:ir.model.fields.selection,name:usl_home.selection__usl_home_favorite__target_type__provider
+msgid "Home destination"
+msgstr "Destination d’accueil"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Home is available to internal users only."
+msgstr "L’accueil est réservé aux utilisateurs internes."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Home widgets"
+msgstr "Blocs d’accueil"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Human review, blockers, and failures"
+msgstr "Vérifications humaines, blocages et échecs"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_res_users__id
+#: model:ir.model.fields,field_description:usl_home.field_res_users_settings__id
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__id
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_service__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "Invalid Home destination."
+msgstr "Destination d’accueil non valide."
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Loading"
+msgstr "Chargement"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__menu_id
+msgid "Menu"
+msgstr "Menu"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "My Tasks"
+msgstr "Mes tâches"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "My Tasks is not available."
+msgstr "Mes tâches n’est pas disponible."
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No AI pipeline work needs you."
+msgstr "Aucun travail des pipelines IA ne nécessite votre attention."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No accounting or compliance alerts for this company."
+msgstr "Aucune alerte comptable ou de conformité pour cette société."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No activities need your attention."
+msgstr "Aucune activité ne nécessite votre attention."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No favorite views yet."
+msgstr "Aucune vue favorite pour le moment."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No open tasks are assigned to you."
+msgstr "Aucune tâche ouverte ne vous est attribuée."
+
+#. module: usl_home
+#: model:ir.model.fields.selection,name:usl_home.selection__usl_home_favorite__target_type__action
+msgid "Odoo action"
+msgstr "Action Odoo"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "Only Odoo view actions can be added to Home."
+msgstr "Seules les actions de vue Odoo peuvent être ajoutées à l’accueil."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Open AI Pipelines"
+msgstr "Ouvrir Pipelines IA"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Open My Tasks"
+msgstr "Ouvrir Mes tâches"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Open a workflow and choose “Add to Home” from its action menu."
+msgstr ""
+"Ouvrez un flux de travail puis choisissez « Ajouter à l’accueil » dans son "
+"menu d’actions."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Overdue"
+msgstr "En retard"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Overdue · %s"
+msgstr "En retard · %s"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Preparing Home…"
+msgstr "Préparation de l’accueil…"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Project"
+msgstr "Projet"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+#: model:ir.model.fields.selection,name:usl_home.selection__usl_home_favorite__target_type__record
+msgid "Record"
+msgstr "Enregistrement"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Refresh"
+msgstr "Actualiser"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Resume the exact place you use"
+msgstr "Reprenez exactement là où vous travaillez"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "Saved destination"
+msgstr "Destination enregistrée"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+#: model:ir.model.fields.selection,name:usl_home.selection__usl_home_favorite__target_type__view
+msgid "Saved view"
+msgstr "Vue enregistrée"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__sequence
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Show all activities"
+msgstr "Afficher toutes les activités"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Supporting evidence missing"
+msgstr "Justificatifs manquants"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__target_type
+msgid "Target Type"
+msgstr "Type de destination"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The Odoo action is no longer available."
+msgstr "L’action Odoo n’est plus disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The Odoo view is no longer available."
+msgstr "La vue Odoo n’est plus disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The record type is not available."
+msgstr "Le type d’enregistrement n’est pas disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The saved context must be an object."
+msgstr "Le contexte enregistré doit être un objet."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The saved domain must be a list."
+msgstr "Le domaine enregistré doit être une liste."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The saved grouping must be a list."
+msgstr "Le regroupement enregistré doit être une liste."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "The saved ordering must be a list."
+msgstr "Le tri enregistré doit être une liste."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "This Home destination is already added or unavailable."
+msgstr "Cette destination est déjà ajoutée à l’accueil ou n’est pas disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "This Home destination is not available."
+msgstr "Cette destination d’accueil n’est pas disponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "This accounting alert is not available."
+msgstr "Cette alerte comptable n’est pas disponible."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/add_to_home/add_to_home.js:0
+msgid "This destination could not be added."
+msgstr "Cette destination n’a pas pu être ajoutée."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "This part of Home is unavailable."
+msgstr "Cette partie de l’accueil est indisponible."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "This view does not expose a stable Odoo action."
+msgstr "Cette vue ne fournit pas d’action Odoo stable."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Today"
+msgstr "Aujourd’hui"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Try again"
+msgstr "Réessayer"
+
+#. module: usl_home
+#: model:ir.model,name:usl_home.model_usl_home_favorite
+msgid "USL Home Favorite Destination"
+msgstr "Destination favorite de l’accueil USL"
+
+#. module: usl_home
+#: model:ir.model,name:usl_home.model_usl_home_service
+msgid "USL Home Service"
+msgstr "Service d’accueil USL"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "Unsupported Home destination type."
+msgstr "Ce type de destination d’accueil n’est pas pris en charge."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "Unsupported Home destination."
+msgstr "Cette destination d’accueil n’est pas prise en charge."
+
+#. module: usl_home
+#: model:ir.model,name:usl_home.model_res_users
+#: model:ir.model.fields,field_description:usl_home.field_usl_home_favorite__user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: usl_home
+#: model:ir.model,name:usl_home.model_res_users_settings
+msgid "User Settings"
+msgstr "Paramètres utilisateur"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Waiting"
+msgstr "En attente"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "What needs you now"
+msgstr "Ce qui nécessite votre attention"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_service.py:0
+msgid "Workflow"
+msgstr "Flux de travail"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "You can only create your own Home favorites."
+msgstr "Vous ne pouvez créer que vos propres favoris d’accueil."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "You can only update your own Home favorites."
+msgstr "Vous ne pouvez modifier que vos propres favoris d’accueil."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/res_users_settings.py:0
+msgid "You can only update your own Home layout."
+msgstr "Vous ne pouvez modifier que votre propre disposition d’accueil."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "You cannot add this record to Home."
+msgstr "Vous ne pouvez pas ajouter cet enregistrement à l’accueil."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/home_favorite.py:0
+msgid "You cannot add this view to Home."
+msgstr "Vous ne pouvez pas ajouter cette vue à l’accueil."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Your Home"
+msgstr "Votre accueil"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Your Home layout could not be saved."
+msgstr "La disposition de votre accueil n’a pas pu être enregistrée."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "Your workload by real project state"
+msgstr "Votre charge selon l’état réel des projets"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/add_to_home/add_to_home.js:0
+msgid "“%s” was added to Home."
+msgstr "« %s » a été ajouté à l’accueil."
+
+#~ msgid "Failed"
+#~ msgstr "Échec"
+
+#~ msgid "Blocked"
+#~ msgstr "Bloqué"
+
+#~ msgid "Review"
+#~ msgstr "Vérifier"

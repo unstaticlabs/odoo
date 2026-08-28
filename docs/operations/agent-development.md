@@ -258,6 +258,11 @@ validated `feature.base`, stripping only the local `origin/` qualifier, so an
 explicit stacked handoff opens against its parent feature branch rather than
 silently retargeting to `19-usl`.
 
+During `migration-transition`, commit-attribution findings remain visible but
+follow the advisory policy declared in `agent/policy.json`; `feature-ready`
+blocks them once that policy becomes required. This permits legacy feature
+history to be handed off without rewriting already-published commits.
+
 After opening the ready PR, apply the selected gate. Automatic mode proceeds
 immediately. Human-approved mode presents the PR, implementation evidence,
 Worktree-QA status, validation, and blockers to the designated human,

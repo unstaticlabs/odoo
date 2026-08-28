@@ -7,7 +7,6 @@ from odoo.addons.usl_identity_restore.models.restore import (
     source_options,
 )
 
-
 source = IdentitySourceReader(source_options()).read()
 run = env["usl.identity.restore.run"].sudo().search([], order="id desc", limit=1)
 assert run and run.status == "passed", (

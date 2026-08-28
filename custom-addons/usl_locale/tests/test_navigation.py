@@ -10,6 +10,9 @@ from odoo.addons.usl_locale.models.ir_ui_menu import (
 
 @tagged("post_install", "-at_install", "usl_locale")
 class TestFocusedAppLauncher(TransactionCase):
+    def test_home_is_the_first_primary_destination_when_installed(self):
+        self.assertEqual(PRIMARY_ROOT_MENU_XMLIDS[0], "usl_home.menu_usl_home_root")
+
     def test_distribution_root_menu_order_preserves_unspecified_apps(self):
         unspecified = "usl_tese_payroll.menu_tese_payroll_root"
         unordered = [
