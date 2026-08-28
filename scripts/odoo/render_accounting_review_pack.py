@@ -54,6 +54,23 @@ REPORTS = (
     ("closing_package", "31-dossier-revue-cloture.pdf"),
 )
 
+requested_reports = {
+    item.strip()
+    for item in os.environ.get("USL_ACCOUNTING_REVIEW_REPORTS", "").split(",")
+    if item.strip()
+}
+selected_reports = tuple(
+    report
+    for report in REPORTS
+    if not requested_reports or report[0] in requested_reports
+)
+unknown_reports = requested_reports - {report[0] for report in REPORTS}
+if unknown_reports:
+    raise RuntimeError(
+        "Unknown accounting review report(s): "
+        + ", ".join(sorted(unknown_reports)),
+    )
+
 SYNTHETIC_ROWS = {
     "oss_sales": [
         {
@@ -284,7 +301,7 @@ if not company:
     raise RuntimeError("The isolated QA database has no company.")
 
 print(f"REVIEW_PACK company={company.display_name} period={PERIOD_FROM}/{PERIOD_TO}")
-for report_type, filename in REPORTS:
+for report_type, filename in selected_reports:
     output_path = OUTPUT_DIR / filename
     if resume and output_path.exists():
         print("REUSED", filename, f"bytes={output_path.stat().st_size}")
@@ -303,8 +320,8 @@ for report_type, filename in REPORTS:
     )
 
 generated = sorted(OUTPUT_DIR.glob("*.pdf"))
-if len(generated) != len(REPORTS):
+if len(generated) != len(selected_reports):
     raise RuntimeError(
-        f"Expected {len(REPORTS)} PDFs, generated {len(generated)}.",
+        f"Expected {len(selected_reports)} PDFs, generated {len(generated)}.",
     )
 print(f"COMPLETE count={len(generated)} output={OUTPUT_DIR}")
