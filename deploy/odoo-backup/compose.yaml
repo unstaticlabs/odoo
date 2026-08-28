@@ -30,6 +30,7 @@ services:
       <<: *postgres-client
       ODOO_DB_NAME: ${ODOO_PRODUCTION_DB_NAME:-odoo}
       ODOO_BACKUP_STAGING: /staging
+      ODOO_BACKUP_STATE: /state
       ODOO_DATA_ROOT: /source-data
       USL_SOURCE_GIT_SHA: ${USL_SOURCE_GIT_SHA:-}
       USL_SOURCE_IMAGE_DIGEST: ${USL_SOURCE_IMAGE_DIGEST:-}
@@ -37,9 +38,11 @@ services:
       USL_BACKUP_QUIESCED_CONFIRMED: ${USL_BACKUP_QUIESCED_CONFIRMED:-}
     volumes:
       - staging:/staging
+      - state:/state
       - source-data:/source-data:ro
     networks:
       - production-db
+    command: ["prepare", "--mode", "live"]
 
   push:
     <<: *backup-tool
@@ -53,17 +56,21 @@ services:
       - restic-cache:/cache
     networks:
       - egress
+    command: ["push"]
 
   restore-fetch:
     <<: *backup-tool
     environment:
       <<: *restic
       ODOO_BACKUP_RESTORE: /restore
+      ODOO_BACKUP_STATE: /state
     volumes:
       - restore-scratch:/restore
+      - state:/state
       - restic-cache:/cache
     networks:
       - egress
+    command: ["restore-fetch"]
 
   clone-db:
     image: postgres:16-bookworm@sha256:60f4761b9035e0b8d5218f701a8c3382f641bf12b1604822574cf5be3baeb537
@@ -95,12 +102,16 @@ services:
       PGPASSWORD: ${ODOO_BACKUP_CLONE_PASSWORD:-}
       ODOO_RESTORE_DB_NAME: odoo_restore
       ODOO_BACKUP_RESTORE: /restore
+      ODOO_BACKUP_STATE: /state
       ODOO_RESTORE_FILESTORE: /clone-filestore
+      USL_RESTORE_RESET_CONFIRMED: isolated-odoo-restore
     volumes:
       - restore-scratch:/restore:ro
       - clone-filestore:/clone-filestore
+      - state:/state
     networks:
       - clone-internal
+    command: ["restore-reset-apply"]
 
   neutralize:
     image: ${ODOO_SOURCE_IMAGE:-ghcr.io/unstaticlabs/usl-odoo@sha256:0000000000000000000000000000000000000000000000000000000000000000}
@@ -140,12 +151,26 @@ services:
       ODOO_BACKUP_RESTORE: /restore
       ODOO_RESTORE_FILESTORE: /clone-filestore
       ODOO_BACKUP_STATE: /state
+      USL_NEUTRALIZER_IMAGE_DIGEST: ${ODOO_SOURCE_IMAGE:-}
     volumes:
       - restore-scratch:/restore
       - clone-filestore:/clone-filestore:ro
       - state:/state
     networks:
       - clone-internal
+    command: ["verify"]
+
+  finalize:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+      ODOO_BACKUP_STATE: /state
+    volumes:
+      - state:/state
+      - restic-cache:/cache
+    networks:
+      - egress
+    command: ["finalize"]
 
 volumes:
   staging:

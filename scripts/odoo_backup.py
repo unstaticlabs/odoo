@@ -212,6 +212,35 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def pipeline_state_path() -> Path:
+    return Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "current.json"
+
+
+def read_pipeline_state(*, phases: set[str] | None = None) -> dict[str, Any]:
+    path = pipeline_state_path()
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BackupError("scheduled pipeline state is missing or invalid") from exc
+    if not isinstance(value, dict) or value.get("schema") != "usl-odoo-backup-pipeline/v1":
+        fail("scheduled pipeline state has the wrong schema")
+    if phases is not None and value.get("phase") not in phases:
+        fail(f"scheduled pipeline phase is {value.get('phase')!r}; expected one of {sorted(phases)}")
+    return value
+
+
+def update_pipeline_state(**updates: Any) -> dict[str, Any]:
+    path = pipeline_state_path()
+    if path.is_file():
+        value = read_pipeline_state()
+    else:
+        value = {"schema": "usl-odoo-backup-pipeline/v1"}
+    value.update(updates)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_json(path, value)
+    return value
+
+
 def run(command: list[str], *, env: dict[str, str] | None = None, capture: bool = False) -> subprocess.CompletedProcess[str]:
     return subprocess.run(command, check=True, env=env, text=True, capture_output=capture)
 
@@ -255,11 +284,15 @@ def pg_dump_version() -> str:
 
 
 def prepare(args: argparse.Namespace) -> None:
-    backup_id = require_safe_identifier(args.backup_id, "backup_id")
+    scheduled = args.backup_id is None
+    if scheduled and pipeline_state_path().is_file():
+        read_pipeline_state(phases={"verified", "abandoned"})
+    git_sha = os.environ.get("USL_SOURCE_GIT_SHA", "")
+    generated_id = f"{datetime.now(UTC):%Y%m%dt%H%M%Sz}-{git_sha[:8]}"
+    backup_id = require_safe_identifier(args.backup_id or generated_id, "backup_id")
     database_name = os.environ.get("ODOO_DB_NAME", "").strip()
     if not database_name or not re.fullmatch(r"[A-Za-z0-9_.-]+", database_name):
         fail("ODOO_DB_NAME is required and contains an unsafe character")
-    git_sha = os.environ.get("USL_SOURCE_GIT_SHA", "")
     source_image = os.environ.get("USL_SOURCE_IMAGE_DIGEST", "")
     tool_image = os.environ.get("USL_BACKUP_TOOL_IMAGE_DIGEST", "")
     if not SHA_RE.fullmatch(git_sha):
@@ -361,6 +394,14 @@ def prepare(args: argparse.Namespace) -> None:
     validate_manifest(manifest)
     write_json(partial / "manifest.json", manifest)
     partial.rename(final)
+    if scheduled:
+        update_pipeline_state(
+            phase="prepared",
+            backup_id=backup_id,
+            consistency=args.mode,
+            snapshot_id=None,
+            clone_id=None,
+        )
     print(json.dumps({"backup_id": backup_id, "stage": "prepare", "status": "passed"}, sort_keys=True))
 
 
@@ -373,7 +414,9 @@ def _restic_json(command: list[str], env: dict[str, str]) -> Any:
 
 
 def push(args: argparse.Namespace) -> None:
-    backup_id = require_safe_identifier(args.backup_id, "backup_id")
+    scheduled = args.backup_id is None
+    state = read_pipeline_state(phases={"prepared"}) if scheduled else None
+    backup_id = require_safe_identifier(args.backup_id or state["backup_id"], "backup_id")
     root = Path(os.environ.get("ODOO_BACKUP_STAGING", "/staging")) / "backups" / backup_id
     manifest = read_manifest(root)
     dump = root / manifest["database"]["dump_file"]
@@ -422,6 +465,8 @@ def push(args: argparse.Namespace) -> None:
     state = Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "receipts"
     state.mkdir(parents=True, exist_ok=True)
     write_json(state / f"{backup_id}.json", {"schema": "usl-odoo-backup-receipt/v1", "backup_id": backup_id, "pending_snapshot_id": snapshot})
+    if scheduled:
+        update_pipeline_state(phase="pushed", backup_id=backup_id, snapshot_id=snapshot)
     print(snapshot)
 
 
@@ -447,8 +492,12 @@ def locate_restored_manifest(root: Path) -> Path:
 
 
 def restore_fetch(args: argparse.Namespace) -> None:
-    snapshot = require_snapshot(args.snapshot)
-    clone_id = require_safe_identifier(args.clone_id, "clone_id")
+    scheduled = args.snapshot is None
+    pipeline = read_pipeline_state(phases={"pushed"}) if scheduled else None
+    snapshot = require_snapshot(args.snapshot or pipeline["snapshot_id"])
+    clone_id = require_safe_identifier(
+        args.clone_id or f"scheduled-{pipeline['backup_id']}", "clone_id"
+    )
     restore_root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / clone_id
     if restore_root.exists():
         fail(f"restore scratch already exists for {clone_id}")
@@ -464,6 +513,8 @@ def restore_fetch(args: argparse.Namespace) -> None:
     if metadata["file_count"] != manifest["filestore"]["file_count"] or metadata["total_bytes"] != manifest["filestore"]["total_bytes"]:
         fail("restored filestore metadata does not match the manifest")
     write_json(restore_root / "restore-state.json", {"schema": "usl-odoo-restore/v1", "clone_id": clone_id, "snapshot_id": snapshot, "artifact": str(artifact.relative_to(restore_root))})
+    if scheduled:
+        update_pipeline_state(phase="fetched", snapshot_id=snapshot, clone_id=clone_id)
     print(manifest["source"]["image_digest_reference"])
 
 
@@ -478,7 +529,10 @@ def restore_state(clone_id: str) -> tuple[Path, dict[str, Any], dict[str, Any]]:
 
 
 def restore_apply(args: argparse.Namespace) -> None:
-    artifact, manifest, _state = restore_state(args.clone_id)
+    scheduled = args.clone_id is None
+    pipeline = read_pipeline_state(phases={"fetched"}) if scheduled else None
+    clone_id = args.clone_id or pipeline["clone_id"]
+    artifact, manifest, _state = restore_state(clone_id)
     target_database = os.environ.get("ODOO_RESTORE_DB_NAME", "odoo_restore")
     connection = db_connection(target_database)
     try:
@@ -495,11 +549,39 @@ def restore_apply(args: argparse.Namespace) -> None:
     if any(target.iterdir()):
         fail("restore filestore target is not empty")
     shutil.copytree(artifact / "filestore", target / target_database, symlinks=False)
-    print(json.dumps({"clone_id": args.clone_id, "stage": "restore", "status": "passed"}, sort_keys=True))
+    if scheduled:
+        update_pipeline_state(phase="restored", clone_id=clone_id)
+    print(json.dumps({"clone_id": clone_id, "stage": "restore", "status": "passed"}, sort_keys=True))
+
+
+def restore_reset_apply(args: argparse.Namespace) -> None:
+    if os.environ.get("PGHOST") != "clone-db" or os.environ.get("ODOO_RESTORE_DB_NAME", "odoo_restore") != "odoo_restore":
+        fail("scheduled restore reset may target only clone-db/odoo_restore")
+    if os.environ.get("USL_RESTORE_RESET_CONFIRMED") != "isolated-odoo-restore":
+        fail("scheduled restore reset requires USL_RESTORE_RESET_CONFIRMED=isolated-odoo-restore")
+    maintenance = db_connection("postgres")
+    maintenance.autocommit = True
+    try:
+        with maintenance.cursor() as cursor:
+            cursor.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='odoo_restore' AND pid<>pg_backend_pid()")
+            cursor.execute("DROP DATABASE IF EXISTS odoo_restore")
+            cursor.execute("CREATE DATABASE odoo_restore")
+    finally:
+        maintenance.close()
+    target = Path(os.environ.get("ODOO_RESTORE_FILESTORE", "/clone-filestore")) / "odoo_restore"
+    if target.exists():
+        shutil.rmtree(target)
+    restore_apply(args)
 
 
 def verify(args: argparse.Namespace) -> None:
-    artifact, manifest, state = restore_state(args.clone_id)
+    scheduled = args.clone_id is None
+    pipeline = read_pipeline_state(phases={"restored"}) if scheduled else None
+    clone_id = args.clone_id or pipeline["clone_id"]
+    artifact, manifest, state = restore_state(clone_id)
+    neutralizer_image = os.environ.get("USL_NEUTRALIZER_IMAGE_DIGEST", "")
+    if neutralizer_image != manifest["source"]["image_digest_reference"]:
+        fail("neutralizer image does not exactly match the backed-up Odoo image digest")
     target_database = os.environ.get("ODOO_RESTORE_DB_NAME", "odoo_restore")
     connection = db_connection(target_database)
     try:
@@ -532,17 +614,21 @@ def verify(args: argparse.Namespace) -> None:
     for key in ("file_count", "total_bytes", "stored_attachment_count", "missing_attachment_count"):
         if metadata[key] != expected[key]:
             fail(f"restored filestore {key} differs: expected {expected[key]}, got {metadata[key]}")
-    result = {"schema": "usl-odoo-restore-verification/v1", "clone_id": args.clone_id, "snapshot_id": state["snapshot_id"], "verified_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"), "row_counts": actual, "filestore": metadata, "neutralized": True, "status": "passed"}
-    restore_root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / args.clone_id
+    result = {"schema": "usl-odoo-restore-verification/v1", "clone_id": clone_id, "snapshot_id": state["snapshot_id"], "verified_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"), "row_counts": actual, "filestore": metadata, "neutralized": True, "status": "passed"}
+    restore_root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / clone_id
     write_json(restore_root / "verification.json", result)
     verification_state = Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "verifications"
     verification_state.mkdir(parents=True, exist_ok=True)
     write_json(verification_state / f"{state['snapshot_id']}.json", result)
+    if scheduled:
+        update_pipeline_state(phase="restore-verified", clone_id=clone_id, snapshot_id=state["snapshot_id"])
     print(json.dumps(result, sort_keys=True))
 
 
 def finalize(args: argparse.Namespace) -> None:
-    snapshot = require_snapshot(args.snapshot)
+    scheduled = args.snapshot is None
+    pipeline = read_pipeline_state(phases={"restore-verified"}) if scheduled else None
+    snapshot = require_snapshot(args.snapshot or pipeline["snapshot_id"])
     receipt = Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "verifications" / f"{snapshot}.json"
     try:
         verification = json.loads(receipt.read_text(encoding="utf-8"))
@@ -556,6 +642,8 @@ def finalize(args: argparse.Namespace) -> None:
         fail("snapshot does not resolve uniquely")
     tags = current[0].get("tags", [])
     if "verified" in tags:
+        if scheduled:
+            update_pipeline_state(phase="verified", snapshot_id=current[0]["id"])
         print(current[0]["id"])
         return
     if "pending" not in tags:
@@ -567,7 +655,20 @@ def finalize(args: argparse.Namespace) -> None:
     values = _restic_json(["snapshots", "--json", "--tag", backup_tag, "--tag", "verified"], env)
     if len(values) != 1:
         fail("verified snapshot identity does not resolve uniquely")
-    print(require_snapshot(values[0]["id"]))
+    final_snapshot = require_snapshot(values[0]["id"])
+    if scheduled:
+        update_pipeline_state(phase="verified", snapshot_id=final_snapshot)
+    print(final_snapshot)
+
+
+def abandon(args: argparse.Namespace) -> None:
+    state = read_pipeline_state()
+    if state.get("phase") in {"verified", "abandoned"}:
+        fail("pipeline is already closed")
+    if args.confirm != state.get("backup_id"):
+        fail("abandon confirmation must exactly match the current backup_id")
+    update_pipeline_state(phase="abandoned", abandoned_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"))
+    print(f"Abandoned incomplete pipeline {state['backup_id']}; any pending Restic snapshot was preserved")
 
 
 def manifest_field(args: argparse.Namespace) -> None:
@@ -582,28 +683,34 @@ def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     commands = value.add_subparsers(dest="command", required=True)
     prepare_cmd = commands.add_parser("prepare")
-    prepare_cmd.add_argument("--backup-id", required=True)
+    prepare_cmd.add_argument("--backup-id")
     prepare_cmd.add_argument("--mode", choices=("live", "quiesced"), default="live")
     prepare_cmd.set_defaults(handler=prepare)
     push_cmd = commands.add_parser("push")
-    push_cmd.add_argument("--backup-id", required=True)
+    push_cmd.add_argument("--backup-id")
     push_cmd.set_defaults(handler=push)
     list_cmd = commands.add_parser("list")
     list_cmd.add_argument("--json", action="store_true")
     list_cmd.set_defaults(handler=snapshots)
     fetch_cmd = commands.add_parser("restore-fetch")
-    fetch_cmd.add_argument("--snapshot", required=True)
-    fetch_cmd.add_argument("--clone-id", required=True)
+    fetch_cmd.add_argument("--snapshot")
+    fetch_cmd.add_argument("--clone-id")
     fetch_cmd.set_defaults(handler=restore_fetch)
     apply_cmd = commands.add_parser("restore-apply")
-    apply_cmd.add_argument("--clone-id", required=True)
+    apply_cmd.add_argument("--clone-id")
     apply_cmd.set_defaults(handler=restore_apply)
+    reset_apply_cmd = commands.add_parser("restore-reset-apply")
+    reset_apply_cmd.add_argument("--clone-id")
+    reset_apply_cmd.set_defaults(handler=restore_reset_apply)
     verify_cmd = commands.add_parser("verify")
-    verify_cmd.add_argument("--clone-id", required=True)
+    verify_cmd.add_argument("--clone-id")
     verify_cmd.set_defaults(handler=verify)
     finalize_cmd = commands.add_parser("finalize")
-    finalize_cmd.add_argument("--snapshot", required=True)
+    finalize_cmd.add_argument("--snapshot")
     finalize_cmd.set_defaults(handler=finalize)
+    abandon_cmd = commands.add_parser("abandon")
+    abandon_cmd.add_argument("--confirm", required=True)
+    abandon_cmd.set_defaults(handler=abandon)
     field_cmd = commands.add_parser("manifest-field")
     field_cmd.add_argument("--clone-id", required=True)
     field_cmd.add_argument("--field", choices=("source-image", "backup-id"), required=True)

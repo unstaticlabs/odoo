@@ -76,6 +76,8 @@ stage_verify() {
   [[ "$snapshot" =~ ^[0-9a-f]{64}$ ]] || { echo "snapshot must be the full 64-character Restic ID" >&2; exit 2; }
   configure_clone "$clone_id"
   ensure_shared_volumes
+  export ODOO_SOURCE_IMAGE
+  ODOO_SOURCE_IMAGE="$(run_tool restore-fetch manifest-field --clone-id "$clone_id" --field source-image)"
   run_tool verify verify --clone-id "$clone_id"
 }
 

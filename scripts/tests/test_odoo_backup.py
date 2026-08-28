@@ -137,6 +137,13 @@ class SecretBoundaryTest(unittest.TestCase):
             with mock.patch.dict(os.environ, {"RESTIC_PASSWORD_FILE": str(password)}, clear=True):
                 self.assertEqual(odoo_backup.secret("RESTIC_PASSWORD"), "secret-value")
 
+    def test_finalize_requires_successful_restore_receipt_before_restic(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.dict(os.environ, {"ODOO_BACKUP_STATE": directory}, clear=True):
+                arguments = type("Arguments", (), {"snapshot": "a" * 64})()
+                with self.assertRaisesRegex(odoo_backup.BackupError, "verification receipt"):
+                    odoo_backup.finalize(arguments)
+
 
 class IdentityTest(unittest.TestCase):
     def test_requires_full_snapshot_id(self) -> None:
@@ -193,6 +200,23 @@ class OrchestrationPolicyTest(unittest.TestCase):
         verify = self.backup_wrapper.index('odoo-backup\" verify', push)
         self.assertLess(prepare, push)
         self.assertLess(push, verify)
+
+    def test_komodo_services_have_zero_argument_stage_commands(self) -> None:
+        for command in (
+            '["prepare", "--mode", "live"]',
+            '["push"]',
+            '["restore-fetch"]',
+            '["restore-reset-apply"]',
+            '["verify"]',
+            '["finalize"]',
+        ):
+            self.assertIn(f"command: {command}", self.compose)
+
+    def test_scheduled_reset_is_confined_to_isolated_clone(self) -> None:
+        source = (ROOT / "scripts/odoo_backup.py").read_text(encoding="utf-8")
+        self.assertIn('os.environ.get("PGHOST") != "clone-db"', source)
+        self.assertIn('!= "odoo_restore"', source)
+        self.assertIn("USL_RESTORE_RESET_CONFIRMED", source)
 
     def test_cli_never_uses_latest_snapshot(self) -> None:
         self.assertNotRegex(self.backup_wrapper, r"(?:restore|verify)\s+latest")
