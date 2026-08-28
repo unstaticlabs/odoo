@@ -10,7 +10,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dss.version>6.4</dss.version>
-        <jackson.version>2.20.1</jackson.version>
+        <jackson.version>2.21.5</jackson.version>
         <junit.version>5.13.4</junit.version>
         <pdfbox.version>3.0.6</pdfbox.version>
     </properties>
