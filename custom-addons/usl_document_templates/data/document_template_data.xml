@@ -13,6 +13,14 @@
         <field name="schema_version">1.0</field>
         <field name="family">accounting</field>
         <field name="output_profile">pdfa-2b</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="template_accounting_statement_v2" model="usl.document.template">
+        <field name="name">Accounting statement</field>
+        <field name="key">accounting_statement.v2</field>
+        <field name="schema_version">2.0</field>
+        <field name="family">accounting</field>
+        <field name="output_profile">pdfa-2b</field>
     </record>
     <record id="template_official_letter_v1" model="usl.document.template">
         <field name="name">Official correspondence</field>
@@ -39,7 +47,7 @@
     </record>
     <record id="renderer_expected_revision" model="ir.config_parameter">
         <field name="key">usl_document_templates.renderer_expected_revision</field>
-        <field name="value">c2d3dfe1a7f8bfa910160f0c063d62bd08f17d91</field>
+        <field name="value">d3bc1db9715811374822735c2fb7dc472e5aa9fe</field>
     </record>
     <record id="renderer_ca_path" model="ir.config_parameter">
         <field name="key">usl_document_templates.renderer_ca_path</field>

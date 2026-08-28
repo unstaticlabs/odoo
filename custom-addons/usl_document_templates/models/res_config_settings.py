@@ -137,37 +137,40 @@ class ResConfigSettings(models.TransientModel):
                     )
                 ],
             },
-            "accounting_statement.v1": {
+            "accounting_statement.v2": {
                 "qualification_label": document_env._(
                     "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
                 ),
                 "title": document_env._("Income statement preview"),
                 "reference": "PREVIEW-ACCOUNTING",
                 "date": today,
+                "layout_variant": "statement",
                 "columns": [
-                    document_env._("Current period"),
-                    document_env._("Prior period"),
+                    {"key": "label", "label": document_env._("Label"), "kind": "label"},
+                    {"key": "current", "label": document_env._("Current period"), "kind": "amount"},
+                    {"key": "prior", "label": document_env._("Prior period"), "kind": "amount"},
                 ],
-                "filters": [document_env._("Synthetic preview data")],
-                "rows": [
-                    {
-                        "label": document_env._("Operating income"),
-                        "values": ["42 000", "38 000"],
-                        "level": 0,
-                        "emphasis": "section",
-                    },
-                    {
-                        "label": document_env._("Services"),
-                        "values": ["42 000", "38 000"],
-                        "level": 1,
-                    },
-                    {
-                        "label": document_env._("Operating result"),
-                        "values": ["14 200", "11 800"],
-                        "level": 0,
-                        "emphasis": "total",
-                    },
-                ],
+                "context": [document_env._("Synthetic preview data")],
+                "sections": [{
+                    "key": "income_statement",
+                    "title": document_env._("Operating result"),
+                    "rows": [
+                        {
+                            "role": "group",
+                            "keep_with_next": True,
+                            "values": {"label": document_env._("Operating income"), "current": "42 000", "prior": "38 000"},
+                        },
+                        {
+                            "role": "detail",
+                            "level": 1,
+                            "values": {"label": document_env._("Services"), "current": "42 000", "prior": "38 000"},
+                        },
+                        {
+                            "role": "total",
+                            "values": {"label": document_env._("Operating result"), "current": "14 200", "prior": "11 800"},
+                        },
+                    ],
+                }],
                 "basis_note": document_env._(
                     "Synthetic preview - not an accounting statement."
                 ),
