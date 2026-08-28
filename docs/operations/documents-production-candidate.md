@@ -20,7 +20,7 @@ checkpoint. A row marked **planned** or **partial** is not release evidence.
   `c22538006c521ab981c0d5ee3c3c5ff20e8e8b83`, respectively. Current main is
   an ancestor of the feature tip.
 - Source dump: `/Users/roger/projects/odoo/usl-online-dump/dump.sql`, SHA-256
-  `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+  `ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`.
 - The Odoo branch is advanced only with ordinary scoped commits. Do not reset,
   rebase, merge, amend, force-push, or rewrite its validated history.
 - The MCP branch remains independent from `main` and preserves unrelated MCP
@@ -810,7 +810,7 @@ The remediation decisions compared credible alternatives individually:
 
 The authoritative input was re-hashed immediately before evidence capture:
 `/Users/roger/projects/odoo/usl-online-dump/dump.sql` is
-`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+`ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`.
 The source-complete QA database remains **partial** for release qualification
 because the deliberate corrupted-upload operation is still a real blocker,
 manual C/E browser checkpoints are absent, and the target `linux/amd64`

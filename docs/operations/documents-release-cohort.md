@@ -173,7 +173,7 @@ one database, only `llmindex.db`, or only an application image.
 The diagnostic cohort
 `usl-documents-20260825-partial-arm64-r6` was built from authoritative
 dump SHA-256
-`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+`ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`.
 Its independent local restore passed every comparison above without OCR,
 re-ingestion, vector rebuild or model download. The final sealed manifest is
 `c3b811e90840b3bc1d69866e80140fd30d7e97393ea604988c034fb9b7501134`.

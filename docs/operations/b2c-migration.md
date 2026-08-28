@@ -50,7 +50,7 @@ business targets abort the migration.
 ## Import contract
 
 The source dump SHA-256 must be
-`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+`ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1`.
 The manifest fixes 39 dump-backed files by name, source ID, SHA-1, size, MIME
 type, and filestore path, plus the separately supplied Medusa line export by
 SHA-1 and SHA-256. Every CSV additionally fixes its exact ordered header and
