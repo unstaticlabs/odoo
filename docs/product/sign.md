@@ -267,6 +267,12 @@ signature semantics, validation outcome and the tamper-evident event-chain
 head. It never exposes an internal policy number or presents optional browser
 location as authoritative identity proof.
 
+The certificate is rendered by the pinned, isolated LaTeX document renderer
+using `sign_completion.v1`; failure never falls back to a second PDF engine.
+The DSS service reuses it as the visible cover of the final PDF/A-3 dossier,
+embeds the deterministic evidence set, seals the package and validates its
+archival conformance before Paperless delivery.
+
 ## Strong personal journey
 
 An identity reviewer first links a known partner to an explicit relationship

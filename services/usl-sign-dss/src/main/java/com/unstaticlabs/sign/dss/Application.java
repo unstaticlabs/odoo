@@ -888,7 +888,9 @@ public final class Application {
             String title = text(payload, "title");
             List<String> lines = stringList(payload.get("summary"), 100);
             List<Artifact> artifacts = artifacts(payload.get("artifacts"));
-            byte[] dossier = pdfaDossier(title, lines, artifacts);
+            byte[] cover = payload.containsKey("coverDocument")
+                    ? document(payload, "coverDocument") : null;
+            byte[] dossier = pdfaDossier(title, lines, artifacts, cover);
             return Map.of(
                     "document", b64(dossier),
                     "pdfaLevel", "PDF/A-3b",
@@ -905,10 +907,14 @@ public final class Application {
         handle(exchange, payload -> crossValidateBytes(document(payload, "document")));
     }
 
-    private byte[] pdfaDossier(String title, List<String> lines, List<Artifact> artifacts) throws Exception {
+    private byte[] pdfaDossier(
+            String title,
+            List<String> lines,
+            List<Artifact> artifacts,
+            byte[] cover) throws Exception {
         Calendar fixedDate = GregorianCalendar.from(
                 ZonedDateTime.ofInstant(Instant.parse("2000-01-01T00:00:00Z"), ZoneOffset.UTC));
-        try (PDDocument document = new PDDocument();
+        try (PDDocument document = cover == null ? new PDDocument() : Loader.loadPDF(cover);
              InputStream fontInput = Files.newInputStream(
                      Path.of(requiredEnv("USL_DSS_PDFA_FONT")))) {
             document.setVersion(1.7f);
@@ -948,20 +954,24 @@ public final class Application {
             outputIntent.setOutputCondition("sRGB IEC61966-2.1");
             outputIntent.setOutputConditionIdentifier("sRGB IEC61966-2.1");
             outputIntent.setRegistryName("https://www.color.org");
-            catalog.addOutputIntent(outputIntent);
-
-            PDType0Font font = PDType0Font.load(document, fontInput, true);
-            List<String> coverLines = new ArrayList<>();
-            coverLines.add("Signing proof package");
-            coverLines.add(title);
-            coverLines.add("");
-            coverLines.addAll(lines);
-            coverLines.add("");
-            coverLines.add("Embedded files: " + artifacts.size());
-            for (Artifact artifact : artifacts) {
-                coverLines.add("- " + artifact.name() + " — " + artifact.description());
+            if (catalog.getOutputIntents().isEmpty()) {
+                catalog.addOutputIntent(outputIntent);
             }
-            addCoverPages(document, font, coverLines);
+
+            if (cover == null) {
+                PDType0Font font = PDType0Font.load(document, fontInput, true);
+                List<String> coverLines = new ArrayList<>();
+                coverLines.add("Signing proof package");
+                coverLines.add(title);
+                coverLines.add("");
+                coverLines.addAll(lines);
+                coverLines.add("");
+                coverLines.add("Embedded files: " + artifacts.size());
+                for (Artifact artifact : artifacts) {
+                    coverLines.add("- " + artifact.name() + " — " + artifact.description());
+                }
+                addCoverPages(document, font, coverLines);
+            }
 
             Map<String, PDComplexFileSpecification> embeddedFiles = new LinkedHashMap<>();
             COSArray associatedFiles = new COSArray();

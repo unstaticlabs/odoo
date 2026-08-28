@@ -185,26 +185,26 @@ class DSSClient:
             {"manifest": self._document(manifest)},
         )
 
-    def build_dossier(self, *, title, summary, artifacts):
-        return self._call(
-            "dossier/build",
-            {
-                "title": title,
-                "summary": list(summary),
-                "artifacts": [
-                    {
-                        "name": artifact["name"],
-                        "content": self._document(artifact["content"]),
-                        "mimeType": artifact.get("mimetype")
-                        or "application/octet-stream",
-                        "relationship": artifact.get("relationship") or "Supplement",
-                        "description": artifact.get("description")
-                        or "Document signing evidence artifact",
-                    }
-                    for artifact in artifacts
-                ],
-            },
-        )
+    def build_dossier(self, *, title, summary, artifacts, cover=None):
+        payload = {
+            "title": title,
+            "summary": list(summary),
+            "artifacts": [
+                {
+                    "name": artifact["name"],
+                    "content": self._document(artifact["content"]),
+                    "mimeType": artifact.get("mimetype")
+                    or "application/octet-stream",
+                    "relationship": artifact.get("relationship") or "Supplement",
+                    "description": artifact.get("description")
+                    or "Document signing evidence artifact",
+                }
+                for artifact in artifacts
+            ],
+        }
+        if cover:
+            payload["coverDocument"] = self._document(cover)
+        return self._call("dossier/build", payload)
 
     def validate_pdfa(self, data):
         return self._call("pdfa/validate", {"document": self._document(data)})

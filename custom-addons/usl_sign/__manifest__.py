@@ -12,6 +12,7 @@
         "portal",
         "usl_locale",
         "usl_pocketid",
+        "usl_document_templates",
         "usl_documents",
     ],
     "external_dependencies": {

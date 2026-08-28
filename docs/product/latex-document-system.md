@@ -81,6 +81,22 @@ in this foundational add-on is not a substitute for testing the merged Native
 Sign implementation, but its absence does not block this document-system
 merge.
 
+## Native Sign certificate and dossier
+
+Native Sign renders its completion certificate through the governed
+`sign_completion.v1` template. There is no ReportLab or HTML fallback: an
+unhealthy, disabled or revision-mismatched renderer leaves completion
+retryable and visibly incomplete. The durable certificate attachment records
+the template revision, canonical payload digest, renderer version, company and
+render time.
+
+The internal DSS service then uses that certificate as the visible cover of
+the PDF/A-3 evidence dossier. It embeds the signed document, signed manifest
+and deterministic evidence artifacts, applies the platform seal and validates
+the resulting dossier with veraPDF. This keeps the human-readable certificate
+and machine-auditable evidence in one signed archive without weakening the
+manifest or exposing restricted browser, network or identity evidence.
+
 ## Regulatory references
 
 - [French mandatory invoice mentions](https://www.economie.gouv.fr/entreprises/gerer-son-entreprise-au-quotidien/gerer-sa-comptabilite-et-ses-demarches/mentions-obligatoires-dune-facture-tout-savoir)
