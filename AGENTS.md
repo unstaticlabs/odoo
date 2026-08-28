@@ -5,6 +5,40 @@ This branch starts from upstream Odoo `saas~19.3` at
 avoid changes to core Odoo code unless the task explicitly requires a
 distribution-level core patch and the tradeoff is documented.
 
+## Development Lifecycle Constitution
+
+- `19-usl` is the canonical development branch. Ordinary features, fixes and
+  upstream syncs must originate in dedicated branches and worktrees and reach
+  it through reviewed pull requests. Run `scripts/agent/context` before work.
+- A Feature Developer owns implementation through a clean, pushed, merge-ready
+  PR and structured handoff. It must not merge its own work, delete its
+  worktree, or clean review resources. Use the `usl-feature-developer` skill.
+- A separate Lead Developer owns independent review and compatibility with the
+  latest integrated repository. A clean Git merge and Feature Developer report
+  are evidence, not authority. Use the `usl-lead-developer` skill.
+- Preserve shared Docker infrastructure, canonical dumps, persistent databases,
+  intentional caches and resources owned by other worktrees. Cleanup requires
+  proven ownership; uncertainty means preserve and document.
+- Every persistent-data or module change must state its forward upgrade,
+  verification and credible recovery path. After migration cutover, Community
+  production is canonical; the historical Online dump is not a rollback.
+- Production deployment belongs to CI. Feature and Lead Developers must not
+  manually deploy or SSH changes into production. The governed one-off cutover
+  remains a documented transitional exception, not a development precedent.
+- Treat secrets, production data, destructive actions and genuinely
+  irreversible operations as high risk. Prefer reversible, audited operations
+  and obtain explicit authority when scope or recovery is uncertain.
+- `agent/policy.json` exposes lifecycle phase and enforcement modes to tools.
+  During `migration-transition`, new GitHub checks are advisory. Post-cutover,
+  activate required checks and branch protection as documented in
+  `docs/operations/agent-development.md`; do not infer activation from prose.
+
+Repository-owned Agent Skills have one canonical source under `agent-skills/`.
+Codex and Claude discover the same content through `.agents/skills/` and
+`.claude/skills/`. Load a role skill when asked to act in that role and load
+the migration, accounting, access-control or UI specialist skill whenever its
+risk domain applies.
+
 ## Repository Context
 
 - Prefer isolated custom add-ons under `custom-addons/` for project-specific behavior.
@@ -122,3 +156,6 @@ distribution-level core patch and the tradeoff is documented.
 - Use Conventional Commits 1.0.0 syntax: `<type>(<scope>): <description>`.
 - Include a short body describing validation for non-trivial accounting, migration, reporting or security work.
 - Add `AI-generated commit` in the commit message body for agent-authored commits.
+- Agent-authored feature commits must use the isolated agent identity configured
+  by `scripts/agent/github` and include the current driving human as a
+  non-hardcoded `Co-authored-by` trailer.
