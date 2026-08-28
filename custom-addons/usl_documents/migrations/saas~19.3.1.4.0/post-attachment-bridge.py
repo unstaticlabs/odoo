@@ -23,7 +23,6 @@ def migrate(cr, version):
                 "permission_sync_error": False,
             },
         )
-        linked_documents._recompute_linked_record_access(sync_permissions=False)
     parameters = env["ir.config_parameter"].sudo()
     parameters.set_int("usl_documents.attachment_backfill_cursor", 0)
     parameters.set_str("usl_documents.attachment_backfill_state", "pending")
