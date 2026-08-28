@@ -224,13 +224,13 @@
 
 .o_usl_home_attention_list button,
 .o_usl_home_pipeline_list button {
-    display: flex;
+    display: grid;
     width: 100%;
     min-height: 3.5rem;
+    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: .2rem 1rem;
+    gap: .75rem;
+    padding: .45rem 1rem;
     border: 0;
     background: transparent;
     color: inherit;
@@ -261,7 +261,7 @@
     }
 }
 
-.o_usl_home_item_main { min-width: 0; }
+.o_usl_home_item_main { min-width: 0; overflow: hidden; }
 .o_usl_home_item_main strong,
 .o_usl_home_item_main small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -332,10 +332,12 @@
 }
 
 .o_usl_home_favorite_open {
-    display: flex;
+    display: grid;
+    width: 100%;
     min-width: 0;
     min-height: 3.5rem;
     flex: 1 1 auto;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
     align-items: center;
     gap: .75rem;
     border: 0;
@@ -343,7 +345,6 @@
     color: inherit;
     text-align: left;
 
-    > span { min-width: 0; flex: 1 1 auto; }
     strong, small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     small { color: var(--usl-home-muted); }
     &:hover:not(:disabled) { color: var(--o-action, #017e84); }

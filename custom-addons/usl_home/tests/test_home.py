@@ -129,7 +129,8 @@ class TestUslHome(TransactionCase):
 
     def test_ai_attention_uses_runtime_tags_and_assignment(self):
         tags = {
-            name: self.env["project.tags"].create({"name": name})
+            name: self.env["project.tags"].search([("name", "=", name)], limit=1)
+            or self.env["project.tags"].create({"name": name})
             for name in ("Agent Ready", "Agent Failed", "Needs Human", "Blocked")
         }
         failed = self._task(

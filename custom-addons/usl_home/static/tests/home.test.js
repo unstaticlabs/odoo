@@ -14,15 +14,26 @@ const configuration = {
     },
     available_widgets: ["activities", "my_tasks", "favorites", "ai_pipelines", "accounting"],
     active_company: { id: 1, name: "Unstatic Labs" },
-    favorites: [{
-        id: 9,
-        name: "My Tasks",
-        available: true,
-        kind: "provider",
-        kind_label: "Project",
-        icon: "tasks",
-        company_name: false,
-    }],
+    favorites: [
+        {
+            id: 9,
+            name: "My Tasks",
+            available: true,
+            kind: "provider",
+            kind_label: "Project",
+            icon: "tasks",
+            company_name: false,
+        },
+        {
+            id: 10,
+            name: "A deliberately longer project destination",
+            available: true,
+            kind: "provider",
+            kind_label: "Project",
+            icon: "project",
+            company_name: "Unstatic Labs",
+        },
+    ],
     available_destinations: [],
 };
 
@@ -30,17 +41,30 @@ beforeEach(() => {
     onRpc("usl.home.service", "get_configuration", () => configuration);
     onRpc("usl.home.service", "get_activities", () => ({
         today: "2026-08-28",
-        items: [{
-            id: 1,
-            summary: "Review launch readiness",
-            activity_type: "To-Do",
-            record_name: "Launch checklist",
-            model_name: "Task",
-            res_model: "project.task",
-            res_id: 44,
-            deadline: "2026-08-28",
-            bucket: "today",
-        }],
+        items: [
+            {
+                id: 1,
+                summary: "Review launch readiness",
+                activity_type: "To-Do",
+                record_name: "Launch checklist",
+                model_name: "Task",
+                res_model: "project.task",
+                res_id: 44,
+                deadline: "2026-08-28",
+                bucket: "today",
+            },
+            {
+                id: 2,
+                summary: "A much longer activity title that must not move the due-date column",
+                activity_type: "To-Do",
+                record_name: "Production cutover",
+                model_name: "Task",
+                res_model: "project.task",
+                res_id: 45,
+                deadline: "2026-08-27",
+                bucket: "overdue",
+            },
+        ],
     }));
     onRpc("usl.home.service", "get_my_tasks", () => ({
         stages: [{ id: 1, name: "In Progress", count: 3 }],
@@ -75,4 +99,27 @@ test("widget visibility is saved without affecting other cards", async () => {
     await animationFrame();
     expect(".o_usl_home_widget[data-widget='ai_pipelines']").toHaveCount(0);
     expect(".o_usl_home_widget[data-widget='activities']").toHaveCount(1);
+});
+
+test("dense destination rows keep icons, content, and status on shared tracks", async () => {
+    await mountWithCleanup(UslHome);
+    await animationFrame();
+
+    const activityRows = [...document.querySelectorAll(".o_usl_home_attention_list button")];
+    const favoriteRows = [...document.querySelectorAll(".o_usl_home_favorite_open")];
+    expect(activityRows).toHaveLength(2);
+    expect(favoriteRows).toHaveLength(2);
+    expect(activityRows.every((row) => getComputedStyle(row).display === "grid")).toBe(true);
+    expect(favoriteRows.every((row) => getComputedStyle(row).display === "grid")).toBe(true);
+
+    const activityContentStarts = activityRows.map((row) =>
+        Math.round(row.querySelector(".o_usl_home_item_main").getBoundingClientRect().left)
+    );
+    expect(new Set(activityContentStarts).size).toBe(1);
+
+    for (const row of favoriteRows) {
+        const iconRect = row.querySelector(".o_usl_home_favorite_icon").getBoundingClientRect();
+        expect(Math.round(iconRect.width)).toBe(32);
+        expect(Math.round(iconRect.height)).toBe(32);
+    }
 });
