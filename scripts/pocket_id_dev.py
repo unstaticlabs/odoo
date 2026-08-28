@@ -816,6 +816,9 @@ def provision(values: dict[str, str]) -> None:
 def odoo_policy(values: dict[str, str]) -> None:
     single_company = os.getenv("USL_POCKET_ID_POLICY_SINGLE_COMPANY", "") == "1"
     clean_database = os.getenv("USL_POCKET_ID_POLICY_CLEAN_DATABASE", "") == "1"
+    base_profiles_only = (
+        os.getenv("USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY", "") == "1"
+    )
     collaborator_companies: str | list[str] = (
         "all" if single_company else ["Unstatic Labs"]
     )
@@ -842,7 +845,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "login": "roger@unstaticlabs.com",
             "name": "Roger",
             "email": USER_DEFINITIONS["roger"]["email"],
-            "profile": "technical_operator",
+            "profile": "collaborator" if base_profiles_only else "technical_operator",
             "companies": "all",
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
@@ -855,7 +858,7 @@ def odoo_policy(values: dict[str, str]) -> None:
         {
             "login": "prosper",
             "name": "Prosper",
-            "profile": "accountant_reviewer",
+            "profile": "collaborator" if base_profiles_only else "accountant_reviewer",
             "companies": ["Unstatic Labs", "USL MEDIA"],
             "subject": values["POCKET_ID_PROSPER_ID"],
             "create_if_missing": bool(prosper_odoo_email),
