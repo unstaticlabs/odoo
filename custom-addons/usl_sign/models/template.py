@@ -940,6 +940,7 @@ class SignField(models.Model):
             ("company", "Company"),
             ("role", "Role"),
         ],
+        string="USL field type",
         required=True,
         default="text",
     )
