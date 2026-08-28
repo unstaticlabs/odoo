@@ -859,7 +859,7 @@
         "rpc:res.config.settings.button_peppol_disconnect_branch_from_parent": "a1355648be9160642a237077035f311c282e74ac185584efa0e4cb14ac5397dd",
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
-        "rpc:res.users.create": "738879c5fdd917a8d5b4b2d67fdb33504176806dd0c8abbe96badaad5545fccd",
+        "rpc:res.users.create": "e53a5fab450df2dbd878b4945df911af6ebb7be0c3bd51926bc9e93e4b020797",
         "rpc:res.users.write": "c9ecda0add53c26269d584f823da9709d87341e65d0e8116a956db760594f3d6",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
@@ -56988,6 +56988,170 @@
         "ui:web.action_report_internalpreview": "a267ac8ecbfa65e4e6af547f45016a4e8a8e68744b7e0c7a8237b50ee9518a1c",
         "ui:web.action_report_layout_preview": "5ee15595ce16e463387261409babbba68f1b54c52ea4ddb40b8408f3e64fb374",
         "ui:web_tour.tour_action": "1272161158930a52abb8926d57f83c30565b0542ab2c59458fe61af8d6cd1c1c"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.home.favorite.check_field_access",
+        "rpc:usl.home.favorite.copy_translations",
+        "rpc:usl.home.favorite.default_get",
+        "rpc:usl.home.favorite.export_data",
+        "rpc:usl.home.favorite.fields_get",
+        "rpc:usl.home.favorite.formatted_read_group",
+        "rpc:usl.home.favorite.get_base_url",
+        "rpc:usl.home.favorite.get_empty_list_help",
+        "rpc:usl.home.favorite.get_external_id",
+        "rpc:usl.home.favorite.get_field_translations",
+        "rpc:usl.home.favorite.get_formview_action",
+        "rpc:usl.home.favorite.get_formview_id",
+        "rpc:usl.home.favorite.get_import_templates",
+        "rpc:usl.home.favorite.get_metadata",
+        "rpc:usl.home.favorite.get_property_definition",
+        "rpc:usl.home.favorite.get_views",
+        "rpc:usl.home.favorite.has_access",
+        "rpc:usl.home.favorite.has_field_access",
+        "rpc:usl.home.favorite.hierarchy_read",
+        "rpc:usl.home.favorite.load",
+        "rpc:usl.home.favorite.mail_allowed_qweb_expressions",
+        "rpc:usl.home.favorite.mail_get_partner_fields",
+        "rpc:usl.home.favorite.name_search",
+        "rpc:usl.home.favorite.read",
+        "rpc:usl.home.favorite.read_progress_bar",
+        "rpc:usl.home.favorite.search",
+        "rpc:usl.home.favorite.search_count",
+        "rpc:usl.home.favorite.search_panel_select_multi_range",
+        "rpc:usl.home.favorite.search_panel_select_range",
+        "rpc:usl.home.favorite.search_read",
+        "rpc:usl.home.favorite.view_header_get",
+        "rpc:usl.home.favorite.web_name_search",
+        "rpc:usl.home.favorite.web_read",
+        "rpc:usl.home.favorite.web_search_read",
+        "rpc:usl.home.service.check_field_access",
+        "rpc:usl.home.service.copy_translations",
+        "rpc:usl.home.service.default_get",
+        "rpc:usl.home.service.export_data",
+        "rpc:usl.home.service.fields_get",
+        "rpc:usl.home.service.formatted_read_group",
+        "rpc:usl.home.service.get_accounting_alert_action",
+        "rpc:usl.home.service.get_accounting_alerts",
+        "rpc:usl.home.service.get_activities",
+        "rpc:usl.home.service.get_ai_attention",
+        "rpc:usl.home.service.get_ai_workspace_action",
+        "rpc:usl.home.service.get_base_url",
+        "rpc:usl.home.service.get_empty_list_help",
+        "rpc:usl.home.service.get_external_id",
+        "rpc:usl.home.service.get_field_translations",
+        "rpc:usl.home.service.get_formview_action",
+        "rpc:usl.home.service.get_formview_id",
+        "rpc:usl.home.service.get_import_templates",
+        "rpc:usl.home.service.get_metadata",
+        "rpc:usl.home.service.get_my_tasks",
+        "rpc:usl.home.service.get_property_definition",
+        "rpc:usl.home.service.get_views",
+        "rpc:usl.home.service.has_access",
+        "rpc:usl.home.service.has_field_access",
+        "rpc:usl.home.service.hierarchy_read",
+        "rpc:usl.home.service.load",
+        "rpc:usl.home.service.mail_allowed_qweb_expressions",
+        "rpc:usl.home.service.mail_get_partner_fields",
+        "rpc:usl.home.service.name_search",
+        "rpc:usl.home.service.read",
+        "rpc:usl.home.service.read_progress_bar",
+        "rpc:usl.home.service.resolve_favorite",
+        "rpc:usl.home.service.search",
+        "rpc:usl.home.service.search_count",
+        "rpc:usl.home.service.search_panel_select_multi_range",
+        "rpc:usl.home.service.search_panel_select_range",
+        "rpc:usl.home.service.search_read",
+        "rpc:usl.home.service.view_header_get",
+        "rpc:usl.home.service.web_name_search",
+        "rpc:usl.home.service.web_read",
+        "rpc:usl.home.service.web_search_read",
+        "ui:usl_home.action_usl_home"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
+      "domain": "system_framework",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.system_framework.actions.usl_home",
+      "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
+      "reviewed_digests": {
+        "rpc:usl.home.favorite.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.home.favorite.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.home.favorite.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.home.favorite.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.home.favorite.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.home.favorite.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.home.favorite.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.home.favorite.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.home.favorite.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.home.favorite.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.home.favorite.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.home.favorite.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.home.favorite.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.home.favorite.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.home.favorite.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.home.favorite.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.home.favorite.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.home.favorite.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.home.favorite.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.home.favorite.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.home.favorite.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.home.favorite.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.home.favorite.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.home.favorite.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.home.favorite.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.home.favorite.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.home.favorite.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.home.favorite.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.home.favorite.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.home.favorite.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.home.favorite.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.home.favorite.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.home.favorite.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.home.favorite.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.home.service.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.home.service.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.home.service.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.home.service.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.home.service.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.home.service.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.home.service.get_accounting_alert_action": "37d33f77bc9e5a392cfdc9fc3114b48227709be759b8952564ad84f0771abefd",
+        "rpc:usl.home.service.get_accounting_alerts": "eaf7cc143d1a3ce025793c6df5f03573fa6a81519e07cf7d5521177dea3b6d6c",
+        "rpc:usl.home.service.get_activities": "b7d73ea473d98128279df006b46e23ef3237719d5b706804a47f58d10b668897",
+        "rpc:usl.home.service.get_ai_attention": "e6e899cb8ba2f1b12d33e1717d5e539ad336da9a01d33b06d18cdfec95a402b9",
+        "rpc:usl.home.service.get_ai_workspace_action": "6f62617b114b4969d3581362208947dda226b515c57098e019d9c4de9d5c6d6a",
+        "rpc:usl.home.service.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.home.service.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.home.service.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.home.service.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.home.service.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.home.service.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.home.service.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.home.service.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.home.service.get_my_tasks": "2cc9c54a0654653d0de579e03518800c32bf865313583f9e73c299c8bd7c1b09",
+        "rpc:usl.home.service.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.home.service.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.home.service.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.home.service.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.home.service.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.home.service.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.home.service.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.home.service.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.home.service.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.home.service.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.home.service.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.home.service.resolve_favorite": "04c1deb11c48e90f7b75c78d6f5d5712e2f951adf60b1726f7e49a0a24e210b4",
+        "rpc:usl.home.service.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.home.service.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.home.service.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.home.service.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.home.service.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.home.service.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.home.service.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.home.service.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.home.service.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "ui:usl_home.action_usl_home": "e633b7b8c0f68298548cd7238c7d392555f835d1b4e15a67250b485ee8f112ab"
       }
     },
     {
@@ -126278,6 +126442,220 @@
     },
     {
       "action_keys": [
+        "rpc:res.users.settings.set_usl_home_layout",
+        "rpc:usl.home.favorite.action_archive",
+        "rpc:usl.home.favorite.action_unarchive",
+        "rpc:usl.home.favorite.add_current_destination",
+        "rpc:usl.home.favorite.copy",
+        "rpc:usl.home.favorite.copy_data",
+        "rpc:usl.home.favorite.create",
+        "rpc:usl.home.favorite.formatted_read_grouping_sets",
+        "rpc:usl.home.favorite.get_view",
+        "rpc:usl.home.favorite.name_create",
+        "rpc:usl.home.favorite.onchange",
+        "rpc:usl.home.favorite.reorder",
+        "rpc:usl.home.favorite.unlink",
+        "rpc:usl.home.favorite.update_field_translations",
+        "rpc:usl.home.favorite.web_override_translations",
+        "rpc:usl.home.favorite.web_read_group",
+        "rpc:usl.home.favorite.web_resequence",
+        "rpc:usl.home.favorite.web_save",
+        "rpc:usl.home.favorite.web_save_multi",
+        "rpc:usl.home.favorite.write",
+        "rpc:usl.home.service.action_archive",
+        "rpc:usl.home.service.action_unarchive",
+        "rpc:usl.home.service.add_provider_favorite",
+        "rpc:usl.home.service.copy",
+        "rpc:usl.home.service.copy_data",
+        "rpc:usl.home.service.create",
+        "rpc:usl.home.service.formatted_read_grouping_sets",
+        "rpc:usl.home.service.get_configuration",
+        "rpc:usl.home.service.get_view",
+        "rpc:usl.home.service.name_create",
+        "rpc:usl.home.service.onchange",
+        "rpc:usl.home.service.save_layout",
+        "rpc:usl.home.service.unlink",
+        "rpc:usl.home.service.update_field_translations",
+        "rpc:usl.home.service.web_override_translations",
+        "rpc:usl.home.service.web_read_group",
+        "rpc:usl.home.service.web_resequence",
+        "rpc:usl.home.service.web_save",
+        "rpc:usl.home.service.web_save_multi",
+        "rpc:usl.home.service.write"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "system_framework",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.system_framework.actions.usl_home",
+      "overrides": {
+        "rpc:res.users.settings.set_usl_home_layout": {
+          "reversal_action": "rpc:res.users.settings.set_usl_home_layout"
+        },
+        "rpc:usl.home.favorite.action_archive": {
+          "reversal_action": "rpc:usl.home.favorite.action_unarchive"
+        },
+        "rpc:usl.home.favorite.action_unarchive": {
+          "reversal_action": "rpc:usl.home.favorite.action_archive"
+        },
+        "rpc:usl.home.favorite.add_current_destination": {
+          "reversal_action": "rpc:usl.home.favorite.add_current_destination"
+        },
+        "rpc:usl.home.favorite.copy": {
+          "reversal_action": "rpc:usl.home.favorite.unlink"
+        },
+        "rpc:usl.home.favorite.copy_data": {
+          "reversal_action": "rpc:usl.home.favorite.unlink"
+        },
+        "rpc:usl.home.favorite.create": {
+          "reversal_action": "rpc:usl.home.favorite.unlink"
+        },
+        "rpc:usl.home.favorite.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.home.favorite.formatted_read_grouping_sets"
+        },
+        "rpc:usl.home.favorite.get_view": {
+          "reversal_action": "rpc:usl.home.favorite.get_view"
+        },
+        "rpc:usl.home.favorite.name_create": {
+          "reversal_action": "rpc:usl.home.favorite.unlink"
+        },
+        "rpc:usl.home.favorite.onchange": {
+          "reversal_action": "rpc:usl.home.favorite.onchange"
+        },
+        "rpc:usl.home.favorite.reorder": {
+          "reversal_action": "rpc:usl.home.favorite.reorder"
+        },
+        "rpc:usl.home.favorite.unlink": {
+          "reversal_action": "rpc:usl.home.favorite.create"
+        },
+        "rpc:usl.home.favorite.update_field_translations": {
+          "reversal_action": "rpc:usl.home.favorite.update_field_translations"
+        },
+        "rpc:usl.home.favorite.web_override_translations": {
+          "reversal_action": "rpc:usl.home.favorite.web_override_translations"
+        },
+        "rpc:usl.home.favorite.web_read_group": {
+          "reversal_action": "rpc:usl.home.favorite.web_read_group"
+        },
+        "rpc:usl.home.favorite.web_resequence": {
+          "reversal_action": "rpc:usl.home.favorite.web_resequence"
+        },
+        "rpc:usl.home.favorite.web_save": {
+          "reversal_action": "rpc:usl.home.favorite.unlink"
+        },
+        "rpc:usl.home.favorite.web_save_multi": {
+          "reversal_action": "rpc:usl.home.favorite.web_save_multi"
+        },
+        "rpc:usl.home.favorite.write": {
+          "reversal_action": "rpc:usl.home.favorite.write"
+        },
+        "rpc:usl.home.service.action_archive": {
+          "reversal_action": "rpc:usl.home.service.action_unarchive"
+        },
+        "rpc:usl.home.service.action_unarchive": {
+          "reversal_action": "rpc:usl.home.service.action_archive"
+        },
+        "rpc:usl.home.service.add_provider_favorite": {
+          "reversal_action": "rpc:usl.home.service.add_provider_favorite"
+        },
+        "rpc:usl.home.service.copy": {
+          "reversal_action": "rpc:usl.home.service.unlink"
+        },
+        "rpc:usl.home.service.copy_data": {
+          "reversal_action": "rpc:usl.home.service.unlink"
+        },
+        "rpc:usl.home.service.create": {
+          "reversal_action": "rpc:usl.home.service.unlink"
+        },
+        "rpc:usl.home.service.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.home.service.formatted_read_grouping_sets"
+        },
+        "rpc:usl.home.service.get_configuration": {
+          "reversal_action": "rpc:usl.home.service.get_configuration"
+        },
+        "rpc:usl.home.service.get_view": {
+          "reversal_action": "rpc:usl.home.service.get_view"
+        },
+        "rpc:usl.home.service.name_create": {
+          "reversal_action": "rpc:usl.home.service.unlink"
+        },
+        "rpc:usl.home.service.onchange": {
+          "reversal_action": "rpc:usl.home.service.onchange"
+        },
+        "rpc:usl.home.service.save_layout": {
+          "reversal_action": "rpc:usl.home.service.save_layout"
+        },
+        "rpc:usl.home.service.unlink": {
+          "reversal_action": "rpc:usl.home.service.create"
+        },
+        "rpc:usl.home.service.update_field_translations": {
+          "reversal_action": "rpc:usl.home.service.update_field_translations"
+        },
+        "rpc:usl.home.service.web_override_translations": {
+          "reversal_action": "rpc:usl.home.service.web_override_translations"
+        },
+        "rpc:usl.home.service.web_read_group": {
+          "reversal_action": "rpc:usl.home.service.web_read_group"
+        },
+        "rpc:usl.home.service.web_resequence": {
+          "reversal_action": "rpc:usl.home.service.web_resequence"
+        },
+        "rpc:usl.home.service.web_save": {
+          "reversal_action": "rpc:usl.home.service.unlink"
+        },
+        "rpc:usl.home.service.web_save_multi": {
+          "reversal_action": "rpc:usl.home.service.web_save_multi"
+        },
+        "rpc:usl.home.service.write": {
+          "reversal_action": "rpc:usl.home.service.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:res.users.settings.set_usl_home_layout": "d7608a53e025c63ccd6442d61e4e583ac726100c4c7101daae1495046e023cf4",
+        "rpc:usl.home.favorite.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.home.favorite.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.home.favorite.add_current_destination": "19f8e3e56c4003a608a1c1c9c3fa560d3c2365248091c1f46c9d3aeca49b530a",
+        "rpc:usl.home.favorite.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.home.favorite.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.home.favorite.create": "5617b819e20e776e727d0718a9be0242faeb1103e1e051b47fbccec53573f8c2",
+        "rpc:usl.home.favorite.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.home.favorite.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.home.favorite.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.home.favorite.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.home.favorite.reorder": "0e069041e7fd77b72134c349a0c310c2bf2fe05ae35799ff29694b36f6217899",
+        "rpc:usl.home.favorite.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:usl.home.favorite.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.home.favorite.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.home.favorite.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.home.favorite.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.home.favorite.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.home.favorite.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.home.favorite.write": "9dfb9de8a5f272af26daa29e297b359850b6087931c2b916705fcbcc33454ab0",
+        "rpc:usl.home.service.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.home.service.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.home.service.add_provider_favorite": "c3bc4274590391d9de6b32fcb21fc185264d5368b05525b4c12d8c7db31bfe15",
+        "rpc:usl.home.service.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.home.service.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.home.service.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
+        "rpc:usl.home.service.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.home.service.get_configuration": "a0672843fa4a2e8d231bd82f9d69059cd822721199bb7fb3e8730f95f6790637",
+        "rpc:usl.home.service.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.home.service.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.home.service.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.home.service.save_layout": "649a72b2293dbb56135bc5ebc89b244a8b50e911cd722f48793d56529c849c71",
+        "rpc:usl.home.service.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:usl.home.service.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.home.service.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.home.service.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.home.service.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.home.service.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.home.service.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.home.service.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534"
+      }
+    },
+    {
+      "action_keys": [
         "cron:account.ir_cron_account_move_send",
         "cron:account.ir_cron_auto_post_draft_entry",
         "cron:account_asset_management.ir_cron_assets_generator",
@@ -162553,6 +162931,115 @@
     },
     {
       "action_keys": [
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:2",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.create:orm_create:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.write:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:2",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:3",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
+      "domain": "system_framework",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.system_framework.sink.usl_home",
+      "overrides": {
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:1": {
+          "reachability_proof": "Authenticated Home users reach this only through reviewed Home RPC entry points. Elevated access is limited to technical ir.actions routing metadata; business-model, record, menu, company, ownership, ACL, and record-rule checks run as the current user before any destination is returned."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:2": {
+          "reachability_proof": "Authenticated Home users reach this only through reviewed Home RPC entry points. Elevated access is limited to technical ir.actions routing metadata; business-model, record, menu, company, ownership, ACL, and record-rule checks run as the current user before any destination is returned."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.create:orm_create:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.write:orm_write:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:1": {
+          "reachability_proof": "Authenticated Home users reach this only through reviewed Home RPC entry points. Elevated access is limited to technical ir.actions routing metadata; business-model, record, menu, company, ownership, ACL, and record-rule checks run as the current user before any destination is returned."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:2": {
+          "reachability_proof": "Authenticated Home users reach this only through reviewed Home RPC entry points. Elevated access is limited to technical ir.actions routing metadata; business-model, record, menu, company, ownership, ACL, and record-rule checks run as the current user before any destination is returned."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:3": {
+          "reachability_proof": "Authenticated Home users reach this only through reviewed Home RPC entry points. Elevated access is limited to technical ir.actions routing metadata; business-model, record, menu, company, ownership, ACL, and record-rule checks run as the current user before any destination is returned."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_write:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:sudo:1": {
+          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        }
+      },
+      "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
+      "reviewed_digests": {
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": "b4a43d096a0e13fa2ecb69f83bf4776d0db4f859874df6b95959acb030654604",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": "e4c00918e15faf901ca51b6349363d4259939a321ddae314b2b041a5fd6ace5d",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1": "7b727ea35b84e3137e0cdb2402c04bc01c695ce39e81524425872ec9ff880f0a",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:1": "a5ff0cb0998c45b10a6244954d79b722178ed49a4e03601bf2e5344e6e2b2869",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:2": "327e618e755cd4f6cd498380e9582592324168981ca70480a8d0402ca66db7f1",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.create:orm_create:1": "e2b6d9f7000c0dd409e233d6880521f4c3d35c7657c3fc781b9d3f92a50704a4",
+        "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.write:orm_write:1": "b82eb85852c1319bcc61f7836c5cfdfdf3b01fedc773285dc4242f560c5c1c41",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:1": "f40d1e8baba666d59ac32630808494ccb7ac8d6c05b71702bc715879f1d33e74",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:2": "8114e9f376a8f3c07d794510105e2c3b9d96e86a73c577269ea1f95dd6539c77",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:3": "fa5db915fa850631361ef329b9b3f6e6e75ec8419b46b685b897a2dfa0a972dc",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1": "3fc1426604074743f213864295cb3e7f76c4fa81d5945adb1cf807f838afea82",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1": "f0b5ee3062d2c53894fefae0e752db839a7c6ecb57da0aebdb3e6f2fa373cbdd",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": "9339d16ac88afecdd2f8e7b642f407ed995999123b3c7aa3d54abb0d9b7b8f71",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": "a5b0c3ac58949fe675e7cc783e718bbc7071b5a3cd9163c468d0db26f4b961d0",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": "dc527f6b4b64890f3048d10d10160b65dc43a80adac063bffebdf6bdfd4c9f3a",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1": "bc884f77f27feeab3fbc0773b80cddf1fa712f2086d040c54e269e8864eb71e0",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1": "90dc380995902ebd954d53e92df756951cf030e570887e6209113c2d6eb754c6",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_write:1": "a56059b8340361db1d2b270db0389c3d2036f5dbee8d4df5f11a6e7b2f65cd24",
+        "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:sudo:1": "5b0e420c4b21f47f742fdb7b0bb317b75dc9f5b8693f1bc4a4e947fc48894ab9"
+      }
+    },
+    {
+      "action_keys": [
         "client:account:addons/account/static/src/components/account_move_form/account_move_form.js:loadExtraPrintItems:rpc:1",
         "client:account:addons/account/static/src/components/account_number_widget/account_number_widget.js:validateAccountNumber:rpc:1",
         "client:account:addons/account/static/src/components/bill_guide/bill_guide.js:if:rpc:1",
@@ -174095,6 +174582,49 @@
         "ui:web.view_base_document_layout:button:object:document_layout_save:1": "332847d10003af309e65915b1fbff3be240d635497b9ea43846d6a9de2960d63",
         "ui:web_tour.tour_export_js_action": "0b7419a32ec021792d94333d8118338a72ded02a5e4463f016bb139da7950624"
       }
+    },
+    {
+      "action_keys": [
+        "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
+      "domain": "system_framework",
+      "evidence_id": "transport-exact-targets-v1",
+      "id": "transport.system_framework.actions.usl_home",
+      "overrides": {
+        "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1": {
+          "targets": [
+            "rpc:usl.home.favorite.add_current_destination"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1": {
+          "targets": [
+            "rpc:usl.home.favorite.reorder",
+            "rpc:usl.home.service.resolve_favorite"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.get_ai_workspace_action"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.save_layout"
+          ]
+        }
+      },
+      "rationale": "The entry point is a UI, client, or controller transport; every statically resolved target is listed exactly and owns its own risk classification and guard.",
+      "reviewed_digests": {
+        "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1": "409ca981dd84417ef822f921f6372c208926dceec36f7ca77d701dd41c5449e1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1": "cb6ffab3cf307a33fd557bc334ff27992066861f0929ef5c4c15447680e3cca9",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
+      }
     }
   ],
   "evidence_families": {
@@ -174139,6 +174669,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "5805c9780fdf2938adec38fdb6ff20e3e0b60e362346105ab55937ee5b171317",
+  "qualified_policy_digest": "29d53b3692d10e2af9017e0e96310ea3a37eaf2c0aed2105a20d76303809f160",
   "schema": "usl-action-risk-policy-v1"
 }
