@@ -474,6 +474,9 @@
         <field name="priority">2</field>
         <field name="arch" type="xml">
             <list create="0" delete="0" decoration-danger="state in ['action_required', 'validation_failed']" decoration-warning="state in ['waiting_enrollment', 'evidence_incomplete']">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
                 <field name="name" string="Request"/>
                 <field name="record_ref" string="Linked record"/>
                 <field name="lifecycle_stage" string="Stage"/>
@@ -494,6 +497,9 @@
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
             <kanban create="0" delete="0" quick_create="0" default_order="create_date desc" class="o_kanban_small_column usl_sign_document_kanban">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
                 <field name="name"/>
                 <field name="document_preview_url"/>
                 <field name="document_thumbnail_url"/>
@@ -800,7 +806,7 @@
         <field name="domain">[('state', 'not in', ['completed', 'external_archived', 'declined', 'expired', 'cancelled']), '|', ('user_id', '=', uid), ('coordinator_ids', 'in', [uid])]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No open requests</p>
-            <p>Requests you own or coordinate will appear here until they are completed or closed. Use <strong>Request signatures</strong> on the Sign home page to prepare one.</p>
+            <p>Select <strong>New request</strong> to upload a PDF or use a template, add the signers, and place their fields.</p>
         </field>
     </record>
     <record id="my_signatures_action" model="ir.actions.act_window">

@@ -6157,6 +6157,13 @@ msgid "Request name, message and linked record"
 msgstr "Nom de la demande, message et enregistrement lié"
 
 #. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_kanban_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_request_action
+msgid "New request"
+msgstr "Nouvelle demande"
+
+#. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/workspace.xml:0
 #: model:ir.actions.act_window,name:usl_sign.sign_start_action
@@ -6205,13 +6212,8 @@ msgstr "Demandes"
 
 #. module: usl_sign
 #: model_terms:ir.actions.act_window,help:usl_sign.sign_request_action
-msgid ""
-"Requests you own or coordinate will appear here until they are completed or closed. "
-"Use <strong>Request signatures</strong> on the Sign home page to prepare one."
-msgstr ""
-"Les demandes que vous possédez ou coordonnez apparaîtront ici jusqu'à leur achèvement "
-"ou leur clôture. Utilisez <strong>Demander des signatures</strong> sur la page "
-"d'accueil Signature pour en préparer une."
+msgid "Select <strong>New request</strong> to upload a PDF or use a template, add the signers, and place their fields."
+msgstr "Sélectionnez <strong>Nouvelle demande</strong> pour importer un PDF ou utiliser un modèle, ajouter les signataires et placer leurs champs."
 
 #. module: usl_sign
 #: model:ir.model.fields,field_description:usl_sign.field_sign_oca_template__signing_order
