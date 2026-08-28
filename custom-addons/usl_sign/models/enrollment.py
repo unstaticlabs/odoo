@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from odoo import _, api, fields, models
+from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -229,7 +229,10 @@ class SignEnrollment(models.Model):
                 "status_reason": "Pocket ID identity reviewed",
             },
         )
-        self.sudo().activity_ids.unlink()
+        # These are workflow reminders owned by this controlled approval, not
+        # user-selected audit records.  Ordinary reviewers must be able to
+        # complete the workflow while direct activity deletion stays guarded.
+        self.with_user(SUPERUSER_ID).activity_ids.unlink()
         waiting_requests = self.env["sign.oca.request"].sudo().search(
             [
                 ("state", "=", "waiting_enrollment"),
