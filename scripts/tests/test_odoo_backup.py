@@ -213,6 +213,11 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertIn("postgres:16-bookworm@sha256:", self.dockerfile)
         self.assertIn("restic/restic:0.19.1@sha256:", self.dockerfile)
 
+    def test_restore_clone_uses_the_postgres_18_volume_root(self) -> None:
+        self.assertIn("postgres:18-bookworm@sha256:", self.compose)
+        self.assertIn("clone-db-data:/var/lib/postgresql", self.compose)
+        self.assertNotIn("clone-db-data:/var/lib/postgresql/data", self.compose)
+
     def test_prepare_is_db_first_then_filestore(self) -> None:
         source = (ROOT / "scripts/odoo_backup.py").read_text(encoding="utf-8")
         self.assertLess(source.index('"pg_dump"'), source.index("shutil.copytree(source_root"))
