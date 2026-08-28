@@ -1426,6 +1426,7 @@ class TestMultiCompanyAccountingReports(TransactionCase):
                 for item in payload["filters"]
             )
         )
+        self.assertNotIn("Lignes sans mouvement masquées", payload["filters"])
         self.assertEqual(payload["orientation"], "landscape")
 
     def test_pdf_adapter_names_the_currency_instead_of_generic_units(self):

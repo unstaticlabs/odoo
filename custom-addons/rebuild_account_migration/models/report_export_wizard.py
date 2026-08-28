@@ -4156,9 +4156,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 " – "
                 f"{self._display_export_date(metadata['comparison_date_to'])}"
             )
-        if self.hide_zero_accounts:
-            filters.append("Lignes sans mouvement masquées")
-
         basis_note = (
             "Document préparatoire produit à partir des écritures et contrôles "
             "du périmètre sélectionné. Il ne constitue ni une attestation "
