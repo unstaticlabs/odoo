@@ -116,6 +116,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Paperless's tika-client 0.11 multipart API is not compatible with Tika
+    # Server 4, which removed /tika/form/text. A major upgrade requires an
+    # explicit Paperless parser qualification instead of a routine image bump.
+    ignore:
+      - dependency-name: "apache/tika"
+        update-types:
+          - "version-update:semver-major"
     commit-message:
       prefix: "chore(deps)"
 

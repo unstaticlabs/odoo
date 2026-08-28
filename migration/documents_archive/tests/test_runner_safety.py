@@ -24,6 +24,7 @@ PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
     / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
 )
 RELEASE_INVENTORY = ROOT / "scripts/odoo/documents_release_inventory.py"
+OFFICE_PARSER_PREFLIGHT = ROOT / "scripts/paperless_office_parser_preflight.py"
 RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
 RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
 MIGRATION_CANDIDATE_SCRIPT = ROOT / "scripts/migration-candidate"
@@ -124,6 +125,19 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "usl_platform_billing,usl_tese_payroll,usl_documents_accounting",
             script,
         )
+
+    def test_archive_start_exercises_real_office_parser_compatibility(self):
+        runner = SCRIPT.read_text(encoding="utf-8")
+        preflight = OFFICE_PARSER_PREFLIGHT.read_text(encoding="utf-8")
+
+        archive_start = runner.index("start_archive()")
+        services_ready = runner.index("paperless-webserver", archive_start)
+        parser_probe = runner.index("scripts/paperless_office_parser_preflight.py", services_ready)
+        self.assertLess(services_ready, parser_probe)
+        self.assertIn("TikaDocumentParser", preflight)
+        self.assertIn('parser.parse(Path(source.name), "text/rtf"', preflight)
+        self.assertIn("MARKER not in extracted_text", preflight)
+        self.assertIn('startswith(b"%PDF-")', preflight)
 
     def test_expense_batch_declares_its_documents_adapter_dependency(self):
         manifest = ast.literal_eval(
