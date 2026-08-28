@@ -47,22 +47,22 @@ mobile frontend suites.
 
 The fresh reconstruction of the frozen Online source produced:
 
-- 2 companies, 5,425 accounting moves and 12,991 lines;
-- 5,258 posted moves, with debit and credit balanced and no duplicate source
+- 2 companies, 5,434 accounting moves and 13,024 lines;
+- 5,267 posted moves, with debit and credit balanced and no duplicate source
   representation;
-- 432 expenses, 113 payments, 3,095 bank transactions, 1,340 full and 2,861
+- 434 expenses, 113 payments, 3,104 bank transactions, 1,340 full and 2,861
   partial reconciliations;
 - 3 native assets, 31 linked posted depreciation moves and 91 schedule lines;
 - 3 employees, 4 source HR versions and 13 employee types;
-- 18 projects, 1,910 tasks, 20,945 messages, 8,328 tracking values, 2,224
-  followers and 44 project attachments;
+- 18 projects, 2,052 tasks, 22,273 messages, 8,807 tracking values, 2,368
+  followers and 45 project attachments;
 - 10 TESE payslips and accounting entries, 10 payroll PDFs and 4 profiles;
 - 4 platforms, 3 billing sessions, 31 payouts and all 51 linked accounting
   moves, with an unchanged ledger digest.
 
 Accounting import, validation and the TESE and Platform Billing restorations
 were each repeated without changing their business counts or digests. The
-source/target current-period debit and credit are both EUR 1,746,386.67, with
+source/target current-period debit and credit are both EUR 1,849,765.54, with
 no account, journal or profit-and-loss difference. Historical source sequence
 exceptions are preserved exactly rather than silently resequenced.
 
@@ -87,12 +87,12 @@ journey, Prosper's zero access to USL MEDIA records, and 1,949 aligned
 provider-owned ECB rates per company. The finalizer mirrors existing ECB rows
 offline; it does not retrieve rates or overwrite manual exceptions.
 
-The reconstruction initially exposed 12 target-only Project tasks: four native
-onboarding todos created while restoring users and eight future occurrences
-created while restoring already-closed recurring tasks. The migration now
-suppresses both target conveniences and rejects any target-only Project task.
-Focused identity and recurrence regression tests pass. A fresh final
-reconstruction must confirm the product total remains the 1,910 source tasks.
+The reconstruction initially exposed target-only Project tasks: native
+onboarding todos created while restoring users and future occurrences created
+while restoring already-closed recurring tasks. The migration now suppresses
+both target conveniences and rejects any target-only Project task. Focused
+identity and recurrence regression tests pass. A fresh final reconstruction
+must confirm the product total remains the 2,052 source tasks.
 
 The complete Paperless archive, pre-production and coordinated recovery gates
 remain outstanding. The 19.2 register remains historical and must not be edited

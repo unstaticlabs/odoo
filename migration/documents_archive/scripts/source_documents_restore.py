@@ -782,6 +782,66 @@ expected_move_ids = {
 }
 if set(moves) != expected_move_ids:
     fail(f"Accounting move mappings are incomplete: {sorted(expected_move_ids - set(moves))}")
+projects = source_map(
+    "project.project",
+    [row["id"] for row in source["project_folder_mappings"]]
+    + [
+        item["res_id"]
+        for group in groups
+        for item in group
+        if item["res_model"] == "project.project" and item["res_id"]
+    ],
+)
+tasks = source_map(
+    "project.task",
+    [
+        item["res_id"]
+        for group in groups
+        for item in group
+        if item["res_model"] == "project.task" and item["res_id"]
+    ],
+)
+project_by_folder = {
+    row["documents_folder_id"]: projects[row["id"]]
+    for row in source["project_folder_mappings"]
+}
+
+
+def business_targets(group):
+    """Resolve every native record relationship carried by a checksum group."""
+    result = {}
+    mappings = {
+        "account.move": moves,
+        "project.project": projects,
+        "project.task": tasks,
+    }
+    for entry in group:
+        mapping = mappings.get(entry["res_model"])
+        if mapping and entry["res_id"]:
+            target = mapping[entry["res_id"]]
+            result[(target._name, target.id)] = target
+        project = project_by_folder.get(entry["folder_id"])
+        if project:
+            result[(project._name, project.id)] = project
+    return result
+
+
+def primary_business_target(targets):
+    """Choose the most specific deterministic target for archive policy context."""
+    for model_name in ("project.task", "project.project", "account.move"):
+        candidates = sorted(
+            (
+                target_id,
+                target,
+            )
+            for (candidate_model, target_id), target in targets.items()
+            if candidate_model == model_name
+        )
+        if candidates:
+            return candidates[0][1]
+    return None
+
+
 tese_payroll_by_move_id = {}
 if "usl.tese.payslip" in env:
     tese_payroll_by_move_id = {
@@ -803,13 +863,6 @@ for row in source["employee_folder_mappings"]:
     ):
         if folder_id:
             employee_by_folder[folder_id] = employee
-if any(
-    item["folder_id"] in {row["documents_folder_id"] for row in source["project_folder_mappings"]}
-    for group in groups
-    for item in group
-):
-    fail("the source contains direct Project-folder documents without a finalized mapping")
-
 for membership in source["document_groups"]:
     user = users.get(membership["user_id"])
     if user:
@@ -1104,12 +1157,8 @@ for index, group in enumerate(groups, start=1):
         fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
     source_company_id = company_scope["company_id"]
     company = companies.get(source_company_id) or next(iter(companies.values()), env.company)
-    target_moves = [
-        moves[entry["res_id"]]
-        for entry in group
-        if entry["res_model"] == "account.move" and entry["res_id"]
-    ]
-    target = target_moves[0] if target_moves else None
+    target_records = business_targets(group)
+    target = primary_business_target(target_records)
     classification = classifications[item["checksum"]]
     confidentiality = (
         "private"
@@ -1287,10 +1336,11 @@ for item in completed:
     company = companies.get(source_company_id)
     if any(entry.get("operational_attachment_id") for entry in group):
         company = company or next(iter(companies.values()), env.company)
+    target_links = business_targets(group)
     target_moves = {
-        moves[entry["res_id"]].id: moves[entry["res_id"]]
-        for entry in group
-        if entry["res_model"] == "account.move" and entry["res_id"]
+        target_id: target
+        for (model_name, target_id), target in target_links.items()
+        if model_name == "account.move"
     }
     confidentiality = (
         "private"
@@ -1354,10 +1404,6 @@ for item in completed:
     received_original = document.version_ids.filtered("is_received_original")[:1]
     if received_original:
         received_original.sudo().write(provenance_values)
-    target_links = {
-        ("account.move", target.id): target
-        for target in target_moves.values()
-    }
     for target in target_moves.values():
         payroll = tese_payroll_by_move_id.get(target.id)
         if payroll:
