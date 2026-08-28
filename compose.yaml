@@ -410,11 +410,11 @@ services:
 
   usl-document-renderer:
     profiles: ["document-renderer"]
-    image: ${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:5fbd49b76dcc}
+    image: ${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:140f0dc6b8c0}
     build:
       context: services/usl-document-renderer
       args:
-        USL_TEMPLATE_REVISION: 5fbd49b76dccf7721bde3cb1525711c9240f9547
+        USL_TEMPLATE_REVISION: 140f0dc6b8c014ef39020cf34bac9b3a228d6417
     restart: unless-stopped
     read_only: true
     user: "10001:10001"
