@@ -65,7 +65,7 @@ verify_candidate_and_environment() {
   local env_file="$1" candidate_argument="$2" fingerprint="$3"
   local candidate project config commit expected_commit image label_commit
   local label_oca expected_oca label_action_risk expected_action_risk
-  local runtime_label network
+  local runtime_label network sign_image_name sign_image
   candidate="$(cd "$candidate_argument" && pwd -P)"
   if [[ ! "$fingerprint" =~ ^[0-9a-f]{64}$ ]]; then
     printf 'Invalid candidate fingerprint.\n' >&2
@@ -115,6 +115,12 @@ PY
     printf 'Runtime image labels differ from the approved Distribution candidate.\n' >&2
     return 2
   fi
+  for sign_image_name in \
+    USL_DOCUMENT_RENDERER_IMAGE USL_SIGN_STEP_CA_IMAGE USL_SIGN_DSS_IMAGE
+  do
+    sign_image="$(env_field "$env_file" "$candidate" "$sign_image_name")"
+    docker image inspect "$sign_image" >/dev/null
+  done
 
   for network in \
     "$(env_field "$env_file" "$candidate" USL_EXTERNAL_IDENTITY_NETWORK)" \
@@ -126,7 +132,8 @@ PY
   config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.json.XXXXXX")"
   TEMP_FILES+=("$config")
   chmod 600 "$config"
-  "${COMPOSE[@]}" --profile paperless config --format json > "$config"
+  "${COMPOSE[@]}" --profile paperless --profile sign \
+    --profile document-renderer config --format json > "$config"
   python3 scripts/production_cutover.py env \
     --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
     --compose-config "$config" >/dev/null
@@ -370,6 +377,11 @@ run_odoo_shell() {
     --shell-interface=python < "$script"
 }
 
+start_sign_services() {
+  "${COMPOSE[@]}" --profile sign --profile document-renderer up -d --wait --pull never \
+    usl-document-renderer usl-sign-step-ca usl-sign-dss
+}
+
 configure() {
   local env_file="${2:-}" candidate_argument="${3:-}" policy_file="${4:-}" fingerprint="${5:-}"
   local candidate project state database odoo_users paperless_policy
@@ -434,6 +446,7 @@ configure() {
   unset token setup
 
   printf '[4/4] Leave runtime staged on loopback with cron disabled\n'
+  start_sign_services
   "${COMPOSE[@]}" up -d --wait odoo
   transition "$state" "$fingerprint" configure
   printf 'External identity/application policy configured. No Pocket ID mutation API was called.\n'
@@ -448,6 +461,7 @@ gate() {
   python3 scripts/production_cutover.py journeys --evidence "$journey_file" \
     --fingerprint "$fingerprint" >/dev/null
   database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
+  start_sign_services
   "${COMPOSE[@]}" up -d --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
 
@@ -492,6 +506,7 @@ PY
   curl --fail --silent --show-error \
     "http://127.0.0.1:$(env_field "$env_file" "$candidate" PAPERLESS_HTTP_PORT)/api/" \
     >/dev/null
+  "${COMPOSE[@]}" exec -T odoo python /usr/local/bin/usl-sign-services-smoke
 
   printf '[5/5] Revalidate regulatory and cron admission guards\n'
   if [[ "$(env_field "$env_file" "$candidate" ODOO_MAX_CRON_THREADS)" != 0 ]]; then
@@ -528,6 +543,7 @@ admit() {
   transition "$state" "$fingerprint" admit
   run_odoo_shell "$database" scripts/odoo/production_record_admission.py \
     -e USL_ADMITTED_CANDIDATE_FINGERPRINT="$fingerprint"
+  start_sign_services
   ODOO_MAX_CRON_THREADS="$cron" "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
   printf 'Candidate admitted; reset permanently disabled.\n'

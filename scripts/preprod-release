@@ -295,7 +295,7 @@ clean_install_product() {
   action_risk_source_gate
   require_qualified_identity
   local product_modules
-  product_modules="rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll"
+  product_modules="rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_sign,usl_tese_accounting,usl_tese_payroll"
   cleanup_clean_install_database
   trap cleanup_clean_install_database EXIT INT TERM
   release_compose --profile init run --rm -T \
@@ -381,6 +381,8 @@ start_distribution() {
     paperless-webserver
   release_compose --profile paperless run --rm --no-deps paperless-access-init
   export ODOO_MAX_CRON_THREADS=1
+  release_compose --profile sign --profile document-renderer up -d --wait --pull never \
+    usl-document-renderer usl-sign-step-ca usl-sign-dss
   release_compose up -d --force-recreate --wait --pull never db pocket-id odoo
   printf 'Odoo: http://odoo.localhost:%s/web/login?db=odoo_dev\n' \
     "$ODOO_HTTP_PORT"
@@ -418,11 +420,15 @@ release_gate() {
   scripts/check-product-migration-boundary
   USL_PRODUCT_BOUNDARY_PREPROD=1 scripts/check-product-database-boundary
   release_compose --profile paperless run --rm --no-deps paperless-preflight
+  release_compose --profile sign --profile document-renderer up -d --wait --pull never \
+    usl-document-renderer usl-sign-step-ca usl-sign-dss
   database_identity 0 > "$ROOT/artifacts/release/database-identity.json"
   action_risk_runtime_gate \
     | tee "$ROOT/artifacts/release/action-risk-runtime.txt"
   product_asset_gate \
     | tee "$ROOT/artifacts/release/product-assets.txt"
+  release_compose exec -T odoo python /usr/local/bin/usl-sign-services-smoke \
+    | tee "$ROOT/artifacts/release/sign-services.txt"
 
   local container_id mounts runtime_image
   container_id="$(release_compose ps -q odoo)"

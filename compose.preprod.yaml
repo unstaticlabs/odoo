@@ -19,6 +19,15 @@ services:
     volumes: !override
       - odoo-data:/var/lib/odoo
 
+  usl-document-renderer:
+    # Production-like admission consumes only the explicitly digest-pinned
+    # renderer image; it must never rebuild from the checkout.
+    build: !reset null
+
+  usl-sign-dss:
+    # DSS is qualified and published independently from the Odoo image.
+    build: !reset null
+
   paperless-webserver:
     build: !reset null
     ports: !override

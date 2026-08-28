@@ -32,6 +32,34 @@ VOLUME_KEYS = (
     "USL_PAPERLESS_CONSUME_VOLUME",
     "USL_PAPERLESS_TRASH_VOLUME",
 )
+SIGN_SECRET_DIRECTORIES = {
+    "USL_DOCUMENT_RENDERER_CERT_DIR": (
+        "ca.crt",
+        "odoo.crt",
+        "odoo.key",
+        "renderer.crt",
+        "renderer.key",
+    ),
+    "USL_SIGN_STEP_CA_DIR": (
+        "certs/root_ca.crt",
+        "config/ca.json",
+        "password",
+        "secrets/intermediate_ca_key",
+    ),
+    "USL_SIGN_DSS_SECRET_DIR": (
+        "client-trust.p12",
+        "local-trust.p12",
+        "manifest.p12",
+        "platform.p12",
+        "server.p12",
+    ),
+    "USL_SIGN_ODOO_SECRET_DIR": (
+        "client-chain.crt",
+        "client.key",
+        "provisioner.jwk",
+        "root_ca.crt",
+    ),
+}
 REQUIRED = (
     "COMPOSE_PROJECT_NAME",
     "ODOO_ADMIN_PASSWORD",
@@ -75,6 +103,13 @@ REQUIRED = (
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_PRODUCTION_CRON_THREADS",
     "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
+    "USL_DOCUMENT_RENDERER_CERT_DIR",
+    "USL_DOCUMENT_RENDERER_IMAGE",
+    "USL_SIGN_DSS_IMAGE",
+    "USL_SIGN_DSS_SECRET_DIR",
+    "USL_SIGN_ODOO_SECRET_DIR",
+    "USL_SIGN_STEP_CA_DIR",
+    "USL_SIGN_STEP_CA_IMAGE",
     "POSTGRES_PASSWORD",
     *VOLUME_KEYS,
 )
@@ -90,6 +125,18 @@ def private_file(path: Path) -> None:
     mode = stat.S_IMODE(path.stat().st_mode)
     if mode != 0o600:
         raise CutoverError(f"private input mode must be 0600: {path} ({mode:o})")
+
+
+def private_directory(path: Path, required_files: tuple[str, ...]) -> None:
+    if path.is_symlink() or not path.is_absolute() or not path.is_dir():
+        raise CutoverError(f"private secret directory must be absolute: {path}")
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & 0o077:
+        raise CutoverError(f"private secret directory must not be group/world accessible: {path}")
+    for relative in required_files:
+        required = path / relative
+        if required.is_symlink() or not required.is_file() or required.stat().st_size == 0:
+            raise CutoverError(f"private secret directory is incomplete: {path}")
 
 
 def read_json(path: Path) -> dict:
@@ -205,6 +252,15 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
             raise CutoverError(f"production {name} is not immutable")
         if values[name] != candidate_identity.get(candidate_key):
             raise CutoverError(f"production {name} differs from the approved candidate")
+    for name in (
+        "USL_DOCUMENT_RENDERER_IMAGE",
+        "USL_SIGN_DSS_IMAGE",
+        "USL_SIGN_STEP_CA_IMAGE",
+    ):
+        if not IMAGE.fullmatch(values[name]):
+            raise CutoverError(f"production {name} is not immutable")
+    for name, required_files in SIGN_SECRET_DIRECTORIES.items():
+        private_directory(Path(values[name]), required_files)
     key_ring = Path(values["USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"])
     if not key_ring.is_absolute():
         raise CutoverError("production Personal AI key ring path must be absolute")
@@ -306,6 +362,9 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
         "odoo": values["ODOO_IMAGE"],
         "paperless-webserver": values["PAPERLESS_IMAGE"],
         "paperless-ollama": values["OLLAMA_IMAGE"],
+        "usl-document-renderer": values["USL_DOCUMENT_RENDERER_IMAGE"],
+        "usl-sign-dss": values["USL_SIGN_DSS_IMAGE"],
+        "usl-sign-step-ca": values["USL_SIGN_STEP_CA_IMAGE"],
     }
     for service_name, expected_image in expected_images.items():
         if (services.get(service_name) or {}).get("image") != expected_image:
