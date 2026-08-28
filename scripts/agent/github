@@ -309,24 +309,20 @@ def configure_merge_queue_ruleset(ruleset: dict[str, Any], configuration: dict[s
         raise AgentError("Ruleset must retain its existing pull_request protection")
     pull_request["parameters"]["allowed_merge_methods"] = ["merge"]
 
-    required_checks = by_type.get("required_status_checks")
-    if not isinstance(required_checks, dict):
-        required_checks = {"type": "required_status_checks", "parameters": {}}
-        rules.append(required_checks)
-    parameters = required_checks.setdefault("parameters", {})
-    existing_checks = parameters.get("required_status_checks", [])
-    if not isinstance(existing_checks, list):
-        raise AgentError("Ruleset required_status_checks parameters are invalid")
-    contexts = {
-        check.get("context")
-        for check in existing_checks
-        if isinstance(check, dict) and isinstance(check.get("context"), str)
-    }
-    for context in configuration["required_status_checks"]:
-        if context not in contexts:
-            existing_checks.append({"context": context})
-    parameters["required_status_checks"] = existing_checks
-    parameters["strict_required_status_checks_policy"] = False
+    configured_checks = configuration.get("required_status_checks", [])
+    if configured_checks:
+        required_checks = by_type.get("required_status_checks")
+        if not isinstance(required_checks, dict):
+            required_checks = {"type": "required_status_checks", "parameters": {}}
+            rules.append(required_checks)
+        required_checks["parameters"] = {
+            "required_status_checks": [
+                {"context": context} for context in configured_checks
+            ],
+            "strict_required_status_checks_policy": False,
+        }
+    else:
+        rules[:] = [rule for rule in rules if rule.get("type") != "required_status_checks"]
 
     queue_parameters = {
         key: configuration[key]
@@ -364,19 +360,15 @@ def verify_merge_queue_prerequisite(repository: str, after_sha: str) -> None:
     comparison = gh("api", f"repos/{repository}/compare/{after_sha}...{development}", "--jq", ".status")
     if comparison not in {"ahead", "identical"}:
         raise AgentError(f"Prerequisite {after_sha} is not an ancestor of GitHub {development}")
-    workflow_requirements = {
-        ROOT / ".github" / "workflows" / "agent-process.yml": (
-            "  merge_group:\n    types: [checks_requested]",
-        ),
-        ROOT / ".github" / "workflows" / "product-image.yml": (
-            "  merge_group:\n    types: [checks_requested]",
-            "if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'",
-        ),
-    }
-    for path, required_fragments in workflow_requirements.items():
-        text = path.read_text(encoding="utf-8")
-        if any(fragment not in text for fragment in required_fragments):
-            raise AgentError(f"Prerequisite merge-group protections are missing from {path.relative_to(ROOT)}")
+    workflow = ROOT / ".github" / "workflows" / "product-image.yml"
+    text = workflow.read_text(encoding="utf-8")
+    if (
+        "push:\n    branches:\n      - 19-usl" not in text
+        or "pull_request:" in text
+        or "merge_group:" in text
+        or "workflow_dispatch:" in text
+    ):
+        raise AgentError("Post-merge OCI workflow policy is missing from product-image.yml")
 
 
 def merge_queue(arguments: argparse.Namespace) -> int:

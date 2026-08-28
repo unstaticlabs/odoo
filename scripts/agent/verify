@@ -94,14 +94,14 @@ def check_policy() -> list[str]:
     if any(mode not in {"advisory", "required"} for mode in enforcement.values()):
         errors.append("agent/policy.json enforcement values must be advisory or required")
     if value.get("workflow_phase") == "continuous-development" and set(enforcement.values()) != {"required"}:
-        errors.append("continuous-development requires every agent-process check")
+        errors.append("continuous-development requires every local agent-process control")
     github = value.get("github", {})
     if github.get("repository") != "unstaticlabs/odoo" or github.get("credential_transport") != "isolated-https":
         errors.append("agent/policy.json must retain the governed repository and isolated HTTPS transport")
     merge_queue = github.get("merge_queue", {})
     expected_queue = {
         "ruleset": "USL Distribution",
-        "required_status_checks": ["contracts", "Qualify repository and image"],
+        "required_status_checks": [],
         "check_response_timeout_minutes": 120,
         "grouping_strategy": "ALLGREEN",
         "max_entries_to_build": 2,

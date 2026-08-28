@@ -163,7 +163,7 @@ class AgentInterfaceTests(unittest.TestCase):
         with self.assertRaises(self.github.AgentError):
             self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
 
-    def test_merge_queue_configuration_is_idempotent_and_preserves_rules(self) -> None:
+    def test_merge_queue_configuration_removes_compute_checks_and_preserves_static_rules(self) -> None:
         configuration = json.loads((ROOT / "agent" / "policy.json").read_text(encoding="utf-8"))["github"][
             "merge_queue"
         ]
@@ -189,12 +189,7 @@ class AgentInterfaceTests(unittest.TestCase):
         desired = self.github.configure_merge_queue_ruleset(current, configuration)
         by_type = {rule["type"]: rule for rule in desired["rules"]}
         self.assertEqual(["merge"], by_type["pull_request"]["parameters"]["allowed_merge_methods"])
-        checks = by_type["required_status_checks"]["parameters"]
-        self.assertFalse(checks["strict_required_status_checks_policy"])
-        self.assertEqual(
-            ["Existing protected check", "contracts", "Qualify repository and image"],
-            [item["context"] for item in checks["required_status_checks"]],
-        )
+        self.assertNotIn("required_status_checks", by_type)
         self.assertEqual("MERGE", by_type["merge_queue"]["parameters"]["merge_method"])
         self.assertEqual(1, by_type["merge_queue"]["parameters"]["max_entries_to_merge"])
         self.assertEqual(2, by_type["merge_queue"]["parameters"]["max_entries_to_build"])
@@ -230,13 +225,14 @@ class AgentInterfaceTests(unittest.TestCase):
                 error = self.lib.merge_candidate_error("main", "feature")
         self.assertIn("conflict-free merge candidate", error or "")
 
-    def test_every_required_workflow_handles_merge_group_candidates(self) -> None:
+    def test_only_post_merge_oci_workflow_remains(self) -> None:
         workflows = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
-        self.assertEqual(["agent-process.yml", "product-image.yml"], [path.name for path in workflows])
-        for workflow in workflows:
-            with self.subTest(workflow=workflow.name):
-                text = workflow.read_text(encoding="utf-8")
-                self.assertIn("  merge_group:\n    types: [checks_requested]", text)
+        self.assertEqual(["product-image.yml"], [path.name for path in workflows])
+        text = workflows[0].read_text(encoding="utf-8")
+        self.assertNotIn("pull_request:", text)
+        self.assertNotIn("merge_group:", text)
+        self.assertNotIn("workflow_dispatch:", text)
+        self.assertIn("push:\n    branches:\n      - 19-usl", text)
 
     def test_feature_ready_rejects_not_ready_contract(self) -> None:
         self.assertIn(
@@ -389,13 +385,10 @@ class AgentInterfaceTests(unittest.TestCase):
                     configuration,
                 )
 
-    def test_dependabot_skips_only_agent_specific_pr_contracts(self) -> None:
-        agent_workflow = (ROOT / ".github" / "workflows" / "agent-process.yml").read_text(encoding="utf-8")
+    def test_dependabot_does_not_trigger_product_builds_on_pull_requests(self) -> None:
         product_workflow = (ROOT / ".github" / "workflows" / "product-image.yml").read_text(encoding="utf-8")
-        self.assertEqual(2, agent_workflow.count("github.actor != 'dependabot[bot]'"))
-        self.assertEqual(1, agent_workflow.count("github.actor == 'dependabot[bot]'"))
-        self.assertIn("scripts/agent/verify repository", agent_workflow)
         self.assertNotIn("dependabot[bot]", product_workflow)
+        self.assertNotIn("pull_request:", product_workflow)
 
     def test_dependabot_ignores_repository_built_compose_images(self) -> None:
         configuration = (ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8")

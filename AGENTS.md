@@ -12,7 +12,7 @@ distribution-level core patch and the tradeoff is documented.
   it through reviewed pull requests. Run `scripts/agent/context` before work.
 - The **Lead Agent** maintains the clean authoritative `19-usl` checkout in the
   persistent Codex task titled exactly `19-usl - Lead`. It reviews, runs QA,
-  makes integration decisions, and merges only approved green PRs. It does not
+  makes integration decisions, and merges only reviewed, merge-ready PRs. It does not
   create purpose branches or implement or author ordinary product, migration,
   feature, fix, chore, or documentation commits. Use the
   `usl-lead-developer` skill.
@@ -58,14 +58,10 @@ distribution-level core patch and the tradeoff is documented.
   is queue-eligible when Git can construct a conflict-free candidate with the
   latest fetched `origin/19-usl`; the feature branch does not need to contain
   that target tip. Manual catch-up is reserved for real conflicts,
-  dependency/stack changes, generated-state reconciliation, or a failed
-  `merge_group` qualification. Queue candidates run every required workflow,
-  while image/package/release/deployment publication remains restricted to an
-  actual push to `refs/heads/19-usl`.
-- Because both roles use `@elio-usl`, the Lead Agent cannot provide independent
-  approval for a PR authored by that account and must never self-approve.
-  Valentin or another authorized independent human must approve before the
-  Lead merges an otherwise green PR.
+  dependency/stack changes or generated-state reconciliation. GitHub does not
+  run compute-heavy candidate qualification or require an approval count; the
+  Coding handoff and Lead review own the evidence. OCI image publication runs
+  only after the merge reaches `refs/heads/19-usl`.
 - A Coding Agent records the selected Lead handoff mode in its task and as a
   canonical `integration.concerns` line in the v1 handoff so the generated PR
   displays it. In automatic mode, notify Lead when the PR and handoff are
@@ -91,9 +87,9 @@ distribution-level core patch and the tradeoff is documented.
   irreversible operations as high risk. Prefer reversible, audited operations
   and obtain explicit authority when scope or recovery is uncertain.
 - `agent/policy.json` exposes lifecycle phase and enforcement modes to tools.
-  During `migration-transition`, new GitHub checks are advisory. Post-cutover,
-  activate required checks and branch protection as documented in
-  `docs/operations/agent-development.md`; do not infer activation from prose.
+  Keep GitHub's static deletion, non-fast-forward, pull-request and merge-queue
+  rules, but do not add required status checks or a required approval count.
+  Post-merge OCI publication is the only GitHub compute workflow.
   Its `github.merge_queue` block is the reviewed desired queue configuration;
   the Lead applies it only through the guarded post-merge procedure documented
   there.
