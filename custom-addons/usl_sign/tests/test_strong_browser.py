@@ -631,11 +631,51 @@ class TestSignBrowserJourneys(HttpCase):
         )
         enrollment.with_user(self.reviewer).action_confirm_identity()
         role = self.env.ref("sign_oca.sign_role_customer")
+        initials = self.env.ref("usl_sign.field_initials")
         signature = self.env.ref("sign_oca.sign_field_signature")
+        signatory_data = {
+            str(page): {
+                "id": page,
+                "field_id": initials.id,
+                "field_type": initials.field_type,
+                "kind": "initials",
+                "required": True,
+                "name": initials.name,
+                "role_id": role.id,
+                "tabindex": page,
+                "page": page,
+                "position_x": 72,
+                "position_y": 88,
+                "width": 14,
+                "height": 6,
+                "value": False,
+                "default_value": initials.default_value,
+                "placeholder": "",
+            }
+            for page in range(1, 5)
+        }
+        signatory_data["5"] = {
+            "id": 5,
+            "field_id": signature.id,
+            "field_type": signature.field_type,
+            "kind": "signature",
+            "required": True,
+            "name": signature.name,
+            "role_id": role.id,
+            "tabindex": 5,
+            "page": 4,
+            "position_x": 12,
+            "position_y": 65,
+            "width": 28,
+            "height": 9,
+            "value": False,
+            "default_value": signature.default_value,
+            "placeholder": "",
+        }
         sign_request = self.env["sign.oca.request"].create(
             {
                 "name": "Material agreement",
-                "data": field_value(self._pdf()),
+                "data": field_value(self._pdf(pages=4)),
                 "filename": "material-agreement.pdf",
                 "company_id": self.company.id,
                 "user_id": self.env.user.id,
@@ -646,24 +686,7 @@ class TestSignBrowserJourneys(HttpCase):
                 "signer_type": "recurring",
                 "risk_level": "material",
                 "requested_trust": "strong_personal",
-                "signatory_data": {
-                    "1": {
-                        "id": 1,
-                        "field_id": signature.id,
-                        "field_type": signature.field_type,
-                        "required": True,
-                        "name": signature.name,
-                        "role_id": role.id,
-                        "page": 1,
-                        "position_x": 12,
-                        "position_y": 72,
-                        "width": 28,
-                        "height": 9,
-                        "value": False,
-                        "default_value": signature.default_value,
-                        "placeholder": "",
-                    },
-                },
+                "signatory_data": signatory_data,
                 "signer_ids": [
                     (0, 0, {"partner_id": self.partner.id, "role_id": role.id}),
                 ],
@@ -711,7 +734,7 @@ class TestSignBrowserJourneys(HttpCase):
                     const iframe = document.querySelector("iframe");
                     if (
                         iframe?.contentDocument?.querySelector(
-                            '.o_sign_oca_field[data-field="1"] [role="button"]',
+                            '.o_sign_oca_field[data-field="5"] [role="button"]',
                         ) && document.getElementById("sign_oca_button") &&
                         iframe.contentDocument.querySelector(
                             ".o_sign_sign_item_navigator",
@@ -722,15 +745,21 @@ class TestSignBrowserJourneys(HttpCase):
                     await new Promise((resolve) => setTimeout(resolve, 50));
                 }
                 const iframe = document.querySelector("iframe");
-                const field = iframe?.contentDocument?.querySelector(
-                    '.o_sign_oca_field[data-field="1"] [role="button"]',
+                const signatureField = iframe?.contentDocument?.querySelector(
+                    '.o_sign_oca_field[data-field="5"] [role="button"]',
                 );
                 const header = document.querySelector(".usl_sign_portal_header");
                 const guide = iframe?.contentDocument?.querySelector(
                     ".o_sign_sign_item_navigator",
                 );
                 const submit = document.getElementById("sign_oca_button");
-                if (!field || !guide || !submit || !submit.disabled) {
+                const assignedFields = Array.from(
+                    iframe?.contentDocument?.querySelectorAll(".o_sign_oca_field") || [],
+                );
+                if (
+                    !signatureField || assignedFields.length !== 5 || !guide ||
+                    !submit || !submit.disabled
+                ) {
                     throw new Error("Strong did not render the shared incomplete field workspace.");
                 }
                 if (
@@ -752,8 +781,8 @@ class TestSignBrowserJourneys(HttpCase):
                 ) {
                     throw new Error("The Strong ceremony still owns shared signer UI state.");
                 }
-                const fieldBox = field.closest(".o_sign_oca_field").getBoundingClientRect();
-                const fieldContainer = field.closest(".o_sign_oca_field");
+                const fieldBox = signatureField.closest(".o_sign_oca_field").getBoundingClientRect();
+                const fieldContainer = signatureField.closest(".o_sign_oca_field");
                 const fieldStyle = getComputedStyle(fieldContainer);
                 if (
                     fieldStyle.position !== "absolute" ||
@@ -761,20 +790,36 @@ class TestSignBrowserJourneys(HttpCase):
                     !fieldContainer.style.left ||
                     fieldBox.width < 20 ||
                     fieldBox.height < 20 ||
-                    !field.textContent.trim()
+                    !signatureField.textContent.trim()
                 ) {
                     throw new Error("Strong did not position the shared field over the PDF.");
                 }
                 if (!header?.textContent.includes("Strong personal signature")) {
                     throw new Error("Strong did not disclose its method in the shared workspace.");
                 }
+                const pdfViewer = iframe.contentWindow.PDFViewerApplication?.pdfViewer;
+                const viewer = iframe.contentDocument.getElementById("viewerContainer");
+                if (pdfViewer?.currentPageNumber !== 1 || viewer.scrollTop > 2) {
+                    throw new Error("Strong did not start on the first PDF page.");
+                }
                 guide.click();
                 await new Promise((resolve) => setTimeout(resolve, 450));
-                if (document.querySelector(".modal") || !field.closest(".o_sign_oca_field")) {
+                if (document.querySelector(".modal") || !signatureField.isConnected) {
                     throw new Error("The optional guide filled a field instead of only navigating.");
                 }
                 if (!guide.textContent.includes("Next")) {
                     throw new Error("The Strong field guide did not advance from its start state.");
+                }
+                for (let step = 0; step < 4; step++) {
+                    guide.click();
+                    await new Promise((resolve) => setTimeout(resolve, 450));
+                }
+                if (
+                    !signatureField.isConnected ||
+                    iframe.contentDocument.activeElement !== signatureField ||
+                    pdfViewer?.currentPageNumber !== 4
+                ) {
+                    throw new Error("The Strong field guide did not reach the final signature.");
                 }
                 console.log("test successful");
             })();

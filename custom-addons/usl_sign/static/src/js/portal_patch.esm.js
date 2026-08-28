@@ -10,7 +10,11 @@ import {_t} from "@web/core/l10n/translation";
 import {renderToString} from "@web/core/utils/render";
 import {useService} from "@web/core/utils/hooks";
 import {SignOcaPdfPortal} from "@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm";
-import {focusFirstPdfPage} from "./portal_utils.esm";
+import {
+    ensureSignerFieldsRendered,
+    focusFirstPdfPage,
+    signerFieldElement,
+} from "./portal_utils.esm";
 
 class DeclineDocumentDialog extends Component {
     static template = "usl_sign.DeclineDocumentDialog";
@@ -312,7 +316,7 @@ class FieldGuide {
     }
 
     focus(itemId) {
-        const field = this.parent.items[itemId];
+        const field = signerFieldElement(this.parent, itemId);
         if (!field?.isConnected) {
             this.refresh();
             return;
@@ -551,6 +555,7 @@ patch(SignOcaPdfPortal.prototype, {
             phase: "saving",
         });
         this.uslInitialPageApplied = false;
+        this.uslFieldRepairFrame = 0;
         this.uslLocationPromise = null;
         this.uslBeforeUnload = (event) => {
             if (!this.uslSubmission.guard) {
@@ -565,6 +570,8 @@ patch(SignOcaPdfPortal.prototype, {
         document.addEventListener("visibilitychange", this.uslVisibilityChange);
         onWillUnmount(() => {
             this.uslFieldGuide?.destroy();
+            this.uslFieldObserver?.disconnect();
+            window.cancelAnimationFrame(this.uslFieldRepairFrame);
             window.removeEventListener("beforeunload", this.uslBeforeUnload);
             document.removeEventListener("visibilitychange", this.uslVisibilityChange);
             document.body.classList.remove("usl_sign_page_hidden");
@@ -720,6 +727,7 @@ patch(SignOcaPdfPortal.prototype, {
     postIframeFields() {
         super.postIframeFields(...arguments);
         const iframeDocument = this.iframe.el.contentDocument;
+        ensureSignerFieldsRendered(this);
         if (!this.uslInitialPageApplied && focusFirstPdfPage(this.iframe.el)) {
             this.uslInitialPageApplied = true;
         }
@@ -819,6 +827,7 @@ patch(SignOcaPdfPortal.prototype, {
             `;
             iframeDocument.head.append(style);
         }
+        this._watchSignerFields();
         for (const button of iframeDocument.querySelectorAll(
             '[role="button"][aria-label^="Add "]'
         )) {
@@ -835,6 +844,25 @@ patch(SignOcaPdfPortal.prototype, {
             });
         }
         this.uslFieldGuide?.refresh();
+    },
+
+    _watchSignerFields() {
+        const viewer = this.iframe.el.contentDocument.getElementById("viewer");
+        if (!viewer || this.uslFieldObserverTarget === viewer) {
+            return;
+        }
+        this.uslFieldObserver?.disconnect();
+        this.uslFieldObserverTarget = viewer;
+        this.uslFieldObserver = new window.MutationObserver(() => {
+            window.cancelAnimationFrame(this.uslFieldRepairFrame);
+            this.uslFieldRepairFrame = window.requestAnimationFrame(() => {
+                this.uslFieldRepairFrame = 0;
+                if (ensureSignerFieldsRendered(this).length) {
+                    this.uslFieldGuide?.refresh();
+                }
+            });
+        });
+        this.uslFieldObserver.observe(viewer, {childList: true, subtree: true});
     },
 
     navigate() {
