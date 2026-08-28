@@ -346,6 +346,31 @@ export class Action {
             ),
         )
 
+    def test_module_identity_ignores_platform_dependency_tree(self):
+        self._build_source_tree()
+        before = inventory.discover_surface(
+            root=self.root,
+            root_modules={"app"},
+            country_codes={"fr"},
+        )
+
+        self.write(
+            "custom-addons/app/static/worker-build/node_modules/package/index.js",
+            "export const platform = 'linux';\n",
+        )
+        self.write(
+            "custom-addons/app/static/worker-build/node_modules/package/package.json",
+            '{"os": ["linux"]}\n',
+        )
+        after = inventory.discover_surface(
+            root=self.root,
+            root_modules={"app"},
+            country_codes={"fr"},
+        )
+
+        self.assertEqual(before["module_set_sha256"], after["module_set_sha256"])
+        self.assertEqual(before["modules"], after["modules"])
+
     def test_runtime_facts_replace_approximate_rpc_and_routes(self):
         self._build_source_tree()
         runtime = {
