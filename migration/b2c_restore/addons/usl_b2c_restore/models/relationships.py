@@ -514,12 +514,35 @@ class B2cRelationshipFinalizer:
     def _link_document(self, document, record):
         if not record:
             return self.env["usl.document.link"]
-        return (
+        link = (
             self.env["usl.document.link"]
             .sudo()
             .with_context(allowed_company_ids=[self.company.id])
-            .create_for_record(document, record._name, record.id)
+            .create_for_record(
+                document,
+                record._name,
+                record.id,
+                archive_mode="mandatory",
+                policy_role="evidence",
+                attachment_origin="migration",
+                policy_reason="b2c_source_package_exact_evidence",
+            )
         )
+        # Earlier rebuilds created these exact-checksum relationships through
+        # the generic Documents helper. Repair their policy in place so a
+        # repeated migration converges instead of retaining a false manual
+        # review task.
+        link.with_context(usl_documents_link_policy_write=True).write(
+            {
+                "archive_mode": "mandatory",
+                "policy_role": "evidence",
+                "document_role": "evidence",
+                "attachment_origin": "migration",
+                "policy_reason": "b2c_source_package_exact_evidence",
+            },
+        )
+        document.reconcile_linked_classification(limit=1000)
+        return link
 
     def _finalize_documents(self):
         if len(self.source["files"]) != 40:
