@@ -50,6 +50,14 @@
                         </section>
                     </div>
 
+                    <section class="usl_sign_start_block usl_sign_start_method">
+                        <h3>Signing method</h3>
+                        <p class="text-muted">Choose how signers confirm and what proof is retained.</p>
+                        <field name="requested_trust" widget="usl_sign_method_radio"
+                               options="{'horizontal': true}" nolabel="1"
+                               class="usl_sign_method_radio"/>
+                    </section>
+
                     <section class="usl_sign_start_block usl_sign_start_details">
                         <h3>Request details</h3>
                         <div class="usl_sign_start_grid">
@@ -66,14 +74,6 @@
                                 <field name="message" nolabel="1" placeholder="Optional note shown with the invitation"/>
                             </div>
                         </div>
-                    </section>
-
-                    <section class="usl_sign_start_block usl_sign_start_method">
-                        <h3>Signing method</h3>
-                        <p class="text-muted">Choose how signers confirm and what proof is retained.</p>
-                        <field name="requested_trust" widget="usl_sign_method_radio"
-                               options="{'horizontal': true}" nolabel="1"
-                               class="usl_sign_method_radio"/>
                     </section>
                 </sheet>
                 <footer>

@@ -2438,6 +2438,10 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn("usl_sign_start_template_next", start_view)
         self.assertIn("usl_sign_start_details", start_view)
         self.assertIn("usl_sign_start_method", start_view)
+        self.assertLess(
+            start_view.index("usl_sign_start_method"),
+            start_view.index("usl_sign_start_details"),
+        )
         self.assertIn('widget="usl_sign_method_radio"', start_view)
         self.assertIn("You can change them before sending.", start_view)
         self.assertIn("Choose a ready template. You will assign each signing role next.", start_view)
@@ -2914,6 +2918,36 @@ class TestCleanUslSign(TransactionCase):
         request.invalidate_recordset()
         self.assertEqual(request.state, "sent")
         self.assertEqual(request.responsible_message, "Please review this agreement.")
+
+    def test_confirmed_share_grants_only_sign_access_to_an_internal_signer(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-share-new-user",
+            groups="base.group_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "share-new-user@example.test"
+        sign_group = self.env.ref("usl_sign.group_sign_user")
+        self.assertNotIn(sign_group, internal_signer.all_group_ids)
+        request = self._ready(
+            self._request(
+                partners=[internal_signer.partner_id],
+                user_id=self.sign_user.id,
+            ),
+        )
+        action = request.with_user(self.sign_user).action_send()
+        wizard = self.env["usl.sign.share.confirm"].with_user(
+            self.sign_user,
+        ).browse(action["res_id"])
+        with patch.object(
+            type(request.signer_ids),
+            "_send_signer_invitation",
+            return_value=True,
+        ):
+            self.assertTrue(wizard.action_confirm())
+        internal_signer.invalidate_recordset()
+        self.assertIn(sign_group, internal_signer.all_group_ids)
+        self.assertEqual(request.state, "sent")
 
     def test_one_off_upload_accepts_multiple_signers_and_opens_field_placement(self):
         start = self.env["usl.sign.start"].with_user(self.sign_user).create(

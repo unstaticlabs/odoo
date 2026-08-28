@@ -385,11 +385,18 @@
 .usl_sign_processing_line,
 .usl_sign_processing_signature,
 .usl_sign_processing_flourish,
+.usl_sign_processing_scan,
 .usl_sign_processing_spinner_track,
 .usl_sign_processing_spinner {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.usl_sign_processing_scan {
+    fill: #c8a7be;
+    opacity: .7;
+    animation: usl-sign-processing-scan 2.4s cubic-bezier(.16, 1, .3, 1) infinite;
 }
 
 .usl_sign_processing_line {
@@ -476,6 +483,13 @@
 
 @keyframes usl-sign-processing-spin {
     to { transform: rotate(360deg); }
+}
+
+@keyframes usl-sign-processing-scan {
+    0% { opacity: 0; transform: translateY(0); }
+    18% { opacity: .75; }
+    72% { opacity: .75; transform: translateY(88px); }
+    100% { opacity: 0; transform: translateY(88px); }
 }
 
 .o_portal_sign_document_body .usl_sign_portal_header {
@@ -1285,6 +1299,16 @@
 .usl_sign_method_select {
     margin-top: auto;
     pointer-events: none;
+}
+
+.is-selected .usl_sign_method_select {
+    color: #fff;
+    border-color: var(--o-brand-primary, #714b67);
+    background: var(--o-brand-primary, #714b67);
+}
+
+.is-selected .usl_sign_method_card_title {
+    color: var(--o-brand-primary, #714b67);
 }
 
 .usl_sign_inspector {
@@ -2149,6 +2173,7 @@
 @media (prefers-reduced-motion: reduce) {
     .usl_sign_processing_signature,
     .usl_sign_processing_flourish,
+    .usl_sign_processing_scan,
     .usl_sign_processing_spinner {
         animation: none;
         opacity: 1;

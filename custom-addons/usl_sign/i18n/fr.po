@@ -6703,6 +6703,36 @@ msgstr "Enregistrement sécurisé de votre signature"
 
 #. module: usl_sign
 #. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid "Preparing your signature"
+msgstr "Préparation de votre signature"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid "Confirm your identity"
+msgstr "Confirmez votre identité"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid "Applying your signature"
+msgstr "Apposition de votre signature"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid "Checking the signed document"
+msgstr "Vérification du document signé"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid "Signature saved"
+msgstr "Signature enregistrée"
+
+#. module: usl_sign
+#. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/configure_patch.xml:0
 msgid "Select a field"
 msgstr "Sélectionner un champ"

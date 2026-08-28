@@ -10,6 +10,7 @@ import {_t} from "@web/core/l10n/translation";
 import {renderToString} from "@web/core/utils/render";
 import {useService} from "@web/core/utils/hooks";
 import {SignOcaPdfPortal} from "@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm";
+import {focusFirstPdfPage} from "./portal_utils.esm";
 
 class DeclineDocumentDialog extends Component {
     static template = "usl_sign.DeclineDocumentDialog";
@@ -104,6 +105,15 @@ const SUBMISSION_PHASE_LABELS = {
     applying: _t("Applying your signature…"),
     validating: _t("Checking the signed document…"),
     complete: _t("Signature saved."),
+};
+
+const SUBMISSION_PHASE_TITLES = {
+    saving: _t("Securing your signature"),
+    preparing: _t("Preparing your signature"),
+    identity: _t("Confirm your identity"),
+    applying: _t("Applying your signature"),
+    validating: _t("Checking the signed document"),
+    complete: _t("Signature saved"),
 };
 
 function browserContext() {
@@ -538,7 +548,9 @@ patch(SignOcaPdfPortal.prototype, {
             active: false,
             guard: false,
             label: SUBMISSION_PHASE_LABELS.saving,
+            phase: "saving",
         });
+        this.uslInitialPageApplied = false;
         this.uslLocationPromise = null;
         this.uslBeforeUnload = (event) => {
             if (!this.uslSubmission.guard) {
@@ -660,6 +672,13 @@ patch(SignOcaPdfPortal.prototype, {
             : _t("%s required fields remaining", this.uslGuide.remaining);
     },
 
+    get submissionTitle() {
+        return (
+            SUBMISSION_PHASE_TITLES[this.uslSubmission.phase] ||
+            SUBMISSION_PHASE_TITLES.saving
+        );
+    },
+
     _setSubmissionState(button, {busy = true, phase = "saving", complete = false}) {
         const consent = document.getElementById("usl_sign_consent");
         const spinner = document.getElementById("usl_sign_submission_spinner");
@@ -687,6 +706,7 @@ patch(SignOcaPdfPortal.prototype, {
         this.uslSubmission.active = busy;
         this.uslSubmission.guard = busy && !complete;
         this.uslSubmission.label = label;
+        this.uslSubmission.phase = phase;
         if (enteringProcessing) {
             window.requestAnimationFrame(() =>
                 window.requestAnimationFrame(() =>
@@ -700,6 +720,9 @@ patch(SignOcaPdfPortal.prototype, {
     postIframeFields() {
         super.postIframeFields(...arguments);
         const iframeDocument = this.iframe.el.contentDocument;
+        if (!this.uslInitialPageApplied && focusFirstPdfPage(this.iframe.el)) {
+            this.uslInitialPageApplied = true;
+        }
         if (!iframeDocument.getElementById("usl-sign-portal-viewer-style")) {
             const style = iframeDocument.createElement("style");
             style.id = "usl-sign-portal-viewer-style";
