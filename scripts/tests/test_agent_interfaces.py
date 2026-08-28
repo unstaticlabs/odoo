@@ -43,6 +43,7 @@ class AgentInterfaceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.github = load_script("github")
+        cls.handoff = load_script("handoff")
         cls.verify = load_script("verify")
 
     def test_context_json_is_structured_and_secret_free(self) -> None:
@@ -181,6 +182,14 @@ class AgentInterfaceTests(unittest.TestCase):
             "origin/codex/production-release-foundation",
             self.verify.feature_commit_base(
                 {"feature": {"base": "origin/codex/production-release-foundation"}}
+            ),
+        )
+
+    def test_handoff_evidence_renders_as_sentences(self) -> None:
+        self.assertEqual(
+            "Snapshot restored. Counts matched. Verification passed.",
+            self.handoff.evidence_summary(
+                ["Snapshot restored.", "Counts matched"], "Verification passed."
             ),
         )
 
