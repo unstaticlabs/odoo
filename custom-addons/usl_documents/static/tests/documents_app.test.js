@@ -10,7 +10,8 @@ import {
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { DocumentPreview, DocumentsWorkspace } from "../src/documents_app";
+import {DocumentsWorkspace} from "../src/documents_app";
+import {DocumentPreview} from "../src/document_preview";
 import { browser } from "@web/core/browser/browser";
 import { user } from "@web/core/user";
 
