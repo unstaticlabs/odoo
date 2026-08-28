@@ -517,7 +517,10 @@ class B2cRelationshipFinalizer:
         link = (
             self.env["usl.document.link"]
             .sudo()
-            .with_context(allowed_company_ids=[self.company.id])
+            .with_context(
+                allowed_company_ids=[self.company.id],
+                usl_documents_defer_access_sync=True,
+            )
             .create_for_record(
                 document,
                 record._name,
@@ -541,7 +544,6 @@ class B2cRelationshipFinalizer:
                 "policy_reason": "b2c_source_package_exact_evidence",
             },
         )
-        document.reconcile_linked_classification(limit=1000)
         return link
 
     def _finalize_documents(self):
@@ -657,6 +659,11 @@ class B2cRelationshipFinalizer:
             raise RuntimeError(
                 f"B2C archive files have no durable B2C business link: {unlinked}",
             )
+        archived_documents = self.env["usl.document"].sudo().browse(
+            [document.id for document in documents_by_name.values()],
+        )
+        archived_documents._recompute_linked_record_access(sync_permissions=True)
+        archived_documents.reconcile_linked_classification(limit=0)
         return {
             "archived_files": len(documents_by_name),
             "evidence_document_links": len(
