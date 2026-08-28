@@ -80,14 +80,25 @@ agent-owned and rewriting it is explicitly acceptable.
    `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
 2. Run `scripts/agent/github status`, then publish only through `scripts/agent/github push`. Do not use the existing SSH remote or a human credential profile.
 3. Create the v1 contract with `scripts/agent/handoff init`, replace its draft evidence with actual results, and validate it with `scripts/agent/handoff validate PATH --repository`.
+   Write `goal.summary` as a concise plain-language description of what the
+   change delivers, who benefits, and why it matters. For user-facing work,
+   describe the experience before naming modules, models, files, or internal
+   architecture. Make `goal.acceptance` an exhaustive outcome list covering
+   the delivered journeys, permissions, failure or degraded states, and any
+   material limitation a user or operator will notice. For infrastructure-only
+   work, describe the operator or maintainer outcome in the same plain style.
+   Keep implementation mechanics in the later decisions, changes, migration,
+   verification, and release fields.
 4. Fetch the target, make the worktree clean, push the exact head, and run
    `scripts/agent/verify feature-ready --handoff PATH`. Readiness proves queue
    eligibility against the fetched target; it does not require the feature to
    contain that target tip.
 5. Open or update the ready PR with `scripts/agent/github pr --handoff PATH`.
    The helper uses the validated `feature.base` as the GitHub PR base, including
-   for stacked PRs, and renders a review-first GitHub Markdown body from the
-   contract; do not paste raw JSON or hand-edit generated evidence. The
+   for stacked PRs, and renders a human-first GitHub Markdown body from the
+   contract. The body starts with the plain-language delivery description and
+   complete outcomes before review status or technical evidence; do not paste
+   raw JSON or hand-edit generated evidence. The
    machine-readable contract remains available in a collapsed section, and the
    generated artifact remains ignored local state.
 6. Add exactly one of these lines to the v1 contract's
