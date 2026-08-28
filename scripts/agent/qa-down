@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+
+confirmation=""
+dry_run=0
+while (($#)); do
+  case "$1" in
+    --confirm)
+      [[ $# -ge 2 ]] || { printf '%s\n' 'qa-down: --confirm requires a value' >&2; exit 2; }
+      confirmation="$2"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    -h|--help)
+      printf '%s\n' 'Usage: scripts/agent/qa-down --confirm <computed-project> [--dry-run]'
+      exit 0
+      ;;
+    *)
+      printf 'qa-down: unknown argument: %s\n' "$1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+project="$(scripts/agent/qa-status --project)"
+if [[ "$confirmation" != "$project" ]]; then
+  printf 'qa-down: refusing cleanup; pass --confirm %s\n' "$project" >&2
+  exit 2
+fi
+ownership="$(scripts/agent/qa-status --json | python3 -c 'import json, sys; print(json.load(sys.stdin)["ownership"]["state"])')"
+case "$ownership" in
+  foreign|mixed)
+    printf 'qa-down: refusing %s Compose ownership for %s\n' "$ownership" "$project" >&2
+    exit 2
+    ;;
+esac
+if ((dry_run)); then
+  printf 'QA cleanup dry run\n'
+  printf '  Project: %s\n' "$project"
+  printf '  Ownership: %s\n' "$ownership"
+  printf '  Scope:   only this worktree containers, network, and writable QA volumes\n'
+  printf '  Keeps:   shared seed, images, caches, source package, and identity environment\n'
+  exit 0
+fi
+
+COMPOSE_PROJECT_NAME="$project" USL_QA_CLEAN_CONFIRM=qa-volumes scripts/qa-clean

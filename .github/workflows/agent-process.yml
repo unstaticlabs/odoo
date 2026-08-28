@@ -1,0 +1,59 @@
+name: Agent process
+
+on:
+  pull_request:
+    branches:
+      - 19-usl
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout complete history
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Select Python runtime
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate repository agent infrastructure
+        run: |
+          scripts/agent/verify repository
+          python3 -m unittest discover -s scripts/tests -p 'test_agent_*.py'
+
+      - name: Validate PR branch and commit attribution
+        if: github.event_name == 'pull_request'
+        run: |
+          scripts/agent/verify pr-event "$GITHUB_EVENT_PATH"
+          scripts/agent/verify commits --base "origin/${{ github.base_ref }}"
+
+      - name: Validate structured Feature handoff
+        if: github.event_name == 'pull_request'
+        run: scripts/agent/handoff validate-pr-event "$GITHUB_EVENT_PATH"
+
+      - name: Explain transition enforcement
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          policy = json.load(open("agent/policy.json", encoding="utf-8"))
+          summary = os.environ["GITHUB_STEP_SUMMARY"]
+          with open(summary, "a", encoding="utf-8") as stream:
+              stream.write(f"## Agent process policy\n\nPhase: `{policy['workflow_phase']}`\n\n")
+              for name, mode in policy["enforcement"].items():
+                  stream.write(f"- `{name}`: `{mode}`\n")
+              if "advisory" in policy["enforcement"].values():
+                  stream.write("\nAdvisory findings are reported but do not block during migration transition.\n")
+          PY

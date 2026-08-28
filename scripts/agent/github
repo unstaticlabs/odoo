@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import stat
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib import AgentError, ROOT, branch_name, git, head_sha, load_json, policy, run, write_json  # noqa: E402
+
+
+STATE_ROOT = Path(os.environ.get("USL_AGENT_STATE_DIR", ROOT / ".agent"))
+IDENTITY_PATH = STATE_ROOT / "identity.json"
+GH_CONFIG_DIR = STATE_ROOT / "gh"
+
+
+def gh_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    environment["GH_CONFIG_DIR"] = str(GH_CONFIG_DIR)
+    return environment
+
+
+def gh(*arguments: str, check: bool = True) -> str:
+    return run("gh", *arguments, check=check, env=gh_environment())
+
+
+def repository_slug() -> str:
+    remote = git("remote", "get-url", "origin")
+    match = re.search(r"github\.com(?::|/)([^/]+/[^/]+?)(?:\.git)?$", remote)
+    if not match:
+        raise AgentError(f"origin is not a recognizable GitHub repository: {remote}")
+    return match.group(1)
+
+
+def identity() -> dict[str, Any]:
+    value = load_json(IDENTITY_PATH)
+    if value.get("schema") != "usl-agent-github-identity/v1":
+        raise AgentError(f"Unsupported identity schema in {IDENTITY_PATH}")
+    return value
+
+
+def inherited_git_value(key: str) -> str:
+    value = git("config", "--get", key, check=False)
+    if not value:
+        raise AgentError(f"Git {key} is not configured; supply it explicitly")
+    return value
+
+
+def configure(arguments: argparse.Namespace) -> int:
+    if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", arguments.login):
+        raise AgentError("Invalid GitHub login")
+    expected_login = policy()["github"]["agent_login"]
+    if not expected_login:
+        raise AgentError(
+            "agent/policy.json has no approved github.agent_login; add the dedicated account in a reviewed change first"
+        )
+    if arguments.login.casefold() != expected_login.casefold():
+        raise AgentError(f"Requested @{arguments.login}; policy requires dedicated agent @{expected_login}")
+    coauthor_name = arguments.coauthor_name or inherited_git_value("user.name")
+    coauthor_email = arguments.coauthor_email or inherited_git_value("user.email")
+    if coauthor_email.casefold() == arguments.author_email.casefold():
+        raise AgentError("Agent author and driving-human co-author must be distinct")
+    payload = {
+        "schema": "usl-agent-github-identity/v1",
+        "repository": policy()["github"]["repository"],
+        "agent": {
+            "login": arguments.login,
+            "name": arguments.author_name,
+            "email": arguments.author_email,
+        },
+        "driving_human": {"name": coauthor_name, "email": coauthor_email},
+    }
+    STATE_ROOT.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(STATE_ROOT, 0o700)
+    GH_CONFIG_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    write_json(IDENTITY_PATH, payload, mode=0o600)
+    git("config", "extensions.worktreeConfig", "true")
+    git("config", "--worktree", "user.name", arguments.author_name)
+    git("config", "--worktree", "user.email", arguments.author_email)
+    git("config", "--worktree", "usl.agentGithubLogin", arguments.login)
+    print(f"Configured isolated agent identity for @{arguments.login}.")
+    print(f"Driving-human trailer: Co-authored-by: {coauthor_name} <{coauthor_email}>")
+    print(f"Credentials will be stored only under {GH_CONFIG_DIR}.")
+    return 0
+
+
+def login(_arguments: argparse.Namespace) -> int:
+    configured = identity()
+    GH_CONFIG_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(GH_CONFIG_DIR, 0o700)
+    process = subprocess.run(
+        ["gh", "auth", "login", "--hostname", "github.com", "--git-protocol", "https", "--web"],
+        cwd=ROOT,
+        env=gh_environment(),
+        check=False,
+    )
+    if process.returncode:
+        raise AgentError("Isolated GitHub login did not complete")
+    actual = gh("api", "user", "--jq", ".login")
+    expected = configured["agent"]["login"]
+    if actual.casefold() != expected.casefold():
+        raise AgentError(f"Authenticated as @{actual}; expected dedicated agent @{expected}")
+    print(f"Authenticated isolated GitHub profile as @{actual}.")
+    return 0
+
+
+def status(_arguments: argparse.Namespace) -> int:
+    configured = identity()
+    mode = stat.S_IMODE(IDENTITY_PATH.stat().st_mode)
+    if mode & 0o077:
+        raise AgentError(f"Identity metadata must not be group/world-readable: {IDENTITY_PATH}")
+    approved = policy()["github"]["agent_login"]
+    if not approved:
+        raise AgentError("agent/policy.json has no approved dedicated github.agent_login")
+    expected = configured["agent"]["login"]
+    if expected.casefold() != approved.casefold():
+        raise AgentError(f"Identity metadata names @{expected}; policy requires @{approved}")
+    if configured["repository"] != policy()["github"]["repository"]:
+        raise AgentError("Identity metadata repository does not match agent policy")
+    actual = gh("api", "user", "--jq", ".login")
+    if actual.casefold() != expected.casefold():
+        raise AgentError(f"Authenticated as @{actual}; expected dedicated agent @{expected}")
+    author_email = git("config", "--worktree", "--get", "user.email", check=False)
+    author_name = git("config", "--worktree", "--get", "user.name", check=False)
+    if author_email != configured["agent"]["email"] or author_name != configured["agent"]["name"]:
+        raise AgentError("Worktree Git author does not match isolated agent identity")
+    permission = gh("repo", "view", configured["repository"], "--json", "viewerPermission", "--jq", ".viewerPermission")
+    if permission not in {"WRITE", "MAINTAIN", "ADMIN"}:
+        raise AgentError(f"@{actual} lacks repository write access (viewerPermission={permission or 'unknown'})")
+    if configured["driving_human"]["email"].casefold() == author_email.casefold():
+        raise AgentError("Agent author and driving-human co-author are not distinct")
+    print(f"GitHub identity OK: @{actual}, {permission}, isolated config {GH_CONFIG_DIR}")
+    return 0
+
+
+def ensure_feature_branch() -> str:
+    branch = branch_name()
+    development = policy()["development_branch"]
+    if branch == "<detached>" or branch == development:
+        raise AgentError(f"Refusing GitHub feature operation from {branch!r}")
+    if not any(branch.startswith(prefix) for prefix in policy()["branch_prefixes"]):
+        raise AgentError(f"Branch {branch!r} does not use an allowed feature prefix")
+    return branch
+
+
+def push(_arguments: argparse.Namespace) -> int:
+    status(_arguments)
+    branch = ensure_feature_branch()
+    configured = identity()
+    https_remote = f"https://github.com/{configured['repository']}.git"
+    environment = gh_environment()
+    run(
+        "git",
+        "-c",
+        "credential.helper=",
+        "-c",
+        "credential.https://github.com.helper=!gh auth git-credential",
+        "push",
+        https_remote,
+        f"HEAD:refs/heads/{branch}",
+        cwd=ROOT,
+        env=environment,
+    )
+    git("update-ref", f"refs/remotes/origin/{branch}", head_sha())
+    git("branch", "--set-upstream-to", f"origin/{branch}", branch)
+    print(f"Pushed {head_sha()} to {configured['repository']}:{branch} via isolated HTTPS credentials.")
+    return 0
+
+
+def pr(arguments: argparse.Namespace) -> int:
+    status(arguments)
+    branch = ensure_feature_branch()
+    handoff = Path(arguments.handoff)
+    if not handoff.is_absolute():
+        handoff = ROOT / handoff
+    subprocess.run(
+        [str(ROOT / "scripts" / "agent" / "verify"), "feature-ready", "--handoff", str(handoff)],
+        cwd=ROOT,
+        check=True,
+    )
+    value = load_json(handoff)
+    title = arguments.title or value["goal"]["summary"]
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", dir=STATE_ROOT, delete=False) as temporary:
+        body_path = Path(temporary.name)
+    try:
+        process = subprocess.run(
+            [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
+            cwd=ROOT,
+            check=False,
+        )
+        if process.returncode:
+            raise AgentError("Handoff rendering failed")
+        existing = gh(
+            "pr", "list", "--repo", repository_slug(), "--head", branch,
+            "--state", "open", "--json", "number,url", "--jq", ".[0] // empty",
+        )
+        if existing:
+            item = json.loads(existing)
+            value["feature"]["pull_request"] = item["url"]
+            write_json(handoff, value)
+            subprocess.run(
+                [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
+                cwd=ROOT,
+                check=True,
+            )
+            gh("pr", "edit", str(item["number"]), "--repo", repository_slug(), "--title", title, "--body-file", str(body_path))
+            url = item["url"]
+            action = "Updated"
+        else:
+            arguments_list = [
+                "pr", "create", "--repo", repository_slug(), "--base", policy()["development_branch"],
+                "--head", branch, "--title", title, "--body-file", str(body_path),
+            ]
+            if arguments.draft:
+                arguments_list.append("--draft")
+            url = gh(*arguments_list)
+            value["feature"]["pull_request"] = url
+            write_json(handoff, value)
+            subprocess.run(
+                [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
+                cwd=ROOT,
+                check=True,
+            )
+            gh("pr", "edit", url, "--repo", repository_slug(), "--body-file", str(body_path))
+            action = "Opened"
+        print(f"{action} PR: {url}")
+    finally:
+        body_path.unlink(missing_ok=True)
+    return 0
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(description="Use a worktree-isolated GitHub agent identity.")
+    commands = result.add_subparsers(dest="command", required=True)
+    configure_command = commands.add_parser("configure")
+    configure_command.add_argument("--login", required=True)
+    configure_command.add_argument("--author-name", required=True)
+    configure_command.add_argument("--author-email", required=True)
+    configure_command.add_argument("--coauthor-name")
+    configure_command.add_argument("--coauthor-email")
+    configure_command.set_defaults(handler=configure)
+    login_command = commands.add_parser("login")
+    login_command.set_defaults(handler=login)
+    status_command = commands.add_parser("status")
+    status_command.set_defaults(handler=status)
+    push_command = commands.add_parser("push")
+    push_command.set_defaults(handler=push)
+    pr_command = commands.add_parser("pr")
+    pr_command.add_argument("--handoff", required=True)
+    pr_command.add_argument("--title")
+    pr_command.add_argument("--draft", action="store_true")
+    pr_command.set_defaults(handler=pr)
+    return result
+
+
+def main() -> int:
+    try:
+        arguments = parser().parse_args()
+        return arguments.handler(arguments)
+    except (AgentError, subprocess.CalledProcessError) as error:
+        print(f"agent github: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
