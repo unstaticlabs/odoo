@@ -2594,6 +2594,10 @@ class TestDocuments(TransactionCase):
         shortcut = self.env.ref("usl_documents.quick_filter_needs_review")
 
         self.assertEqual(shortcut.name, "Ready for review")
+        self.assertEqual(
+            shortcut.with_context(lang="fr_FR").name,
+            "Prêt pour vérification",
+        )
         self.assertEqual(shortcut.icon, "fa-check-square-o")
         self.assertEqual(
             shortcut.workspace_values()["domain"],
