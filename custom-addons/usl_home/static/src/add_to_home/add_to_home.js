@@ -69,4 +69,3 @@ export const addToHomeItem = {
 };
 
 cogMenuRegistry.add("usl-add-to-home", addToHomeItem, { sequence: 20 });
-
