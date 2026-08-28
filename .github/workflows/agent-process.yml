@@ -33,14 +33,20 @@ jobs:
           python3 -m unittest discover -s scripts/tests -p 'test_agent_*.py'
 
       - name: Validate PR branch and commit attribution
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
         run: |
           scripts/agent/verify pr-event "$GITHUB_EVENT_PATH"
           scripts/agent/verify commits --base "origin/${{ github.base_ref }}"
 
       - name: Validate structured Feature handoff
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
         run: scripts/agent/handoff validate-pr-event "$GITHUB_EVENT_PATH"
+
+      - name: Explain Dependabot contract boundary
+        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        run: |
+          echo "Dependabot is exempt only from Coding Agent attribution and handoff metadata."
+          echo "Repository contracts and Distribution image qualification remain mandatory."
 
       - name: Explain transition enforcement
         run: |

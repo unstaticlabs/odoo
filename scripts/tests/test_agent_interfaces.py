@@ -294,6 +294,33 @@ class AgentInterfaceTests(unittest.TestCase):
         result = execute(str(AGENT / "verify"), "repository")
         self.assertEqual(0, result.returncode, result.stderr)
 
+    def test_dependabot_covers_all_maintained_dependency_boundaries(self) -> None:
+        configuration = (ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8")
+        for ecosystem, directory in (
+            ("pip", "/"),
+            ("pip", "/docker"),
+            ("npm", "/"),
+            ("docker", "/"),
+            ("docker", "/docker"),
+            ("docker", "/deploy/documents/paperless-ngx"),
+            ("docker-compose", "/"),
+            ("docker-compose", "/deploy/odoo-backup"),
+            ("github-actions", "/"),
+        ):
+            with self.subTest(ecosystem=ecosystem, directory=directory):
+                self.assertIn(
+                    f'package-ecosystem: "{ecosystem}"\n    directory: "{directory}"',
+                    configuration,
+                )
+
+    def test_dependabot_skips_only_agent_specific_pr_contracts(self) -> None:
+        agent_workflow = (ROOT / ".github" / "workflows" / "agent-process.yml").read_text(encoding="utf-8")
+        product_workflow = (ROOT / ".github" / "workflows" / "product-image.yml").read_text(encoding="utf-8")
+        self.assertEqual(2, agent_workflow.count("github.actor != 'dependabot[bot]'"))
+        self.assertEqual(1, agent_workflow.count("github.actor == 'dependabot[bot]'"))
+        self.assertIn("scripts/agent/verify repository", agent_workflow)
+        self.assertNotIn("dependabot[bot]", product_workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
