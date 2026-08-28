@@ -1,11 +1,11 @@
 ---
 name: usl-feature-developer
-description: Own an Unstatic Labs Odoo feature or fix from isolated worktree startup through implementation, verification, QA, pull request, and structured Lead Developer handoff. Use when asked to implement work as Feature Developer, catch up a feature branch, prepare a feature for review, or close out a feature without merging it.
+description: Perform Unstatic Labs Odoo implementation as a Coding Agent in an isolated worktree through verification, pull request, and structured Lead handoff. Use for features, fixes, chores, documentation, conflict repairs, branch catch-up, or preparing implementation for review without merging it.
 ---
 
-# USL Feature Developer
+# USL Coding Agent
 
-Own the requested feature through a merge-ready pull request, then stop. Never merge your own work or deploy production.
+Own the requested implementation through a merge-ready pull request, then stop. Never merge your own work or deploy production.
 
 ## Start safely
 
@@ -17,6 +17,30 @@ Own the requested feature through a merge-ready pull request, then stop. Never m
    Preserve other worktrees, shared Docker infrastructure, databases, dumps,
    caches, and secrets.
 4. Compare at least two credible implementation choices for material decisions, including native Odoo and maintained OCA behavior where relevant.
+5. Rename the visible Codex task on a best-effort, non-blocking basis using a
+   work-first, type-last title such as `Bank statements - Feature`,
+   `FEC generation - Fix`, or `Agent identities - Chore`.
+
+Use `codex/<type>-<work-slug>` for a branch you name, where `<type>` is `feat`,
+`fix`, `chore`, `docs`, `perf`, `refactor`, `test`, `ci`, or `build`. Preserve an
+explicit user-provided branch name and established archive conventions.
+
+## Establish the Coding identity
+
+1. During worktree provisioning, copy only the authenticated GitHub profile
+   from the authoritative Lead/main checkout's ignored `.agent/gh/` directory
+   into this worktree's ignored `.agent/gh/`. Do not copy
+   `.agent/identity.json`, use
+   a global GitHub profile, or expose credentials. If no valid local profile is
+   available, use `scripts/agent/github login` and surface its device code for
+   human action.
+2. Run `scripts/agent/github configure` with GitHub login `elio-usl`, author
+   `Coding Agent <318050048+elio-usl@users.noreply.github.com>`, and driving
+   human `ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
+   This worktree-local identity must not change global Git identity, SSH,
+   Keychain, or OAuth behavior.
+3. Run `scripts/agent/github status` and require the authenticated login to be
+   `@elio-usl` before publication.
 
 If a branch must catch up, fetch first, inspect both histories and local state, and choose a rebase or merge deliberately. Never discard uncommitted work. Re-run relevant validation after resolving conflicts. Do not force-push unless the branch is agent-owned and rewriting it is explicitly acceptable.
 
@@ -26,12 +50,14 @@ If a branch must catch up, fetch first, inspect both histories and local state, 
 2. Add or update the narrowest useful automated tests. Tests are necessary evidence, not sufficient evidence for a user-facing change.
 3. For migration or upgrade impact, use `odoo-migration-upgrade-safety`. For accounting or access-control impact, use the corresponding specialist skill.
 4. For meaningful forms, lists, dialogs, dashboards, OWL components, responsive surfaces, or journeys, use `odoo-ui-product-quality`. Exercise the journey in a real browser where possible and repeat browser → screenshot → critique → repair until the result is sound.
-5. Use `scripts/agent/qa-up` when runtime/product QA is justified. Record the exact profile, environment, authentication instructions, URL, SHA, and evidence. Do not destroy the environment after testing; the Lead Developer owns safe post-merge cleanup.
+5. Use `scripts/agent/qa-up` when runtime/product QA is justified. Record the exact profile, environment, authentication instructions, URL, SHA, and evidence. Do not destroy the environment after testing; the Lead Agent owns safe post-merge cleanup.
 6. Report failures, limitations, and unverified assumptions explicitly. Never convert absence of evidence into a success claim.
 
 ## Commit, publish, and hand off
 
-1. Make scoped Conventional Commits after validated chunks. Include `AI-generated commit` in each agent-authored commit body and the current driving human's `Co-authored-by` trailer supplied by `scripts/agent/github configure`.
+1. Make scoped Conventional Commits after validated chunks. Include
+   `AI-generated commit` in each agent-authored commit body and exactly
+   `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
 2. Run `scripts/agent/github status`, then publish only through `scripts/agent/github push`. Do not use the existing SSH remote or a human credential profile.
 3. Create the v1 contract with `scripts/agent/handoff init`, replace its draft evidence with actual results, and validate it with `scripts/agent/handoff validate PATH --repository`.
 4. Make the worktree clean, push the exact head, and run `scripts/agent/verify feature-ready --handoff PATH`.
@@ -41,6 +67,15 @@ If a branch must catch up, fetch first, inspect both histories and local state, 
    contract; do not paste raw JSON or hand-edit generated evidence. The
    machine-readable contract remains available in a collapsed section, and the
    generated artifact remains ignored local state.
-6. Leave the branch, worktree, QA resources, and other named evidence available for independent review. Stop without merging or deploying.
+6. Notify the persistent Codex task titled exactly `19-usl - Lead` through the
+   supported task-to-task messaging capability. Include branch, commit, PR URL,
+   validation, and blockers. Send the same structured facts earlier whenever a
+   genuine Lead decision blocks progress. If direct messaging is unavailable,
+   state that limitation in the final report for manual handoff.
+7. Treat notification as asynchronous handoff, not approval. After the ready
+   notification, leave the branch, worktree, QA resources, and other named
+   evidence available for independent review and stop without polling, waiting
+   for a reply, merging, or deploying. Wait only when genuinely blocked on a
+   Lead decision.
 
 Use `docs/operations/agent-development.md` for command examples, the contract field guide, and transition details.

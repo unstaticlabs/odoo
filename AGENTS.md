@@ -10,19 +10,55 @@ distribution-level core patch and the tradeoff is documented.
 - `19-usl` is the canonical development branch. Ordinary features, fixes and
   upstream syncs must originate in dedicated branches and worktrees and reach
   it through reviewed pull requests. Run `scripts/agent/context` before work.
-- A Feature Developer owns implementation through a clean, pushed, merge-ready
-  PR and structured handoff. It must not merge its own work, delete its
-  worktree, or clean review resources. Use the `usl-feature-developer` skill.
-- A separate Lead Developer owns independent review and compatibility with the
-  latest integrated repository. A clean Git merge and Feature Developer report
-  are evidence, not authority. Use the `usl-lead-developer` skill.
+- The **Lead Agent** maintains the clean authoritative `19-usl` checkout in the
+  persistent Codex task titled exactly `19-usl - Lead`. It reviews, runs QA,
+  makes integration decisions, and merges only approved green PRs. It does not
+  create purpose branches or implement or author ordinary product, migration,
+  feature, fix, chore, or documentation commits. Use the
+  `usl-lead-developer` skill.
+- The Lead Agent dispatches implementation and conflict repair to visible,
+  separate Codex tasks backed by isolated Coding Agent worktrees, then returns
+  control immediately. It must not keep the Lead task occupied by polling or
+  synchronously waiting for Coding work.
+- A **Coding Agent** owns all implementation through a clean, pushed,
+  merge-ready PR and structured handoff. It must not merge its own work, delete
+  its worktree, or clean review resources. Use the `usl-feature-developer`
+  skill for features, fixes, chores, documentation, and other implementation.
+- Coding task titles are work-first and type-last, for example
+  `Bank statements - Feature`, `FEC generation - Fix`, and
+  `Agent identities - Chore`. Renaming is best-effort and non-blocking.
+- Coding branches normally use `codex/<type>-<work-slug>`, where `<type>` is
+  one of `feat`, `fix`, `chore`, `docs`, `perf`, `refactor`, `test`, `ci`, or
+  `build`. Preserve explicit user-provided branch names and established archive
+  conventions.
+- The Coding Agent worktree-local Git author is exactly
+  `Coding Agent <318050048+elio-usl@users.noreply.github.com>`, authenticated
+  to GitHub as `@elio-usl`; its driving-human trailer is exactly
+  `ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`. The
+  Lead checkout uses the local name `Lead Agent`, normally produces no commits,
+  and also uses GitHub as `@elio-usl`. Never change global Git identity for
+  either role.
+- New Coding worktrees inherit only the authenticated, ignored `.agent/gh/`
+  profile from the authoritative Lead/main checkout, then configure their own
+  worktree-local Coding identity and run `scripts/agent/github status`. Do not
+  copy role identity metadata or use global, SSH, or Keychain credentials.
+- Because both roles use `@elio-usl`, the Lead Agent cannot provide independent
+  approval for a PR authored by that account and must never self-approve.
+  Valentin or another authorized independent human must approve before the
+  Lead merges an otherwise green PR.
+- A Coding Agent sends the persistent Lead task an asynchronous message when
+  Lead input is genuinely required and again when its PR and handoff are ready.
+  Include branch, commit, PR URL, validation, and blockers. Notification is not
+  approval; after the ready notification, stop without waiting for a reply. If
+  direct task messaging is unavailable, report that limitation for manual
+  handoff.
 - Preserve shared Docker infrastructure, canonical dumps, persistent databases,
   intentional caches and resources owned by other worktrees. Cleanup requires
   proven ownership; uncertainty means preserve and document.
 - Every persistent-data or module change must state its forward upgrade,
   verification and credible recovery path. After migration cutover, Community
   production is canonical; the historical Online dump is not a rollback.
-- Production deployment belongs to CI. Feature and Lead Developers must not
+- Production deployment belongs to CI. Coding and Lead Agents must not
   manually deploy or SSH changes into production. The governed one-off cutover
   remains a documented transitional exception, not a development precedent.
 - Treat secrets, production data, destructive actions and genuinely
@@ -156,6 +192,6 @@ risk domain applies.
 - Use Conventional Commits 1.0.0 syntax: `<type>(<scope>): <description>`.
 - Include a short body describing validation for non-trivial accounting, migration, reporting or security work.
 - Add `AI-generated commit` in the commit message body for agent-authored commits.
-- Agent-authored feature commits must use the isolated agent identity configured
-  by `scripts/agent/github` and include the current driving human as a
-  non-hardcoded `Co-authored-by` trailer.
+- Agent-authored commits must use the isolated Coding Agent identity configured
+  by `scripts/agent/github` and include exactly
+  `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
