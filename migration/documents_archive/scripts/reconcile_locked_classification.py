@@ -33,7 +33,13 @@ documents = env["usl.document"].sudo()
 updated = documents.browse()
 
 for item in evidence["documents"]:
-    group = item["source_truth"]
+    group = [
+        {
+            **source,
+            "create_date": source.get("create_date") or source.get("created"),
+        }
+        for source in item["source_truth"]
+    ]
     scope = resolve_company_scope(group)
     if scope.get("company_inference") != "locked_source_semantic_ledger":
         continue
