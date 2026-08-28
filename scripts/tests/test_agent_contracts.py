@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -93,6 +94,33 @@ class AgentContractTests(unittest.TestCase):
         value["feature"]["head_sha"] = "0" * 40
         errors = self.handoff.semantic_errors(value, check_repository=True)
         self.assertTrue(any("repository is" in error for error in errors))
+
+    def test_repository_validation_accepts_advanced_conflict_free_base(self) -> None:
+        value = self.handoff.initial_payload(
+            "agent-contract-test", "Test queue eligibility.", ["A clean candidate is accepted."], "origin/19-usl"
+        )
+        value["feature"].update({"branch": "feat/example", "head_sha": "1" * 40, "base_sha": "2" * 40})
+        with (
+            mock.patch.object(self.handoff, "branch_name", return_value="feat/example"),
+            mock.patch.object(self.handoff, "head_sha", return_value="1" * 40),
+            mock.patch.object(
+                self.handoff,
+                "resolve_ref",
+                side_effect=lambda ref: "3" * 40 if ref == "origin/19-usl" else ref,
+            ),
+            mock.patch.object(self.handoff, "merge_base", return_value="4" * 40),
+            mock.patch.object(self.handoff, "merge_candidate_error", return_value=None),
+        ):
+            errors = self.handoff.semantic_errors(value, check_repository=True)
+        self.assertFalse(any("base_sha" in error or "catch up" in error for error in errors), errors)
+
+    def test_repository_validation_rejects_conflicting_queue_candidate(self) -> None:
+        value = self.handoff.initial_payload(
+            "agent-contract-test", "Test queue conflict.", ["A conflict is rejected."], "origin/19-usl"
+        )
+        with mock.patch.object(self.handoff, "merge_candidate_error", return_value="Git cannot construct a candidate"):
+            errors = self.handoff.semantic_errors(value, check_repository=True)
+        self.assertTrue(any("catch up before handoff" in error for error in errors), errors)
 
     def test_rendered_contract_round_trips(self) -> None:
         value = self.handoff.initial_payload(
