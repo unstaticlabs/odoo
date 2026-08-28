@@ -93,7 +93,9 @@ cleared_references.update(
         {
             "usl_document_link",
             "usl_document_operation",
+            "usl_document_permitted_user_rel",
             "usl_document_tag_rel",
+            "usl_document_user_state",
             "usl_document_version",
         },
     ),

@@ -332,6 +332,8 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertNotIn("pg_constraint AS constraint", reset)
         self.assertIn("attnotnull", reset)
         self.assertIn("Documents reset cannot detach required reference", reset)
+        self.assertIn('"usl_document_permitted_user_rel"', reset)
+        self.assertIn('"usl_document_user_state"', reset)
         self.assertLess(
             reset.index('_clear_external_references(\n        "usl_document"'),
             reset.index("Operation.search([]).unlink()"),
