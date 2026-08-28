@@ -2087,6 +2087,25 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.daily_timestamp_status, "scheduled")
         self.assertEqual(request.state, "completed")
 
+    def test_sign_request_exposes_documents_archive_context(self):
+        request = self._request()
+
+        self.assertIn(
+            "sign.oca.request",
+            self.env["usl.document.link"]._allowed_models(),
+        )
+        context = request.with_context(
+            usl_documents_policy_origin="documents_workspace",
+        )._document_archive_context()
+
+        self.assertEqual(context["company_id"], request.company_id.id)
+        self.assertEqual(context["archive_mode"], "automatic")
+        self.assertEqual(context["access_scope"], "linked_record")
+        self.assertEqual(
+            context["related_records"],
+            [{"model": "sign.oca.request", "id": request.id}],
+        )
+
     def test_proof_package_embeds_the_signed_pdf_as_its_primary_artifact(self):
         request = self._request()
         request.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(

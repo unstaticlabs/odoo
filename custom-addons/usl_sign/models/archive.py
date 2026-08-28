@@ -11,7 +11,8 @@ class UslDocumentLink(models.Model):
 
 
 class SignRequestArchive(models.Model):
-    _inherit = "sign.oca.request"
+    _name = "sign.oca.request"
+    _inherit = ["sign.oca.request", "usl.document.link.mixin"]
 
     archive_operation_id = fields.Many2one(
         "usl.document.operation", readonly=True, copy=False, ondelete="restrict",
