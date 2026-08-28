@@ -105,26 +105,13 @@ class SignWorkspace(models.AbstractModel):
         }
         chips = []
         for row in signers:
-            label, tone, icon = presentations.get(
-                row.state,
-                (
-                    (
-                        _("Identity setup")
-                        if request.state == "waiting_enrollment"
-                        else _("Waiting")
-                    ),
-                    (
-                        "attention"
-                        if request.state == "waiting_enrollment"
-                        else "waiting"
-                    ),
-                    (
-                        "fa-id-card"
-                        if request.state == "waiting_enrollment"
-                        else "fa-clock-o"
-                    ),
-                ),
-            )
+            presentation = presentations.get(row.state)
+            if presentation:
+                label, tone, icon = presentation
+            elif request.state == "waiting_enrollment":
+                label, tone, icon = _("Identity setup"), "attention", "fa-id-card"
+            else:
+                label, tone, icon = _("Waiting"), "waiting", "fa-clock-o"
             chips.append(
                 {
                     "id": row.id,
