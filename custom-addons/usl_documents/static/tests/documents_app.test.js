@@ -84,8 +84,10 @@ const searchViewArch = `
         <field name="correspondent_id"/>
         <field name="document_date"/>
         <field name="custom_field_text" invisible="1"/>
-        <filter name="needs_review" string="Needs review"
+        <filter name="needs_attention" string="Needs attention"
                 domain="[('review_state', '=', 'needs_attention')]"/>
+        <filter name="ready_for_review" string="Ready for review"
+                domain="[('review_state', '=', 'classified')]"/>
         <group>
             <filter name="group_company" string="Company"
                     context="{'group_by': 'company_id'}"/>
@@ -145,8 +147,8 @@ const searchViewFields = {
         string: "Review status",
         type: "selection",
         selection: [
-            ["needs_attention", "Needs review"],
-            ["classified", "Classified"],
+            ["needs_attention", "Needs attention"],
+            ["classified", "Ready for review"],
         ],
     },
 };
@@ -321,7 +323,7 @@ test("read-only evidence users do not see upload controls", async () => {
     );
 });
 
-test("failed ingestion remains actionable in Needs review", async () => {
+test("failed ingestion remains actionable in Needs attention", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
         selected_workspace: "attention",
@@ -1568,15 +1570,15 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
                               {
                                   id: 2,
                                   key: "needs_review",
-                                  name: "Needs review",
-                                  icon: "fa-exclamation-circle",
+                                  name: "Ready for review",
+                                  icon: "fa-check-square-o",
                                   kind: "filter",
                                   group_by: [],
                                   domain: [
                                       [
                                           "review_state",
                                           "=",
-                                          "needs_attention",
+                                          "classified",
                                       ],
                                   ],
                               },
@@ -1626,7 +1628,7 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
         ["tag_ids", "in", [1]],
     ]);
     await contains(".o_usl_filter_shortcuts button", {
-        text: "Needs review",
+        text: "Ready for review",
     }).click();
     expect(calls).toBe(4);
     expect(JSON.stringify(workspaces.at(-1).search_domain)).toMatch(

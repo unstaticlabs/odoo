@@ -2590,6 +2590,16 @@ class TestDocuments(TransactionCase):
                 [["is_starred", "=", True]],
             )
 
+    def test_ready_for_review_shortcut_targets_classified_documents(self):
+        shortcut = self.env.ref("usl_documents.quick_filter_needs_review")
+
+        self.assertEqual(shortcut.name, "Ready for review")
+        self.assertEqual(shortcut.icon, "fa-check-square-o")
+        self.assertEqual(
+            shortcut.workspace_values()["domain"],
+            [("review_state", "=", "classified")],
+        )
+
     def test_native_shortcut_capture_preserves_domain_grouping_order_and_permissions(self):
         view = self.env.ref("usl_documents.smart_view_accounting")
         values = {

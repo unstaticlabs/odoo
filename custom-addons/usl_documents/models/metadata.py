@@ -1292,7 +1292,7 @@ class UslDocumentSmartView(models.Model):
             ("all", "All accessible documents"),
             ("home", "Home"),
             ("library", "My library"),
-            ("attention", "Needs review"),
+            ("attention", "Needs attention"),
             ("recent", "Recently added"),
             ("accounting", "Accounting evidence"),
             ("projects", "Projects"),

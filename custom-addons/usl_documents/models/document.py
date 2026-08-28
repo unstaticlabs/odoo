@@ -181,7 +181,7 @@ class UslDocument(models.Model):
     review_state = fields.Selection(
         [
             ("needs_attention", "Needs attention"),
-            ("classified", "Classified"),
+            ("classified", "Ready for review"),
             ("reviewed", "Reviewed"),
         ],
         required=True,
@@ -4738,7 +4738,7 @@ class UslDocumentOperation(models.Model):
                 "uploading": _("Sending to Documents"),
                 "processing": _("Indexing in Documents"),
                 "archived": _("Archived"),
-                "duplicate": _("Needs review"),
+                "duplicate": _("Needs attention"),
                 "failed": _("Failed"),
             }[self.state],
             "error": self.error_message,
@@ -5041,7 +5041,7 @@ class UslDocumentOperation(models.Model):
                     "uploading": _("Sending to Documents"),
                     "processing": _("Indexing in Documents"),
                     "archived": _("Archived"),
-                    "duplicate": _("Needs review"),
+                    "duplicate": _("Needs attention"),
                     "failed": _("Failed"),
                 }[operation.state],
                 "document_id": operation.document_id.id,

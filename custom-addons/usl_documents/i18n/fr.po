@@ -878,11 +878,6 @@ msgid "Classification"
 msgstr "Classification"
 
 #. module: usl_documents
-#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__review_state__classified
-msgid "Classified"
-msgstr "Classifié"
-
-#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Clear search and filters"
@@ -2720,21 +2715,19 @@ msgid "Native only — keep on request"
 msgstr "Odoo uniquement — conserver sur demande"
 
 #. module: usl_documents
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+#: code:addons/usl_documents/static/src/documents_app.js:0
+#: code:addons/usl_documents/static/src/documents_app.xml:0
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__review_state__needs_attention
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__paperless_sync_state__failed
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_kanban
-msgid "Needs attention"
-msgstr "Nécessite une attention"
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__attention
-#: model:usl.document.quick.filter,name:usl_documents.quick_filter_needs_review
 #: model:usl.document.smart.view,name:usl_documents.smart_view_needs_review
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
-msgid "Needs review"
-msgstr "À vérifier"
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_kanban
+msgid "Needs attention"
+msgstr "Attention requise"
 
 #. module: usl_documents
 #. odoo-python
@@ -3840,7 +3833,11 @@ msgstr "Prêt"
 
 #. module: usl_documents
 #. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__review_state__classified
+#: model:usl.document.quick.filter,name:usl_documents.quick_filter_needs_review
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Ready for review"
 msgstr "Prêt pour vérification"
 
