@@ -141,7 +141,7 @@ The palette is the active Odoo theme expressed through local semantic aliases, w
 
 ### Hierarchy
 
-- **Title** (650, compact Odoo-scale): The fixed Home page title; it remains subordinate to the native navbar.
+- **Location:** The native Odoo navbar owns the Home title; the cockpit does not repeat it inside the page.
 - **Headline** (650, compact): Widget titles and the customization heading.
 - **Body** (400, native Odoo body scale): Actions, row titles, explanatory copy, and configuration labels.
 - **Label** (600, compact): Timing, pipeline status, and small operational counts; tabular numerals are used for task signals and alert counts.
@@ -156,9 +156,9 @@ The palette is the active Odoo theme expressed through local semantic aliases, w
 
 The page scrolls inside the Odoo content area and uses responsive outer padding from one to two rem, capped at 1440 pixels. The header, customization panel, and card grid share that centered maximum width.
 
-Desktop layout uses a 12-column grid with 1.25-rem gaps. Activities and Favorite Views span seven columns; My Tasks and AI Pipelines span five; Accounting & Compliance Alerts spans the full width. This creates two content-sized columns without forcing matched heights. Favorite destinations form a dense two-column list on desktop and collapse to one column below 768 pixels. Below 992 pixels every widget becomes full-width and accounting alert tiles reduce from five columns to two. Below 576 pixels the page padding tightens, the title and action group stack, Refresh and Customize remain side by side at equal width, customization becomes one column, task signals become two-by-two, and accounting alerts become a single column.
+Desktop layout uses a 12-column grid with 1.25-rem gaps. Activities and Favorite Views span seven columns; My Tasks and AI Pipelines span five; Accounting & Compliance Alerts spans the full width. This creates two content-sized columns without forcing matched heights. Favorite destinations form a dense two-column list on desktop and collapse to one column below 768 pixels. Below 992 pixels every widget becomes full-width and accounting alert tiles reduce from five columns to two. Below 576 pixels the page padding tightens, company scope and actions stack, Refresh and Customize remain side by side at equal width, customization becomes one column, task signals become two-by-two, and accounting alerts become a single column.
 
-The first viewport keeps the native navbar and Home title visible, followed by Activities and My Tasks in the default order. Refresh and Customize sit together as secondary header actions; the app does not introduce an app grid or alternate navigation shell.
+The first viewport keeps the native navbar title visible, followed by a compact company-scope and action row, then Activities and My Tasks in the default order. Refresh and Customize sit together as secondary header actions; the app does not introduce an app grid or alternate navigation shell.
 
 **The Content-Sized Card Rule.** Cards follow their content and use `margin-top: auto` only to align a card's own footer; do not manufacture a dashboard-like wall of equal-height panels.
 

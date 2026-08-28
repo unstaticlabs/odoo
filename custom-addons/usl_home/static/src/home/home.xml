@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="usl_home.Home">
-        <main class="o_usl_home" aria-labelledby="usl-home-title">
+        <main class="o_usl_home" aria-label="Home">
             <header class="o_usl_home_header">
-                <div>
-                    <h1 id="usl-home-title">Home</h1>
-                    <p t-if="state.activeCompany" class="o_usl_home_scope">
-                        <i class="fa fa-building-o" aria-hidden="true"/>
-                        <t t-esc="state.activeCompany.name"/>
-                    </p>
-                </div>
+                <p t-if="state.activeCompany" class="o_usl_home_scope">
+                    <i class="fa fa-building-o" aria-hidden="true"/>
+                    <t t-esc="state.activeCompany.name"/>
+                </p>
                 <div class="o_usl_home_header_actions">
                     <button class="btn btn-light" type="button" t-on-click="this.refreshAll">
                         <i class="fa fa-refresh me-1" aria-hidden="true"/>Refresh

@@ -27,25 +27,18 @@
 
 .o_usl_home_header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     max-width: 1440px;
     margin: 0 auto 1.5rem;
-
-    h1 {
-        margin: 0;
-        font-size: 1.75rem;
-        font-weight: 650;
-        letter-spacing: -0.025em;
-    }
 }
 
 .o_usl_home_scope {
     display: flex;
     align-items: center;
     gap: .4rem;
-    margin: .25rem 0 0;
+    margin: 0;
     color: var(--usl-home-muted);
 }
 

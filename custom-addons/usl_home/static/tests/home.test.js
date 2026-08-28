@@ -81,6 +81,8 @@ beforeEach(() => {
 test("renders the complete native Home hierarchy from independent providers", async () => {
     await mountWithCleanup(UslHome);
     await animationFrame();
+    expect("main.o_usl_home").toHaveAttribute("aria-label", "Home");
+    expect(".o_usl_home_header h1").toHaveCount(0);
     expect(".o_usl_home_widget").toHaveCount(5);
     expect(".o_usl_home_widget[data-widget='activities']").toHaveText(/Review launch readiness/);
     expect(".o_usl_home_widget[data-widget='my_tasks']").toHaveText(/In Progress/);
