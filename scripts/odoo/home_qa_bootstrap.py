@@ -1,15 +1,17 @@
 """Idempotent, isolated browser personas for the Home cockpit QA profile."""
 
+# ruff: noqa: F821, T201 - Odoo shell supplies ``env`` and this operator
+# bootstrap prints its concise completion evidence.
+
 from datetime import timedelta
 
 from odoo import Command, fields
-
 
 # The focused Home profile intentionally does not start Pocket ID. Keep its
 # synthetic personas reachable through Odoo's local login without weakening
 # the product database or the full QA profile's SSO-only policy.
 env["ir.config_parameter"].sudo().set_str(
-    "usl_pocketid.login_policy", "standard"
+    "usl_pocketid.login_policy", "standard",
 )
 
 
@@ -40,7 +42,7 @@ def ensure_user(login, name, groups, companies):
 
 main_company = env.company
 second_company = env["res.company"].search(
-    [("id", "!=", main_company.id)], order="id", limit=1
+    [("id", "!=", main_company.id)], order="id", limit=1,
 )
 if not second_company:
     second_company = env["res.company"].create({"name": "USL Home QA Company"})
@@ -52,7 +54,7 @@ group_project_user = ref("project.group_project_user")
 group_project_manager = ref("project.group_project_manager")
 group_account_manager = ref("account.group_account_manager")
 group_account_reviewer = ref(
-    "rebuild_account_migration.group_rebuild_accountant_reviewer"
+    "rebuild_account_migration.group_rebuild_accountant_reviewer",
 )
 
 founder = ensure_user(
@@ -100,7 +102,7 @@ else:
 
 def ensure_stage(name, project, sequence, fold=False):
     stage = Stage.search(
-        [("name", "=", name), ("project_ids", "in", project.ids)], limit=1
+        [("name", "=", name), ("project_ids", "in", project.ids)], limit=1,
     )
     if not stage:
         stage = Stage.create(
@@ -109,7 +111,7 @@ def ensure_stage(name, project, sequence, fold=False):
                 "sequence": sequence,
                 "fold": fold,
                 "project_ids": [Command.set(project.ids)],
-            }
+            },
         )
     else:
         stage.project_ids = [Command.link(project_id) for project_id in project.ids]
@@ -152,8 +154,8 @@ for name, stage, assignee, deadline, state in task_values:
                 "user_ids": [Command.link(assignee.id)],
                 "date_deadline": deadline,
                 "state": state,
-            }
-        )
+            },
+        ),
     )
 
 ai_values = [
@@ -172,12 +174,12 @@ for offset, (name, stage, tags, state) in enumerate(ai_values):
             "tag_ids": [Command.set([tag.id for tag in tags])],
             "date_deadline": today + timedelta(days=offset - 1),
             "state": state,
-        }
+        },
     )
 
 activity_type = ref("mail.mail_activity_data_todo")
 for activity in env["mail.activity"].search(
-    [("user_id", "=", founder.id), ("summary", "like", "Home QA")]
+    [("user_id", "=", founder.id), ("summary", "like", "Home QA")],
 ):
     activity.unlink()
 activity_dates = [
@@ -198,20 +200,20 @@ for index, deadline in enumerate(activity_dates, start=1):
             "user_id": founder.id,
             "res_model_id": env["ir.model"]._get_id("project.task"),
             "res_id": tasks[(index - 1) % len(tasks)].id,
-        }
+        },
     )
 
 env["usl.home.favorite"].sudo().search(
-    [("user_id", "in", [founder.id, operations.id, accounting.id, restricted.id])]
+    [("user_id", "in", [founder.id, operations.id, accounting.id, restricted.id])],
 ).unlink()
 env["res.users.settings"]._find_or_create_for_user(founder).write(
-    {"usl_home_favorites_initialized": False}
+    {"usl_home_favorites_initialized": False},
 )
 env["res.users.settings"]._find_or_create_for_user(operations).write(
-    {"usl_home_favorites_initialized": False}
+    {"usl_home_favorites_initialized": False},
 )
 env["res.users.settings"]._find_or_create_for_user(accounting).write(
-    {"usl_home_favorites_initialized": False}
+    {"usl_home_favorites_initialized": False},
 )
 restricted_settings = env["res.users.settings"]._find_or_create_for_user(restricted)
 restricted_settings.usl_home_favorites_initialized = True
@@ -221,7 +223,7 @@ env["usl.home.favorite"].sudo().create(
         "name": "Protected Project Destination",
         "target_type": "action",
         "action_id": ref("project.action_view_my_task").id,
-    }
+    },
 )
 
 env.cr.commit()

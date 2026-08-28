@@ -243,6 +243,15 @@ qa_volumes_present() {
   done
 }
 
+home_qa_volumes_present() {
+  local suffix
+  for suffix in postgres-data odoo-data; do
+    docker volume inspect "$COMPOSE_PROJECT_NAME-$suffix" >/dev/null 2>&1 \
+      || docker volume inspect "${COMPOSE_PROJECT_NAME}_$suffix" >/dev/null 2>&1 \
+      || return 1
+  done
+}
+
 reuse_qa_target() {
   "${compose[@]}" up -d --wait db
   "${compose[@]}" --profile paperless up -d --wait --pull never \
@@ -255,6 +264,23 @@ reuse_qa_target() {
   fi
   scripts/check-product-migration-boundary
   scripts/check-product-database-boundary
+}
+
+reuse_home_qa_target() {
+  "${compose[@]}" up -d --wait --pull never db odoo
+  if [[ "$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev \
+      -c "SELECT COALESCE((SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'), '')")" != home ]]; then
+    printf 'The cached QA target is not stamped with the Home profile.\n' >&2
+    return 1
+  fi
+  scripts/check-product-migration-boundary
+  scripts/check-product-database-boundary
+  "${compose[@]}" exec -T \
+    -e ACTION_RISK_MODE=check \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/action_risk_inventory.py"
 }
 
 write_qa_state() {
@@ -587,6 +613,10 @@ if [[ "$profile" == full && "$reuse_requested" == 1 ]] \
     && qa_state_matches && qa_volumes_present; then
   reuse_existing=1
   cache_result="warm-hit"
+elif [[ "$profile" == home && "$reuse_requested" == 1 ]] \
+    && home_qa_volumes_present; then
+  reuse_existing=1
+  cache_result="warm-hit"
 fi
 if [[ "$reuse_existing" == 0 ]]; then
   stage "reset isolated QA project" reset_project
@@ -614,9 +644,13 @@ case "$profile" in
     stage "clean product installation" clean_install
     ;;
   home)
-    stage "hydrate Odoo Home seed" hydrate_home_seed
-    stage "upgrade and finalize Home branch" \
-      env USL_QA_DATA_PROFILE=home scripts/target-finalize
+    if [[ "$reuse_existing" == 1 ]]; then
+      stage "reuse and verify existing Home QA target" reuse_home_qa_target
+    else
+      stage "hydrate Odoo Home seed" hydrate_home_seed
+      stage "upgrade and finalize Home branch" \
+        env USL_QA_DATA_PROFILE=home scripts/target-finalize
+    fi
     stage "create focused Home personas" home_qa_bootstrap
     ;;
 esac

@@ -195,7 +195,8 @@ qa:
 	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
 
 qa-reuse:
-	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 PROFILE=full scripts/qa-environment full
+	@COMPOSE_PROJECT_NAME= USL_QA_REUSE_EXISTING=1 \
+		PROFILE="$${PROFILE:-full}" scripts/qa-environment "$${PROFILE:-full}"
 
 qa-clean:
 	@COMPOSE_PROJECT_NAME= USL_QA_CLEAN_CONFIRM="$(CONFIRM)" scripts/qa-clean
