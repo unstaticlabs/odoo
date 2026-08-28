@@ -2388,8 +2388,8 @@ class TestCleanUslSign(TransactionCase):
             {"sign_now", "prepare", "issues", "waiting", "completed"},
         )
         open_requests = self.env.ref("usl_sign.sign_request_action")
-        self.assertIn("Request signatures", open_requests.help)
-        self.assertNotIn("<strong>Start</strong>", open_requests.help)
+        self.assertIn("New request", open_requests.help)
+        self.assertNotIn("Sign home page", open_requests.help)
 
         my_signatures = self.env.ref("usl_sign.my_signatures_action")
         self.assertNotIn("search_default", my_signatures.context or "")
@@ -2437,7 +2437,17 @@ class TestCleanUslSign(TransactionCase):
 
         open_action = self.env.ref("usl_sign.sign_request_action")
         self.assertEqual(open_action.view_mode, "kanban,list,form,activity")
+        start_action = self.env.ref("usl_sign.sign_start_action")
+        self.assertEqual(start_action.res_model, "usl.sign.start")
+        self.assertEqual(start_action.target, "new")
+        open_list = self.env.ref("usl_sign.sign_request_list_usl").arch
         open_cards = self.env.ref("usl_sign.sign_request_kanban_usl").arch
+        for open_view in [open_list, open_cards]:
+            self.assertIn('create="0"', open_view)
+            self.assertIn('string="New request"', open_view)
+            self.assertIn('type="action"', open_view)
+            self.assertIn(f'name="{start_action.id}"', open_view)
+            self.assertIn('display="always"', open_view)
         self.assertIn('widget="usl_sign_document_card_preview"', open_cards)
 
         template_cards = self.env.ref("usl_sign.sign_template_kanban_usl").arch

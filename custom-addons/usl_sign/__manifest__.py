@@ -27,6 +27,7 @@
         "views/sign_template_views.xml",
         "views/sign_configuration_views.xml",
         "views/sign_template_generate_views.xml",
+        "views/sign_workspace_views.xml",
         "views/sign_request_views.xml",
         "views/sign_enrollment_views.xml",
         "views/sign_external_views.xml",
@@ -35,7 +36,6 @@
         "views/sign_portal_templates.xml",
         "views/res_config_settings_views.xml",
         "views/res_partner_views.xml",
-        "views/sign_workspace_views.xml",
         "views/sign_menu_views.xml",
     ],
     "assets": {
