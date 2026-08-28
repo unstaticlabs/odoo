@@ -1,4 +1,4 @@
-# ruff: noqa: F821, T201
+# ruff: noqa: F821, I001, T201
 
 import json
 
@@ -11,6 +11,15 @@ assert preference_dispositions.get("status") != "deferred", (
 )
 assert len(preference_dispositions.get("filters", {}).get("target_ids", [])) == 7, (
     "All seven approved saved filters must exist before Identity cleanup."
+)
+assert preference_dispositions.get("home", {}).get("favorite_count", 0) >= 7, (
+    "Valentin's source-backed Home must be built before Identity cleanup."
+)
+valentin = env["res.users"].sudo().search([
+    ("login", "=", preference_dispositions["home"]["user_login"]),
+], limit=1)
+assert valentin and valentin.action_id.id == env.ref("usl_home.action_usl_home").id, (
+    "Valentin's Home action must be active before Identity cleanup."
 )
 before = {
     "companies": env["res.company"].sudo().with_context(active_test=False).search_count([]),

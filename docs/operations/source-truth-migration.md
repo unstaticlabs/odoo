@@ -158,8 +158,12 @@ byte-for-byte read-back and preview checks. The genuine strategy PDF referenced
 by an experimental AI source record is added to that archive as private,
 needs-review business evidence; the AI index and configuration are not copied.
 The final Collaboration and Preferences stages close signing, chatter, saved-
-filter, and dashboard dispositions. Knowledge attachments are explicitly
-discarded with the approved demo-content disposition. Three dashboard
+filter, personalized Home, and dashboard dispositions. Valentin's Home is
+rebuilt from the restored administrator mapping, source-favorite Project
+relations, and the approved saved-filter perimeter using typed target actions;
+no source identifiers remain in the delivered Home records. Knowledge
+attachments are explicitly discarded with the approved demo-content
+disposition. Three dashboard
 definitions are recomputed from installed target modules and six unsupported
 Enterprise dashboard payloads receive explicit not-copied evidence. No source
 attachment action remains pending.

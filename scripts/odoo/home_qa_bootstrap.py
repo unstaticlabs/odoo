@@ -3,6 +3,7 @@
 # ruff: noqa: F821, T201 - Odoo shell supplies ``env`` and this operator
 # bootstrap prints its concise completion evidence.
 
+import ast
 from datetime import timedelta
 
 from odoo import Command, fields
@@ -81,6 +82,17 @@ restricted = ensure_user(
     group_user,
     companies,
 )
+valentin = env["res.users"].with_context(active_test=False).search(
+    [("login", "=", "valentin")],
+    limit=1,
+)
+if not valentin or not valentin.active or valentin.share:
+    message = "The qualified Home seed must contain the restored Valentin user"
+    raise RuntimeError(message)
+valentin.sudo().write({
+    "action_id": ref("usl_home.action_usl_home").id,
+    "password": "homeqa",
+})
 
 Project = env["project.project"]
 Task = env["project.task"]
@@ -204,7 +216,11 @@ for index, deadline in enumerate(activity_dates, start=1):
     )
 
 env["usl.home.favorite"].sudo().search(
-    [("user_id", "in", [founder.id, operations.id, accounting.id, restricted.id])],
+    [(
+        "user_id",
+        "in",
+        [founder.id, operations.id, accounting.id, restricted.id, valentin.id],
+    )],
 ).unlink()
 env["res.users.settings"]._find_or_create_for_user(founder).write(
     {"usl_home_favorites_initialized": False},
@@ -226,5 +242,119 @@ env["usl.home.favorite"].sudo().create(
     },
 )
 
+# Reconstruct the source-backed Valentin layout against the finalized product
+# state so browser QA exercises the same dense, personal destination set that
+# the temporary Identity preference stage creates during a fresh migration.
+valentin_service = env["usl.home.service"].with_user(valentin)
+available_widgets = set(valentin_service._available_widgets())
+valentin_values = []
+if "my_tasks" in available_widgets:
+    valentin_values.append({
+        "name": "My Tasks",
+        "target_type": "provider",
+        "provider_key": "my_tasks",
+    })
+
+project_aliases = (
+    ("usl admin",),
+    ("sbfh admin", "sbfh prod"),
+    ("sbfh vault",),
+    ("gbc ops",),
+)
+
+
+def project_sort_key(project):
+    names = {
+        (project.with_context(lang=lang).name or "").strip().casefold()
+        for lang in ("en_US", "fr_FR")
+    }
+    for priority, aliases in enumerate(project_aliases):
+        if names.intersection(aliases):
+            return priority, project.sequence, project.id
+    return len(project_aliases), project.sequence, project.id
+
+
+favorite_projects = env["project.project"].with_user(valentin).search([
+    ("active", "=", True),
+    ("favorite_user_ids", "in", valentin.id),
+])
+project_action = ref("project.act_project_project_2_project_task_all")
+for project in sorted(favorite_projects, key=project_sort_key)[:4]:
+    action = project.action_view_tasks()
+    context = action.get("context") or {}
+    valentin_values.append({
+        "name": project.name,
+        "target_type": "view",
+        "action_id": project_action.id,
+        "action_xmlid": "project.act_project_project_2_project_task_all",
+        "res_model": "project.task",
+        "view_mode": action.get("view_mode") or project_action.view_mode,
+        "domain_json": [
+            ("project_id", "=", project.id),
+            ("has_template_ancestor", "=", False),
+        ],
+        "context_json": ast.literal_eval(context) if isinstance(context, str) else context,
+        "company_id": project.company_id.id,
+    })
+
+if "ai_pipelines" in available_widgets:
+    valentin_values.append({
+        "name": "AI Pipelines",
+        "target_type": "provider",
+        "provider_key": "ai_pipelines",
+    })
+if "accounting" in available_widgets:
+    valentin_values.append({
+        "name": "Accounting Hygiene",
+        "target_type": "provider",
+        "provider_key": "accounting_hygiene",
+    })
+
+for filter_name in ("FY2526 Reconciliation", "Factures fournisseurs"):
+    favorite_filter = env["ir.filters"].sudo().search([
+        ("name", "=", filter_name),
+        ("user_ids", "in", valentin.id),
+    ], limit=1)
+    if not favorite_filter or not favorite_filter.action_id:
+        raise RuntimeError(f"The qualified Home seed is missing {filter_name}")
+    action = favorite_filter.action_id.sudo()
+    window_action = env[action.type].sudo().browse(action.id)
+    valentin_values.append({
+        "name": favorite_filter.name,
+        "target_type": "view",
+        "action_id": action.id,
+        "action_xmlid": action.get_external_id().get(action.id),
+        "filter_id": favorite_filter.id,
+        "res_model": favorite_filter.model_id,
+        "view_mode": window_action.view_mode,
+        "domain_json": ast.literal_eval(favorite_filter.domain),
+        "context_json": ast.literal_eval(favorite_filter.context),
+        "order_by_json": ast.literal_eval(favorite_filter.sort),
+    })
+
+for sequence, values in enumerate(valentin_values, start=1):
+    env["usl.home.favorite"].sudo().create({
+        **values,
+        "user_id": valentin.id,
+        "sequence": sequence * 10,
+    })
+env["res.users.settings"].sudo()._find_or_create_for_user(valentin).write({
+    "usl_home_layout": {
+        "version": 1,
+        "order": [
+            "activities",
+            "my_tasks",
+            "favorites",
+            "ai_pipelines",
+            "accounting",
+        ],
+        "hidden": [],
+    },
+    "usl_home_favorites_initialized": True,
+})
+
 env.cr.commit()
-print("Home QA personas ready: home.qa.founder, home.qa.operations, home.qa.accounting, home.qa.restricted")
+print(
+    "Home QA personas ready: valentin, home.qa.founder, home.qa.operations, "
+    "home.qa.accounting, home.qa.restricted",
+)
