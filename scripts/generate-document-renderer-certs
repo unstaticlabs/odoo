@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CERT_DIR="$ROOT/private/document-renderer-certs"
+CERT_DIR="${USL_DOCUMENT_RENDERER_CERT_DIR:-$ROOT/private/document-renderer-certs}"
 
 if ! command -v openssl >/dev/null 2>&1; then
     printf 'OpenSSL is required to generate renderer credentials.\n' >&2
@@ -10,7 +10,7 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 mkdir -p "$CERT_DIR"
-chmod 700 "$ROOT/private" "$CERT_DIR"
+chmod 700 "$CERT_DIR"
 if [[ -e "$CERT_DIR/ca.key" ]]; then
     for required in ca.crt renderer.crt renderer.key odoo.crt odoo.key; do
         if [[ ! -f "$CERT_DIR/$required" ]]; then

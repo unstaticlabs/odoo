@@ -259,6 +259,9 @@ expiration, refusal and cancellation. Confirm that:
 - the platform seal validates under the local trust policy;
 - altering persisted PDF bytes fails validation;
 - the completion certificate uses cautious Standard wording;
+- the governed LaTeX renderer is healthy at its pinned revision, and its
+  completion certificate is the visible cover of the PDF/A-3 dossier;
+- a renderer outage leaves completion retryable and never invokes a fallback;
 - archive failure leaves the request incomplete and retry recovers safely.
 
 Run `scripts/sign-qa-stack archive-acceptance` against the isolated QA slot.
