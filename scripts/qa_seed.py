@@ -395,6 +395,40 @@ def verify(args: argparse.Namespace) -> dict:
     return manifest
 
 
+def verify_upgrade_base(args: argparse.Namespace) -> dict:
+    """Verify a sealed seed as a non-qualifying feature-upgrade baseline."""
+    seed_dir = args.seed_dir.resolve()
+    manifest = read_json(seed_dir / "manifest.json")
+    if manifest.get("schema") != SCHEMA:
+        raise SeedError("seed schema is missing or unsupported")
+    expected_identity = identity(
+        args.root.resolve(),
+        args.source_dump.resolve(),
+        read_json(args.runtime_json),
+    )
+    manifest_identity = manifest.get("identity") or {}
+    changed = sorted(
+        key
+        for key, value in expected_identity.items()
+        if key != "migration_sha256" and manifest_identity.get(key) != value
+    )
+    if changed:
+        raise SeedError("seed upgrade-base identity differs: " + ", ".join(changed))
+    if manifest.get("fingerprint") != identity_fingerprint(manifest_identity):
+        raise SeedError("seed fingerprint is invalid")
+    actual_artifacts = artifact_manifest(seed_dir)
+    if manifest.get("artifacts") != actual_artifacts:
+        changed = sorted(
+            name
+            for name, value in actual_artifacts.items()
+            if manifest.get("artifacts", {}).get(name) != value
+        )
+        raise SeedError("seed artifacts differ: " + ", ".join(changed))
+    validate_qualification(manifest["qualification"])
+    validate_collaboration_artifact(seed_dir, manifest["qualification"])
+    return manifest
+
+
 def runtime_command(args: argparse.Namespace) -> None:
     image_ids = {}
     for value in args.image_id:
@@ -428,7 +462,7 @@ def parser() -> argparse.ArgumentParser:
     runtime_parser.add_argument("--image-id", action="append", default=[])
     runtime_parser.add_argument("--output", type=Path, required=True)
 
-    for name in ("verify", "status"):
+    for name in ("verify", "verify-upgrade-base", "status"):
         subparser = subparsers.add_parser(name)
         subparser.add_argument("--root", type=Path, required=True)
         subparser.add_argument("--seed-dir", type=Path, required=True)
@@ -455,6 +489,9 @@ def main() -> None:
             seal(args)
         elif args.command == "verify":
             manifest = verify(args)
+            print(manifest["fingerprint"])
+        elif args.command == "verify-upgrade-base":
+            manifest = verify_upgrade_base(args)
             print(manifest["fingerprint"])
         else:
             status(args)

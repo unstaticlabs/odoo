@@ -230,6 +230,10 @@ def feature_commit_base(value: object) -> str | None:
     return base if isinstance(base, str) and base else None
 
 
+def commit_attribution_is_required() -> bool:
+    return policy()["enforcement"]["commit_attribution"] == "required"
+
+
 def feature_ready(arguments: argparse.Namespace) -> int:
     errors: list[str] = []
     handoff_value: object = None
@@ -263,7 +267,12 @@ def feature_ready(arguments: argparse.Namespace) -> int:
         errors.append(f"feature branch must track origin/{branch}, not {upstream}")
     elif git("rev-parse", upstream, check=False) != head_sha():
         errors.append(f"remote {upstream} is not at local HEAD")
-    if commits(argparse.Namespace(base=feature_commit_base(handoff_value), strict=True)):
+    if commits(
+        argparse.Namespace(
+            base=feature_commit_base(handoff_value),
+            strict=commit_attribution_is_required(),
+        )
+    ):
         errors.append("agent commit attribution is invalid")
     if show(errors):
         return 1

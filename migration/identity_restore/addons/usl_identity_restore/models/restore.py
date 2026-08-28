@@ -30,6 +30,25 @@ EXPECTED_EXPORT_IDS = (
     | DROPPED_SALES_MARKETING_EXPORT_IDS
     | DROPPED_AI_EXPORT_IDS
 )
+HOME_FILTER_IDS = (14, 6)
+HOME_PROJECT_LIMIT = 4
+HOME_PROJECT_PRIORITIES = (
+    ("usl admin",),
+    ("sbfh admin", "sbfh prod"),
+    ("sbfh vault",),
+    ("gbc ops",),
+)
+HOME_LAYOUT = {
+    "version": 1,
+    "order": [
+        "activities",
+        "my_tasks",
+        "favorites",
+        "ai_pipelines",
+        "accounting",
+    ],
+    "hidden": [],
+}
 
 
 class _SafeDomainSymbol:
@@ -462,6 +481,172 @@ class UslIdentityRestoreRun(models.Model):
 
         return [translate(term) for term in domain]
 
+    @staticmethod
+    def _literal_value(value, expected_type, label):
+        try:
+            parsed = ast.literal_eval(value or repr(expected_type()))
+        except (SyntaxError, ValueError) as error:
+            raise RuntimeError(f"Invalid {label} while building Home") from error
+        if not isinstance(parsed, expected_type):
+            raise TypeError(f"Invalid {label} while building Home")
+        return parsed
+
+    def _home_project_sort_key(self, project):
+        names = {
+            (project.with_context(lang=lang).name or "").strip().casefold()
+            for lang in ("en_US", "fr_FR")
+        }
+        for priority, aliases in enumerate(HOME_PROJECT_PRIORITIES):
+            if names.intersection(aliases):
+                return priority, project.sequence, project.id
+        return len(HOME_PROJECT_PRIORITIES), project.sequence, project.id
+
+    def _home_view_values(self, favorite_filter):
+        action = favorite_filter.action_id.sudo().exists()
+        if not action or action.type != "ir.actions.act_window":
+            raise RuntimeError(
+                f"Home saved view {favorite_filter.name} has no window action",
+            )
+        window_action = self.env[action.type].sudo().browse(action.id).exists()
+        action_xmlid = action.get_external_id().get(action.id)
+        return {
+            "name": favorite_filter.name,
+            "target_type": "view",
+            "action_id": action.id,
+            "action_xmlid": action_xmlid,
+            "filter_id": favorite_filter.id,
+            "res_model": favorite_filter.model_id,
+            "view_mode": window_action.view_mode,
+            "domain_json": self._literal_value(
+                favorite_filter.domain,
+                list,
+                f"domain for saved filter {favorite_filter.name}",
+            ),
+            "context_json": self._literal_value(
+                favorite_filter.context,
+                dict,
+                f"context for saved filter {favorite_filter.name}",
+            ),
+            "order_by_json": self._literal_value(
+                favorite_filter.sort,
+                list,
+                f"ordering for saved filter {favorite_filter.name}",
+            ),
+        }
+
+    def _home_project_values(self, project):
+        action = project.action_view_tasks()
+        action_record = self.env.ref(
+            "project.act_project_project_2_project_task_all",
+        )
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = self._literal_value(
+                context,
+                dict,
+                f"context for project {project.name}",
+            )
+        return {
+            "name": project.name,
+            "target_type": "view",
+            "action_id": action_record.id,
+            "action_xmlid": "project.act_project_project_2_project_task_all",
+            "res_model": "project.task",
+            "view_mode": action.get("view_mode") or action_record.view_mode,
+            "domain_json": [
+                ("project_id", "=", project.id),
+                ("has_template_ancestor", "=", False),
+            ],
+            "context_json": context,
+            "company_id": project.company_id.id,
+        }
+
+    def _restore_valentin_home(self, source, users, filters_by_source):
+        if "usl.home.favorite" not in self.env.registry:
+            message = "The usl_home product module must be installed before preferences"
+            raise RuntimeError(message)
+        manager_source_ids = [
+            row["res_id"]
+            for row in source["xmlids"]
+            if row["model"] == "res.users" and row["xmlid"] == "base.user_admin"
+        ]
+        if len(manager_source_ids) != 1 or manager_source_ids[0] not in users:
+            message = "The Online administrator cannot be resolved for Home"
+            raise RuntimeError(message)
+        valentin = users[manager_source_ids[0]]
+        if valentin.login != os.getenv("IDENTITY_MANAGER_TARGET_LOGIN", "valentin"):
+            message = "The Online administrator is not mapped to Valentin"
+            raise RuntimeError(message)
+
+        favorites = self.env["usl.home.favorite"].sudo()
+        favorites.search([("user_id", "=", valentin.id)]).unlink()
+        values_list = []
+
+        service = self.env["usl.home.service"].with_user(valentin)
+        available_widgets = set(service._available_widgets())
+        if "my_tasks" in available_widgets:
+            values_list.append({
+                "name": "My Tasks",
+                "target_type": "provider",
+                "provider_key": "my_tasks",
+            })
+
+        favorite_projects = self.env["project.project"].with_user(valentin).search([
+            ("active", "=", True),
+            ("favorite_user_ids", "in", valentin.id),
+        ])
+        selected_projects = sorted(
+            favorite_projects,
+            key=self._home_project_sort_key,
+        )[:HOME_PROJECT_LIMIT]
+        values_list.extend(
+            self._home_project_values(project)
+            for project in selected_projects
+        )
+
+        if "ai_pipelines" in available_widgets:
+            values_list.append({
+                "name": "AI Pipelines",
+                "target_type": "provider",
+                "provider_key": "ai_pipelines",
+            })
+        if "accounting" in available_widgets:
+            values_list.append({
+                "name": "Accounting Hygiene",
+                "target_type": "provider",
+                "provider_key": "accounting_hygiene",
+            })
+        for source_id in HOME_FILTER_IDS:
+            favorite_filter = filters_by_source.get(source_id)
+            if not favorite_filter:
+                raise RuntimeError(f"Home source saved filter {source_id} was not restored")
+            values_list.append(self._home_view_values(favorite_filter))
+
+        for sequence, values in enumerate(values_list, start=1):
+            favorites.create({
+                **values,
+                "user_id": valentin.id,
+                "sequence": sequence * 10,
+            })
+        settings = self.env["res.users.settings"].sudo()._find_or_create_for_user(
+            valentin,
+        )
+        settings.write({
+            "usl_home_layout": HOME_LAYOUT,
+            "usl_home_favorites_initialized": True,
+        })
+        valentin.sudo().write({
+            "action_id": self.env.ref("usl_home.action_usl_home").id,
+        })
+        return {
+            "user_login": valentin.login,
+            "favorite_count": len(values_list),
+            "favorite_names": [values["name"] for values in values_list],
+            "project_ids": [project.id for project in selected_projects],
+            "saved_filter_source_ids": list(HOME_FILTER_IDS),
+            "layout": HOME_LAYOUT,
+        }
+
     def _restore_preferences(self, source, users):
         actual_filter_ids = {row["id"] for row in source["filters"]}
         if actual_filter_ids != EXPECTED_FILTER_IDS:
@@ -486,6 +671,7 @@ class UslIdentityRestoreRun(models.Model):
             if row["model"] == "ir.actions.act_window"
         }
         migrated = []
+        filters_by_source = {}
         for row in source["filters"]:
             if row["id"] not in MIGRATED_FILTER_IDS:
                 continue
@@ -546,6 +732,7 @@ class UslIdentityRestoreRun(models.Model):
                 ),
             )
             migrated.append(target.id)
+            filters_by_source[row["id"]] = target
         return {
             "filters": {
                 "migrated": sorted(MIGRATED_FILTER_IDS),
@@ -564,15 +751,19 @@ class UslIdentityRestoreRun(models.Model):
                     DROPPED_AI_EXPORT_IDS,
                 ),
             },
+            "home": self._restore_valentin_home(
+                source,
+                users,
+                filters_by_source,
+            ),
         }
 
     def restore_preferences(self, source):
         """Finalize saved filters after their business targets exist."""
         self.ensure_one()
         if self.status != "passed":
-            raise RuntimeError(
-                "Identity business restoration must pass before preferences",
-            )
+            message = "Identity business restoration must pass before preferences"
+            raise RuntimeError(message)
         users = {
             row["id"]: self._traced("res.users", row["id"])
             for row in source["users"]
@@ -612,6 +803,7 @@ class UslIdentityRestoreRun(models.Model):
                     )
                 )
                 and dispositions.get("status") != "deferred"
+                and dispositions.get("home")
             ),
             None,
         )

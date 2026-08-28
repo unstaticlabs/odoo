@@ -14,6 +14,13 @@ assert SPEC and SPEC.loader
 distribution_release = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(distribution_release)
 
+RELEASE_IDENTITY_SPEC = importlib.util.spec_from_file_location(
+    "release_identity", ROOT / "scripts/release_identity.py"
+)
+assert RELEASE_IDENTITY_SPEC and RELEASE_IDENTITY_SPEC.loader
+release_identity = importlib.util.module_from_spec(RELEASE_IDENTITY_SPEC)
+RELEASE_IDENTITY_SPEC.loader.exec_module(release_identity)
+
 COMMIT = "a" * 40
 DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
@@ -159,6 +166,14 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertEqual(PRODUCT_MODULES, target_modules)
         self.assertEqual(PRODUCT_MODULES, release_modules)
         self.assertEqual(PRODUCT_MODULES, preprod_modules)
+
+    def test_pr_qualification_installs_the_canonical_product_registry(self) -> None:
+        match = re.search(r"product_modules='([^']+)'", self.workflow)
+        self.assertIsNotNone(match)
+        self.assertEqual(
+            release_identity.PRODUCT_MODULES,
+            set(match.group(1).split(",")),
+        )
 
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)

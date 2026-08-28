@@ -4,11 +4,11 @@ import json
 import os
 
 from odoo import fields
+
 from odoo.addons.usl_identity_restore.models.restore import (
     IdentitySourceReader,
     source_options,
 )
-
 
 source = IdentitySourceReader(source_options()).read()
 run = env["usl.identity.restore.run"].sudo().create(

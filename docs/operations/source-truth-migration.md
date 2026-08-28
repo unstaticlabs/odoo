@@ -160,8 +160,12 @@ needs-review business evidence; the AI index and configuration are not copied.
 The Sign stage preserves every completed request, participant, business artifact
 and history item as an external record; it deliberately does not recreate
 reusable signature images. The final Collaboration and Preferences stages close
-chatter, saved-filter, and dashboard dispositions. Knowledge attachments are explicitly
-discarded with the approved demo-content disposition. Three dashboard
+chatter, saved-filter, personalized Home, and dashboard dispositions. Valentin's
+Home is rebuilt from the restored administrator mapping, source-favorite Project
+relations, and the approved saved-filter perimeter using typed target actions;
+no source identifiers remain in the delivered Home records. Knowledge
+attachments are explicitly discarded with the approved demo-content
+disposition. Three dashboard
 definitions are recomputed from installed target modules and six unsupported
 Enterprise dashboard payloads receive explicit not-copied evidence. No source
 attachment action remains pending.

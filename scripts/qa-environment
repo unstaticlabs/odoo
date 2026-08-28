@@ -10,9 +10,9 @@ source "$ROOT/scripts/lib/cli-ui.sh"
 
 profile="${1:-${PROFILE:-full}}"
 case "$profile" in
-  full|no-documents|documents-smoke|clean-install) ;;
+  full|no-documents|documents-smoke|clean-install|home) ;;
   *)
-    printf 'QA profile must be full, no-documents, documents-smoke, or clean-install.\n' >&2
+    printf 'QA profile must be full, no-documents, documents-smoke, clean-install, or home.\n' >&2
     exit 2
     ;;
 esac
@@ -177,13 +177,17 @@ reset_project() {
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
-product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_sign,usl_tese_accounting,usl_tese_payroll'
+product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_home,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_sign,usl_tese_accounting,usl_tese_payroll'
 
 verify_seed() {
-  local runtime_json
+  local runtime_json verify_command
   runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.json.XXXXXX")"
   scripts/qa-seed runtime "$runtime_json"
-  if ! scripts/qa_seed.py verify \
+  verify_command=verify
+  if [[ "$profile" == home ]]; then
+    verify_command=verify-upgrade-base
+  fi
+  if ! scripts/qa_seed.py "$verify_command" \
     --root "$ROOT" --seed-dir "$qa_seed_dir" \
     --source-dump "${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}/dump.sql" \
     --runtime-json "$runtime_json" \
@@ -239,6 +243,15 @@ qa_volumes_present() {
   done
 }
 
+home_qa_volumes_present() {
+  local suffix
+  for suffix in postgres-data odoo-data; do
+    docker volume inspect "$COMPOSE_PROJECT_NAME-$suffix" >/dev/null 2>&1 \
+      || docker volume inspect "${COMPOSE_PROJECT_NAME}_$suffix" >/dev/null 2>&1 \
+      || return 1
+  done
+}
+
 reuse_qa_target() {
   "${compose[@]}" up -d --wait db
   "${compose[@]}" --profile paperless up -d --wait --pull never \
@@ -251,6 +264,23 @@ reuse_qa_target() {
   fi
   scripts/check-product-migration-boundary
   scripts/check-product-database-boundary
+}
+
+reuse_home_qa_target() {
+  "${compose[@]}" up -d --wait --pull never db odoo
+  if [[ "$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev \
+      -c "SELECT COALESCE((SELECT value FROM ir_config_parameter WHERE key='usl.qa.data_profile'), '')")" != home ]]; then
+    printf 'The cached QA target is not stamped with the Home profile.\n' >&2
+    return 1
+  fi
+  scripts/check-product-migration-boundary
+  scripts/check-product-database-boundary
+  "${compose[@]}" exec -T \
+    -e ACTION_RISK_MODE=check \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/action_risk_inventory.py"
 }
 
 write_qa_state() {
@@ -390,6 +420,40 @@ Path(sys.argv[1]).write_text(json.dumps({
 PY
 }
 
+hydrate_home_seed() {
+  local db_container odoo_volume restore_jobs
+
+  "${compose[@]}" up -d --wait db
+  "${compose[@]}" exec -T db createdb -U odoo odoo_dev
+  restore_jobs="${USL_QA_PG_RESTORE_JOBS:-2}"
+  if [[ ! "$restore_jobs" =~ ^[1-4]$ ]]; then
+    printf 'USL_QA_PG_RESTORE_JOBS must be between 1 and 4 for Home QA.\n' >&2
+    return 2
+  fi
+  db_container="$("${compose[@]}" ps -q db)"
+  docker cp "$qa_seed_dir/odoo.dump" "$db_container:/tmp/usl-home-qa-seed.dump"
+  "${compose[@]}" exec -T -e RESTORE_JOBS="$restore_jobs" db sh -ec '
+    trap '\''rm -f /tmp/usl-home-qa-seed.dump'\'' EXIT
+    pg_restore -U odoo -d odoo_dev --exit-on-error \
+      --jobs="$RESTORE_JOBS" --no-owner --no-privileges \
+      /tmp/usl-home-qa-seed.dump
+    vacuumdb -U odoo -d odoo_dev --analyze-in-stages
+  '
+
+  odoo_volume="${COMPOSE_PROJECT_NAME}_odoo-data"
+  docker volume create \
+    --label "com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
+    --label com.docker.compose.volume=odoo-data \
+    "$odoo_volume" >/dev/null
+  docker run --rm \
+    -v "$odoo_volume:/target" -v "$qa_seed_dir:/seed:ro" alpine:3.24.1 \
+    sh -ec '
+      mkdir -p /target/filestore /target/sessions
+      tar -C /target/filestore -xzf /seed/odoo-filestore.tgz
+      chown -R 1000:1000 /target
+    '
+}
+
 verify_hydrated_controls() {
   local actual_accounting actual_documents actual_paperless
   actual_accounting="$("${compose[@]}" exec -T db psql -X -qAt -U odoo \
@@ -496,6 +560,16 @@ b2c_qa_bootstrap() {
   "${compose[@]}" up -d --wait odoo
 }
 
+home_qa_bootstrap() {
+  "${compose[@]}" stop odoo
+  "${compose[@]}" --profile init run --rm -T --no-deps \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/home_qa_bootstrap.py"
+  "${compose[@]}" up -d --wait odoo
+  scripts/odoo-dev disable-tours
+}
+
 documents_qa_finalize() {
   # Drain the governed archive queue with the long-lived scheduler stopped so
   # QA readiness does not depend on minute-bound cron timing.
@@ -520,7 +594,7 @@ documents_qa_finalize_semantic_index() {
 
 usl_cli_title "provision isolated QA target"
 printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
-if [[ "$profile" == full ]]; then
+if [[ "$profile" == full || "$profile" == home ]]; then
   cache_result="miss"
   if ! qa_seed_dir="$(scripts/qa-seed path)"; then
     printf '\nBlocked: no qualified QA seed is available.\n' >&2
@@ -537,6 +611,10 @@ fi
 reuse_existing=0
 if [[ "$profile" == full && "$reuse_requested" == 1 ]] \
     && qa_state_matches && qa_volumes_present; then
+  reuse_existing=1
+  cache_result="warm-hit"
+elif [[ "$profile" == home && "$reuse_requested" == 1 ]] \
+    && home_qa_volumes_present; then
   reuse_existing=1
   cache_result="warm-hit"
 fi
@@ -565,6 +643,16 @@ case "$profile" in
   clean-install)
     stage "clean product installation" clean_install
     ;;
+  home)
+    if [[ "$reuse_existing" == 1 ]]; then
+      stage "reuse and verify existing Home QA target" reuse_home_qa_target
+    else
+      stage "hydrate Odoo Home seed" hydrate_home_seed
+      stage "upgrade and finalize Home branch" \
+        env USL_QA_DATA_PROFILE=home scripts/target-finalize
+    fi
+    stage "create focused Home personas" home_qa_bootstrap
+    ;;
 esac
 if [[ "$reuse_existing" == 0 ]]; then
   stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
@@ -577,7 +665,7 @@ if [[ "$profile" == full ]]; then
     COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
     scripts/documents-restore reconcile-locked-classification
 fi
-if [[ "$profile" != no-documents ]]; then
+if [[ "$profile" != no-documents && "$profile" != home ]]; then
   stage "enable Documents jobs and drain archive queue" documents_qa_finalize
 fi
 if [[ "$profile" == full ]]; then
@@ -590,8 +678,12 @@ write_report passed
 trap - EXIT
 printf '\nQA target ready (%s)\n' "$profile"
 printf '  Odoo:     http://odoo.localhost:%s/web/login?db=odoo_dev\n' "$ODOO_HTTP_PORT"
-if [[ "$profile" != no-documents ]]; then
+if [[ "$profile" != no-documents && "$profile" != home ]]; then
   printf '  Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
 fi
 printf '  Evidence: %s\n' "$report_file"
-printf '  Login:    POCKET_ID_ENV_FILE=%s make login-link USER=valentin\n' "$POCKET_ID_ENV_FILE"
+if [[ "$profile" == home ]]; then
+  printf '  Login:    home.qa.founder / homeqa (plus focused role personas)\n'
+else
+  printf '  Login:    POCKET_ID_ENV_FILE=%s make login-link USER=valentin\n' "$POCKET_ID_ENV_FILE"
+fi
