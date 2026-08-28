@@ -41,6 +41,21 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:documents.letter.cancel_issued",
+      "action_name": "documents letter cancel_issued",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.letter.finalize",
+      "action_name": "documents letter finalize",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:documents.letter.mark_sent",
+      "action_name": "documents letter mark_sent",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:documents.permanent_delete",
       "action_name": "permanently delete a document",
       "classification": "protected"
@@ -1966,6 +1981,31 @@
       }
     },
     {
+      "action_key": "rpc:usl.document.letter.action_cancel",
+      "action_name": "cancel an issued official letter",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.action_finalize",
+      "action_name": "issue an immutable official letter",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.action_mark_sent",
+      "action_name": "record an official letter as sent",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:usl.document.letter.unlink",
+      "action_name": "permanently delete usl.document.letter",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.letter",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.document.link.unlink",
       "action_name": "permanently delete usl.document.link",
       "classification": "protected",
@@ -1991,12 +2031,32 @@
       }
     },
     {
+      "action_key": "rpc:usl.document.renderer.unlink",
+      "action_name": "permanently delete usl.document.renderer",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.renderer",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.document.smart.view.unlink",
       "action_name": "permanently delete usl.document.smart.view",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
         "model": "usl.document.smart.view",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.document.template.unlink",
+      "action_name": "permanently delete usl.document.template",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.document.template",
         "operation": "unlink"
       }
     },
@@ -2961,7 +3021,7 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "9fc39515733a4a3b3d3dfbd1744f170d8c57517802991b11b7585646b1e9bbf5",
-  "runtime_policy_sha256": "c70405d189e0cc5dd1103eb93f5daac3606260c32f4c8850b9aa8c998e125433",
+  "qualified_policy_digest": "300c35f1a30a9da8f3d3168f3e3c7008f3f326aabf36ea3da204d3d039d00ad9",
+  "runtime_policy_sha256": "989a09a54b0735dc613e6599e7d708445835c3c54d3354455bc9fd0d9b48849a",
   "schema": "usl-action-risk-protected-runtime-v1"
 }
