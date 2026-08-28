@@ -129,6 +129,21 @@ class TestInvoiceDocument(AccountTestInvoicingCommon):
             any("recovery-cost indemnity" in mention for mention in payload["legal_mentions"])
         )
 
+    def test_service_tax_on_invoice_prints_vat_on_debits_option(self):
+        self.tax_sale_a.write(
+            {"tax_scope": "service", "tax_exigibility": "on_invoice"}
+        )
+        invoice = self._invoice()
+
+        payload, _assets = invoice._usl_document_render_payload(
+            None, self.template, {}, "fr_FR"
+        )
+
+        self.assertIn(
+            "Option pour le paiement de la taxe d’après les débits.",
+            payload["legal_mentions"],
+        )
+
     def test_document_locale_is_independent_from_operator_language(self):
         invoice = self._invoice()
 

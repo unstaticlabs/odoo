@@ -213,7 +213,7 @@ class AccountMove(models.Model):
             if any(
                 line.product_id.type == "service"
                 and any(
-                    tax.tax_exigibility == "on_invoice" and tax.tax_scope == "consu"
+                    tax.tax_exigibility == "on_invoice" and tax.tax_scope == "service"
                     for tax in line.tax_ids
                 )
                 for line in self.invoice_line_ids
