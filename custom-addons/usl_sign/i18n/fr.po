@@ -7710,6 +7710,16 @@ msgid "Strong signing setup"
 msgstr "Configuration de signature renforcée"
 
 #. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/portal_patch.esm.js:0
+msgid ""
+"Strong signing did not finish loading. Reload this page and try again. Nothing has "
+"been signed."
+msgstr ""
+"La signature renforcée n’a pas fini de charger. Rechargez cette page, puis réessayez. "
+"Rien n’a été signé."
+
+#. module: usl_sign
 #: model:ir.model.fields,field_description:usl_sign.field_usl_sign_daily_manifest__submission_nonce
 msgid "Submission Nonce"
 msgstr "Nonce de soumission"

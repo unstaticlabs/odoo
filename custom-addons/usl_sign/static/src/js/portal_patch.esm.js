@@ -955,7 +955,11 @@ patch(SignOcaPdfPortal.prototype, {
             const context = browserContext();
             if (this.info.requested_trust === "strong_personal") {
                 if (typeof window.uslStrongCeremony !== "function") {
-                    throw new Error("Strong signing is unavailable.");
+                    throw new Error(
+                        _t(
+                            "Strong signing did not finish loading. Reload this page and try again. Nothing has been signed."
+                        )
+                    );
                 }
                 await window.uslStrongCeremony({
                     items: this.info.items,
