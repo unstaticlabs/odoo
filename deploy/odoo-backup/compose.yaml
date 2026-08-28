@@ -1,0 +1,206 @@
+# Canonical service boundary for production Odoo backups. Infrastructure-only
+# names (the live network and Odoo data volume) are supplied by GitOps. No
+# restore service mounts either production resource.
+x-backup-tool: &backup-tool
+  image: ${USL_BACKUP_TOOL_IMAGE:-usl-odoo-backup:local}
+  profiles: ["backup"]
+  restart: "no"
+
+x-postgres-client: &postgres-client
+  PGHOST: ${ODOO_PRODUCTION_DB_HOST:-db}
+  PGPORT: ${ODOO_PRODUCTION_DB_PORT:-5432}
+  PGUSER: ${ODOO_PRODUCTION_DB_USER:-odoo}
+  PGPASSWORD: ${ODOO_PRODUCTION_DB_PASSWORD:-}
+  PGPASSWORD_FILE: ${ODOO_PRODUCTION_DB_PASSWORD_FILE:-}
+
+x-restic: &restic
+  RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+  RESTIC_PASSWORD: ${ODOO_PRODUCTION_RESTIC_PASSWORD:-}
+  RESTIC_PASSWORD_FILE: ${ODOO_PRODUCTION_RESTIC_PASSWORD_FILE:-}
+  AWS_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+  AWS_ACCESS_KEY_ID_FILE: ${R2_ACCESS_KEY_ID_FILE:-}
+  AWS_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+  AWS_SECRET_ACCESS_KEY_FILE: ${R2_SECRET_ACCESS_KEY_FILE:-}
+  RESTIC_CACHE_DIR: /cache
+
+services:
+  preflight:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+    networks:
+      - egress
+    command: ["preflight"]
+
+  prepare:
+    <<: *backup-tool
+    environment:
+      <<: *postgres-client
+      ODOO_DB_NAME: ${ODOO_PRODUCTION_DB_NAME:-odoo}
+      ODOO_BACKUP_STAGING: /staging
+      ODOO_BACKUP_STATE: /state
+      ODOO_DATA_ROOT: /source-data
+      USL_SOURCE_GIT_SHA: ${USL_SOURCE_GIT_SHA:-}
+      USL_SOURCE_IMAGE_DIGEST: ${USL_SOURCE_IMAGE_DIGEST:-}
+      USL_BACKUP_TOOL_IMAGE_DIGEST: ${USL_BACKUP_TOOL_IMAGE_DIGEST:-}
+      USL_BACKUP_QUIESCED_CONFIRMED: ${USL_BACKUP_QUIESCED_CONFIRMED:-}
+    volumes:
+      - staging:/staging
+      - state:/state
+      - source-data:/source-data:ro
+    networks:
+      - production-db
+    command: ["prepare", "--mode", "live"]
+
+  push:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+      ODOO_BACKUP_STAGING: /staging
+      ODOO_BACKUP_STATE: /state
+    volumes:
+      - staging:/staging:ro
+      - state:/state
+      - restic-cache:/cache
+    networks:
+      - egress
+    command: ["push"]
+
+  restore-fetch:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+      ODOO_BACKUP_RESTORE: /restore
+      ODOO_BACKUP_STATE: /state
+    volumes:
+      - restore-scratch:/restore
+      - state:/state
+      - restic-cache:/cache
+    networks:
+      - egress
+    command: ["restore-fetch"]
+
+  clone-db:
+    image: postgres:16-bookworm@sha256:60f4761b9035e0b8d5218f701a8c3382f641bf12b1604822574cf5be3baeb537
+    profiles: ["restore"]
+    restart: "no"
+    environment:
+      POSTGRES_DB: odoo_restore
+      POSTGRES_USER: odoo_restore
+      POSTGRES_PASSWORD: ${ODOO_BACKUP_CLONE_PASSWORD:-}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo_restore -d odoo_restore"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - clone-db-data:/var/lib/postgresql/data
+    networks:
+      - clone-internal
+
+  restore-apply:
+    <<: *backup-tool
+    depends_on:
+      clone-db:
+        condition: service_healthy
+    environment:
+      PGHOST: clone-db
+      PGPORT: 5432
+      PGUSER: odoo_restore
+      PGPASSWORD: ${ODOO_BACKUP_CLONE_PASSWORD:-}
+      ODOO_RESTORE_DB_NAME: odoo_restore
+      ODOO_BACKUP_RESTORE: /restore
+      ODOO_BACKUP_STATE: /state
+      ODOO_RESTORE_FILESTORE: /clone-filestore
+      USL_RESTORE_RESET_CONFIRMED: isolated-odoo-restore
+    volumes:
+      - restore-scratch:/restore:ro
+      - clone-filestore:/clone-filestore
+      - state:/state
+    networks:
+      - clone-internal
+    command: ["restore-reset-apply"]
+
+  neutralize:
+    image: ${ODOO_SOURCE_IMAGE:-ghcr.io/unstaticlabs/usl-odoo@sha256:0000000000000000000000000000000000000000000000000000000000000000}
+    profiles: ["restore"]
+    restart: "no"
+    depends_on:
+      clone-db:
+        condition: service_healthy
+    command: ["odoo", "neutralize", "--config=/etc/odoo/odoo.conf", "--database=odoo_restore"]
+    environment:
+      ODOO_DB_HOST: clone-db
+      ODOO_DB_PORT: 5432
+      ODOO_DB_USER: odoo_restore
+      ODOO_DB_PASSWORD: ${ODOO_BACKUP_CLONE_PASSWORD:-}
+      ODOO_DB_NAME: odoo_restore
+      ODOO_DB_FILTER: ^odoo_restore$$
+      ODOO_MAX_CRON_THREADS: 0
+      ODOO_LIST_DB: "False"
+      USL_DEPLOYMENT_ENV: recovery
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+      USL_POCKET_ID_ENABLED: 0
+    networks:
+      - clone-internal
+
+  verify:
+    <<: *backup-tool
+    depends_on:
+      clone-db:
+        condition: service_healthy
+    environment:
+      PGHOST: clone-db
+      PGPORT: 5432
+      PGUSER: odoo_restore
+      PGPASSWORD: ${ODOO_BACKUP_CLONE_PASSWORD:-}
+      ODOO_RESTORE_DB_NAME: odoo_restore
+      ODOO_BACKUP_RESTORE: /restore
+      ODOO_RESTORE_FILESTORE: /clone-filestore
+      ODOO_BACKUP_STATE: /state
+      USL_NEUTRALIZER_IMAGE_DIGEST: ${ODOO_SOURCE_IMAGE:-}
+    volumes:
+      - restore-scratch:/restore
+      - clone-filestore:/clone-filestore:ro
+      - state:/state
+    networks:
+      - clone-internal
+    command: ["verify"]
+
+  finalize:
+    <<: *backup-tool
+    environment:
+      <<: *restic
+      ODOO_BACKUP_STATE: /state
+    volumes:
+      - state:/state
+      - restic-cache:/cache
+    networks:
+      - egress
+    command: ["finalize"]
+
+volumes:
+  staging:
+    external: true
+    name: ${ODOO_BACKUP_STAGING_VOLUME:-usl-odoo-production-backup-staging}
+  state:
+    external: true
+    name: ${ODOO_BACKUP_STATE_VOLUME:-usl-odoo-production-backup-state}
+  restic-cache:
+    external: true
+    name: ${ODOO_BACKUP_CACHE_VOLUME:-usl-odoo-production-restic-cache}
+  source-data:
+    external: true
+    name: ${ODOO_PRODUCTION_FILESTORE_VOLUME:-usl-odoo-production-data-not-configured}
+  restore-scratch:
+  clone-db-data:
+  clone-filestore:
+
+networks:
+  production-db:
+    external: true
+    name: ${ODOO_PRODUCTION_DB_NETWORK:-usl-odoo-production-network-not-configured}
+  egress:
+  clone-internal:
+    internal: true

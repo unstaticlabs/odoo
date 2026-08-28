@@ -1891,8 +1891,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "75868f3beabf53c35cd750ef579bd9f83c0ac4ae7d2dc8583b6145fc0cccca02",
-  "runtime_policy_sha256": "71a760eec80d07ed9a78e2778cefb34e9d7748bd06b9ee40ec777dfd5f277480",
+  "qualified_policy_digest": "b8622c0a964d57cfb5eb8018b2f2bd37cce56c45ec92a3d460c1c432a8fd9121",
+  "runtime_policy_sha256": "da5375400518de5177ebdae3516195424766d954059d9a401346ebc65c9edd25",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {

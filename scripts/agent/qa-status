@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib import AgentError, QA_SCHEMA_PATH, qa_status_payload, validate_schema  # noqa: E402
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Report this worktree's isolated QA environment.")
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--project", action="store_true", help="Print only the Compose project name.")
+    arguments = parser.parse_args()
+    try:
+        value = qa_status_payload()
+        errors = validate_schema(value, QA_SCHEMA_PATH)
+    except AgentError as error:
+        print(f"qa-status: {error}", file=sys.stderr)
+        return 2
+    if errors:
+        for error in errors:
+            print(f"qa-status: {error}", file=sys.stderr)
+        return 1
+    if arguments.project:
+        print(value["compose_project"])
+    elif arguments.json:
+        print(json.dumps(value, indent=2))
+    else:
+        print("USL isolated QA")
+        print(f"  Project:  {value['compose_project']}")
+        print(f"  Branch:   {value['branch']}")
+        print(f"  HEAD:     {value['head_sha']}")
+        print(f"  Profile:  {value['profile'] or '<not provisioned>'}")
+        print(f"  Health:   {value['health']}")
+        print(f"  Ownership:{value['ownership']['state']}")
+        print(f"  Odoo:     {value['urls']['local_odoo']}")
+        print(f"  Documents:{value['urls']['local_documents']}")
+        print("  HTTPS:    unavailable in QA contract v1")
+        print(f"  Cleanup:  {value['cleanup']['command']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
