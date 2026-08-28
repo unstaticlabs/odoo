@@ -109,11 +109,13 @@ class AgentContractTests(unittest.TestCase):
             {"command": "python3 -m unittest", "result": "passed", "notes": "Focused tests passed."}
         ]
         rendered = self.handoff.render(value)
-        self.assertIn("## Summary", rendered)
+        self.assertIn("## Overview", rendered)
         self.assertIn("## Acceptance criteria", rendered)
-        self.assertIn("| **PASSED** | `python3 -m unittest` |", rendered)
+        self.assertIn("| ✅ Passed | `python3 -m unittest` |", rendered)
         self.assertIn("<summary>Machine-readable handoff contract (v1)</summary>", rendered)
-        self.assertLess(rendered.index("## Verification"), rendered.index("```json"))
+        self.assertIn("No database migration or feature QA environment is required", rendered)
+        self.assertNotIn("### Known issues", rendered)
+        self.assertLess(rendered.index("## Validation"), rendered.index("```json"))
 
     def test_rendered_tables_escape_github_markdown_cells(self) -> None:
         value = self.handoff.initial_payload(
@@ -123,7 +125,7 @@ class AgentContractTests(unittest.TestCase):
             {"command": "one | two", "result": "passed", "notes": "First\nsecond"}
         ]
         rendered = self.handoff.render(value)
-        self.assertIn("Preserve a \\| table cell.", rendered)
+        self.assertIn("Preserve a | table cell.", rendered)
         self.assertIn("`one \\| two`", rendered)
         self.assertIn("First<br>second", rendered)
 

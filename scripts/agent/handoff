@@ -201,14 +201,26 @@ def markdown(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\r\n", "<br>").replace("\n", "<br>")
 
 
-def bullets(values: list[str], empty: str = "None.") -> list[str]:
-    if not values:
-        return [empty]
+def bullets(values: list[str]) -> list[str]:
     return [f"- {markdown(value)}" for value in values]
 
 
 def yes_no(value: bool) -> str:
     return "Yes" if value else "No"
+
+
+def result_label(result: str) -> str:
+    return {
+        "passed": "✅ Passed",
+        "failed": "❌ Failed",
+        "blocked": "⚠️ Blocked",
+        "not-run": "⏭️ Not run",
+    }[result]
+
+
+def append_named_list(lines: list[str], heading: str, values: list[str]) -> None:
+    if values:
+        lines.extend([f"### {heading}", "", *bullets(values), ""])
 
 
 def render(value: dict[str, Any]) -> str:
@@ -217,47 +229,49 @@ def render(value: dict[str, Any]) -> str:
     changes = value["changes"]
     migration = value["migration"]
     qa = value["qa"]
+    status_style = {
+        "READY TO MERGE": ("TIP", "Ready for Lead Developer review"),
+        "READY TO MERGE WITH DOCUMENTED FOLLOW-UP": ("WARNING", "Ready with documented follow-up"),
+        "NOT READY TO MERGE": ("CAUTION", "Not ready to merge"),
+    }
+    alert, status_label = status_style[readiness["status"]]
+    modules = ", ".join(f"`{module}`" for module in changes["modules"]) or "No Odoo modules"
+    change_flags = []
+    if changes["database_schema_changed"]:
+        change_flags.append("database schema")
+    if changes["configuration_changed"]:
+        change_flags.append("configuration")
+    if changes["dependencies_changed"]:
+        change_flags.append("dependencies")
+    flags = ", ".join(change_flags) if change_flags else "no schema, configuration, or dependency changes"
     lines = [
-        "## Summary",
+        "## Overview",
         "",
-        markdown(value["goal"]["summary"]),
+        str(value["goal"]["summary"]),
         "",
-        f"> **{readiness['status']}** — {markdown(readiness['rationale'])}",
+        f"> [!{alert}]",
+        f"> **{status_label}.** {str(readiness['rationale']).replace(chr(10), ' ')}",
         "",
-        "| Source | Value |",
-        "| --- | --- |",
-        f"| Branch | `{markdown(feature['branch'])}` |",
-        f"| Base | `{markdown(feature['base'])}` at `{feature['base_sha']}` |",
-        f"| Head | `{feature['head_sha']}` |",
-        f"| Feature | `{markdown(feature['identifier'])}` |",
-        f"| Developer | `@{markdown(feature['developer_github_login'])}` |",
-        f"| Product task | {markdown(feature['product_task'])} |",
+        f"- **Source:** `{feature['branch']}` at `{feature['head_sha'][:12]}`",
+        f"- **Scope:** {len(changes['paths'])} changed paths; {modules}",
+        f"- **Change risk:** {flags}; data-loss risk **{migration['data_loss_risk']}**",
+        f"- **QA:** {'required' if qa['required'] else 'not required'}; status **{qa['status']}**",
         "",
         "## Acceptance criteria",
         "",
         *bullets(value["goal"]["acceptance"]),
         "",
-        "## Change scope",
+        "## What changed",
         "",
-        "| Area | Value |",
-        "| --- | --- |",
-        f"| Odoo modules | {markdown(', '.join(changes['modules']) if changes['modules'] else 'None')} |",
-        f"| User-facing | {yes_no(changes['user_facing'])} |",
-        f"| Database schema changed | {yes_no(changes['database_schema_changed'])} |",
-        f"| Configuration changed | {yes_no(changes['configuration_changed'])} |",
-        f"| Dependencies changed | {yes_no(changes['dependencies_changed'])} |",
-        "",
-        "<details>",
-        f"<summary>Changed paths ({len(changes['paths'])})</summary>",
-        "",
-        *bullets([f"`{path}`" for path in changes["paths"]]),
-        "",
-        "</details>",
-        "",
-        "## Architecture decisions",
+        f"- **Modules:** {modules}",
+        f"- **User-facing behavior:** {yes_no(changes['user_facing'])}",
+        f"- **Database schema:** {'Changed' if changes['database_schema_changed'] else 'Unchanged'}",
+        f"- **Configuration:** {'Changed' if changes['configuration_changed'] else 'Unchanged'}",
+        f"- **Dependencies:** {'Changed' if changes['dependencies_changed'] else 'Unchanged'}",
         "",
     ]
     if value["decisions"]:
+        lines.extend(["## Key decisions", ""])
         for decision in value["decisions"]:
             lines.extend(
                 [
@@ -265,22 +279,21 @@ def render(value: dict[str, Any]) -> str:
                     "",
                     markdown(decision["rationale"]),
                     "",
-                    "Alternatives considered:",
+                    "<details>",
+                    "<summary>Alternatives considered</summary>",
                     "",
                     *bullets(decision["alternatives"]),
                     "",
+                    "</details>",
+                    "",
                 ]
             )
-    else:
-        lines.extend(["No material architecture decision was required.", ""])
 
     lines.extend(
         [
-            "## Verification",
+            "## Validation",
             "",
-            "### Automated",
-            "",
-            "| Result | Command | Notes |",
+            "| Result | Check | Evidence |",
             "| --- | --- | --- |",
         ]
     )
@@ -288,105 +301,96 @@ def render(value: dict[str, Any]) -> str:
     if automated:
         for check in automated:
             lines.append(
-                f"| **{check['result'].upper()}** | `{markdown(check['command'])}` | {markdown(check['notes'])} |"
+                f"| {result_label(check['result'])} | `{markdown(check['command'])}` | {markdown(check['notes'])} |"
             )
     else:
-        lines.append("| NOT RUN | — | No automated evidence recorded. |")
-    lines.extend(
-        [
-            "",
-            "### Manual and product QA",
-            "",
-            "| Result | Journey | Evidence and notes |",
-            "| --- | --- | --- |",
-        ]
-    )
+        lines.append("| ⏭️ Not run | — | No automated evidence recorded. |")
     manual = value["verification"]["manual"]
     if manual:
+        lines.extend(
+            [
+                "",
+                "### Manual and product QA",
+                "",
+                "| Result | Journey | Evidence |",
+                "| --- | --- | --- |",
+            ]
+        )
         for journey in manual:
             evidence = ", ".join(journey["evidence"]) or "No linked artifact"
             notes = f"{evidence}. {journey['notes']}".strip()
             lines.append(
-                f"| **{journey['result'].upper()}** | {markdown(journey['journey'])} | {markdown(notes)} |"
+                f"| {result_label(journey['result'])} | {markdown(journey['journey'])} | {markdown(notes)} |"
             )
+    lines.append("")
+
+    lines.extend(["## Migration and QA", ""])
+    if not migration["required"] and not qa["required"]:
+        lines.extend(["No database migration or feature QA environment is required for this change.", ""])
     else:
-        lines.append("| NOT RUN | — | No manual journey recorded. |")
+        lines.extend(
+            [
+                "| Area | Qualification |",
+                "| --- | --- |",
+                f"| Migration | {'Required' if migration['required'] else 'Not required'} |",
+                f"| Upgrade modules | {markdown(', '.join(migration['modules_to_upgrade']) or 'None')} |",
+                f"| Data-loss / irreversibility | **{migration['data_loss_risk']}** / {yes_no(migration['irreversible'])} |",
+                f"| QA | {'Required' if qa['required'] else 'Not required'}; **{qa['status']}** |",
+                f"| QA access | {markdown(qa['url'])}; {markdown(qa['authentication'])} |",
+                "",
+            ]
+        )
+    append_named_list(lines, "Forward procedure", migration["forward"])
+    append_named_list(lines, "Recovery procedure", migration["recovery"])
+
+    lines.extend(["## Merge and release", ""])
+    append_named_list(lines, "Integration concerns", value["integration"]["concerns"])
+    append_named_list(lines, "Concurrent-work overlaps", value["integration"]["overlaps"])
+    append_named_list(lines, "Special steps", value["release"]["special_steps"])
+    append_named_list(lines, "Rollback", value["release"]["rollback_notes"])
+    append_named_list(lines, "Post-merge checks", value["release"]["post_merge_checks"])
+
+    limitations = bool(
+        value["known_issues"] or value["unverified_assumptions"] or readiness["blockers"]
+    )
+    if limitations:
+        lines.extend(["## Known limitations", ""])
+        append_named_list(lines, "Known issues", value["known_issues"])
+        append_named_list(lines, "Unverified assumptions", value["unverified_assumptions"])
+        append_named_list(lines, "Blockers", readiness["blockers"])
+
+    if value["resources"]["preserved"] or value["resources"]["cleanup"]:
+        lines.extend(["## Resource ownership", ""])
+        append_named_list(lines, "Preserved for review", value["resources"]["preserved"])
+        append_named_list(lines, "Lead Developer cleanup", value["resources"]["cleanup"])
 
     lines.extend(
         [
+            "## Lead Developer checklist",
             "",
-            "## Migration and QA",
+            "- [ ] Review the actual diff against the latest target branch.",
+            "- [ ] Independently qualify applicable migration, accounting, security, and UI risks.",
+            "- [ ] Reconcile overlapping work and validate the exact integration candidate.",
+            "- [ ] Confirm post-merge CI ownership; do not deploy production manually.",
             "",
-            "| Qualification | Value |",
-            "| --- | --- |",
-            f"| Migration required | {yes_no(migration['required'])} |",
-            f"| Modules to upgrade | {markdown(', '.join(migration['modules_to_upgrade']) if migration['modules_to_upgrade'] else 'None')} |",
-            f"| Data-loss risk | **{migration['data_loss_risk'].upper()}** |",
-            f"| Irreversible | {yes_no(migration['irreversible'])} |",
-            f"| QA required / status | {yes_no(qa['required'])} / **{qa['status']}** |",
-            f"| QA environment | {markdown(qa['environment'])} |",
-            f"| QA URL | {markdown(qa['url'])} |",
-            f"| QA authentication | {markdown(qa['authentication'])} |",
+            "<details>",
+            "<summary>Source metadata and changed paths</summary>",
             "",
-            "### Forward procedure",
+            f"- **Feature:** `{feature['identifier']}`",
+            f"- **Developer:** `@{markdown(feature['developer_github_login'])}`",
+            f"- **Branch:** `{feature['branch']}`",
+            f"- **Base:** `{feature['base']}` at `{feature['base_sha']}`",
+            f"- **Head:** `{feature['head_sha']}`",
+            f"- **Product task:** {markdown(feature['product_task'])}",
             "",
-            *bullets(migration["forward"]),
+            *bullets([f"`{path}`" for path in changes["paths"]]),
             "",
-            "### Recovery procedure",
-            "",
-            *bullets(migration["recovery"]),
-            "",
-            "## Integration and release notes",
-            "",
-            "### Integration concerns",
-            "",
-            *bullets(value["integration"]["concerns"]),
-            "",
-            "### Concurrent-work overlaps",
-            "",
-            *bullets(value["integration"]["overlaps"]),
-            "",
-            "### Special release steps",
-            "",
-            *bullets(value["release"]["special_steps"]),
-            "",
-            "### Rollback notes",
-            "",
-            *bullets(value["release"]["rollback_notes"]),
-            "",
-            "### Post-merge checks",
-            "",
-            *bullets(value["release"]["post_merge_checks"]),
-            "",
-            "## Limitations and ownership",
-            "",
-            "### Known issues",
-            "",
-            *bullets(value["known_issues"]),
-            "",
-            "### Unverified assumptions",
-            "",
-            *bullets(value["unverified_assumptions"]),
-            "",
-            "### Preserved resources",
-            "",
-            *bullets(value["resources"]["preserved"]),
-            "",
-            "### Lead Developer cleanup",
-            "",
-            *bullets(value["resources"]["cleanup"]),
-            "",
-            "## Lead Developer review",
-            "",
-            "- [ ] Reviewed the actual diff against the latest target branch.",
-            "- [ ] Independently qualified migration, accounting, security, and UI risks where applicable.",
-            "- [ ] Reconciled overlapping work and validated the exact integration candidate.",
-            "- [ ] Confirmed post-merge CI ownership; no manual production deployment is included.",
+            "</details>",
             "",
             "<details>",
             "<summary>Machine-readable handoff contract (v1)</summary>",
             "",
-            "This canonical JSON is retained for validation and future orchestration. The review summary above is generated from the same contract.",
+            "Canonical contract used by validation and future orchestration.",
             "",
             START_MARKER,
             "```json",
