@@ -52,6 +52,13 @@ final class ApplicationTest {
     }
 
     @Test
+    void unsignedDocumentHasNoSignatureRevision() throws Exception {
+        byte[] base = blankPdf();
+
+        assertFalse(Application.hasSignatureRevision(base));
+    }
+
+    @Test
     void visiblePersonalSignatureIsConfiguredAsNativePadesAppearance() throws Exception {
         PAdESSignatureParameters parameters = new PAdESSignatureParameters();
         byte[] png = Base64.getDecoder().decode(
