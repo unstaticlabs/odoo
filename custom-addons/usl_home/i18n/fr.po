@@ -1,0 +1,215 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#  * usl_home
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_home
+msgid "Home"
+msgstr "Accueil"
+
+#. module: usl_home
+msgid "Activities"
+msgstr "Activités"
+
+#. module: usl_home
+msgid "My Tasks"
+msgstr "Mes tâches"
+
+#. module: usl_home
+msgid "Favorite Views"
+msgstr "Vues favorites"
+
+#. module: usl_home
+msgid "AI Pipelines"
+msgstr "Pipelines IA"
+
+#. module: usl_home
+msgid "Accounting & Compliance Alerts"
+msgstr "Alertes comptables et de conformité"
+
+#. module: usl_home
+msgid "What needs you now"
+msgstr "Ce qui nécessite votre attention"
+
+#. module: usl_home
+msgid "Your workload by real project state"
+msgstr "Votre charge selon l’état réel des projets"
+
+#. module: usl_home
+msgid "Resume the exact place you use"
+msgstr "Reprenez exactement là où vous travaillez"
+
+#. module: usl_home
+msgid "Human review, blockers, and failures"
+msgstr "Vérifications humaines, blocages et échecs"
+
+#. module: usl_home
+msgid "Refresh"
+msgstr "Actualiser"
+
+#. module: usl_home
+msgid "Customize"
+msgstr "Personnaliser"
+
+#. module: usl_home
+msgid "Your Home"
+msgstr "Votre accueil"
+
+#. module: usl_home
+msgid "Choose what is visible. Drag cards or use the arrow controls to change their order."
+msgstr "Choisissez les éléments visibles. Faites glisser les blocs ou utilisez les flèches pour modifier leur ordre."
+
+#. module: usl_home
+msgid "Add a destination"
+msgstr "Ajouter une destination"
+
+#. module: usl_home
+msgid "Add to Home"
+msgstr "Ajouter à l’accueil"
+
+#. module: usl_home
+msgid "Preparing Home…"
+msgstr "Préparation de l’accueil…"
+
+#. module: usl_home
+msgid "Home could not be loaded."
+msgstr "L’accueil n’a pas pu être chargé."
+
+#. module: usl_home
+msgid "Try again"
+msgstr "Réessayer"
+
+#. module: usl_home
+msgid "This part of Home is unavailable."
+msgstr "Cette partie de l’accueil est indisponible."
+
+#. module: usl_home
+msgid "No activities need your attention."
+msgstr "Aucune activité ne nécessite votre attention."
+
+#. module: usl_home
+msgid "Show all activities"
+msgstr "Afficher toutes les activités"
+
+#. module: usl_home
+msgid "Overdue"
+msgstr "En retard"
+
+#. module: usl_home
+msgid "Due in 7 days"
+msgstr "À échéance sous 7 jours"
+
+#. module: usl_home
+msgid "Waiting"
+msgstr "En attente"
+
+#. module: usl_home
+msgid "Changes requested"
+msgstr "Modifications demandées"
+
+#. module: usl_home
+msgid "No open tasks are assigned to you."
+msgstr "Aucune tâche ouverte ne vous est attribuée."
+
+#. module: usl_home
+msgid "Open My Tasks"
+msgstr "Ouvrir Mes tâches"
+
+#. module: usl_home
+msgid "No favorite views yet."
+msgstr "Aucune vue favorite pour le moment."
+
+#. module: usl_home
+msgid "Open a workflow and choose “Add to Home” from its action menu."
+msgstr "Ouvrez un flux de travail puis choisissez « Ajouter à l’accueil » dans son menu d’actions."
+
+#. module: usl_home
+msgid "No AI pipeline work needs you."
+msgstr "Aucun travail des pipelines IA ne nécessite votre attention."
+
+#. module: usl_home
+msgid "Open AI Pipelines"
+msgstr "Ouvrir Pipelines IA"
+
+#. module: usl_home
+msgid "No accounting or compliance alerts for this company."
+msgstr "Aucune alerte comptable ou de conformité pour cette société."
+
+#. module: usl_home
+msgid "All Home widgets are hidden."
+msgstr "Tous les blocs de l’accueil sont masqués."
+
+#. module: usl_home
+msgid "Customize Home"
+msgstr "Personnaliser l’accueil"
+
+#. module: usl_home
+msgid "Today"
+msgstr "Aujourd’hui"
+
+#. module: usl_home
+msgid "Overdue · %s"
+msgstr "En retard · %s"
+
+#. module: usl_home
+msgid "Destination unavailable"
+msgstr "Destination indisponible"
+
+#. module: usl_home
+msgid "Accounting Hygiene"
+msgstr "Qualité comptable"
+
+#. module: usl_home
+msgid "Closing blockers"
+msgstr "Blocages de clôture"
+
+#. module: usl_home
+msgid "Declarations requiring attention"
+msgstr "Déclarations à vérifier"
+
+#. module: usl_home
+msgid "Accounting reviews pending"
+msgstr "Vérifications comptables en attente"
+
+#. module: usl_home
+msgid "Bank items to review"
+msgstr "Éléments bancaires à vérifier"
+
+#. module: usl_home
+msgid "Supporting evidence missing"
+msgstr "Justificatifs manquants"
+
+#. module: usl_home
+msgid "Accounting hygiene issues"
+msgstr "Problèmes de qualité comptable"
+
+#. module: usl_home
+msgid "Failed"
+msgstr "Échec"
+
+#. module: usl_home
+msgid "Blocked"
+msgstr "Bloqué"
+
+#. module: usl_home
+msgid "Review"
+msgstr "À vérifier"
+
+#. module: usl_home
+msgid "Your Home layout could not be saved."
+msgstr "La disposition de votre accueil n’a pas pu être enregistrée."
+
+#. module: usl_home
+msgid "“%s” was added to Home."
+msgstr "« %s » a été ajouté à l’accueil."
+
+#. module: usl_home
+msgid "This destination could not be added."
+msgstr "Cette destination n’a pas pu être ajoutée."
