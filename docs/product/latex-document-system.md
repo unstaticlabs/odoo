@@ -71,11 +71,15 @@ submodule.
 
 ## Release boundary
 
-Native Sign is a hard merge gate. `sign_completion.v1` exists and is visually
-qualified in the renderer package, but the Odoo Sign adapter is added only
-after the Native Sign feature lands on `19-usl`, when its real evidence,
-validation and archival contracts can be tested. A speculative certificate
-adapter is not a substitute.
+The document system merges before Native Sign and has no runtime dependency on
+`usl_sign`. `sign_completion.v1` is already allow-listed and visually qualified
+in the renderer package so the Native Sign branch can integrate against a
+stable document contract. That branch owns the soft downstream dependency,
+its real Odoo adapter, evidence and validation mapping, PDF/A-3 dossier
+integration, archival gates and end-to-end tests. A speculative Sign adapter
+in this foundational add-on is not a substitute for testing the merged Native
+Sign implementation, but its absence does not block this document-system
+merge.
 
 ## Regulatory references
 
