@@ -6,7 +6,7 @@ import os
 # ruff: noqa: F821, T201
 
 profile = os.environ.get("USL_QA_DATA_PROFILE", "full")
-allowed = {"full", "no-documents", "documents-smoke", "clean-install"}
+allowed = {"full", "no-documents", "documents-smoke", "clean-install", "home"}
 if profile not in allowed:
     raise RuntimeError(f"Unsupported QA data profile: {profile}")
 
