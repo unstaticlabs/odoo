@@ -1,7 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
-
 PROVIDER_KEYS = {"my_tasks", "accounting_hygiene", "ai_pipelines"}
 TARGET_TYPES = {"provider", "action", "view", "record"}
 
@@ -102,9 +101,20 @@ class UslHomeFavorite(models.Model):
         res_id = int(payload.get("res_id") or 0)
         if not action_id:
             raise ValidationError(self.env._("This view does not expose a stable Odoo action."))
-        action = self.env["ir.actions.actions"].browse(action_id).exists()
+        # Odoo's action service reads this technical routing metadata with
+        # elevated access; ordinary internal users intentionally have no raw
+        # ``ir.actions.actions`` ACL. Mirror that narrow boundary, then validate
+        # the destination model, record, menu, and company as the current user.
+        action = self.env["ir.actions.actions"].sudo().browse(action_id).exists()
         if not action:
             raise ValidationError(self.env._("The Odoo action is no longer available."))
+        if action.type != "ir.actions.act_window":
+            raise ValidationError(self.env._("Only Odoo view actions can be added to Home."))
+        window_action = self.env[action.type].sudo().browse(action.id).exists()
+        if not window_action or not window_action.res_model:
+            raise ValidationError(self.env._("The Odoo view is no longer available."))
+        if not self.env[window_action.res_model].has_access("read"):
+            raise AccessError(self.env._("You cannot add this view to Home."))
         target_type = "record" if res_model and res_id else "view"
         if target_type == "record":
             if res_model not in self.env.registry:
@@ -140,11 +150,10 @@ class UslHomeFavorite(models.Model):
     @api.model
     def reorder(self, favorite_ids):
         favorites = self.search(
-            [("user_id", "=", self.env.uid), ("id", "in", favorite_ids)]
+            [("user_id", "=", self.env.uid), ("id", "in", favorite_ids)],
         )
         by_id = {favorite.id: favorite for favorite in favorites}
         for sequence, favorite_id in enumerate(favorite_ids, start=1):
             if favorite_id in by_id:
                 by_id[favorite_id].sequence = sequence * 10
         return True
-
