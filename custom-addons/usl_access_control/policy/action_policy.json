@@ -13633,7 +13633,7 @@
         "rpc:l10n_fr.fec.export.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:l10n_fr.fec.export.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:l10n_fr.fec.export.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
-        "rpc:l10n_fr.fec.export.wizard.create_fec_report_action": "2ef723cdba8b3197831fe2bf6c472b5e5b5cc87a15510aa1656c7e151b356afd",
+        "rpc:l10n_fr.fec.export.wizard.create_fec_report_action": "53b01023b5e0ec696c93c54d8c8cfbcf066ad94e6503f78447566b53e538b4d6",
         "rpc:l10n_fr.fec.export.wizard.default_get": "531c4e60eff823f31cb08216674ab0f9a37f109ed87115c57b19c04a114bdb51",
         "rpc:l10n_fr.fec.export.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:l10n_fr.fec.export.wizard.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
@@ -39263,7 +39263,7 @@
         "rpc:res.users.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:res.users.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:res.users.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:usl.document.document_detail": "a68af571c8d926e613e7ea349fd1c97a77805cada85c8c6b8333dd3841b1cb8b",
+        "rpc:usl.document.document_detail": "088a31052567d7701b02462765ce72f634b597a9a6bb4d0ef926117d756639b8",
         "rpc:wizard.ir.model.menu.create.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:wizard.ir.model.menu.create.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:wizard.ir.model.menu.create.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -162622,6 +162622,7 @@
         "client:project:addons/project/static/src/views/analytic_account_form/analytic_account_form_controller.js:if:rpc:1",
         "client:stock_account:addons/stock_account/static/src/stock_valuation/controller.js:if:rpc:1",
         "route:http:ANY:/account/init_tests_shared_js_python",
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>",
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_invoice:1",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_vendor_bill:1",
@@ -163216,6 +163217,11 @@
         "route:http:ANY:/account/init_tests_shared_js_python": {
           "targets": [
             "rpc:ir.config_parameter.get_str"
+          ]
+        },
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>": {
+          "targets": [
+            "rpc:l10n_fr.fec.export.wizard.generate_fec"
           ]
         },
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python": {
@@ -165772,6 +165778,7 @@
         "client:project:addons/project/static/src/views/analytic_account_form/analytic_account_form_controller.js:if:rpc:1": "26db2507236674e5b1a20d32987690877907bae804c97fd51e432dae85f06b11",
         "client:stock_account:addons/stock_account/static/src/stock_valuation/controller.js:if:rpc:1": "5beee0f36b0b33b0f5caa5ce03e5f836429243213aceacdf86656baf32fad763",
         "route:http:ANY:/account/init_tests_shared_js_python": "eaeb15ea0f3c8df4bb57b1ca96c89bc34e1bf6211610228c54193cbd3a5d2070",
+        "route:http:GET:/usl/accounting/fec/<model(\"l10n_fr.fec.export.wizard\"):wizard>": "c6ae80d8ddea33570ab42a1bc60048f7d16f9c643cecadefea5eaa4df2f1392d",
         "route:jsonrpc:ANY:/account/post_tests_shared_js_python": "ccb7a30f4dd3aad5fe1519351083a934189fb4d606495711ad51a61a0a35a052",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_invoice:1": "9ececcccc6b3e5080ed51ea206174c1a3b20ba95eaca7787f8acd323bb41a067",
         "ui:account.account_analytic_account_view_form_inherit:button:object:action_view_vendor_bill:1": "636b1de62215c73228ad1b897ded95782536bbdd4f25683cd54166c25ca0956f",
@@ -174087,6 +174094,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "15c0ab56fe3dd6b34783a843b88cb2613dbc2c50bcdfcf53e0006d5a1e1c35bc",
+  "qualified_policy_digest": "593a9c717c4dccf5cd5865d6e6d625d439a7381066bc1c6704a5505f86ab47d5",
   "schema": "usl-action-risk-policy-v1"
 }

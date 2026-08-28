@@ -97,3 +97,11 @@ class L10nFrFecExportWizard(models.TransientModel):
                     ),
                 )
         return super().generate_fec()
+
+    def create_fec_report_action(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/usl/accounting/fec/{self.id}",
+            "target": "self",
+        }
