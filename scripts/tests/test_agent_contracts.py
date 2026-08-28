@@ -129,21 +129,44 @@ class AgentContractTests(unittest.TestCase):
         rendered = self.handoff.render(value)
         self.assertEqual(value, self.handoff.extract_body(rendered))
 
-    def test_rendered_contract_is_review_first_github_markdown(self) -> None:
+    def test_rendered_contract_is_human_first_github_markdown(self) -> None:
         value = self.handoff.initial_payload(
-            "agent-contract-test", "Readable PR handoff.", ["Reviewers see useful evidence first."], "origin/19-usl"
+            "agent-contract-test",
+            "People can understand the delivered workflow before reading implementation details.",
+            [
+                "Users see the complete outcome in plain language.",
+                "Reviewers still receive the technical evidence needed for integration.",
+            ],
+            "origin/19-usl",
         )
+        value["changes"]["user_facing"] = True
         value["verification"]["automated"] = [
             {"command": "python3 -m unittest", "result": "passed", "notes": "Focused tests passed."}
         ]
         rendered = self.handoff.render(value)
-        self.assertIn("## Overview", rendered)
-        self.assertIn("## Acceptance criteria", rendered)
+        self.assertTrue(rendered.startswith("## What this delivers\n"))
+        self.assertIn("### What users can expect", rendered)
+        self.assertIn("## Review snapshot", rendered)
+        self.assertIn("## Implementation scope", rendered)
         self.assertIn("| ✅ Passed | `python3 -m unittest` |", rendered)
         self.assertIn("<summary>Machine-readable handoff contract (v1)</summary>", rendered)
         self.assertIn("No database migration or feature QA environment is required", rendered)
         self.assertNotIn("### Known issues", rendered)
+        self.assertLess(rendered.index("Users see the complete outcome"), rendered.index("**Source:**"))
+        self.assertLess(rendered.index("Reviewers still receive"), rendered.index("**Source:**"))
         self.assertLess(rendered.index("## Validation"), rendered.index("```json"))
+
+    def test_non_user_facing_pr_starts_with_operator_outcomes(self) -> None:
+        value = self.handoff.initial_payload(
+            "agent-contract-test",
+            "Maintainers get a safer release workflow without changing the product interface.",
+            ["Operators can identify and recover a failed release."],
+            "origin/19-usl",
+        )
+        rendered = self.handoff.render(value)
+        self.assertTrue(rendered.startswith("## What this delivers\n"))
+        self.assertIn("### What operators and maintainers can expect", rendered)
+        self.assertLess(rendered.index("Operators can identify"), rendered.index("**Source:**"))
 
     def test_rendered_tables_escape_github_markdown_cells(self) -> None:
         value = self.handoff.initial_payload(

@@ -247,24 +247,31 @@ def render(value: dict[str, Any]) -> str:
     if changes["dependencies_changed"]:
         change_flags.append("dependencies")
     flags = ", ".join(change_flags) if change_flags else "no schema, configuration, or dependency changes"
+    outcomes_heading = (
+        "What users can expect"
+        if changes["user_facing"]
+        else "What operators and maintainers can expect"
+    )
     lines = [
-        "## Overview",
+        "## What this delivers",
         "",
         str(value["goal"]["summary"]),
         "",
+        f"### {outcomes_heading}",
+        "",
+        *bullets(value["goal"]["acceptance"]),
+        "",
         f"> [!{alert}]",
         f"> **{status_label}.** {str(readiness['rationale']).replace(chr(10), ' ')}",
+        "",
+        "## Review snapshot",
         "",
         f"- **Source:** `{feature['branch']}` at `{feature['head_sha'][:12]}`",
         f"- **Scope:** {len(changes['paths'])} changed paths; {modules}",
         f"- **Change risk:** {flags}; data-loss risk **{migration['data_loss_risk']}**",
         f"- **QA:** {'required' if qa['required'] else 'not required'}; status **{qa['status']}**",
         "",
-        "## Acceptance criteria",
-        "",
-        *bullets(value["goal"]["acceptance"]),
-        "",
-        "## What changed",
+        "## Implementation scope",
         "",
         f"- **Modules:** {modules}",
         f"- **User-facing behavior:** {yes_no(changes['user_facing'])}",

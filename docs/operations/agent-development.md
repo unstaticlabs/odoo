@@ -209,8 +209,8 @@ Create an ignored v1 JSON artifact after implementation:
 ```bash
 scripts/agent/handoff init \
   --identifier my-feature \
-  --goal "State the delivered outcome" \
-  --acceptance "State one observable acceptance criterion"
+  --goal "Explain in plain language what this delivers, for whom, and why it matters" \
+  --acceptance "State each observable user or operator outcome"
 ```
 
 Edit the generated `artifacts/agent/handoffs/my-feature.json`. Record actual
@@ -219,6 +219,15 @@ architecture alternatives, changed modules and paths, schema/config/dependency
 effects, upgrade modules, forward/recovery procedures, data-loss and
 irreversibility risk, resources preserved, overlaps, known issues, unverified
 assumptions, release steps, post-merge checks, verdict and blockers.
+
+Treat `goal.summary` and `goal.acceptance` as product communication, not an
+implementation changelog. The summary is a concise plain-language description
+of the delivered capability, affected people, and practical value. The
+acceptance list completes that description exhaustively with observable
+journeys, permissions, failure or degraded behavior, and material limitations.
+For a technical-only change, describe the operator or maintainer outcome. Put
+modules, models, paths, architecture and command evidence in their dedicated
+technical fields instead of leading with them.
 
 Also add exactly one canonical line to `integration.concerns`:
 
@@ -245,13 +254,14 @@ scripts/agent/github pr --handoff artifacts/agent/handoffs/my-feature.json
 ```
 
 The PR body is the canonical handoff surface. It renders the contract as
-review-first GitHub Markdown: summary, acceptance, scope, decisions, evidence,
-migration/QA, integration, release and limitation sections. A collapsed,
-delimited canonical JSON block remains suitable for validation and later AI
-Pipelines. The local artifact is intentionally ignored. Readiness validation
-rejects stale branch, head or worktree evidence, dirty state, an unpushed head,
-invalid commit attribution, and a target/head pair for which Git cannot
-construct a conflict-free merge candidate. The recorded `feature.base_sha`
+human-first GitHub Markdown. It starts with **What this delivers** and the
+complete user or operator outcomes, then presents review status, implementation
+scope, decisions, evidence, migration/QA, integration, release and limitations.
+A collapsed, delimited canonical JSON block remains suitable for validation
+and later AI Pipelines. The local artifact is intentionally ignored. Readiness
+validation rejects stale branch, head or worktree evidence, dirty state, an
+unpushed head, invalid commit attribution, and a target/head pair for which Git
+cannot construct a conflict-free merge candidate. The recorded `feature.base_sha`
 remains historical evidence and may precede the current fetched target tip.
 The PR helper uses the contract's
 validated `feature.base`, stripping only the local `origin/` qualifier, so an

@@ -47,9 +47,12 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
 
 1. Read `AGENTS.md` and the complete machine-readable v1 contract sent directly
    in the Coding task's handoff message. Validate or materialize that exact
-   contract, and cross-check its generated PR summary, acceptance criteria,
-   verification, migration, QA, limitations, release sections, branch, head,
-   PR URL, and handoff-mode line. A summary-only message is not a valid handoff.
+   contract, and cross-check its generated PR delivery description, outcome
+   list, verification, migration, QA, limitations, release sections, branch,
+   head, PR URL, and handoff-mode line. The PR must explain in plain language
+   what people can do or operate differently before presenting modules, SHAs,
+   files, or architecture, and its outcome list must cover all material
+   delivered behavior. A summary-only message is not a valid handoff.
 2. Fetch the latest remote state while keeping the authoritative `19-usl`
    checkout clean; inspect feature refs without creating a purpose branch.
 3. Materialize the handoff locally if needed and run `scripts/agent/verify lead-start --handoff PATH`.
