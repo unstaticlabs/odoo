@@ -72,11 +72,12 @@
                                             Nothing needs attention here.
                                         </div>
                                     </div>
-                                    <div t-if="content.more_action" class="card-footer bg-transparent">
-                                        <button type="button" class="btn btn-link px-0"
+                                    <div t-if="content.more_action" class="card-footer bg-transparent p-0">
+                                        <button type="button"
+                                                class="btn btn-link usl_sign_more_action w-100 d-flex align-items-center justify-content-between gap-3 px-3 py-2 text-start text-decoration-none"
                                                 t-on-click="() => this.viewMore(content.more_action)">
                                             Show more
-                                            <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                                            <i class="fa fa-arrow-right" aria-hidden="true"/>
                                         </button>
                                     </div>
                                 </div>
