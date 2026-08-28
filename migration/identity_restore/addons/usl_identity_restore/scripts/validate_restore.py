@@ -450,6 +450,40 @@ else:
             filter_users.get(row["id"], []),
         )
 
+    home = preference_dispositions["home"]
+    valentin = env["res.users"].sudo().search(
+        [("login", "=", home["user_login"])],
+        limit=1,
+    )
+    assert valentin, "Valentin is missing after Home preference restoration"
+    assert valentin.action_id.id == env.ref("usl_home.action_usl_home").id
+    settings = env["res.users.settings"].sudo()._find_or_create_for_user(valentin)
+    assert settings.usl_home_layout == home["layout"]
+    assert settings.usl_home_favorites_initialized
+    home_favorites = env["usl.home.favorite"].sudo().search(
+        [("user_id", "=", valentin.id)],
+        order="sequence, id",
+    )
+    assert len(home_favorites) == home["favorite_count"]
+    assert home_favorites.mapped("name") == home["favorite_names"]
+    assert home["saved_filter_source_ids"] == [14, 6]
+    assert home_favorites.filtered(
+        lambda favorite: favorite.filter_id.id in target_filter_ids,
+    ).mapped("filter_id").ids == [
+        target_filter_ids[
+            [
+                item["id"]
+                for item in source["filters"]
+                if item["id"] in MIGRATED_FILTER_IDS
+            ].index(source_id)
+        ]
+        for source_id in home["saved_filter_source_ids"]
+    ]
+    assert all(
+        favorite.user_id == valentin
+        for favorite in home_favorites
+    )
+
 # Credential-bearing source fields are intentionally absent from the reader and
 # cannot enter the target. Authentication is re-enrolled through Pocket ID.
 assert "password" not in source["users"][0]

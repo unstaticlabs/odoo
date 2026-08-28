@@ -34,6 +34,22 @@ available widgets and company-sensitive data.
 Widget visibility and order live in `res.users.settings.usl_home_layout`.
 Favorites belong to `usl.home.favorite` and are protected by an own-user rule.
 Unavailable favorites retain only a generic removable placeholder in Home.
+Favorite rows identify their destination type (project, saved view, accounting,
+or AI workspace) so a user can distinguish two similarly named routes without
+opening them. The surface uses a compact two-column destination list on wider
+screens and one column on narrow screens; this increases useful density without
+introducing another launcher or hiding keyboard order.
+
+The production reconstruction gives Valentin an opinionated first-run setup
+from the protected Online dump. The temporary Identity preference stage uses
+the restored administrator mapping, native saved filters, and restored Project
+favorite relationships; it never stores source IDs in `usl_home`. It selects
+My Tasks, at most four operational source-favorite projects, available AI and
+Accounting workspaces, and the durable supplier-invoice and FY2526 bank-review
+saved views. Redundant Activities and transient cutover filters remain
+available in their native applications but do not crowd Home. Replaying the
+migration is idempotent; personalization after the shipped migration remains
+owned by Valentin and is not reset by product upgrades.
 
 New widgets must use a bounded provider method on `usl.home.service`, declare a
 stable widget key and availability rule, and navigate into an existing product
