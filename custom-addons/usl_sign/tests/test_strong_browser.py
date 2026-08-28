@@ -1475,10 +1475,17 @@ class TestSignBrowserJourneys(HttpCase):
                         !processingStatus?.textContent.includes(
                             "Saving and checking your signature",
                         ) ||
-                        !processing.querySelector(
-                            ".usl_sign_processing_spinner_track",
+                        !processing.querySelector(".usl_sign_processing_scan_band") ||
+                        !processing.querySelector(".usl_sign_processing_scan_edge") ||
+                        getComputedStyle(
+                            processing.querySelector(".usl_sign_processing_scan"),
+                        ).animationName !== "usl-sign-processing-scan" ||
+                        getComputedStyle(
+                            processing.querySelector(".usl_sign_processing_signature"),
+                        ).animationName !== "none" ||
+                        processing.querySelector(
+                            ".usl_sign_processing_spinner_track, .usl_sign_processing_spinner",
                         ) ||
-                        !processing.querySelector(".usl_sign_processing_spinner") ||
                         processing.querySelector(
                             ".usl_sign_processing_check, .usl_sign_processing_seal",
                         ) ||
