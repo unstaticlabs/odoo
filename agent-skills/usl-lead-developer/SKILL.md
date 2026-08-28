@@ -1,6 +1,6 @@
 ---
 name: usl-lead-developer
-description: Maintain the authoritative Unstatic Labs Odoo development checkout as Lead Agent, dispatch Coding tasks, and independently qualify and integrate approved green pull requests. Use for implementation dispatch, handoff review, integration decisions, merging, or safe post-merge cleanup; not for authoring ordinary changes.
+description: Maintain the authoritative Unstatic Labs Odoo development checkout as Lead Agent, dispatch Coding tasks, and independently qualify and integrate reviewed pull requests. Use for implementation dispatch, handoff review, integration decisions, merging, or safe post-merge cleanup; not for authoring ordinary changes.
 ---
 
 # USL Lead Agent
@@ -33,9 +33,8 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
    the local credential source for newly provisioned Coding worktrees. Copy
    only that profile into the new worktree's ignored `.agent/gh/`; each Coding
    task must configure and verify its own worktree-local author separately.
-6. A human approval at the handoff gate authorizes Coding to route the work to
-   Lead; it is separate from the independent GitHub PR approval required for
-   merge.
+6. A human approval at the optional handoff gate authorizes Coding to route the
+   work to Lead. GitHub does not require an independent PR approval count.
 7. Never use a browser for Git or GitHub work. Perform repository inspection,
    diffs, PR review, checks, comments, approval-state inspection, and merge
    operations through terminal Git and authenticated GitHub CLI/API or
@@ -72,16 +71,13 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
 1. Require a clean, pushed, queue-eligible feature head and a handoff whose
    readiness is supported by evidence. The feature need not contain the latest
    `19-usl` when Git can construct a conflict-free candidate.
-2. Fetch the current development branch and rerun final integration checks on
-   the merge-queue candidate. Dispatch manual catch-up only for a real
-   conflict, dependency or stack change, generated-state reconciliation, or
-   failed `merge_group` qualification.
-3. Because Lead and Coding both use GitHub as `@elio-usl`, never self-approve or
-   count Lead review as independent approval. Require Valentin or another
-   authorized independent human to approve, require green checks, then enqueue
-   the reviewed PR. Keep queue merge method `merge`, group size one, and only
-   non-failing entries so the resulting commit preserves merge ancestry. Do
-   not bypass GitHub checks or manually deploy production.
+2. Fetch the current development branch and rerun the risk-proportionate local
+   integration checks. Dispatch manual catch-up only for a real conflict,
+   dependency or stack change, or generated-state reconciliation.
+3. Lead review is the integration decision. GitHub does not require an
+   independent approval count or status checks. Enqueue the reviewed PR using
+   merge commits and group size one so ancestry is preserved. Do not manually
+   deploy production; OCI images publish only after the merge reaches `19-usl`.
 4. Confirm post-merge CI results and hand the merged state to CI for any governed release process.
 5. Only after merge and CI are satisfactory, remove feature-specific QA resources with the exact project confirmation. Never remove foreign, shared, canonical, or persistent resources.
 

@@ -95,14 +95,11 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
                 if re.match(r"\s*uses:\s*", line):
                     self.assertRegex(line, r"uses:\s+[^@\s]+@[0-9a-f]{40}(?:\s+#.*)?$", workflow)
 
-    def test_pr_qualification_has_no_write_permission_or_secret(self) -> None:
-        qualify = self.workflow.split("\n  publish:\n", 1)[0]
-        self.assertIn("python3 -m unittest scripts.tests.test_distribution_release", qualify)
-        self.assertNotIn("packages: write", qualify)
-        self.assertNotIn("id-token: write", qualify)
-        self.assertNotIn("attestations: write", qualify)
-        self.assertNotIn("artifact-metadata: write", qualify)
-        self.assertNotIn("secrets.", qualify)
+    def test_workflow_runs_only_after_19_usl_push(self) -> None:
+        self.assertIn("push:\n    branches:\n      - 19-usl", self.workflow)
+        self.assertNotIn("pull_request:", self.workflow)
+        self.assertNotIn("merge_group:", self.workflow)
+        self.assertNotIn("workflow_dispatch:", self.workflow)
 
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)
@@ -118,37 +115,17 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("backup_tool_digest_reference:", self.workflow)
         self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
 
-    def test_pr_qualification_builds_but_never_pushes_backup_tool(self) -> None:
-        qualify = self.workflow.split("\n  publish:\n", 1)[0]
-        self.assertIn("Build backup tool without publishing", qualify)
-        self.assertIn("push: false", qualify)
-        self.assertNotIn("docker/login-action", qualify)
-        self.assertNotIn("RESTIC_PASSWORD", qualify)
-
     def test_both_release_images_receive_sbom_and_provenance(self) -> None:
-        publish = self.workflow.split("\n  publish:\n", 1)[1]
+        publish = self.workflow
         self.assertGreaterEqual(publish.count("provenance: mode=max"), 2)
         self.assertGreaterEqual(publish.count("sbom: true"), 2)
         self.assertGreaterEqual(publish.count("uses: actions/attest@"), 2)
         publish_permissions = publish.split("    outputs:\n", 1)[0]
         self.assertIn("artifact-metadata: write", publish_permissions)
 
-    def test_merge_group_qualifies_without_publication_permissions(self) -> None:
-        qualify = self.workflow.split("\n  publish:\n", 1)[0]
-        publish = self.workflow.split("\n  publish:\n", 1)[1]
-        self.assertIn("merge_group:\n    types: [checks_requested]", self.workflow)
-        for permission in (
-            "packages: write",
-            "id-token: write",
-            "attestations: write",
-            "artifact-metadata: write",
-        ):
-            self.assertNotIn(permission, qualify)
-        self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'", publish)
-
     def test_only_19_usl_pushes_can_publish(self) -> None:
-        self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'", self.workflow)
-        self.assertIn("push: false", self.workflow)
+        self.assertIn("push:\n    branches:\n      - 19-usl", self.workflow)
+        self.assertNotIn("push: false", self.workflow)
         self.assertIn("push: true", self.workflow)
 
     def test_release_metadata_is_uploaded_for_downstream_consumers(self) -> None:

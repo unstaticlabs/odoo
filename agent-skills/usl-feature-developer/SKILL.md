@@ -58,8 +58,8 @@ required by the UI quality workflow.
 A clean pushed branch does not routinely catch up merely because `19-usl`
 advanced. Fetch the target and use the handoff/readiness check to prove Git can
 construct a conflict-free queue candidate. Catch up deliberately only for a
-real conflict, dependency or stack change, generated-state reconciliation, or
-failed `merge_group` qualification. In those cases inspect both histories and
+real conflict, dependency or stack change, or generated-state reconciliation.
+In those cases inspect both histories and
 local state, choose rebase or merge deliberately, preserve uncommitted work,
 and rerun affected validation. Do not force-push unless the branch is
 agent-owned and rewriting it is explicitly acceptable.
@@ -115,5 +115,10 @@ agent-owned and rewriting it is explicitly acceptable.
    worktree, QA resources, and other named evidence available and stop without
    polling, waiting for a reply, merging, or deploying. Wait only when
    genuinely blocked on a Lead decision.
+
+GitHub runs no PR or merge-group compute checks and requires no independent
+approval count. The Coding Agent must therefore make the handoff evidence
+complete and truthful; the Lead's local review is the integration gate. OCI
+images are built and published only after a merge reaches `19-usl`.
 
 Use `docs/operations/agent-development.md` for command examples, the contract field guide, and transition details.

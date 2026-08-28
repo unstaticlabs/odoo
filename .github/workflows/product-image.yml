@@ -1,185 +1,27 @@
-# Qualify pull requests and publish the production Distribution image exactly
-# once per 19-usl commit. Deployment systems consume the digest artifact; they
-# never rebuild the image or treat a mutable tag as release identity.
+# Publish the production Distribution image exactly once after a commit lands
+# on 19-usl. Pull requests are qualified locally by their Coding and Lead
+# workflows; GitHub does not rebuild the product for candidate branches.
 name: Distribution image
 
 on:
-  # Run on stacked pull requests too; publish remains restricted to 19-usl.
-  pull_request:
-  merge_group:
-    types: [checks_requested]
   push:
     branches:
       - 19-usl
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: distribution-image-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: distribution-image-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   DISTRIBUTION_IMAGE: ghcr.io/unstaticlabs/usl-odoo
   BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup
 
 jobs:
-  qualify:
-    name: Qualify repository and image
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      USL_EINVOICE_LIVE_ENABLED: "0"
-      USL_EREPORTING_LIVE_ENABLED: "0"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Sync pinned OCA add-ons
-        run: scripts/sync-oca-addons
-
-      - name: Select qualified Python runtime
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-
-      - name: Run release pipeline unit checks
-        run: python3 -m unittest scripts.tests.test_distribution_release scripts.tests.test_odoo_backup
-
-      - name: Check reviewed source action inventory
-        run: make action-risk-inventory
-
-      - name: Run access-control suite on the delivered product registry
-        env:
-          COMPOSE_PROJECT_NAME: usl-odoo-action-risk-${{ github.run_id }}-${{ github.run_attempt }}
-          TEST_DATABASE: odoo_action_risk_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
-          docker compose --profile test run --rm \
-            -e ODOO_INIT_DB="$TEST_DATABASE" \
-            test odoo --config=/etc/odoo/odoo.conf \
-            --database="$TEST_DATABASE" \
-            --init="$product_modules" \
-            --without-demo=true \
-            --stop-after-init \
-            --log-level=warn
-          docker compose --profile test run --rm -T \
-            -e ODOO_INIT_DB="$TEST_DATABASE" \
-            test odoo shell --config=/etc/odoo/odoo.conf \
-            --database="$TEST_DATABASE" \
-            --shell-interface=python \
-            < scripts/odoo/enforce_product_module_scope.py
-          docker compose --profile test run --rm \
-            -e ODOO_INIT_DB="$TEST_DATABASE" \
-            test odoo --config=/etc/odoo/odoo.conf \
-            --database="$TEST_DATABASE" \
-            --update="$product_modules" \
-            --without-demo=true \
-            --test-enable \
-            --test-tags=/usl_access_control \
-            --stop-after-init \
-            --log-level=warn
-          docker compose --profile test run --rm -T \
-            -e ODOO_INIT_DB="$TEST_DATABASE" \
-            -e ACTION_RISK_MODE=check \
-            test odoo shell --config=/etc/odoo/odoo.conf \
-            --database="$TEST_DATABASE" \
-            --shell-interface=python \
-            < scripts/odoo/action_risk_inventory.py
-          docker compose --profile test run --rm -T \
-            -e ODOO_INIT_DB="$TEST_DATABASE" \
-            test odoo shell --config=/etc/odoo/odoo.conf \
-            --database="$TEST_DATABASE" \
-            --shell-interface=python \
-            < scripts/odoo/compile_product_assets.py
-
-      - name: Remove qualification services and volumes
-        if: always()
-        env:
-          COMPOSE_PROJECT_NAME: usl-odoo-action-risk-${{ github.run_id }}-${{ github.run_attempt }}
-        run: docker compose --profile test down --volumes --remove-orphans
-
-      - name: Resolve image labels
-        if: github.event_name != 'push'
-        id: release
-        run: |
-          oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
-          action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
-          echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
-          echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Docker Buildx for build validation
-        if: github.event_name != 'push'
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: Build Distribution image without publishing
-        if: github.event_name != 'push'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          target: distribution
-          push: false
-          load: true
-          tags: usl-odoo-ci:sha-${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          build-args: |
-            USL_RELEASE_COMMIT=${{ github.sha }}
-            USL_OCA_BUNDLE_SHA256=${{ steps.release.outputs.oca_digest }}
-            USL_ACTION_RISK_POLICY_SHA256=${{ steps.release.outputs.action_risk_digest }}
-          provenance: false
-          sbom: false
-          cache-from: type=gha,scope=distribution
-
-      - name: Verify locally built Distribution image
-        if: github.event_name != 'push'
-        env:
-          IMAGE: usl-odoo-ci:sha-${{ github.sha }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-          EXPECTED_OCA: ${{ steps.release.outputs.oca_digest }}
-          EXPECTED_ACTION_RISK: ${{ steps.release.outputs.action_risk_digest }}
-        run: |
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
-
-      - name: Build backup tool without publishing
-        if: github.event_name != 'push'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          file: docker/backup.Dockerfile
-          push: false
-          load: true
-          tags: usl-odoo-backup-ci:sha-${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          build-args: |
-            USL_RELEASE_COMMIT=${{ github.sha }}
-          provenance: false
-          sbom: false
-          cache-from: type=gha,scope=backup-tool
-
-      - name: Verify locally built backup tool
-        if: github.event_name != 'push'
-        env:
-          IMAGE: usl-odoo-backup-ci:sha-${{ github.sha }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = backup
-          docker run --rm --entrypoint pg_dump "$IMAGE" --version | grep -Eq ' 16([.]|$)'
-          docker run --rm --entrypoint restic "$IMAGE" version | grep -Eq '^restic 0[.]19[.]1'
-          docker run --rm "$IMAGE" --help >/dev/null
-
   publish:
     name: Publish immutable Distribution image
-    needs: qualify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:

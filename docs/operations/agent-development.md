@@ -19,14 +19,14 @@ work state. The GitHub PR owns the engineering diff, review, CI and technical
 handoff. Record links in both systems manually until orchestration is added.
 
 The repository remains in `migration-transition`. The one-off Online to
-Community cutover is governed by its existing runbooks. The target continuous
-model is already the rule for new ordinary development, but its GitHub checks
-remain advisory until cutover admission. Production deployment is never an
-ordinary Coding or Lead Agent action.
+Community cutover is governed by its existing runbooks. GitHub keeps static
+branch and merge-queue rules but runs no PR or merge-group compute checks and
+requires no approval count. Production deployment is never an ordinary Coding
+or Lead Agent action.
 
 The persistent Codex task titled exactly `19-usl - Lead` owns the Lead Agent
 role and the clean authoritative `19-usl` checkout. The Lead reviews, runs QA,
-makes integration decisions, and merges only approved green PRs. It does not
+makes integration decisions, and merges only reviewed, merge-ready PRs. It does not
 create purpose branches or implement or author ordinary product, migration,
 feature, fix, chore, documentation, or conflict-repair commits. Its local Git
 name is `Lead Agent`, it normally produces no commits, and GitHub remains
@@ -70,8 +70,8 @@ and uses specialist Skills for UI, migration, accounting and access-control
 risk. Fetch `19-usl` before readiness, but do not routinely rewrite a clean
 pushed feature merely because the target advanced. The branch is queue-eligible
 when Git can construct a conflict-free candidate. Manual catch-up is required
-only for a real conflict, dependency or stack change, generated-state
-reconciliation, or failed `merge_group` qualification; then inspect both
+only for a real conflict, dependency or stack change, or generated-state
+reconciliation; then inspect both
 deltas, preserve uncommitted work, choose merge or rebase deliberately, and
 rerun affected checks. Never edit another worktree or discard published
 history for cosmetic reasons.
@@ -298,37 +298,32 @@ The Lead Agent compares with the latest `origin/19-usl` and concurrent
 work; detects duplicate or obsolete paths; qualifies architecture, security,
 accounting, upgrades, recovery, tests and product/browser evidence; and either
 dispatches a separate Coding task for a scoped repair or rejects the PR. The
-Lead never authors the repair, including conflict repair. Final checks run on
-the exact merge-queue candidate. A clean pushed head can proceed without
+Lead never authors the repair, including conflict repair. Final
+risk-proportionate checks run locally against the exact merge candidate. A clean pushed head can proceed without
 containing the target tip when Git can merge it cleanly; catch-up is reserved
-for conflicts, dependency/stack changes, generated-state reconciliation, or a
-failed merge-group run.
+for conflicts, dependency/stack changes, or generated-state reconciliation.
 
-Lead and Coding authenticate to GitHub as the same `@elio-usl` account, so Lead
-review cannot provide independent approval for a PR authored by that account.
-The Lead must never self-approve. Valentin or another authorized independent
-human must approve, all required checks must be green, and only then may the
-Lead enqueue the reviewed PR. The queue uses merge commits and single-entry
-groups, so CI receives the ancestry-preserving merged state;
+Lead review is the integration decision. GitHub requires neither an independent
+approval count nor status checks. Once the Lead accepts the evidence and exact
+candidate, it may enqueue the PR. The queue uses merge commits and single-entry
+groups, preserving reviewed ancestry;
 neither role manually deploys production. Owned QA/worktree cleanup follows
-merge and successful CI only.
+merge and successful post-merge OCI publication only.
 
 ## Merge queue admission
 
 The repository does not maintain a general GitHub-settings platform. The
 narrow desired state is therefore stored in `agent/policy.json` and applied by
 the existing isolated GitHub helper. The operation updates the active
-`USL Distribution` ruleset in place and preserves its deletion,
-non-fast-forward, pull-request, bypass, and any additional required-check
-rules. It refuses a linear-history rule, a disabled merge-commit repository,
+`USL Distribution` ruleset in place, preserves deletion, non-fast-forward,
+pull-request and bypass rules, and removes required-status-check rules. It
+refuses a linear-history rule, a disabled merge-commit repository,
 a dirty or stale Lead checkout, a non-Lead identity, or a prerequisite commit
 that is not an ancestor of GitHub `19-usl`.
 
-Admission order is strict because enabling the queue before its workflows
-handle `merge_group` would strand candidates:
+To update the queue policy:
 
-1. Merge the prerequisite workflow/policy PR by the existing reviewed
-   merge-commit path. Do not enable the queue from its Coding worktree.
+1. Merge the reviewed policy change. Do not update GitHub from its Coding worktree.
 2. In the persistent `19-usl - Lead` task, fetch and update the clean
    authoritative checkout to the GitHub tip.
 3. Preview the idempotent payload, using the merged prerequisite PR head SHA:
@@ -345,18 +340,15 @@ handle `merge_group` would strand candidates:
    ```
 
 5. Re-run the preview; it must report that the ruleset already matches policy.
-   Enqueue the next approved PR and confirm both `contracts` and
-   `Qualify repository and image` run on its `merge_group` candidate.
 
-The reviewed settings are merge method `MERGE`, required checks `contracts`
-and `Qualify repository and image`, `ALLGREEN` (only non-failing entries),
+The reviewed settings are merge method `MERGE`, no required status checks,
+`ALLGREEN`,
 minimum and maximum group size `1`, build concurrency `2`, zero group wait,
-and a 120-minute check-response timeout. `strict_required_status_checks_policy`
-is false because the queue, rather than manual feature-branch catch-up,
-constructs and qualifies the current target candidate. Both required workflows
-listen for `merge_group/checks_requested`. The Distribution publish job still
-requires an actual `push` to `refs/heads/19-usl`; queue candidates cannot write
-packages, attestations, release metadata, deployments, or production artifacts.
+and a 120-minute response timeout. The queue constructs the current target
+candidate without running GitHub compute qualification. The sole workflow runs
+only on an actual `push` to `refs/heads/19-usl` and publishes the immutable
+Distribution and backup-tool OCI artifacts, SBOMs, attestations and release
+metadata.
 
 ## Transition to continuous delivery
 
@@ -365,10 +357,11 @@ becomes canonical:
 
 1. Change `agent/policy.json` phase to `continuous-development` and all three
    enforcement values to `required` in a reviewed policy PR.
-2. Promote the active `USL Distribution` ruleset to full post-cutover
-   enforcement: retain the reviewed merge queue and required checks, forbid
-   direct pushes, require reviewed PRs and independent approval, preserve
-   merge commits, and keep narrowly controlled bypass actors.
+2. Retain the active `USL Distribution` static protections: merge queue,
+   pull-request integration, deletion and non-fast-forward protection, merge
+   commits, and narrowly controlled bypass actors. Do not introduce required
+   checks or an approval count without a new explicit cost and governance
+   decision.
 3. Activate the production backup stack, then add the deployment pipeline with
    preflight, quiesced checkpoint, module/data upgrade, digest deployment,
    verification, and tested recovery. Set
@@ -377,9 +370,8 @@ becomes canonical:
    retain the Online dump as a rollback assumption.
 
 Repository scripts cannot prevent a determined bypass, prove that Feature and
-Lead were separate people, or protect GitHub itself. Those hard guarantees
-belong to the post-cutover ruleset, distinct identities, required checks and CI
-permissions.
+Lead were separate people, or protect GitHub itself. Those guarantees depend on
+the static ruleset, role discipline and narrowly scoped CI permissions.
 
 ## Skill ownership and portability
 

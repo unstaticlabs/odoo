@@ -19,10 +19,7 @@
     "credential_transport": "isolated-https",
     "merge_queue": {
       "ruleset": "USL Distribution",
-      "required_status_checks": [
-        "contracts",
-        "Qualify repository and image"
-      ],
+      "required_status_checks": [],
       "check_response_timeout_minutes": 120,
       "grouping_strategy": "ALLGREEN",
       "max_entries_to_build": 2,
