@@ -170,7 +170,10 @@ async function evaluate(client, sessionId, expression, {userGesture = false} = {
         sessionId
     );
     if (result.exceptionDetails) {
-        throw new Error(result.exceptionDetails.text || "Browser evaluation failed");
+        const exception = result.exceptionDetails.exception?.description
+            || result.exceptionDetails.exception?.value
+            || result.exceptionDetails.text;
+        throw new Error(exception || "Browser evaluation failed");
     }
     return result.result?.value;
 }
@@ -533,12 +536,22 @@ async function completeStrongSigner({client, identity, signing, env, trackedSess
             }
             adoptButton.click();
             for (let attempt = 0; attempt < 200; attempt++) {
-                if (iframe.contentDocument.querySelector(".o_sign_oca_field img")) {
+                if (document.getElementById("usl_sign_consent")) {
                     return true;
                 }
+                const emptyField = Array.from(
+                    iframe.contentDocument.querySelectorAll('.o_sign_oca_field [role="button"]')
+                ).find((candidate) => !candidate.closest(".o_sign_oca_field")?.querySelector("img"));
+                if (emptyField) {
+                    emptyField.click();
+                }
+                const repeatAdopt = Array.from(
+                    document.querySelectorAll(".modal .btn-primary")
+                ).find((candidate) => candidate.textContent.includes("Adopt") && !candidate.disabled);
+                repeatAdopt?.click();
                 await new Promise((resolve) => setTimeout(resolve, 50));
             }
-            throw new Error("The adopted personal signature was not placed");
+            throw new Error("The repeated personal signature fields were not completed");
         })()`
     );
     await evaluate(

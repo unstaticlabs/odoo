@@ -43,23 +43,26 @@ roles = env.ref("sign_oca.sign_role_customer") | env.ref("sign_oca.sign_role_emp
 field = env.ref("sign_oca.sign_field_signature")
 policy = env.ref("usl_sign.policy_material_recurring_strong")
 layout = {}
+item_id = 0
 for sequence, role in enumerate(roles, start=1):
-    layout[str(sequence)] = {
-        "id": sequence,
-        "field_id": field.id,
-        "field_type": field.field_type,
-        "required": True,
-        "name": field.name,
-        "role_id": role.id,
-        "page": 1,
-        "position_x": 12,
-        "position_y": 12 + sequence * 12,
-        "width": 30,
-        "height": 8,
-        "value": False,
-        "default_value": field.default_value,
-        "placeholder": "",
-    }
+    for placement in range(2):
+        item_id += 1
+        layout[str(item_id)] = {
+            "id": item_id,
+            "field_id": field.id,
+            "field_type": field.field_type,
+            "required": True,
+            "name": field.name,
+            "role_id": role.id,
+            "page": 1,
+            "position_x": 12 + placement * 34,
+            "position_y": 12 + sequence * 12,
+            "width": 30,
+            "height": 8,
+            "value": False,
+            "default_value": field.default_value,
+            "placeholder": "",
+        }
 run_id = os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", "qa")
 sign_request = env["sign.oca.request"].with_user(reviewer).create(
     {

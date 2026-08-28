@@ -1554,6 +1554,37 @@ class SignRequest(models.Model):
         self._editor_store_result(operation_uuid, result, data)
         return result
 
+    @staticmethod
+    def _strong_primary_signature_item_ids(layout):
+        signature_by_role = {}
+        fallback_by_role = {}
+        for key, item in sorted(layout.items(), key=lambda row: int(row[0])):
+            if item.get("field_type") != "signature":
+                continue
+            role_id = int(item["role_id"])
+            fallback_by_role.setdefault(role_id, str(key))
+            if item.get("kind") == "signature":
+                signature_by_role.setdefault(role_id, str(key))
+        return {
+            signature_by_role.get(role_id, fallback_id)
+            for role_id, fallback_id in fallback_by_role.items()
+        }
+
+    def _strong_reserved_field_descriptors(self, layout):
+        primary_ids = self._strong_primary_signature_item_ids(layout)
+        return [
+            {
+                "name": f"usl_sign_{int(key)}",
+                "page": int(item["page"]),
+                "position_x": float(item["position_x"]),
+                "position_y": float(item["position_y"]),
+                "width": float(item["width"]),
+                "height": float(item["height"]),
+            }
+            for key, item in sorted(layout.items(), key=lambda row: int(row[0]))
+            if str(key) not in primary_ids
+        ]
+
     def _freeze_document(self):
         self.ensure_one()
         if self.original_data:
@@ -1561,6 +1592,14 @@ class SignRequest(models.Model):
         consolidated, page_map = self.env["usl.sign.request.document"]._consolidate(
             self.document_ids,
         )
+        frozen_layout = json.loads(json.dumps(self.signatory_data or {}))
+        if self.requested_trust == "strong_personal":
+            reserved_fields = self._strong_reserved_field_descriptors(frozen_layout)
+            if reserved_fields:
+                consolidated = self._sign_dss_client().prepare_signing_fields(
+                    consolidated,
+                    reserved_fields,
+                )
         digest = hashlib.sha256(consolidated).hexdigest()
         consent_text = (
             "I have reviewed this exact document and authorize my strong personal "
@@ -1603,7 +1642,7 @@ class SignRequest(models.Model):
                 "original_sha256": digest,
                 "current_hash": digest,
                 "page_map": page_map,
-                "frozen_layout": json.loads(json.dumps(self.signatory_data or {})),
+                "frozen_layout": frozen_layout,
                 "template_version": self.template_id.version if self.template_id else 1,
                 "policy_version": self.policy_id.version if self.policy_id else "unconfigured",
                 "policy_snapshot": policy_snapshot,
@@ -4771,11 +4810,12 @@ class SignRequestSigner(models.Model):
         reader = PdfReader(BytesIO(current_document))
         writer = PdfWriter()
         pages = dict(enumerate(reader.pages, start=1))
-        incremental_overlays = []
+        incremental_fields = []
         pades_appearance_item_id = False
+        primary_signature_ids = request._strong_primary_signature_item_ids(frozen_layout)
         visible_field_values = 0
         signer_fields = {}
-        for key, configured in frozen_layout.items():
+        for key, configured in sorted(frozen_layout.items(), key=lambda row: int(row[0])):
             if int(configured["role_id"]) != self.role_id.id:
                 continue
             submitted = items.get(str(key), items.get(key))
@@ -4811,7 +4851,7 @@ class SignRequestSigner(models.Model):
                 if (
                     preserve_pdf_signatures
                     and item.get("field_type") == "signature"
-                    and not pades_appearance_item_id
+                    and str(key) in primary_signature_ids
                 ):
                     # DSS renders the primary adopted signature as the native
                     # PAdES field appearance in the same increment as the
@@ -4823,8 +4863,16 @@ class SignRequestSigner(models.Model):
                     overlay_writer = PdfWriter()
                     _add_page(overlay_writer, overlay)
                     overlay_writer.write(overlay_stream)
-                    incremental_overlays.append(
-                        {"page": page_number, "document": overlay_stream.getvalue()},
+                    incremental_fields.append(
+                        {
+                            "name": f"usl_sign_{int(key)}",
+                            "page": page_number,
+                            "position_x": float(item["position_x"]),
+                            "position_y": float(item["position_y"]),
+                            "width": float(item["width"]),
+                            "height": float(item["height"]),
+                            "document": overlay_stream.getvalue(),
+                        },
                     )
                 else:
                     merge = getattr(page, "merge_page", None) or getattr(page, "mergePage")
@@ -4837,11 +4885,11 @@ class SignRequestSigner(models.Model):
                 msg = "The signing payload contains no visible field values."
                 raise ValidationError(msg)
             candidate = (
-                request._sign_dss_client().apply_incremental_overlays(
+                request._sign_dss_client().fill_signing_fields(
                     current_document,
-                    incremental_overlays,
+                    incremental_fields,
                 )
-                if incremental_overlays
+                if incremental_fields
                 else current_document
             )
         else:

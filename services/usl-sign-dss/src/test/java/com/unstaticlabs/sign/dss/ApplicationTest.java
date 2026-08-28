@@ -1,7 +1,6 @@
 package com.unstaticlabs.sign.dss;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +13,7 @@ import java.util.Map;
 import eu.europa.esig.dss.pades.PAdESSignatureParameters;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.junit.jupiter.api.Test;
 
 final class ApplicationTest {
@@ -37,23 +37,18 @@ final class ApplicationTest {
     }
 
     @Test
-    void overlaysAreAppendedWithoutRewritingTheBaseRevision() throws Exception {
+    void signingFieldsAreReservedBeforeTheFirstSignature() throws Exception {
         byte[] base = blankPdf();
-        byte[] overlay = blankPdf();
+        Application.PdfFormField reserved = new Application.PdfFormField(
+                "usl_sign_7", 0, 12, 24, 30, 8, null);
 
-        byte[] result = Application.applyIncrementalOverlays(
-                base,
-                List.of(new Application.PdfOverlay(0, overlay)));
-
-        assertTrue(result.length > base.length);
-        assertArrayEquals(base, java.util.Arrays.copyOf(result, base.length));
-        assertFalse(startsWith(
-                result,
-                base.length,
-                "%PDF-".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
-        try (PDDocument parsed = org.apache.pdfbox.Loader.loadPDF(result)) {
-            assertEquals(1, parsed.getNumberOfPages());
+        byte[] prepared = Application.prepareSigningFields(base, List.of(reserved));
+        try (PDDocument parsed = org.apache.pdfbox.Loader.loadPDF(prepared)) {
+            PDAcroForm form = parsed.getDocumentCatalog().getAcroForm();
+            assertNotNull(form);
+            assertNotNull(form.getField("usl_sign_7"));
         }
+
     }
 
     @Test
@@ -77,18 +72,6 @@ final class ApplicationTest {
         assertEquals(1, parameters.getImageParameters().getFieldParameters().getPage());
         assertTrue(parameters.getImageParameters().getFieldParameters().getWidth() > 0);
         assertTrue(parameters.getImageParameters().getFieldParameters().getHeight() > 0);
-    }
-
-    private static boolean startsWith(byte[] value, int offset, byte[] expected) {
-        if (value.length < offset + expected.length) {
-            return false;
-        }
-        for (int index = 0; index < expected.length; index++) {
-            if (value[offset + index] != expected[index]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private static byte[] blankPdf() throws Exception {

@@ -23,6 +23,8 @@ DSS_RUNTIME_FINGERPRINT="$({
     services/usl-sign-dss/pom.xml \
     services/usl-sign-dss/pyhanko-requirements.txt \
     services/usl-sign-dss/pyhanko-validate.py \
+    services/usl-sign-dss/pyhanko-fill-fields.py \
+    services/usl-sign-dss/pyhanko-normalize-xref.py \
     services/usl-sign-dss/src/main/java/com/unstaticlabs/sign/dss/Application.java
 } | git hash-object --stdin | cut -c1-12)"
 
