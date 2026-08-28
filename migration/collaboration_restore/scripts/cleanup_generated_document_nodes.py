@@ -1,5 +1,7 @@
 """Remove obsolete PDF roots created for retired Documents folders and URLs."""
 
+from odoo.addons.usl_documents.models.paperless_client import PaperlessNotFound
+
 documents = env["usl.document"].sudo().search(
     [
         ("source", "=", "odoo_generated"),
@@ -12,18 +14,29 @@ if documents.sudo().link_ids.filtered("active"):
         "A generated legacy Documents node has an active business relationship",
     )
 
-paperless_ids = documents.filtered(
-    lambda document: document.availability_state != "permanently_deleted",
-).mapped("paperless_id")
 client = env["usl.document"]._paperless()
+paperless_ids = []
 for document in documents.filtered(
-    lambda candidate: candidate.availability_state == "available",
+    lambda candidate: candidate.availability_state != "permanently_deleted",
 ):
-    client.trash_document(document.paperless_id)
+    try:
+        client.get_document(document.paperless_id)
+    except PaperlessNotFound:
+        continue
+    if document.availability_state == "available":
+        client.trash_document(document.paperless_id)
+    paperless_ids.append(document.paperless_id)
 if paperless_ids:
     client.permanently_delete_trashed_documents(paperless_ids)
 
 document_ids = documents.ids
+env["usl.document.operation"].sudo().search(
+    [
+        "|",
+        ("document_id", "in", document_ids),
+        ("target_document_id", "in", document_ids),
+    ],
+).unlink()
 messages = env["mail.message"].sudo().search(
     [("model", "=", "usl.document"), ("res_id", "in", document_ids)],
 )
