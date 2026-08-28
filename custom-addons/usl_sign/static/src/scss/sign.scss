@@ -356,13 +356,15 @@
 }
 
 .usl_sign_processing_content {
-    width: min(100%, 31rem);
+    width: 100%;
+    max-width: 31rem;
     text-align: center;
 }
 
 .usl_sign_processing_motion {
     display: block;
-    width: min(100%, 15rem);
+    width: 100%;
+    max-width: 15rem;
     margin: 0 auto 1.25rem;
     contain: layout paint;
 }
@@ -944,47 +946,74 @@
 
 .usl_sign_start_wizard {
     .o_form_sheet {
-        max-width: 46rem;
+        max-width: 68rem;
     }
 }
 
-.usl_sign_start_section {
+.usl_sign_start_intro {
+    max-width: 62ch;
+}
+
+.usl_sign_start_source {
     margin-top: 1.25rem;
 
+    .o_horizontal {
+        gap: 1.5rem;
+    }
+}
+
+.usl_sign_start_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.usl_sign_start_block {
+    min-width: 0;
+
     h3 {
-        margin: 0 0 .25rem;
+        margin: 0 0 .75rem;
         font-size: 1.125rem;
         font-weight: 600;
     }
 
-    > p {
-        margin-bottom: .75rem;
+    .o_form_label {
+        display: block;
+        margin-bottom: .375rem;
+    }
+
+    .o_field_widget {
+        width: 100%;
     }
 }
 
-.usl_sign_step_label {
-    margin: 0 0 .125rem;
-    color: var(--o-brand-primary, #714b67);
-    font-size: .75rem;
-    font-weight: 700;
-    letter-spacing: .06em;
-    text-transform: uppercase;
+.usl_sign_start_template,
+.usl_sign_start_details,
+.usl_sign_start_method {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--o-border-color, #dee2e6);
 }
 
-.usl_sign_start_input {
-    padding: 1rem;
-    border: 1px solid var(--o-border-color, #dee2e6);
-    border-radius: .5rem;
-    background: var(--o-view-background-color, #fff);
+.usl_sign_start_details .usl_sign_start_grid {
+    margin-top: 0;
 }
 
-.usl_sign_start_more {
-    margin-top: 1.25rem;
+.usl_sign_start_field {
+    min-width: 0;
 
-    summary {
-        color: var(--o-gray-600, #6c757d);
-        cursor: pointer;
+    .o_field_widget {
+        width: 100%;
     }
+}
+
+.usl_sign_start_field_wide {
+    grid-column: 1 / -1;
+}
+
+.usl_sign_start_method > p {
+    margin: -.375rem 0 1rem;
 }
 
 .usl_sign_method_radio.o_field_radio .o_horizontal {
@@ -2065,6 +2094,15 @@
 }
 
 @media (max-width: 767.98px) {
+    .usl_sign_start_grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+
+    .usl_sign_start_field_wide {
+        grid-column: auto;
+    }
+
     .usl_sign_method_radio.o_field_radio .o_horizontal {
         grid-template-columns: minmax(0, 1fr);
     }

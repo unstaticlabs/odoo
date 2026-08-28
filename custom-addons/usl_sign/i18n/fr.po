@@ -1588,12 +1588,8 @@ msgstr "Choisissez un fichier PDF. Les autres formats ne sont pas pris en charge
 
 #. module: usl_sign
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
-msgid ""
-"Choose a document and its signers. You will place fields and check every detail before"
-" anything is sent."
-msgstr ""
-"Choisissez un document et ses signataires. Vous placerez les champs et vérifierez "
-"chaque détail avant tout envoi."
+msgid "Add the document, signers, and signing method. You will place fields next."
+msgstr "Ajoutez le document, les signataires et la méthode de signature. Vous placerez ensuite les champs."
 
 #. module: usl_sign
 #. odoo-javascript
@@ -6153,8 +6149,8 @@ msgstr "Nom de la demande"
 
 #. module: usl_sign
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
-msgid "Request name, message and linked record"
-msgstr "Nom de la demande, message et enregistrement lié"
+msgid "Request details"
+msgstr "Détails de la demande"
 
 #. module: usl_sign
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_kanban_usl

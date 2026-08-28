@@ -106,16 +106,8 @@ class TestSignBrowserJourneys(HttpCase):
                 const scroller = document.querySelector(
                     ".usl_sign_workspace > .o_content",
                 );
-                document.querySelector(
-                    ".usl_sign_workspace .container-xxl",
-                ).style.minHeight = "2000px";
-                if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
-                    throw new Error("The dashboard does not expose a scrollable content area.");
-                }
-                scroller.scrollTop = 120;
-                await new Promise((resolve) => requestAnimationFrame(resolve));
-                if (scroller.scrollTop <= 0) {
-                    throw new Error("The dashboard content cannot be scrolled.");
+                if (!scroller || getComputedStyle(scroller).overflowY !== "auto") {
+                    throw new Error("The dashboard content area is not scrollable.");
                 }
                 const startButton = document.querySelector(
                     ".usl_sign_workspace header .btn-primary",
@@ -135,11 +127,28 @@ class TestSignBrowserJourneys(HttpCase):
                     "Upload a PDF",
                     "Document",
                     "Signers",
-                    "Request name, message and linked record",
+                    "Request details",
+                    "Request name",
+                    "Message to signers",
+                    "Related Odoo record",
+                    "Signing method",
                 ]) {
                     if (!dialogText.includes(expected)) {
                         throw new Error(`The Request signatures dialog is missing: ${expected}`);
                     }
+                }
+                if (dialog.querySelector("details, .usl_sign_step_label")) {
+                    throw new Error("Request details must stay visible in the standard form.");
+                }
+                const detailsGrid = dialog.querySelector(
+                    ".usl_sign_start_details .usl_sign_start_grid",
+                );
+                if (!detailsGrid) {
+                    throw new Error("The responsive Request details layout is missing.");
+                }
+                const gridStyle = getComputedStyle(detailsGrid);
+                if (gridStyle.display !== "grid" || gridStyle.gridTemplateColumns.split(" ").length !== 2) {
+                    throw new Error("Request details are not using the desktop two-column layout.");
                 }
                 console.log("test successful");
             })();
