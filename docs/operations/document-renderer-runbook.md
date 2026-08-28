@@ -23,7 +23,7 @@ docker compose --profile document-renderer up -d \
 The renderer has no host port. Odoo reaches
 `https://usl-document-renderer:8443` on the internal
 `document-renderer` network using the client certificate mounted at
-`/run/secrets/document-renderer`. Use **Settings > Document Templates > Test
+`/run/secrets/document-renderer`. Use **Settings > Document Templates > Check
 renderer** for the application-level health and pinned-revision check.
 
 ## Release controls
