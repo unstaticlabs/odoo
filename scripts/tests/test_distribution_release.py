@@ -76,6 +76,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
 
     def test_pr_qualification_has_no_write_permission_or_secret(self) -> None:
         qualify = self.workflow.split("\n  publish:\n", 1)[0]
+        self.assertIn("fetch-depth: 0", qualify)
         self.assertNotIn("packages: write", qualify)
         self.assertNotIn("id-token: write", qualify)
         self.assertNotIn("attestations: write", qualify)
