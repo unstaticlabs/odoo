@@ -627,6 +627,7 @@ export class DocumentsWorkspaceView extends Component {
         });
         this.searchReady = false;
         this.workspaceLoadToken = 0;
+        this.operationPollGeneration = 0;
         this.workspaceMetadataLoaded = false;
         this.resultWindow = [];
         this.resultWindowOffset = 0;
@@ -681,6 +682,9 @@ export class DocumentsWorkspaceView extends Component {
             });
         });
         onWillUnmount(() => {
+            this.workspaceLoadToken += 1;
+            this.operationPollGeneration += 1;
+            this.pollingOperationIds.clear();
             browser.removeEventListener("popstate", this.onPopState);
             if (this.customFieldFilterTimer) {
                 browser.clearTimeout(this.customFieldFilterTimer);
@@ -3409,57 +3413,83 @@ export class DocumentsWorkspaceView extends Component {
         if (!operationId || this.pollingOperationIds.has(operationId)) {
             return;
         }
+        const generation = this.operationPollGeneration;
+        const isActive = () => generation === this.operationPollGeneration;
         this.pollingOperationIds.add(operationId);
-        for (let attempt = 0; attempt < 90; attempt++) {
-            const statuses = await this.orm.call(
-                "usl.document.operation",
-                "poll",
-                [[operationId]]
-            );
-            const status = statuses[operationId];
-            this.state.operation = {
-                ...this.state.operation,
-                ...status,
-                name:
-                    status.name ||
-                    this.state.operation?.name ||
-                    "Document",
-            };
-            if (status.state === "archived") {
-                const documentName =
-                    status.document_name ||
-                    this.state.selected?.name ||
-                    this.state.operation?.name ||
-                    "Document";
-                this.notification.add(`“${documentName}” was archived successfully.`, {
-                    type: "success",
-                });
-                const selected = this.state.selected;
-                await this.load();
-                if (selected) {
-                    await this.openDocumentById(selected.id);
+        try {
+            for (let attempt = 0; attempt < 90; attempt++) {
+                let statuses;
+                try {
+                    statuses = await this.orm.call(
+                        "usl.document.operation",
+                        "poll",
+                        [[operationId]]
+                    );
+                } catch (error) {
+                    if (!isActive()) {
+                        return;
+                    }
+                    throw error;
                 }
-                this.state.operation = null;
-                this.pollingOperationIds.delete(operationId);
-                return;
+                if (!isActive()) {
+                    return;
+                }
+                const status = statuses[operationId];
+                this.state.operation = {
+                    ...this.state.operation,
+                    ...status,
+                    name:
+                        status.name ||
+                        this.state.operation?.name ||
+                        "Document",
+                };
+                if (status.state === "archived") {
+                    const documentName =
+                        status.document_name ||
+                        this.state.selected?.name ||
+                        this.state.operation?.name ||
+                        "Document";
+                    this.notification.add(
+                        `“${documentName}” was archived successfully.`,
+                        { type: "success" }
+                    );
+                    const selected = this.state.selected;
+                    await this.load();
+                    if (!isActive()) {
+                        return;
+                    }
+                    if (selected) {
+                        await this.openDocumentById(selected.id);
+                    }
+                    if (!isActive()) {
+                        return;
+                    }
+                    this.state.operation = null;
+                    return;
+                }
+                if (status.state === "failed") {
+                    this.notification.add(
+                        status.error || "Paperless processing failed.",
+                        { type: "danger", sticky: true }
+                    );
+                    await this.load();
+                    return;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                if (!isActive()) {
+                    return;
+                }
             }
-            if (status.state === "failed") {
+            if (isActive()) {
                 this.notification.add(
-                    status.error || "Paperless processing failed.",
-                    { type: "danger", sticky: true }
+                    "Processing is taking longer than usual. You can leave this page; " +
+                        "the status will be restored when you return.",
+                    { type: "info" }
                 );
-                await this.load();
-                this.pollingOperationIds.delete(operationId);
-                return;
             }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+        } finally {
+            this.pollingOperationIds.delete(operationId);
         }
-        this.notification.add(
-            "Processing is taking longer than usual. You can leave this page; "
-                + "the status will be restored when you return.",
-            { type: "info" }
-        );
-        this.pollingOperationIds.delete(operationId);
     }
 
     async dismissOperation(operation) {

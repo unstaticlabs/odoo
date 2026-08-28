@@ -225,6 +225,39 @@ test("degraded state keeps Odoo available and offers retry", async () => {
     expect(".o_usl_documents_empty button.btn-primary").toHaveText(/Try again/);
 });
 
+test("operation polling stops cleanly when the workspace is destroyed", async () => {
+    let pollCount = 0;
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        active_operation: {
+            id: 73,
+            name: "Pending document",
+            state: "processing",
+        },
+    }));
+    onRpc("usl.document.operation", "poll", () => {
+        pollCount += 1;
+        return {
+            73: {
+                id: 73,
+                name: "Pending document",
+                state: "processing",
+            },
+        };
+    });
+
+    const workspace = await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await tick();
+    expect(pollCount).toBe(1);
+
+    workspace.__owl__.destroy();
+    await runAllTimers();
+
+    expect(pollCount).toBe(1);
+});
+
 test("document details stay useful and actionable during an archive outage", async () => {
     const document = {
         id: 61,
