@@ -28,6 +28,8 @@ COPY --from=build /build/target/usl-sign-dss-1.0.0.jar /app/service.jar
 COPY --from=verapdf /opt/verapdf /opt/verapdf
 COPY addons/web/static/fonts/sign/NotoSans-Reg.ttf /app/NotoSans-Regular.ttf
 COPY services/usl-sign-dss/pyhanko-validate.py /app/pyhanko-validate.py
+COPY services/usl-sign-dss/pyhanko-fill-fields.py /app/pyhanko-fill-fields.py
+COPY services/usl-sign-dss/pyhanko-normalize-xref.py /app/pyhanko-normalize-xref.py
 USER dss
 EXPOSE 8443
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-Djava.io.tmpdir=/tmp", "-jar", "/app/service.jar"]

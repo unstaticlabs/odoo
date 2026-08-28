@@ -99,9 +99,14 @@ class FakeDSS:
         return _pyhanko_valid()
 
     @staticmethod
-    def apply_incremental_overlays(document, overlays):
-        del overlays
-        return document + b"\n% incremental test overlay"
+    def prepare_signing_fields(document, fields):
+        del fields
+        return document
+
+    @staticmethod
+    def fill_signing_fields(document, fields):
+        del fields
+        return document + b"\n% incremental test field fill"
 
     def revision_matches(self, original, signed):
         del original, signed
@@ -1334,21 +1339,29 @@ class TestCleanUslSign(TransactionCase):
                 reviewed_document_sha256="0" * 64,
             )
 
-    def test_strong_candidate_uses_signature_preserving_incremental_overlay(self):
-        request = self._ready(self._request())
-        request._freeze_document()
+    def test_strong_candidate_fills_a_reserved_pdf_field(self):
+        request = self._ready(self._request(requested_trust="strong_personal"))
+        prepared_fields = []
+
+        def prepare(document, values):
+            prepared_fields.extend(values)
+            return document
+
+        with patch.object(DSSClient, "prepare_signing_fields", side_effect=prepare):
+            request._freeze_document()
+        self.assertEqual({field["name"] for field in prepared_fields}, {"usl_sign_1"})
         signer = request.signer_ids
         base_data = field_content(request.data)
-        overlays = []
+        fields = []
 
         def apply_incremental(document, values):
             self.assertEqual(document, base_data)
-            overlays.extend(values)
-            return document + b"\n% incremental test overlay"
+            fields.extend(values)
+            return document + b"\n% incremental test field fill"
 
         with patch.object(
             DSSClient,
-            "apply_incremental_overlays",
+            "fill_signing_fields",
             side_effect=apply_incremental,
         ):
             candidate = signer._prepare_signing_candidate(
@@ -1357,10 +1370,23 @@ class TestCleanUslSign(TransactionCase):
                 preserve_pdf_signatures=True,
             )
 
-        self.assertTrue(overlays)
-        self.assertEqual({overlay["page"] for overlay in overlays}, {1})
-        self.assertTrue(all(overlay["document"].startswith(b"%PDF-") for overlay in overlays))
+        self.assertTrue(fields)
+        self.assertEqual({field["page"] for field in fields}, {1})
+        self.assertEqual({field["name"] for field in fields}, {"usl_sign_1"})
+        self.assertTrue(all(field["document"].startswith(b"%PDF-") for field in fields))
         self.assertTrue(candidate["candidate_data"].startswith(base_data))
+
+    def test_strong_native_pades_appearance_prefers_signature_over_initials(self):
+        layout = {
+            "1": {"role_id": 3, "field_type": "signature", "kind": "initials"},
+            "2": {"role_id": 3, "field_type": "signature", "kind": "signature"},
+            "3": {"role_id": 4, "field_type": "signature", "kind": "initials"},
+        }
+
+        self.assertEqual(
+            self.env["sign.oca.request"]._strong_primary_signature_item_ids(layout),
+            {"2", "3"},
+        )
 
     def test_strong_primary_signature_is_a_native_pades_appearance(self):
         request = self._request()
@@ -1384,7 +1410,7 @@ class TestCleanUslSign(TransactionCase):
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
         )
 
-        with patch.object(DSSClient, "apply_incremental_overlays") as incremental:
+        with patch.object(DSSClient, "fill_signing_fields") as incremental:
             candidate = signer._prepare_signing_candidate(
                 self._items(request, signer.role_id, png),
                 reviewed_document_sha256=hashlib.sha256(base_data).hexdigest(),
