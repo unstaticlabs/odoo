@@ -13,6 +13,12 @@ Production data must not create external side effects from non-production enviro
 
 ## Release gate
 
+The repository-to-image boundary is defined in
+[Production image CI boundary](production-image-ci.md). A successful merge to
+`19-usl` produces one GHCR image tagged for discovery by its full commit and
+identified for deployment by its immutable digest. Deployment automation must
+consume the release metadata artifact and must not rebuild source on a host.
+
 A release is eligible for production only when:
 
 - its intended product outcome is documented;
