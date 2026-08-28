@@ -23,6 +23,7 @@ from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfReader, PdfWriter
 
 from odoo.addons.usl_sign.controllers.strong import (
+    _SESSION_TRANSACTIONS,
     StrongSignController,
     _ceremony_signature_appearance,
     _personal_certificate_subject,
@@ -2385,39 +2386,43 @@ class TestCleanUslSign(TransactionCase):
             requested_trust="strong_personal",
         )
         sign_request.action_mark_ready()
-        sign_request.action_send()
+        with patch.object(
+            type(sign_request),
+            "_sign_dss_client",
+            return_value=FakeDSS(),
+        ):
+            sign_request.action_send()
         signer = sign_request.signer_ids
         invitation_token = signer._issue_access_token()
         session_token = signer._exchange_access_token(invitation_token)
-        ceremony = self.env["usl.sign.ceremony"].create(
-            {
-                "request_id": sign_request.id,
-                "signer_id": signer.id,
-                "enrollment_id": enrollment.id,
-                "challenge": field_value(b"binding"),
-                "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
-                "base_document_sha256": complete_binding["base_document_sha256"],
-                "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
-                "candidate_data": field_value(self.pdf),
-                "candidate_layout": sign_request.frozen_layout,
-                "field_values_sha256": complete_binding["field_values_sha256"],
-                "evidence_context_sha256": complete_binding[
-                    "evidence_context_sha256"
-                ],
-                "evidence_context": {
-                    "format": "usl-sign-observed-context-v1",
-                    "browser": {},
-                    "location": {"status": "refused"},
-                    "network": {"observed": False},
-                },
-                "consent_sha256": hashlib.sha256(b"consent").hexdigest(),
-                "csr_sha256": hashlib.sha256(b"csr").hexdigest(),
-                "public_key_sha256": hashlib.sha256(b"public").hexdigest(),
-                "csr_pem": "fixture-csr",
-                "binding_payload": {"fixture": True},
-                "expires_at": fields.Datetime.now() + timedelta(minutes=5),
+        ceremony_values = {
+            "request_id": sign_request.id,
+            "signer_id": signer.id,
+            "enrollment_id": enrollment.id,
+            "challenge": field_value(b"binding"),
+            "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
+            "base_document_sha256": complete_binding["base_document_sha256"],
+            "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+            "candidate_data": field_value(self.pdf),
+            "candidate_layout": sign_request.frozen_layout,
+            "field_values_sha256": complete_binding["field_values_sha256"],
+            "evidence_context_sha256": complete_binding[
+                "evidence_context_sha256"
+            ],
+            "evidence_context": {
+                "format": "usl-sign-observed-context-v1",
+                "browser": {},
+                "location": {"status": "refused"},
+                "network": {"observed": False},
             },
-        )
+            "consent_sha256": hashlib.sha256(b"consent").hexdigest(),
+            "csr_sha256": hashlib.sha256(b"csr").hexdigest(),
+            "public_key_sha256": hashlib.sha256(b"public").hexdigest(),
+            "csr_pem": "fixture-csr",
+            "binding_payload": {"fixture": True},
+            "expires_at": fields.Datetime.now() + timedelta(minutes=5),
+        }
+        ceremony = self.env["usl.sign.ceremony"].create(ceremony_values)
         ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
                 "state": "authorizing",
@@ -2447,6 +2452,48 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(
             sign_request.event_ids[-1].event_type,
             "strong_signature_attempt_cancelled",
+        )
+
+        abandoned = self.env["usl.sign.ceremony"].create(
+            ceremony_values
+            | {
+                "challenge": field_value(b"replacement-binding"),
+                "challenge_sha256": hashlib.sha256(b"replacement-binding").hexdigest(),
+            },
+        )
+        abandoned.with_context(
+            usl_sign_ceremony_transition=INTERNAL_OPERATION,
+        ).write(
+            {
+                "state": "authorizing",
+                "data_to_sign": "abandoned-one-use-data",
+                "dss_signing_context": "abandoned-one-use-context",
+            },
+        )
+        fake_request.session = {
+            _SESSION_TRANSACTIONS: {
+                "stale-state": {"ceremony_id": abandoned.id},
+                "unrelated-state": {"ceremony_id": abandoned.id + 1000},
+            },
+        }
+        with patch(
+            "odoo.addons.usl_sign.controllers.strong.request",
+            fake_request,
+        ):
+            StrongSignController()._restart_live_ceremonies(signer)
+        abandoned.invalidate_recordset()
+        self.assertEqual(abandoned.state, "revoked")
+        self.assertEqual(abandoned.failure_code, "signer_restarted")
+        self.assertFalse(abandoned.candidate_data)
+        self.assertFalse(abandoned.candidate_layout)
+        self.assertFalse(abandoned.evidence_context)
+        self.assertFalse(abandoned.data_to_sign)
+        self.assertFalse(abandoned.dss_signing_context)
+        self.assertNotIn("stale-state", fake_request.session[_SESSION_TRANSACTIONS])
+        self.assertIn("unrelated-state", fake_request.session[_SESSION_TRANSACTIONS])
+        self.assertEqual(
+            sign_request.event_ids[-1].payload["payload"]["reason"],
+            "signer_restarted",
         )
 
     def test_approval_workflows_are_not_loaded_into_the_product_registry(self):
