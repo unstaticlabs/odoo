@@ -521,7 +521,7 @@ def verify(args: argparse.Namespace) -> None:
             cursor.execute("SELECT count(*) FROM auth_oauth_provider WHERE enabled")
             if int(cursor.fetchone()[0]):
                 fail("restored database still has an enabled OAuth provider")
-            cursor.execute("SELECT count(*) FROM ir_config_parameter WHERE key IN ('usl_documents.paperless_url','usl_documents.paperless_public_url','usl_documents.paperless_token') AND COALESCE(value, '') <> ''")
+            cursor.execute("SELECT count(*) FROM ir_config_parameter WHERE (key LIKE 'usl_documents.paperless\\_%' ESCAPE '\\' OR key LIKE 'usl_documents.sync\\_%' ESCAPE '\\') AND COALESCE(value, '') <> ''")
             if int(cursor.fetchone()[0]):
                 fail("restored database still has Paperless connectivity")
     finally:

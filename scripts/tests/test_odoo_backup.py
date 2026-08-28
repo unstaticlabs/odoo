@@ -198,6 +198,12 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertNotRegex(self.backup_wrapper, r"(?:restore|verify)\s+latest")
         self.assertNotRegex(self.restore_wrapper, r"(?:restore|verify)\s+latest")
 
+    def test_usl_documents_neutralization_removes_paperless_connectivity(self) -> None:
+        sql = (ROOT / "custom-addons/usl_documents/data/neutralize.sql").read_text(encoding="utf-8")
+        self.assertIn("usl_documents.paperless", sql)
+        self.assertIn("usl_documents.sync", sql)
+        self.assertIn("DELETE FROM ir_config_parameter", sql)
+
 
 if __name__ == "__main__":
     unittest.main()
