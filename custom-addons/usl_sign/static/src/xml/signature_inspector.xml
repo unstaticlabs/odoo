@@ -214,7 +214,15 @@
                                     <li><i class="fa fa-minus" aria-hidden="true"/><span>Current or historical certificate revocation status unless complete proof is embedded and validated.</span></li>
                                     <li><i class="fa fa-minus" aria-hidden="true"/><span>Whether a signature legally qualifies as advanced or qualified.</span></li>
                                 </ul>
-                                <p><strong>Need a formal decision?</strong> Use the Sign validation service or another maintained PAdES validator with current trust lists.</p>
+                                <p class="usl_sign_external_validation">
+                                    <strong>Need more assurance?</strong>
+                                    <a href="https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation"
+                                       target="_blank" rel="noopener noreferrer">
+                                        Open the European Commission DSS validator
+                                        <i class="fa fa-external-link ms-1" aria-hidden="true"/>
+                                    </a>
+                                    <span>Official demonstration, not a qualified validation service. Your PDF is uploaded to European Commission infrastructure; avoid sensitive documents.</span>
+                                </p>
                             </aside>
                         </div>
                     </t>
