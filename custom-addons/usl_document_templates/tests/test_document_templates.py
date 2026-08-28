@@ -78,6 +78,18 @@ class TestDocumentTemplates(TransactionCase):
         self.assertEqual(base64.b64decode(assets[0]["data"]), PNG)
         self.assertIn("RCS Paris", payload["legal_identity_lines"][1])
 
+    def test_default_odoo_logo_resolves_to_governed_unstatic_wordmark(self):
+        self.company.logo = self.env["res.company"]._get_logo()
+
+        payload, assets = self.company._usl_document_renderer_company_payload(
+            "fr_FR"
+        )
+
+        self.assertTrue(self.company.uses_default_logo)
+        self.assertEqual(payload["builtin_logo"], "unstatic")
+        self.assertIsNone(payload["logo_asset"])
+        self.assertFalse(assets)
+
     def test_legal_identity_uses_document_locale_not_operator_language(self):
         english, _assets = self.company.with_context(
             lang="fr_FR"
@@ -88,6 +100,16 @@ class TestDocumentTemplates(TransactionCase):
 
         self.assertIn("with share capital", english["legal_identity_lines"][0])
         self.assertIn("au capital de", french["legal_identity_lines"][0])
+
+    def test_french_identity_distinguishes_siren_and_siret(self):
+        self.company.company_registry = "98398295000021"
+        payload, _assets = self.company._usl_document_renderer_company_payload(
+            "fr_FR"
+        )
+
+        self.assertIn("RCS Paris 983 982 950", payload["legal_identity_lines"][1])
+        self.assertIn("SIRET 983 982 950 00021", payload["legal_identity_lines"][1])
+        self.assertIn("TVA intracommunautaire", payload["legal_identity_lines"][2])
 
     def test_preview_pack_uses_the_selected_document_locale(self):
         settings = self.env["res.config.settings"].create(

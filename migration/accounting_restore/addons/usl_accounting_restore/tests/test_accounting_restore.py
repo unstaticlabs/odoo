@@ -5985,6 +5985,8 @@ class TestRebuildAccountMigration(TransactionCase):
             "usl_document_share_capital": 1_000.0,
             "usl_document_rcs_city": "Paris",
             "ape": "62.01Z",
+            "street": "60 rue François Ier",
+            "street2": False,
         })
         self.assertEqual(
             import_run._french_document_identity_values({

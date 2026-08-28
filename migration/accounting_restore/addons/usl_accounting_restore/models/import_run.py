@@ -105,6 +105,8 @@ FRENCH_DOCUMENT_IDENTITIES_BY_SIREN = {
         "usl_document_share_capital": 1_000.0,
         "usl_document_rcs_city": "Paris",
         "ape": "62.01Z",
+        "street": "60 rue François Ier",
+        "street2": False,
     },
     "106928831": {
         "usl_document_legal_form": "SASU",
