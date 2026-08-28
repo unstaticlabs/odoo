@@ -83,6 +83,23 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
                 self.assertEqual(completed.returncode, 2)
                 self.assertIn("Refusing reserved", completed.stderr)
 
+    def test_canonical_compose_honors_project_extra_file(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+
+        canonical_compose = script.index(
+            '-f compose.yaml -f compose.pocket-id.yaml',
+        )
+        extra_file_guard = script.index(
+            'if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]',
+            canonical_compose,
+        )
+        extra_file_append = script.index(
+            'compose+=(-f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE")',
+            extra_file_guard,
+        )
+        self.assertLess(canonical_compose, extra_file_guard)
+        self.assertLess(extra_file_guard, extra_file_append)
+
     def test_upgrade_revalidates_accounting_parent_before_documents_view(self):
         script = SCRIPT.read_text(encoding="utf-8")
 
