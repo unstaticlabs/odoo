@@ -46,7 +46,7 @@
         <field name="name">account.analytic.line.reporting.pivot</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
-            <pivot string="Analyse analytique" sample="1" js_class="analytic_pivot">
+            <pivot string="Analyse analytique" sample="1" js_class="usl_analytic_pivot">
                 <field name="account_id" type="row"/>
                 <field name="expense_batch_id" type="row"/>
                 <field name="date" interval="month" type="col"/>

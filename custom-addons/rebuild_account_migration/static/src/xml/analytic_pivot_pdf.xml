@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t
+        t-name="rebuild_account_migration.AnalyticPivotButtons"
+        t-inherit="web.PivotView.Buttons"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//button[contains(@class, 'o_pivot_download')]" position="after">
+            <button
+                class="btn btn-secondary fa fa-file-pdf-o o_pivot_download_pdf"
+                t-on-click="this.onDownloadPdfClicked"
+                data-tooltip="Télécharger le PDF officiel"
+                aria-label="Télécharger le PDF officiel"
+                t-attf-disabled="{{noDataDisplayed ? 'disabled' : false}}"
+            />
+        </xpath>
+    </t>
+</templates>
