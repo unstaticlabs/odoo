@@ -2,7 +2,7 @@
     "name": "USL Documents",
     "summary": "Native Odoo document work backed by Paperless-ngx",
     "description": "Native Odoo document workflows backed by the Paperless-ngx archive.",
-    "version": "saas~19.3.1.7.18",
+    "version": "saas~19.3.1.7.19",
     "category": "Productivity/Documents",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -27,6 +27,8 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "usl_documents/static/src/document_preview.js",
+            "usl_documents/static/src/document_preview.xml",
             "usl_documents/static/src/documents_loader.js",
             "usl_documents/static/src/open_documents_field.xml",
             "usl_documents/static/src/attachment_list_patch.js",

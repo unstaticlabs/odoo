@@ -3,7 +3,7 @@
 import {Component, onMounted, onWillUnmount, useRef, useState} from "@odoo/owl";
 import {registry} from "@web/core/registry";
 import {standardFieldProps} from "@web/views/fields/standard_field_props";
-import {DocumentPreview} from "@usl_documents/documents_app";
+import {DocumentPreview} from "@usl_documents/document_preview";
 
 export class SignDocumentPreviewField extends Component {
     static template = "usl_sign.SignDocumentPreviewField";

@@ -1,4 +1,5 @@
 import {expect, test} from "@odoo/hoot";
+import {animationFrame, mockFetch} from "@odoo/hoot-mock";
 import {defineMailModels} from "@mail/../tests/mail_test_helpers";
 import {mountWithCleanup} from "@web/../tests/web_test_helpers";
 
@@ -35,4 +36,29 @@ test("document preview has an explicit unavailable state", async () => {
     });
 
     expect(".usl_sign_document_preview_placeholder").toHaveText(/Preview unavailable/);
+});
+
+test("document cards render the shared preview instead of the raw URL", async () => {
+    mockFetch(() =>
+        new Response("Document preview", {
+            headers: {"Content-Type": "text/plain"},
+        })
+    );
+
+    await mountWithCleanup(SignDocumentCardPreviewField, {
+        props: {
+            name: "document_preview_url",
+            record: {
+                data: {
+                    document_preview_url: "/web/content/sign.oca.request/4/data/file.pdf",
+                    document_thumbnail_url: false,
+                },
+            },
+        },
+    });
+    await animationFrame();
+
+    expect(".o_usl_document_preview").toHaveCount(1);
+    expect(".o_usl_document_preview").toHaveText("Document preview");
+    expect(".usl_sign_document_card_preview").not.toHaveText(/\/web\/content/);
 });
