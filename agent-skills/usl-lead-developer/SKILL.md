@@ -9,7 +9,7 @@ Own integration quality. Treat the Feature Developer's report as evidence, never
 
 ## Establish review state
 
-1. Read `AGENTS.md`, the PR goal and acceptance criteria, and the complete delimited handoff in the PR body.
+1. Read `AGENTS.md`, the PR's generated summary, acceptance criteria, verification, migration, QA, limitations, and release sections. Treat the collapsed delimited contract as the exact machine-readable source when validating or materializing the handoff.
 2. Fetch the latest remote state. Use a dedicated review/integration worktree; do not perform ordinary feature development on `19-usl`.
 3. Materialize the handoff locally if needed and run `scripts/agent/verify lead-start --handoff PATH`.
 4. Inspect the actual base-to-head diff, commit history, repository context, linked product task, and every claimed evidence item. Compare with the latest `origin/19-usl`, not only the feature's historical base.

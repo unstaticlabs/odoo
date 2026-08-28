@@ -151,11 +151,14 @@ scripts/agent/verify feature-ready --handoff artifacts/agent/handoffs/my-feature
 scripts/agent/github pr --handoff artifacts/agent/handoffs/my-feature.json
 ```
 
-The PR body is the canonical handoff surface. It contains human-readable context
-and a delimited canonical JSON block suitable for later AI Pipelines. The local
-artifact is intentionally ignored. Readiness validation rejects stale branch,
-head, worktree or base evidence, dirty state, unpushed head and invalid commit
-attribution. A Feature Developer then stops without merging or cleanup.
+The PR body is the canonical handoff surface. It renders the contract as
+review-first GitHub Markdown: summary, acceptance, scope, decisions, evidence,
+migration/QA, integration, release and limitation sections. A collapsed,
+delimited canonical JSON block remains suitable for validation and later AI
+Pipelines. The local artifact is intentionally ignored. Readiness validation
+rejects stale branch, head, worktree or base evidence, dirty state, unpushed
+head and invalid commit attribution. A Feature Developer then stops without
+merging or cleanup.
 
 ## Lead Developer integration
 
