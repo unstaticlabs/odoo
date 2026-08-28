@@ -490,6 +490,19 @@ b2c_qa_bootstrap() {
   "${compose[@]}" up -d --wait odoo
 }
 
+documents_qa_finalize() {
+  # Drain the governed archive queue with the long-lived scheduler stopped so
+  # QA readiness does not depend on minute-bound cron timing.
+  "${compose[@]}" stop odoo
+  "${compose[@]}" --profile init run --rm -T --no-deps \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/documents_qa_finalize.py"
+  "${compose[@]}" up -d --wait odoo
+}
+
 usl_cli_title "provision isolated QA target"
 printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
 if [[ "$profile" == full ]]; then
@@ -540,6 +553,9 @@ case "$profile" in
 esac
 if [[ "$reuse_existing" == 0 ]]; then
   stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
+fi
+if [[ "$profile" != no-documents ]]; then
+  stage "enable Documents jobs and drain archive queue" documents_qa_finalize
 fi
 if [[ "$profile" == full ]]; then
   write_qa_state
