@@ -149,8 +149,10 @@ test("recently completed exposes the full completed view only when truncated", a
     }));
 
     await mountWithCleanup(SignLanding);
-    expect("section:nth-child(5) .card-footer .btn-link").toHaveText(/Show more/);
-    await contains("section:nth-child(5) .card-footer .btn-link").click();
+    expect("section:nth-child(5) .card-footer").toHaveClass("p-0");
+    expect("section:nth-child(5) .usl_sign_more_action").toHaveClass("w-100");
+    expect("section:nth-child(5) .usl_sign_more_action").toHaveText(/Show more/);
+    await contains("section:nth-child(5) .usl_sign_more_action").click();
 
     expect(actions).toEqual(["usl_sign.completed_documents_action"]);
 });
