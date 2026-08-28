@@ -691,7 +691,14 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertNotIn("Pocket ID verified", page)
         self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
         self.assertIn("'nonce-", response.headers["Content-Security-Policy"])
-        self.assertNotIn("'unsafe-inline'", response.headers["Content-Security-Policy"])
+        self.assertIn(
+            "style-src-attr 'unsafe-inline'",
+            response.headers["Content-Security-Policy"],
+        )
+        self.assertNotIn(
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+            response.headers["Content-Security-Policy"],
+        )
         self.assertIn(
             "publickey-credentials-get=()",
             response.headers["Permissions-Policy"],
@@ -746,8 +753,17 @@ class TestSignBrowserJourneys(HttpCase):
                     throw new Error("The Strong ceremony still owns shared signer UI state.");
                 }
                 const fieldBox = field.closest(".o_sign_oca_field").getBoundingClientRect();
-                if (fieldBox.width < 20 || fieldBox.height < 20 || !field.textContent.trim()) {
-                    throw new Error("The Strong signing field is present but not visibly actionable.");
+                const fieldContainer = field.closest(".o_sign_oca_field");
+                const fieldStyle = getComputedStyle(fieldContainer);
+                if (
+                    fieldStyle.position !== "absolute" ||
+                    !fieldContainer.style.top ||
+                    !fieldContainer.style.left ||
+                    fieldBox.width < 20 ||
+                    fieldBox.height < 20 ||
+                    !field.textContent.trim()
+                ) {
+                    throw new Error("Strong did not position the shared field over the PDF.");
                 }
                 if (!header?.textContent.includes("Strong personal signature")) {
                     throw new Error("Strong did not disclose its method in the shared workspace.");

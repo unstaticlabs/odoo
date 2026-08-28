@@ -15,7 +15,11 @@ STRONG_CSP = (
     # Odoo's OWL runtime compiles its registered QWeb templates with
     # `new Function`. Keep inline scripts nonce-only, but allow that required
     # compiler capability for the shared signing application.
-    "default-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self'; font-src 'self'; "
+    # OCA Sign positions each assigned field with a generated style attribute.
+    # Permit only those attributes: style elements remain same-origin and
+    # scripts remain nonce-bound below.
+    "default-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self'; "
+    "style-src-elem 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; "
     "connect-src 'self'; frame-src 'self'; worker-src 'self'; img-src 'self' data:; "
     "base-uri 'none'; object-src 'none'; form-action 'self'; frame-ancestors 'none'"
 )
