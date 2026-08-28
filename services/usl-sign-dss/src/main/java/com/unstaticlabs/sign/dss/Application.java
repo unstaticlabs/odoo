@@ -249,7 +249,9 @@ public final class Application {
     private void seal(HttpExchange exchange) throws IOException {
         handle(exchange, payload -> {
             byte[] document = document(payload, "document");
-            byte[] signableDocument = normalizeSignedPdf(document);
+            byte[] signableDocument = hasSignatureRevision(document)
+                    ? normalizeSignedPdf(document)
+                    : document;
             boolean timestamp = Boolean.TRUE.equals(payload.get("timestamp"));
             PAdESSignatureParameters parameters = parameters();
             parameters.setSignatureLevel(timestamp ? SignatureLevel.PAdES_BASELINE_T : SignatureLevel.PAdES_BASELINE_B);
@@ -266,7 +268,7 @@ public final class Application {
                 SignatureValue value = token.sign(toBeSigned, DigestAlgorithm.SHA256, privateKey);
                 DSSDocument result = service.signDocument(input, parameters, value);
                 return Map.of(
-                        "document", b64(normalizeSignedPdf(bytes(result))),
+                        "document", b64(bytes(result)),
                         "padesLevel", parameters.getSignatureLevel().name());
             }
         });
@@ -375,6 +377,11 @@ public final class Application {
             Files.deleteIfExists(input);
             Files.deleteIfExists(directory);
         }
+    }
+
+    static boolean hasSignatureRevision(byte[] document) throws Exception {
+        PDFDocumentValidator validator = new PDFDocumentValidator(pdf(document));
+        return validator.getRevisions().stream().anyMatch(PdfSignatureRevision.class::isInstance);
     }
 
     private void prepareSigningFields(HttpExchange exchange) throws IOException {
