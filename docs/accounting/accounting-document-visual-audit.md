@@ -27,7 +27,7 @@ account classification reference is the ANC PCG collection effective
 | 06 | Écritures ouvertes | Receivables/payables mixed | Separate Clients/Fournisseurs, partner groups, due date and residual totals | `06-ecritures-ouvertes.pdf` |
 | 07 | Balance âgée clients | Buckets were misnamed and undifferentiated | Correct ageing buckets, overdue progression, partner and grand totals | `07-balance-agee-clients.pdf` |
 | 08 | Balance âgée fournisseurs | Payable exposure lacked emphasis | Mirrored ageing grammar with total supplier exposure | `08-balance-agee-fournisseurs.pdf` |
-| 09 | Bilan | Actif/Passif interleaved | Dedicated Actif and Passif pages, distinct equity, exact totals and control | `09-bilan.pdf` |
+| 09 | Bilan | Actif/Passif interleaved | Top aggregate summary, dedicated Actif and Passif pages, distinct equity, closing-balance totals and control | `09-bilan.pdf` |
 | 10 | Compte de résultat | Duplicate intermediate hierarchy | Consolidated sections; operating, current and net results form the visual spine | `10-compte-resultat.pdf` |
 | 11 | TVA et taxes | Statutory and ledger evidence mixed | Explicit statutory-grid and VAT-ledger sections with base/tax/account evidence | `11-tva-et-taxes.pdf` |
 | 12 | Taxes par compte puis taxe | No account context | Account sections and exact subtotals above tax detail | `12-taxes-compte-taxe.pdf` |
@@ -41,12 +41,12 @@ account classification reference is the ANC PCG collection effective
 | 20 | Synthèse de gestion | Money and ratios shared one grammar | Key figures and ratios remain separate; units/formulas stay adjacent; undefined ratios are blank | `20-synthese-gestion.pdf` |
 | 21 | Compte de résultat analytique | Analytic dimensions lacked nesting | Analytic group hierarchy with account/product contribution and dimension totals | `21-compte-resultat-analytique.pdf` |
 | 22 | Analyse analytique | No governed PDF | Server-recomputed current pivot, repeated row header, landscape segmentation and totals | `22-analyse-analytique.pdf` |
-| 23 | Registre des immobilisations | Asset category and close control were weak | Account/category schedule with gross, depreciation, net and grand total | `23-registre-immobilisations.pdf` |
+| 23 | Registre des immobilisations | Asset category and close control were weak | Labelled account/category schedule with gross, depreciation and net; the grand total follows every account subtotal | `23-registre-immobilisations.pdf` |
 | 24 | Immobilisations par compte | Summaries lacked a final control | Compact account summaries and grand gross/depreciation/net total | `24-immobilisations-compte.pdf` |
 | 25 | Plan d’amortissement | Schedule read like a ledger | Asset sections, date/status schedule and asset totals | `25-plan-amortissement.pdf` |
 | 26 | Charges et produits constatés d’avance | Charges/products were mixed | Schedule type/account sections with period, status and exact subtotals | `26-charges-produits-constates-avance.pdf` |
 | 27 | États financiers français | Professional package was incomplete | Governed cover, contents, preparation status, Actif, Passif, result, SIG/CAF, ratios and non-attestation notice | `27-etats-financiers-francais.pdf` |
-| 28 | Bilan détaillé | Sides shared one flow | Dedicated Actif/Passif pages, Brut/Amortissements/Net/comparison and equality control | `28-bilan-detaille.pdf` |
+| 28 | Bilan détaillé | Sides shared one flow | Top aggregate summary; dedicated Actif/Passif pages; closing Brut/Amortissements/Net values and exact equality control | `28-bilan-detaille.pdf` |
 | 29 | SIG et CAF | Calculation ladder was visually flat | Separate SIG/CAF sections, concise secondary formulas, emphasized intermediate and final results | `29-sig-caf.pdf` |
 | 30 | Liasse fiscale française | Field state/source hierarchy was weak | Form/section hierarchy; code beside label; amount/text/status/source; unresolved-first evidence | `30-liasse-fiscale-francaise.pdf` |
 | 31 | Dossier de revue de clôture | Generic table | Status cover, controls, declarations, unresolved actions, evidence and lock-date conclusion | `31-dossier-revue-cloture.pdf` |

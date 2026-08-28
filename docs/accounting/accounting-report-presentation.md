@@ -181,7 +181,11 @@ intentionally exact, unscaled and machine oriented.
 PDF pages repeat company identity, registry/VAT context, address, reporting
 date, official-document label and page number. Column headers and section rows
 use high-contrast light fills with dark text; final totals retain formal
-accounting rules rather than decorative saturated fills.
+accounting rules rather than decorative saturated fills. Physical top and
+bottom safety areas are balanced for office printing. Semantic section and
+total rows reserve enough remaining page space to avoid orphaned headings or
+detached totals; final totals use a bounded rule-and-wash treatment that stays
+recognisable in grayscale.
 
 The report-specific hierarchy is part of the shared session, not a PDF-only
 decoration. In particular:
@@ -195,7 +199,11 @@ decoration. In particular:
   real `1–30`, `31–60`, `61–90` and `> 90` buckets;
 - the Bilan and detailed Bilan emit separate Actif and Passif sections with a
   deterministic page break, distinct equity, exact totals and an unnetted
-  balance control;
+  balance control. Closing balances, including the closing class 6/7 result,
+  are authoritative for the statement-at-date; aggregate Actif, Passif and
+  equality values are repeated in a compact summary before the detailed sides;
+- the asset register labels each account section and places its grand total
+  after every account subtotal;
 - management, tax, analytic and schedule reports preserve their specialist
   section keys and exact subtotal rows;
 - the analytic pivot PDF request contains only allow-listed axes, measures,

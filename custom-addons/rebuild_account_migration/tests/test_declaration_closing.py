@@ -1660,7 +1660,161 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         payload = render.call_args.args[2]
         self.assertEqual([section["title"] for section in payload["sections"]], ["Actif", "Passif"])
         self.assertTrue(payload["sections"][1]["break_before"])
-        self.assertEqual(payload["controls"][0]["status"], "success")
+        self.assertEqual(
+            [control["label"] for control in payload["controls"]],
+            [
+                "Total actif",
+                "Total passif",
+                "Écart actif − passif",
+            ],
+        )
+        self.assertEqual(payload["controls"][-1]["status"], "success")
+
+    def test_balance_sheet_uses_closing_balances(self):
+        wizard = self._wizard(report_type="balance_sheet")
+        trial_balance = [
+            {
+                "account_code": "512000",
+                "account_name": "Banque",
+                "account_type": "asset_cash",
+                "balance": "0.00",
+                "closing_balance": "100.00",
+            },
+            {
+                "account_code": "101000",
+                "account_name": "Capital",
+                "account_type": "equity",
+                "balance": "0.00",
+                "closing_balance": "-100.00",
+            },
+        ]
+        with patch.object(
+            type(wizard),
+            "_trial_balance_rows",
+            return_value=trial_balance,
+        ):
+            rows = wizard._balance_sheet_rows()
+
+        totals = {
+            row.get("line_code"): row.get("amount")
+            for row in rows
+            if row.get("line_code")
+        }
+        self.assertEqual(totals["ACTIF_TOTAL"], "100.00")
+        self.assertEqual(totals["PASSIF_TOTAL"], "100.00")
+
+    def test_asset_register_places_grand_total_after_account_subtotals(self):
+        wizard = self._wizard(report_type="fixed_assets", export_format="pdf")
+        rows = [
+            {
+                "label": "215400 — Matériel industriel",
+                "account_code": "215400",
+                "is_group": True,
+                "group_key": "account:215400",
+                "row_level": 0,
+                "presentation_role": "group",
+                "original_value": "1000.00",
+            },
+            {
+                "asset_name": "Machine A",
+                "account_code": "215400",
+                "parent_group_key": "account:215400",
+                "row_level": 1,
+                "acquisition_date": "2025-02-14",
+                "original_value": "1000.00",
+                "depreciation_amount": "100.00",
+                "imported_period_net_value": "900.00",
+                "state": "open",
+            },
+            {
+                "label": "218300 — Matériel de bureau et informatique",
+                "account_code": "218300",
+                "is_group": True,
+                "group_key": "account:218300",
+                "row_level": 0,
+                "presentation_role": "group",
+                "original_value": "500.00",
+            },
+            {
+                "asset_name": "Poste de travail",
+                "account_code": "218300",
+                "parent_group_key": "account:218300",
+                "row_level": 1,
+                "acquisition_date": "2025-06-19",
+                "original_value": "500.00",
+                "depreciation_amount": "50.00",
+                "imported_period_net_value": "450.00",
+                "state": "open",
+            },
+            {
+                "label": "Total des immobilisations",
+                "presentation_role": "total",
+                "original_value": "1500.00",
+            },
+        ]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload(rows, return_result=True)
+
+        payload = render.call_args.args[2]
+        column_labels = [column["label"] for column in payload["columns"]]
+        for expected_label in (
+            "Compte",
+            "Date d’acquisition",
+            "Valeur d’origine (€)",
+            "Amortissements / provisions (€)",
+            "Valeur nette comptable (€)",
+            "Statut",
+        ):
+            self.assertIn(expected_label, column_labels)
+        self.assertFalse(
+            {"Acquisition Date", "Original Value (€)", "State"}
+            & set(column_labels),
+        )
+        self.assertEqual(
+            [section["title"] for section in payload["sections"]],
+            [
+                "215400 — Matériel industriel",
+                "218300 — Matériel de bureau et informatique",
+            ],
+        )
+        self.assertEqual(
+            [row["values"]["label"] for row in payload["sections"][-1]["rows"]][-2:],
+            [
+                "Total — 218300 — Matériel de bureau et informatique",
+                "Total des immobilisations",
+            ],
+        )
+
+    def test_detailed_balance_sheet_adds_an_exact_equality_control(self):
+        wizard = self._wizard(report_type="french_balance_sheet_2024")
+        rows = [
+            {
+                "statement_key": "bilan_actif",
+                "line_code": "ACTIF_TOTAL",
+                "net_amount": "151119.74",
+                "presentation_role": "total",
+            },
+            {
+                "statement_key": "bilan_passif",
+                "line_code": "PASSIF_TOTAL",
+                "net_amount": "151119.74",
+                "presentation_role": "total",
+            },
+        ]
+
+        controlled = wizard._append_shared_control_rows(rows)
+
+        self.assertEqual(controlled[-1]["label"], "Écart actif − passif")
+        self.assertEqual(controlled[-1]["net_amount"], "0.00")
+        self.assertEqual(controlled[-1]["control_status"], "success")
 
     def test_professional_packages_receive_governed_front_matter(self):
         wizard = self._wizard(report_type="french_annual", export_format="pdf")
