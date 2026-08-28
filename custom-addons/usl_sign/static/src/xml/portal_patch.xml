@@ -39,7 +39,7 @@
             </div>
             <t t-set-slot="footer">
                 <button class="btn btn-primary" t-att-disabled="this.signature.isSignatureEmpty" t-on-click="this.onClickConfirm">Adopt Initials</button>
-                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Cancel</button>
             </t>
         </Dialog>
     </t>
@@ -59,7 +59,7 @@
             </div>
             <t t-set-slot="footer">
                 <button class="btn btn-primary" t-att-disabled="this.signature.isSignatureEmpty" t-on-click="this.onClickConfirm">Adopt Signature</button>
-                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Cancel</button>
             </t>
         </Dialog>
     </t>
@@ -121,7 +121,7 @@
                     <button type="button" class="btn btn-link text-danger" t-on-click="() => this._onClickDecline()">Decline</button>
                     <button type="button" class="btn btn-primary" id="sign_oca_button" disabled="disabled" t-on-click="(ev) => this._onClickSign(ev)">
                         <span id="usl_sign_submission_spinner" class="spinner-border spinner-border-sm me-2 d-none" aria-hidden="true"/>
-                        <span id="usl_sign_submission_label" aria-live="polite">Sign</span>
+                        <span id="usl_sign_submission_label" aria-live="polite">Sign document</span>
                     </button>
                 </div>
             </div>
