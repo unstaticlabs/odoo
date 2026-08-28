@@ -44,6 +44,16 @@ explicit user-provided branch name and established archive conventions.
    Keychain, or OAuth behavior.
 3. Run `scripts/agent/github status` and require the authenticated login to be
    `@elio-usl` before publication.
+4. Never use a browser for Git or GitHub work. Inspect and mutate repositories,
+   branches, commits, diffs, PRs, checks, comments, and reviews only through
+   terminal Git, `scripts/agent/github`, or authenticated GitHub CLI/API or
+   connector operations. Publication still goes only through the repository
+   helper. If device authentication is required, surface its URL and code for
+   the human; do not open the browser. If no non-browser path exists, stop and
+   report the limitation.
+
+This browser prohibition does not apply to Odoo product or Worktree-QA journeys
+required by the UI quality workflow.
 
 If a branch must catch up, fetch first, inspect both histories and local state, and choose a rebase or merge deliberately. Never discard uncommitted work. Re-run relevant validation after resolving conflicts. Do not force-push unless the branch is agent-owned and rewriting it is explicitly acceptable.
 

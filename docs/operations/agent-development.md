@@ -125,6 +125,26 @@ under `.agent/gh/`. It refuses identical agent and human identities. `push`
 uses an explicit HTTPS repository URL and only that isolated `gh` credential
 helper; it never uses the configured SSH origin or a human keychain profile.
 
+## No browser for Git or GitHub
+
+Coding and Lead Agents never use a browser or browser-control capability for
+Git or GitHub work. This includes repository browsing, file and diff review,
+branch and commit inspection, PR creation or editing, checks, comments,
+reviews, approval-state inspection, merges, releases, and authentication.
+
+Use terminal Git for local and remote repository state. Use
+`scripts/agent/github` for Coding identity verification, push, and PR
+publication. For GitHub inspection or operations not exposed by that helper,
+use an authenticated GitHub CLI, API, or non-browser connector. If a required
+operation has no supported non-browser path, stop and record the limitation;
+do not fall back to a browser.
+
+Device authentication is a human browser action: the agent prints the URL and
+one-time code, then waits for the human to complete it. Independent humans may
+also use the GitHub web UI to review or approve. This prohibition applies to
+agents doing Git/GitHub work, not to browser-based Odoo product journeys or
+Worktree-QA required by the UI quality workflow.
+
 Every Coding Agent commit uses Conventional Commits, contains
 `AI-generated commit`, and includes exactly
 `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.

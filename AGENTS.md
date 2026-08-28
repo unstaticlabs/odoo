@@ -45,6 +45,15 @@ distribution-level core patch and the tradeoff is documented.
   profile from the authoritative Lead/main checkout, then configure their own
   worktree-local Coding identity and run `scripts/agent/github status`. Do not
   copy role identity metadata or use global, SSH, or Keychain credentials.
+- Agents must never use a browser for Git or GitHub work, including repository
+  inspection, diffs, branches, commits, PRs, checks, comments, reviews,
+  approvals, merges, releases, or authentication. Use terminal Git,
+  `scripts/agent/github`, and authenticated GitHub CLI/API or connector
+  operations. When device authentication is required, show the URL and code so
+  a human can use the browser; the agent must not open it. If a required
+  operation has no non-browser path, stop and report the limitation instead of
+  using a browser workaround. This does not restrict browser-based Odoo product
+  or Worktree-QA validation.
 - Because both roles use `@elio-usl`, the Lead Agent cannot provide independent
   approval for a PR authored by that account and must never self-approve.
   Valentin or another authorized independent human must approve before the

@@ -36,6 +36,13 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
 6. A human approval at the handoff gate authorizes Coding to route the work to
    Lead; it is separate from the independent GitHub PR approval required for
    merge.
+7. Never use a browser for Git or GitHub work. Perform repository inspection,
+   diffs, PR review, checks, comments, approval-state inspection, and merge
+   operations through terminal Git and authenticated GitHub CLI/API or
+   connector operations. If device authentication is required, surface its URL
+   and code for a human and do not open the browser. If no non-browser path
+   exists, stop and report the limitation. Human reviewers may use the GitHub
+   web UI; Odoo product and Worktree-QA browser journeys remain allowed.
 
 ## Establish review state
 
