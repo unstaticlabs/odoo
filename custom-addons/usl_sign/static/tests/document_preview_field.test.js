@@ -1,5 +1,5 @@
 import {expect, test} from "@odoo/hoot";
-import {animationFrame} from "@odoo/hoot-mock";
+import {waitFor} from "@odoo/hoot-dom";
 import {defineMailModels} from "@mail/../tests/mail_test_helpers";
 import {mountWithCleanup, onRpc} from "@web/../tests/web_test_helpers";
 
@@ -56,7 +56,7 @@ test("document cards render the shared preview instead of the raw URL", async ()
             },
         },
     });
-    await animationFrame();
+    await waitFor(".o_usl_document_preview pre");
 
     expect(".o_usl_document_preview").toHaveCount(1);
     expect(".o_usl_document_preview").toHaveText("Document preview");
