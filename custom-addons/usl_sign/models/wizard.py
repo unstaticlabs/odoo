@@ -1,4 +1,4 @@
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import ValidationError
 
 from .constants import DOCUMENT_CATEGORIES, INTERNAL_OPERATION
@@ -32,9 +32,14 @@ class SignShareConfirm(models.TransientModel):
         users_needing_access = internal_users.filtered(
             lambda user: sign_group not in user.all_group_ids,
         )
-        users_needing_access.sudo().write(
-            {"group_ids": [Command.link(sign_group.id)]},
-        )
+        if users_needing_access:
+            # The requester explicitly confirmed access for these exact
+            # internal signers.  Apply only the Sign User group through the
+            # controlled service identity; general user authorization remains
+            # protected by usl_access_control.
+            users_needing_access.with_user(SUPERUSER_ID).write(
+                {"group_ids": [Command.link(sign_group.id)]},
+            )
         return self.request_id.with_context(
             usl_sign_share_confirmed=INTERNAL_OPERATION,
         ).action_send(message=self.message)
