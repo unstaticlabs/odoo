@@ -73,7 +73,6 @@ class IrActionsServer(models.Model):
                     "automation.server_action.execute",
                     f"execute unreviewed server action {action.name}",
                 )
-
     def run(self):
         self._usl_check_qualified_execution()
         return super().run()
