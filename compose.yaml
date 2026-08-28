@@ -414,7 +414,7 @@ services:
     build:
       context: services/usl-document-renderer
       args:
-        USL_TEMPLATE_REVISION: 786cadf86804808674a7f4bcacaa273a588d58e0
+        USL_TEMPLATE_REVISION: 4b609561fbd51caafb80c59954e179f341e81490
     restart: unless-stopped
     read_only: true
     user: "10001:10001"
