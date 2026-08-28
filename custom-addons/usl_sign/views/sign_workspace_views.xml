@@ -15,59 +15,61 @@
             <form string="Request signatures" class="usl_sign_start_wizard">
                 <sheet>
                     <field name="company_id" invisible="1"/>
-                    <div class="oe_title">
-                        <h2>Request signatures</h2>
-                        <p class="text-muted">Choose a document and its signers. You will place fields and check every detail before anything is sent.</p>
+                    <div class="oe_title usl_sign_start_intro">
+                        <h2 class="mb-1">Request signatures</h2>
+                        <p class="text-muted mb-0">Add the document, signers, and signing method. You will place fields next.</p>
                     </div>
-                    <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1" class="mb-3"/>
-                    <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
-                        <p class="usl_sign_step_label">Step 1</p>
-                        <h3>Document</h3>
-                        <p class="text-muted">Upload the PDF you want people to sign.</p>
-                        <div class="usl_sign_start_input">
-                            <field name="document_data" filename="document_filename" string="PDF to sign" required="signature_source == 'upload'"/>
+                    <div class="usl_sign_start_source">
+                        <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                    </div>
+
+                    <div class="usl_sign_start_grid" invisible="signature_source != 'upload'">
+                        <section class="usl_sign_start_block">
+                            <h3>Document</h3>
+                            <label for="document_data" string="PDF to sign" class="o_form_label"/>
+                            <field name="document_data" filename="document_filename" nolabel="1" required="signature_source == 'upload'"/>
                             <field name="document_filename" invisible="1"/>
-                        </div>
-                    </section>
-                    <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
-                        <p class="usl_sign_step_label">Step 2</p>
-                        <h3>Signers</h3>
-                        <p class="text-muted">Add everyone who must sign. You will assign and place each person’s fields next.</p>
-                        <div class="usl_sign_start_input">
-                            <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label fw-semibold d-block mb-1"/>
+                        </section>
+                        <section class="usl_sign_start_block">
+                            <h3>Signers</h3>
+                            <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label"/>
                             <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
                                    required="signature_source == 'upload'" options="{'no_quick_create': true}"
                                    placeholder="Add one or more contacts"/>
-                        </div>
-                    </section>
-                    <section class="usl_sign_start_section" invisible="signature_source != 'template'">
-                        <p class="usl_sign_step_label">Step 1</p>
+                        </section>
+                    </div>
+
+                    <section class="usl_sign_start_block usl_sign_start_template" invisible="signature_source != 'template'">
                         <h3>Template</h3>
-                        <p class="text-muted">Choose a ready template. You will assign each signing role next.</p>
-                        <div class="usl_sign_start_input">
-                            <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
+                        <label for="template_id" string="Template" class="o_form_label"/>
+                        <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
+                    </section>
+
+                    <section class="usl_sign_start_block usl_sign_start_details">
+                        <h3>Request details</h3>
+                        <div class="usl_sign_start_grid">
+                            <div class="usl_sign_start_field">
+                                <label for="name" string="Request name" class="o_form_label"/>
+                                <field name="name" nolabel="1" placeholder="Defaults to the PDF or template name"/>
+                            </div>
+                            <div class="usl_sign_start_field">
+                                <label for="record_ref" string="Related Odoo record" class="o_form_label"/>
+                                <field name="record_ref" nolabel="1"/>
+                            </div>
+                            <div class="usl_sign_start_field usl_sign_start_field_wide">
+                                <label for="message" string="Message to signers" class="o_form_label"/>
+                                <field name="message" nolabel="1" placeholder="Optional note shown with the invitation"/>
+                            </div>
                         </div>
                     </section>
-                    <section class="usl_sign_start_section">
-                        <p class="usl_sign_step_label" invisible="signature_source != 'upload'">Step 3</p>
-                        <p class="usl_sign_step_label" invisible="signature_source != 'template'">Step 2</p>
+
+                    <section class="usl_sign_start_block usl_sign_start_method">
                         <h3>Signing method</h3>
                         <p class="text-muted">Choose how signers confirm and what proof is retained.</p>
                         <field name="requested_trust" widget="usl_sign_method_radio"
                                options="{'horizontal': true}" nolabel="1"
                                class="usl_sign_method_radio"/>
-                        <div class="small text-muted mt-2" role="status" aria-live="polite">
-                            <field name="signing_method_summary" nolabel="1" readonly="1"/>
-                        </div>
                     </section>
-                    <details class="usl_sign_start_more">
-                        <summary>Request name, message and linked record</summary>
-                        <group class="mt-2">
-                            <field name="name" string="Request name" placeholder="Defaults to the PDF or template name"/>
-                            <field name="message" string="Message to signers" placeholder="Optional note shown with the invitation"/>
-                            <field name="record_ref" string="Related Odoo record"/>
-                        </group>
-                    </details>
                 </sheet>
                 <footer>
                     <button name="action_continue" type="object" string="Place signing fields" class="btn-primary" invisible="signature_source != 'upload'"/>
