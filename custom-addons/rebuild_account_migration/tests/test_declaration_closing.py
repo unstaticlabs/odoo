@@ -1420,6 +1420,20 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         self.assertTrue(any("Milliers" in item for item in payload["filters"]))
         self.assertEqual(payload["orientation"], "landscape")
 
+    def test_shared_legacy_document_color_uses_governed_accent(self):
+        wizard = self._wizard()
+        definition = self.env[
+            "rebuild.account.report.definition"
+        ].with_context(active_test=False).search([
+            ("code", "=", "trial_balance"),
+            ("company_id", "=", False),
+        ], limit=1)
+        self.assertTrue(definition)
+        self.assertEqual(definition.document_primary_color, "#111111")
+        wizard.report_definition_id = definition
+
+        self.assertEqual(wizard._document_theme()["primary_color"], "#714B67")
+
     def test_combined_report_rejects_different_company_currencies(self):
         usd = self.env.ref("base.USD")
         self.second_company.currency_id = usd

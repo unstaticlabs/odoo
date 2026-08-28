@@ -1873,17 +1873,24 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _document_theme(self):
         self.ensure_one()
         definition = self.report_definition_id
+        primary_color = (
+            definition.document_primary_color
+            if definition
+            else "#714B67"
+        )
+        if (
+            definition
+            and not definition.company_id
+            and primary_color.upper() == "#111111"
+        ):
+            primary_color = "#714B67"
         return {
             "template": (
                 definition.document_template
                 if definition
                 else "usl_official"
             ),
-            "primary_color": (
-                definition.document_primary_color
-                if definition
-                else "#111111"
-            ),
+            "primary_color": primary_color,
             "section_background_color": (
                 definition.document_section_background_color
                 if definition
@@ -4108,7 +4115,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 )
             )
         )
-        locale = (
+        if metadata["amount_decimal_places"] == 0:
+            basis_note += (
+                " Les montants sont arrondis individuellement ; les totaux "
+                "affichés peuvent donc présenter un écart d’un euro."
+            )
+        locale = "fr_FR" if self.company_id.country_code == "FR" else (
             "fr_FR"
             if (self.company_id.partner_id.lang or "").startswith("fr")
             else "en_US"
@@ -4129,11 +4141,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             {
                 "title": metadata["report_name"],
                 "reference": (
-                    f"{self.report_type.upper()} · "
-                    f"{metadata['date_from']}–{metadata['date_to']}"
+                    f"Réf. exercice {fields.Date.to_date(metadata['date_from']).year}"
+                    f"–{fields.Date.to_date(metadata['date_to']).year}"
+                    if self.report_type in {"profit_loss", "french_annual"}
+                    else metadata["report_name"]
                 ),
                 "date": (
-                    f"Au {self._display_export_date(metadata['date_to'])}"
+                    f"Du {self._display_export_date(metadata['date_from'])} "
+                    f"au {self._display_export_date(metadata['date_to'])}"
                 ),
                 "orientation": (
                     "landscape"

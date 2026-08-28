@@ -96,10 +96,14 @@ class ResCompany(models.Model):
             ("zip", _("postal code")),
             ("city", _("city")),
             ("country_id", _("country")),
-            ("logo", _("company logo")),
         ):
             if not self[field_name]:
                 errors.append(label)
+        if (
+            (not self.logo or self.uses_default_logo)
+            and not self._usl_document_builtin_logo()
+        ):
+            errors.append(_("company logo"))
         if self.country_id.code == "FR":
             for field_name, label in (
                 ("company_registry", _("SIREN / registry number")),
@@ -113,6 +117,29 @@ class ResCompany(models.Model):
             if "ape" in self._fields and not self.ape:
                 errors.append(_("APE code"))
         return errors
+
+    def _usl_document_builtin_logo(self):
+        self.ensure_one()
+        registry_digits = re.sub(r"\D", "", self.company_registry or "")
+        return "unstatic" if registry_digits.startswith("983982950") else None
+
+    @staticmethod
+    def _usl_group_french_identifier(value, groups):
+        digits = re.sub(r"\D", "", value or "")
+        if sum(groups) != len(digits):
+            return value or ""
+        result = []
+        offset = 0
+        for size in groups:
+            result.append(digits[offset:offset + size])
+            offset += size
+        return " ".join(result)
+
+    @staticmethod
+    def _usl_format_french_vat(value):
+        compact = re.sub(r"\s", "", value or "").upper()
+        match = re.fullmatch(r"FR(\d{2})(\d{3})(\d{3})(\d{3})", compact)
+        return " ".join((f"FR{match[1]}", match[2], match[3], match[4])) if match else value
 
     @api.depends(
         "name",
@@ -140,7 +167,7 @@ class ResCompany(models.Model):
     def _usl_document_legal_lines(self, locale):
         self.ensure_one()
         document_env = self.with_context(lang=locale).env
-        address = ", ".join(
+        address = " · ".join(
             part
             for part in (
                 self.street,
@@ -155,12 +182,30 @@ class ResCompany(models.Model):
             capital = localized_company.currency_id.format(
                 localized_company.usl_document_share_capital
             )
+            if localized_company.usl_document_share_capital == int(
+                localized_company.usl_document_share_capital
+            ):
+                capital = (
+                    f"{int(localized_company.usl_document_share_capital):,}"
+                    .replace(",", " ")
+                    + f" {localized_company.currency_id.symbol}"
+                )
+            registry_digits = re.sub(r"\D", "", self.company_registry or "")
+            siren = registry_digits[:9]
             registry_line = document_env._(
-                "RCS %(city)s %(registry)s · TVA %(vat)s",
+                "RCS %(city)s %(siren)s",
                 city=self.usl_document_rcs_city,
-                registry=self.company_registry,
-                vat=self.vat,
+                siren=self._usl_group_french_identifier(siren, (3, 3, 3)),
             )
+            if len(registry_digits) == 14:
+                registry_line = document_env._(
+                    "%(identity)s · SIRET %(siret)s",
+                    identity=registry_line,
+                    siret=self._usl_group_french_identifier(
+                        registry_digits,
+                        (3, 3, 3, 5),
+                    ),
+                )
             if "ape" in self._fields and self.ape:
                 registry_line = document_env._(
                     "%(identity)s · APE %(ape)s",
@@ -169,13 +214,17 @@ class ResCompany(models.Model):
                 )
             return [
                 document_env._(
-                    "%(name)s, %(form)s au capital de %(capital)s",
-                    name=self.name,
+                    "%(name)s — %(form)s au capital de %(capital)s",
+                    name=self.name.upper(),
                     form=self.usl_document_legal_form,
                     capital=capital,
                 ),
                 registry_line,
-                address,
+                document_env._(
+                    "TVA intracommunautaire %(vat)s",
+                    vat=self._usl_format_french_vat(self.vat),
+                ),
+                document_env._("Siège social : %(address)s", address=address),
             ]
         return [
             document_env._(
@@ -203,7 +252,8 @@ class ResCompany(models.Model):
             )
         assets = []
         logo_digest = None
-        if self.logo:
+        builtin_logo = self._usl_document_builtin_logo()
+        if self.logo and not self.uses_default_logo:
             content = self.logo.content
             mimetype = guess_mimetype(content)
             if mimetype not in {"image/png", "image/jpeg"}:
@@ -226,6 +276,7 @@ class ResCompany(models.Model):
                 "footer_label": self.name,
                 "legal_identity_lines": self._usl_document_legal_lines(locale),
                 "logo_asset": logo_digest,
+                "builtin_logo": builtin_logo if logo_digest is None else None,
             },
             assets,
         )

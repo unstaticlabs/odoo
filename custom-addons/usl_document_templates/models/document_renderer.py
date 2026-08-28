@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 import uuid
 
-from odoo import api, models, _
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 MAX_PDF_BYTES = 20 * 1024 * 1024
@@ -132,6 +132,7 @@ class UslDocumentRenderer(models.AbstractModel):
         expected_revision = self._expected_revision()
         envelope = {
             "request_id": str(uuid.uuid4()),
+            "rendered_at": fields.Datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "template_key": template.key,
             "schema_version": template.schema_version,
             "locale": locale,
