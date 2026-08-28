@@ -82,6 +82,24 @@ class ManifestTest(unittest.TestCase):
         with self.assertRaisesRegex(odoo_backup.BackupError, "major"):
             odoo_backup.validate_manifest(value)
 
+    def test_rejects_unknown_manifest_field(self) -> None:
+        value = manifest()
+        value["surprise"] = "ignored by a permissive parser"
+        with self.assertRaisesRegex(odoo_backup.BackupError, "unexpected surprise"):
+            odoo_backup.validate_manifest(value)
+
+    def test_rejects_malformed_numeric_field_cleanly(self) -> None:
+        value = manifest()
+        value["database"]["dump_bytes"] = "42"
+        with self.assertRaisesRegex(odoo_backup.BackupError, "database.dump_bytes"):
+            odoo_backup.validate_manifest(value)
+
+    def test_rejects_non_scalar_consistency_cleanly(self) -> None:
+        value = manifest()
+        value["consistency"] = ["live"]
+        with self.assertRaisesRegex(odoo_backup.BackupError, "consistency"):
+            odoo_backup.validate_manifest(value)
+
 
 class FilestoreTest(unittest.TestCase):
     def test_counts_and_resolves_attachment(self) -> None:
@@ -242,6 +260,16 @@ class OrchestrationPolicyTest(unittest.TestCase):
         self.assertIn("usl_documents.paperless", sql)
         self.assertIn("usl_documents.sync", sql)
         self.assertIn("DELETE FROM ir_config_parameter", sql)
+
+    def test_restore_verifies_native_side_effect_boundaries(self) -> None:
+        source = (ROOT / "scripts/odoo_backup.py").read_text(encoding="utf-8")
+        for boundary in (
+            "ir_act_server WHERE state='webhook'",
+            'table_exists(cursor, "auth_oauth_provider")',
+            'table_exists(cursor, "payment_provider")',
+            "account_peppol.edi.mode",
+        ):
+            self.assertIn(boundary, source)
 
 
 if __name__ == "__main__":

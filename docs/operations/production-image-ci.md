@@ -30,10 +30,12 @@ attestation treatment.
 
 ## Workflow behavior and outputs
 
-Pull requests targeting `19-usl` run repository unit checks, the existing
-action-risk and delivered-registry qualification, and no-push builds of the
-Distribution and backup-tool images. The PR job has only `contents: read`, does
-not log in to GHCR, and cannot access production credentials.
+Every pull request runs repository unit checks, the existing action-risk and
+delivered-registry qualification, and no-push builds of the Distribution and
+backup-tool images. This includes stacked pull requests whose temporary base is
+another feature branch; the `19-usl` ruleset still makes this check mandatory at
+final integration. The PR job has only `contents: read`, does not log in to
+GHCR, and cannot access production credentials.
 
 A push to `19-usl` runs the same qualification and then the separately
 permissioned publish job. That job uses the built-in `GITHUB_TOKEN` only,

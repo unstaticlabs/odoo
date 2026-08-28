@@ -141,6 +141,23 @@ bound, but only the dedicated Restic repository path/password protects this
 backup's encryption boundary. Empty bindings fail before Restic is invoked;
 the runtime never prints secret values.
 
+### Disposable qualification only
+
+The wrappers accept one repository-owned test switch. It cannot name an
+arbitrary Compose file:
+
+```bash
+export ODOO_BACKUP_QUALIFICATION=local  # named-volume Restic repository
+export ODOO_BACKUP_QUALIFICATION=r2     # real R2 qualification namespace
+```
+
+Both modes substitute a locally built Odoo image only to exercise native
+neutralization before an immutable release image exists. `local` additionally
+mounts the explicitly named qualification Restic volume. `r2` retains the
+normal production Restic transport but cannot add volumes, networks, source
+data, or production database access. Neither overlay is valid GitOps or
+production configuration; leave `ODOO_BACKUP_QUALIFICATION` unset there.
+
 ## Failure handling
 
 - `prepared`: the named staging volume holds a complete dump, manifest and

@@ -4,9 +4,8 @@
 name: Distribution image
 
 on:
+  # Run on stacked pull requests too; publish remains restricted to 19-usl.
   pull_request:
-    branches:
-      - 19-usl
   push:
     branches:
       - 19-usl

@@ -43,13 +43,13 @@ def fail(message: str) -> None:
 
 
 def require_safe_identifier(value: str, label: str) -> str:
-    if not BACKUP_ID_RE.fullmatch(value):
+    if not isinstance(value, str) or not BACKUP_ID_RE.fullmatch(value):
         fail(f"{label} must match {BACKUP_ID_RE.pattern}")
     return value
 
 
 def require_snapshot(value: str) -> str:
-    if not SNAPSHOT_RE.fullmatch(value):
+    if not isinstance(value, str) or not SNAPSHOT_RE.fullmatch(value):
         fail("snapshot must be the full 64-character Restic snapshot ID")
     return value
 
@@ -135,14 +135,35 @@ def filestore_metadata(root: Path, store_names: Iterable[str]) -> dict[str, int]
     }
 
 
-def _require_keys(value: dict[str, Any], keys: Iterable[str], label: str) -> None:
-    missing = [key for key in keys if key not in value]
-    if missing:
-        fail(f"{label} is missing: {', '.join(missing)}")
+def _require_exact_keys(value: Any, keys: Iterable[str], label: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        fail(f"{label} must be an object")
+    expected = set(keys)
+    actual = set(value)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        details = []
+        if missing:
+            details.append(f"missing {', '.join(missing)}")
+        if extra:
+            details.append(f"unexpected {', '.join(extra)}")
+        fail(f"{label} has invalid fields: {'; '.join(details)}")
+    return value
+
+
+def _non_negative_integer(value: Any, label: str, *, minimum: int = 0) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        fail(f"{label} must be an integer greater than or equal to {minimum}")
+    return value
 
 
 def validate_manifest(value: dict[str, Any]) -> dict[str, Any]:
-    _require_keys(value, ("schema", "backup_id", "created_at", "consistency", "source", "tool", "database", "filestore"), "manifest")
+    value = _require_exact_keys(
+        value,
+        ("schema", "backup_id", "created_at", "consistency", "source", "tool", "database", "filestore"),
+        "manifest",
+    )
     if value["schema"] != SCHEMA:
         fail(f"unsupported manifest schema: {value['schema']!r}")
     require_safe_identifier(value["backup_id"], "backup_id")
@@ -152,46 +173,52 @@ def validate_manifest(value: dict[str, Any]) -> dict[str, Any]:
         raise BackupError("created_at must be an ISO-8601 timestamp") from exc
     if timestamp.tzinfo is None:
         fail("created_at must include a timezone")
-    if value["consistency"] not in {"live", "quiesced"}:
+    if not isinstance(value["consistency"], str) or value["consistency"] not in {"live", "quiesced"}:
         fail("consistency must be live or quiesced")
-    source = value["source"]
-    tool = value["tool"]
-    database = value["database"]
-    filestore = value["filestore"]
-    if not all(isinstance(item, dict) for item in (source, tool, database, filestore)):
-        fail("source, tool, database, and filestore must be objects")
-    _require_keys(source, ("database", "postgres_version", "postgres_version_num", "pg_dump_version", "git_sha", "image_digest_reference"), "source")
-    _require_keys(tool, ("image_digest_reference",), "tool")
-    _require_keys(database, ("dump_file", "dump_bytes", "dump_sha256", "row_counts"), "database")
-    _require_keys(filestore, ("directory", "file_count", "total_bytes", "stored_attachment_count", "missing_attachment_count"), "filestore")
+    source = _require_exact_keys(
+        value["source"],
+        ("database", "postgres_version", "postgres_version_num", "pg_dump_version", "git_sha", "image_digest_reference"),
+        "source",
+    )
+    tool = _require_exact_keys(value["tool"], ("image_digest_reference",), "tool")
+    database = _require_exact_keys(
+        value["database"], ("dump_file", "dump_bytes", "dump_sha256", "row_counts"), "database"
+    )
+    filestore = _require_exact_keys(
+        value["filestore"],
+        ("directory", "file_count", "total_bytes", "stored_attachment_count", "missing_attachment_count"),
+        "filestore",
+    )
+    if not isinstance(source["database"], str) or not source["database"]:
+        fail("source.database must be a non-empty string")
+    if not isinstance(source["postgres_version"], str) or not source["postgres_version"]:
+        fail("source.postgres_version must be a non-empty string")
     if not SHA_RE.fullmatch(str(source["git_sha"])):
         fail("source.git_sha must be a full Git SHA")
     if not SOURCE_IMAGE_RE.fullmatch(str(source["image_digest_reference"])):
         fail("source.image_digest_reference must be the immutable USL Odoo image")
     if not TOOL_IMAGE_RE.fullmatch(str(tool["image_digest_reference"])):
         fail("tool.image_digest_reference must be the immutable USL backup image")
-    version_num = source["postgres_version_num"]
-    if not isinstance(version_num, int) or version_num // 10000 != 16:
+    version_num = _non_negative_integer(source["postgres_version_num"], "source.postgres_version_num")
+    if version_num // 10000 != 16:
         fail("source PostgreSQL major version must be 16")
     if not re.match(r"^16(?:\.|$)", str(source["pg_dump_version"])):
         fail("pg_dump major version must be 16")
-    if database["dump_file"] != "database.dump" or database["dump_bytes"] < 1:
+    if database["dump_file"] != "database.dump":
         fail("database dump metadata is invalid")
+    _non_negative_integer(database["dump_bytes"], "database.dump_bytes", minimum=1)
     if not re.fullmatch(r"[0-9a-f]{64}", str(database["dump_sha256"])):
         fail("database.dump_sha256 is invalid")
-    counts = database["row_counts"]
-    _require_keys(counts, COUNT_TABLES, "database.row_counts")
+    counts = _require_exact_keys(database["row_counts"], COUNT_TABLES, "database.row_counts")
     for table in COUNT_TABLES:
-        if not isinstance(counts[table], int) or counts[table] < 0:
-            fail(f"database.row_counts.{table} must be a non-negative integer")
+        _non_negative_integer(counts[table], f"database.row_counts.{table}")
     for table in NONEMPTY_TABLES:
         if counts[table] < 1:
             fail(f"database.row_counts.{table} must be non-zero")
     if filestore["directory"] != "filestore":
         fail("filestore.directory must be filestore")
     for key in ("file_count", "total_bytes", "stored_attachment_count", "missing_attachment_count"):
-        if not isinstance(filestore[key], int) or filestore[key] < 0:
-            fail(f"filestore.{key} must be a non-negative integer")
+        _non_negative_integer(filestore[key], f"filestore.{key}")
     if filestore["missing_attachment_count"] != 0:
         fail("backup contains attachment references missing from the filestore")
     return value
@@ -275,6 +302,11 @@ def stored_attachments(cursor: Any) -> list[str]:
     return [row[0] for row in cursor.fetchall()]
 
 
+def table_exists(cursor: Any, table: str) -> bool:
+    cursor.execute("SELECT to_regclass(%s) IS NOT NULL", (f"public.{table}",))
+    return bool(cursor.fetchone()[0])
+
+
 def pg_dump_version() -> str:
     output = run(["pg_dump", "--version"], capture=True).stdout.strip()
     match = re.search(r"(\d+(?:\.\d+)*)", output)
@@ -291,7 +323,11 @@ def prepare(args: argparse.Namespace) -> None:
     generated_id = f"{datetime.now(UTC):%Y%m%dt%H%M%Sz}-{git_sha[:8]}"
     backup_id = require_safe_identifier(args.backup_id or generated_id, "backup_id")
     database_name = os.environ.get("ODOO_DB_NAME", "").strip()
-    if not database_name or not re.fullmatch(r"[A-Za-z0-9_.-]+", database_name):
+    if (
+        not database_name
+        or database_name in {".", ".."}
+        or not re.fullmatch(r"[A-Za-z0-9_.-]+", database_name)
+    ):
         fail("ODOO_DB_NAME is required and contains an unsafe character")
     source_image = os.environ.get("USL_SOURCE_IMAGE_DIGEST", "")
     tool_image = os.environ.get("USL_BACKUP_TOOL_IMAGE_DIGEST", "")
@@ -362,10 +398,13 @@ def prepare(args: argparse.Namespace) -> None:
     if not dump_path.is_file() or dump_path.stat().st_size < 1:
         fail("pg_dump did not produce a non-empty custom-format dump")
     source_root = Path(os.environ.get("ODOO_DATA_ROOT", "/source-data")) / "filestore" / database_name
-    if not source_root.is_dir():
+    if not source_root.is_dir() or source_root.is_symlink():
         fail(f"source filestore does not exist: {source_root}")
+    source_metadata = filestore_metadata(source_root, attachments)
+    if source_metadata["missing_attachment_count"]:
+        fail(f"{source_metadata['missing_attachment_count']} stored attachment(s) are absent from the source filestore")
     destination = partial / "filestore"
-    shutil.copytree(source_root, destination, symlinks=False)
+    shutil.copytree(source_root, destination, symlinks=True)
     metadata = filestore_metadata(destination, attachments)
     if metadata["missing_attachment_count"]:
         fail(f"{metadata['missing_attachment_count']} stored attachment(s) are absent from the copied filestore")
@@ -519,12 +558,24 @@ def restore_fetch(args: argparse.Namespace) -> None:
 
 
 def restore_state(clone_id: str) -> tuple[Path, dict[str, Any], dict[str, Any]]:
-    root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / require_safe_identifier(clone_id, "clone_id")
+    clone_id = require_safe_identifier(clone_id, "clone_id")
+    root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / clone_id
     try:
         state = json.loads((root / "restore-state.json").read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise BackupError(f"restore state is missing for {clone_id}") from exc
-    artifact = root / state["artifact"]
+    state = _require_exact_keys(
+        state, ("schema", "clone_id", "snapshot_id", "artifact"), "restore state"
+    )
+    if state["schema"] != "usl-odoo-restore/v1" or state["clone_id"] != clone_id:
+        fail("restore state identity does not match the requested clone")
+    require_snapshot(state["snapshot_id"])
+    if not isinstance(state["artifact"], str):
+        fail("restore state artifact must be a relative path")
+    relative = PurePosixPath(state["artifact"])
+    if relative.is_absolute() or not relative.parts or any(part in {"", ".", ".."} for part in relative.parts):
+        fail("restore state artifact must be a safe relative path")
+    artifact = root.joinpath(*relative.parts)
     return artifact, read_manifest(artifact), state
 
 
@@ -600,9 +651,20 @@ def verify(args: argparse.Namespace) -> None:
             cursor.execute("SELECT count(*) FROM ir_mail_server WHERE active AND smtp_host <> 'invalid'")
             if int(cursor.fetchone()[0]):
                 fail("restored database still has an unsafe outgoing mail server")
-            cursor.execute("SELECT count(*) FROM auth_oauth_provider WHERE enabled")
+            cursor.execute("SELECT count(*) FROM ir_act_server WHERE state='webhook' AND webhook_url <> 'neutralization - disable webhook'")
             if int(cursor.fetchone()[0]):
-                fail("restored database still has an enabled OAuth provider")
+                fail("restored database still has an active automation webhook")
+            if table_exists(cursor, "auth_oauth_provider"):
+                cursor.execute("SELECT count(*) FROM auth_oauth_provider WHERE enabled")
+                if int(cursor.fetchone()[0]):
+                    fail("restored database still has an enabled OAuth provider")
+            if table_exists(cursor, "payment_provider"):
+                cursor.execute("SELECT count(*) FROM payment_provider WHERE state NOT IN ('test', 'disabled')")
+                if int(cursor.fetchone()[0]):
+                    fail("restored database still has a live payment provider")
+            cursor.execute("SELECT count(*) FROM ir_config_parameter WHERE key='account_peppol.edi.mode' AND value <> 'demo'")
+            if int(cursor.fetchone()[0]):
+                fail("restored database still has non-demo Peppol connectivity")
             cursor.execute("SELECT count(*) FROM ir_config_parameter WHERE (key LIKE 'usl_documents.paperless\\_%' ESCAPE '\\' OR key LIKE 'usl_documents.sync\\_%' ESCAPE '\\') AND COALESCE(value, '') <> ''")
             if int(cursor.fetchone()[0]):
                 fail("restored database still has Paperless connectivity")
@@ -722,7 +784,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
         args.handler(args)
-    except (BackupError, subprocess.CalledProcessError) as exc:
+    except (BackupError, OSError, subprocess.CalledProcessError) as exc:
         print(f"odoo backup refused: {exc}", file=sys.stderr)
         return 1
     return 0
