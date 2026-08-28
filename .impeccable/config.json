@@ -1123,6 +1123,21 @@
         ],
         "createdAt": "2026-08-28T19:17:51.805Z",
         "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4f6fad",
+        "createdAt": "2026-08-28T19:40:16.463Z",
+        "reason": "Coding Agent: Paperless tag color is domain data serialized to usl.paperless.tag, not a USL interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "custom-addons/usl_documents/static/tests/documents_app.test.js"
+        ],
+        "createdAt": "2026-08-28T19:40:16.501Z",
+        "reason": "Coding Agent: arbitrary Paperless tag-color fixtures verify rendering of external domain data, not the USL interface palette"
       }
     ]
   }
