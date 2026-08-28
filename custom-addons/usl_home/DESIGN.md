@@ -36,6 +36,21 @@ typography:
     fontSize: "0.78rem"
     fontWeight: 600
     lineHeight: 1.25
+  signal:
+    fontFamily: "inherit"
+    fontSize: "1.2rem"
+    fontWeight: 700
+    lineHeight: 1.2
+  alertCount:
+    fontFamily: "inherit"
+    fontSize: "1.35rem"
+    fontWeight: 700
+    lineHeight: 1.2
+  clearStateIcon:
+    fontFamily: "inherit"
+    fontSize: "1.5rem"
+    fontWeight: 400
+    lineHeight: 1
 rounded:
   skeleton: "8px"
   control-panel: "12px"
@@ -145,6 +160,9 @@ The palette is the active Odoo theme expressed through local semantic aliases, w
 - **Headline** (650, compact): Widget titles and the customization heading.
 - **Body** (400, native Odoo body scale): Actions, row titles, explanatory copy, and configuration labels.
 - **Label** (600, compact): Timing, pipeline status, and small operational counts; tabular numerals are used for task signals and alert counts.
+- **Signal** (700, compact): Task-summary counts use a modest 1.2-rem step so the value leads without becoming a dashboard KPI.
+- **Alert Count** (700, compact): Accounting exception counts use a 1.35-rem step to remain scannable across five dense destinations.
+- **Clear-State Icon** (1.5 rem): The empty-state check icon is larger than adjacent copy while remaining decorative beside its textual explanation.
 
 ### Named Rules
 

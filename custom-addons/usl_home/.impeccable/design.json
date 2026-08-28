@@ -81,6 +81,18 @@
       "label": {
         "displayName": "Status Label",
         "purpose": "Carries timing, pipeline state, and compact operational metadata."
+      },
+      "signal": {
+        "displayName": "Task Signal",
+        "purpose": "Keeps task-summary counts scannable without giving them dashboard-KPI prominence."
+      },
+      "alertCount": {
+        "displayName": "Accounting Alert Count",
+        "purpose": "Keeps exception counts legible inside the dense five-destination accounting row."
+      },
+      "clearStateIcon": {
+        "displayName": "Clear-State Icon",
+        "purpose": "Sizes the decorative success icon above concise empty-state text."
       }
     },
     "shadows": [],
