@@ -3,6 +3,7 @@
 These runbooks define the required operational outcomes for a dependable self-hosted Odoo service. Exact commands and infrastructure details may evolve; the safety, recovery and evidence requirements remain invariant.
 
 - [Environment and release policy](environment-and-release-policy.md)
+- [Production image CI boundary](production-image-ci.md)
 - [Pre-production release](preproduction-release.md)
 - [Portable production migration candidate](portable-production-migration.md)
 - [Production cut-over readiness register](production-cutover-readiness.md)
