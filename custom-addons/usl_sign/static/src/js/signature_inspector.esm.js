@@ -160,11 +160,7 @@ export class SignatureInspector extends Component {
         if (signature.cryptoValid === false || !signature.byteRangeValid) {
             return "danger";
         }
-        if (
-            signature.cryptoValid !== true ||
-            !signature.coversCurrentFile ||
-            signature.weakAlgorithm
-        ) {
+        if (signature.cryptoValid !== true || signature.weakAlgorithm) {
             return "warning";
         }
         return "success";

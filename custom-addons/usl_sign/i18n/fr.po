@@ -4448,8 +4448,20 @@ msgstr "Titulaire, émetteur, dates, algorithmes et structure de la chaîne."
 #. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
-msgid "Need a formal decision?"
-msgstr "Besoin d’une décision formelle ?"
+msgid "Need more assurance?"
+msgstr "Besoin d’une vérification supplémentaire ?"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
+msgid "Open the European Commission DSS validator"
+msgstr "Ouvrir le validateur DSS de la Commission européenne"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/signature_inspector.xml:0
+msgid "Official demonstration, not a qualified validation service. Your PDF is uploaded to European Commission infrastructure; avoid sensitive documents."
+msgstr "Démonstration officielle, et non service de validation qualifié. Votre PDF est envoyé vers l’infrastructure de la Commission européenne ; évitez les documents sensibles."
 
 #. module: usl_sign
 #. odoo-javascript
