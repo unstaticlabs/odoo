@@ -1,6 +1,8 @@
 import base64
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import fields
 from odoo.exceptions import RedirectWarning, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
@@ -125,6 +127,31 @@ class TestDocumentTemplates(TransactionCase):
             french["accounting_statement.v2"]["title"],
             "Aperçu du compte de résultat",
         )
+
+    def test_french_generic_official_document_labels_are_maintained(self):
+        template_fields = self.env["usl.document.template"].with_context(
+            lang="fr_FR"
+        ).fields_get(["active", "name"])
+        letter_fields = self.env["usl.document.letter"].with_context(
+            lang="fr_FR"
+        ).fields_get(["company_id"])
+
+        self.assertEqual(template_fields["active"]["string"], "Actif")
+        self.assertEqual(template_fields["name"]["string"], "Nom")
+        self.assertEqual(letter_fields["company_id"]["string"], "Société")
+
+    def test_new_letter_hides_lifecycle_actions_until_saved(self):
+        view = self.env.ref("usl_document_templates.view_document_letter_form")
+        arch = etree.fromstring(view.arch_db)
+
+        lifecycle_buttons = arch.xpath("//header/button[@type='object']")
+        self.assertTrue(lifecycle_buttons)
+        for button in lifecycle_buttons:
+            self.assertIn(
+                "not id",
+                button.get("invisible", ""),
+                f"{button.get('name')} must require a saved letter",
+            )
 
     def test_governed_report_policy_is_consistent(self):
         template = self.env.ref(
