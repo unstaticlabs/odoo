@@ -25,14 +25,14 @@ msgstr "%(identity)s · APE %(ape)s"
 #. module: usl_document_templates
 #. odoo-python
 #: code:addons/usl_document_templates/models/res_company.py:0
-msgid "%(name)s, %(form)s au capital de %(capital)s"
-msgstr "%(name)s, %(form)s au capital de %(capital)s"
+msgid "%(name)s — %(form)s · Capital social : %(capital)s"
+msgstr "%(name)s — %(form)s · Capital social : %(capital)s"
 
 #. module: usl_document_templates
 #. odoo-python
 #: code:addons/usl_document_templates/models/res_company.py:0
-msgid "%(name)s, %(form)s with share capital of %(capital)s"
-msgstr "%(name)s, %(form)s au capital de %(capital)s"
+msgid "%(name)s — %(form)s · Share capital: %(capital)s"
+msgstr "%(name)s — %(form)s · Capital social : %(capital)s"
 
 #. module: usl_document_templates
 #. odoo-python

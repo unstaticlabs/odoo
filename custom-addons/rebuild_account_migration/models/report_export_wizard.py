@@ -3992,6 +3992,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.ensure_one()
         metadata = self._export_metadata(len(rows))
         columns = self._report_export_columns(rows)
+        statement_label_fields = {
+            "balance_sheet": "account_name",
+            "profit_loss": "line_name",
+            "french_annual": "label",
+            "french_balance_sheet_2024": "label",
+            "french_profit_loss_2024": "label",
+            "sig_caf_2024": "label",
+        }
         label_candidates = (
             "label",
             "line_name",
@@ -4003,19 +4011,36 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "statement_name",
             "section",
         )
-        label_field = next(
-            (
-                field_name
-                for field_name in label_candidates
-                if any(field_name == key for key, _label in columns)
-            ),
-            columns[0][0],
+        preferred_label_field = statement_label_fields.get(
+            self.report_type,
+        )
+        label_field = (
+            preferred_label_field
+            if preferred_label_field
+            and any(row.get(preferred_label_field) for row in rows)
+            else next(
+                (
+                    field_name
+                    for field_name in label_candidates
+                    if any(
+                        field_name == key
+                        for key, _label in columns
+                    )
+                ),
+                columns[0][0],
+            )
         )
         value_columns = [
             (field_name, label)
             for field_name, label in columns
             if field_name != label_field
         ]
+        if preferred_label_field:
+            value_columns = [
+                (field_name, label)
+                for field_name, label in value_columns
+                if field_name in MONETARY_REPORT_FIELDS
+            ]
         if not value_columns:
             value_columns = [("__value__", "Valeur")]
 
@@ -4037,6 +4062,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     Decimal(1).scaleb(-decimal_places),
                     rounding=ROUND_HALF_UP,
                 )
+                if amount == 0:
+                    amount = abs(amount)
                 return (
                     f"{amount:,.{decimal_places}f}"
                     .replace(",", " ")
@@ -4046,12 +4073,28 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 return str(value)
 
         rendered_rows = []
+        previous_section = None
         for row in rows:
+            section = str(row.get("section") or "").strip()
+            if (
+                self.report_type in {"balance_sheet", "profit_loss"}
+                and section
+                and section != previous_section
+            ):
+                rendered_rows.append({
+                    "label": section,
+                    "level": 0,
+                    "emphasis": "section",
+                    "values": ["" for _column in value_columns],
+                })
+                previous_section = section
             role = self._report_presentation_role(row)
             try:
                 level = int(row.get("row_level") or row.get("level") or 0)
             except (TypeError, ValueError):
                 level = 0
+            if self.report_type in {"balance_sheet", "profit_loss"}:
+                level = max(level, 1)
             rendered_rows.append({
                 "label": str(
                     self._report_export_row_value(row, label_field) or ""
@@ -4072,6 +4115,24 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             })
 
         companies = self._selected_companies()
+        generated_on = self._display_export_date(
+            fields.Date.context_today(self),
+        )
+        currency = self.company_id.currency_id.with_context(lang="fr_FR")
+        currency_units = currency.currency_unit_label or currency.name
+        document_unit_label = {
+            "units": currency_units,
+            "thousands": (
+                "Milliers d’euros"
+                if currency.name == "EUR"
+                else f"Milliers de {currency_units.lower()}"
+            ),
+            "millions": (
+                "Millions d’euros"
+                if currency.name == "EUR"
+                else f"Millions de {currency_units.lower()}"
+            ),
+        }.get(self.display_unit, currency_units)
         filters = [
             f"Société : {', '.join(companies.mapped('display_name'))}",
             (
@@ -4079,12 +4140,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 f" – {self._display_export_date(metadata['date_to'])}"
             ),
             (
-                "Écritures : toutes"
+                f"Écritures comptabilisées et brouillons au {generated_on}"
                 if self.target_move == "all"
-                else "Écritures : comptabilisées"
+                else f"Écritures comptabilisées au {generated_on}"
             ),
             (
-                f"Unité : {metadata['display_unit_label']}"
+                f"Unité : {document_unit_label}"
                 f" · Arrondi : {metadata['amount_rounding_label']}"
             ),
         ]
@@ -4141,14 +4202,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             {
                 "title": metadata["report_name"],
                 "reference": (
-                    f"Réf. exercice {fields.Date.to_date(metadata['date_from']).year}"
+                    f"Exercice {fields.Date.to_date(metadata['date_from']).year}"
                     f"–{fields.Date.to_date(metadata['date_to']).year}"
-                    if self.report_type in {"profit_loss", "french_annual"}
-                    else metadata["report_name"]
                 ),
                 "date": (
-                    f"Du {self._display_export_date(metadata['date_from'])} "
-                    f"au {self._display_export_date(metadata['date_to'])}"
+                    f"{self._display_export_date(metadata['date_from'])}"
+                    " – "
+                    f"{self._display_export_date(metadata['date_to'])}"
                 ),
                 "orientation": (
                     "landscape"

@@ -110,6 +110,14 @@ class UslDocumentRenderer(models.AbstractModel):
         )
 
     @api.model
+    def _generated_at_label(self, rendered_at, locale):
+        localized = fields.Datetime.context_timestamp(self, rendered_at)
+        timezone = localized.tzname() or "UTC"
+        if locale == "fr_FR":
+            return f"Généré le {localized:%d/%m/%Y à %H:%M} {timezone}"
+        return f"Generated {localized:%d %b %Y at %H:%M} {timezone}"
+
+    @api.model
     @api.private
     def health(self):
         health = self._request("/health")
@@ -130,9 +138,14 @@ class UslDocumentRenderer(models.AbstractModel):
     @api.private
     def render(self, template, company, document, locale, assets=None):
         expected_revision = self._expected_revision()
+        rendered_at = fields.Datetime.now()
+        document = {
+            **document,
+            "generated_at_label": self._generated_at_label(rendered_at, locale),
+        }
         envelope = {
             "request_id": str(uuid.uuid4()),
-            "rendered_at": fields.Datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "rendered_at": rendered_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "template_key": template.key,
             "schema_version": template.schema_version,
             "locale": locale,

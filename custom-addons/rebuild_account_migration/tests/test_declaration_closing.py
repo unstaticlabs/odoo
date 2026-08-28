@@ -1417,8 +1417,120 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         payload = render.call_args.args[2]
         self.assertEqual(payload["rows"][0]["level"], 2)
         self.assertIn("1", payload["rows"][0]["values"])
-        self.assertTrue(any("Milliers" in item for item in payload["filters"]))
+        self.assertTrue(
+            any("Unité : Milliers d’euros" in item for item in payload["filters"])
+        )
+        self.assertTrue(
+            any(
+                item.startswith("Écritures comptabilisées au ")
+                for item in payload["filters"]
+            )
+        )
         self.assertEqual(payload["orientation"], "landscape")
+
+    def test_pdf_adapter_names_the_currency_instead_of_generic_units(self):
+        wizard = self._wizard(export_format="pdf", display_unit="units")
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload([], return_result=True)
+
+        payload = render.call_args.args[2]
+        self.assertTrue(
+            any("Unité : Euros" in item for item in payload["filters"])
+        )
+
+    def test_statement_pdf_uses_business_labels_not_internal_codes(self):
+        renderer = self.allowed_env["usl.document.renderer"]
+        cases = (
+            (
+                "profit_loss",
+                {
+                    "section": "Produits d’exploitation",
+                    "line_code": "CR_SERVICES",
+                    "line_name": "Prestations de services",
+                    "amount": "1250.49",
+                },
+                "Prestations de services",
+                "Montant (€)",
+            ),
+            (
+                "balance_sheet",
+                {
+                    "section": "Capitaux propres",
+                    "account_code": "106100",
+                    "account_name": "Réserve légale",
+                    "amount": "100.00",
+                },
+                "Réserve légale",
+                "Solde (€)",
+            ),
+        )
+        for report_type, row, expected_label, expected_column in cases:
+            wizard = self._wizard(
+                report_type=report_type,
+                export_format="pdf",
+                date_from="2025-10-01",
+                date_to="2026-09-30",
+            )
+            with (
+                patch.object(
+                    type(self.first_company),
+                    "_usl_document_renderer_company_payload",
+                    return_value=(COMPANY_PAYLOAD, []),
+                ),
+                patch.object(
+                    type(renderer),
+                    "render",
+                    return_value=RENDER_RESULT,
+                ) as render,
+            ):
+                wizard._pdf_payload([row], return_result=True)
+
+            payload = render.call_args.args[2]
+            self.assertEqual(payload["columns"], [expected_column])
+            self.assertEqual(payload["rows"][0]["emphasis"], "section")
+            self.assertEqual(payload["rows"][1]["label"], expected_label)
+            self.assertNotIn(row.get("line_code"), payload["rows"][1]["values"])
+            self.assertEqual(payload["reference"], "Exercice 2025–2026")
+            self.assertEqual(payload["date"], "01/10/2025 – 30/09/2026")
+
+    def test_pdf_adapter_normalizes_negative_zero(self):
+        wizard = self._wizard(
+            export_format="pdf",
+            amount_rounding="whole",
+        )
+        rows = [{
+            "account_code": "471000",
+            "account_name": "Compte d’attente",
+            "opening_balance": "-0.004",
+            "debit": "0",
+            "credit": "0",
+            "closing_balance": "-0.004",
+        }]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(
+                type(renderer),
+                "render",
+                return_value=RENDER_RESULT,
+            ) as render,
+        ):
+            wizard._pdf_payload(rows, return_result=True)
+
+        values = render.call_args.args[2]["rows"][0]["values"]
+        self.assertNotIn("-0", values)
 
     def test_shared_legacy_document_color_uses_governed_accent(self):
         wizard = self._wizard()
