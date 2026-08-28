@@ -40,15 +40,16 @@ The inspected snapshot contains:
 | Perimeter | Source records |
 | --- | ---: |
 | Projects | 18 |
-| Tasks and one task template | 1,834 |
-| Project stages / task stages | 4 / 102 |
-| Tags / milestones / recurrences / updates | 135 / 3 / 15 / 16 |
-| Task assignees / tags / parents / dependencies | 417 / 3,196 / 1,234 / 227 |
-| Project stage / tag / favourite links | 106 / 16 / 13 |
-| Task milestone / recurrence links | 66 / 10 |
-| Chatter messages / tracking values | 20,945 / 8,328 |
-| Followers / activities | 2,224 / 871 |
-| Analytic projects / linked expenses | 2 / 117 |
+| Tasks and task templates | 2,052 |
+| Project stages / task stages | 4 / 103 |
+| Tags / milestones / recurrences / updates | 178 / 3 / 16 / 16 |
+| Task assignees / tags / parents / dependencies | 540 / 3,654 / 1,247 / 258 |
+| Project stage / tag / favourite links | 107 / 16 / 13 |
+| Task milestone / recurrence links | 66 / 11 |
+| Chatter messages / tracking values | 22,273 / 8,807 |
+| Followers / activities | 2,368 / 894 |
+| Analytic projects / linked expenses | 2 / 170 |
+| Project-linked Documents records | 1 |
 
 During migration, temporary source bindings carry the source database, model,
 identifier, snapshot, status and note. A newer snapshot or importer
@@ -72,7 +73,7 @@ Projects is a downstream migration stage. Run it only after the target's
 companies, users, partners, analytic accounts and imported business records
 are present. The Projects importer reconnects those records; it does not
 silently duplicate another perimeter's source data. In particular, this
-snapshot expects 116 already-imported expenses to resolve through the two
+snapshot expects 170 already-imported expenses to resolve through the two
 project analytic accounts. Validation blocks finalization if that prerequisite
 is incomplete.
 
@@ -97,16 +98,19 @@ permanent Odoo models.
 
 ## Deliberate exclusions
 
-- The 18 Enterprise Documents folder shells are empty. They are counted and
-  reported but not recreated. Project/task attachments are restored normally.
+- Seventeen of the 18 Enterprise Documents folder shells are empty. Folder
+  shells are counted and reported but not recreated. The single document in
+  the populated Project folder is restored by the governed Documents stage
+  after Projects, then linked to both its native task and Project context.
 - The proprietary Enterprise Gantt client is not copied. `planned_date_begin`
   is retained beside the native deadline in task form and list views, so the
   planning interval remains usable.
 - Historical notification and outgoing-mail queues are not replayed.
   Recipient relationships remain on chatter messages.
-- The source has no project/task sales links, no project-linked Documents
-  records, and no external collaborators. Nothing synthetic is created for
-  those empty perimeters.
+- The source has no project/task sales links or external collaborators. Nothing
+  synthetic is created for those empty perimeters. The one project-linked
+  Documents record is delegated to the source Documents archive and must pass
+  its byte, OCR, metadata, permission, and relationship gates.
 - Enterprise-only AI property-definition keys are reported by migration but
   removed from the native Community property definition, where they are
   invalid. Supported property definitions and values remain available.

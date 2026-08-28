@@ -1851,6 +1851,11 @@ class UslProjectRestoreRun(models.Model):
                 "source_project_documents": payload[
                     "project_document_count"
                 ],
+                "source_project_documents_disposition": (
+                    "Delegated to the governed Documents archive after Projects "
+                    "restoration so source folder and record relationships can be "
+                    "resolved against native Community project identities."
+                ),
                 "source_project_sales_links": payload[
                     "project_sales_link_count"
                 ],
@@ -1858,7 +1863,6 @@ class UslProjectRestoreRun(models.Model):
         }
         unsupported_source_links = {
             "project collaborators": payload["project_collaborator_count"],
-            "project Documents": payload["project_document_count"],
             "project sales links": payload["project_sales_link_count"],
         }
         for description, count in unsupported_source_links.items():

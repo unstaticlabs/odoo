@@ -13,6 +13,9 @@ TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
 NATIVE_BRIDGE_SCRIPT = (
     ROOT / "migration/documents_archive/scripts/reconcile_native_attachments.py"
 )
+SOURCE_DOCUMENTS_RESTORE = (
+    ROOT / "migration/documents_archive/scripts/source_documents_restore.py"
+)
 PAPERLESS_MIGRATION_ACCESS = (
     ROOT / "migration/documents_archive/scripts/paperless_migration_access.py"
 )
@@ -99,6 +102,19 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertLess(canonical_compose, extra_file_guard)
         self.assertLess(extra_file_guard, extra_file_append)
+
+    def test_source_restore_maps_project_documents_after_project_restore(self):
+        script = SOURCE_DOCUMENTS_RESTORE.read_text(encoding="utf-8")
+
+        self.assertIn('projects = source_map(\n    "project.project",', script)
+        self.assertIn('tasks = source_map(\n    "project.task",', script)
+        self.assertIn("project_by_folder = {", script)
+        self.assertIn("target_records = business_targets(group)", script)
+        self.assertIn("target_links = business_targets(group)", script)
+        self.assertNotIn(
+            "direct Project-folder documents without a finalized mapping",
+            script,
+        )
 
     def test_upgrade_revalidates_accounting_parent_before_documents_view(self):
         script = SCRIPT.read_text(encoding="utf-8")

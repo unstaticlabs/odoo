@@ -427,6 +427,20 @@ class TestProjectRestore(TransactionCase):
         self.assertTrue(edited.exists())
         self.assertEqual(edited.description, "<p>Kept by the user</p>")
 
+    def test_project_documents_are_delegated_to_documents_archive(self):
+        payload = self._payload()
+        payload["project_document_count"] = 1
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        exclusions = run.statistics_json["deliberate_exclusions"]
+        self.assertEqual(exclusions["source_project_documents"], 1)
+        self.assertIn(
+            "Documents archive after Projects restoration",
+            exclusions["source_project_documents_disposition"],
+        )
+
     def test_restore_preserves_relationships_and_is_idempotent(self):
         payload = self._payload()
         mail_count = self.env["mail.mail"].sudo().search_count([])
