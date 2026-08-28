@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+umask 077
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+sign_dir="${USL_SIGN_SECRET_ROOT:-$repo_root/.secrets/sign}"
+step_dir="$sign_dir/step-ca"
+offline_root_dir="$sign_dir/offline-root"
+odoo_secret_dir="$sign_dir/odoo"
+dss_secret_dir="$sign_dir/dss"
+step_image=${USL_SIGN_STEP_CA_IMAGE:-smallstep/step-ca:0.30.2@sha256:a2b17872915c193259b75a5474c398326f41bd199f0842093e52cf4182bc8270}
+java_image=${USL_SIGN_JAVA_IMAGE:-eclipse-temurin:21-jre-alpine@sha256:3f08b13888f595cc49edabea7250ba69499ba25602b267da591720769400e08c}
+
+if [ -e "$step_dir/config/ca.json" ] || [ -e "$odoo_secret_dir/provisioner.jwk" ]; then
+    echo "USL Sign secrets already exist. This bootstrap never overwrites a CA." >&2
+    exit 1
+fi
+
+for directory in "$step_dir" "$offline_root_dir" "$odoo_secret_dir" "$dss_secret_dir"; do
+    mkdir -p "$directory"
+done
+
+openssl rand -base64 36 > "$step_dir/password"
+openssl rand -base64 36 > "$sign_dir/bootstrap-provisioner-password"
+openssl rand -base64 36 > "$sign_dir/jwk-password-unused"
+openssl rand -base64 36 > "$sign_dir/dss-keystore-password"
+openssl rand -base64 36 > "$sign_dir/manifest-keystore-password"
+
+docker run --rm \
+    -v "$step_dir:/home/step" \
+    -v "$sign_dir/bootstrap-provisioner-password:/run/bootstrap-provisioner-password:ro" \
+    "$step_image" \
+    step ca init \
+    --name "USL Sign Local CA" \
+    --dns usl-sign-step-ca \
+    --dns localhost \
+    --address :9000 \
+    --provisioner bootstrap \
+    --password-file /home/step/password \
+    --provisioner-password-file /run/bootstrap-provisioner-password
+
+mv "$step_dir/secrets/root_ca_key" "$offline_root_dir/root_ca_key"
+cp "$step_dir/certs/root_ca.crt" "$offline_root_dir/root_ca.crt"
+cp "$repo_root/services/usl-sign-step-ca/personal-certificate.tpl" \
+    "$step_dir/templates/personal-certificate.tpl"
+
+docker run --rm \
+    -v "$step_dir:/home/step" \
+    "$step_image" \
+    step crypto jwk create \
+    /home/step/config/usl-sign-public.jwk \
+    /home/step/config/usl-sign-private.jwk \
+    --kty EC --crv P-256 --alg ES256 --no-password --insecure
+
+docker run --rm \
+    -v "$step_dir:/home/step" \
+    "$step_image" \
+    step ca provisioner add usl-sign \
+    --type JWK \
+    --public-key /home/step/config/usl-sign-public.jwk \
+    --ca-config /home/step/config/ca.json \
+    --x509-template /home/step/templates/personal-certificate.tpl \
+    --x509-min-dur 5m \
+    --x509-max-dur 10m \
+    --x509-default-dur 10m \
+    --disable-renewal
+
+docker run --rm \
+    -v "$step_dir:/home/step" \
+    "$step_image" \
+    step ca provisioner remove bootstrap --ca-config /home/step/config/ca.json
+
+mv "$step_dir/config/usl-sign-private.jwk" "$odoo_secret_dir/provisioner.jwk"
+rm "$step_dir/config/usl-sign-public.jwk" \
+    "$sign_dir/bootstrap-provisioner-password" \
+    "$sign_dir/jwk-password-unused"
+
+ca_password="$step_dir/password"
+intermediate_key="$step_dir/secrets/intermediate_ca_key"
+intermediate_crt="$step_dir/certs/intermediate_ca.crt"
+root_crt="$step_dir/certs/root_ca.crt"
+dss_password_file="$sign_dir/dss-keystore-password"
+manifest_password_file="$sign_dir/manifest-keystore-password"
+serial_file="$step_dir/certs/usl-sign-ca.srl"
+
+issue_leaf() {
+    local basename=$1
+    local common_name=$2
+    local extended_usage=$3
+    local subject_alt_name=$4
+    local output_dir=$5
+    local extension_file="$sign_dir/$basename.ext"
+
+    openssl ecparam -name prime256v1 -genkey -noout -out "$output_dir/$basename.key"
+    openssl req -new -sha256 \
+        -key "$output_dir/$basename.key" \
+        -subj "/CN=$common_name/O=Unstatic Labs" \
+        -out "$output_dir/$basename.csr"
+    {
+        printf '%s\n' 'basicConstraints=critical,CA:FALSE'
+        printf '%s\n' 'keyUsage=critical,digitalSignature'
+        if [ -n "$extended_usage" ]; then
+            printf 'extendedKeyUsage=%s\n' "$extended_usage"
+        fi
+        if [ -n "$subject_alt_name" ]; then
+            printf 'subjectAltName=%s\n' "$subject_alt_name"
+        fi
+    } > "$extension_file"
+    openssl x509 -req -sha256 \
+        -in "$output_dir/$basename.csr" \
+        -CA "$intermediate_crt" \
+        -CAkey "$intermediate_key" \
+        -passin "file:$ca_password" \
+        -CAserial "$serial_file" \
+        -CAcreateserial \
+        -days 365 \
+        -extfile "$extension_file" \
+        -out "$output_dir/$basename.crt"
+    rm "$output_dir/$basename.csr" "$extension_file"
+}
+
+issue_leaf platform "USL Sign Platform Seal" emailProtection "" "$dss_secret_dir"
+issue_leaf manifest "USL Sign Evidence Manifest" "" "" "$dss_secret_dir"
+issue_leaf server "usl-sign-dss" serverAuth \
+    "DNS:usl-sign-dss,DNS:localhost,IP:127.0.0.1" "$dss_secret_dir"
+issue_leaf client "USL Odoo Sign DSS Client" clientAuth "" "$odoo_secret_dir"
+
+{
+    cp "$intermediate_crt" "$sign_dir/chain.pem"
+    printf '\n' >> "$sign_dir/chain.pem"
+    sed -n '1,$p' "$root_crt" >> "$sign_dir/chain.pem"
+}
+{
+    cp "$odoo_secret_dir/client.crt" "$odoo_secret_dir/client-chain.crt"
+    printf '\n' >> "$odoo_secret_dir/client-chain.crt"
+    sed -n '1,$p' "$intermediate_crt" >> "$odoo_secret_dir/client-chain.crt"
+}
+cp "$root_crt" "$odoo_secret_dir/root_ca.crt"
+
+openssl pkcs12 -export \
+    -name usl-sign-platform \
+    -inkey "$dss_secret_dir/platform.key" \
+    -in "$dss_secret_dir/platform.crt" \
+    -certfile "$sign_dir/chain.pem" \
+    -passout "file:$dss_password_file" \
+    -out "$dss_secret_dir/platform.p12"
+openssl pkcs12 -export \
+    -name usl-sign-evidence-manifest \
+    -inkey "$dss_secret_dir/manifest.key" \
+    -in "$dss_secret_dir/manifest.crt" \
+    -certfile "$sign_dir/chain.pem" \
+    -passout "file:$manifest_password_file" \
+    -out "$dss_secret_dir/manifest.p12"
+openssl pkcs12 -export \
+    -name usl-sign-dss \
+    -inkey "$dss_secret_dir/server.key" \
+    -in "$dss_secret_dir/server.crt" \
+    -certfile "$sign_dir/chain.pem" \
+    -passout "file:$dss_password_file" \
+    -out "$dss_secret_dir/server.p12"
+docker run --rm \
+    -v "$sign_dir:/run/sign" \
+    "$java_image" \
+    keytool -importcert -noprompt \
+    -alias usl-sign-client-root \
+    -file /run/sign/step-ca/certs/root_ca.crt \
+    -keystore /run/sign/dss/client-trust.p12 \
+    -storetype PKCS12 \
+    -storepass:file /run/sign/dss-keystore-password
+docker run --rm \
+    -v "$sign_dir:/run/sign" \
+    "$java_image" \
+    keytool -importcert -noprompt \
+    -alias usl-sign-local-root \
+    -file /run/sign/step-ca/certs/root_ca.crt \
+    -keystore /run/sign/dss/local-trust.p12 \
+    -storetype PKCS12 \
+    -storepass:file /run/sign/dss-keystore-password
+
+dss_password=$(tr -d '\r\n' < "$dss_password_file")
+manifest_password=$(tr -d '\r\n' < "$manifest_password_file")
+{
+    printf 'USL_DSS_PLATFORM_KEYSTORE_PASSWORD=%s\n' "$dss_password"
+    printf 'USL_DSS_MANIFEST_KEYSTORE_PASSWORD=%s\n' "$manifest_password"
+    printf 'USL_DSS_TLS_KEYSTORE_PASSWORD=%s\n' "$dss_password"
+    printf 'USL_DSS_CLIENT_TRUSTSTORE_PASSWORD=%s\n' "$dss_password"
+    printf 'USL_DSS_LOCAL_TRUSTSTORE_PASSWORD=%s\n' "$dss_password"
+} > "$sign_dir/dss.env"
+{
+    printf '%s\n' 'USL_SIGN_DSS_URL=https://usl-sign-dss:8443'
+    printf '%s\n' 'USL_SIGN_DSS_CLIENT_CERT=/run/usl-sign/client-chain.crt'
+    printf '%s\n' 'USL_SIGN_DSS_CLIENT_KEY=/run/usl-sign/client.key'
+    printf '%s\n' 'USL_SIGN_DSS_CA_BUNDLE=/run/usl-sign/root_ca.crt'
+    printf '%s\n' 'USL_SIGN_STEP_CA_URL=https://usl-sign-step-ca:9000'
+    printf '%s\n' 'USL_SIGN_STEP_CA_PROVISIONER=usl-sign'
+    printf '%s\n' 'USL_SIGN_STEP_CA_JWK_FILE=/run/usl-sign/provisioner.jwk'
+    printf '%s\n' 'USL_SIGN_STEP_CA_CA_BUNDLE=/run/usl-sign/root_ca.crt'
+} > "$sign_dir/odoo.env"
+printf '%s\n' 'STEPDEBUG=0' > "$sign_dir/step-ca.env"
+
+rm "$sign_dir/chain.pem" "$dss_password_file" "$manifest_password_file"
+chmod 600 "$odoo_secret_dir"/* "$dss_secret_dir"/* "$sign_dir"/*.env
+chmod 600 "$step_dir/password" "$step_dir/secrets/intermediate_ca_key"
+chmod 644 "$step_dir/certs"/*.crt "$odoo_secret_dir"/*.crt
+
+echo "USL Sign CA, DSS mTLS, separate platform/manifest keys, and Odoo client material initialized."
+echo "The root private key is offline at $offline_root_dir and is not mounted by Compose."

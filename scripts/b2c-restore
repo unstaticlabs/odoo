@@ -20,7 +20,7 @@ migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
 usl_verify_compose_scope "$compose_project" "$ROOT" "B2C restoration"
 
 case "$compose_project" in
-    usl-odoo-*) ;;
+    usl-odoo-*|usl-migration-?*|codex-migration-?*) ;;
     *)
         echo "B2C restoration requires a governed migration/QA Compose project." >&2
         exit 2

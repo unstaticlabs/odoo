@@ -1,0 +1,20 @@
+{
+  "name": "usl-sign-strong-worker",
+  "private": true,
+  "version": "1.0.0",
+  "license": "LGPL-3.0-or-later",
+  "scripts": {
+    "build": "npm run build:strong && npm run build:inspector",
+    "build:strong": "NODE_PATH=./node_modules esbuild ../src/worker/strong_sign_worker.js --bundle --minify --legal-comments=none --format=iife --platform=browser --target=es2022 --outfile=../lib/strong_sign_worker.js",
+    "build:inspector": "NODE_PATH=./node_modules esbuild ../src/worker/signature_inspector_worker.js --bundle --minify --legal-comments=none --format=iife --platform=browser --target=es2022 --outfile=../lib/signature_inspector_worker.js"
+  },
+  "dependencies": {
+    "@peculiar/x509": "2.0.0",
+    "asn1js": "3.0.10",
+    "pkijs": "3.4.0",
+    "reflect-metadata": "0.2.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  }
+}

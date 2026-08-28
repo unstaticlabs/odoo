@@ -105,6 +105,7 @@ sync_repo "server-ux" "https://github.com/OCA/server-ux.git" "19.0" "1372e6489da
 sync_repo "server-auth" "https://github.com/OCA/server-auth.git" "19.0" "f51fe1b36965b78ac935e80c6b95d7115440a1b4"
 sync_repo "reporting-engine" "https://github.com/OCA/reporting-engine.git" "19.0" "6692523980cbc57d414935311d7f7bf1c834edc6"
 sync_repo "account-financial-tools" "https://github.com/OCA/account-financial-tools.git" "19.0" "3b3b3cf0974d5452734090e5a0421e762089de75"
+sync_repo "sign" "https://github.com/OCA/sign.git" "19.0" "3b768318bc5eaccb79535337478f49d59d17d0b1"
 
 link_module "server-auth" "auth_oidc"
 link_module "server-ux" "date_range"
@@ -124,6 +125,7 @@ link_module "account-financial-reporting" "account_financial_report"
 link_module "account-financial-reporting" "account_tax_balance"
 link_module "account-financial-reporting" "partner_statement"
 link_module "account-financial-tools" "account_asset_management"
+link_module "sign" "sign_oca"
 
 apply_saas_patch "reporting-engine" "report_xlsx-content-disposition.patch"
 apply_saas_patch "reporting-engine" "report_xlsx_helper-content-disposition.patch"
@@ -161,6 +163,7 @@ adapt_saas_manifest "account-financial-reporting" "account_financial_report"
 adapt_saas_manifest "account-financial-reporting" "account_tax_balance"
 adapt_saas_manifest "account-financial-reporting" "partner_statement"
 adapt_saas_manifest "account-financial-tools" "account_asset_management"
+adapt_saas_manifest "sign" "sign_oca"
 
 # MIS was superseded by the canonical interactive Accounting reports. Remove a
 # link left by an older checkout so it cannot return as a competing runtime.

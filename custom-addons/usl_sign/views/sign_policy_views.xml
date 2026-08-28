@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_policy_list" model="ir.ui.view">
+        <field name="name">usl.sign.policy.list</field>
+        <field name="model">usl.sign.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name" string="Policy"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="document_category" string="Document type"/>
+                <field name="signer_type" string="Signer relationship"/>
+                <field name="risk_level" string="Risk"/>
+                <field name="recommendation" string="Signing method"/>
+                <field name="active" string="Enabled"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_policy_form" model="ir.ui.view">
+        <field name="name">usl.sign.policy.form</field>
+        <field name="model">usl.sign.policy</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-info" role="status">
+                        Signing policies recommend the right method while someone prepares a document. The requester still sees the recommendation and controls the final choice when permitted.
+                    </div>
+                    <div class="oe_title"><p class="text-muted mb-1">Signing policy</p><h1><field name="name" placeholder="Example: Routine supplier agreements"/></h1></div>
+                    <group>
+                        <group string="When this policy applies">
+                            <field name="active" string="Enabled"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="version"/>
+                            <field name="sequence" string="Priority"/>
+                            <field name="document_category" string="Document type"/>
+                            <field name="signer_type" string="Signer relationship"/>
+                            <field name="risk_level" string="Risk"/>
+                            <field name="formal_qes_required" string="Formal QES required"/>
+                        </group>
+                        <group string="What Sign recommends">
+                            <field name="recommendation" string="Signing method"/>
+                            <field name="default_authentication" string="Default signer verification" invisible="recommendation != 'standard'"/>
+                            <field name="expiration_days" string="Request expires after"/>
+                            <field name="reminder_days" string="First reminder after"/>
+                            <field name="max_reminders" string="Maximum reminders"/>
+                        </group>
+                    </group>
+                    <group string="What requesters see">
+                        <field name="reason" string="Why this method"/>
+                        <field name="consequence" string="What it means"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sign_policy_action" model="ir.actions.act_window">
+        <field name="name">Signing Policies</field>
+        <field name="res_model">usl.sign.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a signing policy</p>
+            <p>Use document type, signer relationship, and business risk to recommend Standard, Strong personal, or Qualified external signing.</p>
+        </field>
+    </record>
+</odoo>

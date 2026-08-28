@@ -115,7 +115,18 @@ class UslDocument(models.Model):
         index=True,
         tracking=True,
     )
-    accounting_evidence = fields.Boolean(index=True, tracking=True)
+    accounting_evidence = fields.Boolean(
+        index=True,
+        tracking=True,
+        help=(
+            "Mark this document as supporting evidence for bookkeeping, tax, "
+            "or audit work. With Accounting evidence privacy, it becomes "
+            "available read-only to Accounting Evidence Readers. The document "
+            "is also easier to retrieve in accounting filters and is put on "
+            "retention hold if Paperless reports it in Trash. Changing this "
+            "setting resynchronizes archive permissions."
+        ),
+    )
     access_scope = fields.Selection(
         [
             ("company", "Company policy"),
@@ -202,7 +213,13 @@ class UslDocument(models.Model):
         required=True,
         default="available",
         index=True,
+        readonly=True,
         tracking=True,
+        help=(
+            "Updated automatically from Paperless processing, reconciliation, "
+            "trash and restore operations, and permission checks. It cannot be "
+            "changed manually."
+        ),
     )
     original_filename = fields.Char(readonly=True)
     mime_type = fields.Char(readonly=True)
@@ -275,6 +292,8 @@ class UslDocument(models.Model):
     version_ids = fields.One2many(
         "usl.document.version", "document_id", string="File versions", readonly=True,
     )
+    version_count = fields.Integer(compute="_compute_file_presentation")
+    has_distinct_archive_file = fields.Boolean(compute="_compute_file_presentation")
     source = fields.Selection(
         [
             ("odoo_upload", "Uploaded from Odoo"),
@@ -325,6 +344,16 @@ class UslDocument(models.Model):
     link_count = fields.Integer(compute="_compute_link_count")
     paperless_url = fields.Char(compute="_compute_paperless_url")
     last_error = fields.Text(readonly=True)
+
+    @api.depends("version_ids", "checksum", "archive_checksum")
+    def _compute_file_presentation(self):
+        for document in self:
+            document.version_count = len(document.version_ids)
+            document.has_distinct_archive_file = bool(
+                document.archive_checksum
+                and document.checksum
+                and document.archive_checksum != document.checksum,
+            )
 
     @api.depends("submitted_at", "paperless_created")
     def _compute_archive_added_at(self):
@@ -1043,7 +1072,7 @@ class UslDocument(models.Model):
         )
         for document in self:
             document.paperless_url = (
-                client.paperless_url(document.paperless_id)
+                client.paperless_login_url(document.paperless_id)
                 if (
                     client.public_url
                     and document.paperless_id
@@ -3408,6 +3437,9 @@ class UslDocument(models.Model):
         company_id=None,
         confidentiality="internal",
         source="odoo_upload",
+        document_date=None,
+        document_type_id=None,
+        tag_ids=None,
     ):
         if not filename or not content_base64:
             raise ValidationError(_("Choose a non-empty file."))
@@ -3463,6 +3495,17 @@ class UslDocument(models.Model):
             )
         if not self.env.su and company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
+        document_type = self.env["usl.paperless.document.type"]
+        if document_type_id:
+            document_type = document_type.browse(int(document_type_id)).exists()
+            if not document_type or not document_type.active:
+                raise ValidationError(_("Choose an active Paperless document type."))
+        requested_tags = {int(tag_id) for tag_id in (tag_ids or [])}
+        tags = self.env["usl.paperless.tag"].search(
+            [("id", "in", list(requested_tags)), ("active", "=", True)],
+        )
+        if set(tags.ids) != requested_tags:
+            raise ValidationError(_("One or more selected tags are unavailable."))
         archive_context = (
             (
                 operation.context_json
@@ -3491,6 +3534,38 @@ class UslDocument(models.Model):
             }
         )
         confidentiality = archive_context.get("confidentiality") or confidentiality
+        if document_date:
+            archive_context["document_date"] = fields.Date.to_string(document_date)
+        if document_type:
+            archive_context.update(
+                {
+                    "document_type": document_type.name,
+                    "document_type_record_id": document_type.id,
+                    "document_type_paperless_id": document_type.paperless_id or False,
+                },
+            )
+        if tags:
+            tag_names = set(tags.mapped("name"))
+            paperless_tag_ids = {
+                paperless_id
+                for paperless_id in tags.mapped("paperless_id")
+                if paperless_id
+            }
+            archive_context.update(
+                {
+                    "tags": sorted(
+                        set(archive_context.get("tags") or []) | tag_names,
+                    ),
+                    "tag_record_ids": sorted(
+                        set(archive_context.get("tag_record_ids") or [])
+                        | set(tags.ids),
+                    ),
+                    "tag_paperless_ids": sorted(
+                        set(archive_context.get("tag_paperless_ids") or [])
+                        | paperless_tag_ids,
+                    ),
+                },
+            )
         checksum = hashlib.sha256(content).hexdigest()
         metadata_hash = (
             operation.metadata_hash
@@ -4106,24 +4181,39 @@ class UslDocument(models.Model):
             [
                 ("user_id", "=", self.env.user.id),
                 ("active", "=", True),
-                ("sync_state", "=", "synchronized"),
             ],
             limit=1,
         )
+        if not mapping:
+            raise UserError(
+                _(
+                    "Paperless access is not set up for your account. You can "
+                    "still preview and download this document in Odoo. Ask a "
+                    "Documents administrator if you need Paperless access.",
+                ),
+            )
         if (
-            self.permission_sync_state != "synchronized"
-            or not mapping
+            mapping.sync_state != "synchronized"
             or not mapping._identity_is_safe()
         ):
             raise UserError(
                 _(
-                    "Open in Paperless is blocked until your individual archive "
-                    "identity and this document's permissions are synchronized.",
+                    "Your Paperless access needs attention. You can still preview "
+                    "and download this document in Odoo. Ask a Documents "
+                    "administrator to review your access.",
+                ),
+            )
+        if self.permission_sync_state != "synchronized":
+            raise UserError(
+                _(
+                    "Paperless access for this document needs attention. Use the "
+                    "Odoo preview for now, or ask a Documents administrator to "
+                    "retry access synchronization.",
                 ),
             )
         return {
             "type": "ir.actions.act_url",
-            "url": self._paperless().paperless_url(self.paperless_id),
+            "url": self._paperless().paperless_login_url(self.paperless_id),
             "target": "new",
         }
 
@@ -4307,6 +4397,18 @@ class UslDocumentVersion(models.Model):
         ],
         readonly=True,
     )
+    has_distinct_archive_file = fields.Boolean(
+        compute="_compute_has_distinct_archive_file",
+    )
+
+    @api.depends("checksum", "archive_checksum")
+    def _compute_has_distinct_archive_file(self):
+        for version in self:
+            version.has_distinct_archive_file = bool(
+                version.archive_checksum
+                and version.checksum
+                and version.archive_checksum != version.checksum,
+            )
 
     _document_version_unique = models.Constraint(
         "UNIQUE(document_id, paperless_version_id)",
@@ -5086,7 +5188,18 @@ class UslDocumentOperation(models.Model):
             order="create_date, id",
             limit=100,
         )
-        return operations.poll()
+        backfill = operations.filtered(
+            lambda item: item.attachment_origin == "backfill",
+        )
+        live = operations - backfill
+        result = live.poll()
+        if backfill:
+            result.update(
+                backfill.with_context(
+                    usl_documents_trusted_backfill_access=True,
+                ).poll(),
+            )
+        return result
 
 
 class UslPaperlessUserMapping(models.Model):

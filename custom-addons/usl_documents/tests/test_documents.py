@@ -1488,6 +1488,28 @@ class TestDocuments(TransactionCase):
         )
         upload.assert_called_once()
 
+    def test_upload_applies_archive_metadata_during_ingestion(self):
+        document_type = self._document_type(41, "Signing history")
+        tag = self._tag(52, "Odoo Online (External)")
+        with (
+            patch.object(PaperlessClient, "search", return_value={"results": []}),
+            patch.object(
+                PaperlessClient, "upload_multipart", return_value="task-metadata",
+            ) as upload,
+        ):
+            self.env["usl.document"].upload_from_odoo(
+                "history.pdf",
+                base64.b64encode(b"history").decode(),
+                "application/pdf",
+                document_date=fields.Date.to_date("2026-02-11"),
+                document_type_id=document_type.id,
+                tag_ids=tag.ids,
+            )
+
+        self.assertEqual(upload.call_args.kwargs["created"], "2026-02-11")
+        self.assertEqual(upload.call_args.kwargs["document_type_id"], 41)
+        self.assertEqual(upload.call_args.kwargs["tag_ids"], [52])
+
     def test_company_and_accountant_permissions_do_not_leak_metadata(self):
         internal = self._document(103)
         evidence = self._document(
@@ -3788,6 +3810,51 @@ class TestDocuments(TransactionCase):
         self.assertIn(operations[0].id, result)
         self.assertNotIn(operations[-1].id, result)
 
+    def test_poll_cron_uses_trusted_context_only_for_backfill_operations(self):
+        backfill = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "historical.pdf",
+                "state": "processing",
+                "checksum": "a" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-backfill",
+                "attachment_origin": "backfill",
+                "user_id": self.user.id,
+            },
+        )
+        live = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "live.pdf",
+                "state": "processing",
+                "checksum": "b" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-live",
+                "attachment_origin": "documents_workspace",
+                "user_id": self.user.id,
+            },
+        )
+        seen = {}
+
+        def poll(operations):
+            trusted = bool(
+                operations.env.context.get("usl_documents_trusted_backfill_access"),
+            )
+            for operation in operations:
+                seen[operation.id] = trusted
+            return {operation.id: {"state": operation.state} for operation in operations}
+
+        with patch.object(type(backfill), "poll", autospec=True, side_effect=poll):
+            result = (
+                self.env["usl.document.operation"]
+                .with_user(self.manager)
+                .cron_poll_operations()
+            )
+
+        self.assertEqual(seen, {live.id: False, backfill.id: True})
+        self.assertEqual(set(result), {live.id, backfill.id})
+
     def test_backfill_validates_links_as_system_and_keeps_source_author(self):
         project = self.env["project.project"].create(
             {
@@ -4622,6 +4689,26 @@ class TestDocuments(TransactionCase):
             },
         )
 
+    def test_noop_group_write_does_not_enqueue_permission_refresh(self):
+        self._document(990413)
+        self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 33,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            self.user.write(
+                {"group_ids": [Command.link(self.env.ref("base.group_user").id)]},
+            )
+        permission_call.assert_not_called()
+
     def test_manager_role_loss_revokes_paperless_change_permission(self):
         document = self._document(414)
         manager_group = self.env.ref("usl_documents.group_documents_manager")
@@ -4850,11 +4937,33 @@ class TestDocuments(TransactionCase):
             111,
             permission_sync_state="failed",
         )
-        self.assertFalse(document.paperless_url)
+        self._verified_mapping(
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 84,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        )
+        self.assertFalse(document.with_user(self.manager).paperless_url)
         with self.assertRaisesRegex(
-            Exception, "blocked until your individual archive identity",
+            UserError, "access for this document needs attention",
         ):
-            document.action_open_paperless()
+            document.with_user(self.manager).action_open_paperless()
+
+    def test_paperless_deep_link_explains_missing_personal_access(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "usl_documents.paperless_public_url", "https://documents.example.test",
+        )
+        document = self._document(184)
+
+        self.assertFalse(document.with_user(self.user).paperless_url)
+        with self.assertRaisesRegex(UserError, "not set up for your account"):
+            document.with_user(self.user).action_open_paperless()
+        form_arch = self.env.ref(
+            "usl_documents.view_usl_document_form",
+        ).arch_db
+        self.assertIn('invisible="not paperless_url"', form_arch)
 
     def test_deep_link_requires_current_users_verified_individual_mapping(self):
         self.env["ir.config_parameter"].sudo().set_str(
@@ -4872,13 +4981,28 @@ class TestDocuments(TransactionCase):
         )
         document.invalidate_recordset(["paperless_url"])
         self.assertIn(
-            "/documents/185/details", document.with_user(self.user).paperless_url,
+            "/accounts/login/?next=%2Fdocuments%2F185%2Fdetails",
+            document.with_user(self.user).paperless_url,
         )
+        action = document.with_user(self.user).action_open_paperless()
+        self.assertEqual(action["target"], "new")
+        self.assertEqual(action["url"], document.with_user(self.user).paperless_url)
 
     def test_cache_policy_and_direct_link_creation_are_not_client_writable(self):
         document = self._document(186)
+        availability = self.env["usl.document"]._fields["availability_state"]
+        self.assertTrue(availability.readonly)
+        self.assertIn("Updated automatically", availability.help)
+        self.assertIn(
+            "supporting evidence",
+            self.env["usl.document"]._fields["accounting_evidence"].help,
+        )
         with self.assertRaises(AccessError):
             document.with_user(self.user).write({"name": "Spoofed Paperless title"})
+        with self.assertRaises(AccessError):
+            document.with_user(self.manager).write(
+                {"availability_state": "processing"},
+            )
         with self.assertRaises(AccessError):
             document.with_user(self.user).write({"confidentiality": "private"})
         with self.assertRaises(AccessError):

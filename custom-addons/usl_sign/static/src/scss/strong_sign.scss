@@ -1,0 +1,1173 @@
+$usl-sign-primary: #714b67;
+$usl-sign-primary-dark: #56384f;
+$usl-sign-ink: #20242a;
+$usl-sign-muted: #68717c;
+$usl-sign-border: #dfe3e8;
+$usl-sign-surface: #fff;
+$usl-sign-background: #f5f6f8;
+$usl-sign-success: #23845a;
+$usl-sign-danger: #b53a46;
+$usl-sign-warning: #9a6a13;
+$usl-sign-font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Ubuntu,
+    "Noto Sans",
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
+
+* {
+    box-sizing: border-box;
+}
+
+.usl-sign-secure-body {
+    min-width: 20rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    color: $usl-sign-ink;
+    font-family: $usl-sign-font-family;
+    background:
+        radial-gradient(circle at 50% -10rem, rgba(113, 75, 103, .1), transparent 28rem),
+        $usl-sign-background;
+    -webkit-font-smoothing: antialiased;
+}
+
+.usl-sign-shell {
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+    margin: 1.25rem auto 3rem;
+    animation: usl-sign-enter .32s ease-out both;
+}
+
+.usl-sign-shell--compact {
+    max-width: 42rem;
+    overflow: hidden;
+    background: $usl-sign-surface;
+    border: 1px solid $usl-sign-border;
+    border-radius: 1rem;
+    box-shadow: 0 1.25rem 3.5rem rgba(31, 36, 42, .1);
+}
+
+.usl-sign-brand {
+    display: flex;
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .75rem 1rem;
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid $usl-sign-border;
+    border-radius: .85rem;
+    box-shadow: 0 .2rem .9rem rgba(31, 36, 42, .045);
+}
+
+.usl-sign-shell--compact > .usl-sign-brand,
+.usl-sign-public-card > .usl-sign-brand {
+    border: 0;
+    border-bottom: 1px solid $usl-sign-border;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.usl-sign-brand__identity {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .7rem;
+}
+
+.usl-sign-brand__identity > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.usl-sign-brand__mark {
+    display: inline-flex;
+    width: 2.55rem;
+    height: 2.55rem;
+    flex: 0 0 2.55rem;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: $usl-sign-primary;
+    border-radius: .72rem;
+    box-shadow: 0 .25rem .75rem rgba(113, 75, 103, .22);
+}
+
+.usl-sign-brand__mark .fa {
+    font-size: 1.15rem;
+}
+
+.usl-sign-brand__product {
+    color: $usl-sign-muted;
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .035em;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+.usl-sign-brand__company {
+    overflow: hidden;
+    margin-top: .12rem;
+    font-size: .98rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.usl-sign-security-pill,
+.usl-sign-level-badge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .4rem;
+    padding: .42rem .68rem;
+    color: #3d4853;
+    background: #f6f7f8;
+    border: 1px solid $usl-sign-border;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 650;
+}
+
+.usl-sign-hero {
+    display: grid;
+    align-items: end;
+    gap: 1.5rem;
+    padding: 2.2rem .35rem 1.2rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.usl-sign-hero__progress {
+    display: grid;
+    justify-items: end;
+    gap: .4rem;
+}
+
+.usl-sign-hero__progress .usl-sign-motion {
+    width: 7.25rem;
+    margin-right: .4rem;
+}
+
+.usl-sign-shell h1,
+.usl-sign-public-card h1,
+.usl-sign-callback h1 {
+    margin: 0;
+    color: $usl-sign-ink;
+    font-size: clamp(1.7rem, 4vw, 2.45rem);
+    font-weight: 700;
+    letter-spacing: -.025em;
+    line-height: 1.12;
+}
+
+.usl-sign-lead {
+    max-width: 46rem;
+    margin: .65rem 0 0;
+    color: #555f69;
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.usl-sign-intro-layout {
+    display: grid;
+    align-items: center;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr) 8.75rem;
+}
+
+.usl-sign-intro-layout--compact {
+    grid-template-columns: minmax(0, 1fr) 7.75rem;
+}
+
+.usl-sign-motion {
+    display: block;
+    width: 8rem;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+    color: $usl-sign-primary;
+    contain: layout paint;
+}
+
+.usl-sign-intro-layout .usl-sign-motion {
+    width: 100%;
+    margin: 0;
+}
+
+.usl-sign-motion svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.usl-sign-motion__backdrop {
+    fill: #f5eff3;
+}
+
+.usl-sign-motion__paper {
+    fill: #fff;
+    stroke: #8b7284;
+    stroke-width: 2;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__fold,
+.usl-sign-motion__ink,
+.usl-sign-motion__scan,
+.usl-sign-motion__check,
+.usl-sign-motion__connection,
+.usl-sign-motion__error-mark {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.usl-sign-motion__fold {
+    stroke: #b3a2ae;
+    stroke-width: 2;
+}
+
+.usl-sign-motion__ink {
+    stroke: #a69aa3;
+    stroke-width: 3;
+}
+
+.usl-sign-motion__scan {
+    stroke: $usl-sign-primary;
+    stroke-width: 2.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__seal {
+    fill: $usl-sign-success;
+    stroke: #fff;
+    stroke-width: 3;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__check {
+    stroke: #fff;
+    stroke-width: 3.5;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+}
+
+.usl-sign-motion__person {
+    fill: #fff;
+    stroke: #8b7284;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.5;
+}
+
+.usl-sign-motion__connection {
+    stroke: #b3a2ae;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+    stroke-width: 2.5;
+}
+
+.usl-sign-motion__shield {
+    fill: $usl-sign-primary;
+    stroke: $usl-sign-primary-dark;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__progress {
+    fill: #fff;
+    stroke: $usl-sign-success;
+    stroke-dasharray: 24 70;
+    stroke-linecap: round;
+    stroke-width: 5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.usl-sign-motion__error {
+    fill: #fbecef;
+    stroke: $usl-sign-danger;
+    stroke-width: 2;
+}
+
+.usl-sign-motion__error-mark {
+    stroke: $usl-sign-danger;
+    stroke-width: 4;
+}
+
+.usl-sign-motion--review .usl-sign-motion__paper,
+.usl-sign-motion--complete .usl-sign-motion__paper {
+    animation: usl-sign-motion-paper .56s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink {
+    stroke-dasharray: 42;
+    stroke-dashoffset: 42;
+    animation: usl-sign-motion-draw .42s ease-out forwards;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--one {
+    animation-delay: .28s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--two {
+    animation-delay: .38s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__ink--three {
+    animation-delay: .48s;
+}
+
+.usl-sign-motion--review .usl-sign-motion__scan {
+    animation: usl-sign-motion-scan .72s .62s ease-in-out both;
+}
+
+.usl-sign-motion--complete .usl-sign-motion__seal {
+    animation: usl-sign-motion-pop .4s .98s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.usl-sign-motion--complete .usl-sign-motion__check {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .34s 1.15s ease-out forwards;
+}
+
+.usl-sign-motion--identity .usl-sign-motion__connection {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .38s .3s ease-out forwards;
+}
+
+.usl-sign-motion--identity .usl-sign-motion__shield {
+    animation: usl-sign-motion-pop .44s .52s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.usl-sign-motion__phase {
+    opacity: 0;
+    pointer-events: none;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review,
+[data-phase="preparing"] .usl-sign-motion__phase--identity,
+[data-phase="identity"] .usl-sign-motion__phase--identity,
+[data-phase="signing"] .usl-sign-motion__phase--processing,
+[data-phase="validating"] .usl-sign-motion__phase--processing,
+[data-phase="success"] .usl-sign-motion__phase--complete,
+[data-phase="error"] .usl-sign-motion__phase--error {
+    opacity: 1;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review,
+[data-phase="preparing"] .usl-sign-motion__phase--identity,
+[data-phase="identity"] .usl-sign-motion__phase--identity,
+[data-phase="success"] .usl-sign-motion__phase--complete,
+[data-phase="error"] .usl-sign-motion__phase--error {
+    animation: usl-sign-motion-phase .3s ease-out both;
+}
+
+[data-phase="review"] .usl-sign-motion__phase--review .usl-sign-motion__scan {
+    animation: usl-sign-motion-scan .72s .28s ease-in-out both;
+}
+
+[data-phase="preparing"] .usl-sign-motion__phase--identity .usl-sign-motion__connection,
+[data-phase="identity"] .usl-sign-motion__phase--identity .usl-sign-motion__connection {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .38s .16s ease-out forwards;
+}
+
+[data-phase="success"] .usl-sign-motion__phase--complete .usl-sign-motion__check {
+    stroke-dashoffset: 24;
+    animation: usl-sign-motion-draw .34s .42s ease-out forwards;
+}
+
+[data-phase="signing"] .usl-sign-motion__phase--processing .usl-sign-motion__progress,
+[data-phase="validating"] .usl-sign-motion__phase--processing .usl-sign-motion__progress {
+    animation: usl-sign-motion-spin .9s linear infinite;
+}
+
+.usl-sign-muted {
+    color: $usl-sign-muted;
+}
+
+.usl-sign-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    color: #7b838c;
+    font-size: .76rem;
+    font-weight: 650;
+    list-style: none;
+}
+
+.usl-sign-steps li {
+    display: flex;
+    align-items: center;
+    gap: .38rem;
+    white-space: nowrap;
+}
+
+.usl-sign-steps li + li::before {
+    width: clamp(1rem, 3vw, 2.75rem);
+    height: 1px;
+    margin: 0 .45rem;
+    background: #cdd2d8;
+    content: "";
+}
+
+.usl-sign-steps li > span {
+    display: inline-flex;
+    width: 1.55rem;
+    height: 1.55rem;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #cdd2d8;
+    border-radius: 50%;
+    font-size: .72rem;
+}
+
+.usl-sign-steps li.is-current {
+    color: $usl-sign-primary;
+}
+
+.usl-sign-steps li.is-current > span {
+    color: #fff;
+    background: $usl-sign-primary;
+    border-color: $usl-sign-primary;
+    box-shadow: 0 0 0 .24rem rgba(113, 75, 103, .12);
+}
+
+.usl-sign-steps li.is-complete {
+    color: $usl-sign-success;
+}
+
+.usl-sign-steps li.is-complete > span {
+    color: transparent;
+    background: $usl-sign-success;
+    border-color: $usl-sign-success;
+}
+
+.usl-sign-steps li.is-complete > span::after {
+    position: absolute;
+    color: #fff;
+    content: "\2713";
+}
+
+.usl-sign-step-label {
+    font: inherit;
+}
+
+.usl-sign-card,
+.usl-sign-action-card {
+    background: $usl-sign-surface;
+    border: 1px solid $usl-sign-border;
+    border-radius: .85rem;
+    box-shadow: 0 .35rem 1.4rem rgba(31, 36, 42, .055);
+}
+
+.usl-sign-document-card {
+    overflow: hidden;
+}
+
+.usl-sign-document-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid $usl-sign-border;
+}
+
+.usl-sign-document-card__header h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.usl-sign-document-meta {
+    margin: .28rem 0 0;
+    color: $usl-sign-muted;
+    font-size: .82rem;
+}
+
+.usl-sign-level-badge {
+    color: $usl-sign-primary-dark;
+    background: #f5eff3;
+    border-color: #e5d7e1;
+}
+
+.usl-sign-document {
+    display: block;
+    width: 100%;
+    height: clamp(26rem, 62vh, 48rem);
+    background: #eceff2;
+    border: 0;
+}
+
+.usl-sign-action-card {
+    width: calc(100% - 2rem);
+    max-width: 42rem;
+    margin: 1rem auto;
+    padding: 1.15rem;
+}
+
+.usl-sign-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    margin: 0 0 1rem;
+    cursor: pointer;
+}
+
+.usl-sign-consent input {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 1.25rem;
+    margin: .12rem 0 0;
+    accent-color: $usl-sign-primary;
+}
+
+.usl-sign-consent span,
+.usl-sign-consent small {
+    display: block;
+}
+
+.usl-sign-consent strong {
+    font-size: .94rem;
+    font-weight: 650;
+}
+
+.usl-sign-consent small {
+    margin-top: .25rem;
+    color: $usl-sign-muted;
+    font-size: .8rem;
+    line-height: 1.4;
+}
+
+.usl-sign-button {
+    display: inline-flex;
+    min-height: 2.85rem;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    padding: .75rem 1.15rem;
+    color: #fff;
+    background: $usl-sign-primary;
+    border: 1px solid $usl-sign-primary;
+    border-radius: .5rem;
+    box-shadow: 0 .25rem .65rem rgba(113, 75, 103, .17);
+    font: inherit;
+    font-size: .92rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.usl-sign-button[hidden] {
+    display: none;
+}
+
+.usl-sign-button:hover:not(:disabled) {
+    color: #fff;
+    background: $usl-sign-primary-dark;
+    box-shadow: 0 .4rem 1rem rgba(113, 75, 103, .24);
+    transform: translateY(-1px);
+}
+
+.usl-sign-button:focus-visible,
+.usl-sign-consent input:focus-visible,
+.usl-sign-code-input:focus-visible,
+.usl-sign-technical-details summary:focus-visible {
+    outline: .2rem solid rgba(113, 75, 103, .25);
+    outline-offset: .16rem;
+}
+
+.usl-sign-button:disabled {
+    color: #9299a1;
+    background: #e9ebee;
+    border-color: #e1e4e8;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.usl-sign-button[aria-busy="true"] {
+    cursor: wait;
+}
+
+.usl-sign-button--wide {
+    width: 100%;
+}
+
+.usl-sign-button--quiet {
+    min-height: 2.55rem;
+    margin-top: .75rem;
+    color: $usl-sign-primary;
+    background: #fff;
+    box-shadow: none;
+}
+
+.usl-sign-button--quiet:hover:not(:disabled) {
+    color: $usl-sign-primary-dark;
+    background: #f7f2f6;
+}
+
+.usl-sign-button__spinner {
+    display: none;
+    width: 1rem;
+    height: 1rem;
+    border: .13rem solid rgba(255, 255, 255, .45);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: usl-sign-spin .75s linear infinite;
+}
+
+.usl-sign-button[aria-busy="true"] .usl-sign-button__spinner {
+    display: inline-block;
+}
+
+.usl-sign-button[aria-busy="true"] > .fa {
+    display: none;
+}
+
+.usl-sign-action-note {
+    margin: .65rem 0 0;
+    color: $usl-sign-muted;
+    font-size: .76rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.usl-sign-inline-status {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    margin-top: 1rem;
+    padding: .85rem .9rem;
+    color: #3c5265;
+    background: #eef5fa;
+    border: 1px solid #d5e7f2;
+    border-radius: .55rem;
+}
+
+.usl-sign-inline-status[hidden] {
+    display: none;
+}
+
+.usl-sign-inline-status--success {
+    color: #236044;
+    background: #edf8f2;
+    border-color: #cee9da;
+}
+
+.usl-sign-inline-status--warning {
+    color: #72501a;
+    background: #fff7e8;
+    border-color: #f1dfb8;
+}
+
+.usl-sign-inline-status--danger {
+    color: #7c2933;
+    background: #fdf0f1;
+    border-color: #f1d2d5;
+}
+
+.usl-sign-inline-status > span:last-child,
+.usl-sign-inline-status strong,
+.usl-sign-inline-status small {
+    display: block;
+}
+
+.usl-sign-inline-status > span:nth-child(2) {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.usl-sign-inline-status strong {
+    font-size: .88rem;
+}
+
+.usl-sign-inline-status small {
+    margin-top: .18rem;
+    font-size: .78rem;
+    line-height: 1.4;
+}
+
+.usl-sign-status-icon {
+    width: 1.25rem;
+    flex: 0 0 1.25rem;
+    text-align: center;
+}
+
+.usl-sign-cancel-attempt {
+    align-self: center;
+    padding: .25rem .4rem;
+    color: currentColor;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: .15rem;
+    cursor: pointer;
+}
+
+.usl-sign-cancel-attempt[hidden] {
+    display: none;
+}
+
+.usl-sign-inline-status:not(.usl-sign-inline-status--success, .usl-sign-inline-status--warning, .usl-sign-inline-status--danger) .usl-sign-status-icon {
+    animation: usl-sign-spin .9s linear infinite;
+}
+
+.usl-sign-assurance-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+.usl-sign-assurance-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+    padding: .38rem .58rem;
+    color: #5d6670;
+    background: #f7f8f9;
+    border: 1px solid #e4e7ea;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+.usl-sign-assurance-row .fa {
+    color: $usl-sign-success;
+}
+
+.usl-sign-assurance-row--secure {
+    margin: 1.1rem auto;
+}
+
+.usl-sign-technical-details {
+    width: calc(100% - 2rem);
+    max-width: 42rem;
+    margin: 1.25rem auto 0;
+    color: $usl-sign-muted;
+    font-size: .78rem;
+}
+
+.usl-sign-technical-details summary {
+    width: max-content;
+    max-width: 100%;
+    margin: 0 auto;
+    color: #616a74;
+    cursor: pointer;
+}
+
+.usl-sign-technical-details[open] {
+    padding: 1rem;
+    background: rgba(255, 255, 255, .75);
+    border: 1px solid $usl-sign-border;
+    border-radius: .65rem;
+}
+
+.usl-sign-technical-details p {
+    margin: .65rem 0 0;
+    line-height: 1.5;
+}
+
+.usl-sign-hash {
+    display: block;
+    margin-top: .25rem;
+    overflow-wrap: anywhere;
+    color: #414a54;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .7rem;
+}
+
+.usl-sign-public-page {
+    min-height: calc(100vh - 8rem);
+    min-height: calc(100dvh - 8rem);
+    padding: clamp(1rem, 4vw, 3rem) 1rem;
+    color: $usl-sign-ink;
+    background:
+        radial-gradient(circle at 50% -10rem, rgba(113, 75, 103, .09), transparent 28rem),
+        $usl-sign-background;
+}
+
+.usl-sign-public-card {
+    width: 100%;
+    max-width: 46rem;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid $usl-sign-border;
+    border-radius: 1rem;
+    box-shadow: 0 1.2rem 3.5rem rgba(31, 36, 42, .1);
+    animation: usl-sign-enter .32s ease-out both;
+}
+
+.usl-sign-public-card--compact {
+    max-width: 36rem;
+}
+
+.usl-sign-public-card__body {
+    padding: clamp(1.4rem, 5vw, 2.25rem);
+}
+
+.usl-sign-public-card__body--centered,
+.usl-sign-public-card--centered {
+    text-align: center;
+}
+
+.usl-sign-summary {
+    display: grid;
+    gap: 0;
+    margin: 1.35rem 0;
+    background: #f8f9fa;
+    border: 1px solid #e5e8eb;
+    border-radius: .65rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.usl-sign-summary > div {
+    min-width: 0;
+    padding: .75rem .9rem;
+}
+
+.usl-sign-summary dt {
+    margin-bottom: .15rem;
+    color: #747c85;
+    font-size: .7rem;
+    font-weight: 650;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+}
+
+.usl-sign-summary dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #2f353b;
+    font-size: .86rem;
+    font-weight: 600;
+}
+
+.usl-sign-code-form {
+    margin-top: 1.25rem;
+}
+
+.usl-sign-code-form label {
+    display: block;
+    margin-bottom: .4rem;
+    color: #4f5862;
+    font-size: .8rem;
+    font-weight: 650;
+}
+
+.usl-sign-code-input {
+    width: 100%;
+    margin-bottom: .75rem;
+    padding: .72rem .85rem;
+    color: $usl-sign-ink;
+    background: #fff;
+    border: 1px solid #aeb6bf;
+    border-radius: .5rem;
+    font: 600 1.15rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: .14em;
+    text-align: center;
+}
+
+.usl-sign-privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    margin-top: 1.35rem;
+    padding: .85rem;
+    color: #55606b;
+    background: #f7f8f9;
+    border-radius: .55rem;
+    font-size: .78rem;
+    line-height: 1.45;
+}
+
+.usl-sign-privacy-note .fa {
+    margin-top: .12rem;
+    color: $usl-sign-success;
+}
+
+.usl-sign-privacy-note p {
+    margin: 0;
+}
+
+.usl-sign-steps--enrollment {
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.usl-sign-result-icon {
+    display: inline-flex;
+    width: 3.6rem;
+    height: 3.6rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    font-size: 1.45rem;
+}
+
+.usl-sign-result-icon--success {
+    color: $usl-sign-success;
+    background: #e9f7f0;
+}
+
+.usl-sign-result-icon--danger {
+    color: $usl-sign-danger;
+    background: #fbecef;
+}
+
+.usl-sign-result-icon--warning {
+    color: $usl-sign-warning;
+    background: #fff4dc;
+}
+
+.usl-sign-result-icon--neutral {
+    color: #59636e;
+    background: #eef0f2;
+}
+
+.usl-sign-result-icon--animated {
+    animation: usl-sign-success-pop .42s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.usl-sign-callback-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.usl-sign-callback {
+    width: 100%;
+    max-width: 27rem;
+    padding: 2rem;
+    text-align: center;
+    background: #fff;
+    border: 1px solid $usl-sign-border;
+    border-radius: 1rem;
+    box-shadow: 0 1.2rem 3.5rem rgba(31, 36, 42, .12);
+    animation: usl-sign-enter .28s ease-out both;
+}
+
+.usl-sign-callback h1 {
+    font-size: 1.7rem;
+}
+
+.usl-sign-callback p {
+    margin: .65rem 0;
+    color: $usl-sign-muted;
+    line-height: 1.5;
+}
+
+.usl-sign-callback-company {
+    font-size: .8rem;
+    font-weight: 650;
+}
+
+@keyframes usl-sign-enter {
+    from { opacity: 0; transform: translateY(.45rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes usl-sign-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes usl-sign-success-pop {
+    from { opacity: 0; transform: scale(.65); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes usl-sign-motion-paper {
+    from { opacity: 0; transform: translateY(.45rem) scale(.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes usl-sign-motion-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes usl-sign-motion-scan {
+    0% { opacity: 0; transform: translateY(-1.2rem) scaleX(.7); }
+    30%, 70% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(1.15rem) scaleX(1); }
+}
+
+@keyframes usl-sign-motion-pop {
+    from { opacity: 0; transform: scale(.55); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes usl-sign-motion-phase {
+    from { opacity: 0; transform: translateY(.22rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes usl-sign-motion-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 767.98px) {
+    .usl-sign-shell {
+        width: calc(100% - 1rem);
+        margin-top: .5rem;
+    }
+
+    .usl-sign-hero {
+        gap: 1.25rem;
+        padding: 1.5rem .5rem 1rem;
+        grid-template-columns: 1fr;
+    }
+
+    .usl-sign-hero__progress {
+        justify-items: stretch;
+    }
+
+    .usl-sign-hero__progress .usl-sign-motion {
+        width: 6.5rem;
+        margin: 0 auto;
+    }
+
+    .usl-sign-intro-layout,
+    .usl-sign-intro-layout--compact {
+        grid-template-columns: 1fr;
+    }
+
+    .usl-sign-intro-layout .usl-sign-motion {
+        width: 7rem;
+        grid-row: 1;
+    }
+
+    .usl-sign-steps {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .usl-sign-steps li + li::before {
+        flex: 1 1 auto;
+    }
+
+    .usl-sign-document {
+        height: 58dvh;
+        min-height: 24rem;
+    }
+
+    .usl-sign-action-card,
+    .usl-sign-technical-details {
+        width: 100%;
+    }
+
+    .usl-sign-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .usl-sign-brand {
+        min-height: 3.75rem;
+        padding: .65rem .75rem;
+    }
+
+    .usl-sign-brand__mark {
+        width: 2.25rem;
+        height: 2.25rem;
+        flex-basis: 2.25rem;
+    }
+
+    .usl-sign-security-pill {
+        width: 2.25rem;
+        height: 2.25rem;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 0;
+    }
+
+    .usl-sign-security-pill .fa {
+        font-size: .82rem;
+    }
+
+    .usl-sign-steps li {
+        flex-direction: column;
+        gap: .28rem;
+        text-align: center;
+    }
+
+    .usl-sign-steps li + li::before {
+        margin: -1rem .25rem 0;
+    }
+
+    .usl-sign-document-card__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .usl-sign-level-badge {
+        align-self: flex-start;
+    }
+
+    .usl-sign-action-card {
+        padding: 1rem;
+    }
+
+    .usl-sign-assurance-row--secure span {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+
+    .usl-sign-motion *,
+    .usl-sign-motion *::before,
+    .usl-sign-motion *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .usl-sign-motion__ink,
+    .usl-sign-motion__connection,
+    .usl-sign-motion__check {
+        stroke-dashoffset: 0 !important;
+    }
+
+    .usl-sign-motion__scan {
+        display: none;
+    }
+}

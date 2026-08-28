@@ -1,0 +1,43 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sign_policy_user,sign.policy.user,model_usl_sign_policy,group_sign_user,1,0,0,0
+access_sign_policy_admin,sign.policy.admin,model_usl_sign_policy,group_sign_admin,1,1,1,1
+access_sign_template_manager,sign.template.manager,sign_oca.model_sign_oca_template,group_sign_template_manager,1,1,1,0
+access_sign_template_item_manager,sign.template.item.manager,sign_oca.model_sign_oca_template_item,group_sign_template_manager,1,1,1,1
+access_usl_sign_template_role_manager,usl.sign.template.role.manager,model_usl_sign_template_role,group_sign_template_manager,1,1,1,1
+access_sign_request_user,sign.request.user,sign_oca.model_sign_oca_request,group_sign_user,1,1,1,1
+access_sign_request_signer_user,sign.request.signer.user,sign_oca.model_sign_oca_request_signer,group_sign_user,1,1,1,1
+access_sign_request_document_user,sign.request.document.user,model_usl_sign_request_document,group_sign_user,1,1,1,1
+access_sign_template_document_user,sign.template.document.user,model_usl_sign_template_document,group_sign_user,1,0,0,0
+access_sign_template_document_manager,sign.template.document.manager,model_usl_sign_template_document,group_sign_template_manager,1,1,1,1
+access_sign_evidence_user,sign.evidence.user,model_usl_sign_evidence,group_sign_user,1,0,1,0
+access_sign_event_user,sign.event.user,model_usl_sign_event,group_sign_user,1,0,1,0
+access_sign_validation_user,sign.validation.user,model_usl_sign_validation,group_sign_user,1,0,1,0
+access_sign_evidence_reviewer,sign.evidence.reviewer,model_usl_sign_evidence,group_sign_evidence_reviewer,1,0,0,0
+access_sign_event_reviewer,sign.event.reviewer,model_usl_sign_event,group_sign_evidence_reviewer,1,0,0,0
+access_sign_validation_reviewer,sign.validation.reviewer,model_usl_sign_validation,group_sign_evidence_reviewer,1,0,0,0
+access_sign_request_evidence_reviewer,sign.request.evidence.reviewer,sign_oca.model_sign_oca_request,group_sign_evidence_reviewer,1,0,0,0
+access_sign_request_signer_evidence_reviewer,sign.request.signer.evidence.reviewer,sign_oca.model_sign_oca_request_signer,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_evidence_reviewer,sign.template.evidence.reviewer,sign_oca.model_sign_oca_template,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_item_evidence_reviewer,sign.template.item.evidence.reviewer,sign_oca.model_sign_oca_template_item,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_document_evidence_reviewer,sign.template.document.evidence.reviewer,model_usl_sign_template_document,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_role_evidence_reviewer,sign.template.role.evidence.reviewer,model_usl_sign_template_role,group_sign_evidence_reviewer,1,0,0,0
+access_sign_enrollment_reviewer,sign.enrollment.reviewer,model_usl_sign_enrollment,group_sign_identity_reviewer,1,1,1,0
+access_sign_enrollment_user,sign.enrollment.user,model_usl_sign_enrollment,group_sign_user,1,0,0,0
+access_sign_enrollment_revoke_wizard_reviewer,sign.enrollment.revoke.wizard.reviewer,model_usl_sign_enrollment_revoke_wizard,group_sign_identity_reviewer,1,1,1,1
+access_sign_enrollment_invitation_reviewer,sign.enrollment.invitation.reviewer,model_usl_sign_enrollment_invitation,group_sign_identity_reviewer,1,1,1,1
+access_sign_ceremony_reviewer,sign.ceremony.reviewer,model_usl_sign_ceremony,group_sign_evidence_reviewer,1,0,0,0
+access_sign_external_provider_user,sign.external.provider.user,model_usl_sign_external_provider,group_sign_user,1,0,0,0
+access_sign_external_provider_admin,sign.external.provider.admin,model_usl_sign_external_provider,group_sign_admin,1,1,1,1
+access_sign_external_journey_user,sign.external.journey.user,model_usl_sign_external_journey,group_sign_user,1,1,1,0
+access_sign_external_import_user,sign.external.import.user,model_usl_sign_external_import_wizard,group_sign_user,1,1,1,1
+access_sign_request_log_reviewer,sign.request.log.reviewer,sign_oca.model_sign_oca_request_log,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_reviewer,usl.sign.daily.manifest reviewer,model_usl_sign_daily_manifest,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_admin,usl.sign.daily.manifest admin,model_usl_sign_daily_manifest,group_sign_admin,1,0,0,0
+access_usl_sign_daily_manifest_entry_reviewer,usl.sign.daily.manifest.entry reviewer,model_usl_sign_daily_manifest_entry,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_entry_admin,usl.sign.daily.manifest.entry admin,model_usl_sign_daily_manifest_entry,group_sign_admin,1,0,0,0
+access_usl_sign_daily_manifest_receipt_reviewer,usl.sign.daily.manifest.receipt reviewer,model_usl_sign_daily_manifest_receipt,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_receipt_admin,usl.sign.daily.manifest.receipt admin,model_usl_sign_daily_manifest_receipt,group_sign_admin,1,0,0,0
+access_usl_sign_start_user,usl.sign.start user,model_usl_sign_start,group_sign_user,1,1,1,1
+access_usl_sign_request_method_user,usl.sign.request.method user,model_usl_sign_request_method,group_sign_user,1,1,1,1
+access_usl_sign_share_confirm_user,usl.sign.share.confirm user,model_usl_sign_share_confirm,group_sign_user,1,1,1,1
+access_usl_sign_service_health_admin,usl.sign.service.health admin,model_usl_sign_service_health,group_sign_admin,1,0,0,0

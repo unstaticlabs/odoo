@@ -143,7 +143,8 @@
                             title="Confirm that the document and its archive access have been reviewed."
                             class="oe_highlight" invisible="review_state == 'reviewed'"/>
                     <button name="action_open_paperless" type="object" string="Open in Paperless"
-                            icon="fa-external-link"/>
+                            title="Open advanced document tools in Paperless."
+                            icon="fa-external-link" invisible="not paperless_url"/>
                     <button name="action_sync_permissions" type="object" string="Synchronize permissions"
                             title="Apply current Odoo access rights to this document in Paperless."
                             icon="fa-shield" groups="usl_documents.group_documents_manager"
@@ -162,6 +163,9 @@
                     <field name="review_state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <field name="paperless_url" invisible="1"/>
+                    <field name="version_count" invisible="1"/>
+                    <field name="has_distinct_archive_file" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_links" type="object" class="oe_stat_button"
                                 icon="fa-link" groups="usl_documents.group_documents_manager">
@@ -207,12 +211,13 @@
                                 The archived evidence is temporarily unavailable. The Odoo record remains usable.
                             </div>
                             <div class="d-flex gap-2" invisible="availability_state != 'available'">
-                                <button name="action_preview" type="object" string="Open preview" class="btn-primary" icon="fa-eye"/>
-                                <button name="action_download_original" type="object" string="Download original"
+                                <button name="action_preview" type="object" string="Open document" class="btn-primary" icon="fa-eye"/>
+                                <button name="action_download_original" type="object" string="Download file"
                                         class="btn-primary" icon="fa-download"
-                                        title="Download the file that was received or uploaded."/>
-                                <button name="action_download_archive" type="object" string="Download searchable PDF"
+                                        title="Download the authoritative file stored for this document."/>
+                                <button name="action_download_archive" type="object" string="Download Paperless copy"
                                         icon="fa-file-pdf-o"
+                                        invisible="not has_distinct_archive_file"
                                         title="Download Paperless's processed copy. The original is unchanged."/>
                             </div>
                         </page>
@@ -226,7 +231,10 @@
                                 <field name="paperless_modified"/>
                             </group>
                         </page>
-                        <page string="Versions" name="versions">
+                        <page string="File history" name="versions" invisible="version_count &lt;= 1">
+                            <div class="alert alert-light border" role="status">
+                                Earlier files are kept only when this archived document was deliberately replaced or restored. The row marked Current is the file opened from the Document tab.
+                            </div>
                             <field name="version_ids" nolabel="1" readonly="1">
                                 <list create="0" edit="0" delete="0"
                                       decoration-success="is_current">
@@ -238,11 +246,13 @@
                                     <field name="mime_type"/>
                                     <field name="page_count"/>
                                     <field name="checksum" optional="hide"/>
+                                    <field name="has_distinct_archive_file" column_invisible="1"/>
                                     <button name="action_preview" type="object" icon="fa-eye"
-                                            title="Preview this version"/>
+                                            title="Open this file"/>
                                     <button name="action_download_original" type="object" icon="fa-download"
-                                            title="Download this original file"/>
+                                            title="Download this file"/>
                                     <button name="action_download_archive" type="object" icon="fa-file-pdf-o"
+                                            invisible="not has_distinct_archive_file"
                                             title="Download this searchable PDF"/>
                                     <button name="action_restore_as_current" type="object"
                                             icon="fa-history" title="Restore as current"

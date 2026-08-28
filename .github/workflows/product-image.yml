@@ -6,6 +6,8 @@ name: Distribution image
 on:
   # Run on stacked pull requests too; publish remains restricted to 19-usl.
   pull_request:
+  merge_group:
+    types: [checks_requested]
   push:
     branches:
       - 19-usl
@@ -185,6 +187,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      artifact-metadata: write
     outputs:
       image: ${{ steps.release.outputs.image }}
       tag: ${{ steps.release.outputs.tag }}

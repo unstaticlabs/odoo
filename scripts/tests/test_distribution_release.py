@@ -108,6 +108,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("packages: write", qualify)
         self.assertNotIn("id-token: write", qualify)
         self.assertNotIn("attestations: write", qualify)
+        self.assertNotIn("artifact-metadata: write", qualify)
         self.assertNotIn("secrets.", qualify)
 
     def test_pr_qualification_installs_the_canonical_product_registry(self) -> None:
@@ -144,6 +145,21 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertGreaterEqual(publish.count("provenance: mode=max"), 2)
         self.assertGreaterEqual(publish.count("sbom: true"), 2)
         self.assertGreaterEqual(publish.count("uses: actions/attest@"), 2)
+        publish_permissions = publish.split("    outputs:\n", 1)[0]
+        self.assertIn("artifact-metadata: write", publish_permissions)
+
+    def test_merge_group_qualifies_without_publication_permissions(self) -> None:
+        qualify = self.workflow.split("\n  publish:\n", 1)[0]
+        publish = self.workflow.split("\n  publish:\n", 1)[1]
+        self.assertIn("merge_group:\n    types: [checks_requested]", self.workflow)
+        for permission in (
+            "packages: write",
+            "id-token: write",
+            "attestations: write",
+            "artifact-metadata: write",
+        ):
+            self.assertNotIn(permission, qualify)
+        self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'", publish)
 
     def test_only_19_usl_pushes_can_publish(self) -> None:
         self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/19-usl'", self.workflow)

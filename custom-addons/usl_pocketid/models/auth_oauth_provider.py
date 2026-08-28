@@ -2,6 +2,7 @@ import ipaddress
 import logging
 import os
 import secrets
+from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 import requests
@@ -24,6 +25,7 @@ _SUPPORTED_TOKEN_AUTH_METHODS = {
 }
 _MAX_JWKS_BYTES = 1_048_576
 _MAX_JWKS_KEYS = 20
+_TAILSCALE_NETWORK = ipaddress.ip_network("100.64.0.0/10")
 _ENVIRONMENT_MANAGED_FIELDS = {
     "auth_endpoint",
     "body",
@@ -47,6 +49,22 @@ _ENVIRONMENT_MANAGED_FIELDS = {
 }
 
 
+@dataclass(frozen=True)
+class PocketIDClientConfiguration:
+    issuer: str
+    authorization_endpoint: str
+    token_endpoint: str
+    jwks_uri: str
+    client_id: str
+    client_secret: str
+    required_group: str
+    redirect_uri: str
+    token_auth_method: str
+    scopes: str
+    fresh_passkey_supported: bool
+    discovery_snapshot: dict[str, object]
+
+
 def _env_enabled(name):
     return os.getenv(name, "").strip().lower() in _TRUTHY_VALUES
 
@@ -57,6 +75,30 @@ def _origin(url):
     if port is None:
         port = 443 if parsed.scheme == "https" else 80
     return parsed.scheme, parsed.hostname, port
+
+
+def _private_http_qa_allowed(hostname):
+    if (
+        os.getenv("USL_DEPLOYMENT_ENV", "development").strip().lower()
+        != "development"
+        or not _env_enabled("USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA")
+    ):
+        return False
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        normalized = hostname.rstrip(".").lower()
+        return normalized.endswith(".ts.net")
+    return (
+        address.version == 4
+        and not address.is_unspecified
+        and not address.is_multicast
+        and (
+            address.is_loopback
+            or address.is_private
+            or address in _TAILSCALE_NETWORK
+        )
+    )
 
 
 class AuthOauthProvider(models.Model):
@@ -181,7 +223,7 @@ class AuthOauthProvider(models.Model):
         except ValueError:
             hostname = parsed.hostname.rstrip(".")
             is_loopback = hostname == "localhost" or hostname.endswith(".localhost")
-        if not is_loopback:
+        if not is_loopback and not _private_http_qa_allowed(parsed.hostname):
             raise ValidationError(
                 _("%(label)s may use HTTP only for a loopback test service.", label=label),
             )
@@ -246,11 +288,209 @@ class AuthOauthProvider(models.Model):
             **endpoints,
             "issuer": discovered_issuer,
             "end_session_endpoint": end_session_endpoint or False,
+            "prompt_values_supported": discovery.get("prompt_values_supported", []),
+            "fresh_passkey_reauthentication_supported": bool(
+                discovery.get("fresh_passkey_reauthentication_supported"),
+            ),
             "token_endpoint_auth_methods_supported": discovery.get(
                 "token_endpoint_auth_methods_supported",
                 ["client_secret_basic"],
             ),
         }
+
+    @api.model
+    def _usl_pocketid_sign_configuration(self):
+        """Return the environment-only Pocket ID client used for Sign authorization."""
+        issuer = os.getenv("USL_POCKET_ID_ISSUER", "").strip()
+        public_base_url = os.getenv("USL_POCKET_ID_ODOO_BASE_URL", "").strip()
+        client_id = os.getenv("USL_POCKET_ID_SIGN_CLIENT_ID", "").strip()
+        client_secret = os.getenv("USL_POCKET_ID_SIGN_CLIENT_SECRET", "")
+        required_group = os.getenv("USL_POCKET_ID_SIGN_REQUIRED_GROUP", "").strip()
+        missing = [
+            name
+            for name, value in (
+                ("USL_POCKET_ID_ISSUER", issuer),
+                ("USL_POCKET_ID_ODOO_BASE_URL", public_base_url),
+                ("USL_POCKET_ID_SIGN_CLIENT_ID", client_id),
+                ("USL_POCKET_ID_SIGN_CLIENT_SECRET", client_secret),
+                ("USL_POCKET_ID_SIGN_REQUIRED_GROUP", required_group),
+            )
+            if not value
+        ]
+        if missing:
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
+        public_base_url = self._usl_validate_url(
+            public_base_url,
+            label=_("Odoo public base URL"),
+            allow_path=False,
+            allow_query=False,
+        )
+        discovery = self._usl_discover_pocketid(issuer)
+        supported_methods = set(discovery["token_endpoint_auth_methods_supported"])
+        requested_method = os.getenv("USL_POCKET_ID_TOKEN_AUTH_METHOD", "").strip()
+        token_auth_method = requested_method or (
+            "client_secret_basic"
+            if "client_secret_basic" in supported_methods
+            else "client_secret_post"
+        )
+        if (
+            token_auth_method not in _SUPPORTED_TOKEN_AUTH_METHODS
+            or token_auth_method not in supported_methods
+        ):
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
+        strict_required = _env_enabled("USL_POCKET_ID_SIGN_FRESH_REQUIRED")
+        strict_supported = discovery["fresh_passkey_reauthentication_supported"]
+        # Strong Sign has no permissive mode. The explicit environment switch
+        # makes deployment intent auditable, while discovery proves that the
+        # selected Pocket ID build can actually enforce a fresh passkey.
+        if not strict_required or not strict_supported:
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
+        if "login" not in discovery["prompt_values_supported"]:
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
+        return PocketIDClientConfiguration(
+            issuer=discovery["issuer"],
+            authorization_endpoint=discovery["authorization_endpoint"],
+            token_endpoint=discovery["token_endpoint"],
+            jwks_uri=discovery["jwks_uri"],
+            client_id=client_id,
+            client_secret=client_secret,
+            required_group=required_group,
+            redirect_uri=f"{public_base_url}/sign/pocketid/callback",
+            token_auth_method=token_auth_method,
+            scopes="openid profile email groups",
+            fresh_passkey_supported=strict_supported,
+            discovery_snapshot={
+                "issuer": discovery["issuer"],
+                "authorization_endpoint": discovery["authorization_endpoint"],
+                "token_endpoint": discovery["token_endpoint"],
+                "jwks_uri": discovery["jwks_uri"],
+                "prompt_values_supported": discovery["prompt_values_supported"],
+                "token_endpoint_auth_methods_supported": discovery[
+                    "token_endpoint_auth_methods_supported"
+                ],
+                "fresh_passkey_reauthentication_supported": strict_supported,
+            },
+        )
+
+    @api.model
+    def _usl_pocketid_exchange_code_for_client(
+        self,
+        configuration,
+        *,
+        code,
+        code_verifier,
+    ):
+        if not code or len(code) > 4096:
+            raise PocketIDAccessDenied(PocketIDReason.PROVIDER_DENIED)
+        data = {
+            "client_id": configuration.client_id,
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": code_verifier,
+            "redirect_uri": configuration.redirect_uri,
+        }
+        auth = None
+        if configuration.token_auth_method == "client_secret_post":
+            data["client_secret"] = configuration.client_secret
+        else:
+            auth = (configuration.client_id, configuration.client_secret)
+        try:
+            response = requests.post(
+                configuration.token_endpoint,
+                data=data,
+                auth=auth,
+                timeout=10,
+            )
+            response.raise_for_status()
+            token_response = response.json()
+        except (requests.RequestException, ValueError) as error:
+            status = getattr(getattr(error, "response", None), "status_code", None)
+            reason = (
+                PocketIDReason.PROVIDER_DENIED
+                if status is not None and 400 <= status < 500
+                else PocketIDReason.PROVIDER_UNAVAILABLE
+            )
+            raise PocketIDAccessDenied(reason) from error
+        access_token = token_response.get("access_token")
+        id_token = token_response.get("id_token")
+        if (
+            not isinstance(access_token, str)
+            or not isinstance(id_token, str)
+            or str(token_response.get("token_type", "Bearer")).lower() != "bearer"
+            or token_response.get("refresh_token")
+        ):
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
+        return access_token, id_token
+
+    @api.model
+    def _usl_pocketid_validate_id_token_for_client(
+        self,
+        configuration,
+        *,
+        id_token,
+        access_token,
+        nonce,
+    ):
+        provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
+        try:
+            header = jwt.get_unverified_header(id_token)
+        except JWTError as error:
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID) from error
+        if header.get("alg") not in _SUPPORTED_SIGNING_ALGORITHMS:
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
+        # The Sign and login clients share the same governed issuer and JWKS.
+        if provider.jwks_uri != configuration.jwks_uri:
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
+        keys = provider._usl_get_signing_keys(header.get("kid"))
+        claims = None
+        last_error = None
+        for key in keys:
+            try:
+                claims = jwt.decode(
+                    id_token,
+                    key,
+                    algorithms=list(_SUPPORTED_SIGNING_ALGORITHMS),
+                    audience=configuration.client_id,
+                    issuer=configuration.issuer,
+                    access_token=access_token,
+                    options={
+                        "require_aud": True,
+                        "require_exp": True,
+                        "require_iat": True,
+                        "require_iss": True,
+                        "require_sub": True,
+                        "leeway": 60,
+                    },
+                )
+                break
+            except (JWTError, JWSError) as error:
+                last_error = error
+        if claims is None:
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID) from last_error
+        claim_nonce = claims.get("nonce")
+        subject = claims.get("sub")
+        if (
+            not isinstance(claim_nonce, str)
+            or not secrets.compare_digest(claim_nonce, nonce)
+            or not isinstance(subject, str)
+            or not subject
+            or len(subject) > 255
+        ):
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
+        audience = claims.get("aud")
+        authorized_party = claims.get("azp")
+        if (
+            isinstance(audience, list)
+            and len(audience) > 1
+            and authorized_party != configuration.client_id
+        ) or (authorized_party and authorized_party != configuration.client_id):
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
+        groups = claims.get("groups", [])
+        if isinstance(groups, str):
+            groups = [groups]
+        if not isinstance(groups, list) or configuration.required_group not in groups:
+            raise PocketIDAccessDenied(PocketIDReason.GROUP_REQUIRED)
+        return claims, keys
 
     @api.model
     def _usl_disable_default_odoo_oauth(self):

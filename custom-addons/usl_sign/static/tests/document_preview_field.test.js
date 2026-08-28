@@ -1,0 +1,64 @@
+import {expect, test} from "@odoo/hoot";
+import {waitFor} from "@odoo/hoot-dom";
+import {defineMailModels} from "@mail/../tests/mail_test_helpers";
+import {mountWithCleanup, onRpc} from "@web/../tests/web_test_helpers";
+
+import {
+    SignDocumentCardPreviewField,
+    SignDocumentPreviewField,
+} from "../src/js/document_preview_field.esm";
+
+defineMailModels();
+
+test("document cards reuse an authorized Documents thumbnail", async () => {
+    await mountWithCleanup(SignDocumentCardPreviewField, {
+        props: {
+            name: "document_preview_url",
+            record: {
+                data: {
+                    document_preview_url: "/web/content/sign.oca.request/4/data/file.pdf",
+                    document_thumbnail_url: "/usl_documents/17/thumbnail",
+                },
+            },
+        },
+    });
+
+    expect(".usl_sign_document_card_preview img").toHaveCount(1);
+    expect(".o_usl_document_preview").toHaveCount(0);
+});
+
+test("document preview has an explicit unavailable state", async () => {
+    await mountWithCleanup(SignDocumentPreviewField, {
+        props: {
+            name: "document_preview_url",
+            record: {data: {document_preview_url: false}},
+        },
+    });
+
+    expect(".usl_sign_document_preview_placeholder").toHaveText(/Preview unavailable/);
+});
+
+test("document cards render the shared preview instead of the raw URL", async () => {
+    onRpc("/web/content/sign.oca.request/4/data/file.pdf", () =>
+        new Response("Document preview", {
+            headers: {"Content-Type": "text/plain"},
+        })
+    );
+
+    await mountWithCleanup(SignDocumentCardPreviewField, {
+        props: {
+            name: "document_preview_url",
+            record: {
+                data: {
+                    document_preview_url: "/web/content/sign.oca.request/4/data/file.pdf",
+                    document_thumbnail_url: false,
+                },
+            },
+        },
+    });
+    await waitFor(".o_usl_document_preview pre");
+
+    expect(".o_usl_document_preview").toHaveCount(1);
+    expect(".o_usl_document_preview").toHaveText("Document preview");
+    expect(".usl_sign_document_card_preview").not.toHaveText(/\/web\/content/);
+});

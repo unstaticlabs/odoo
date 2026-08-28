@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_template_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.form.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//form/header" position="replace">
+                <header>
+                    <button name="configure" type="object" string="Place fields" class="btn-primary"
+                        invisible="preparation_status == 'ready' or has_requests"
+                        groups="usl_sign.group_sign_template_manager"/>
+                    <button name="action_mark_ready" type="object" string="Review and publish" class="btn-primary" help="Validate the fields and publish this template for new signature requests."
+                        invisible="preparation_status == 'ready' or has_requests"
+                        groups="usl_sign.group_sign_template_manager"/>
+                    <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action" string="Use template" class="btn-primary"
+                        invisible="preparation_status != 'ready'"/>
+                    <button name="action_new_version" type="object" string="New version"
+                        invisible="preparation_status != 'ready' and not has_requests"
+                        groups="usl_sign.group_sign_template_manager"/>
+                    <field name="preparation_status" widget="statusbar" statusbar_visible="draft,needs_fields,ready"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet" position="replace">
+                <sheet>
+                    <field name="has_requests" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(sign_oca.sign_oca_request_template_act_window)d" type="action" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="request_count" widget="statinfo" string="Requests"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Ready" invisible="preparation_status != 'ready'"/>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Reusable signing template</p>
+                        <h1><field name="name" placeholder="Template name" readonly="preparation_status == 'ready' or has_requests"/></h1>
+                    </div>
+                    <div class="alert alert-info mt-3" role="status" invisible="preparation_status == 'ready' or has_requests">
+                        <strong>Next: place the fields people need to complete.</strong>
+                        Save happens automatically in the editor. Publish only after every field has the right role.
+                    </div>
+                    <div class="alert alert-success mt-3" role="status" invisible="preparation_status != 'ready'">
+                        <strong>Ready to use.</strong> This version is locked so requests always use the layout you reviewed. Create a new version to make changes.
+                    </div>
+                    <div class="row g-3 my-3">
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Version</div><div class="fw-semibold"><field name="version" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Document type</div><div class="fw-semibold"><field name="default_document_category" readonly="preparation_status == 'ready' or has_requests"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="default_trust" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="preparation_status" readonly="1"/></div></div></div></div>
+                    </div>
+                    <notebook>
+                        <page string="Overview" name="overview">
+                            <group>
+                                <group string="Template details">
+                                    <field name="description" placeholder="When should people use this template?" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="company_id" groups="base.group_multi_company" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="signing_order" string="People must sign in order" readonly="preparation_status == 'ready' or has_requests"/>
+                                </group>
+                                <group string="Timing">
+                                    <field name="expiration_days" string="Complete within (days)" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="reminder_days" string="First reminder after (days)" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="max_reminders" string="Maximum reminders" readonly="preparation_status == 'ready' or has_requests"/>
+                                </group>
+                            </group>
+                            <details class="mt-3">
+                                <summary class="text-muted">More options</summary>
+                                <group class="mt-2">
+                                    <field name="model_id" string="Linked Odoo record type" groups="usl_sign.group_sign_admin" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="ask_location" string="Ask signers to share their location" readonly="preparation_status == 'ready' or has_requests"/>
+                                    <field name="active" string="Available in the library"/>
+                                    <field name="previous_version_id" string="Previous version" readonly="1" invisible="not previous_version_id"/>
+                                    <field name="document_sha256" string="Document fingerprint" readonly="1" groups="usl_sign.group_sign_evidence_reviewer"/>
+                                </group>
+                            </details>
+                        </page>
+                        <page string="Documents" name="documents">
+                            <group>
+                                <field name="data" filename="filename" string="Main PDF" readonly="preparation_status == 'ready' or has_requests"/>
+                                <field name="filename" invisible="1"/>
+                            </group>
+                            <field name="document_ids" readonly="has_requests or preparation_status == 'ready'" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="is_annex" string="Annex"/>
+                                    <field name="name" string="Document"/>
+                                    <field name="filename"/>
+                                    <field name="data" filename="filename" string="PDF"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Fields" name="items">
+                            <div class="border rounded bg-light p-3 mb-3">Use <strong>Place fields</strong> to add, move or change fields. This summary is read-only.</div>
+                            <field name="item_ids" readonly="1" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="field_id" string="Field"/>
+                                    <field name="role_id" string="Filled by"/>
+                                    <field name="required"/>
+                                    <field name="page"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </xpath>
+            <xpath expr="//chatter" position="replace"/>
+        </field>
+    </record>
+    <record id="sign_template_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.list.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="preparation_status"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_template_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.kanban.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">usl_sign_template_kanban</attribute>
+                <attribute name="class">o_kanban_small_column usl_sign_document_kanban</attribute>
+            </xpath>
+            <xpath expr="//kanban/field[@name='create_uid']" position="before">
+                <field name="document_preview_url"/>
+                <field name="company_id"/>
+                <field name="version"/>
+                <field name="preparation_status"/>
+                <field name="default_trust"/>
+                <field name="signer_role_count"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                    <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                    <div class="p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <h2 class="h6 mb-0 text-break"><field name="display_name"/></h2>
+                            <span class="badge text-bg-light">v<field name="version"/></span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <field name="preparation_status" widget="badge"/>
+                            <field name="default_trust" widget="badge"/>
+                        </div>
+                        <footer class="mt-3 d-flex align-items-end justify-content-between gap-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button name="configure" type="object" string="Place fields"
+                                    class="btn btn-primary btn-sm"
+                                    invisible="preparation_status == 'ready'"
+                                    groups="usl_sign.group_sign_template_manager"/>
+                                <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
+                                    string="Use template" class="btn btn-primary btn-sm"
+                                    invisible="preparation_status != 'ready'"/>
+                                <button name="action_new_version" type="object" string="New version"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    invisible="preparation_status != 'ready'"
+                                    groups="usl_sign.group_sign_template_manager"/>
+                                <button name="%(sign_oca.sign_oca_template_generate_act_window)d" type="action"
+                                    string="Use and sign myself" context="{'default_sign_now': 1}"
+                                    title="Starts a request with you as the only signer. You will review the request before signing."
+                                    class="btn btn-link btn-sm px-1"
+                                    invisible="preparation_status != 'ready' or signer_role_count != 1"/>
+                            </div>
+                            <field name="create_uid" widget="many2one_avatar_user"/>
+                        </footer>
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_oca.sign_oca_template_act_window" model="ir.actions.act_window">
+        <field name="name">Templates</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload a PDF to create a reusable template</p>
+            <p>Drop one or more PDFs here, assign signer roles and fields, then publish the template when it is ready.</p>
+        </field>
+    </record>
+</odoo>

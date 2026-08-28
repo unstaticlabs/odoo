@@ -1,44 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="usl_documents.DocumentPreview">
-        <div class="o_usl_document_preview"
-             t-att-data-version="props.versionId || ''"
-             aria-label="Document preview">
-            <div t-if="state.loading" class="text-center text-muted p-4">
-                <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading preview…
-            </div>
-            <img t-elif="state.kind === 'image'"
-                 t-att-src="imageUrl"
-                 alt="Document preview"/>
-            <pre t-elif="state.kind === 'text'"
-                 class="m-0 p-3"
-                 t-esc="state.text"/>
-            <div t-elif="state.kind === 'pdf'" class="o_usl_pdf_preview">
-                <canvas t-ref="canvas"/>
-                <div t-if="state.pageCount &gt; 1"
-                     class="o_usl_pdf_preview_controls">
-                    <button type="button" class="btn btn-sm btn-light"
-                            t-att-disabled="state.page === 1"
-                            t-on-click="previousPage"
-                            aria-label="Previous preview page">
-                        <i class="fa fa-chevron-left"/>
-                    </button>
-                    <span>Page <t t-esc="state.page"/> of <t t-esc="state.pageCount"/></span>
-                    <button type="button" class="btn btn-sm btn-light"
-                            t-att-disabled="state.page === state.pageCount"
-                            t-on-click="nextPage"
-                            aria-label="Next preview page">
-                        <i class="fa fa-chevron-right"/>
-                    </button>
-                </div>
-            </div>
-            <div t-elif="state.error" class="alert alert-warning m-3">
-                <strong>Preview unavailable.</strong>
-                <div t-esc="state.error"/>
-            </div>
-        </div>
-    </t>
-
     <t t-name="usl_documents.PermanentDeleteDialog">
         <Dialog title="'Permanently delete document?'" size="'md'">
             <p>

@@ -19,6 +19,7 @@ from lib import (  # noqa: E402
     head_sha,
     load_json,
     merge_base,
+    merge_candidate_error,
     policy,
     qa_status_payload,
     resolve_ref,
@@ -176,20 +177,15 @@ def semantic_errors(value: dict[str, Any], check_repository: bool) -> list[str]:
             if feature[key] != actual:
                 errors.append(f"$.feature.{key}: recorded {feature[key]!r}, repository is {actual!r}")
         try:
-            current_base = resolve_ref(feature["base"])
+            resolve_ref(feature["base"])
             if not resolve_ref(feature["base_sha"]):
                 errors.append("$.feature.base_sha: cannot resolve recorded base SHA")
             if not merge_base(feature["base"]):
                 errors.append("$.feature.base: no merge base with current branch")
-            if feature["base_sha"] != current_base:
-                errors.append(
-                    f"$.feature.base_sha: recorded {feature['base_sha']}; current base tip is {current_base}"
-                )
-            if feature["base_sha"] != merge_base(feature["base"]):
-                errors.append(
-                    f"$.feature.base_sha: branch is not caught up to recorded base; "
-                    f"merge base is {merge_base(feature['base'])}"
-                )
+            if not merge_base(feature["base_sha"]):
+                errors.append("$.feature.base_sha: recorded base has no merge base with current branch")
+            if candidate_error := merge_candidate_error(feature["base"]):
+                errors.append(f"$.feature.base: {candidate_error}; catch up before handoff")
         except AgentError as error:
             errors.append(f"$.feature.base: {error}")
     return errors

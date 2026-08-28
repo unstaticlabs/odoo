@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sign_oca.sign_field_signature" model="sign.oca.field">
+        <field name="usl_kind">signature</field>
+    </record>
+    <record id="sign_oca.sign_field_name" model="sign.oca.field">
+        <field name="usl_kind">signer_name</field>
+    </record>
+    <record id="sign_oca.sign_field_email" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_phone" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_text" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_check" model="sign.oca.field">
+        <field name="usl_kind">checkbox</field>
+    </record>
+    <record id="field_initials" model="sign.oca.field">
+        <field name="name">Initials</field>
+        <field name="field_type">signature</field>
+        <field name="usl_kind">initials</field>
+    </record>
+    <record id="field_date" model="sign.oca.field">
+        <field name="name">Date</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">date</field>
+    </record>
+    <record id="field_company" model="sign.oca.field">
+        <field name="name">Company</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">company</field>
+    </record>
+    <record id="field_role" model="sign.oca.field">
+        <field name="name">Role</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">role</field>
+    </record>
+
+    <record id="mail_activity_type_sign_document" model="mail.activity.type">
+        <field name="name">Document signature</field>
+        <field name="summary">Review and sign</field>
+        <field name="icon">fa-pencil-square-o</field>
+        <field name="sequence">1</field>
+        <field name="decoration_type">warning</field>
+        <field name="res_model">sign.oca.request.signer</field>
+        <field name="kpi_provider_visibility">own</field>
+    </record>
+
+    <record id="policy_routine_standard" model="usl.sign.policy">
+        <field name="name">Routine signing policy</field>
+        <field name="sequence">10</field>
+        <field name="version">2026.1</field>
+        <field name="risk_level">low</field>
+        <field name="signer_type">any</field>
+        <field name="recommendation">standard</field>
+        <field name="reason">Invitation-channel identity, explicit consent and a reinforced evidence trail are proportionate for routine documents.</field>
+        <field name="consequence">The signer does not receive a personal cryptographic certificate; USL seals and independently validates the completed PDF.</field>
+    </record>
+    <record id="policy_material_recurring_strong" model="usl.sign.policy">
+        <field name="name">Material documents for recurring signers</field>
+        <field name="sequence">20</field>
+        <field name="version">2026.1</field>
+        <field name="risk_level">material</field>
+        <field name="signer_type">recurring</field>
+        <field name="recommendation">strong_personal</field>
+        <field name="reason">The document is material and the signer has an ongoing USL relationship suitable for reviewed passkey enrolment.</field>
+        <field name="consequence">Each signer authorizes a document-specific personal PAdES signature with a passkey and a single-use browser key.</field>
+    </record>
+    <record id="policy_maximum_qualified" model="usl.sign.policy">
+        <field name="name">Formal or maximum-assurance documents</field>
+        <field name="sequence">1</field>
+        <field name="version">2026.1</field>
+        <field name="risk_level">maximum</field>
+        <field name="signer_type">any</field>
+        <field name="formal_qes_required" eval="True"/>
+        <field name="recommendation">qualified_external</field>
+        <field name="reason">A formal QES requirement or maximum-assurance risk needs an independently qualified trust provider.</field>
+        <field name="consequence">Odoo freezes and tracks the document, but signing takes place through a reviewed external provider and completes only after DSS qualification validation.</field>
+    </record>
+</odoo>

@@ -67,10 +67,14 @@ the corresponding client to be installed, sandbox-permitted and logged in.
 The Coding Agent inspects relevant product specifications, considers
 native Odoo and maintained OCA options, implements the narrow scope, tests it,
 and uses specialist Skills for UI, migration, accounting and access-control
-risk. Catch-up with `19-usl` is deliberate: fetch, inspect both deltas, preserve
-uncommitted work, choose merge or rebase, resolve semantic overlap, and rerun
-affected checks. Never edit another worktree or discard published history for
-cosmetic reasons.
+risk. Fetch `19-usl` before readiness, but do not routinely rewrite a clean
+pushed feature merely because the target advanced. The branch is queue-eligible
+when Git can construct a conflict-free candidate. Manual catch-up is required
+only for a real conflict, dependency or stack change, generated-state
+reconciliation, or failed `merge_group` qualification; then inspect both
+deltas, preserve uncommitted work, choose merge or rebase deliberately, and
+rerun affected checks. Never edit another worktree or discard published
+history for cosmetic reasons.
 
 Coding task titles are work-first and type-last; use, for example,
 `Bank statements - Feature`, `FEC generation - Fix`, or
@@ -245,8 +249,11 @@ review-first GitHub Markdown: summary, acceptance, scope, decisions, evidence,
 migration/QA, integration, release and limitation sections. A collapsed,
 delimited canonical JSON block remains suitable for validation and later AI
 Pipelines. The local artifact is intentionally ignored. Readiness validation
-rejects stale branch, head, worktree or base evidence, dirty state, unpushed
-head and invalid commit attribution. The PR helper uses the contract's
+rejects stale branch, head or worktree evidence, dirty state, an unpushed head,
+invalid commit attribution, and a target/head pair for which Git cannot
+construct a conflict-free merge candidate. The recorded `feature.base_sha`
+remains historical evidence and may precede the current fetched target tip.
+The PR helper uses the contract's
 validated `feature.base`, stripping only the local `origin/` qualifier, so an
 explicit stacked handoff opens against its parent feature branch rather than
 silently retargeting to `19-usl`.
@@ -297,15 +304,64 @@ work; detects duplicate or obsolete paths; qualifies architecture, security,
 accounting, upgrades, recovery, tests and product/browser evidence; and either
 dispatches a separate Coding task for a scoped repair or rejects the PR. The
 Lead never authors the repair, including conflict repair. Final checks run on
-the exact reconciled candidate.
+the exact merge-queue candidate. A clean pushed head can proceed without
+containing the target tip when Git can merge it cleanly; catch-up is reserved
+for conflicts, dependency/stack changes, generated-state reconciliation, or a
+failed merge-group run.
 
 Lead and Coding authenticate to GitHub as the same `@elio-usl` account, so Lead
 review cannot provide independent approval for a PR authored by that account.
 The Lead must never self-approve. Valentin or another authorized independent
 human must approve, all required checks must be green, and only then may the
-Lead merge through the reviewed merge-commit PR. CI receives the merged state;
+Lead enqueue the reviewed PR. The queue uses merge commits and single-entry
+groups, so CI receives the ancestry-preserving merged state;
 neither role manually deploys production. Owned QA/worktree cleanup follows
 merge and successful CI only.
+
+## Merge queue admission
+
+The repository does not maintain a general GitHub-settings platform. The
+narrow desired state is therefore stored in `agent/policy.json` and applied by
+the existing isolated GitHub helper. The operation updates the active
+`USL Distribution` ruleset in place and preserves its deletion,
+non-fast-forward, pull-request, bypass, and any additional required-check
+rules. It refuses a linear-history rule, a disabled merge-commit repository,
+a dirty or stale Lead checkout, a non-Lead identity, or a prerequisite commit
+that is not an ancestor of GitHub `19-usl`.
+
+Admission order is strict because enabling the queue before its workflows
+handle `merge_group` would strand candidates:
+
+1. Merge the prerequisite workflow/policy PR by the existing reviewed
+   merge-commit path. Do not enable the queue from its Coding worktree.
+2. In the persistent `19-usl - Lead` task, fetch and update the clean
+   authoritative checkout to the GitHub tip.
+3. Preview the idempotent payload, using the merged prerequisite PR head SHA:
+
+   ```bash
+   scripts/agent/github merge-queue --after-sha <PR_HEAD_SHA>
+   ```
+
+4. Review that the preserved rules and desired values are present, then apply
+   the same payload:
+
+   ```bash
+   scripts/agent/github merge-queue --after-sha <PR_HEAD_SHA> --apply
+   ```
+
+5. Re-run the preview; it must report that the ruleset already matches policy.
+   Enqueue the next approved PR and confirm both `contracts` and
+   `Qualify repository and image` run on its `merge_group` candidate.
+
+The reviewed settings are merge method `MERGE`, required checks `contracts`
+and `Qualify repository and image`, `ALLGREEN` (only non-failing entries),
+minimum and maximum group size `1`, build concurrency `2`, zero group wait,
+and a 120-minute check-response timeout. `strict_required_status_checks_policy`
+is false because the queue, rather than manual feature-branch catch-up,
+constructs and qualifies the current target candidate. Both required workflows
+listen for `merge_group/checks_requested`. The Distribution publish job still
+requires an actual `push` to `refs/heads/19-usl`; queue candidates cannot write
+packages, attestations, release metadata, deployments, or production artifacts.
 
 ## Transition to continuous delivery
 
@@ -314,9 +370,10 @@ becomes canonical:
 
 1. Change `agent/policy.json` phase to `continuous-development` and all three
    enforcement values to `required` in a reviewed policy PR.
-2. Enable a GitHub organization/repository ruleset for `19-usl`: no direct
-   pushes, reviewed PRs, required agent-process and product checks, no
-   self-approval, merge commits only, and narrowly controlled bypass actors.
+2. Promote the active `USL Distribution` ruleset to full post-cutover
+   enforcement: retain the reviewed merge queue and required checks, forbid
+   direct pushes, require reviewed PRs and independent approval, preserve
+   merge commits, and keep narrowly controlled bypass actors.
 3. Activate the production backup stack, then add the deployment pipeline with
    preflight, quiesced checkpoint, module/data upgrade, digest deployment,
    verification, and tested recovery. Set

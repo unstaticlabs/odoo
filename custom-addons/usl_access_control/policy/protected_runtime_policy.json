@@ -1951,8 +1951,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "d72d43d305bf97143d68a052922c4f78420aa18636c00d8cd86380d153270103",
-  "runtime_policy_sha256": "0952454c537251a5c6651a3b548bcd5338a63bc46cc201d7f5cf7439af79ef38",
+  "qualified_policy_digest": "d8761ef705e6e91bc814e2f4d2f029d73426db8a3e5fe040a82000151d3ceb36",
+  "runtime_policy_sha256": "2a201b3859d201d597f085c79b1c830e34b1d9b2d9b75bb8fe99b607022eeb86",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2112,6 +2112,14 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:gamification.ir_cron_check_challenge_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:gamification.ir_cron_consolidate_ir_actions_server",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "classification": "protected"
     },
@@ -2209,6 +2217,18 @@
     },
     {
       "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_ab_testing_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_queue_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mass_mailing.mailing_list_merge_action",
       "classification": "operational"
     },
     {
@@ -2516,6 +2536,10 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:survey.action_survey_print",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
       "classification": "operational"
     },
@@ -2546,6 +2570,22 @@
     {
       "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
       "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_sign.ir_cron_sign_daily_event_heads_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_sign.ir_cron_sign_opentimestamps_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_sign.ir_cron_sign_operations_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_sign.my_sign_identity_server_action",
+      "classification": "transport"
     },
     {
       "action_key": "server_action:usl_tese_payroll.action_open_tese_settings",
