@@ -18,6 +18,7 @@ Usage:
   scripts/odoo-backup stage push <backup-id>
   scripts/odoo-backup stage restore <snapshot-id> <clone-id>
   scripts/odoo-backup stage verify <snapshot-id> <clone-id>
+  scripts/odoo-backup stage abandon <backup-id>
 
 The stage interface is for Komodo. Normal operators use create/list/verify.
 EOF
@@ -102,6 +103,10 @@ command_stage() {
       [[ $# -eq 2 ]] || { usage >&2; exit 2; }
       "$ROOT/scripts/odoo-restore" stage-verify "$1" "$2"
       run_tool push finalize --snapshot "$1"
+      ;;
+    abandon)
+      [[ $# -eq 1 ]] || { usage >&2; exit 2; }
+      run_tool finalize abandon --confirm "$1"
       ;;
     *) usage >&2; exit 2;;
   esac

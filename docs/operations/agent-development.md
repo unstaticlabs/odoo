@@ -190,8 +190,9 @@ becomes canonical:
 2. Enable a GitHub organization/repository ruleset for `19-usl`: no direct
    pushes, reviewed PRs, required agent-process and product checks, no
    self-approval, merge commits only, and narrowly controlled bypass actors.
-3. Add the production CI pipeline with backup/preflight, module/data upgrade,
-   deploy, verification, and tested recovery. Set
+3. Activate the production backup stack, then add the deployment pipeline with
+   preflight, quiesced checkpoint, module/data upgrade, digest deployment,
+   verification, and tested recovery. Set
    `continuous_deployment_enabled` only when that pipeline is admitted.
 4. Remove any temporary cutover exception that is no longer active. Do not
    retain the Online dump as a rollback assumption.
