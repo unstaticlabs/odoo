@@ -91842,7 +91842,7 @@
         "rpc:usl.document.operation.cron_process_attachment_queue": "1d10405219b185fb4c51a011b5022e679a604e28d3fa1bfab7637d62ed51af36",
         "rpc:usl.document.operation.poll": "8d866bce6e51d897be7872a5de705274c1215fc0d94ccef6cf39762bc2022f01",
         "rpc:usl.document.quick.filter.save_from_search": "e824d737145331be0c17a412660be1c0547940f7c11c6b6c00df5ce8ed5675bf",
-        "rpc:usl.document.reconcile_linked_classification": "a30e858c9bc1f738d45fb40b9e340ca3bac22caf3c132e74de6a59a04956c271",
+        "rpc:usl.document.reconcile_linked_classification": "5278204436e6a257a73e00c7ffd629ed2aef2cb79c3ca863c22c9e63291c79a0",
         "rpc:usl.document.restore_from_trash": "4c561c1627b3948df8514bdd28ef72bf3bc88ef56e4704b5fb9cc4ff1412686e",
         "rpc:usl.document.restore_version": "7745fc138fab5b32e4d12a38249b31541b4db605ebfa5f5a5e02f2ce3a617ef4",
         "rpc:usl.document.set_company": "5b4fa2966f2b2f0c2476a25e0a62833acfa5359d34a7ee2e41c4e0bb4d814a7a",
@@ -145684,6 +145684,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:1",
@@ -149657,6 +149658,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.reconcile_linked_classification"
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -151373,9 +151377,10 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:orm_write:1": "dabf7945b1d61a6bad30a0abeb81da1196a1d11ae149c19676e355c05f90bb5c",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:1": "aa624c418738f7afb8a475521cab4902e4f2505b05e669d7cfc5b0c04f6d30b5",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:2": "025faea1202c32fbb4b014635e0994130b7e56467b799a49189eeb73d8e21c26",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": "b27895b41b4ca6c9462284804dd46ee497aee37be0ed3b281cb6ea7dfcb41829",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": "9b3bf79b1b3db6403cedbeeaf01f605c93be06060279251c89f1fa51462f6fa6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2": "994ec0b09bc95190495403f06a1dbd7c48fc53a5f69c591288cf5eb9f488330b",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": "a66c08b12c3245c123c0bc5f8ca629f44e55fd1441d7c988ca049933015139df",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2": "89300e27ad8d6ed4f00f26ff8b561671ae176ae2485e66783e13a11841a977e9",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": "c0d42d2c4864d8063916180b6c0f4e358dd85c41fa740d57b93bcb451a741330",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2": "3b150b8d8b21ce1d012a38fe2ca3cfef8d6a493e079d13f2b766615b1ff9edac",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:1": "fa6de9ee1cd8ec403a831302d35f7895f21645482874eefeaab4cc1aa9109196",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:2": "cbbafde520643373c1c456e02f0ea785e0bbb759dc91f16925fb974467c8eac9",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:sudo:1": "4888b62c1e31815599f1db3eadfdc87c8d7d6c2532b3adeae2d436b08f8263e9",
@@ -173838,6 +173843,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "67e8244aaf5b0c7a860758f52f0ec49b164d0bc2ac03ec5f4c0dc1888ab9afe2",
+  "qualified_policy_digest": "75868f3beabf53c35cd750ef579bd9f83c0ac4ae7d2dc8583b6145fc0cccca02",
   "schema": "usl-action-risk-policy-v1"
 }
