@@ -185,6 +185,61 @@ class StrongSignController(http.Controller):
         ceremony.invalidate_recordset()
         return ceremony
 
+    def _restart_live_ceremonies(self, signer):
+        """Close abandoned attempts before starting a signer-authenticated retry.
+
+        Browser unload handlers cannot reliably deliver a cancellation request.
+        The caller holds the request and signer row locks, so replacing every
+        still-live attempt here preserves the one-live-ceremony invariant and
+        makes the previous tab fail closed if it resumes later.
+        """
+        ceremonies = request.env["usl.sign.ceremony"].sudo().search(
+            [
+                ("signer_id", "=", signer.id),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
+            ],
+        )
+        if not ceremonies:
+            return
+        now = fields.Datetime.now()
+        expired = ceremonies.filtered(lambda row: row.expires_at < now)
+        restarted = ceremonies - expired
+        cleanup = {
+            "candidate_data": False,
+            "candidate_layout": False,
+            "evidence_context": False,
+            "data_to_sign": False,
+            "dss_signing_context": False,
+        }
+        expired.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+            cleanup
+            | {
+                "state": "expired",
+                "failure_code": "authorization_timeout",
+            },
+        )
+        restarted.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+            cleanup
+            | {
+                "state": "revoked",
+                "failure_code": "signer_restarted",
+            },
+        )
+        ceremony_ids = set(ceremonies.ids)
+        transactions = dict(request.session.get(_SESSION_TRANSACTIONS, {}))
+        request.session[_SESSION_TRANSACTIONS] = {
+            state: transaction
+            for state, transaction in transactions.items()
+            if transaction.get("ceremony_id") not in ceremony_ids
+        }
+        for ceremony in restarted:
+            signer.request_id._append_event(
+                "strong_signature_attempt_cancelled",
+                signer=signer,
+                authentication_method="pocket_id_passkey",
+                payload={"ceremony_id": ceremony.id, "reason": "signer_restarted"},
+            )
+
     def _enrollment(self, enrollment_id, token):
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
         if not enrollment:
@@ -427,33 +482,10 @@ class StrongSignController(http.Controller):
         evidence_context_sha256 = hashlib.sha256(
             _canonical_json(signing_context),
         ).hexdigest()
-        # Expired abandoned attempts are closed here so a refresh can recover
-        # without an administrator; a genuinely live tab remains protected.
-        live_ceremonies = request.env["usl.sign.ceremony"].sudo().search(
-            [
-                ("signer_id", "=", signer.id),
-                ("state", "in", ["challenge", "authorizing", "authorized"]),
-            ],
-        )
-        expired = live_ceremonies.filtered(
-            lambda row: row.expires_at < fields.Datetime.now(),
-        )
-        expired.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-            {
-                "state": "expired",
-                "failure_code": "authorization_timeout",
-                "candidate_data": False,
-                "candidate_layout": False,
-                "evidence_context": False,
-                "data_to_sign": False,
-                "dss_signing_context": False,
-            },
-        )
-        if live_ceremonies - expired:
-            msg = "A protected signing attempt is already open for this document."
-            raise ValidationError(
-                msg,
-            )
+        # A fresh, signer-authenticated begin supersedes an interrupted browser
+        # attempt. The request/signer locks above make the replacement atomic;
+        # the database still permits only one live ceremony for this signer.
+        self._restart_live_ceremonies(signer)
         csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
         public_key_sha256 = hashlib.sha256(
             public_key.public_bytes(
