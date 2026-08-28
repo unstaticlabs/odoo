@@ -687,6 +687,24 @@
     border-top: 1px solid var(--o-border-color, #dee2e6);
 }
 
+.usl_sign_more_action {
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 0 0 var(--bs-card-inner-border-radius, .375rem)
+        var(--bs-card-inner-border-radius, .375rem);
+
+    &:hover {
+        color: var(--o-action-color, var(--o-brand-primary, #714b67));
+        background: color-mix(in srgb, var(--o-brand-primary, #714b67) 8%, transparent);
+    }
+
+    &:focus-visible {
+        z-index: 1;
+        outline: 2px solid var(--o-action-color, var(--o-brand-primary, #714b67));
+        outline-offset: -2px;
+    }
+}
+
 .usl_sign_service_status_kanban:not(.o_kanban_grouped) {
     align-content: flex-start;
 
