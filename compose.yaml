@@ -470,6 +470,8 @@ services:
       USL_DSS_VERAPDF: /opt/verapdf/verapdf
       USL_DSS_PYHANKO_PYTHON: /opt/pyhanko/bin/python
       USL_DSS_PYHANKO_SCRIPT: /app/pyhanko-validate.py
+      USL_DSS_PYHANKO_FILL_SCRIPT: /app/pyhanko-fill-fields.py
+      USL_DSS_PYHANKO_NORMALIZE_SCRIPT: /app/pyhanko-normalize-xref.py
     read_only: true
     tmpfs:
       - /tmp:size=128m,mode=1700,uid=100,gid=101
