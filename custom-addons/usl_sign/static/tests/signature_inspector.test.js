@@ -81,6 +81,27 @@ test("result view leads with integrity and keeps trust limitations explicit", as
     expect(".usl_sign_inspector_technical").not.toHaveText(/LocationNot provided/);
     expect(".usl_sign_inspector_limits").toHaveText(/current EU or company trust list/);
     expect(".usl_sign_inspector_limits").toHaveText(/advanced or qualified/);
+    expect(".usl_sign_external_validation a").toHaveAttribute(
+        "href",
+        "https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation"
+    );
+    expect(".usl_sign_external_validation a").toHaveAttribute("target", "_blank");
+    expect(".usl_sign_external_validation").toHaveText(/not a qualified validation service/);
+    expect(".usl_sign_external_validation").toHaveText(/avoid sensitive documents/);
+});
+
+test("an intact earlier PDF revision uses a positive result state", async () => {
+    const component = await mountWithCleanup(SignatureInspector);
+    const earlierRevision = {
+        byteRangeValid: true,
+        cryptoValid: true,
+        coversCurrentFile: false,
+        weakAlgorithm: false,
+    };
+
+    expect(component.signatureLabel(earlierRevision)).toBe("Intact revision");
+    expect(component.signatureTone(earlierRevision)).toBe("success");
+    expect(component.signatureTone({...earlierRevision, weakAlgorithm: true})).toBe("warning");
 });
 
 test("USL certificates are labelled by their actual proof role", async () => {

@@ -2109,6 +2109,23 @@
         font-size: .8125rem;
         line-height: 1.5;
     }
+
+    .usl_sign_external_validation {
+        strong,
+        span {
+            display: block;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: .25rem;
+        }
+
+        span {
+            margin-top: .35rem;
+            color: var(--usl-inspector-muted);
+        }
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
