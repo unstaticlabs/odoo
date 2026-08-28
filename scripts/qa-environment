@@ -85,6 +85,12 @@ export POCKET_ID_HTTP_PORT="$requested_pocket_port"
 export PAPERLESS_HTTP_PORT="$requested_paperless_port"
 export ODOO_IMAGE="$requested_odoo_image"
 export PAPERLESS_PUBLIC_URL="http://paperless.localhost:$PAPERLESS_HTTP_PORT"
+if [[ "$profile" != no-documents ]]; then
+  # Archive/OCR work must not queue behind expensive incremental embeddings.
+  # The full profile restores normal indexing and proves vector parity before
+  # it is handed to a reviewer.
+  export PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true
+fi
 compose=(
   docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$POCKET_ID_ENV_FILE"
   -f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml"
@@ -503,6 +509,15 @@ documents_qa_finalize() {
   "${compose[@]}" up -d --wait odoo
 }
 
+documents_qa_finalize_semantic_index() {
+  export PAPERLESS_USL_DEFER_SEMANTIC_INDEX=false
+  DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_RESTORE_PROFILE=full \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev \
+    COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
+    scripts/documents-restore semantic-finalize
+}
+
 usl_cli_title "provision isolated QA target"
 printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
 if [[ "$profile" == full ]]; then
@@ -566,6 +581,8 @@ if [[ "$profile" != no-documents ]]; then
   stage "enable Documents jobs and drain archive queue" documents_qa_finalize
 fi
 if [[ "$profile" == full ]]; then
+  stage "restore and verify Documents semantic index" \
+    documents_qa_finalize_semantic_index
   write_qa_state
 fi
 

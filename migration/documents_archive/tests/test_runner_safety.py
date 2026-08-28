@@ -192,6 +192,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
 
     def test_bulk_restore_defers_then_verifies_semantic_index(self):
         script = SCRIPT.read_text(encoding="utf-8")
+        qa_script = QA_SCRIPT.read_text(encoding="utf-8")
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
 
         self.assertIn('DOCUMENTS_DEFER_SEMANTIC_INDEX:-1', script)
@@ -214,12 +215,19 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             self.assertIn(command, script)
         self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true", script)
         self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=false", script)
+        self.assertIn("semantic-finalize)", script)
         self.assertIn("--force-recreate --no-deps paperless-webserver", script)
         self.assertIn("wait_for_archive_tasks", script)
         self.assertIn("documents_paperlesstask", script)
         self.assertIn(
             "Deferred semantic indexing is migration-only",
             compose,
+        )
+        self.assertIn("PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true", qa_script)
+        self.assertIn("scripts/documents-restore semantic-finalize", qa_script)
+        self.assertLess(
+            qa_script.index("enable Documents jobs and drain archive queue"),
+            qa_script.index("restore and verify Documents semantic index"),
         )
         inventory = (
             ROOT / "scripts/paperless_release_inventory.py"
