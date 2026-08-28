@@ -155,5 +155,49 @@ class IdentityTest(unittest.TestCase):
         self.assertEqual(result["RESTIC_PASSWORD"], "x" * 32)
 
 
+class OrchestrationPolicyTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.compose = (ROOT / "deploy/odoo-backup/compose.yaml").read_text(encoding="utf-8")
+        cls.backup_wrapper = (ROOT / "scripts/odoo-backup").read_text(encoding="utf-8")
+        cls.restore_wrapper = (ROOT / "scripts/odoo-restore").read_text(encoding="utf-8")
+        cls.dockerfile = (ROOT / "docker/backup.Dockerfile").read_text(encoding="utf-8")
+
+    def test_backup_runtime_inputs_are_digest_pinned(self) -> None:
+        self.assertIn("postgres:16-bookworm@sha256:", self.dockerfile)
+        self.assertIn("restic/restic:0.19.1@sha256:", self.dockerfile)
+
+    def test_prepare_is_db_first_then_filestore(self) -> None:
+        source = (ROOT / "scripts/odoo_backup.py").read_text(encoding="utf-8")
+        self.assertLess(source.index('"pg_dump"'), source.index("shutil.copytree(source_root"))
+
+    def test_only_prepare_mounts_production_data_and_network(self) -> None:
+        services, resources = self.compose.split("\nvolumes:\n", 1)
+        prepare, later = services.split("\n  push:\n", 1)
+        self.assertIn("source-data:/source-data:ro", prepare)
+        self.assertIn("production-db", prepare)
+        self.assertNotIn("source-data:/source-data", later)
+        self.assertNotIn("production-db", later)
+        self.assertIn("internal: true", resources)
+        self.assertNotIn("ports:", services)
+
+    def test_restore_has_no_production_overwrite_command(self) -> None:
+        self.assertIn("scripts/odoo-restore clone", self.restore_wrapper)
+        self.assertIn("--confirm", self.restore_wrapper)
+        self.assertNotIn("production restore", self.restore_wrapper.lower())
+        self.assertNotIn("dropdb", self.restore_wrapper)
+
+    def test_create_runs_all_stages_in_order(self) -> None:
+        prepare = self.backup_wrapper.index("run_tool prepare prepare")
+        push = self.backup_wrapper.index("run_tool push push", prepare)
+        verify = self.backup_wrapper.index('odoo-backup\" verify', push)
+        self.assertLess(prepare, push)
+        self.assertLess(push, verify)
+
+    def test_cli_never_uses_latest_snapshot(self) -> None:
+        self.assertNotRegex(self.backup_wrapper, r"(?:restore|verify)\s+latest")
+        self.assertNotRegex(self.restore_wrapper, r"(?:restore|verify)\s+latest")
+
+
 if __name__ == "__main__":
     unittest.main()

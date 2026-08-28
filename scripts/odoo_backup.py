@@ -377,6 +377,8 @@ def push(args: argparse.Namespace) -> None:
     root = Path(os.environ.get("ODOO_BACKUP_STAGING", "/staging")) / "backups" / backup_id
     manifest = read_manifest(root)
     dump = root / manifest["database"]["dump_file"]
+    if not dump.is_file():
+        fail("staged database dump is missing")
     if dump.stat().st_size != manifest["database"]["dump_bytes"] or sha256(dump) != manifest["database"]["dump_sha256"]:
         fail("staged database dump no longer matches its manifest")
     restored_filestore = filestore_metadata(root / "filestore", [])
@@ -531,12 +533,23 @@ def verify(args: argparse.Namespace) -> None:
         if metadata[key] != expected[key]:
             fail(f"restored filestore {key} differs: expected {expected[key]}, got {metadata[key]}")
     result = {"schema": "usl-odoo-restore-verification/v1", "clone_id": args.clone_id, "snapshot_id": state["snapshot_id"], "verified_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"), "row_counts": actual, "filestore": metadata, "neutralized": True, "status": "passed"}
-    write_json(artifact.parent.parent / "verification.json", result)
+    restore_root = Path(os.environ.get("ODOO_BACKUP_RESTORE", "/restore")) / args.clone_id
+    write_json(restore_root / "verification.json", result)
+    verification_state = Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "verifications"
+    verification_state.mkdir(parents=True, exist_ok=True)
+    write_json(verification_state / f"{state['snapshot_id']}.json", result)
     print(json.dumps(result, sort_keys=True))
 
 
 def finalize(args: argparse.Namespace) -> None:
     snapshot = require_snapshot(args.snapshot)
+    receipt = Path(os.environ.get("ODOO_BACKUP_STATE", "/state")) / "verifications" / f"{snapshot}.json"
+    try:
+        verification = json.loads(receipt.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BackupError("snapshot cannot be finalized without its successful restore verification receipt") from exc
+    if verification.get("snapshot_id") != snapshot or verification.get("status") != "passed" or verification.get("neutralized") is not True:
+        fail("snapshot verification receipt is invalid")
     env = restic_environment()
     current = _restic_json(["snapshots", "--json", snapshot], env)
     if len(current) != 1:
@@ -547,10 +560,10 @@ def finalize(args: argparse.Namespace) -> None:
         return
     if "pending" not in tags:
         fail("snapshot is neither pending nor verified")
-    run(["restic", "tag", "--remove", "pending", "--add", "verified", snapshot], env=env)
     backup_tag = next((tag for tag in tags if tag.startswith("backup-id-")), "")
     if not backup_tag:
         fail("snapshot has no backup-id tag")
+    run(["restic", "tag", "--remove", "pending", "--add", "verified", snapshot], env=env)
     values = _restic_json(["snapshots", "--json", "--tag", backup_tag, "--tag", "verified"], env)
     if len(values) != 1:
         fail("verified snapshot identity does not resolve uniquely")
