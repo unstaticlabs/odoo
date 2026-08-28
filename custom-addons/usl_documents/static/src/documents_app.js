@@ -2972,7 +2972,7 @@ export class DocumentsWorkspaceView extends Component {
             const [tagId] = await this.orm.create("usl.paperless.tag", [
                 {
                     name,
-                    color: "#4f6fad",
+                    color: "#714b67",
                     matching_algorithm: "0",
                     is_insensitive: true,
                 },
@@ -2980,7 +2980,7 @@ export class DocumentsWorkspaceView extends Component {
             const tag = {
                 id: tagId,
                 name,
-                color: "#4f6fad",
+                color: "#714b67",
                 text_color: "#ffffff",
             };
             this.state.tags = [...this.state.tags, tag];

@@ -1333,7 +1333,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
     const newTag = {
         id: 32,
         name: "Board approved",
-        color: "#4f6fad",
+        color: "#714b67",
         text_color: "#ffffff",
     };
     const document = {

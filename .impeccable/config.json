@@ -25,6 +25,54 @@
         ],
         "createdAt": "2026-08-28T03:12:17.847Z",
         "reason": "Odoo QWeb dynamically supplies the authenticated thumbnail URL through t-att-src; the detector cannot resolve runtime template expressions."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#336699",
+        "createdAt": "2026-08-28T16:19:21.446Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#31a354",
+        "createdAt": "2026-08-28T16:19:21.547Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8c6bb1",
+        "createdAt": "2026-08-28T16:19:21.673Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#355f9f",
+        "createdAt": "2026-08-28T16:19:21.781Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#225588",
+        "createdAt": "2026-08-28T16:19:21.883Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#228855",
+        "createdAt": "2026-08-28T16:19:21.985Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#885522",
+        "createdAt": "2026-08-28T16:19:22.083Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#662288",
+        "createdAt": "2026-08-28T16:19:22.183Z",
+        "reason": "Agent: Paperless tag color is external user-controlled fixture data, not an interface design token"
       }
     ]
   }
