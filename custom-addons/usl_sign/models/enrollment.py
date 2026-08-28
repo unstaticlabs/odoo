@@ -630,3 +630,23 @@ class SignCeremony(models.Model):
     def unlink(self):
         msg = "Strong-signature ceremonies are evidence and cannot be deleted."
         raise AccessError(msg)
+
+
+class IrActionsServer(models.Model):
+    _inherit = "ir.actions.server"
+
+    def _usl_product_server_action_requires_irreversible(self):
+        """Keep the read-only “My Signing Identity” menu usable by signers."""
+        self.ensure_one()
+        own_identity = self.env.ref(
+            "usl_sign.my_sign_identity_server_action",
+            raise_if_not_found=False,
+        )
+        if own_identity and self == own_identity:
+            return False
+        inherited = getattr(
+            super(),
+            "_usl_product_server_action_requires_irreversible",
+            None,
+        )
+        return inherited() if inherited else True
