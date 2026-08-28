@@ -554,6 +554,14 @@ esac
 if [[ "$reuse_existing" == 0 ]]; then
   stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
 fi
+if [[ "$profile" == full ]]; then
+  stage "reconcile locked Documents classification" env \
+    DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_RESTORE_PROFILE=full \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev \
+    COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
+    scripts/documents-restore reconcile-locked-classification
+fi
 if [[ "$profile" != no-documents ]]; then
   stage "enable Documents jobs and drain archive queue" documents_qa_finalize
 fi
