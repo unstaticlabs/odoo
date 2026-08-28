@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_document_letter_irreversible" model="ir.ui.view">
+        <field name="name">usl.document.letter.form.irreversible</field>
+        <field name="model">usl.document.letter</field>
+        <field name="inherit_id" ref="usl_document_templates.view_document_letter_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_finalize']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_mark_sent']" position="attributes">
+                <attribute name="groups">usl_access_control.group_irreversible_actions</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="action_cancel"
+                        type="object"
+                        string="Cancel Issued"
+                        help="Record the cancellation of this finalized letter without deleting its evidence."
+                        groups="usl_access_control.group_irreversible_actions"
+                        invisible="state != 'finalized'"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_b2c_accounting_session_irreversible" model="ir.ui.view">
         <field name="name">b2c.accounting.session.form.irreversible</field>
         <field name="model">b2c.accounting.session</field>

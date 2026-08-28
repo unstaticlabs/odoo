@@ -226,3 +226,13 @@ msgstr "Origine"
 #. module: usl_access_control
 msgid "Correlation Id"
 msgstr "Identifiant de corrélation"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.view_document_letter_irreversible
+msgid "Cancel Issued"
+msgstr "Annuler la lettre émise"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.view_document_letter_irreversible
+msgid "Record the cancellation of this finalized letter without deleting its evidence."
+msgstr "Consigner l’annulation de cette lettre finalisée sans supprimer ses éléments de preuve."
