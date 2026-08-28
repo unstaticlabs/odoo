@@ -31,7 +31,7 @@ FEC remain their native machine-oriented formats.
 
 ## Official correspondence
 
-Open **Documents > Official Correspondence**, create a draft, and select its
+Open **Official Documents > Correspondence**, create a draft, and select its
 company before entering the recipient. The printable body accepts paragraphs,
 headings, ordered or bulleted lists and simple tables. Add only the names of
 attachments that must appear in the printed list.
