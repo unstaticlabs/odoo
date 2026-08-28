@@ -69,6 +69,13 @@ updates:
         update-types:
           - "version-update:semver-minor"
           - "version-update:semver-patch"
+    # 0.4.5 requires lxml >= 6.1.1, while the supported Odoo Python 3.12
+    # runtime remains on lxml 5.2.1. Ignore only that incompatible release so
+    # a later compatible or security release can still be proposed.
+    ignore:
+      - dependency-name: "lxml-html-clean"
+        versions:
+          - "0.4.5"
     commit-message:
       prefix: "chore(deps)"
 

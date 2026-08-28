@@ -81,7 +81,7 @@ services:
     command: ["restore-fetch"]
 
   clone-db:
-    image: postgres:16-bookworm@sha256:60f4761b9035e0b8d5218f701a8c3382f641bf12b1604822574cf5be3baeb537
+    image: postgres:18-bookworm@sha256:1c59e2c3c818eaa0f0628f695b36e7c9e362d6b219b36a54a32df645cbd7e1af
     profiles: ["restore"]
     restart: "no"
     environment:
@@ -94,7 +94,10 @@ services:
       timeout: 3s
       retries: 30
     volumes:
-      - clone-db-data:/var/lib/postgresql/data
+      # PostgreSQL 18 stores data below a major-version directory and rejects
+      # the legacy /var/lib/postgresql/data mount. The clone is disposable, so
+      # mount the 18+ volume root rather than introducing an upgrade path.
+      - clone-db-data:/var/lib/postgresql
     networks:
       - clone-internal
 
