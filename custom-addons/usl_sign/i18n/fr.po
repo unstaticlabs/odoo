@@ -1588,8 +1588,14 @@ msgstr "Choisissez un fichier PDF. Les autres formats ne sont pas pris en charge
 
 #. module: usl_sign
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
-msgid "Add the document, signers, and signing method. You will place fields next."
-msgstr "Ajoutez le document, les signataires et la méthode de signature. Vous placerez ensuite les champs."
+msgid "Add the document, signers, and signing method. You can change them before sending."
+msgstr "Ajoutez le document, les signataires et la méthode de signature. Vous pourrez les modifier avant l’envoi."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/signing_method_radio.xml:0
+msgid "Choose"
+msgstr "Choisir"
 
 #. module: usl_sign
 #. odoo-javascript

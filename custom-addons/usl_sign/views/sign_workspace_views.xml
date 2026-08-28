@@ -15,35 +15,40 @@
             <form string="Request signatures" class="usl_sign_start_wizard">
                 <sheet>
                     <field name="company_id" invisible="1"/>
-                    <div class="oe_title usl_sign_start_intro">
-                        <h2 class="mb-1">Request signatures</h2>
-                        <p class="text-muted mb-0">Add the document, signers, and signing method. You will place fields next.</p>
+                    <div class="usl_sign_start_intro">
+                        <p class="text-muted mb-0">Add the document, signers, and signing method. You can change them before sending.</p>
                     </div>
                     <div class="usl_sign_start_source">
                         <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1"/>
                     </div>
 
-                    <div class="usl_sign_start_grid" invisible="signature_source != 'upload'">
-                        <section class="usl_sign_start_block">
-                            <h3>Document</h3>
-                            <label for="document_data" string="PDF to sign" class="o_form_label"/>
-                            <field name="document_data" filename="document_filename" nolabel="1" required="signature_source == 'upload'"/>
+                    <div class="usl_sign_start_grid">
+                        <section class="usl_sign_start_block usl_sign_start_choice">
+                            <h3 invisible="signature_source != 'upload'">Document</h3>
+                            <h3 invisible="signature_source != 'template'">Template</h3>
+                            <div invisible="signature_source != 'upload'">
+                                <label for="document_data" string="PDF to sign" class="o_form_label"/>
+                                <field name="document_data" filename="document_filename" nolabel="1" required="signature_source == 'upload'"/>
+                            </div>
+                            <div invisible="signature_source != 'template'">
+                                <label for="template_id" string="Template" class="o_form_label"/>
+                                <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
+                            </div>
                             <field name="document_filename" invisible="1"/>
                         </section>
-                        <section class="usl_sign_start_block">
+                        <section class="usl_sign_start_block usl_sign_start_choice">
                             <h3>Signers</h3>
-                            <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label"/>
-                            <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
-                                   required="signature_source == 'upload'" options="{'no_quick_create': true}"
-                                   placeholder="Add one or more contacts"/>
+                            <div invisible="signature_source != 'upload'">
+                                <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label"/>
+                                <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
+                                       required="signature_source == 'upload'" options="{'no_quick_create': true}"
+                                       placeholder="Add one or more contacts"/>
+                            </div>
+                            <div class="usl_sign_start_template_next" invisible="signature_source != 'template'">
+                                <p class="text-muted mb-0">Choose a ready template. You will assign each signing role next.</p>
+                            </div>
                         </section>
                     </div>
-
-                    <section class="usl_sign_start_block usl_sign_start_template" invisible="signature_source != 'template'">
-                        <h3>Template</h3>
-                        <label for="template_id" string="Template" class="o_form_label"/>
-                        <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
-                    </section>
 
                     <section class="usl_sign_start_block usl_sign_start_details">
                         <h3>Request details</h3>

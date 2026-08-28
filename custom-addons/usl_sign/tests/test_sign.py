@@ -2364,6 +2364,19 @@ class TestCleanUslSign(TransactionCase):
             self.env.ref("usl_sign.completed_decisions_action", raise_if_not_found=False),
         )
 
+    def test_request_signature_start_view_has_clear_setup_hierarchy(self):
+        start_view = self.env.ref("usl_sign.sign_start_form").arch
+        self.assertIn("usl_sign_start_intro", start_view)
+        self.assertIn("usl_sign_start_source", start_view)
+        self.assertEqual(start_view.count("usl_sign_start_choice"), 2)
+        self.assertIn("usl_sign_start_template_next", start_view)
+        self.assertIn("usl_sign_start_details", start_view)
+        self.assertIn("usl_sign_start_method", start_view)
+        self.assertIn('widget="usl_sign_method_radio"', start_view)
+        self.assertIn("You can change them before sending.", start_view)
+        self.assertIn("Choose a ready template. You will assign each signing role next.", start_view)
+        self.assertNotIn("You will place fields next.", start_view)
+
     def test_document_navigation_and_retrieval_views_match_the_product_boundary(self):
         expected = [
             ("usl_sign.request_signature_menu", "Request Signature", "sign_oca.sign_oca_root_menu"),
