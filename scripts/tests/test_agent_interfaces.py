@@ -44,6 +44,7 @@ class AgentInterfaceTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.github = load_script("github")
         cls.handoff = load_script("handoff")
+        cls.lib = load_script("lib.py")
         cls.verify = load_script("verify")
 
     def test_context_json_is_structured_and_secret_free(self) -> None:
@@ -161,6 +162,81 @@ class AgentInterfaceTests(unittest.TestCase):
     def test_pull_request_base_rejects_unsafe_handoff_value(self) -> None:
         with self.assertRaises(self.github.AgentError):
             self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
+
+    def test_merge_queue_configuration_is_idempotent_and_preserves_rules(self) -> None:
+        configuration = json.loads((ROOT / "agent" / "policy.json").read_text(encoding="utf-8"))["github"][
+            "merge_queue"
+        ]
+        current = {
+            "name": "USL Distribution",
+            "target": "branch",
+            "enforcement": "active",
+            "bypass_actors": [{"actor_id": 5, "actor_type": "Team", "bypass_mode": "always"}],
+            "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}},
+            "rules": [
+                {"type": "deletion"},
+                {"type": "non_fast_forward"},
+                {"type": "pull_request", "parameters": {"allowed_merge_methods": ["merge", "squash"]}},
+                {
+                    "type": "required_status_checks",
+                    "parameters": {
+                        "required_status_checks": [{"context": "Existing protected check"}],
+                        "strict_required_status_checks_policy": True,
+                    },
+                },
+            ],
+        }
+        desired = self.github.configure_merge_queue_ruleset(current, configuration)
+        by_type = {rule["type"]: rule for rule in desired["rules"]}
+        self.assertEqual(["merge"], by_type["pull_request"]["parameters"]["allowed_merge_methods"])
+        checks = by_type["required_status_checks"]["parameters"]
+        self.assertFalse(checks["strict_required_status_checks_policy"])
+        self.assertEqual(
+            ["Existing protected check", "contracts", "Qualify repository and image"],
+            [item["context"] for item in checks["required_status_checks"]],
+        )
+        self.assertEqual("MERGE", by_type["merge_queue"]["parameters"]["merge_method"])
+        self.assertEqual(1, by_type["merge_queue"]["parameters"]["max_entries_to_merge"])
+        self.assertEqual(2, by_type["merge_queue"]["parameters"]["max_entries_to_build"])
+        self.assertEqual(desired, self.github.configure_merge_queue_ruleset(desired, configuration))
+
+    def test_merge_queue_activation_refuses_coding_identity(self) -> None:
+        with (
+            mock.patch.object(self.github, "branch_name", return_value="19-usl"),
+            mock.patch.object(self.github, "dirty_entries", return_value=[]),
+            mock.patch.object(self.github, "identity", return_value={"agent": {"name": "Coding Agent"}}),
+        ):
+            with self.assertRaisesRegex(self.github.AgentError, "Lead Agent"):
+                self.github.verify_merge_queue_prerequisite("unstaticlabs/odoo", "a" * 40)
+
+    def test_merge_candidate_check_detects_a_real_content_conflict(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(("git", "init", "-q"), cwd=root, check=True)
+            subprocess.run(("git", "config", "user.name", "Test"), cwd=root, check=True)
+            subprocess.run(("git", "config", "user.email", "test@example.invalid"), cwd=root, check=True)
+            tracked = root / "tracked.txt"
+            tracked.write_text("base\n", encoding="utf-8")
+            subprocess.run(("git", "add", "tracked.txt"), cwd=root, check=True)
+            subprocess.run(("git", "commit", "-qm", "base"), cwd=root, check=True)
+            subprocess.run(("git", "branch", "-M", "main"), cwd=root, check=True)
+            subprocess.run(("git", "branch", "feature"), cwd=root, check=True)
+            tracked.write_text("main\n", encoding="utf-8")
+            subprocess.run(("git", "commit", "-qam", "main"), cwd=root, check=True)
+            subprocess.run(("git", "switch", "-q", "feature"), cwd=root, check=True)
+            tracked.write_text("feature\n", encoding="utf-8")
+            subprocess.run(("git", "commit", "-qam", "feature"), cwd=root, check=True)
+            with mock.patch.object(self.lib, "ROOT", root):
+                error = self.lib.merge_candidate_error("main", "feature")
+        self.assertIn("conflict-free merge candidate", error or "")
+
+    def test_every_required_workflow_handles_merge_group_candidates(self) -> None:
+        workflows = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+        self.assertEqual(["agent-process.yml", "product-image.yml"], [path.name for path in workflows])
+        for workflow in workflows:
+            with self.subTest(workflow=workflow.name):
+                text = workflow.read_text(encoding="utf-8")
+                self.assertIn("  merge_group:\n    types: [checks_requested]", text)
 
     def test_feature_ready_rejects_not_ready_contract(self) -> None:
         self.assertIn(

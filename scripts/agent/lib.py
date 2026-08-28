@@ -88,6 +88,23 @@ def merge_base(reference: str) -> str:
     return git("merge-base", "HEAD", reference)
 
 
+def merge_candidate_error(base: str, head: str = "HEAD") -> str | None:
+    process = subprocess.run(
+        ["git", "merge-tree", "--write-tree", "--quiet", base, head],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if process.returncode == 0:
+        return None
+    detail = process.stderr.strip() or process.stdout.strip()
+    if process.returncode == 1:
+        return f"Git cannot construct a conflict-free merge candidate for {head} and {base}"
+    raise AgentError(f"git merge-tree failed for {head} and {base}: {detail or 'unknown error'}")
+
+
 def dirty_entries() -> list[str]:
     return [line for line in git("status", "--short").splitlines() if line]
 

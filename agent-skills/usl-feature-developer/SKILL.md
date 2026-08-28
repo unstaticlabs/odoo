@@ -55,7 +55,14 @@ explicit user-provided branch name and established archive conventions.
 This browser prohibition does not apply to Odoo product or Worktree-QA journeys
 required by the UI quality workflow.
 
-If a branch must catch up, fetch first, inspect both histories and local state, and choose a rebase or merge deliberately. Never discard uncommitted work. Re-run relevant validation after resolving conflicts. Do not force-push unless the branch is agent-owned and rewriting it is explicitly acceptable.
+A clean pushed branch does not routinely catch up merely because `19-usl`
+advanced. Fetch the target and use the handoff/readiness check to prove Git can
+construct a conflict-free queue candidate. Catch up deliberately only for a
+real conflict, dependency or stack change, generated-state reconciliation, or
+failed `merge_group` qualification. In those cases inspect both histories and
+local state, choose rebase or merge deliberately, preserve uncommitted work,
+and rerun affected validation. Do not force-push unless the branch is
+agent-owned and rewriting it is explicitly acceptable.
 
 ## Implement and qualify
 
@@ -73,7 +80,10 @@ If a branch must catch up, fetch first, inspect both histories and local state, 
    `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
 2. Run `scripts/agent/github status`, then publish only through `scripts/agent/github push`. Do not use the existing SSH remote or a human credential profile.
 3. Create the v1 contract with `scripts/agent/handoff init`, replace its draft evidence with actual results, and validate it with `scripts/agent/handoff validate PATH --repository`.
-4. Make the worktree clean, push the exact head, and run `scripts/agent/verify feature-ready --handoff PATH`.
+4. Fetch the target, make the worktree clean, push the exact head, and run
+   `scripts/agent/verify feature-ready --handoff PATH`. Readiness proves queue
+   eligibility against the fetched target; it does not require the feature to
+   contain that target tip.
 5. Open or update the ready PR with `scripts/agent/github pr --handoff PATH`.
    The helper uses the validated `feature.base` as the GitHub PR base, including
    for stacked PRs, and renders a review-first GitHub Markdown body from the

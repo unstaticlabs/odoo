@@ -69,13 +69,19 @@ Own integration quality. Treat the Coding Agent's report as evidence, never auth
 
 ## Integrate
 
-1. Require an up-to-date, clean, pushed feature head and a handoff whose readiness is supported by evidence.
-2. Reconcile the feature with the current development branch and rerun final integration checks on the exact candidate.
+1. Require a clean, pushed, queue-eligible feature head and a handoff whose
+   readiness is supported by evidence. The feature need not contain the latest
+   `19-usl` when Git can construct a conflict-free candidate.
+2. Fetch the current development branch and rerun final integration checks on
+   the merge-queue candidate. Dispatch manual catch-up only for a real
+   conflict, dependency or stack change, generated-state reconciliation, or
+   failed `merge_group` qualification.
 3. Because Lead and Coding both use GitHub as `@elio-usl`, never self-approve or
    count Lead review as independent approval. Require Valentin or another
-   authorized independent human to approve, require green checks, then merge
-   through the reviewed PR using the repository's merge-commit policy. Do not
-   bypass GitHub checks or manually deploy production.
+   authorized independent human to approve, require green checks, then enqueue
+   the reviewed PR. Keep queue merge method `merge`, group size one, and only
+   non-failing entries so the resulting commit preserves merge ancestry. Do
+   not bypass GitHub checks or manually deploy production.
 4. Confirm post-merge CI results and hand the merged state to CI for any governed release process.
 5. Only after merge and CI are satisfactory, remove feature-specific QA resources with the exact project confirmation. Never remove foreign, shared, canonical, or persistent resources.
 

@@ -16,7 +16,21 @@
   "github": {
     "repository": "unstaticlabs/odoo",
     "agent_login": "elio-usl",
-    "credential_transport": "isolated-https"
+    "credential_transport": "isolated-https",
+    "merge_queue": {
+      "ruleset": "USL Distribution",
+      "required_status_checks": [
+        "contracts",
+        "Qualify repository and image"
+      ],
+      "check_response_timeout_minutes": 120,
+      "grouping_strategy": "ALLGREEN",
+      "max_entries_to_build": 2,
+      "max_entries_to_merge": 1,
+      "merge_method": "MERGE",
+      "min_entries_to_merge": 1,
+      "min_entries_to_merge_wait_minutes": 0
+    }
   },
   "qa": {
     "compose_project_prefix": "usl-odoo-qa-",
