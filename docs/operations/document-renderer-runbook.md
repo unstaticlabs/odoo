@@ -66,13 +66,11 @@ is permitted only with synthetic fixtures in a disposable local container.
 
 ## Qualification
 
-Run the standalone package tests and fixture checks, then validate the pinned
-image:
+Run the complete suite in the pinned container. Host XeLaTeX is optional
+authoring feedback and is not release evidence:
 
 ```bash
-make -C services/usl-document-renderer test
-make -C services/usl-document-renderer fixtures
-make -C services/usl-document-renderer pdf-check
+make -C services/usl-document-renderer container-test
 ```
 
 The image acceptance run covers qpdf, pdfinfo, embedded Lato fonts, Unicode
