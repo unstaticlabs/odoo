@@ -80,7 +80,10 @@ for item in evidence["documents"]:
             "document_type_id": document_type.id if document_type else False,
         },
     )
-    document.with_context(usl_documents_policy_write=True).write(
+    document.with_context(
+        usl_documents_cache_write=True,
+        usl_documents_policy_write=True,
+    ).write(
         {
             "company_id": company.id,
             "accounting_evidence": classification["accounting_evidence"],
