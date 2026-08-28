@@ -1,0 +1,32 @@
+{
+  "schema": "usl-agent-policy/v1",
+  "development_branch": "19-usl",
+  "workflow_phase": "migration-transition",
+  "branch_prefixes": [
+    "codex/",
+    "feat/",
+    "fix/",
+    "chore/"
+  ],
+  "enforcement": {
+    "branch_worktree": "advisory",
+    "commit_attribution": "advisory",
+    "feature_handoff": "advisory"
+  },
+  "github": {
+    "repository": "unstaticlabs/odoo",
+    "agent_login": "elio-usl",
+    "credential_transport": "isolated-https"
+  },
+  "qa": {
+    "compose_project_prefix": "usl-odoo-qa-",
+    "database": "odoo_dev",
+    "default_profile": "full",
+    "remote_https": false
+  },
+  "production": {
+    "deployment_owner": "ci",
+    "continuous_deployment_enabled": false,
+    "transition_runbook_exception": "The governed one-off production cutover remains a human-authorized operations procedure until admission."
+  }
+}

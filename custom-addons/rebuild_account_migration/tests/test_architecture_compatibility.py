@@ -58,17 +58,6 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
         ):
             self.assertNotIn(model_name, self.env.registry)
 
-    def test_rolled_back_document_views_are_not_in_product_registry(self):
-        """A product update must remove views from the split feature branch."""
-        for xmlid in (
-            "usl_documents.account_payment_form_documents",
-            "usl_documents_accounting.view_account_asset_documents",
-        ):
-            self.assertFalse(
-                self.env.ref(xmlid, raise_if_not_found=False),
-                f"{xmlid} belongs only to codex/fix-seamless-paperless-documents",
-            )
-
     def test_specialized_company_views_do_not_replace_native_settings(self):
         """Action-specific company screens must not win default view lookup."""
         native_form = self.env.ref("base.view_company_form")

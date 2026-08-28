@@ -57,9 +57,10 @@ After reconciliation, verify on each user form under **Access Rights**:
 
 Roger's Technical Administrator role deliberately uses Odoo's technical
 inspection surfaces while backend guards refuse security mutation, module
-maintenance and arbitrary server actions. Do not work around a refusal with a
-temporary native manager group. Escalate the individual protected action to
-Valentin or the sealed administrator instead.
+maintenance and unreviewed automation. Fixed reviewed operational server
+actions remain usable when their native application access permits them. Do not
+work around a refusal with a temporary native manager group. Escalate the
+individual protected action to Valentin or the sealed administrator instead.
 
 Prosper may create or adjust annual-review accounting records, post, reset and
 reconcile in unlocked periods for both Unstatic Labs and USL MEDIA. A lock
@@ -87,6 +88,14 @@ Discovery and refresh are deliberately separate: generation may identify a new
 action but never decides that action's risk. Do not use a wildcard or a
 module-wide default to clear a diff. Trace the action to its final local and
 external sinks and use an explicit stable action key.
+
+For a fixed server action or scheduled job, classify the immutable XML ID rather
+than the generic dispatcher. Normal reports, workflow helpers, notifications
+and bounded maintenance may be `operational`; destructive, security-changing or
+control-plane actions remain `protected`. Creating or modifying automation is
+protected. An action without a qualified XML ID is treated as unreviewed and
+fails closed. Do not grant the Irreversible Actions capability merely to make
+an ordinary job run; qualify the exact action instead.
 
 `action-risk-refresh` seals the reviewed full-policy digest and regenerates the
 small protected runtime policy. Never edit
@@ -135,8 +144,11 @@ normal user to local-password login during an outage.
   the exact protected action.
 - For an Agent, do not add a destructive group. Hand the action and context to
   an authorized human.
-- For an unexpected refusal in an internal Odoo workflow, capture the model,
-  operation and correlation ID, reproduce with offline fixtures, and amend the
-  smallest enforcement point. Never bypass the central helper broadly.
+- For an unexpected refusal in an internal Odoo workflow, capture the action
+  key, model, operation and correlation ID. First decide whether the consequence
+  is an ordinary attributable workflow, truly reversible work, or a protected
+  security/destructive boundary. Reproduce it with offline fixtures and amend
+  the exact action or smallest enforcement point. Never bypass the central
+  helper broadly or downgrade an entire model because one operation is safe.
 - If the refusal concerns electronic invoicing, leave both live guards at zero
   until the approved production activation runbook explicitly says otherwise.

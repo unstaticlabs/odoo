@@ -123,6 +123,12 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             policy.model_operation_guard("project.task", "unlink").action_key,
             "rpc:project.task.unlink",
         )
+        self.assertEqual(
+            policy.server_action_classification(
+                "server_action:project.action_server_share_project",
+            ),
+            "operational",
+        )
         with self.assertRaises(TypeError):
             policy.model_operation_guards["project.task", "unlink"] = None
 
@@ -354,10 +360,82 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
                 "usl.access.probe",
                 "forbidden",
             )
-        server_action = self.env["ir.actions.server"].search([], limit=1)
-        self.assertTrue(server_action)
+        server_action = self.env["ir.actions.server"].with_user(self.valentin).create(
+            {
+                "name": "Unreviewed execution probe",
+                "model_id": self.env["ir.model"]._get_id("project.task"),
+                "state": "code",
+                "code": "action = False",
+            },
+        )
         with self.assertRaisesRegex(AccessError, "AI Agents"):
             server_action.with_user(self.agent).sudo().run()
+
+    def test_reviewed_operational_server_action_does_not_require_capability(self):
+        project = self.env["project.project"].create(
+            {"name": "Reviewed server action", "company_id": self.company.id},
+        )
+        action = self.env.ref("project.action_server_share_project").with_user(
+            self.agent,
+        ).with_context(
+            active_id=project.id,
+            active_ids=project.ids,
+            active_model="project.project",
+        )
+
+        result = action.run()
+
+        self.assertEqual(result["res_model"], "project.share.wizard")
+
+    def test_reviewed_destructive_server_action_stays_protected(self):
+        action = self.env.ref(
+            "privacy_lookup.ir_actions_server_unlink_all",
+        ).with_user(self.roger).sudo()
+
+        with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
+            action.run()
+
+    def test_framework_and_user_cleanup_are_operational(self):
+        attachment = self.env["ir.attachment"].with_user(self.agent).create(
+            {
+                "name": "Disposable draft.txt",
+                "raw": b"disposable",
+                "mimetype": "text/plain",
+            },
+        )
+        attachment.with_user(self.agent).unlink()
+        self.assertFalse(attachment.exists())
+
+        saved_filter = self.env["ir.filters"].with_user(self.agent).create(
+            {
+                "name": "Disposable filter",
+                "model_id": "project.task",
+                "domain": "[]",
+                "context": "{}",
+            },
+        )
+        saved_filter.with_user(self.agent).unlink()
+        self.assertFalse(saved_filter.exists())
+
+    def test_business_record_attachment_evidence_stays_protected(self):
+        project = self.env["project.project"].create(
+            {"name": "Attachment evidence", "company_id": self.company.id},
+        )
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "governed-evidence.txt",
+                "raw": b"governed evidence",
+                "mimetype": "text/plain",
+                "res_model": project._name,
+                "res_id": project.id,
+            },
+        )
+
+        with self.assertRaisesRegex(AccessError, "AI Agents"):
+            attachment.with_user(self.agent).sudo().unlink()
+        self.assertTrue(attachment.exists())
+        attachment.with_user(self.valentin).unlink()
+        self.assertFalse(attachment.exists())
 
     def test_module_lifecycle_and_code_import_are_guarded_at_direct_entry(self):
         module = self.env["ir.module.module"].search([("name", "=", "base")], limit=1)
@@ -392,6 +470,20 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
             pdp.button_register_pdp_participant()
+        service_registration = self.env.ref(
+            "account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server",
+        ).with_user(self.roger).sudo()
+        proxy_user_model = type(self.env["account_edi_proxy_client.user"])
+        with patch.object(
+            proxy_user_model,
+            "_cron_peppol_auto_register_services",
+            autospec=True,
+        ) as provider_call, self.assertRaisesRegex(
+            AccessError,
+            "Irreversible Actions",
+        ):
+            service_registration.run()
+        provider_call.assert_not_called()
 
     def test_official_letter_finalization_is_guarded_before_rendering(self):
         recipient = self.env["res.partner"].create(

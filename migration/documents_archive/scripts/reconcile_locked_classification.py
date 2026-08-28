@@ -90,7 +90,7 @@ for item in evidence["documents"]:
             "review_state": (
                 "needs_attention"
                 if classification["needs_attention"]
-                else "classified"
+                else "reviewed"
             ),
             "last_error": False,
         },

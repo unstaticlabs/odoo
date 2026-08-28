@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib import (  # noqa: E402
+    AgentError,
+    HANDOFF_SCHEMA_PATH,
+    ROOT,
+    branch_name,
+    changed_addons,
+    changed_paths,
+    head_sha,
+    load_json,
+    merge_base,
+    policy,
+    qa_status_payload,
+    resolve_ref,
+    validate_schema,
+    write_json,
+)
+
+
+START_MARKER = "<!-- usl-feature-handoff:start -->"
+END_MARKER = "<!-- usl-feature-handoff:end -->"
+
+
+def identity_login() -> str | None:
+    path = ROOT / ".agent" / "identity.json"
+    if not path.is_file():
+        return None
+    value = load_json(path)
+    login = value.get("agent", {}).get("login")
+    return login if isinstance(login, str) and login else None
+
+
+def default_output(identifier: str) -> Path:
+    return ROOT / "artifacts" / "agent" / "handoffs" / f"{identifier}.json"
+
+
+def evidence_summary(evidence: list[str], notes: str) -> str:
+    sentences = [item.strip().rstrip(".") for item in [*evidence, notes] if item.strip()]
+    if not sentences:
+        return "No evidence recorded."
+    return ". ".join(sentences) + "."
+
+
+def initial_payload(identifier: str, goal: str, acceptance: list[str], base: str) -> dict[str, Any]:
+    paths = changed_paths(base)
+    qa = qa_status_payload()
+    return {
+        "schema": "usl-feature-handoff/v1",
+        "feature": {
+            "identifier": identifier,
+            "branch": branch_name(),
+            "base": base,
+            "base_sha": resolve_ref(base),
+            "head_sha": head_sha(),
+            "worktree": str(ROOT.resolve()),
+            "developer_github_login": identity_login(),
+            "pull_request": None,
+            "product_task": None,
+        },
+        "goal": {
+            "summary": goal,
+            "acceptance": acceptance or ["Complete the stated feature goal with recorded evidence."],
+        },
+        "changes": {
+            "modules": changed_addons(paths),
+            "paths": paths,
+            "user_facing": False,
+            "database_schema_changed": False,
+            "configuration_changed": False,
+            "dependencies_changed": False,
+        },
+        "decisions": [],
+        "migration": {
+            "required": False,
+            "modules_to_upgrade": [],
+            "forward": [],
+            "recovery": [],
+            "data_loss_risk": "none",
+            "irreversible": False,
+        },
+        "verification": {"automated": [], "manual": []},
+        "qa": {
+            "required": False,
+            "profile": qa["profile"],
+            "status": "not-required",
+            "url": None,
+            "environment": qa["compose_project"],
+            "authentication": qa["authentication"]["login_command"],
+        },
+        "resources": {
+            "preserved": [],
+            "removed": [],
+            "cleanup": [qa["cleanup"]["command"]],
+        },
+        "integration": {"concerns": [], "overlaps": [], "documentation": []},
+        "known_issues": [],
+        "unverified_assumptions": [],
+        "release": {"special_steps": [], "rollback_notes": [], "post_merge_checks": []},
+        "readiness": {
+            "status": "NOT READY TO MERGE",
+            "rationale": "Verification and Lead Developer handoff are not complete.",
+            "blockers": ["Complete verification and readiness review."],
+        },
+    }
+
+
+def semantic_errors(value: dict[str, Any], check_repository: bool) -> list[str]:
+    errors = validate_schema(value, HANDOFF_SCHEMA_PATH)
+    serialized = json.dumps(value, sort_keys=True).lower()
+    if "todo:" in serialized or "<replace" in serialized:
+        errors.append("$: unresolved placeholder text remains")
+    if errors:
+        return errors
+    readiness = value["readiness"]
+    results = [
+        item["result"]
+        for kind in ("automated", "manual")
+        for item in value["verification"][kind]
+    ]
+    if readiness["status"].startswith("READY TO MERGE"):
+        if readiness["blockers"]:
+            errors.append("$.readiness.blockers: ready handoffs cannot have blockers")
+        if any(result == "failed" for result in results):
+            errors.append("$.verification: ready handoffs cannot contain failed evidence")
+        if readiness["status"] == "READY TO MERGE" and any(
+            result in {"blocked", "not-run"} for result in results
+        ):
+            errors.append("$.verification: unqualified readiness cannot contain blocked or not-run evidence")
+        if value["qa"]["required"] and value["qa"]["status"] != "ready":
+            errors.append("$.qa.status: required QA must be ready")
+        if not value["feature"]["developer_github_login"]:
+            errors.append("$.feature.developer_github_login: ready handoffs require the dedicated agent login")
+        if not value["verification"]["automated"]:
+            errors.append("$.verification.automated: ready handoffs require at least one executed automated check")
+        if not value["release"]["rollback_notes"]:
+            errors.append("$.release.rollback_notes: ready handoffs require explicit rollback or recovery notes")
+        if not value["release"]["post_merge_checks"]:
+            errors.append("$.release.post_merge_checks: ready handoffs require explicit post-merge checks")
+        if readiness["status"] == "READY TO MERGE" and (
+            value["known_issues"] or value["unverified_assumptions"]
+        ):
+            errors.append(
+                "$.readiness.status: use documented follow-up or NOT READY while known issues or unverified assumptions remain"
+            )
+        if readiness["status"] == "READY TO MERGE WITH DOCUMENTED FOLLOW-UP" and not (
+            value["known_issues"] or value["unverified_assumptions"]
+        ):
+            errors.append(
+                "$.readiness.status: documented follow-up requires a known issue or unverified assumption"
+            )
+        if value["migration"]["required"]:
+            if not value["migration"]["forward"]:
+                errors.append("$.migration.forward: required migration needs a forward procedure")
+            if not value["migration"]["recovery"]:
+                errors.append("$.migration.recovery: required migration needs a recovery procedure")
+    if value["migration"]["irreversible"] and not value["migration"]["recovery"]:
+        errors.append("$.migration.recovery: irreversible changes require explicit recovery notes")
+    if check_repository:
+        feature = value["feature"]
+        expected = {
+            "branch": branch_name(),
+            "head_sha": head_sha(),
+            "worktree": str(ROOT.resolve()),
+        }
+        for key, actual in expected.items():
+            if feature[key] != actual:
+                errors.append(f"$.feature.{key}: recorded {feature[key]!r}, repository is {actual!r}")
+        try:
+            current_base = resolve_ref(feature["base"])
+            if not resolve_ref(feature["base_sha"]):
+                errors.append("$.feature.base_sha: cannot resolve recorded base SHA")
+            if not merge_base(feature["base"]):
+                errors.append("$.feature.base: no merge base with current branch")
+            if feature["base_sha"] != current_base:
+                errors.append(
+                    f"$.feature.base_sha: recorded {feature['base_sha']}; current base tip is {current_base}"
+                )
+            if feature["base_sha"] != merge_base(feature["base"]):
+                errors.append(
+                    f"$.feature.base_sha: branch is not caught up to recorded base; "
+                    f"merge base is {merge_base(feature['base'])}"
+                )
+        except AgentError as error:
+            errors.append(f"$.feature.base: {error}")
+    return errors
+
+
+def load_and_validate(path: Path, check_repository: bool) -> tuple[dict[str, Any], list[str]]:
+    value = load_json(path)
+    if not isinstance(value, dict):
+        raise AgentError("Handoff root must be a JSON object")
+    return value, semantic_errors(value, check_repository)
+
+
+def markdown(value: Any) -> str:
+    if value is None or value == "":
+        return "—"
+    return str(value).replace("|", "\\|").replace("\r\n", "<br>").replace("\n", "<br>")
+
+
+def bullets(values: list[str]) -> list[str]:
+    return [f"- {markdown(value)}" for value in values]
+
+
+def yes_no(value: bool) -> str:
+    return "Yes" if value else "No"
+
+
+def result_label(result: str) -> str:
+    return {
+        "passed": "✅ Passed",
+        "failed": "❌ Failed",
+        "blocked": "⚠️ Blocked",
+        "not-run": "⏭️ Not run",
+    }[result]
+
+
+def append_named_list(lines: list[str], heading: str, values: list[str]) -> None:
+    if values:
+        lines.extend([f"### {heading}", "", *bullets(values), ""])
+
+
+def render(value: dict[str, Any]) -> str:
+    feature = value["feature"]
+    readiness = value["readiness"]
+    changes = value["changes"]
+    migration = value["migration"]
+    qa = value["qa"]
+    status_style = {
+        "READY TO MERGE": ("TIP", "Ready for Lead Developer review"),
+        "READY TO MERGE WITH DOCUMENTED FOLLOW-UP": ("WARNING", "Ready with documented follow-up"),
+        "NOT READY TO MERGE": ("CAUTION", "Not ready to merge"),
+    }
+    alert, status_label = status_style[readiness["status"]]
+    modules = ", ".join(f"`{module}`" for module in changes["modules"]) or "No Odoo modules"
+    change_flags = []
+    if changes["database_schema_changed"]:
+        change_flags.append("database schema")
+    if changes["configuration_changed"]:
+        change_flags.append("configuration")
+    if changes["dependencies_changed"]:
+        change_flags.append("dependencies")
+    flags = ", ".join(change_flags) if change_flags else "no schema, configuration, or dependency changes"
+    lines = [
+        "## Overview",
+        "",
+        str(value["goal"]["summary"]),
+        "",
+        f"> [!{alert}]",
+        f"> **{status_label}.** {str(readiness['rationale']).replace(chr(10), ' ')}",
+        "",
+        f"- **Source:** `{feature['branch']}` at `{feature['head_sha'][:12]}`",
+        f"- **Scope:** {len(changes['paths'])} changed paths; {modules}",
+        f"- **Change risk:** {flags}; data-loss risk **{migration['data_loss_risk']}**",
+        f"- **QA:** {'required' if qa['required'] else 'not required'}; status **{qa['status']}**",
+        "",
+        "## Acceptance criteria",
+        "",
+        *bullets(value["goal"]["acceptance"]),
+        "",
+        "## What changed",
+        "",
+        f"- **Modules:** {modules}",
+        f"- **User-facing behavior:** {yes_no(changes['user_facing'])}",
+        f"- **Database schema:** {'Changed' if changes['database_schema_changed'] else 'Unchanged'}",
+        f"- **Configuration:** {'Changed' if changes['configuration_changed'] else 'Unchanged'}",
+        f"- **Dependencies:** {'Changed' if changes['dependencies_changed'] else 'Unchanged'}",
+        "",
+    ]
+    if value["decisions"]:
+        lines.extend(["## Key decisions", ""])
+        for decision in value["decisions"]:
+            lines.extend(
+                [
+                    f"### {markdown(decision['decision'])}",
+                    "",
+                    markdown(decision["rationale"]),
+                    "",
+                    "<details>",
+                    "<summary>Alternatives considered</summary>",
+                    "",
+                    *bullets(decision["alternatives"]),
+                    "",
+                    "</details>",
+                    "",
+                ]
+            )
+
+    lines.extend(
+        [
+            "## Validation",
+            "",
+            "| Result | Check | Evidence |",
+            "| --- | --- | --- |",
+        ]
+    )
+    automated = value["verification"]["automated"]
+    if automated:
+        for check in automated:
+            lines.append(
+                f"| {result_label(check['result'])} | `{markdown(check['command'])}` | {markdown(check['notes'])} |"
+            )
+    else:
+        lines.append("| ⏭️ Not run | — | No automated evidence recorded. |")
+    manual = value["verification"]["manual"]
+    if manual:
+        lines.extend(
+            [
+                "",
+                "### Manual and product QA",
+                "",
+                "| Result | Journey | Evidence |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for journey in manual:
+            notes = evidence_summary(journey["evidence"], journey["notes"])
+            lines.append(
+                f"| {result_label(journey['result'])} | {markdown(journey['journey'])} | {markdown(notes)} |"
+            )
+    lines.append("")
+
+    lines.extend(["## Migration and QA", ""])
+    if not migration["required"] and not qa["required"]:
+        lines.extend(["No database migration or feature QA environment is required for this change.", ""])
+    else:
+        lines.extend(
+            [
+                "| Area | Qualification |",
+                "| --- | --- |",
+                f"| Migration | {'Required' if migration['required'] else 'Not required'} |",
+                f"| Upgrade modules | {markdown(', '.join(migration['modules_to_upgrade']) or 'None')} |",
+                f"| Data-loss / irreversibility | **{migration['data_loss_risk']}** / {yes_no(migration['irreversible'])} |",
+                f"| QA | {'Required' if qa['required'] else 'Not required'}; **{qa['status']}** |",
+                f"| QA access | {markdown(qa['url'])}; {markdown(qa['authentication'])} |",
+                "",
+            ]
+        )
+    append_named_list(lines, "Forward procedure", migration["forward"])
+    append_named_list(lines, "Recovery procedure", migration["recovery"])
+
+    lines.extend(["## Merge and release", ""])
+    append_named_list(lines, "Integration concerns", value["integration"]["concerns"])
+    append_named_list(lines, "Concurrent-work overlaps", value["integration"]["overlaps"])
+    append_named_list(lines, "Special steps", value["release"]["special_steps"])
+    append_named_list(lines, "Rollback", value["release"]["rollback_notes"])
+    append_named_list(lines, "Post-merge checks", value["release"]["post_merge_checks"])
+
+    limitations = bool(
+        value["known_issues"] or value["unverified_assumptions"] or readiness["blockers"]
+    )
+    if limitations:
+        lines.extend(["## Known limitations", ""])
+        append_named_list(lines, "Known issues", value["known_issues"])
+        append_named_list(lines, "Unverified assumptions", value["unverified_assumptions"])
+        append_named_list(lines, "Blockers", readiness["blockers"])
+
+    if value["resources"]["preserved"] or value["resources"]["cleanup"]:
+        lines.extend(["## Resource ownership", ""])
+        append_named_list(lines, "Preserved for review", value["resources"]["preserved"])
+        append_named_list(lines, "Lead Developer cleanup", value["resources"]["cleanup"])
+
+    lines.extend(
+        [
+            "## Lead Developer checklist",
+            "",
+            "- [ ] Review the actual diff against the latest target branch.",
+            "- [ ] Independently qualify applicable migration, accounting, security, and UI risks.",
+            "- [ ] Reconcile overlapping work and validate the exact integration candidate.",
+            "- [ ] Confirm post-merge CI ownership; do not deploy production manually.",
+            "",
+            "<details>",
+            "<summary>Source metadata and changed paths</summary>",
+            "",
+            f"- **Feature:** `{feature['identifier']}`",
+            f"- **Developer:** `@{markdown(feature['developer_github_login'])}`",
+            f"- **Branch:** `{feature['branch']}`",
+            f"- **Base:** `{feature['base']}` at `{feature['base_sha']}`",
+            f"- **Head:** `{feature['head_sha']}`",
+            f"- **Product task:** {markdown(feature['product_task'])}",
+            "",
+            *bullets([f"`{path}`" for path in changes["paths"]]),
+            "",
+            "</details>",
+            "",
+            "<details>",
+            "<summary>Machine-readable handoff contract (v1)</summary>",
+            "",
+            "Canonical contract used by validation and future orchestration.",
+            "",
+            START_MARKER,
+            "```json",
+            json.dumps(value, indent=2, sort_keys=False),
+            "```",
+            END_MARKER,
+            "",
+            "</details>",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def extract_body(body: str) -> dict[str, Any]:
+    if START_MARKER not in body or END_MARKER not in body:
+        raise AgentError("PR body does not contain USL handoff markers")
+    marked = body.split(START_MARKER, 1)[1].split(END_MARKER, 1)[0]
+    match = re.search(r"```json\s*(\{.*\})\s*```", marked, re.DOTALL)
+    if not match:
+        raise AgentError("USL handoff markers do not contain a JSON code block")
+    try:
+        value = json.loads(match.group(1))
+    except json.JSONDecodeError as error:
+        raise AgentError(f"Invalid JSON in PR handoff: {error}") from error
+    if not isinstance(value, dict):
+        raise AgentError("PR handoff root must be an object")
+    return value
+
+
+def print_errors(errors: list[str]) -> None:
+    for error in errors:
+        print(f"- {error}", file=sys.stderr)
+
+
+def command_init(arguments: argparse.Namespace) -> int:
+    base = arguments.base or f"origin/{policy()['development_branch']}"
+    output = Path(arguments.output) if arguments.output else default_output(arguments.identifier)
+    if not output.is_absolute():
+        output = ROOT / output
+    if output.exists() and not arguments.force:
+        raise AgentError(f"Refusing to overwrite existing handoff: {output}")
+    value = initial_payload(arguments.identifier, arguments.goal, arguments.acceptance, base)
+    write_json(output, value)
+    print(output)
+    return 0
+
+
+def command_validate(arguments: argparse.Namespace) -> int:
+    value, errors = load_and_validate(Path(arguments.path), arguments.repository)
+    if errors:
+        print_errors(errors)
+        return 1
+    print(f"Valid {value['schema']}: {arguments.path}")
+    return 0
+
+
+def command_render(arguments: argparse.Namespace) -> int:
+    value, errors = load_and_validate(Path(arguments.path), arguments.repository)
+    if errors:
+        print_errors(errors)
+        return 1
+    output = render(value)
+    if arguments.output:
+        path = Path(arguments.output)
+        if not path.is_absolute():
+            path = ROOT / path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(output, encoding="utf-8")
+        print(path)
+    else:
+        print(output, end="")
+    return 0
+
+
+def command_validate_pr_event(arguments: argparse.Namespace) -> int:
+    event = load_json(Path(arguments.event))
+    pull_request = event.get("pull_request", {})
+    try:
+        value = extract_body(pull_request.get("body") or "")
+        errors = semantic_errors(value, check_repository=False)
+    except AgentError as error:
+        value = {}
+        errors = [str(error)]
+    feature = value.get("feature", {})
+    event_base = pull_request.get("base", {}).get("ref")
+    event_head = pull_request.get("head", {}).get("sha")
+    if event_base and feature.get("base") not in {event_base, f"origin/{event_base}"}:
+        errors.append(f"$.feature.base: PR base is {event_base!r}")
+    if event_head and feature.get("head_sha") != event_head:
+        errors.append(f"$.feature.head_sha: PR head is {event_head!r}")
+    if not errors:
+        print("PR contains a valid USL feature handoff.")
+        return 0
+    print_errors(errors)
+    mode = policy()["enforcement"]["feature_handoff"]
+    if arguments.strict or mode == "required":
+        return 1
+    print(f"Advisory only during {policy()['workflow_phase']}; CI remains non-blocking.")
+    return 0
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(description="Generate and validate USL feature handoffs.")
+    commands = result.add_subparsers(dest="command", required=True)
+    init = commands.add_parser("init")
+    init.add_argument("--identifier", required=True)
+    init.add_argument("--goal", required=True)
+    init.add_argument("--acceptance", action="append", default=[])
+    init.add_argument("--base")
+    init.add_argument("--output")
+    init.add_argument("--force", action="store_true")
+    init.set_defaults(handler=command_init)
+    validate = commands.add_parser("validate")
+    validate.add_argument("path")
+    validate.add_argument("--repository", action="store_true")
+    validate.set_defaults(handler=command_validate)
+    render_command = commands.add_parser("render")
+    render_command.add_argument("path")
+    render_command.add_argument("--repository", action="store_true")
+    render_command.add_argument("--output")
+    render_command.set_defaults(handler=command_render)
+    pr = commands.add_parser("validate-pr-event")
+    pr.add_argument("event")
+    pr.add_argument("--strict", action="store_true")
+    pr.set_defaults(handler=command_validate_pr_event)
+    return result
+
+
+def main() -> int:
+    arguments = parser().parse_args()
+    try:
+        return arguments.handler(arguments)
+    except AgentError as error:
+        print(f"agent handoff: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

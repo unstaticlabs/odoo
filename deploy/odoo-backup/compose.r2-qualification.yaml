@@ -1,0 +1,10 @@
+# Explicit R2 qualification overlay. It keeps the production Restic transport
+# and substitutes only a locally built Odoo image so a synthetic database can
+# exercise native neutralization before the release image has been published.
+# Production must never load this file.
+services:
+  neutralize:
+    image: ${ODOO_QUALIFICATION_SOURCE_IMAGE:-usl-odoo-backup-qualification-odoo:local}
+  verify:
+    environment:
+      USL_NEUTRALIZER_IMAGE_DIGEST: ${USL_SOURCE_IMAGE_DIGEST:-}

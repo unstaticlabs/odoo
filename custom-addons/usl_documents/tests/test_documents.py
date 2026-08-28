@@ -1340,7 +1340,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual(accounting_document.confidentiality, "accounting")
         self.assertTrue(accounting_document.accounting_evidence)
         self.assertEqual(accounting_document.access_scope, "linked_record")
-        self.assertEqual(accounting_document.review_state, "needs_attention")
+        self.assertEqual(accounting_document.review_state, "classified")
         self.assertFalse(accounting_document.last_error)
 
         hr_document = self._document(
@@ -1359,7 +1359,7 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(hr_document.confidentiality, "hr")
         self.assertTrue(hr_document.accounting_evidence)
-        self.assertEqual(hr_document.review_state, "needs_attention")
+        self.assertEqual(hr_document.review_state, "classified")
         self.assertFalse(hr_document.last_error)
 
     def test_portal_submitter_never_receives_documents_access(self):
@@ -1647,6 +1647,33 @@ class TestDocuments(TransactionCase):
         self.assertEqual(ready.review_state, "reviewed")
         self.assertEqual(detail["review_state"], "reviewed")
         self.assertFalse(detail["can_mark_reviewed"])
+
+    def test_authoritative_links_do_not_duplicate_business_review(self):
+        tag = self._tag(14101, "Accounting")
+        authoritative = self._document(
+            14102,
+            review_state="needs_attention",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        authoritative.link_to_record(
+            "res.partner",
+            self.partner_a.id,
+            archive_mode="mandatory",
+            policy_role="evidence",
+            attachment_origin="direct_record",
+            policy_reason="authoritative_test_evidence",
+        )
+        manual = self._document(
+            14103,
+            review_state="needs_attention",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        manual.link_to_record("res.partner", self.partner_a.id)
+
+        self.env["usl.document"].reconcile_linked_classification(limit=0)
+
+        self.assertEqual(authoritative.review_state, "reviewed")
+        self.assertEqual(manual.review_state, "classified")
 
     def test_company_change_cannot_conflict_with_an_active_business_link(self):
         self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
@@ -2589,6 +2616,20 @@ class TestDocuments(TransactionCase):
                 shortcuts[0]["domain"],
                 [["is_starred", "=", True]],
             )
+
+    def test_ready_for_review_shortcut_targets_classified_documents(self):
+        shortcut = self.env.ref("usl_documents.quick_filter_needs_review")
+
+        self.assertEqual(shortcut.name, "Ready for review")
+        self.assertEqual(
+            shortcut.with_context(lang="fr_FR").name,
+            "Prêt pour vérification",
+        )
+        self.assertEqual(shortcut.icon, "fa-check-square-o")
+        self.assertEqual(
+            shortcut.workspace_values()["domain"],
+            [("review_state", "=", "classified")],
+        )
 
     def test_native_shortcut_capture_preserves_domain_grouping_order_and_permissions(self):
         view = self.env.ref("usl_documents.smart_view_accounting")

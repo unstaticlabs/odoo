@@ -54,10 +54,10 @@
         <field name="sort">[]</field>
     </record>
     <record id="ir_filter_quick_needs_review" model="ir.filters">
-        <field name="name">Needs review</field>
+        <field name="name">Ready for review</field>
         <field name="model_id">usl.document</field>
         <field name="action_id" ref="action_documents_workspace"/>
-        <field name="domain">[('review_state', '=', 'needs_attention')]</field>
+        <field name="domain">[('review_state', '=', 'classified')]</field>
         <field name="context">{}</field>
         <field name="sort">[]</field>
     </record>
@@ -125,9 +125,9 @@
         <field name="sequence">20</field>
     </record>
     <record id="quick_filter_needs_review" model="usl.document.quick.filter">
-        <field name="name">Needs review</field>
+        <field name="name">Ready for review</field>
         <field name="key">needs_review</field>
-        <field name="icon">fa-exclamation-circle</field>
+        <field name="icon">fa-check-square-o</field>
         <field name="ir_filter_id" ref="ir_filter_quick_needs_review"/>
         <field name="sequence">30</field>
     </record>
@@ -192,7 +192,7 @@
         <field name="system_rule">library</field>
     </record>
     <record id="smart_view_needs_review" model="usl.document.smart.view">
-        <field name="name">Needs review</field>
+        <field name="name">Needs attention</field>
         <field name="key">attention</field>
         <field name="icon">fa-exclamation-circle</field>
         <field name="sequence">130</field>

@@ -48,7 +48,11 @@
     }
 
     .o_usl_documents_toolbar {
-        z-index: 2;
+        // Keep toolbar popovers above card controls in the following flex item.
+        // The card star also uses z-index: 2, so an equal toolbar layer lets the
+        // later-painted card win even when the tag menu itself has a high layer.
+        position: relative;
+        z-index: 3;
     }
 
     .o_usl_documents_toolbar_row {

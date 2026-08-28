@@ -138,10 +138,12 @@ exact pinned commits are already present.
 
 ### Dependency updates
 
-Dependabot monitors the maintained Python dependency set, Dockerfile base
-images and Compose service images from `.github/dependabot.yml`. Compatible
-Python updates are grouped monthly; container updates are checked weekly.
-Python major versions remain governed by the pinned upstream Odoo baseline.
+Dependabot monitors the maintained Python and Node tooling dependency sets,
+pinned GitHub Actions, the Distribution and Paperless/backup Dockerfiles, and
+the root and production-backup Compose service images from
+`.github/dependabot.yml`. Compatible language-tooling updates are grouped
+monthly; workflow and container updates are checked weekly. Python major
+versions remain governed by the pinned upstream Odoo baseline.
 
 Dependabot PRs are qualification candidates, never automatic upgrades. Rebuild
 the image and run the checks appropriate to the affected runtime; Paperless,
@@ -149,6 +151,13 @@ Pocket ID, PostgreSQL and other stateful-service changes require the clean
 install, reconstructed `odoo_dev` and pre-production release gates before
 merge. Odoo upstream commits and pinned OCA source revisions are updated by
 their documented replay/synchronization workflow, not by Dependabot.
+
+Dependabot is not a Coding Agent, so its authenticated bot PRs are exempt from
+Coding-Agent branch, attribution and structured-handoff metadata. They still
+run repository contracts and the full Distribution image qualification; this
+exception is keyed to GitHub's `dependabot[bot]` actor, never to a spoofable
+branch name. Impeccable package candidates must refresh and review the generated
+provider assets in the same dependency PR.
 
 Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
 

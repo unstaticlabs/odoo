@@ -20,7 +20,7 @@ The workspace is deliberately about documents, not integration health:
 
 An active upload remains visible while it is pending or processing. Success
 opens the archived document and gives a short confirmation. Duplicate, failed,
-or ambiguous work stays actionable in **Needs review** or diagnostics rather
+or ambiguous work stays actionable in **Needs attention** or diagnostics rather
 than being described as archived. Failed uploads survive a reload and offer
 **Choose file to retry** or **Dismiss**; retrying the same content and business
 classification remains composite-hash idempotent.
@@ -72,7 +72,8 @@ employee remain available through the native custom-filter menu without
 crowding the first suggestions. Chosen suggestions become normal removable
 facets. The dropdown provides the familiar **Filters**, **Group By**, and
 **Favorites** columns, including date ranges, custom domains, personal saved
-searches, and practical defaults such as My uploads, Needs review, Linked/Not
+searches, and practical defaults such as My uploads, Ready for review,
+Needs attention, Linked/Not
 linked, Accounting, HR, Company, Correspondent, Type, Employee, Privacy, and
 month.
 
@@ -139,7 +140,7 @@ Documents managers also receive **Inbox / To classify** and **All archived**;
 ordinary users do not receive these broad operational views. **Archive
 search** is available to Documents users but deliberately opens empty: the
 archive is queried only after the user supplies text or a facet. **Trash**
-remains separate. The former top-level **Needs review** and **Recently added**
+remains separate. The former top-level **Needs attention** and **Recently added**
 views are retained only as inactive compatibility identities so saved URLs and
 API clients do not break.
 
@@ -187,12 +188,15 @@ already occur on at least two documents. Inbox tags are excluded. This setup is
 idempotent, preserves every manually configured expression, and is rerun after
 archive reconstruction as well as during normal synchronization.
 
-Odoo separately reconciles the review state of an archive root. It may promote
-**Needs review** to **Classified** (never to **Reviewed**) only when the root is
-available, has a company, synchronized permissions, an existing authoritative
-business relationship, consistent link companies, and a document type or tag.
-Unlinked external intake, policy conflicts, missing records, and permission
-errors remain visible for review. Classification is reconciled immediately
+Odoo separately reconciles the review state of an archive root. It promotes
+**Needs attention** to **Reviewed** when a mandatory evidence relationship or a
+direct-record/final-output relationship proves that the owning Odoo workflow
+already reviewed the business context. A complete but manually created
+Documents relationship moves only to **Ready for review**. Checksum-locked
+migration classifications also finish as **Reviewed** so historical evidence
+does not create a duplicate approval backlog. Unlinked external intake, policy
+conflicts, missing records, and permission errors remain visible for review.
+Classification is reconciled immediately
 after archive context or a manual business relationship is applied, after a
 completed Paperless synchronization, and at the end of the Documents
 migration. A twice-daily unbounded recovery sweep catches interrupted or
@@ -284,7 +288,7 @@ later creates a new version rather than a second root.
 The attachment card shows whether the request is queued, being sent, indexed,
 or needs review. After completion, **Open in Documents** opens that exact
 archive identity in the Documents app. The record smart button shows one native
-state at a time—Documents, Archiving, or Needs review—rather than stacking
+state at a time—Documents, Archiving, or Needs attention—rather than stacking
 several counters in a broken stat-button layout. If archive schedulers are
 paused, **Keep in Documents** fails before queuing and explicitly confirms that
 the original is safe on the record.
@@ -299,7 +303,7 @@ Context is additive. Projects receive **Projects** and one stable
 expenses use the canonical **Expenses** taxonomy, and accounting, HR, payroll,
 tax and closing evidence receive their relevant business type. Existing manual
 tags are never silently erased. A conflicting non-empty classification enters
-**Needs review**, except when a trusted, more-specific business policy
+**Needs attention**, except when a trusted, more-specific business policy
 explicitly replaces a generic type. Access can be narrowed without creating a
 false conflict; a request to relax existing confidentiality still requires
 review.

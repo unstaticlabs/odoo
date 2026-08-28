@@ -20,6 +20,15 @@ PNG = base64.b64decode(
 @tagged("post_install", "-at_install", "usl_accounting_documents")
 class TestInvoiceDocument(AccountTestInvoicingCommon):
     @classmethod
+    def get_default_groups(cls):
+        groups = super().get_default_groups()
+        irreversible_actions = cls.env.ref(
+            "usl_access_control.group_irreversible_actions",
+            raise_if_not_found=False,
+        )
+        return groups | irreversible_actions if irreversible_actions else groups
+
+    @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
@@ -46,9 +55,9 @@ class TestInvoiceDocument(AccountTestInvoicingCommon):
                 "city": "Lyon",
                 "country_id": cls.env.ref("base.fr").id,
                 "lang": "fr_FR",
-                "vat": "FR23341987654",
+                "vat": "FR23334175221",
                 "is_company": True,
-                "company_registry": "34198765400012",
+                "company_registry": "334175221",
             }
         )
         cls.template = cls.env.ref("usl_document_templates.template_invoice_v1")
@@ -95,7 +104,7 @@ class TestInvoiceDocument(AccountTestInvoicingCommon):
         self.assertEqual(len(payload["lines"]), 100)
         self.assertEqual(payload["lines"][0]["discount"], "10,00 %")
         self.assertIn(self.tax_sale_a.name, payload["lines"][0]["taxes"])
-        self.assertIn("SIREN : 341987654", payload["customer"]["address_lines"])
+        self.assertIn("SIREN : 334175221", payload["customer"]["address_lines"])
         self.assertTrue(any("Nature" in item for item in payload["metadata"]))
         self.assertTrue(any("40" in mention for mention in payload["legal_mentions"]))
         self.assertFalse(

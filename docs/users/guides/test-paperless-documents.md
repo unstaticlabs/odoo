@@ -68,7 +68,8 @@ synchronization and checksum messages are absent.
 
 Open the search dropdown. It must be Odoo's normal three-column menu:
 
-- **Filters** includes My uploads, Needs review, Linked/Not linked,
+- **Filters** includes My uploads, Ready for review, Needs attention,
+  Linked/Not linked,
   Accounting, HR, availability, date ranges, and Custom Filter;
 - **Group By** includes Company, Correspondent, Type, Employee, Privacy,
   Review status, and document/archive month;
@@ -298,7 +299,7 @@ View; leaving it disabled keeps the shared navigation view in Odoo only.
 
 The **One-click filters** on the Odoo Smart View are Odoo interaction
 shortcuts, not Paperless Saved View fields. A manager can choose useful
-shortcuts such as Last 30 days, Not linked, Needs review, or Group by employee.
+shortcuts such as Last 30 days, Not linked, Ready for review, or Group by employee.
 They appear immediately before the top tag chips. Archive-native tag/type/
 correspondent criteria remain synchronized with the Paperless Saved View by
 stable ID; Odoo-only company, confidentiality, links, and group shortcuts are
@@ -339,7 +340,7 @@ second custom sort selector.
 
 1. Upload a harmless file directly in Paperless.
 2. Wait for processing and Odoo synchronization (normally within five minutes).
-3. Find it in **Needs review**, classify it, and link it.
+3. Find it with **Needs attention**, classify it, and link it.
 4. In Odoo, use **More > Move to Trash**.
 5. Open Trash and confirm the detail shows who moved it and when.
 6. Open its linked Odoo record, then Restore it.

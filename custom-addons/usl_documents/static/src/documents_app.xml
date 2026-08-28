@@ -534,7 +534,9 @@
                                         <i class="fa fa-file-text-o"/>
                                     </div>
                                     <span t-if="document.review_state === 'needs_attention'"
-                                          class="badge text-bg-warning">Needs review</span>
+                                          class="badge text-bg-warning">Needs attention</span>
+                                    <span t-elif="document.review_state === 'classified'"
+                                          class="badge text-bg-info">Ready for review</span>
                                     <span t-if="document.availability_state === 'trashed'"
                                           class="badge text-bg-secondary">In Trash</span>
                                     <span t-elif="document.availability_state !== 'available'"
@@ -689,8 +691,10 @@
                                             <span t-elif="document.availability_state !== 'available'"
                                                   class="badge text-bg-danger">Unavailable</span>
                                             <span t-elif="document.review_state === 'needs_attention'"
-                                                  class="badge text-bg-warning">Needs review</span>
-                                            <span t-else="" class="badge text-bg-light">Ready</span>
+                                                  class="badge text-bg-warning">Needs attention</span>
+                                            <span t-elif="document.review_state === 'classified'"
+                                                  class="badge text-bg-info">Ready for review</span>
+                                            <span t-else="" class="badge text-bg-light">Reviewed</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -906,7 +910,7 @@
                                           t-props="companyProps"/>
                                 <span t-else=""
                                       class="o_usl_readonly_value"
-                                      t-esc="state.selected.company || 'Needs review'"/>
+                                      t-esc="state.selected.company || 'Needs attention'"/>
                             </div>
                         </div>
                         <div class="o_usl_detail_tags mt-3">

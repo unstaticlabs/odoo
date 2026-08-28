@@ -42,10 +42,17 @@ DEFAULT_RUNTIME_POLICY = (
 SURFACE_SCHEMA = "usl-action-risk-surface-v1"
 POLICY_SCHEMA = "usl-action-risk-policy-v1"
 RUNTIME_SCHEMA = "usl-action-risk-runtime-v1"
-RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v1"
+RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
 MAX_RUNTIME_POLICY_BYTES = 512 * 1024
 CLASSIFICATIONS = frozenset(
-    {"read_only", "recoverable", "protected", "transport", "system_internal"},
+    {
+        "operational",
+        "protected",
+        "read_only",
+        "recoverable",
+        "system_internal",
+        "transport",
+    },
 )
 ACTION_PREFIXES = (
     "rpc:",
@@ -95,7 +102,6 @@ MUTATING_SINKS = frozenset(
 )
 MANDATORY_PROTECTED_FLAGS = frozenset(
     {
-        "arbitrary_execution",
         "authorization_change",
         "external_deletion",
         "external_registration",
@@ -232,7 +238,15 @@ def build_runtime_policy(
     if failures:
         raise InventoryError("Cannot compile runtime policy: " + "; ".join(failures))
     actions = []
+    server_actions = []
     for action_key, entry in sorted(reviewed.items()):
+        if action_key.startswith("server_action:"):
+            server_actions.append(
+                {
+                    "action_key": action_key,
+                    "classification": entry.get("classification"),
+                },
+            )
         if entry.get("classification") != "protected":
             continue
         runtime_entry: dict[str, object] = {
@@ -250,6 +264,7 @@ def build_runtime_policy(
         "actions": actions,
         "qualified_policy_digest": qualified_policy_digest(surface, policy),
         "schema": RUNTIME_POLICY_SCHEMA,
+        "server_actions": server_actions,
     }
     result["runtime_policy_sha256"] = runtime_policy_digest(result)
     return result

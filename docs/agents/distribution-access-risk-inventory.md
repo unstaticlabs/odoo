@@ -26,6 +26,7 @@ Every discovered action key appears exactly once in the policy:
 | Classification | Meaning | Required evidence |
 | --- | --- | --- |
 | `read_only` | Cannot mutate product or external state | static/runtime proof that no mutation or external sink is reachable |
+| `operational` | A fixed, reviewed product workflow whose ordinary business effects are governed by native Odoo access, company and audit rules | execute the exact workflow and verify its intended effect, access boundary and attribution |
 | `recoverable` | A supported product workflow restores the prior governed state and preserves required history | perform, reverse and verify the documented reversal action |
 | `protected` | Crosses the irreversible-action boundary | stable guard key plus ordinary-human, Agent, `sudo()` Agent, authorized-human and immutable-audit tests |
 | `transport` | Only validates or forwards input to declared classified actions | exact target action keys and proof that no other sink is reachable |
@@ -35,12 +36,33 @@ Grouping is allowed only through explicit action-key lists. Module-wide rules,
 prefix patterns and wildcards are forbidden because they could silently
 classify a newly introduced action.
 
-Authorization or company-scope changes, accounting lock movement, arbitrary
-code or job execution, module lifecycle, permanent deletion of governed data,
-and external registration or deletion default to `protected`. An external
+Authorization or company-scope changes, accounting lock movement, creation or
+execution of unreviewed code or jobs, module lifecycle, permanent deletion of
+governed business roots or evidence, and external registration or deletion
+default to `protected`. An external
 effect may be `recoverable` only when its remote reversal and preservation of
 local evidence are both tested. Uncertainty is resolved as `protected` until
 stronger recovery evidence exists.
+
+`operational` is intentionally distinct from `recoverable`. Posting an entry,
+validating a picking, sending an approved message or running a fixed maintenance
+job may create an attributable business effect that is corrected by a later
+workflow rather than erased bit-for-bit. That fact alone does not make the
+action an administrator-only irreversible action. Native ACLs, record rules,
+company rules, accounting controls and the owning application's audit history
+remain responsible for those normal workflows.
+
+The classifier reviews fixed server actions individually by immutable XML ID.
+A fixed action is not protected merely because Odoo implements it with Python
+code. The creation or modification of server actions and scheduled jobs remains
+protected; a runtime-created or otherwise unqualified server action fails
+closed. A reviewed fixed action that reaches a protected sink is itself
+`protected`, while reviewed ordinary application actions are `operational`.
+Classification may also be state-sensitive inside the smallest semantic guard.
+For example, the same attachment deletion entry point allows unattached or
+transient upload cleanup but protects evidence already linked to a persistent
+business record. A broad model-operation guard is used only when every call has
+the protected consequence.
 
 ## Required review procedure
 
@@ -53,9 +75,10 @@ surface:
    `sudo()`, raw SQL, filesystem, messaging and provider sinks. Check its ACLs,
    record rules, company behavior and externally reachable callers.
 3. Compare the native Odoo/OCA recoverable workflow with ACL/record-rule
-   restriction and a protected capability gate. Prefer a real recovery path;
-   never label a destructive workflow recoverable merely because a button is
-   named “Reset”.
+   restriction, an `operational` classification and a protected capability
+   gate. Prefer a real recovery path; never label a destructive workflow
+   recoverable merely because a button is named “Reset”, and never protect a
+   normal fixed workflow merely because it mutates data.
 4. Add one explicit classification, consequence, rationale, domain and
    automated evidence identifier. Add a reversal key for `recoverable`, a
    stable guard key for `protected`, exact targets for `transport`, or
@@ -123,6 +146,9 @@ protected guards continue to enforce their boundaries.
 
 - `read_only`: exercise the action and prove no reachable local or external
   mutation sink.
+- `operational`: exercise the exact fixed workflow and prove its intended
+  effect is attributable, company-scoped and governed by the owning
+  application's normal access and audit controls.
 - `recoverable`: perform the action, verify the changed state, execute the
   declared reversal, and verify governed state and required history.
 - `protected`: prove denial for an ordinary human, denial for an Agent, denial
@@ -175,6 +201,9 @@ The inventory covers the exact installed Odoo registry and Odoo-facing
 integrations. Migration-only services, direct PostgreSQL administration,
 Docker, host shell commands and Paperless internals are separate operational
 trust boundaries. Any Odoo action that invokes one of those systems is in the
-inventory. Arbitrary server-action execution and direct cron triggering are
-themselves protected because runtime-created code cannot be exhaustively
-classified in advance.
+inventory. Runtime-created or otherwise unqualified server-action execution
+remains protected because authored code cannot be exhaustively classified in
+advance. Fixed server actions and their scheduled jobs are dispatched according
+to their exact reviewed classifications. Manually triggering a qualified
+ordinary job therefore does not require the Irreversible Actions capability,
+while an unknown job or a qualified protected job still fails closed.

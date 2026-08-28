@@ -876,8 +876,8 @@ export class DocumentsWorkspaceView extends Component {
                 }[document.confidentiality] || "No privacy level"),
             review_state: (document) =>
                 ({
-                    needs_attention: "Needs review",
-                    classified: "Classified",
+                    needs_attention: "Needs attention",
+                    classified: "Ready for review",
                     reviewed: "Reviewed",
                 }[document.review_state] || "No review status"),
             document_date: (document, interval) =>
@@ -1030,8 +1030,8 @@ export class DocumentsWorkspaceView extends Component {
             from: this.state.correspondents,
             company: this.state.companies,
             review: [
-                { id: "needs_attention", name: "Needs review" },
-                { id: "classified", name: "Classified" },
+                { id: "needs_attention", name: "Needs attention" },
+                { id: "classified", name: "Ready for review" },
                 { id: "reviewed", name: "Reviewed" },
             ],
             privacy: [

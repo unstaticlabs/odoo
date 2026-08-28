@@ -108,7 +108,18 @@ class RebuildAccountOverview(models.Model):
     @api.depends("company_id")
     def _compute_bank_checkpoint(self):
         Config = self.env["account.bank.ingestion.config"]
+        can_read_config = Config.has_access("read")
         for overview in self:
+            if not can_read_config:
+                # The monthly setup contains routing and sender policy reserved
+                # for Accounting administrators.  Reviewers must still be able
+                # to open the Accounting overview without that configuration
+                # being disclosed through a computed field.
+                overview.bank_checkpoint_config_id = False
+                overview.bank_checkpoint_status = False
+                overview.bank_checkpoint_period = False
+                overview.bank_checkpoint_next_action = False
+                continue
             configs = Config.search(
                 [("company_id", "=", overview.company_id.id), ("active", "=", True)],
             )

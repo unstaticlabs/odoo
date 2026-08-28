@@ -2,61 +2,11 @@
   "actions": [
     {
       "action_keys": [
-        "guard:accounting.b2c_session.unlock",
-        "guard:accounting.lock.change",
-        "rpc:account.account.reconcile.unlink",
-        "rpc:account.account.tag.unlink",
-        "rpc:account.account.unlink",
-        "rpc:account.analytic.account.unlink",
-        "rpc:account.asset.profile.unlink",
-        "rpc:account.asset.unlink",
         "rpc:account.bank.ingestion.config.unlink",
-        "rpc:account.bank.ingestion.file.unlink",
-        "rpc:account.bank.ingestion.unlink",
         "rpc:account.bank.ingestion.upload.unlink",
-        "rpc:account.bank.statement.certification.unlink",
         "rpc:account.bank.statement.confirm.unlink",
-        "rpc:account.bank.statement.exception.unlink",
         "rpc:account.bank.statement.reopen.unlink",
-        "rpc:account.fiscal.position.action_create_foreign_taxes",
-        "rpc:account.fiscal.position.unlink",
-        "rpc:account.incoterms.unlink",
-        "rpc:account.journal.unlink",
-        "rpc:account.lock_exception.unlink",
-        "rpc:account.move.unlink",
-        "rpc:account.payment.term.unlink",
-        "rpc:account.payment.unlink",
-        "rpc:account.reconcile.model.unlink",
-        "rpc:account.report.unlink",
-        "rpc:account.tax.unlink",
-        "rpc:account_edi_proxy_client.user.unlink",
-        "rpc:b2c.accounting.session.action_unlock",
-        "rpc:b2c.accounting.session.unlink",
-        "rpc:ir.attachment.unlink",
-        "rpc:ir.module.module.module_uninstall",
-        "rpc:ir.module.module.write",
         "rpc:mail.message.write",
-        "rpc:pdp.config.wizard.button_peppol_unregister",
-        "rpc:pdp.config.wizard.button_sync_form_with_peppol_proxy",
-        "rpc:pdp.registration.button_deregister_pdp_participant",
-        "rpc:pdp.registration.button_register_pdp_participant",
-        "rpc:peppol.registration.button_register_peppol_participant",
-        "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates",
-        "rpc:rebuild.account.declaration.rule.unlink",
-        "rpc:rebuild.account.external.report.value.unlink",
-        "rpc:rebuild.account.report.account.presentation.unlink",
-        "rpc:rebuild.account.report.definition.unlink",
-        "rpc:res.company.create",
-        "rpc:res.company.install_l10n_modules",
-        "rpc:res.company.write",
-        "rpc:res.config.settings.action_eu_oss_tax_mapping",
-        "rpc:res.config.settings.button_disconnect_this_database",
-        "rpc:res.config.settings.button_peppol_deregister",
-        "rpc:res.config.settings.button_peppol_disconnect_branch_from_parent",
-        "rpc:res.config.settings.button_peppol_reregister",
-        "rpc:res.config.settings.button_reconnect_this_database",
-        "rpc:res.users.create",
-        "rpc:res.users.write",
         "server_action:account.accountant_reset_to_draft_entries_action",
         "server_action:account.action_account_confirm_payments",
         "server_action:account.action_account_unreconcile",
@@ -80,7 +30,6 @@
         "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server",
         "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server",
         "server_action:account_peppol.partner_action_verify_peppol",
-        "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server",
         "server_action:account_reconcile_oca.action_reconcile",
         "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server",
         "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server",
@@ -95,6 +44,458 @@
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
         "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "accounting",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.accounting.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "rpc:account.bank.ingestion.config.unlink": "851295baaa47beff200482e9b087bd684f94f9bcd5cdaf00704bed9705942de1",
+        "rpc:account.bank.ingestion.upload.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:account.bank.statement.confirm.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:account.bank.statement.reopen.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:mail.message.write": "4ec8a5f61e4983a2fbd28e7f52bd13f80089c70c58b8b1743c6a1a46a82df79a",
+        "server_action:account.accountant_reset_to_draft_entries_action": "1a42c67d313bbba788c090e04c913a4b1a4007a58ebe429d972067d1d4df9edd",
+        "server_action:account.action_account_confirm_payments": "f054db04ccd7bddbc80da432b0cf2545f5103032ea073ef03921dc3e64f667bd",
+        "server_action:account.action_account_unreconcile": "7405abac6392964236412fd6f4b16ff43e62e44c92abe70ee1659af02d9cd9b4",
+        "server_action:account.action_automatic_entry_change_account": "d6b2402545b77bddc7f690a0e9a12e6442b354f69cb3ec7f91eab1aeda38aa40",
+        "server_action:account.action_automatic_entry_change_period": "373a6482e01b5206e678278d30104d984f5974c77919e3a1e99c376a395447eb",
+        "server_action:account.action_check_hash_integrity": "64f0ec17904ba7b0c53549dce81adee33a7eeddb2d5e9c500627c274965b711a",
+        "server_action:account.action_mark_payment_as_reconciled": "dec6fb1d326cae9ef919ea67634b5d687e0b6d969faaff910daaa7b01390d03e",
+        "server_action:account.action_move_block_payment": "522f2ca0c7ece69e2ad791e29e7110414a233024bd777c864ecf4288533dc8b5",
+        "server_action:account.action_move_force_register_payment": "b29627f798f8ab48dc42974053e8d7b2e3db4abc167665f8f0fe933c0ef63fcc",
+        "server_action:account.action_move_switch_move_type": "0a4e2a01ffc00ea65c170d6d80131263827176f4dae8505a6b829f369134394d",
+        "server_action:account.action_server_payment_receipt": "d78682be7bcb05040f2d255849091d38bccfb6c20896eae22187e15149a973e5",
+        "server_action:account.action_unmerge_accounts": "7ef4d164db838850b126d080eead876382873b9842a06499481b3e903f11dbb6",
+        "server_action:account.action_validate_account_moves": "c74de0ad2eb35b938142a32c5fbd2125c9adeb47a487c79ff9bee509322e8935",
+        "server_action:account.ir_cron_account_move_send_ir_actions_server": "c806da8756798fa4130c2f3d51d9c3d0b54533e585b82868a4ddd6a2e498d87b",
+        "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server": "5906cdc91433363ff0eac7b2cf634e772aceebf25418df475ff38b14f6040e46",
+        "server_action:account.model_account_move_action_share": "02073395e4b2c85ec882dbe6a0c6e3a6d46e67a37f800fe3a5b2b07362fcc3d6",
+        "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server": "d5efab16c35214bbe2696490573e01ceaae7086a67d2dce2a8de1a89b6bab61d",
+        "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax": "7647dc1c49c3deb7ac7184d2e0af585f46588e6a747b424fcd9348021862cf68",
+        "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server": "e2a349c67d35e26b7582be548a9e808e14aaabe480f79660154b7525fb576ec3",
+        "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server": "c7dec495274c6f5e37c013ea448d3df0c5a5738d81fd2e8c7fdb19ace394928c",
+        "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server": "0e0851e9f00176b93b88f68231f4f07091297faf0df95b6b412d9ad4ebfcf2ec",
+        "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server": "1cf519e39e34e1354e9c1933794ec1dbff15877e11b3cd05986dba793f549b4c",
+        "server_action:account_peppol.partner_action_verify_peppol": "93b8e705943ec339932e4a8c322264fada6fcdbc36c6a23f51c23e2581586848",
+        "server_action:account_reconcile_oca.action_reconcile": "b68cd1f63d1bd35c6a19787851e228aacb74156e3ac8fad83486289b98b5607c",
+        "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server": "ae94337dc843071a8529581a3a85fb5da7da0de42682564903a9697394230dbc",
+        "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server": "0f23b8d23cdc730f785e07635794567abdb32960743df5447dedcaf8dccba5ca",
+        "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server": "6cf5dc7d15bd8091b547cf2500487145ae81b877e3c1406e5aa32bbada2564b0",
+        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "36d71b2f2496ed89af0c06e455993c96e7757115da4ce8c4251064b48740f40f",
+        "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi": "37c2a463185364a47a9be2c93bd8cd5c08967058302efd449c4752c520e19b7a",
+        "server_action:mrp_account.action_compute_price_bom_product": "242fde696bc8b4201e5cec63f6ec1d0b914102c05e52af33c0ffdc07d1da20a9",
+        "server_action:mrp_account.action_compute_price_bom_template": "9c343a4ede11bdb51f0fbac7095cfe2c4863d3479a1cac780366328459c0ae8b",
+        "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server": "0d36a57bea50c26e8f2184c5c33b2dabe12119f94da8bc5073ab958e38097542",
+        "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server": "45c763edfae7939f3db61dd0d86a3ef0f6409f0b97176ff404f24eb500e5f9e5",
+        "server_action:stock_account.stock_move_action_adjust_valuation": "25387464ed6b43c08e752c33c4ea51d76cd8d2d65bd563f8b2964a2c8945c8fe",
+        "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "5c7b54fd69cc4c2b90b85bb81787753521a7b351337d20b239648751401c19e4",
+        "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "79190be92b6360c6d72790ad2442632886bdcff54368c375c12ed1db3b051e98",
+        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6"
+      }
+    },
+    {
+      "action_keys": [
+        "server_action:mrp.action_open_bom_lines",
+        "server_action:mrp.action_pause_workorders",
+        "server_action:mrp.action_plan_at_date",
+        "server_action:mrp.action_plan_workorders",
+        "server_action:mrp.action_print_labels",
+        "server_action:mrp.action_production_order_lock_unlock",
+        "server_action:mrp.action_production_order_mark_done",
+        "server_action:mrp.action_production_order_merge",
+        "server_action:mrp.action_production_order_scrap",
+        "server_action:mrp.action_production_order_split",
+        "server_action:mrp.action_start_workorders",
+        "server_action:mrp.action_unplan_workorders",
+        "server_action:mrp.mrp_production_action_unreserve_tree",
+        "server_action:payment.action_start_payment_onboarding",
+        "server_action:payment.cron_post_process_payment_tx_ir_actions_server",
+        "server_action:product.action_product_price_list_report",
+        "server_action:product.action_product_print_labels",
+        "server_action:product.action_product_template_price_list_report",
+        "server_action:product.action_product_template_print_labels",
+        "server_action:purchase.action_confirm_rfqs",
+        "server_action:purchase.action_merger",
+        "server_action:purchase.action_purchase_send_reminder",
+        "server_action:purchase.model_purchase_order_action_share",
+        "server_action:sale.model_sale_order_action_close_invoicing",
+        "server_action:sale.model_sale_order_action_quotation_confirm",
+        "server_action:sale.model_sale_order_action_quotation_sent",
+        "server_action:sale.model_sale_order_action_share",
+        "server_action:sale.send_invoice_cron_ir_actions_server",
+        "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server",
+        "server_action:stock.action_install_barcode",
+        "server_action:stock.action_open_routes",
+        "server_action:stock.action_print_labels",
+        "server_action:stock.action_product_replenishment",
+        "server_action:stock.action_product_template_replenishment",
+        "server_action:stock.action_replenishment",
+        "server_action:stock.action_revert_move_line",
+        "server_action:stock.action_scrap_lot",
+        "server_action:stock.action_scrap_picking",
+        "server_action:stock.action_stock_quant_relocate",
+        "server_action:stock.action_unreserve_picking",
+        "server_action:stock.action_validate_picking",
+        "server_action:stock.action_view_inventory_tree",
+        "server_action:stock.action_view_quants",
+        "server_action:stock.action_view_set_quants_tree",
+        "server_action:stock.action_view_set_to_zero_quants_tree",
+        "server_action:stock.click_dashboard_graph",
+        "server_action:stock.ir_cron_scheduler_action_ir_actions_server",
+        "server_action:stock.method_action_picking_tree_incoming",
+        "server_action:stock.method_action_picking_tree_internal",
+        "server_action:stock.method_action_picking_tree_outgoing",
+        "server_action:stock.stock_split_picking"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.commerce_and_fulfilment.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "server_action:mrp.action_open_bom_lines": "409210057ec42ed4e370054cdbe0999a69e8c1397e3a92e95115aa968ba8858a",
+        "server_action:mrp.action_pause_workorders": "4aa1eeb36ab1708d8ebee308d5c57b6228ea37a3d64612dd2a68a1895fcc7850",
+        "server_action:mrp.action_plan_at_date": "eac81f9f9aa3a0f48784693b2af5cadeb0bc1e99a81b64dba8bf0d4a3059d845",
+        "server_action:mrp.action_plan_workorders": "3c5335c9870addc2d259ec5f75452baa0fa6d3bcc1619854ba05c1e3414117db",
+        "server_action:mrp.action_print_labels": "4cdea1180894e565dd8c147326b0020cfd5f17be1ad5ba10248d32748ec8512b",
+        "server_action:mrp.action_production_order_lock_unlock": "8a8d28e200499e923ba4240d044cb0b839450dbd6ec77f1414518718273c42e4",
+        "server_action:mrp.action_production_order_mark_done": "257108935724307a9597a646538b04c8fe547b35f9a645218e2ddefed2ec639e",
+        "server_action:mrp.action_production_order_merge": "8603efb35d561b0446762f1b12b150da1728314b52935d59150478e57c611f27",
+        "server_action:mrp.action_production_order_scrap": "6de49e1e4e699a4449d0879a4aa82051fa506c3748cf4746fefd32864e2ce64a",
+        "server_action:mrp.action_production_order_split": "afb79a04b9a7a315bfb7a9b56753de7477b0c9572b387b57cc93115f841c819c",
+        "server_action:mrp.action_start_workorders": "1f562b742d50e5aac9be9efdc6af7aba9006774dcddbcc137cfbd714229e9840",
+        "server_action:mrp.action_unplan_workorders": "931478a91a22926110c1f96a23953c5205595fa70c03f624118de2ed813db95c",
+        "server_action:mrp.mrp_production_action_unreserve_tree": "b46faa19e88186f851be6ba38fb39db52d6c08ad3b0f45c5e864477c6408171f",
+        "server_action:payment.action_start_payment_onboarding": "828d0ee93c6e4e8b3b8bf05de3d7a70f26e1dbdcfa0957ad1a31974b1d075dac",
+        "server_action:payment.cron_post_process_payment_tx_ir_actions_server": "4d4539574a6cf897d2c047c29887b4bb4f74a9733cacbc2f6cf6fe75287ad6b9",
+        "server_action:product.action_product_price_list_report": "af295716b3157ff6d7b084dc4969d7ba91fd0dfd958e8a2859300ec95cf2403f",
+        "server_action:product.action_product_print_labels": "5853f27aa2d43400977e4f9f87d4665ac47bc906102dded1142cbcfa5173261f",
+        "server_action:product.action_product_template_price_list_report": "63f68dc4dc8e09e2251a4ce1930863cdfa1c16d4b36e6caefb142f4f7e285c0e",
+        "server_action:product.action_product_template_print_labels": "7e4239230baaea5b399ea23ee62baf0678c9ffd346527ac84fd595e19dca652c",
+        "server_action:purchase.action_confirm_rfqs": "327a5ac642faf2bc03b9cdb6056aba2c5819543171049ae41fffcce25eb5d13a",
+        "server_action:purchase.action_merger": "cb2af41144047bd908aa0853c1575b5d85a5778808c674c52e09f34facca6e87",
+        "server_action:purchase.action_purchase_send_reminder": "d0b0c227f9948d9f030a2ed3aa8faee14456dd0e340e1ee0632df9a8bf5dfa0d",
+        "server_action:purchase.model_purchase_order_action_share": "8a40079122ad72a56a89bd49a3cfbb307a48dc9d3f34281361d3b27f2e2b9071",
+        "server_action:sale.model_sale_order_action_close_invoicing": "091f8a1e92c95d8573fb965d5fbff11598c5938b3e1ee681aca80bbbe7b762de",
+        "server_action:sale.model_sale_order_action_quotation_confirm": "e9bfb8d307f15a4da7358093e32bd581b482c4380fdb541a8804636b8d6813d9",
+        "server_action:sale.model_sale_order_action_quotation_sent": "bdc760802b22994248f0a9cc1c24a33ef66bc6787ed59fda81899bd137e56a18",
+        "server_action:sale.model_sale_order_action_share": "5525b827b1443b1cae2c23f3da54f9f7fcd7a819420401c3d199502078151a86",
+        "server_action:sale.send_invoice_cron_ir_actions_server": "db20e670f9038351d45eaf55699a6c6cc4a8d9a2762a31b6448d49cb1f33511b",
+        "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server": "855d28e50cdee253bdf17741648d6c6aabf0fefeca1f5c3dfa448f910efc167a",
+        "server_action:stock.action_install_barcode": "4d5e276c2b1c72b9b268d0cdbd3f8189e51d4a72e2e2fc130527cc2b8f200465",
+        "server_action:stock.action_open_routes": "219e0f43d29f920a47c7955f3c089fd1d0d057b771bb67d457af86eb8726ec12",
+        "server_action:stock.action_print_labels": "15b8a898f8ef1cfea76be973d1ecf6f55e9d62106c5d223a8877c0baca3549b2",
+        "server_action:stock.action_product_replenishment": "bd95f89cd66e57d7ec2d4561fd6411ecf075ac501385510a2b68c1a345a54e44",
+        "server_action:stock.action_product_template_replenishment": "f9d9593492850279db097f5b88b86ed8ef711d2801371f889835927a65d55b53",
+        "server_action:stock.action_replenishment": "de70512a1048e771513e57a247c72921d1f20318ee31ca04e6bf590b205ef2db",
+        "server_action:stock.action_revert_move_line": "7028280728af199652f49acc2cefe6db352a86c368ff6a3f78e1989e0d456696",
+        "server_action:stock.action_scrap_lot": "141508a91a8c666e7f8ed491aa7919cf1917f102e36b1b61b9f4206b8cace54a",
+        "server_action:stock.action_scrap_picking": "f3e28a17b75793e8ddd41800fae041d7995a7d473e447f01cf386372e7bb2372",
+        "server_action:stock.action_stock_quant_relocate": "97bac58f25e46ef42dcab42d15157c4d0b039b77425b814266d2e75163803849",
+        "server_action:stock.action_unreserve_picking": "06f5685a7239ead59c77dce5044dcb991c0b4900f92eca99338d08d331efbd52",
+        "server_action:stock.action_validate_picking": "7fcbc4a2aac7c9ab0e0cc783bc382e9d691f5598880926863a6dd926d632d616",
+        "server_action:stock.action_view_inventory_tree": "70dd59a799ea6de2a6a93f3f534b0f10067031adf0886134b696cf630e986080",
+        "server_action:stock.action_view_quants": "a1e87bb6482e80b85b676ca644a86981d5af362a4af5adf10ac88447de0376aa",
+        "server_action:stock.action_view_set_quants_tree": "08880f815e408a458875e0138f3907417e9b11554e96f07dd49d895c50ee8ed2",
+        "server_action:stock.action_view_set_to_zero_quants_tree": "5d04d163fc353d056df46c02152b97257eeb4a204ea5ce8f101c07090f40c46e",
+        "server_action:stock.click_dashboard_graph": "29d29b776b7bc936de16d235e9a8345922e328ea4f52326c150dfd3a9f2d25d6",
+        "server_action:stock.ir_cron_scheduler_action_ir_actions_server": "4665796465e31757d5d5318ba1c69bf605fb5f91a2c08e2f5101467429553c3e",
+        "server_action:stock.method_action_picking_tree_incoming": "8f2acc0041eabb786b648cb97b7ec6c57c67982486653ff4bc40418f68ae7841",
+        "server_action:stock.method_action_picking_tree_internal": "e200d98fecb63fe01f4d181ff568bb86c9ea126d3229ba5a63c1ed9611fc8edb",
+        "server_action:stock.method_action_picking_tree_outgoing": "2445c4b65ce03128ea98d7f363523cd6665af504d46561fc79eeaa32c73bb9c9",
+        "server_action:stock.stock_split_picking": "0c287ff850f2cd0fd14b5ca5cbb98a27fc9cb2f873b0867094affc99060c9c9d"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.context.tag.unlink",
+        "server_action:mail.ir_cron_delete_notification_ir_actions_server",
+        "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server",
+        "server_action:mail.ir_cron_mail_end_polls_ir_actions_server",
+        "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server",
+        "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server",
+        "server_action:mail.ir_cron_module_update_notification_ir_actions_server",
+        "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server",
+        "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server",
+        "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
+        "server_action:purchase.purchase_send_reminder_mail_ir_actions_server",
+        "server_action:sale.model_sale_order_send_mail",
+        "server_action:sale.send_pending_emails_cron_ir_actions_server",
+        "server_action:snailmail.snailmail_print_ir_actions_server",
+        "server_action:usl_documents.action_archive_attachments_in_paperless",
+        "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server",
+        "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server",
+        "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
+        "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "documents_and_communications",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.documents_and_communications.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "rpc:usl.document.context.tag.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "server_action:mail.ir_cron_delete_notification_ir_actions_server": "00eda930300c37c0981c134d2341d193b3cf32c18fc38e063a0cb1c3db1e85b3",
+        "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server": "f68b14d7d42a74799fb9267f7accab88e2aad2785ccaea205b8ac02a30b47da0",
+        "server_action:mail.ir_cron_mail_end_polls_ir_actions_server": "3c9af10c3033c893388e304e8c4780bf5f69589340a44212ea097699cdbc2188",
+        "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server": "57259e0133beebe490feb13bd8c3486472268985253f66adc2e843979efe43be",
+        "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server": "2c902e39aa47b97de30ac6a7ab298cbda35dadbd1b0762ac5a63fa7f0723ef55",
+        "server_action:mail.ir_cron_module_update_notification_ir_actions_server": "3af2714e72f4e58788d92ec655d8b4206457f63175c58533309e14124af6b322",
+        "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server": "763c4e8108e9849272b38f75fcdfa30794648be6f17044da2ef15f9af170a0e8",
+        "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server": "c364dfdfe24503b7ecba2b98d441853d7cf8a9eb0130aed5377c880fe6c2ff4d",
+        "server_action:mail.ir_cron_web_push_notification_ir_actions_server": "8e1e518216f8810951108c7b4b483cdd375c15643e3e2dceda3d2bac182beb4e",
+        "server_action:purchase.purchase_send_reminder_mail_ir_actions_server": "bddca3edd154f0629e433200957b99bba1b8f4f1ba672613e071582d76a8c830",
+        "server_action:sale.model_sale_order_send_mail": "30751edce022fa20565d68a2e78e057ac1c26bd78ebefe7edd44bc775e02ef66",
+        "server_action:sale.send_pending_emails_cron_ir_actions_server": "6a91452e22f1c63ea852f0d35cb2ec900d33464f3231a158259d9524d1c621ff",
+        "server_action:snailmail.snailmail_print_ir_actions_server": "a4891d45ea3893ed986b5810ac3ef81314ff0b0736a527f1e95f397ce1f20721",
+        "server_action:usl_documents.action_archive_attachments_in_paperless": "a340eea0a78af4e9c30d19a92e4c4deb80d3f533e8f2e660679308acc16c3010",
+        "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server": "430c781991e192c88bf40437a8a72c5e6573e18c1e039dce67a34ffc745cf25c",
+        "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server": "c86cd403391c9c7feea33c9c90b7debee20f6eb2aeba664c2c78b65ba982a50c",
+        "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server": "235f880b1f481629a09b73fecb64206815b35a360f2d7658ec586b0ffca4a1ca",
+        "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server": "6be66314f2c25ae4e2b8da618a6100c59b869d8b8fbfcc5b48c2b531e1e19a9b"
+      }
+    },
+    {
+      "action_keys": [
+        "server_action:hr.action_hr_employee_departure",
+        "server_action:hr.action_hr_employee_load_demo_data",
+        "server_action:hr.ir_cron_apply_departure_ir_actions_server",
+        "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server",
+        "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server",
+        "server_action:hr_skills.action_open_skills_log_department",
+        "server_action:hr_skills.action_print_employees_cv",
+        "server_action:hr_skills.action_server_hr_employee_skill_certification",
+        "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server",
+        "server_action:usl_tese_payroll.action_open_tese_settings",
+        "server_action:usl_tese_payroll.action_run_tese_diagnostics",
+        "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "people_and_payroll",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.people_and_payroll.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "server_action:hr.action_hr_employee_departure": "4176d87dd73c7e2c8ada286e3485670c27d1732e0ab03e5eecef874b01fa629e",
+        "server_action:hr.action_hr_employee_load_demo_data": "bea5948233711b2086f6923310c510c1934aa34ec48c2a9f7ee6d105928c7eda",
+        "server_action:hr.ir_cron_apply_departure_ir_actions_server": "077b48aa0ca79f7612a84bd0b5410a45fae30b789393a71307c7b22ad521f1d1",
+        "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server": "a31ca33a1ca22ebb002baf350ce6f001b5a69a8a0b023487bd6bcf0938c73189",
+        "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server": "73a146bb1555a1700fb9b2a9bf2e48b71ab6873f2b95f01ff8ebcdac9b2881aa",
+        "server_action:hr_skills.action_open_skills_log_department": "d6c5523fff9b225087b2a6d646730da2d5e16c40a3f00fd501f160f750938fc2",
+        "server_action:hr_skills.action_print_employees_cv": "617eeef3a3afb0b5a5a189d4713969e361c503f7ef840d64f2c4305feb6a2b85",
+        "server_action:hr_skills.action_server_hr_employee_skill_certification": "64889d817b6518be583d7d05db9a7ff8462ad5854619452306d2598202eb48c1",
+        "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server": "e80b5cc611fa72641e40622f1821e63a9fe8f32a4180cf8ca6100a1c1e62da3a",
+        "server_action:usl_tese_payroll.action_open_tese_settings": "23304300f44bb0634657f8a098b74f42c76afd3ca3a83b55bbe64818e6390d5e",
+        "server_action:usl_tese_payroll.action_run_tese_diagnostics": "e429770c93b833268dfd0fc30cb39dfda7d4dfd8b8e64edbdb20cfb7a86896ad",
+        "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server": "b683d643c18e9c24881fccd9ac133bde390079e18acf3496aa00221747935475"
+      }
+    },
+    {
+      "action_keys": [
+        "server_action:project.action_server_convert_project_to_template",
+        "server_action:project.action_server_convert_to_subtask",
+        "server_action:project.action_server_convert_to_template",
+        "server_action:project.action_server_share_project",
+        "server_action:project.action_server_share_task",
+        "server_action:project.ir_cron_rating_project_ir_actions_server",
+        "server_action:sale_project.model_sale_order_action_create_project"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "projects",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.projects.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "server_action:project.action_server_convert_project_to_template": "83acab65ef281b745c94e900387b1945477ab28e9cf707121d9ea4935ba605f9",
+        "server_action:project.action_server_convert_to_subtask": "86b8645d0452fdfe28315e22fbcec868678ed1f4b6b6d4034d39b4431ac043cd",
+        "server_action:project.action_server_convert_to_template": "721cb42a566406dd3d75770331c8fe3c53ce7f8a3ce65a546a60ab7d41e76596",
+        "server_action:project.action_server_share_project": "867ad26b377b70022a51b0f621a10fb13344daf3e7580449ec1d8fc402e3e727",
+        "server_action:project.action_server_share_task": "c812c12c28093aaf202d43d63738abec884fd594a9073de6f875a2cf42341790",
+        "server_action:project.ir_cron_rating_project_ir_actions_server": "1bf6a34ea6e8fcd7443c1644cd485001644bae0bab00ad72d216a0c7518aac8d",
+        "server_action:sale_project.model_sale_order_action_create_project": "d57eda033c77c069c4b41d09b61b738a2830cdd4440f1d16dd4181fb19bc7eaf"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:crm.team.member.unlink",
+        "rpc:date.range.type.unlink",
+        "rpc:date.range.unlink",
+        "rpc:hr.employee.skill.report.unlink",
+        "rpc:ir.actions.server.run",
+        "rpc:ir.asset.unlink",
+        "rpc:ir.cron.method_direct_trigger",
+        "rpc:ir.default.create",
+        "rpc:ir.default.unlink",
+        "rpc:ir.default.write",
+        "rpc:ir.filters.unlink",
+        "rpc:ir.logging.create",
+        "rpc:ir.logging.unlink",
+        "rpc:ir.logging.write",
+        "rpc:mail.activity.plan.unlink",
+        "rpc:mail.activity.type.unlink",
+        "rpc:mail.activity.unlink",
+        "rpc:mail.template.unlink",
+        "rpc:payment.token.unlink",
+        "rpc:res.partner.category.unlink",
+        "rpc:res.partner.industry.unlink",
+        "rpc:spreadsheet.dashboard.share.unlink",
+        "rpc:usl.document.link.unlink",
+        "rpc:usl.document.quick.filter.unlink",
+        "rpc:usl.document.smart.view.unlink",
+        "rpc:usl.paperless.correspondent.unlink",
+        "rpc:usl.paperless.document.type.unlink",
+        "rpc:usl.paperless.metadata.mixin.unlink",
+        "rpc:usl.paperless.tag.unlink",
+        "rpc:usl.tese.diagnostic.issue.unlink",
+        "server_action:auth_signup.action_send_password_reset_instructions",
+        "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server",
+        "server_action:auth_totp_mail.action_activate_two_factor_authentication",
+        "server_action:auth_totp_mail.action_invite_totp"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "security_and_administration",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.security_and_administration.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "rpc:crm.team.member.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
+        "rpc:date.range.type.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:date.range.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:hr.employee.skill.report.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:ir.actions.server.run": "8f0bd4aec4ab5c5fc5871596237c6648f8c826e8e6f9a9ca515d986ab1b5c24c",
+        "rpc:ir.asset.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:ir.cron.method_direct_trigger": "c6dca5f6225aaa42364f02e513d091b153c0a50134d284e15822ea643ac93e1f",
+        "rpc:ir.default.create": "5d88f4236bb5f5b2b5600f6f1820058bec2cb68fe0b59afa06c0112ba1dd5c2e",
+        "rpc:ir.default.unlink": "03c8225a97ce03e6b2e005cd8d033c5b7dbf3ac8ec4e576dba011d827ea99a7d",
+        "rpc:ir.default.write": "0ffc3813a3b67b3a2dd375074237d4925f6dc1da66e0d89d2b6c33908aa4aed9",
+        "rpc:ir.filters.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:ir.logging.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
+        "rpc:ir.logging.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:ir.logging.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
+        "rpc:mail.activity.plan.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:mail.activity.type.unlink": "005b211586fc7dda956ed6fcfa2fadfc11b8f6992d5affee915392076ccf4aaf",
+        "rpc:mail.activity.unlink": "af18da5ca8950293dd906a13fb9190b495fbc180a7612c1bec95e6f55056dfe3",
+        "rpc:mail.template.unlink": "3c9e899e780b090daabd33264033341df8e2258f766a1961f8bffe9da216d51f",
+        "rpc:payment.token.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:res.partner.category.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:res.partner.industry.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:spreadsheet.dashboard.share.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:usl.document.link.unlink": "a48d55c1d401681a8e018cf933cc5e6791027067191f9bcc468f2a9c665234ab",
+        "rpc:usl.document.quick.filter.unlink": "f69b0f2f9f11a4b239e2b06151e9236e19044bdac0b933354b71b1137e0a5067",
+        "rpc:usl.document.smart.view.unlink": "981499c8a4cd08c867dc15a7ce73e9abe7dbbb04b7ec6991022111d0693eea88",
+        "rpc:usl.paperless.correspondent.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
+        "rpc:usl.paperless.document.type.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
+        "rpc:usl.paperless.metadata.mixin.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
+        "rpc:usl.paperless.tag.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
+        "rpc:usl.tese.diagnostic.issue.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "server_action:auth_signup.action_send_password_reset_instructions": "63ead9a48c331f2d0ea6cb917f8d65070442015b7e142fd7bf899258bc7a3f06",
+        "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server": "f2590a043d7609c070f64f60f0089841042a24c4aa75214f5f1709e72dd5d5f0",
+        "server_action:auth_totp_mail.action_activate_two_factor_authentication": "721ebdb3ea89decdbdedf1013fc5904595d902102d000b66ad509e7b851d6908",
+        "server_action:auth_totp_mail.action_invite_totp": "f51640e776534dd42bd202082b6a1d2ad75f372271ca428f7b0e2f37b96c4704"
+      }
+    },
+    {
+      "action_keys": [
+        "server_action:base.autovacuum_job_ir_actions_server",
+        "server_action:base.demo_failure_action",
+        "server_action:base.ir_actions_server_change_password_wizard",
+        "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server",
+        "server_action:base_vat.vies_iap_check_update_ir_actions_server",
+        "server_action:date_range.ir_cron_autocreate_ir_actions_server",
+        "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server",
+        "server_action:portal.partner_wizard_action_create_and_open",
+        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner",
+        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user",
+        "server_action:privacy_lookup.ir_actions_server_archive_all",
+        "server_action:sms.ir_actions_server_sms_sms_resend",
+        "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server",
+        "server_action:web.download_contact",
+        "server_action:web_tour.tour_export_js_action"
+      ],
+      "classification": "operational",
+      "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
+      "domain": "system_framework",
+      "evidence_id": "operational-authorized-workflow-v1",
+      "id": "operational.system_framework.actions",
+      "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
+      "reviewed_digests": {
+        "server_action:base.autovacuum_job_ir_actions_server": "6da1310d02f2c9b761cabb2d07d88a36058320556f044eac2e97a8319e6a4269",
+        "server_action:base.demo_failure_action": "71d29e8403d86bc5b1a5daefd2ee42f49c4ecca99d7f75added902e6d6f96dd0",
+        "server_action:base.ir_actions_server_change_password_wizard": "bb6822f4296a1621086207408ebcb32cb60a03b67ceb259a2563eae01c33c05f",
+        "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server": "60d6c8d0b7b3a501fd96b2a7b24cc53b079cb4260413fb1a4a624aa1b628294c",
+        "server_action:base_vat.vies_iap_check_update_ir_actions_server": "6c37a53ce1dd0d0c75641690cb4aeab559b1ab066e6a5c7888d098cb8a450464",
+        "server_action:date_range.ir_cron_autocreate_ir_actions_server": "89c970f0bbd383be5d42436347510eadf406de9dc35bb2a65f9dbc218c22fa5b",
+        "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server": "8534807fbf58cad75167750dc3d7a3ba7605da5914d079f9816566a8e173ab6f",
+        "server_action:portal.partner_wizard_action_create_and_open": "bd162dca54559f6dcb2c331f4a47160fb5e8d7fb748315955e0cbd40ff699ac4",
+        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner": "c3eb50b0b8568c6a332c0000952f792a7e0135fe18bc4003ba92fa34ec5ff107",
+        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user": "f4adca47a6a25479f6428bbfc1d014be911861e66058f4bd33e1ef97be6405c4",
+        "server_action:privacy_lookup.ir_actions_server_archive_all": "783da14de31978c6612a98929250da9c34355e0db08f72ecfcd8ce655b47240c",
+        "server_action:sms.ir_actions_server_sms_sms_resend": "9f3ecfef02307651befac38618e6dd827196e560d7afaef804e13fb442d77c0e",
+        "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server": "3ec7b46a44fd86ea4d2f7d014d1c8994d95a2b70b30fad2b513084e6b78d6407",
+        "server_action:web.download_contact": "d3f669867214f5e63d8f99c2c9eea3942fff3361ec4232e95c78c4273415095e",
+        "server_action:web_tour.tour_export_js_action": "d4d91c3202306b08c70bd63ed143231f7eb9a92540dc8cfb33baa8d44f1b0a9f"
+      }
+    },
+    {
+      "action_keys": [
+        "guard:accounting.b2c_session.unlock",
+        "guard:accounting.lock.change",
+        "rpc:account.account.reconcile.unlink",
+        "rpc:account.account.tag.unlink",
+        "rpc:account.account.unlink",
+        "rpc:account.analytic.account.unlink",
+        "rpc:account.asset.profile.unlink",
+        "rpc:account.asset.unlink",
+        "rpc:account.bank.ingestion.file.unlink",
+        "rpc:account.bank.ingestion.unlink",
+        "rpc:account.bank.statement.certification.unlink",
+        "rpc:account.bank.statement.exception.unlink",
+        "rpc:account.fiscal.position.action_create_foreign_taxes",
+        "rpc:account.fiscal.position.unlink",
+        "rpc:account.incoterms.unlink",
+        "rpc:account.journal.unlink",
+        "rpc:account.lock_exception.unlink",
+        "rpc:account.move.unlink",
+        "rpc:account.payment.term.unlink",
+        "rpc:account.payment.unlink",
+        "rpc:account.reconcile.model.unlink",
+        "rpc:account.report.unlink",
+        "rpc:account.tax.unlink",
+        "rpc:account_edi_proxy_client.user.unlink",
+        "rpc:b2c.accounting.session.action_unlock",
+        "rpc:b2c.accounting.session.unlink",
+        "rpc:ir.module.module.module_uninstall",
+        "rpc:ir.module.module.write",
+        "rpc:pdp.config.wizard.button_peppol_unregister",
+        "rpc:pdp.config.wizard.button_sync_form_with_peppol_proxy",
+        "rpc:pdp.registration.button_deregister_pdp_participant",
+        "rpc:pdp.registration.button_register_pdp_participant",
+        "rpc:peppol.registration.button_register_peppol_participant",
+        "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates",
+        "rpc:rebuild.account.declaration.rule.unlink",
+        "rpc:rebuild.account.external.report.value.unlink",
+        "rpc:rebuild.account.report.account.presentation.unlink",
+        "rpc:rebuild.account.report.definition.unlink",
+        "rpc:res.company.create",
+        "rpc:res.company.install_l10n_modules",
+        "rpc:res.company.write",
+        "rpc:res.config.settings.action_eu_oss_tax_mapping",
+        "rpc:res.config.settings.button_disconnect_this_database",
+        "rpc:res.config.settings.button_peppol_deregister",
+        "rpc:res.config.settings.button_peppol_disconnect_branch_from_parent",
+        "rpc:res.config.settings.button_peppol_reregister",
+        "rpc:res.config.settings.button_reconnect_this_database",
+        "rpc:res.users.create",
+        "rpc:res.users.write",
+        "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server"
       ],
       "classification": "protected",
       "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
@@ -156,14 +557,6 @@
             "operation": "unlink"
           }
         },
-        "rpc:account.bank.ingestion.config.unlink": {
-          "action_name": "permanently delete account.bank.ingestion.config",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "account.bank.ingestion.config",
-            "operation": "unlink"
-          }
-        },
         "rpc:account.bank.ingestion.file.unlink": {
           "action_name": "permanently delete account.bank.ingestion.file",
           "enforcement": {
@@ -180,14 +573,6 @@
             "operation": "unlink"
           }
         },
-        "rpc:account.bank.ingestion.upload.unlink": {
-          "action_name": "permanently delete account.bank.ingestion.upload",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "account.bank.ingestion.upload",
-            "operation": "unlink"
-          }
-        },
         "rpc:account.bank.statement.certification.unlink": {
           "action_name": "permanently delete account.bank.statement.certification",
           "enforcement": {
@@ -196,27 +581,11 @@
             "operation": "unlink"
           }
         },
-        "rpc:account.bank.statement.confirm.unlink": {
-          "action_name": "permanently delete account.bank.statement.confirm",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "account.bank.statement.confirm",
-            "operation": "unlink"
-          }
-        },
         "rpc:account.bank.statement.exception.unlink": {
           "action_name": "permanently delete account.bank.statement.exception",
           "enforcement": {
             "kind": "model_operation",
             "model": "account.bank.statement.exception",
-            "operation": "unlink"
-          }
-        },
-        "rpc:account.bank.statement.reopen.unlink": {
-          "action_name": "permanently delete account.bank.statement.reopen",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "account.bank.statement.reopen",
             "operation": "unlink"
           }
         },
@@ -324,14 +693,6 @@
             "operation": "unlink"
           }
         },
-        "rpc:ir.attachment.unlink": {
-          "action_name": "permanently delete ir.attachment",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.attachment",
-            "operation": "unlink"
-          }
-        },
         "rpc:ir.module.module.module_uninstall": {
           "action_name": "uninstall a module",
           "guard_key": "guard:module.uninstall"
@@ -341,14 +702,6 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "ir.module.module",
-            "operation": "write"
-          }
-        },
-        "rpc:mail.message.write": {
-          "action_name": "modify mail.message",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "mail.message",
             "operation": "write"
           }
         },
@@ -452,156 +805,8 @@
           "action_name": "change user identity or authorization",
           "guard_key": "guard:authorization.user.change"
         },
-        "server_action:account.accountant_reset_to_draft_entries_action": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_account_confirm_payments": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_account_unreconcile": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_automatic_entry_change_account": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_automatic_entry_change_period": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_check_hash_integrity": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_mark_payment_as_reconciled": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_move_block_payment": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_move_force_register_payment": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_move_switch_move_type": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_server_payment_receipt": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_unmerge_accounts": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.action_validate_account_moves": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.ir_cron_account_move_send_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account.model_account_move_action_share": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_peppol.partner_action_verify_peppol": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:account_reconcile_oca.action_reconcile": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp_account.action_compute_price_bom_product": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp_account.action_compute_price_bom_template": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock_account.stock_move_action_adjust_valuation": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": {
-          "action_name": "execute a server action",
+          "action_name": "change registered Peppol services",
           "guard_key": "guard:automation.server_action.execute"
         }
       },
@@ -615,14 +820,10 @@
         "rpc:account.analytic.account.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:account.asset.profile.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:account.asset.unlink": "85a6c6c297f62510f564ba85750c022cc89003da1b99bd4076e649a5cd89f689",
-        "rpc:account.bank.ingestion.config.unlink": "851295baaa47beff200482e9b087bd684f94f9bcd5cdaf00704bed9705942de1",
         "rpc:account.bank.ingestion.file.unlink": "046d04f47ce2d7e216ab020e2ffef309841ef2d7294e46f79879655fd5d129e2",
         "rpc:account.bank.ingestion.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
-        "rpc:account.bank.ingestion.upload.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:account.bank.statement.certification.unlink": "78a8f091524368b1087eab5d8bca4aa58f75ea516e56670a3856bd351f9443b0",
-        "rpc:account.bank.statement.confirm.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:account.bank.statement.exception.unlink": "ce83b9e999c4621135f8798e12c08c720807ae78cc929f9682ddea54f1107524",
-        "rpc:account.bank.statement.reopen.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:account.fiscal.position.action_create_foreign_taxes": "a0f7ca2692f58f482bd9ba31c806ac1144901a2007db14d172f9f05df9b9101c",
         "rpc:account.fiscal.position.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:account.incoterms.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
@@ -637,10 +838,8 @@
         "rpc:account_edi_proxy_client.user.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:b2c.accounting.session.action_unlock": "c79c83463f95ea43957e2ba7ca44c0c3dbc8a1bb981492330bb4387ccdd6e4a7",
         "rpc:b2c.accounting.session.unlink": "27c0fd2bda648efc38799c7664d4b28f4b141f6c4fad796c7c3f6015f50225ae",
-        "rpc:ir.attachment.unlink": "728f5ec4e9494ff8ce5a62bb545b6a83b3130fb9ccafa1fd3aec943defbec2a2",
         "rpc:ir.module.module.module_uninstall": "5ad353b78060a19a5302fe1137c7d5be470545148e438d3d0cca6aa4c12c3504",
         "rpc:ir.module.module.write": "8d9a5f80a529eef8b43f7442b65ab12b29d812c5be51e3ed49a6e8a0a90abce0",
-        "rpc:mail.message.write": "4ec8a5f61e4983a2fbd28e7f52bd13f80089c70c58b8b1743c6a1a46a82df79a",
         "rpc:pdp.config.wizard.button_peppol_unregister": "444448c6dec7e36e4c445794ee0380d7f3f27d0f43a895c4629d259f472459ec",
         "rpc:pdp.config.wizard.button_sync_form_with_peppol_proxy": "24fc2b60deb1b922d5914e49b541f1122d95345247043a790dfbab0507a9e580",
         "rpc:pdp.registration.button_deregister_pdp_participant": "e99309e0103b53a74565edbcd2a7f10e3e7aa03b97353c91e6b71b2515d734c8",
@@ -662,496 +861,7 @@
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
         "rpc:res.users.create": "738879c5fdd917a8d5b4b2d67fdb33504176806dd0c8abbe96badaad5545fccd",
         "rpc:res.users.write": "c9ecda0add53c26269d584f823da9709d87341e65d0e8116a956db760594f3d6",
-        "server_action:account.accountant_reset_to_draft_entries_action": "1a42c67d313bbba788c090e04c913a4b1a4007a58ebe429d972067d1d4df9edd",
-        "server_action:account.action_account_confirm_payments": "f054db04ccd7bddbc80da432b0cf2545f5103032ea073ef03921dc3e64f667bd",
-        "server_action:account.action_account_unreconcile": "7405abac6392964236412fd6f4b16ff43e62e44c92abe70ee1659af02d9cd9b4",
-        "server_action:account.action_automatic_entry_change_account": "d6b2402545b77bddc7f690a0e9a12e6442b354f69cb3ec7f91eab1aeda38aa40",
-        "server_action:account.action_automatic_entry_change_period": "373a6482e01b5206e678278d30104d984f5974c77919e3a1e99c376a395447eb",
-        "server_action:account.action_check_hash_integrity": "64f0ec17904ba7b0c53549dce81adee33a7eeddb2d5e9c500627c274965b711a",
-        "server_action:account.action_mark_payment_as_reconciled": "dec6fb1d326cae9ef919ea67634b5d687e0b6d969faaff910daaa7b01390d03e",
-        "server_action:account.action_move_block_payment": "522f2ca0c7ece69e2ad791e29e7110414a233024bd777c864ecf4288533dc8b5",
-        "server_action:account.action_move_force_register_payment": "b29627f798f8ab48dc42974053e8d7b2e3db4abc167665f8f0fe933c0ef63fcc",
-        "server_action:account.action_move_switch_move_type": "0a4e2a01ffc00ea65c170d6d80131263827176f4dae8505a6b829f369134394d",
-        "server_action:account.action_server_payment_receipt": "d78682be7bcb05040f2d255849091d38bccfb6c20896eae22187e15149a973e5",
-        "server_action:account.action_unmerge_accounts": "7ef4d164db838850b126d080eead876382873b9842a06499481b3e903f11dbb6",
-        "server_action:account.action_validate_account_moves": "c74de0ad2eb35b938142a32c5fbd2125c9adeb47a487c79ff9bee509322e8935",
-        "server_action:account.ir_cron_account_move_send_ir_actions_server": "c806da8756798fa4130c2f3d51d9c3d0b54533e585b82868a4ddd6a2e498d87b",
-        "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server": "5906cdc91433363ff0eac7b2cf634e772aceebf25418df475ff38b14f6040e46",
-        "server_action:account.model_account_move_action_share": "02073395e4b2c85ec882dbe6a0c6e3a6d46e67a37f800fe3a5b2b07362fcc3d6",
-        "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server": "d5efab16c35214bbe2696490573e01ceaae7086a67d2dce2a8de1a89b6bab61d",
-        "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax": "7647dc1c49c3deb7ac7184d2e0af585f46588e6a747b424fcd9348021862cf68",
-        "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server": "e2a349c67d35e26b7582be548a9e808e14aaabe480f79660154b7525fb576ec3",
-        "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server": "c7dec495274c6f5e37c013ea448d3df0c5a5738d81fd2e8c7fdb19ace394928c",
-        "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server": "0e0851e9f00176b93b88f68231f4f07091297faf0df95b6b412d9ad4ebfcf2ec",
-        "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server": "1cf519e39e34e1354e9c1933794ec1dbff15877e11b3cd05986dba793f549b4c",
-        "server_action:account_peppol.partner_action_verify_peppol": "93b8e705943ec339932e4a8c322264fada6fcdbc36c6a23f51c23e2581586848",
-        "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5",
-        "server_action:account_reconcile_oca.action_reconcile": "b68cd1f63d1bd35c6a19787851e228aacb74156e3ac8fad83486289b98b5607c",
-        "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server": "ae94337dc843071a8529581a3a85fb5da7da0de42682564903a9697394230dbc",
-        "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server": "0f23b8d23cdc730f785e07635794567abdb32960743df5447dedcaf8dccba5ca",
-        "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server": "6cf5dc7d15bd8091b547cf2500487145ae81b877e3c1406e5aa32bbada2564b0",
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "36d71b2f2496ed89af0c06e455993c96e7757115da4ce8c4251064b48740f40f",
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi": "37c2a463185364a47a9be2c93bd8cd5c08967058302efd449c4752c520e19b7a",
-        "server_action:mrp_account.action_compute_price_bom_product": "242fde696bc8b4201e5cec63f6ec1d0b914102c05e52af33c0ffdc07d1da20a9",
-        "server_action:mrp_account.action_compute_price_bom_template": "9c343a4ede11bdb51f0fbac7095cfe2c4863d3479a1cac780366328459c0ae8b",
-        "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server": "0d36a57bea50c26e8f2184c5c33b2dabe12119f94da8bc5073ab958e38097542",
-        "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server": "45c763edfae7939f3db61dd0d86a3ef0f6409f0b97176ff404f24eb500e5f9e5",
-        "server_action:stock_account.stock_move_action_adjust_valuation": "25387464ed6b43c08e752c33c4ea51d76cd8d2d65bd563f8b2964a2c8945c8fe",
-        "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "5c7b54fd69cc4c2b90b85bb81787753521a7b351337d20b239648751401c19e4",
-        "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "79190be92b6360c6d72790ad2442632886bdcff54368c375c12ed1db3b051e98",
-        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6"
-      }
-    },
-    {
-      "action_keys": [
-        "server_action:mrp.action_open_bom_lines",
-        "server_action:mrp.action_pause_workorders",
-        "server_action:mrp.action_plan_at_date",
-        "server_action:mrp.action_plan_workorders",
-        "server_action:mrp.action_print_labels",
-        "server_action:mrp.action_production_order_lock_unlock",
-        "server_action:mrp.action_production_order_mark_done",
-        "server_action:mrp.action_production_order_merge",
-        "server_action:mrp.action_production_order_scrap",
-        "server_action:mrp.action_production_order_split",
-        "server_action:mrp.action_start_workorders",
-        "server_action:mrp.action_unplan_workorders",
-        "server_action:mrp.mrp_production_action_unreserve_tree",
-        "server_action:payment.action_start_payment_onboarding",
-        "server_action:payment.cron_post_process_payment_tx_ir_actions_server",
-        "server_action:product.action_product_price_list_report",
-        "server_action:product.action_product_print_labels",
-        "server_action:product.action_product_template_price_list_report",
-        "server_action:product.action_product_template_print_labels",
-        "server_action:purchase.action_confirm_rfqs",
-        "server_action:purchase.action_merger",
-        "server_action:purchase.action_purchase_send_reminder",
-        "server_action:purchase.model_purchase_order_action_share",
-        "server_action:sale.model_sale_order_action_close_invoicing",
-        "server_action:sale.model_sale_order_action_quotation_confirm",
-        "server_action:sale.model_sale_order_action_quotation_sent",
-        "server_action:sale.model_sale_order_action_share",
-        "server_action:sale.send_invoice_cron_ir_actions_server",
-        "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server",
-        "server_action:stock.action_install_barcode",
-        "server_action:stock.action_open_routes",
-        "server_action:stock.action_print_labels",
-        "server_action:stock.action_product_replenishment",
-        "server_action:stock.action_product_template_replenishment",
-        "server_action:stock.action_replenishment",
-        "server_action:stock.action_revert_move_line",
-        "server_action:stock.action_scrap_lot",
-        "server_action:stock.action_scrap_picking",
-        "server_action:stock.action_stock_quant_relocate",
-        "server_action:stock.action_unreserve_picking",
-        "server_action:stock.action_validate_picking",
-        "server_action:stock.action_view_inventory_tree",
-        "server_action:stock.action_view_quants",
-        "server_action:stock.action_view_set_quants_tree",
-        "server_action:stock.action_view_set_to_zero_quants_tree",
-        "server_action:stock.click_dashboard_graph",
-        "server_action:stock.ir_cron_scheduler_action_ir_actions_server",
-        "server_action:stock.method_action_picking_tree_incoming",
-        "server_action:stock.method_action_picking_tree_internal",
-        "server_action:stock.method_action_picking_tree_outgoing",
-        "server_action:stock.stock_split_picking"
-      ],
-      "classification": "protected",
-      "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
-      "domain": "commerce_and_fulfilment",
-      "evidence_id": "protected-deny-allow-audit-v1",
-      "id": "protected.commerce_and_fulfilment.actions",
-      "overrides": {
-        "server_action:mrp.action_open_bom_lines": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_pause_workorders": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_plan_at_date": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_plan_workorders": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_print_labels": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_production_order_lock_unlock": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_production_order_mark_done": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_production_order_merge": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_production_order_scrap": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_production_order_split": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_start_workorders": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.action_unplan_workorders": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mrp.mrp_production_action_unreserve_tree": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:payment.action_start_payment_onboarding": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:payment.cron_post_process_payment_tx_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:product.action_product_price_list_report": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:product.action_product_print_labels": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:product.action_product_template_price_list_report": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:product.action_product_template_print_labels": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:purchase.action_confirm_rfqs": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:purchase.action_merger": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:purchase.action_purchase_send_reminder": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:purchase.model_purchase_order_action_share": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.model_sale_order_action_close_invoicing": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.model_sale_order_action_quotation_confirm": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.model_sale_order_action_quotation_sent": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.model_sale_order_action_share": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.send_invoice_cron_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_install_barcode": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_open_routes": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_print_labels": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_product_replenishment": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_product_template_replenishment": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_replenishment": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_revert_move_line": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_scrap_lot": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_scrap_picking": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_stock_quant_relocate": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_unreserve_picking": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_validate_picking": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_view_inventory_tree": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_view_quants": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_view_set_quants_tree": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.action_view_set_to_zero_quants_tree": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.click_dashboard_graph": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.ir_cron_scheduler_action_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.method_action_picking_tree_incoming": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.method_action_picking_tree_internal": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.method_action_picking_tree_outgoing": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:stock.stock_split_picking": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        }
-      },
-      "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
-      "reviewed_digests": {
-        "server_action:mrp.action_open_bom_lines": "409210057ec42ed4e370054cdbe0999a69e8c1397e3a92e95115aa968ba8858a",
-        "server_action:mrp.action_pause_workorders": "4aa1eeb36ab1708d8ebee308d5c57b6228ea37a3d64612dd2a68a1895fcc7850",
-        "server_action:mrp.action_plan_at_date": "eac81f9f9aa3a0f48784693b2af5cadeb0bc1e99a81b64dba8bf0d4a3059d845",
-        "server_action:mrp.action_plan_workorders": "3c5335c9870addc2d259ec5f75452baa0fa6d3bcc1619854ba05c1e3414117db",
-        "server_action:mrp.action_print_labels": "4cdea1180894e565dd8c147326b0020cfd5f17be1ad5ba10248d32748ec8512b",
-        "server_action:mrp.action_production_order_lock_unlock": "8a8d28e200499e923ba4240d044cb0b839450dbd6ec77f1414518718273c42e4",
-        "server_action:mrp.action_production_order_mark_done": "257108935724307a9597a646538b04c8fe547b35f9a645218e2ddefed2ec639e",
-        "server_action:mrp.action_production_order_merge": "8603efb35d561b0446762f1b12b150da1728314b52935d59150478e57c611f27",
-        "server_action:mrp.action_production_order_scrap": "6de49e1e4e699a4449d0879a4aa82051fa506c3748cf4746fefd32864e2ce64a",
-        "server_action:mrp.action_production_order_split": "afb79a04b9a7a315bfb7a9b56753de7477b0c9572b387b57cc93115f841c819c",
-        "server_action:mrp.action_start_workorders": "1f562b742d50e5aac9be9efdc6af7aba9006774dcddbcc137cfbd714229e9840",
-        "server_action:mrp.action_unplan_workorders": "931478a91a22926110c1f96a23953c5205595fa70c03f624118de2ed813db95c",
-        "server_action:mrp.mrp_production_action_unreserve_tree": "b46faa19e88186f851be6ba38fb39db52d6c08ad3b0f45c5e864477c6408171f",
-        "server_action:payment.action_start_payment_onboarding": "828d0ee93c6e4e8b3b8bf05de3d7a70f26e1dbdcfa0957ad1a31974b1d075dac",
-        "server_action:payment.cron_post_process_payment_tx_ir_actions_server": "4d4539574a6cf897d2c047c29887b4bb4f74a9733cacbc2f6cf6fe75287ad6b9",
-        "server_action:product.action_product_price_list_report": "af295716b3157ff6d7b084dc4969d7ba91fd0dfd958e8a2859300ec95cf2403f",
-        "server_action:product.action_product_print_labels": "5853f27aa2d43400977e4f9f87d4665ac47bc906102dded1142cbcfa5173261f",
-        "server_action:product.action_product_template_price_list_report": "63f68dc4dc8e09e2251a4ce1930863cdfa1c16d4b36e6caefb142f4f7e285c0e",
-        "server_action:product.action_product_template_print_labels": "7e4239230baaea5b399ea23ee62baf0678c9ffd346527ac84fd595e19dca652c",
-        "server_action:purchase.action_confirm_rfqs": "327a5ac642faf2bc03b9cdb6056aba2c5819543171049ae41fffcce25eb5d13a",
-        "server_action:purchase.action_merger": "cb2af41144047bd908aa0853c1575b5d85a5778808c674c52e09f34facca6e87",
-        "server_action:purchase.action_purchase_send_reminder": "d0b0c227f9948d9f030a2ed3aa8faee14456dd0e340e1ee0632df9a8bf5dfa0d",
-        "server_action:purchase.model_purchase_order_action_share": "8a40079122ad72a56a89bd49a3cfbb307a48dc9d3f34281361d3b27f2e2b9071",
-        "server_action:sale.model_sale_order_action_close_invoicing": "091f8a1e92c95d8573fb965d5fbff11598c5938b3e1ee681aca80bbbe7b762de",
-        "server_action:sale.model_sale_order_action_quotation_confirm": "e9bfb8d307f15a4da7358093e32bd581b482c4380fdb541a8804636b8d6813d9",
-        "server_action:sale.model_sale_order_action_quotation_sent": "bdc760802b22994248f0a9cc1c24a33ef66bc6787ed59fda81899bd137e56a18",
-        "server_action:sale.model_sale_order_action_share": "5525b827b1443b1cae2c23f3da54f9f7fcd7a819420401c3d199502078151a86",
-        "server_action:sale.send_invoice_cron_ir_actions_server": "db20e670f9038351d45eaf55699a6c6cc4a8d9a2762a31b6448d49cb1f33511b",
-        "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server": "855d28e50cdee253bdf17741648d6c6aabf0fefeca1f5c3dfa448f910efc167a",
-        "server_action:stock.action_install_barcode": "4d5e276c2b1c72b9b268d0cdbd3f8189e51d4a72e2e2fc130527cc2b8f200465",
-        "server_action:stock.action_open_routes": "219e0f43d29f920a47c7955f3c089fd1d0d057b771bb67d457af86eb8726ec12",
-        "server_action:stock.action_print_labels": "15b8a898f8ef1cfea76be973d1ecf6f55e9d62106c5d223a8877c0baca3549b2",
-        "server_action:stock.action_product_replenishment": "bd95f89cd66e57d7ec2d4561fd6411ecf075ac501385510a2b68c1a345a54e44",
-        "server_action:stock.action_product_template_replenishment": "f9d9593492850279db097f5b88b86ed8ef711d2801371f889835927a65d55b53",
-        "server_action:stock.action_replenishment": "de70512a1048e771513e57a247c72921d1f20318ee31ca04e6bf590b205ef2db",
-        "server_action:stock.action_revert_move_line": "7028280728af199652f49acc2cefe6db352a86c368ff6a3f78e1989e0d456696",
-        "server_action:stock.action_scrap_lot": "141508a91a8c666e7f8ed491aa7919cf1917f102e36b1b61b9f4206b8cace54a",
-        "server_action:stock.action_scrap_picking": "f3e28a17b75793e8ddd41800fae041d7995a7d473e447f01cf386372e7bb2372",
-        "server_action:stock.action_stock_quant_relocate": "97bac58f25e46ef42dcab42d15157c4d0b039b77425b814266d2e75163803849",
-        "server_action:stock.action_unreserve_picking": "06f5685a7239ead59c77dce5044dcb991c0b4900f92eca99338d08d331efbd52",
-        "server_action:stock.action_validate_picking": "7fcbc4a2aac7c9ab0e0cc783bc382e9d691f5598880926863a6dd926d632d616",
-        "server_action:stock.action_view_inventory_tree": "70dd59a799ea6de2a6a93f3f534b0f10067031adf0886134b696cf630e986080",
-        "server_action:stock.action_view_quants": "a1e87bb6482e80b85b676ca644a86981d5af362a4af5adf10ac88447de0376aa",
-        "server_action:stock.action_view_set_quants_tree": "08880f815e408a458875e0138f3907417e9b11554e96f07dd49d895c50ee8ed2",
-        "server_action:stock.action_view_set_to_zero_quants_tree": "5d04d163fc353d056df46c02152b97257eeb4a204ea5ce8f101c07090f40c46e",
-        "server_action:stock.click_dashboard_graph": "29d29b776b7bc936de16d235e9a8345922e328ea4f52326c150dfd3a9f2d25d6",
-        "server_action:stock.ir_cron_scheduler_action_ir_actions_server": "4665796465e31757d5d5318ba1c69bf605fb5f91a2c08e2f5101467429553c3e",
-        "server_action:stock.method_action_picking_tree_incoming": "8f2acc0041eabb786b648cb97b7ec6c57c67982486653ff4bc40418f68ae7841",
-        "server_action:stock.method_action_picking_tree_internal": "e200d98fecb63fe01f4d181ff568bb86c9ea126d3229ba5a63c1ed9611fc8edb",
-        "server_action:stock.method_action_picking_tree_outgoing": "2445c4b65ce03128ea98d7f363523cd6665af504d46561fc79eeaa32c73bb9c9",
-        "server_action:stock.stock_split_picking": "0c287ff850f2cd0fd14b5ca5cbb98a27fc9cb2f873b0867094affc99060c9c9d"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:usl.document.context.tag.unlink",
-        "server_action:mail.ir_cron_delete_notification_ir_actions_server",
-        "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server",
-        "server_action:mail.ir_cron_mail_end_polls_ir_actions_server",
-        "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server",
-        "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server",
-        "server_action:mail.ir_cron_module_update_notification_ir_actions_server",
-        "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server",
-        "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server",
-        "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-        "server_action:purchase.purchase_send_reminder_mail_ir_actions_server",
-        "server_action:sale.model_sale_order_send_mail",
-        "server_action:sale.send_pending_emails_cron_ir_actions_server",
-        "server_action:snailmail.snailmail_print_ir_actions_server",
-        "server_action:usl_documents.action_archive_attachments_in_paperless",
-        "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server",
-        "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server",
-        "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
-        "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server"
-      ],
-      "classification": "protected",
-      "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
-      "domain": "documents_and_communications",
-      "evidence_id": "protected-deny-allow-audit-v1",
-      "id": "protected.documents_and_communications.actions",
-      "overrides": {
-        "rpc:usl.document.context.tag.unlink": {
-          "action_name": "permanently delete usl.document.context.tag",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.document.context.tag",
-            "operation": "unlink"
-          }
-        },
-        "server_action:mail.ir_cron_delete_notification_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_mail_end_polls_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_module_update_notification_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:mail.ir_cron_web_push_notification_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:purchase.purchase_send_reminder_mail_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.model_sale_order_send_mail": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale.send_pending_emails_cron_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:snailmail.snailmail_print_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents.action_archive_attachments_in_paperless": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        }
-      },
-      "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
-      "reviewed_digests": {
-        "rpc:usl.document.context.tag.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "server_action:mail.ir_cron_delete_notification_ir_actions_server": "00eda930300c37c0981c134d2341d193b3cf32c18fc38e063a0cb1c3db1e85b3",
-        "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server": "f68b14d7d42a74799fb9267f7accab88e2aad2785ccaea205b8ac02a30b47da0",
-        "server_action:mail.ir_cron_mail_end_polls_ir_actions_server": "3c9af10c3033c893388e304e8c4780bf5f69589340a44212ea097699cdbc2188",
-        "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server": "57259e0133beebe490feb13bd8c3486472268985253f66adc2e843979efe43be",
-        "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server": "2c902e39aa47b97de30ac6a7ab298cbda35dadbd1b0762ac5a63fa7f0723ef55",
-        "server_action:mail.ir_cron_module_update_notification_ir_actions_server": "3af2714e72f4e58788d92ec655d8b4206457f63175c58533309e14124af6b322",
-        "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server": "763c4e8108e9849272b38f75fcdfa30794648be6f17044da2ef15f9af170a0e8",
-        "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server": "c364dfdfe24503b7ecba2b98d441853d7cf8a9eb0130aed5377c880fe6c2ff4d",
-        "server_action:mail.ir_cron_web_push_notification_ir_actions_server": "8e1e518216f8810951108c7b4b483cdd375c15643e3e2dceda3d2bac182beb4e",
-        "server_action:purchase.purchase_send_reminder_mail_ir_actions_server": "bddca3edd154f0629e433200957b99bba1b8f4f1ba672613e071582d76a8c830",
-        "server_action:sale.model_sale_order_send_mail": "30751edce022fa20565d68a2e78e057ac1c26bd78ebefe7edd44bc775e02ef66",
-        "server_action:sale.send_pending_emails_cron_ir_actions_server": "6a91452e22f1c63ea852f0d35cb2ec900d33464f3231a158259d9524d1c621ff",
-        "server_action:snailmail.snailmail_print_ir_actions_server": "a4891d45ea3893ed986b5810ac3ef81314ff0b0736a527f1e95f397ce1f20721",
-        "server_action:usl_documents.action_archive_attachments_in_paperless": "a340eea0a78af4e9c30d19a92e4c4deb80d3f533e8f2e660679308acc16c3010",
-        "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server": "430c781991e192c88bf40437a8a72c5e6573e18c1e039dce67a34ffc745cf25c",
-        "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server": "c86cd403391c9c7feea33c9c90b7debee20f6eb2aeba664c2c78b65ba982a50c",
-        "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server": "235f880b1f481629a09b73fecb64206815b35a360f2d7658ec586b0ffca4a1ca",
-        "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server": "6be66314f2c25ae4e2b8da618a6100c59b869d8b8fbfcc5b48c2b531e1e19a9b"
+        "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
     {
@@ -1234,19 +944,7 @@
     {
       "action_keys": [
         "server_action:hr.action_hr_employee_create_users",
-        "server_action:hr.action_hr_employee_create_users_confirmation",
-        "server_action:hr.action_hr_employee_departure",
-        "server_action:hr.action_hr_employee_load_demo_data",
-        "server_action:hr.ir_cron_apply_departure_ir_actions_server",
-        "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server",
-        "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server",
-        "server_action:hr_skills.action_open_skills_log_department",
-        "server_action:hr_skills.action_print_employees_cv",
-        "server_action:hr_skills.action_server_hr_employee_skill_certification",
-        "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server",
-        "server_action:usl_tese_payroll.action_open_tese_settings",
-        "server_action:usl_tese_payroll.action_run_tese_diagnostics",
-        "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server"
+        "server_action:hr.action_hr_employee_create_users_confirmation"
       ],
       "classification": "protected",
       "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
@@ -1261,85 +959,18 @@
         "server_action:hr.action_hr_employee_create_users_confirmation": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr.action_hr_employee_departure": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr.action_hr_employee_load_demo_data": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr.ir_cron_apply_departure_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr_skills.action_open_skills_log_department": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr_skills.action_print_employees_cv": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr_skills.action_server_hr_employee_skill_certification": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_tese_payroll.action_open_tese_settings": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_tese_payroll.action_run_tese_diagnostics": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
         }
       },
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "server_action:hr.action_hr_employee_create_users": "76e32cc37464dfc2f174ab70cc43a1b43477e2ee6a83ed26b938179a25da2d2e",
-        "server_action:hr.action_hr_employee_create_users_confirmation": "dfe3e35d55a0765aa37f59996f2f6735821f0d62d5160fac5b6d3f165a61eb28",
-        "server_action:hr.action_hr_employee_departure": "4176d87dd73c7e2c8ada286e3485670c27d1732e0ab03e5eecef874b01fa629e",
-        "server_action:hr.action_hr_employee_load_demo_data": "bea5948233711b2086f6923310c510c1934aa34ec48c2a9f7ee6d105928c7eda",
-        "server_action:hr.ir_cron_apply_departure_ir_actions_server": "077b48aa0ca79f7612a84bd0b5410a45fae30b789393a71307c7b22ad521f1d1",
-        "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server": "a31ca33a1ca22ebb002baf350ce6f001b5a69a8a0b023487bd6bcf0938c73189",
-        "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server": "73a146bb1555a1700fb9b2a9bf2e48b71ab6873f2b95f01ff8ebcdac9b2881aa",
-        "server_action:hr_skills.action_open_skills_log_department": "d6c5523fff9b225087b2a6d646730da2d5e16c40a3f00fd501f160f750938fc2",
-        "server_action:hr_skills.action_print_employees_cv": "617eeef3a3afb0b5a5a189d4713969e361c503f7ef840d64f2c4305feb6a2b85",
-        "server_action:hr_skills.action_server_hr_employee_skill_certification": "64889d817b6518be583d7d05db9a7ff8462ad5854619452306d2598202eb48c1",
-        "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server": "e80b5cc611fa72641e40622f1821e63a9fe8f32a4180cf8ca6100a1c1e62da3a",
-        "server_action:usl_tese_payroll.action_open_tese_settings": "23304300f44bb0634657f8a098b74f42c76afd3ca3a83b55bbe64818e6390d5e",
-        "server_action:usl_tese_payroll.action_run_tese_diagnostics": "e429770c93b833268dfd0fc30cb39dfda7d4dfd8b8e64edbdb20cfb7a86896ad",
-        "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server": "b683d643c18e9c24881fccd9ac133bde390079e18acf3496aa00221747935475"
+        "server_action:hr.action_hr_employee_create_users_confirmation": "dfe3e35d55a0765aa37f59996f2f6735821f0d62d5160fac5b6d3f165a61eb28"
       }
     },
     {
       "action_keys": [
-        "server_action:project.action_server_convert_project_to_template",
-        "server_action:project.action_server_convert_to_subtask",
-        "server_action:project.action_server_convert_to_template",
-        "server_action:project.action_server_share_project",
-        "server_action:project.action_server_share_task",
-        "server_action:project.ir_cron_rating_project_ir_actions_server",
         "server_action:project.unlink_project_stage_action",
-        "server_action:project.unlink_task_type_action",
-        "server_action:sale_project.model_sale_order_action_create_project"
+        "server_action:project.unlink_task_type_action"
       ],
       "classification": "protected",
       "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
@@ -1347,30 +978,6 @@
       "evidence_id": "protected-deny-allow-audit-v1",
       "id": "protected.projects.actions",
       "overrides": {
-        "server_action:project.action_server_convert_project_to_template": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:project.action_server_convert_to_subtask": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:project.action_server_convert_to_template": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:project.action_server_share_project": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:project.action_server_share_task": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:project.ir_cron_rating_project_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "server_action:project.unlink_project_stage_action": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
@@ -1378,23 +985,12 @@
         "server_action:project.unlink_task_type_action": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sale_project.model_sale_order_action_create_project": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
         }
       },
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
-        "server_action:project.action_server_convert_project_to_template": "83acab65ef281b745c94e900387b1945477ab28e9cf707121d9ea4935ba605f9",
-        "server_action:project.action_server_convert_to_subtask": "86b8645d0452fdfe28315e22fbcec868678ed1f4b6b6d4034d39b4431ac043cd",
-        "server_action:project.action_server_convert_to_template": "721cb42a566406dd3d75770331c8fe3c53ce7f8a3ce65a546a60ab7d41e76596",
-        "server_action:project.action_server_share_project": "867ad26b377b70022a51b0f621a10fb13344daf3e7580449ec1d8fc402e3e727",
-        "server_action:project.action_server_share_task": "c812c12c28093aaf202d43d63738abec884fd594a9073de6f875a2cf42341790",
-        "server_action:project.ir_cron_rating_project_ir_actions_server": "1bf6a34ea6e8fcd7443c1644cd485001644bae0bab00ad72d216a0c7518aac8d",
         "server_action:project.unlink_project_stage_action": "682db066f4af25fc3b42be35feaf8b5c495e77d97bed0bd5184f5ba42a7c207f",
-        "server_action:project.unlink_task_type_action": "0e6c8d6b98fd9c8e107d4f2ca87d243939e1d4509103ea22c8ca6404646a7a53",
-        "server_action:sale_project.model_sale_order_action_create_project": "d57eda033c77c069c4b41d09b61b738a2830cdd4440f1d16dd4181fb19bc7eaf"
+        "server_action:project.unlink_task_type_action": "0e6c8d6b98fd9c8e107d4f2ca87d243939e1d4509103ea22c8ca6404646a7a53"
       }
     },
     {
@@ -1403,7 +999,6 @@
         "guard:authorization.user.change",
         "guard:authorization.user.create",
         "guard:authorization.user.delete",
-        "guard:automation.cron.run_manual",
         "guard:automation.server_action.execute",
         "guard:documents.permanent_delete",
         "guard:documents.permanent_deletion.approve",
@@ -1417,6 +1012,7 @@
         "guard:einvoice.peppol.register",
         "guard:einvoice.peppol.reregister",
         "guard:einvoice.peppol.unregister",
+        "guard:evidence.attachment.delete",
         "guard:module.install",
         "guard:module.uninstall",
         "guard:module.upgrade",
@@ -1435,10 +1031,7 @@
         "rpc:base.module.uninstall.action_uninstall",
         "rpc:certificate.certificate.unlink",
         "rpc:certificate.key.unlink",
-        "rpc:crm.team.member.unlink",
         "rpc:crm.team.unlink",
-        "rpc:date.range.type.unlink",
-        "rpc:date.range.unlink",
         "rpc:delivery.carrier.unlink",
         "rpc:discuss.channel.unlink",
         "rpc:fetchmail.server.unlink",
@@ -1446,31 +1039,21 @@
         "rpc:hr.department.unlink",
         "rpc:hr.departure.reason.unlink",
         "rpc:hr.employee.public.unlink",
-        "rpc:hr.employee.skill.report.unlink",
         "rpc:hr.employee.unlink",
         "rpc:hr.job.unlink",
         "rpc:hr.skill.type.unlink",
         "rpc:hr.version.unlink",
         "rpc:hr.work.location.unlink",
         "rpc:ir.actions.server.create",
-        "rpc:ir.actions.server.run",
         "rpc:ir.actions.server.unlink",
         "rpc:ir.actions.server.write",
-        "rpc:ir.asset.unlink",
+        "rpc:ir.attachment.unlink",
         "rpc:ir.config_parameter.create",
         "rpc:ir.config_parameter.unlink",
         "rpc:ir.config_parameter.write",
         "rpc:ir.cron.create",
-        "rpc:ir.cron.method_direct_trigger",
         "rpc:ir.cron.unlink",
         "rpc:ir.cron.write",
-        "rpc:ir.default.create",
-        "rpc:ir.default.unlink",
-        "rpc:ir.default.write",
-        "rpc:ir.filters.unlink",
-        "rpc:ir.logging.create",
-        "rpc:ir.logging.unlink",
-        "rpc:ir.logging.write",
         "rpc:ir.mail_server.unlink",
         "rpc:ir.model.access.create",
         "rpc:ir.model.access.unlink",
@@ -1506,12 +1089,8 @@
         "rpc:ir.ui.view.create",
         "rpc:ir.ui.view.unlink",
         "rpc:ir.ui.view.write",
-        "rpc:mail.activity.plan.unlink",
-        "rpc:mail.activity.type.unlink",
-        "rpc:mail.activity.unlink",
         "rpc:mail.blacklist.unlink",
         "rpc:mail.message.unlink",
-        "rpc:mail.template.unlink",
         "rpc:mail.tracking.value.unlink",
         "rpc:mail.tracking.value.write",
         "rpc:microsoft.outlook.mixin.unlink",
@@ -1520,7 +1099,6 @@
         "rpc:mrp.workcenter.unlink",
         "rpc:payment.method.unlink",
         "rpc:payment.provider.button_immediate_install",
-        "rpc:payment.token.unlink",
         "rpc:phone.blacklist.unlink",
         "rpc:product.attribute.unlink",
         "rpc:product.attribute.value.unlink",
@@ -1546,15 +1124,12 @@
         "rpc:res.groups.write",
         "rpc:res.lang.unlink",
         "rpc:res.partner.bank.unlink",
-        "rpc:res.partner.category.unlink",
-        "rpc:res.partner.industry.unlink",
         "rpc:res.partner.unlink",
         "rpc:res.users.unlink",
         "rpc:resource.calendar.unlink",
         "rpc:resource.resource.unlink",
         "rpc:sale.order.template.unlink",
         "rpc:sale.order.unlink",
-        "rpc:spreadsheet.dashboard.share.unlink",
         "rpc:stock.location.unlink",
         "rpc:stock.picking.type.unlink",
         "rpc:stock.picking.unlink",
@@ -1569,32 +1144,21 @@
         "rpc:usl.document.action_approve_permanent_deletion",
         "rpc:usl.document.action_permanently_delete_from_trash",
         "rpc:usl.document.approve_permanent_deletion",
-        "rpc:usl.document.link.unlink",
         "rpc:usl.document.permanently_delete_from_trash",
-        "rpc:usl.document.quick.filter.unlink",
-        "rpc:usl.document.smart.view.unlink",
         "rpc:usl.document.unlink",
         "rpc:usl.oidc.identity.create",
         "rpc:usl.oidc.identity.unlink",
         "rpc:usl.oidc.identity.write",
-        "rpc:usl.paperless.correspondent.unlink",
-        "rpc:usl.paperless.document.type.unlink",
-        "rpc:usl.paperless.metadata.mixin.unlink",
-        "rpc:usl.paperless.tag.unlink",
         "rpc:usl.paperless.user.mapping.unlink",
         "rpc:usl.platform.billing.payout.unlink",
         "rpc:usl.platform.billing.platform.unlink",
         "rpc:usl.platform.billing.session.unlink",
-        "rpc:usl.tese.diagnostic.issue.unlink",
         "rpc:usl.tese.payslip.unlink",
         "rpc:usl.tese.profile.unlink",
         "rpc:utm.campaign.unlink",
         "rpc:utm.medium.unlink",
-        "server_action:auth_signup.action_send_password_reset_instructions",
-        "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server",
         "server_action:auth_totp.action_disable_totp",
-        "server_action:auth_totp_mail.action_activate_two_factor_authentication",
-        "server_action:auth_totp_mail.action_invite_totp",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1",
@@ -1618,9 +1182,6 @@
         },
         "guard:authorization.user.delete": {
           "action_name": "delete a user identity"
-        },
-        "guard:automation.cron.run_manual": {
-          "action_name": "run a scheduled action manually"
         },
         "guard:automation.server_action.execute": {
           "action_name": "execute a server action"
@@ -1660,6 +1221,9 @@
         },
         "guard:einvoice.peppol.unregister": {
           "action_name": "unregister from Peppol"
+        },
+        "guard:evidence.attachment.delete": {
+          "action_name": "permanently delete attachment evidence from a business record"
         },
         "guard:module.install": {
           "action_name": "install or import module code"
@@ -1782,35 +1346,11 @@
             "operation": "unlink"
           }
         },
-        "rpc:crm.team.member.unlink": {
-          "action_name": "permanently delete crm.team.member",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "crm.team.member",
-            "operation": "unlink"
-          }
-        },
         "rpc:crm.team.unlink": {
           "action_name": "permanently delete crm.team",
           "enforcement": {
             "kind": "model_operation",
             "model": "crm.team",
-            "operation": "unlink"
-          }
-        },
-        "rpc:date.range.type.unlink": {
-          "action_name": "permanently delete date.range.type",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "date.range.type",
-            "operation": "unlink"
-          }
-        },
-        "rpc:date.range.unlink": {
-          "action_name": "permanently delete date.range",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "date.range",
             "operation": "unlink"
           }
         },
@@ -1870,14 +1410,6 @@
             "operation": "unlink"
           }
         },
-        "rpc:hr.employee.skill.report.unlink": {
-          "action_name": "permanently delete hr.employee.skill.report",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "hr.employee.skill.report",
-            "operation": "unlink"
-          }
-        },
         "rpc:hr.employee.unlink": {
           "action_name": "permanently delete hr.employee",
           "enforcement": {
@@ -1926,10 +1458,6 @@
             "operation": "create"
           }
         },
-        "rpc:ir.actions.server.run": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "rpc:ir.actions.server.unlink": {
           "action_name": "permanently delete ir.actions.server",
           "enforcement": {
@@ -1946,13 +1474,9 @@
             "operation": "write"
           }
         },
-        "rpc:ir.asset.unlink": {
-          "action_name": "permanently delete ir.asset",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.asset",
-            "operation": "unlink"
-          }
+        "rpc:ir.attachment.unlink": {
+          "action_name": "permanently delete attachment evidence from a business record",
+          "guard_key": "guard:evidence.attachment.delete"
         },
         "rpc:ir.config_parameter.create": {
           "action_name": "create ir.config_parameter",
@@ -1986,10 +1510,6 @@
             "operation": "create"
           }
         },
-        "rpc:ir.cron.method_direct_trigger": {
-          "action_name": "run a scheduled action manually",
-          "guard_key": "guard:automation.cron.run_manual"
-        },
         "rpc:ir.cron.unlink": {
           "action_name": "permanently delete ir.cron",
           "enforcement": {
@@ -2003,62 +1523,6 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "ir.cron",
-            "operation": "write"
-          }
-        },
-        "rpc:ir.default.create": {
-          "action_name": "create ir.default",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.default",
-            "operation": "create"
-          }
-        },
-        "rpc:ir.default.unlink": {
-          "action_name": "permanently delete ir.default",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.default",
-            "operation": "unlink"
-          }
-        },
-        "rpc:ir.default.write": {
-          "action_name": "modify ir.default",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.default",
-            "operation": "write"
-          }
-        },
-        "rpc:ir.filters.unlink": {
-          "action_name": "permanently delete ir.filters",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.filters",
-            "operation": "unlink"
-          }
-        },
-        "rpc:ir.logging.create": {
-          "action_name": "create ir.logging",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.logging",
-            "operation": "create"
-          }
-        },
-        "rpc:ir.logging.unlink": {
-          "action_name": "permanently delete ir.logging",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.logging",
-            "operation": "unlink"
-          }
-        },
-        "rpc:ir.logging.write": {
-          "action_name": "modify ir.logging",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "ir.logging",
             "operation": "write"
           }
         },
@@ -2314,30 +1778,6 @@
             "operation": "write"
           }
         },
-        "rpc:mail.activity.plan.unlink": {
-          "action_name": "permanently delete mail.activity.plan",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "mail.activity.plan",
-            "operation": "unlink"
-          }
-        },
-        "rpc:mail.activity.type.unlink": {
-          "action_name": "permanently delete mail.activity.type",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "mail.activity.type",
-            "operation": "unlink"
-          }
-        },
-        "rpc:mail.activity.unlink": {
-          "action_name": "permanently delete mail.activity",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "mail.activity",
-            "operation": "unlink"
-          }
-        },
         "rpc:mail.blacklist.unlink": {
           "action_name": "permanently delete mail.blacklist",
           "enforcement": {
@@ -2351,14 +1791,6 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "mail.message",
-            "operation": "unlink"
-          }
-        },
-        "rpc:mail.template.unlink": {
-          "action_name": "permanently delete mail.template",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "mail.template",
             "operation": "unlink"
           }
         },
@@ -2421,14 +1853,6 @@
         "rpc:payment.provider.button_immediate_install": {
           "action_name": "install or import module code",
           "guard_key": "guard:module.install"
-        },
-        "rpc:payment.token.unlink": {
-          "action_name": "permanently delete payment.token",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "payment.token",
-            "operation": "unlink"
-          }
         },
         "rpc:phone.blacklist.unlink": {
           "action_name": "permanently delete phone.blacklist",
@@ -2630,22 +2054,6 @@
             "operation": "unlink"
           }
         },
-        "rpc:res.partner.category.unlink": {
-          "action_name": "permanently delete res.partner.category",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "res.partner.category",
-            "operation": "unlink"
-          }
-        },
-        "rpc:res.partner.industry.unlink": {
-          "action_name": "permanently delete res.partner.industry",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "res.partner.industry",
-            "operation": "unlink"
-          }
-        },
         "rpc:res.partner.unlink": {
           "action_name": "permanently delete res.partner",
           "enforcement": {
@@ -2687,14 +2095,6 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "sale.order",
-            "operation": "unlink"
-          }
-        },
-        "rpc:spreadsheet.dashboard.share.unlink": {
-          "action_name": "permanently delete spreadsheet.dashboard.share",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "spreadsheet.dashboard.share",
             "operation": "unlink"
           }
         },
@@ -2798,33 +2198,9 @@
           "action_name": "approve permanent document deletion",
           "guard_key": "guard:documents.permanent_deletion.approve"
         },
-        "rpc:usl.document.link.unlink": {
-          "action_name": "permanently delete usl.document.link",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.document.link",
-            "operation": "unlink"
-          }
-        },
         "rpc:usl.document.permanently_delete_from_trash": {
           "action_name": "permanently delete a document",
           "guard_key": "guard:documents.permanent_delete"
-        },
-        "rpc:usl.document.quick.filter.unlink": {
-          "action_name": "permanently delete usl.document.quick.filter",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.document.quick.filter",
-            "operation": "unlink"
-          }
-        },
-        "rpc:usl.document.smart.view.unlink": {
-          "action_name": "permanently delete usl.document.smart.view",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.document.smart.view",
-            "operation": "unlink"
-          }
         },
         "rpc:usl.document.unlink": {
           "action_name": "permanently delete usl.document",
@@ -2858,38 +2234,6 @@
             "operation": "write"
           }
         },
-        "rpc:usl.paperless.correspondent.unlink": {
-          "action_name": "permanently delete usl.paperless.correspondent",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.paperless.correspondent",
-            "operation": "unlink"
-          }
-        },
-        "rpc:usl.paperless.document.type.unlink": {
-          "action_name": "permanently delete usl.paperless.document.type",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.paperless.document.type",
-            "operation": "unlink"
-          }
-        },
-        "rpc:usl.paperless.metadata.mixin.unlink": {
-          "action_name": "permanently delete usl.paperless.metadata.mixin",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.paperless.metadata.mixin",
-            "operation": "unlink"
-          }
-        },
-        "rpc:usl.paperless.tag.unlink": {
-          "action_name": "permanently delete usl.paperless.tag",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.paperless.tag",
-            "operation": "unlink"
-          }
-        },
         "rpc:usl.paperless.user.mapping.unlink": {
           "action_name": "permanently delete usl.paperless.user.mapping",
           "enforcement": {
@@ -2919,14 +2263,6 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "usl.platform.billing.session",
-            "operation": "unlink"
-          }
-        },
-        "rpc:usl.tese.diagnostic.issue.unlink": {
-          "action_name": "permanently delete usl.tese.diagnostic.issue",
-          "enforcement": {
-            "kind": "model_operation",
-            "model": "usl.tese.diagnostic.issue",
             "operation": "unlink"
           }
         },
@@ -2962,25 +2298,13 @@
             "operation": "unlink"
           }
         },
-        "server_action:auth_signup.action_send_password_reset_instructions": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "server_action:auth_totp.action_disable_totp": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
         },
-        "server_action:auth_totp_mail.action_activate_two_factor_authentication": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:auth_totp_mail.action_invite_totp": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1": {
+          "action_name": "permanently delete attachment evidence from a business record",
+          "guard_key": "guard:evidence.attachment.delete"
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1": {
           "action_name": "create a company security boundary",
@@ -3009,8 +2333,7 @@
         "guard:authorization.user.change": "3fc91db25c870d43a7e6b40bfde10528906584d2b4fb9cedad940d77cf7a21e6",
         "guard:authorization.user.create": "5ef218c7a4556a7f396d7e24abd1d53dbe1aa9be090dd3c759b342c2342b717a",
         "guard:authorization.user.delete": "646f25b1d77e2275997f084a793b4873d983a2fe7c66fec536a4afa0aefdb963",
-        "guard:automation.cron.run_manual": "051fa75b10bc77c4c7b73f1f6db0013b6a1b5774071564f6d3ac0e977e7d5dd9",
-        "guard:automation.server_action.execute": "2d96a68689dbb4cc9f6b96dbec5b91de764535110a5b7e8b7e3a0c7c0834757b",
+        "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
         "guard:documents.permanent_delete": "cf51bb1a00246cc929d137830c61409f9ec7905a973c6b02f83a3c2f6c8c97fc",
         "guard:documents.permanent_deletion.approve": "3fc1dea7d77a3e9abf192c8acfd7fd4fab45adf1d38e81ecd7eaaf6db6d33a2b",
         "guard:einvoice.pdp.deregister": "debce91a440eba0ddf192607f3709e6922a9401023c95b631077e374fca0bf85",
@@ -3023,6 +2346,7 @@
         "guard:einvoice.peppol.register": "9d31895271e03ca9ec05635d4fda96ce5a70baf0f8aff8caf8535c1bf0dd9ace",
         "guard:einvoice.peppol.reregister": "00fe1b531e260c3e37152413b62724bc98e2d6692f9f030bb1e6f954d35e37ff",
         "guard:einvoice.peppol.unregister": "14e1798d57857e9eb918f1cc544b9470e26541c603dfa91265bb853c49a21f51",
+        "guard:evidence.attachment.delete": "d59ac4da75db6ddb62c96d2a584bc8de4b29746e176dba2d8a4d69868e5a6248",
         "guard:module.install": "74a3166c9592835b27e909b069697ee8bc12fec9b7bb99002a6a15145057e8b1",
         "guard:module.uninstall": "509010a57ac9a9dc334e3038b593bbf3a930bad31c6dd54e81451766e7244506",
         "guard:module.upgrade": "8cee2f3e7419e9da637c577788da41e55e980dc772a8dc1b740135b3eeaa6feb",
@@ -3041,10 +2365,7 @@
         "rpc:base.module.uninstall.action_uninstall": "1c2756a0ecacb032cac86600854ba8c52800104d06d09f18332e778a9b7ff975",
         "rpc:certificate.certificate.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:certificate.key.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:crm.team.member.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:crm.team.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
-        "rpc:date.range.type.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:date.range.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:delivery.carrier.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:discuss.channel.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:fetchmail.server.unlink": "555fe65fbc25f941bfe86b5b74090e7a0a59af392f8e42af52617426c53a00fc",
@@ -3052,31 +2373,21 @@
         "rpc:hr.department.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:hr.departure.reason.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:hr.employee.public.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:hr.employee.skill.report.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:hr.employee.unlink": "807367cf36ffa0027b4237e8abcd36f2699359fc4533cbe1f56ed471e3152194",
         "rpc:hr.job.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:hr.skill.type.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:hr.version.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:hr.work.location.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:ir.actions.server.create": "bbced051deff56c0662454f1e06d2ff923a9844ffb7e759c9b87e7448c0a0f0e",
-        "rpc:ir.actions.server.run": "d2aa0c3f5eeff17d4a1c584424a5bc9a1a4fb939ce2834b25e11f6c42b7bec94",
         "rpc:ir.actions.server.unlink": "b53424ca9eccb099b339db0e330afa1ee05394a7aaf0f83d86dca0d9f8303582",
         "rpc:ir.actions.server.write": "9a3be3cbd0d88892d3f7ee43d7daa8b484e12573fdbf3bb1db9bab0e0a833c3d",
-        "rpc:ir.asset.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:ir.attachment.unlink": "74265623b4f391738e171a338f9f5fbbaab3eb6e31a3a42a1545e3de65ff67f2",
         "rpc:ir.config_parameter.create": "3d9d54de973f721d1ccbf685db10ca1e085f88ef337011bca572f1be04054a18",
         "rpc:ir.config_parameter.unlink": "7b5fc3417c55146f045cf62f38dbad4db777d654d28e6b26dcc6f0e53324fc2b",
         "rpc:ir.config_parameter.write": "fd8f93b0bbf2a23da02349ca2d1ea6cf2d07757903143c752d0584fcf03f29d2",
         "rpc:ir.cron.create": "ad82ec4c3ef75ab63cfeaae840a6a4a466a6bf5e670e23b985b2b4b86ac175d5",
-        "rpc:ir.cron.method_direct_trigger": "07cee663db112dba1b8b4bf58fc3434ab6caf1ac842ef3f1cb1291d918e52893",
         "rpc:ir.cron.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:ir.cron.write": "18959930c8ca229fc43407d8c3620910d445616d5f7074e74d6d22b5cd2d66e5",
-        "rpc:ir.default.create": "5d88f4236bb5f5b2b5600f6f1820058bec2cb68fe0b59afa06c0112ba1dd5c2e",
-        "rpc:ir.default.unlink": "03c8225a97ce03e6b2e005cd8d033c5b7dbf3ac8ec4e576dba011d827ea99a7d",
-        "rpc:ir.default.write": "0ffc3813a3b67b3a2dd375074237d4925f6dc1da66e0d89d2b6c33908aa4aed9",
-        "rpc:ir.filters.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:ir.logging.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
-        "rpc:ir.logging.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:ir.logging.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
         "rpc:ir.mail_server.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:ir.model.access.create": "3670569de116628c4e133f9386029752c3c15879a9310a93048d6204d773df19",
         "rpc:ir.model.access.unlink": "7257f9dcdc052908d8afb22b699cde76328a6d01bf54704eb998c6665ac7852a",
@@ -3112,12 +2423,8 @@
         "rpc:ir.ui.view.create": "b249582d2d7f8aaf62bcab0ba9a0508df6bb39038e21ea6ed425e6dd78121fae",
         "rpc:ir.ui.view.unlink": "4b8e540affe6769af19683aee4f2f01c1dc45af66facfb4e41242d8d9d4f94ea",
         "rpc:ir.ui.view.write": "5ab2297230c356aa17c21fb39b5cd45b29125fa9f420e08f50d2da7acda165a2",
-        "rpc:mail.activity.plan.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:mail.activity.type.unlink": "005b211586fc7dda956ed6fcfa2fadfc11b8f6992d5affee915392076ccf4aaf",
-        "rpc:mail.activity.unlink": "af18da5ca8950293dd906a13fb9190b495fbc180a7612c1bec95e6f55056dfe3",
         "rpc:mail.blacklist.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:mail.message.unlink": "ec764b4367f5554ac93b8ed7865a737881f7e5ff5cea642e4d898d898f2459dd",
-        "rpc:mail.template.unlink": "3c9e899e780b090daabd33264033341df8e2258f766a1961f8bffe9da216d51f",
         "rpc:mail.tracking.value.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:mail.tracking.value.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
         "rpc:microsoft.outlook.mixin.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
@@ -3126,7 +2433,6 @@
         "rpc:mrp.workcenter.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:payment.method.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:payment.provider.button_immediate_install": "7e57a30d3d0be775a3e05c894f3c4b6543b920c376ed285ef6e1be664cbf952a",
-        "rpc:payment.token.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:phone.blacklist.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:product.attribute.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:product.attribute.value.unlink": "70478b39ace22652230031134352314f5e59510648507773ea1d0b71106f8cc2",
@@ -3152,15 +2458,12 @@
         "rpc:res.groups.write": "b8114c84b3259b40b33fb6b268712649d1c87d474bb4658022d8a9c24963d4c2",
         "rpc:res.lang.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:res.partner.bank.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
-        "rpc:res.partner.category.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:res.partner.industry.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:res.partner.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:res.users.unlink": "4401983bb99f53f62badbe17b739cb3f2be5903c321c3ae5b23afaa947ded51e",
         "rpc:resource.calendar.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:resource.resource.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:sale.order.template.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:sale.order.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
-        "rpc:spreadsheet.dashboard.share.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:stock.location.unlink": "cc2c463d0d51552da6e86a91df7532afd83447002cb8c29574685a669e9bc230",
         "rpc:stock.picking.type.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:stock.picking.unlink": "a2e59ee3e8f95591138d6f93addd36ed5bc8cd4640b005ec412cce27827637bc",
@@ -3175,32 +2478,21 @@
         "rpc:usl.document.action_approve_permanent_deletion": "3f86279d31d4ea9e6e10d5e459d3416793c12500fac798784086a03c37a438cd",
         "rpc:usl.document.action_permanently_delete_from_trash": "bc2a345333549e455d3953017f90cb62d834e465b565f7dcbbaaf314b5589de2",
         "rpc:usl.document.approve_permanent_deletion": "546e680179946e5b02b626752d5d40269c3cc72f0065fb37dce7d9ef30489f5c",
-        "rpc:usl.document.link.unlink": "a48d55c1d401681a8e018cf933cc5e6791027067191f9bcc468f2a9c665234ab",
         "rpc:usl.document.permanently_delete_from_trash": "d6a4dc694ab19e7036b88218be8e1ba50acd6da245e2fab558c90b8af8adda71",
-        "rpc:usl.document.quick.filter.unlink": "f69b0f2f9f11a4b239e2b06151e9236e19044bdac0b933354b71b1137e0a5067",
-        "rpc:usl.document.smart.view.unlink": "981499c8a4cd08c867dc15a7ce73e9abe7dbbb04b7ec6991022111d0693eea88",
         "rpc:usl.document.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:usl.oidc.identity.create": "97faae6d319ee5c41e381db7a9ea6fef0a6b5b52cf840de811f87d534a91f003",
         "rpc:usl.oidc.identity.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:usl.oidc.identity.write": "8c9d29a2d40645ef5ea8d4e3b89878bc064b3deca6ffda25a7978af851444892",
-        "rpc:usl.paperless.correspondent.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
-        "rpc:usl.paperless.document.type.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
-        "rpc:usl.paperless.metadata.mixin.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
-        "rpc:usl.paperless.tag.unlink": "95737d252b06f01d401b0e87af743cf8d16750ba0e396de76321bcd7379f2223",
         "rpc:usl.paperless.user.mapping.unlink": "a63fe588620f43180853f8ae9a6aab8a03066961ca656163bcf983402d059eb5",
         "rpc:usl.platform.billing.payout.unlink": "4d8b176728e394f7c23d38e8241f662caf08e771050f6b25ea2a7e0fc6d208a0",
         "rpc:usl.platform.billing.platform.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:usl.platform.billing.session.unlink": "0c91a702455ff7980be33f4ae15b3a4b23ad8ccc07c0ab8d238ea5f947cd235f",
-        "rpc:usl.tese.diagnostic.issue.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:usl.tese.payslip.unlink": "fdc2b59d3ff8287e8bc8fdee44c499ecffaca657d2b898a456d801cf760d3989",
         "rpc:usl.tese.profile.unlink": "32e7b5ee5a312aa3be8ede32e034319b7c702f14c517b1ca1644919acdabd5f9",
         "rpc:utm.campaign.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:utm.medium.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "server_action:auth_signup.action_send_password_reset_instructions": "63ead9a48c331f2d0ea6cb917f8d65070442015b7e142fd7bf899258bc7a3f06",
-        "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server": "f2590a043d7609c070f64f60f0089841042a24c4aa75214f5f1709e72dd5d5f0",
         "server_action:auth_totp.action_disable_totp": "71dafc4cb3332592c617222ffd7e4677dca1d4e0cf0c096dcaeab5e39a3ae9f3",
-        "server_action:auth_totp_mail.action_activate_two_factor_authentication": "721ebdb3ea89decdbdedf1013fc5904595d902102d000b66ad509e7b851d6908",
-        "server_action:auth_totp_mail.action_invite_totp": "f51640e776534dd42bd202082b6a1d2ad75f372271ca428f7b0e2f37b96c4704",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1": "86a468e879ed4137c08dbb11bbaf62b92282c44edaea27ae110e625bdab70e44",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1": "d12782bb92f974f38facf3ac324772c85bcdc543ed4d675440f5e23e2d373031",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "27eb5e3cc821efb88c7e56130c397f482d15ac654d85f48b942f010eb5f55e99",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "9cd139144b17333a868dcfecf67db632ac6e7384fda618ba686b7e578b8168e5",
@@ -3211,23 +2503,8 @@
     {
       "action_keys": [
         "server_action:base.action_run_ir_action_todo",
-        "server_action:base.autovacuum_job_ir_actions_server",
-        "server_action:base.demo_failure_action",
-        "server_action:base.ir_actions_server_change_password_wizard",
         "server_action:base.ir_cron_res_users_deletion_ir_actions_server",
-        "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server",
-        "server_action:base_vat.vies_iap_check_update_ir_actions_server",
-        "server_action:date_range.ir_cron_autocreate_ir_actions_server",
-        "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server",
-        "server_action:portal.partner_wizard_action_create_and_open",
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner",
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user",
-        "server_action:privacy_lookup.ir_actions_server_archive_all",
-        "server_action:privacy_lookup.ir_actions_server_unlink_all",
-        "server_action:sms.ir_actions_server_sms_sms_resend",
-        "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server",
-        "server_action:web.download_contact",
-        "server_action:web_tour.tour_export_js_action"
+        "server_action:privacy_lookup.ir_actions_server_unlink_all"
       ],
       "classification": "protected",
       "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
@@ -3239,71 +2516,11 @@
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
         },
-        "server_action:base.autovacuum_job_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:base.demo_failure_action": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:base.ir_actions_server_change_password_wizard": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "server_action:base.ir_cron_res_users_deletion_ir_actions_server": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
         },
-        "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:base_vat.vies_iap_check_update_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:date_range.ir_cron_autocreate_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:portal.partner_wizard_action_create_and_open": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:privacy_lookup.ir_actions_server_archive_all": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
         "server_action:privacy_lookup.ir_actions_server_unlink_all": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sms.ir_actions_server_sms_sms_resend": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:web.download_contact": {
-          "action_name": "execute a server action",
-          "guard_key": "guard:automation.server_action.execute"
-        },
-        "server_action:web_tour.tour_export_js_action": {
           "action_name": "execute a server action",
           "guard_key": "guard:automation.server_action.execute"
         }
@@ -3311,23 +2528,8 @@
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "server_action:base.action_run_ir_action_todo": "03cace81aa2cd82d9c8c1aadbaa91d55bbb511dd5721bcfba1b2b55b6c560052",
-        "server_action:base.autovacuum_job_ir_actions_server": "6da1310d02f2c9b761cabb2d07d88a36058320556f044eac2e97a8319e6a4269",
-        "server_action:base.demo_failure_action": "71d29e8403d86bc5b1a5daefd2ee42f49c4ecca99d7f75added902e6d6f96dd0",
-        "server_action:base.ir_actions_server_change_password_wizard": "bb6822f4296a1621086207408ebcb32cb60a03b67ceb259a2563eae01c33c05f",
         "server_action:base.ir_cron_res_users_deletion_ir_actions_server": "d0b0892a59c25ee031c98d17e29609eab0c1eab32c46872f55303594a186b5b8",
-        "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server": "60d6c8d0b7b3a501fd96b2a7b24cc53b079cb4260413fb1a4a624aa1b628294c",
-        "server_action:base_vat.vies_iap_check_update_ir_actions_server": "6c37a53ce1dd0d0c75641690cb4aeab559b1ab066e6a5c7888d098cb8a450464",
-        "server_action:date_range.ir_cron_autocreate_ir_actions_server": "89c970f0bbd383be5d42436347510eadf406de9dc35bb2a65f9dbc218c22fa5b",
-        "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server": "8534807fbf58cad75167750dc3d7a3ba7605da5914d079f9816566a8e173ab6f",
-        "server_action:portal.partner_wizard_action_create_and_open": "bd162dca54559f6dcb2c331f4a47160fb5e8d7fb748315955e0cbd40ff699ac4",
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner": "c3eb50b0b8568c6a332c0000952f792a7e0135fe18bc4003ba92fa34ec5ff107",
-        "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user": "f4adca47a6a25479f6428bbfc1d014be911861e66058f4bd33e1ef97be6405c4",
-        "server_action:privacy_lookup.ir_actions_server_archive_all": "783da14de31978c6612a98929250da9c34355e0db08f72ecfcd8ce655b47240c",
-        "server_action:privacy_lookup.ir_actions_server_unlink_all": "a9c7c077a30ecb2466db560b73ecd400f22245e491db2b8867f1546bb61584d7",
-        "server_action:sms.ir_actions_server_sms_sms_resend": "9f3ecfef02307651befac38618e6dd827196e560d7afaef804e13fb442d77c0e",
-        "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server": "3ec7b46a44fd86ea4d2f7d014d1c8994d95a2b70b30fad2b513084e6b78d6407",
-        "server_action:web.download_contact": "d3f669867214f5e63d8f99c2c9eea3942fff3361ec4232e95c78c4273415095e",
-        "server_action:web_tour.tour_export_js_action": "d4d91c3202306b08c70bd63ed143231f7eb9a92540dc8cfb33baa8d44f1b0a9f"
+        "server_action:privacy_lookup.ir_actions_server_unlink_all": "a9c7c077a30ecb2466db560b73ecd400f22245e491db2b8867f1546bb61584d7"
       }
     },
     {
@@ -3352,6 +2554,7 @@
         "route:http:POST:/peppol/webhook/new-message",
         "route:http:POST:/peppol/webhook/new-regulatory-message",
         "route:http:POST:/peppol/webhook/user-state-update",
+        "route:http:POST:/usl/accounting/analytic-pivot/pdf",
         "route:jsonrpc:ANY:/invoice/transaction/<int:invoice_id>",
         "route:jsonrpc:ANY:/invoice/transaction/overdue",
         "route:jsonrpc:ANY:/product/catalog/create_section",
@@ -9730,6 +8933,7 @@
         "route:http:POST:/peppol/webhook/new-message": "7d6473c001360422a3ed8503c17aad64299ec97a8a58e0e349a9771847a5d67a",
         "route:http:POST:/peppol/webhook/new-regulatory-message": "f525672f8a6e5c3422f9fa57d6fcd4dfea97e4ccce9eb6abe23405d92f4ad58c",
         "route:http:POST:/peppol/webhook/user-state-update": "22d21a7789e5ff98db018c0a3895a1bb7e2131e8c7a86cb3a920b29bf66c292a",
+        "route:http:POST:/usl/accounting/analytic-pivot/pdf": "df12f0c4565e75c9546393ede1436b048ea50ce3409a91575a5992ce4280f92e",
         "route:jsonrpc:ANY:/invoice/transaction/<int:invoice_id>": "ad962340794f1e39c90c8bf8e12d274a053d1229eca550905077f0a94e2f9e3e",
         "route:jsonrpc:ANY:/invoice/transaction/overdue": "7859bb9bf684f600389c1791554b686d271ffba9f5367e60a61600329b1587ac",
         "route:jsonrpc:ANY:/product/catalog/create_section": "7b72d6b5389228fb99233d4fddeaa319ea692cd148bf93390ebe60bce824ea50",
@@ -73723,7 +72927,7 @@
         "rpc:rebuild.account.report.export.wizard.action_apply_period": "b37b79ff2023c36efa0f2180aed2072874802ab3b6dd103b43721889c3796d23",
         "rpc:rebuild.account.report.export.wizard.action_collapse_all": "458e6cdac7f0b46c5f23c0cae7713a19efe91ba67164de6c5af5ee9d153e5a72",
         "rpc:rebuild.account.report.export.wizard.action_expand_all": "f48185cc5d086aef523cd6af531c81adca8f027943f9a967d0c5d2c6a11206b3",
-        "rpc:rebuild.account.report.export.wizard.action_generate_export": "fcf5d2980608e58b12da6d2cfaf9fb7e44761ebf19efed727cd69c795face9d8",
+        "rpc:rebuild.account.report.export.wizard.action_generate_export": "bcbb24f06657bfe8187ccc0590820ce37ba381a8eace4918b21706161b22c837",
         "rpc:rebuild.account.report.export.wizard.action_preview_report": "ac4fb3dbd1f39354a8bb82fc35531f4fae61f1a36655806f22d385f2c397e75d",
         "rpc:rebuild.account.report.export.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.report.export.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -92793,9 +91997,9 @@
         "rpc:usl.document.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.document.operation.acknowledge": "4d9f990f23c37f7c67c8b06144bd30d4d4fac430e8878cf19fe9a56a4551a33a",
         "rpc:usl.document.operation.cron_process_attachment_queue": "1d10405219b185fb4c51a011b5022e679a604e28d3fa1bfab7637d62ed51af36",
-        "rpc:usl.document.operation.poll": "fd227d1355a6c51228b79800bde551c16bf0da5d7381316cfc4600a69f228335",
+        "rpc:usl.document.operation.poll": "8d866bce6e51d897be7872a5de705274c1215fc0d94ccef6cf39762bc2022f01",
         "rpc:usl.document.quick.filter.save_from_search": "e824d737145331be0c17a412660be1c0547940f7c11c6b6c00df5ce8ed5675bf",
-        "rpc:usl.document.reconcile_linked_classification": "a30e858c9bc1f738d45fb40b9e340ca3bac22caf3c132e74de6a59a04956c271",
+        "rpc:usl.document.reconcile_linked_classification": "5278204436e6a257a73e00c7ffd629ed2aef2cb79c3ca863c22c9e63291c79a0",
         "rpc:usl.document.restore_from_trash": "4c561c1627b3948df8514bdd28ef72bf3bc88ef56e4704b5fb9cc4ff1412686e",
         "rpc:usl.document.restore_version": "7745fc138fab5b32e4d12a38249b31541b4db605ebfa5f5a5e02f2ce3a617ef4",
         "rpc:usl.document.set_company": "5b4fa2966f2b2f0c2476a25e0a62833acfa5359d34a7ee2e41c4e0bb4d814a7a",
@@ -137881,7 +137085,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": "1db0f0d292aa6210049c70920638b32e38debc68b8896944f3f8e8eaf9b4de9a",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1": "cc1f59fb5d76bc1918809bdbeb19d32db26c1950de2836dad5f0d3629a5b3421",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_expand_all:orm_write:1": "581f3e26f767af8b77e435557cb349a58607271a7cc74c48a0a459f684105471",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "fcbb3db06feb5e68b435da03cc9304ce4a71e9c869be51b6dc4bf5644f909862",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "88921874951a52aeb3aa60fa3118cda602f7346eaa1c0b07a5bc8a21f37bf400",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1": "e4e1d572e690bbecf963b63159c9dd2e3986f1551449d740837f35035bc8a567",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1": "01ee2606cf1e1f19bde50185d1b95657156f3d328ca17e9e2f481d5870c4c29c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2": "fe6455642f44ef21f1ce4b516a706fead2374fa3f8045dfe6f4f77489a9eb4c5",
@@ -145539,8 +144743,8 @@
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reachability_proof": "This private/helper AST sink has no independent RPC, controller, UI, client, server-action, or cron entry; public callers are classified separately.",
       "reviewed_digests": {
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:2": "25c27ecc9a0f7ca82613387fd5ff7271d1c0b2870888db0129fd25c14f2c568b",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:sudo:1": "d2db427dba7c11b4fa5f4a70efb0da473a42fffe1ab0a97787c0e85fcff0642a",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:2": "012e9e8e510615e4135390a0246c3365007d22d969919674b8ffaf0502de6c23",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:sudo:1": "850dade2471a4cd963383477eea4181a749cf329284dc5c5117ab8eab6e951b1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_metadata:orm_write:1": "ada5502cc01ae3ac3e26b34a3289d0a24184ac349a819096fece4f7b28d779a3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_partner_payload:orm_write:1": "e9a0f815bdbc755ab1fcd9fc08c67c03e11e7b10a8e1dbadaeb803e618ee28f2",
         "sink:usl_document_templates:custom-addons/usl_document_templates/hooks.py:post_init_hook:orm_write:1": "245c1ce78bdc0e1cd4320a0ab2d271982537d5ee8414037a3dcd8a024489448a",
@@ -146837,6 +146041,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:1",
@@ -150808,13 +150013,16 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.permanently_delete_from_trash"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action key is: rpc:usl.document.reconcile_linked_classification"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action key is: rpc:usl.document.reconcile_linked_classification"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action key is: rpc:usl.document.reconcile_linked_classification"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action key is: rpc:usl.document.reconcile_linked_classification"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.restore_from_trash"
@@ -152501,34 +151709,35 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.acknowledge:orm_write:1": "1f26f3594e226331198359ee544c989bcc5984df84078947df9097d8063f3da9",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.acknowledge:sudo:1": "5da47563894d2f166014be62a93ffa99d07e1612a64c69f3bb870d3a6cf7bcc7",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.create:orm_create:1": "0780969fcfecf637d34a67ddb14653ebfdb13851279a2cdfd4b2c6f86e142736",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_create:1": "3c6c19531e752d85311c2a549b1b159aeb4ab5cbc4d23d52973b842153662eef",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:1": "a4e154f7f9bd18ddc987d2e77afca2d0eb06299a0c82ef85a9bee80bc2d50a29",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:2": "ad25ae87b25125a54bef681aa8519b9bab4f6693cb4aaf37773379432c4ccce6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:3": "5848d91bbf7b8658cf3e8f02bd28ea73195773b3efffde69dc1c050197cc50da",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:4": "7adf94a5f298aed89f83bd337c8387df0069aeffcd610bd36afb72ba09436972",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:5": "58ec7189ca7e4a599c72d1203a62e812c6ef63388d389efa205e8cb3a4a84b05",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:6": "94a6d0380c02e363958fe12a03ca60a44c7893a2bea7b35edd5801a15d070df6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:7": "1ae0e4b57e233c6fdcf7629ce6c0d6942d6c404eacb9880cb1f27c655a8b3e0a",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:8": "8dc8e06fb9f8ca5b49736ce2aebceac626c64b4552d15fab62168e3a23a82ed0",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:9": "29fda2b25f69a7480dd7f752fd8de9a5df2d35c1dc7f1336d1adbaa3e64723fc",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:1": "55a1fb6e0b509529847b74fc779155a1659382bcf27074f7387aee1f7f113885",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:10": "720b0e2b7421a2090e4ae4eb49b20aa1d6d785577492cbd886ccc5c3657ff23d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:2": "f264b1d20af57bda931ec2bbeb19a79a31e359522d238bdd29b3b93eb85d9a7b",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:3": "feeaa2804a556099e0380511075bf05b616b9b7d82e52e1eca8dbef120bd6702",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:4": "440d87d0fc09da2ce6a43b98113340a0529b872ebfdee3d2a531aea990d9f24d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:5": "6bec0887b97960e160466adc55aa8bfb993b82dc688425fc622c2b9903a3bc2a",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:6": "07d5849d23aed1e69dd39da247c40204e3ae5125e49b42a3cfa5df7aefffab4f",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:7": "7912fcf9e9fb39ec6ca696016460efe35dc9f6964078db675a2b955e2403ca07",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:8": "c6dd2c98852a56e376c4471f53d9ab1e889aa3bf9bece04d8e159b79bc2e70d6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:9": "7b24d52af6f5be80a6b0fd977149df48d0fffb95eadf3abc477ac050fb7da0c9",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_create:1": "ee74bc10c524c829199eacc139c4d96448a8498812ec525217193b3315c3fa93",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:1": "57243ae8562b64e224672b3fe3cf0efd15550f0219f7176b9178964b91a62558",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:2": "219a54adbb220779b7146abbd4eb2ece175e30b54ce5c45d18d935bda05644c7",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:3": "34f9ac92b83faa79160653ca69c3e4846c22f035c9366e7ce11a6b22b17997df",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:4": "d763232cf0a0018b5bbd9ca390f89e70ea93aba848937e8344ecd239c4e7b4d1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:5": "e79a5b97dfaca71864ab3844e144dc5df02eb93634dc4a2766de4713ecf598a1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:6": "32e800a86ec386f036a166e978943443fc3638232075a109890affbf66c9f6d8",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:7": "abe3da77c83aade7087c79b6fdea884bdb25f319eb39d1bd0696a3c0adb73abb",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:8": "ae3923ad6260d9d3fdc22d34ee9c749a34626234456e561cc626db50e1ded69d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:9": "6cb70d2fe50948c97c6d38fc92a93ade4e80e67d744287254199579ae40a82f8",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:1": "95f6e0c85ebba58568ad1fa18557cf6bf599c80eac44ece0e5f23fdbfae54a65",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:10": "b95bdb6ad08e3bb6aeb821e116542ef12a3de84fe038b753159db215f1951e11",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:2": "14ead2b5567f68b3e440bf91025b2583e76a9115e0cf875a1c55ce6ec99a7710",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:3": "f8bd8abfd9ce78efc1f17f7e881ba2cce43a16522f15bf86252c3f2d2d6e59fc",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:4": "7c03a342e4829341627228b639e8c54ad48f433663a8c810a96bd06f56b22430",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:5": "86cda5ea2d4143b61bafa6de6b2270c0d732f1f65f207f17423b9478a39bbd01",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:6": "fd04cf65759094626ff73f0b2a83c66ce380c5f58a6645903b315a756fa2bc77",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:7": "dc22c7ebc6906abf3315bb668cca451f42d1c76eb2ce0d40e5a2d5a3466173e8",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:8": "b15afb6517ad837e4d72ff9268dfdb1c5bae928a00b1051e834ba04fdce72815",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:9": "10184fb3f6991164336fc58309015d1e9d99aba693056636dd1197e5c25ae93e",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.write:orm_write:1": "afba51d34a857b8aedd70d065e4624775177094ccf3713f4821fc4e64932d243",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:message_send:1": "4429d6e109960fc4410079ced1b4e2e7de0f293e264f29b542f449fbab3df9bb",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:orm_write:1": "dabf7945b1d61a6bad30a0abeb81da1196a1d11ae149c19676e355c05f90bb5c",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:1": "aa624c418738f7afb8a475521cab4902e4f2505b05e669d7cfc5b0c04f6d30b5",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.permanently_delete_from_trash:sudo:2": "025faea1202c32fbb4b014635e0994130b7e56467b799a49189eeb73d8e21c26",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": "b27895b41b4ca6c9462284804dd46ee497aee37be0ed3b281cb6ea7dfcb41829",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": "9b3bf79b1b3db6403cedbeeaf01f605c93be06060279251c89f1fa51462f6fa6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2": "994ec0b09bc95190495403f06a1dbd7c48fc53a5f69c591288cf5eb9f488330b",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:1": "a66c08b12c3245c123c0bc5f8ca629f44e55fd1441d7c988ca049933015139df",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:orm_write:2": "89300e27ad8d6ed4f00f26ff8b561671ae176ae2485e66783e13a11841a977e9",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:1": "c0d42d2c4864d8063916180b6c0f4e358dd85c41fa740d57b93bcb451a741330",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.reconcile_linked_classification:sudo:2": "3b150b8d8b21ce1d012a38fe2ca3cfef8d6a493e079d13f2b766615b1ff9edac",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:1": "fa6de9ee1cd8ec403a831302d35f7895f21645482874eefeaab4cc1aa9109196",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:orm_write:2": "cbbafde520643373c1c456e02f0ea785e0bbb759dc91f16925fb974467c8eac9",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.restore_from_trash:sudo:1": "4888b62c1e31815599f1db3eadfdc87c8d7d6c2532b3adeae2d436b08f8263e9",
@@ -156089,6 +155298,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.create:orm_create:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.unlink:orm_unlink:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.write:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.actions.server._usl_check_qualified_execution:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.groups.write:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_validate_all_agent_capabilities:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/pocketid.py:res.users._invalidate_unsafe_paperless_mappings:orm_write:1",
@@ -157067,6 +156277,9 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:base.write"
         },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.actions.server._usl_check_qualified_execution:sudo:1": {
+          "reachability_proof": "This private policy lookup uses sudo only to resolve the immutable XML ID of a reviewed server action. It is reachable solely from the separately classified run and manual-trigger dispatchers and cannot mutate records."
+        },
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.groups.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.groups.write"
         },
@@ -157567,6 +156780,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.create:orm_create:1": "2f2eb5e5e074889d312bf5cbac0f3c9959abe2a114e646b9dc037f6859685a1f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.unlink:orm_unlink:1": "cdf0ad59d428b3572c457b307074c4fb83f197b14efa8dd68fd8c640747c460f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.write:orm_write:1": "963b6467926d52bd3b8c2830d3e1505cc6e658b204ab7f9ad2fcef7ff19149ec",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.actions.server._usl_check_qualified_execution:sudo:1": "cfaec38dcfe43f7041d048db2fa0cb711d751c46c9b5392f6523b143e4a7785f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.groups.write:orm_write:1": "be1cfc5360f6a092470e77f676e7f9648d1ea39659383b4ea1a83356247763af",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_validate_all_agent_capabilities:sudo:1": "27dc89ad22aef2ab3d02889e78ef92fa461881d371c9fb2fa6332be6fcd935b2",
         "sink:usl_documents:custom-addons/usl_documents/models/pocketid.py:res.users._invalidate_unsafe_paperless_mappings:orm_write:1": "cdade42a2da5ae12a0068e723a585bf2866bd1c8dd998077772fb5dabb8d0366",
@@ -167010,7 +166224,7 @@
         "ui:usl_b2c.view_b2c_accounting_session_form:button:object:action_mark_reviewed:1": "38c9076afb6f5d5dd050d7fb7629f00f50a7046d07a6f21f38432a60615c6ef5",
         "ui:usl_b2c.view_b2c_accounting_session_form:button:object:action_refresh:1": "e6e16895c0a71d2b6d269712ae22deb9787d47251179f75783b519e478e34ce3",
         "ui:usl_b2c.view_b2c_accounting_session_form:button:object:action_unlock:1": "5ac9aef8cca1a52e2fd2ac0458afa7f4a467bdd8212b1e2489f424828fb51a59",
-        "ui:usl_documents.account_payment_form_documents:button:object:action_open_documents_workspace:1": "f36a21d567325fe97d00022d7b92a8693bd4ea0818040a49459b5f2d7facb527",
+        "ui:usl_documents.account_payment_form_documents:button:object:action_open_documents_workspace:1": "8e773912016e7f7db210013d42550051e0f2c3ab6adc9f538c8e22024e964721",
         "ui:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "a691493026fcb6ba39ecc9d6b3796846d8c574240e085b98b065afa29cb96dfe",
         "ui:usl_documents_accounting.view_account_asset_documents:button:object:action_open_documents_workspace:1": "c97e6db86a4c5ec0a09164845e8a15b4b10e59984589553ea74d79238a8c00e6",
         "ui:usl_documents_accounting.view_bank_statement_review_documents:button:object:action_archive_bank_evidence:1": "ea5c9c1791b7bc3208d28fa2c21d69be1e87e2bc655eabaf73eae855483ac622",
@@ -171331,19 +170545,19 @@
         "ui:snailmail.snailmail_letter_form:button:object:snailmail_print:1": "4544d2d151bb2ccc93d0791da8bdd3b992fb4f67b4a62b933de4da9ec531b26d",
         "ui:snailmail.snailmail_print_ir_actions_server": "d3fe18b595484297c87a21fb0eadab7a3c3da45ed5ab6757a205b575878fe01b",
         "ui:usl_documents.action_archive_attachments_in_paperless": "ebf1a17cc757ca607d2248e02758962a824dd2fbbf68c82c10e8e87c66e50d1c",
-        "ui:usl_documents.hr_employee_form_documents:button:object:action_open_documents_workspace:1": "783a6084b97e644d20173d7e2b6f20bd00e06c6b98d6755734820d8215f5277e",
-        "ui:usl_documents.hr_expense_view_form_documents:button:object:action_open_documents_workspace:1": "f0f7940aa34d7cc30900f35b9d55cf90a0d4ea84edeed7527eefa60b3351b7b5",
+        "ui:usl_documents.hr_employee_form_documents:button:object:action_open_documents_workspace:1": "34261dad9188c82548342b119590c9f743a5ee1c0f4980142c79a8fd925c0fdb",
+        "ui:usl_documents.hr_expense_view_form_documents:button:object:action_open_documents_workspace:1": "dbabcf81b4a66673c7a2b8cc498a5445e292139313682f79475173dc4e332f96",
         "ui:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server": "ce65889a487c3541e33c962d1ca344de0ec3cc29a4e73687e63d7997a04c9c95",
         "ui:usl_documents.ir_cron_usl_documents_classification_ir_actions_server": "76edc00970ad03a3b0b59e8372ee3e4b822c07d425f998067f2fe84275b2054b",
         "ui:usl_documents.ir_cron_usl_documents_poll_ir_actions_server": "817a9492ad38655a6c9b9263ff2944f04c33e646329f74a099c157e09f4184ac",
         "ui:usl_documents.ir_cron_usl_documents_sync_ir_actions_server": "2a8f1808e4b58dc15fe14d277dffbcec94b36ee4b105207a6a9a07ac55e8a78f",
-        "ui:usl_documents.project_project_form_documents:button:object:action_open_documents_workspace:1": "e66ba042499e93ccc38bbb9fec967a45756e53db91b3168d55ef5c69a4622157",
-        "ui:usl_documents.project_task_form_documents:button:object:action_open_documents_workspace:1": "ab5c2fb9b51d66bbf443f1e7390125c0ffba117456c84fdacf4c81cb45efd52e",
-        "ui:usl_documents.res_company_form_documents:button:object:action_open_documents_workspace:1": "561dae3618418cee3134e986eef98f02f3d9752de316c358112b4c141cc9a59f",
+        "ui:usl_documents.project_project_form_documents:button:object:action_open_documents_workspace:1": "1832294db08d3824677454878a0d27ae302b331598a635dd668b406f391d73a8",
+        "ui:usl_documents.project_task_form_documents:button:object:action_open_documents_workspace:1": "b3a6d5975090fe6a7c842d1f405026001e145f2c816dd264e6ec035407f4f9a0",
+        "ui:usl_documents.res_company_form_documents:button:object:action_open_documents_workspace:1": "aa5979e71c6c2071679dd06bb70a8f8be5c08c8cc56cdf32b3a18a96da7cdbfe",
         "ui:usl_documents.res_config_settings_view_form_documents:button:object:action_install_paperless_policy:1": "59d2cf3190bdcddb029643a2f77b4b46b824d31df318fde6c1a8a79a12e4dc3b",
         "ui:usl_documents.res_config_settings_view_form_documents:button:object:action_test_paperless:1": "c12b93dd02195195534885cc6c2bec8deaafd2ce9d77023cd99c18a94a6862d6",
-        "ui:usl_documents.res_partner_form_documents:button:object:action_open_documents_workspace:1": "b63c3b0b2d7b0bb12d60428bb2c90eb550d282848adbe316fbfe20ff24581eac",
-        "ui:usl_documents.view_move_form_documents:button:object:action_open_documents_workspace:1": "7ee80ad096b1239bfdf522ca99066674a38aaffdca916d83c21d1410fd170087",
+        "ui:usl_documents.res_partner_form_documents:button:object:action_open_documents_workspace:1": "70c9314887c7d3000132a9848ed809ae6086b1935805bda1cb47887d828c612e",
+        "ui:usl_documents.view_move_form_documents:button:object:action_open_documents_workspace:1": "1fa2f713c74e01663b0acc4d9e4768d9e504571a00df3595a614a02dcc2653e5",
         "ui:usl_documents.view_usl_document_form:button:object:action_approve_permanent_deletion:1": "d8ce23c2946871f2a81d742b7281180218dbb8a521c9780ab80d85523d7d53b1",
         "ui:usl_documents.view_usl_document_form:button:object:action_download_archive:1": "4924331ac755af785e5e9b1ecd63017d4900550919e2da50b7385cd3b1b98454",
         "ui:usl_documents.view_usl_document_form:button:object:action_download_archive:2": "a104b7e4825f94f1c5cac8ac0734c8b8725ac64e6a2b527e130c31e3902c58e3",
@@ -174890,6 +174104,13 @@
         "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes"
       ]
     },
+    "operational-authorized-workflow-v1": {
+      "contract": "Runs a fixed reviewed product workflow under its native Odoo access rules; the result remains attributable through business or technical history, and the action cannot alter security authority, protected control-plane state, governed immutable evidence, or unreviewed executable code.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_reviewed_operational_server_action_does_not_require_capability",
+        "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_framework_and_user_cleanup_are_operational"
+      ]
+    },
     "protected-deny-allow-audit-v1": {
       "contract": "Ordinary human, Agent, and Agent with sudo are denied before effects; an authorized human is allowed and immutable action/digest evidence is created.",
       "tests": [
@@ -174918,6 +174139,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "7f3ccff27431f584cade80843280608f609347f9aa7d55cbc4664d7c4b4f6dc9",
+  "qualified_policy_digest": "3eb050a20cc7f9058c0cf21fb30a56da43c0291dfa73163305250b51c651ef4e",
   "schema": "usl-action-risk-policy-v1"
 }

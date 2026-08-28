@@ -544,7 +544,27 @@ def _ensure_client(
         client = api.request("PUT", f"/api/oidc/clients/{client_id}", payload)
     else:
         client = api.request("POST", "/api/oidc/clients", payload)
-    _ensure_client_secret(api, client_id, secret)
+    credentials = client.get("credentials", {}) if isinstance(client, dict) else {}
+    configured_secrets = (
+        credentials.get("secrets")
+        if isinstance(credentials, dict)
+        else None
+    )
+    if isinstance(configured_secrets, list):
+        if not any(
+            isinstance(item, dict) and item.get("isActive", True)
+            for item in configured_secrets
+        ):
+            api.request(
+                "POST",
+                f"/api/oidc/clients/{client_id}/secrets",
+                {"secret": secret},
+            )
+    else:
+        # Pocket ID versions and response shapes differ here. Fall back to
+        # the dedicated plural endpoint so an existing environment-owned
+        # secret is detected by prefix and is never rotated on deployment.
+        _ensure_client_secret(api, client_id, secret)
     api.request(
         "PUT",
         f"/api/oidc/clients/{client_id}/allowed-user-groups",

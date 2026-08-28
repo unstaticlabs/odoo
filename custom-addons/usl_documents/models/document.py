@@ -181,7 +181,7 @@ class UslDocument(models.Model):
     review_state = fields.Selection(
         [
             ("needs_attention", "Needs attention"),
-            ("classified", "Classified"),
+            ("classified", "Ready for review"),
             ("reviewed", "Reviewed"),
         ],
         required=True,
@@ -1625,15 +1625,16 @@ class UslDocument(models.Model):
 
     @api.model
     def reconcile_linked_classification(self, *, limit=1000):
-        """Classify roots whose authoritative Odoo context is complete.
+        """Finish classification backed by authoritative Odoo context.
 
-        This deliberately does not mark a document as human-reviewed.  It only
-        removes the manual-review flag when access, company, business links, and
-        at least one classification dimension are already deterministic.
+        A mandatory evidence relationship or a direct-record/final-output
+        relationship already carries the owning workflow's reviewed business
+        context.  Those documents do not need a duplicate Documents approval.
+        Manual workspace links remain ready for an explicit human review.
         """
         candidates = self.sudo().search(
             [
-                ("review_state", "=", "needs_attention"),
+                ("review_state", "in", ("needs_attention", "classified")),
                 ("availability_state", "=", "available"),
                 ("company_id", "!=", False),
                 ("permission_sync_state", "=", "synchronized"),
@@ -1647,6 +1648,7 @@ class UslDocument(models.Model):
             limit=max(0, int(limit or 0)) or None,
         )
         classified = self.browse()
+        reviewed = self.browse()
         skipped = 0
         for document in candidates:
             links = document.link_ids.filtered("active")
@@ -1662,14 +1664,30 @@ class UslDocument(models.Model):
             ):
                 skipped += 1
                 continue
-            classified |= document
+            has_authoritative_context = any(
+                (
+                    link.archive_mode == "mandatory"
+                    and link.policy_role == "evidence"
+                )
+                or link.attachment_origin in {"direct_record", "generated_final"}
+                for link in links
+            )
+            if has_authoritative_context:
+                reviewed |= document
+            elif document.review_state == "needs_attention":
+                classified |= document
         if classified:
             classified.with_context(usl_documents_cache_write=True).write(
                 {"review_state": "classified"},
             )
+        if reviewed:
+            reviewed.with_context(usl_documents_cache_write=True).write(
+                {"review_state": "reviewed"},
+            )
         return {
             "considered": len(candidates),
             "classified": len(classified),
+            "reviewed": len(reviewed),
             "skipped": skipped,
         }
 
@@ -4738,7 +4756,7 @@ class UslDocumentOperation(models.Model):
                 "uploading": _("Sending to Documents"),
                 "processing": _("Indexing in Documents"),
                 "archived": _("Archived"),
-                "duplicate": _("Needs review"),
+                "duplicate": _("Needs attention"),
                 "failed": _("Failed"),
             }[self.state],
             "error": self.error_message,
@@ -5041,7 +5059,7 @@ class UslDocumentOperation(models.Model):
                     "uploading": _("Sending to Documents"),
                     "processing": _("Indexing in Documents"),
                     "archived": _("Archived"),
-                    "duplicate": _("Needs review"),
+                    "duplicate": _("Needs attention"),
                     "failed": _("Failed"),
                 }[operation.state],
                 "document_id": operation.document_id.id,

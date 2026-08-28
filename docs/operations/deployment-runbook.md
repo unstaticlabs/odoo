@@ -26,6 +26,12 @@ Confirm:
 - a rollback point and decision owner are identified;
 - users know about material downtime or behaviour changes.
 
+The future automated deployment flow must stop Odoo writers and take a
+verified quiesced checkpoint with `scripts/odoo-backup create --mode quiesced`
+before applying an upgrade. The command is defined in the
+[backup and recovery runbook](backup-and-recovery-runbook.md); this runbook
+does not authorize running it manually against production during deployment.
+
 ## Deployment
 
 During deployment:

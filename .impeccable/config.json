@@ -13,6 +13,19 @@
         "ext": ".xml",
         "engine": "html"
       }
+    ],
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "custom-addons/usl_documents/views/usl_document_views.xml"
+        ],
+        "createdAt": "2026-08-28T03:12:17.847Z",
+        "reason": "Odoo QWeb dynamically supplies the authenticated thumbnail URL through t-att-src; the detector cannot resolve runtime template expressions."
+      }
     ]
   }
 }

@@ -32,8 +32,10 @@
                 <field name="paperless_id" invisible="1"/>
                 <filter name="my_uploads" string="My uploads"
                         domain="[('submitted_by_id', '=', uid)]"/>
-                <filter name="needs_attention" string="Needs review"
+                <filter name="needs_attention" string="Needs attention"
                         domain="[('review_state', '=', 'needs_attention')]"/>
+                <filter name="ready_for_review" string="Ready for review"
+                        domain="[('review_state', '=', 'classified')]"/>
                 <filter name="linked" string="Linked to Odoo"
                         domain="[('has_linked_record', '=', True)]"/>
                 <filter name="unlinked" string="Not linked"

@@ -31,11 +31,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "guard:automation.cron.run_manual",
-      "action_name": "run a scheduled action manually",
-      "classification": "protected"
-    },
-    {
       "action_key": "guard:automation.server_action.execute",
       "action_name": "execute a server action",
       "classification": "protected"
@@ -116,6 +111,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:evidence.attachment.delete",
+      "action_name": "permanently delete attachment evidence from a business record",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:module.install",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -191,16 +191,6 @@
       }
     },
     {
-      "action_key": "rpc:account.bank.ingestion.config.unlink",
-      "action_name": "permanently delete account.bank.ingestion.config",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "account.bank.ingestion.config",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:account.bank.ingestion.file.unlink",
       "action_name": "permanently delete account.bank.ingestion.file",
       "classification": "protected",
@@ -221,16 +211,6 @@
       }
     },
     {
-      "action_key": "rpc:account.bank.ingestion.upload.unlink",
-      "action_name": "permanently delete account.bank.ingestion.upload",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "account.bank.ingestion.upload",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:account.bank.statement.certification.unlink",
       "action_name": "permanently delete account.bank.statement.certification",
       "classification": "protected",
@@ -241,32 +221,12 @@
       }
     },
     {
-      "action_key": "rpc:account.bank.statement.confirm.unlink",
-      "action_name": "permanently delete account.bank.statement.confirm",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "account.bank.statement.confirm",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:account.bank.statement.exception.unlink",
       "action_name": "permanently delete account.bank.statement.exception",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
         "model": "account.bank.statement.exception",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:account.bank.statement.reopen.unlink",
-      "action_name": "permanently delete account.bank.statement.reopen",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "account.bank.statement.reopen",
         "operation": "unlink"
       }
     },
@@ -541,42 +501,12 @@
       }
     },
     {
-      "action_key": "rpc:crm.team.member.unlink",
-      "action_name": "permanently delete crm.team.member",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "crm.team.member",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:crm.team.unlink",
       "action_name": "permanently delete crm.team",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
         "model": "crm.team",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:date.range.type.unlink",
-      "action_name": "permanently delete date.range.type",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "date.range.type",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:date.range.unlink",
-      "action_name": "permanently delete date.range",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "date.range",
         "operation": "unlink"
       }
     },
@@ -651,16 +581,6 @@
       }
     },
     {
-      "action_key": "rpc:hr.employee.skill.report.unlink",
-      "action_name": "permanently delete hr.employee.skill.report",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "hr.employee.skill.report",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:hr.employee.unlink",
       "action_name": "permanently delete hr.employee",
       "classification": "protected",
@@ -721,11 +641,6 @@
       }
     },
     {
-      "action_key": "rpc:ir.actions.server.run",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
       "action_key": "rpc:ir.actions.server.unlink",
       "action_name": "permanently delete ir.actions.server",
       "classification": "protected",
@@ -746,24 +661,9 @@
       }
     },
     {
-      "action_key": "rpc:ir.asset.unlink",
-      "action_name": "permanently delete ir.asset",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.asset",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:ir.attachment.unlink",
-      "action_name": "permanently delete ir.attachment",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.attachment",
-        "operation": "unlink"
-      }
+      "action_name": "permanently delete attachment evidence from a business record",
+      "classification": "protected"
     },
     {
       "action_key": "rpc:ir.config_parameter.create",
@@ -806,11 +706,6 @@
       }
     },
     {
-      "action_key": "rpc:ir.cron.method_direct_trigger",
-      "action_name": "run a scheduled action manually",
-      "classification": "protected"
-    },
-    {
       "action_key": "rpc:ir.cron.unlink",
       "action_name": "permanently delete ir.cron",
       "classification": "protected",
@@ -827,76 +722,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "ir.cron",
-        "operation": "write"
-      }
-    },
-    {
-      "action_key": "rpc:ir.default.create",
-      "action_name": "create ir.default",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.default",
-        "operation": "create"
-      }
-    },
-    {
-      "action_key": "rpc:ir.default.unlink",
-      "action_name": "permanently delete ir.default",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.default",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:ir.default.write",
-      "action_name": "modify ir.default",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.default",
-        "operation": "write"
-      }
-    },
-    {
-      "action_key": "rpc:ir.filters.unlink",
-      "action_name": "permanently delete ir.filters",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.filters",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:ir.logging.create",
-      "action_name": "create ir.logging",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.logging",
-        "operation": "create"
-      }
-    },
-    {
-      "action_key": "rpc:ir.logging.unlink",
-      "action_name": "permanently delete ir.logging",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.logging",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:ir.logging.write",
-      "action_name": "modify ir.logging",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "ir.logging",
         "operation": "write"
       }
     },
@@ -1231,36 +1056,6 @@
       }
     },
     {
-      "action_key": "rpc:mail.activity.plan.unlink",
-      "action_name": "permanently delete mail.activity.plan",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mail.activity.plan",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:mail.activity.type.unlink",
-      "action_name": "permanently delete mail.activity.type",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mail.activity.type",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:mail.activity.unlink",
-      "action_name": "permanently delete mail.activity",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mail.activity",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:mail.blacklist.unlink",
       "action_name": "permanently delete mail.blacklist",
       "classification": "protected",
@@ -1277,26 +1072,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "mail.message",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:mail.message.write",
-      "action_name": "modify mail.message",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mail.message",
-        "operation": "write"
-      }
-    },
-    {
-      "action_key": "rpc:mail.template.unlink",
-      "action_name": "permanently delete mail.template",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "mail.template",
         "operation": "unlink"
       }
     },
@@ -1374,16 +1149,6 @@
       "action_key": "rpc:payment.provider.button_immediate_install",
       "action_name": "install or import module code",
       "classification": "protected"
-    },
-    {
-      "action_key": "rpc:payment.token.unlink",
-      "action_name": "permanently delete payment.token",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "payment.token",
-        "operation": "unlink"
-      }
     },
     {
       "action_key": "rpc:pdp.config.wizard.button_peppol_unregister",
@@ -1751,26 +1516,6 @@
       }
     },
     {
-      "action_key": "rpc:res.partner.category.unlink",
-      "action_name": "permanently delete res.partner.category",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "res.partner.category",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:res.partner.industry.unlink",
-      "action_name": "permanently delete res.partner.industry",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "res.partner.industry",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:res.partner.unlink",
       "action_name": "permanently delete res.partner",
       "classification": "protected",
@@ -1832,16 +1577,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "sale.order",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:spreadsheet.dashboard.share.unlink",
-      "action_name": "permanently delete spreadsheet.dashboard.share",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "spreadsheet.dashboard.share",
         "operation": "unlink"
       }
     },
@@ -1971,16 +1706,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "rpc:usl.document.context.tag.unlink",
-      "action_name": "permanently delete usl.document.context.tag",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.document.context.tag",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:usl.document.letter.action_cancel",
       "action_name": "cancel an issued official letter",
       "classification": "protected"
@@ -2006,29 +1731,9 @@
       }
     },
     {
-      "action_key": "rpc:usl.document.link.unlink",
-      "action_name": "permanently delete usl.document.link",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.document.link",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:usl.document.permanently_delete_from_trash",
       "action_name": "permanently delete a document",
       "classification": "protected"
-    },
-    {
-      "action_key": "rpc:usl.document.quick.filter.unlink",
-      "action_name": "permanently delete usl.document.quick.filter",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.document.quick.filter",
-        "operation": "unlink"
-      }
     },
     {
       "action_key": "rpc:usl.document.renderer.unlink",
@@ -2037,16 +1742,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "usl.document.renderer",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:usl.document.smart.view.unlink",
-      "action_name": "permanently delete usl.document.smart.view",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.document.smart.view",
         "operation": "unlink"
       }
     },
@@ -2101,46 +1796,6 @@
       }
     },
     {
-      "action_key": "rpc:usl.paperless.correspondent.unlink",
-      "action_name": "permanently delete usl.paperless.correspondent",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.paperless.correspondent",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:usl.paperless.document.type.unlink",
-      "action_name": "permanently delete usl.paperless.document.type",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.paperless.document.type",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:usl.paperless.metadata.mixin.unlink",
-      "action_name": "permanently delete usl.paperless.metadata.mixin",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.paperless.metadata.mixin",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:usl.paperless.tag.unlink",
-      "action_name": "permanently delete usl.paperless.tag",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.paperless.tag",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:usl.paperless.user.mapping.unlink",
       "action_name": "permanently delete usl.paperless.user.mapping",
       "classification": "protected",
@@ -2177,16 +1832,6 @@
       "enforcement": {
         "kind": "model_operation",
         "model": "usl.platform.billing.session",
-        "operation": "unlink"
-      }
-    },
-    {
-      "action_key": "rpc:usl.tese.diagnostic.issue.unlink",
-      "action_name": "permanently delete usl.tese.diagnostic.issue",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "usl.tese.diagnostic.issue",
         "operation": "unlink"
       }
     },
@@ -2231,152 +1876,12 @@
       }
     },
     {
-      "action_key": "server_action:account.accountant_reset_to_draft_entries_action",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_account_confirm_payments",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_account_unreconcile",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_automatic_entry_change_account",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_automatic_entry_change_period",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_check_hash_integrity",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_mark_payment_as_reconciled",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_move_block_payment",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_move_force_register_payment",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_move_switch_move_type",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_server_payment_receipt",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_unmerge_accounts",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.action_validate_account_moves",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.ir_cron_account_move_send_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account.model_account_move_action_share",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_peppol.partner_action_verify_peppol",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
       "action_key": "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:account_reconcile_oca.action_reconcile",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:auth_signup.action_send_password_reset_instructions",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server",
-      "action_name": "execute a server action",
+      "action_name": "change registered Peppol services",
       "classification": "protected"
     },
     {
       "action_key": "server_action:auth_totp.action_disable_totp",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:auth_totp_mail.action_activate_two_factor_authentication",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:auth_totp_mail.action_invite_totp",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2386,42 +1891,7 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:base.autovacuum_job_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:base.demo_failure_action",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:base.ir_actions_server_change_password_wizard",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
       "action_key": "server_action:base.ir_cron_res_users_deletion_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:base_vat.vies_iap_check_update_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:date_range.ir_cron_autocreate_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2436,277 +1906,7 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:hr.action_hr_employee_departure",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr.action_hr_employee_load_demo_data",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr.ir_cron_apply_departure_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr_skills.action_open_skills_log_department",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr_skills.action_print_employees_cv",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr_skills.action_server_hr_employee_skill_certification",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_delete_notification_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_mail_end_polls_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_module_update_notification_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_open_bom_lines",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_pause_workorders",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_plan_at_date",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_plan_workorders",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_print_labels",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_production_order_lock_unlock",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_production_order_mark_done",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_production_order_merge",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_production_order_scrap",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_production_order_split",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_start_workorders",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.action_unplan_workorders",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp.mrp_production_action_unreserve_tree",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp_account.action_compute_price_bom_product",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:mrp_account.action_compute_price_bom_template",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:payment.action_start_payment_onboarding",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:payment.cron_post_process_payment_tx_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:portal.partner_wizard_action_create_and_open",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:privacy_lookup.ir_actions_server_archive_all",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
       "action_key": "server_action:privacy_lookup.ir_actions_server_unlink_all",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:product.action_product_price_list_report",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:product.action_product_print_labels",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:product.action_product_template_price_list_report",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:product.action_product_template_print_labels",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.action_server_convert_project_to_template",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.action_server_convert_to_subtask",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.action_server_convert_to_template",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.action_server_share_project",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.action_server_share_task",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:project.ir_cron_rating_project_ir_actions_server",
       "action_name": "execute a server action",
       "classification": "protected"
     },
@@ -2721,278 +1921,8 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:purchase.action_confirm_rfqs",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:purchase.action_merger",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:purchase.action_purchase_send_reminder",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:purchase.model_purchase_order_action_share",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:purchase.purchase_send_reminder_mail_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.model_sale_order_action_close_invoicing",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.model_sale_order_action_quotation_confirm",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.model_sale_order_action_quotation_sent",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.model_sale_order_action_share",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.model_sale_order_send_mail",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.send_invoice_cron_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale.send_pending_emails_cron_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sale_project.model_sale_order_action_create_project",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sms.ir_actions_server_sms_sms_resend",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:snailmail.snailmail_print_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_install_barcode",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_open_routes",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_print_labels",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_product_replenishment",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_product_template_replenishment",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_replenishment",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_revert_move_line",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_scrap_lot",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_scrap_picking",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_stock_quant_relocate",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_unreserve_picking",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_validate_picking",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_view_inventory_tree",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_view_quants",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_view_set_quants_tree",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.action_view_set_to_zero_quants_tree",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.click_dashboard_graph",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.ir_cron_scheduler_action_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.method_action_picking_tree_incoming",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.method_action_picking_tree_internal",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.method_action_picking_tree_outgoing",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock.stock_split_picking",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:stock_account.stock_move_action_adjust_valuation",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_tese_payroll.action_open_tese_settings",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_tese_payroll.action_run_tese_diagnostics",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:web.download_contact",
-      "action_name": "execute a server action",
-      "classification": "protected"
-    },
-    {
-      "action_key": "server_action:web_tour.tour_export_js_action",
-      "action_name": "execute a server action",
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1",
+      "action_name": "permanently delete attachment evidence from a business record",
       "classification": "protected"
     },
     {
@@ -3021,7 +1951,621 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "7f3ccff27431f584cade80843280608f609347f9aa7d55cbc4664d7c4b4f6dc9",
-  "runtime_policy_sha256": "fc5af860894c1594b8e9f238e18b5f4cc4239d30dee7da4e4a4c66f1a16c14fb",
-  "schema": "usl-action-risk-protected-runtime-v1"
+  "qualified_policy_digest": "3eb050a20cc7f9058c0cf21fb30a56da43c0291dfa73163305250b51c651ef4e",
+  "runtime_policy_sha256": "8fb1d785f9a63aaedb237b7c3f1af6282225002f2ee1e2ecbbe04a7facc5fa78",
+  "schema": "usl-action-risk-protected-runtime-v2",
+  "server_actions": [
+    {
+      "action_key": "server_action:account.accountant_reset_to_draft_entries_action",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_account_confirm_payments",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_account_unreconcile",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_automatic_entry_change_account",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_automatic_entry_change_period",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_check_hash_integrity",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_mark_payment_as_reconciled",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_move_block_payment",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_move_force_register_payment",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_move_switch_move_type",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_server_payment_receipt",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_unmerge_accounts",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.action_validate_account_moves",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.ir_cron_account_move_send_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.ir_cron_auto_post_draft_entry_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account.model_account_move_action_share",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_asset_management.ir_cron_assets_generator_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_edi_ubl_cii.action_group_ungroup_lines_by_tax",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_message_status_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_new_documents_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_get_participant_status_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol.ir_cron_peppol_webhook_keepalive_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol.partner_action_verify_peppol",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:account_reconcile_oca.action_reconcile",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:auth_signup.action_send_password_reset_instructions",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:auth_signup.ir_cron_auth_signup_send_pending_user_reminder_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:auth_totp.action_disable_totp",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:auth_totp_mail.action_activate_two_factor_authentication",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:auth_totp_mail.action_invite_totp",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:base.action_run_ir_action_todo",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base.autovacuum_job_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:base.demo_failure_action",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:base.ir_actions_server_change_password_wizard",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:base.ir_cron_res_users_deletion_ir_actions_server",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:base_automation.ir_cron_data_base_automation_check_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:base_vat.vies_iap_check_update_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:date_range.ir_cron_autocreate_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:digest.ir_cron_digest_scheduler_action_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_create_users",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_create_users_confirmation",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_departure",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr.action_hr_employee_load_demo_data",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_apply_departure_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_data_employee_notify_expiring_contract_work_permit_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr.ir_cron_data_employee_update_current_version_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_open_skills_log_department",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_print_employees_cv",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr_skills.action_server_hr_employee_skill_certification",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.ir_cron_pdp_send_lifecycles_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:l10n_fr_pdp.l10n_fr_pdp_reports_action_build_multi",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_delete_notification_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_discuss_channel_member_unmute_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_end_polls_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_gateway_action_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_mail_scheduler_action_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_module_update_notification_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_post_scheduled_message_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_send_scheduled_message_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_open_bom_lines",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_pause_workorders",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_plan_at_date",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_plan_workorders",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_print_labels",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_lock_unlock",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_mark_done",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_merge",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_scrap",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_production_order_split",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_start_workorders",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.action_unplan_workorders",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp.mrp_production_action_unreserve_tree",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp_account.action_compute_price_bom_product",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:mrp_account.action_compute_price_bom_template",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:payment.action_start_payment_onboarding",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:payment.cron_post_process_payment_tx_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:portal.partner_wizard_action_create_and_open",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_partner",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_action_server_action_privacy_lookup_user",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_actions_server_archive_all",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:privacy_lookup.ir_actions_server_unlink_all",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:product.action_product_price_list_report",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:product.action_product_print_labels",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:product.action_product_template_price_list_report",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:product.action_product_template_print_labels",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_project_to_template",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_to_subtask",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.action_server_convert_to_template",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.action_server_share_project",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.action_server_share_task",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.ir_cron_rating_project_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:project.unlink_project_stage_action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:project.unlink_task_type_action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:purchase.action_confirm_rfqs",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:purchase.action_merger",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:purchase.action_purchase_send_reminder",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:purchase.model_purchase_order_action_share",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:purchase.purchase_send_reminder_mail_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_close_invoicing",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_quotation_confirm",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_quotation_sent",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_action_share",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.model_sale_order_send_mail",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.send_invoice_cron_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale.send_pending_emails_cron_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sale_project.model_sale_order_action_create_project",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sms.ir_actions_server_sms_sms_resend",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:sms.ir_cron_sms_scheduler_action_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:snailmail.snailmail_print_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_install_barcode",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_open_routes",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_print_labels",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_product_replenishment",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_product_template_replenishment",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_replenishment",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_revert_move_line",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_scrap_lot",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_scrap_picking",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_stock_quant_relocate",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_unreserve_picking",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_validate_picking",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_view_inventory_tree",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_view_quants",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_view_set_quants_tree",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.action_view_set_to_zero_quants_tree",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.click_dashboard_graph",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.ir_cron_scheduler_action_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_incoming",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_internal",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.method_action_picking_tree_outgoing",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock.stock_split_picking",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock_account.ir_cron_post_stock_valuation_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:stock_account.stock_move_action_adjust_valuation",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_classification_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_poll_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_documents_sync_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.action_open_tese_settings",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.action_run_tese_diagnostics",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_tese_payroll.ir_cron_tese_reconcile_documents_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:web.download_contact",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:web_tour.tour_export_js_action",
+      "classification": "operational"
+    }
+  ]
 }

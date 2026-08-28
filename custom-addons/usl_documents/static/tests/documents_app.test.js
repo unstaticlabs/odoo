@@ -84,8 +84,10 @@ const searchViewArch = `
         <field name="correspondent_id"/>
         <field name="document_date"/>
         <field name="custom_field_text" invisible="1"/>
-        <filter name="needs_review" string="Needs review"
+        <filter name="needs_attention" string="Needs attention"
                 domain="[('review_state', '=', 'needs_attention')]"/>
+        <filter name="ready_for_review" string="Ready for review"
+                domain="[('review_state', '=', 'classified')]"/>
         <group>
             <filter name="group_company" string="Company"
                     context="{'group_by': 'company_id'}"/>
@@ -145,8 +147,8 @@ const searchViewFields = {
         string: "Review status",
         type: "selection",
         selection: [
-            ["needs_attention", "Needs review"],
-            ["classified", "Classified"],
+            ["needs_attention", "Needs attention"],
+            ["classified", "Ready for review"],
         ],
     },
 };
@@ -321,7 +323,7 @@ test("read-only evidence users do not see upload controls", async () => {
     );
 });
 
-test("failed ingestion remains actionable in Needs review", async () => {
+test("failed ingestion remains actionable in Needs attention", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
         selected_workspace: "attention",
@@ -1023,6 +1025,13 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         ".o_usl_filter_shortcuts > .o_usl_tag_chip"
     ).toHaveCount(6);
     expect(".o_usl_more_tags summary").toHaveText(/More tags \(14\)/);
+    expect(
+        Number(
+            getComputedStyle(
+                document.querySelector(".o_usl_documents_toolbar")
+            ).zIndex
+        )
+    ).toBeGreaterThan(2);
     await contains(".o_usl_more_tags summary").click();
     await contains(".o_usl_more_tags input").fill("deliberately long");
     expect(".o_usl_more_tags_results .dropdown-item").toHaveCount(1);
@@ -1568,15 +1577,15 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
                               {
                                   id: 2,
                                   key: "needs_review",
-                                  name: "Needs review",
-                                  icon: "fa-exclamation-circle",
+                                  name: "Ready for review",
+                                  icon: "fa-check-square-o",
                                   kind: "filter",
                                   group_by: [],
                                   domain: [
                                       [
                                           "review_state",
                                           "=",
-                                          "needs_attention",
+                                          "classified",
                                       ],
                                   ],
                               },
@@ -1626,7 +1635,7 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
         ["tag_ids", "in", [1]],
     ]);
     await contains(".o_usl_filter_shortcuts button", {
-        text: "Needs review",
+        text: "Ready for review",
     }).click();
     expect(calls).toBe(4);
     expect(JSON.stringify(workspaces.at(-1).search_domain)).toMatch(
