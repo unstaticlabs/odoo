@@ -7,12 +7,13 @@ value, follower, activity, reaction, recipient and attachment relationship to
 either a native business successor or sealed private archive evidence.
 
 The locked source contains 50,005 messages, 36,946 tracking values, 5,862
-followers and 895 activities. The production gate requires 49,385 messages on
-native or rebuilt operational records and 620 explicit non-copy dispositions.
+followers and 895 activities. The production gate requires 49,186 messages on
+native or rebuilt operational records and 819 explicit non-copy dispositions.
 A changed count or unknown model blocks the run.
 
-The deliberately omitted set comprises 66 default/demo Knowledge messages and
-554 generated technical configuration notes. Knowledge is not part of the
+The deliberately omitted set comprises 66 default/demo Knowledge messages,
+554 generated technical configuration notes, and 199 activity messages on 83
+retired Documents folders plus the default Documents tutorial URL. Knowledge is not part of the
 Distribution, and product review determined that its source records are demo
 content from the default Online setup. The 554 technical notes are 350
 generated notifications and 204 tracking events, all using the internal Note
@@ -23,8 +24,9 @@ seven automation events, six bank-link events, six depreciation-rule events,
 three IAP-account events, four CRM team/member events, two deleted-product
 creation notices and one Quality team creation notice. Neither set is customer
 or operational history. Exact source-level dispositions are checksum-sealed in
-private migration evidence; the delivered product does not retain a shadow
-archive or Knowledge compatibility model.
+private migration evidence. Retired folder activity is represented by the
+final archived document state and never creates synthetic PDFs. The delivered
+product does not retain a shadow archive or Knowledge compatibility model.
 
 Run the stage only inside canonical reconstruction:
 

@@ -1,11 +1,9 @@
 import base64
 import hashlib
 import html
-import io
 import json
 import os
 import re
-import textwrap
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -13,11 +11,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 from psycopg2 import sql
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-
 from odoo import Command, fields, models
-from odoo.tools import html2plaintext
 
 from odoo.addons.usl_collaboration_restore.routing import (
     DIRECT_MODELS,
@@ -565,54 +559,6 @@ class UslCollaborationRestoreRun(models.Model):
             self._stamp_audit(declaration, row, users)
         return rules, declarations
 
-    @staticmethod
-    def _generated_archive_pdf(title, rendered_html):
-        """Create a stable Paperless-compatible reading copy of a legacy node."""
-        stream = io.BytesIO()
-        _page_width, page_height = A4
-        pdf = canvas.Canvas(
-            stream,
-            pagesize=A4,
-            pageCompression=1,
-            invariant=1,
-        )
-        pdf.setTitle(title)
-        pdf.setAuthor("Unstatic Labs")
-        pdf.setSubject("Archived legacy Documents node")
-
-        margin = 50
-        line_height = 13
-        y = page_height - margin
-
-        def write_line(line, *, font="Helvetica", size=10):
-            nonlocal y
-            if y < margin + line_height:
-                pdf.showPage()
-                y = page_height - margin
-            pdf.setFont(font, size)
-            pdf.drawString(margin, y, line)
-            y -= line_height
-
-        for line in textwrap.wrap(title, width=80, break_long_words=False) or [title]:
-            write_line(line, font="Helvetica-Bold", size=15)
-        y -= line_height
-        article_text = html2plaintext(rendered_html, include_references=True)
-        for paragraph in article_text.splitlines():
-            if not paragraph.strip():
-                y -= line_height
-                continue
-            for line in textwrap.wrap(
-                paragraph,
-                width=100,
-                replace_whitespace=False,
-                drop_whitespace=True,
-                break_long_words=True,
-                break_on_hyphens=False,
-            ):
-                write_line(line)
-        pdf.save()
-        return stream.getvalue()
-
     def _archive_bytes(
         self, filename, content, mimetype, *, company, confidentiality="internal",
         source="odoo_attachment",
@@ -654,66 +600,6 @@ class UslCollaborationRestoreRun(models.Model):
                 f"Documents archival failed for {filename!r}: {operation.error_message}",
             )
         return operation.document_id
-
-    def _restore_document_nodes(self, payload, mapped_documents):
-        """Materialize legacy folders/URLs that own visible chatter."""
-        message_node_ids = {
-            row["res_id"] for row in payload["messages"]
-            if row["model"] == "documents.document" and row["res_id"]
-        }
-        rows = {row["id"]: row for row in payload["document_nodes"]}
-        companies = {
-            source_id: self._traced("res.company", source_id, "res.company")
-            for source_id in {row["company_id"] for row in rows.values() if row["company_id"]}
-        }
-
-        def node_path(source_id):
-            parts = []
-            seen = set()
-            current = rows.get(source_id)
-            while current and current["id"] not in seen:
-                seen.add(current["id"])
-                parts.append(self._text(current["name"]) or f"Legacy node {current['id']}")
-                current = rows.get(current["folder_id"])
-            return " / ".join(reversed(parts))
-
-        result = dict(mapped_documents)
-        for source_id in sorted(message_node_ids):
-            if result.get(source_id):
-                continue
-            row = rows.get(source_id)
-            if not row:
-                continue
-            bound = self._bound_record("documents.document", source_id, "usl.document")
-            if bound:
-                result[source_id] = bound
-                continue
-            path = node_path(source_id)
-            node_type = row["type"] or "document"
-            title = f"Legacy Documents {node_type} — {path}"
-            body = (
-                f"<p>This reading copy preserves the collaboration history of the "
-                f"retired Documents {html.escape(node_type)} <strong>{html.escape(path)}</strong>.</p>"
-            )
-            if row.get("url"):
-                body += f"<p>Archived URL: {html.escape(row['url'])}</p>"
-            rendered = self._generated_archive_pdf(title, body)
-            company = companies.get(row["company_id"]) or self.env.company
-            restricted = any(
-                marker in path.casefold()
-                for marker in ("employees", "employés", "payroll", "social")
-            )
-            document = self._archive_bytes(
-                f"{re.sub(r'[^\w. -]+', '_', title, flags=re.UNICODE)[:180]}.pdf",
-                rendered,
-                "application/pdf",
-                company=company,
-                confidentiality="hr" if restricted else "internal",
-                source="odoo_generated",
-            )
-            result[source_id] = document
-            self._bind("documents.document", source_id, document, row)
-        return result
 
     def _restore_sign_documents(self, payload, evidence_sha1_map):
         """Archive exact Sign request payloads and select one root per request."""
@@ -959,7 +845,11 @@ class UslCollaborationRestoreRun(models.Model):
             source_id: self.env["usl.document"].sudo().browse(target_id).exists()
             for source_id, target_id in document_ids.items()
         }
-        document_records = self._restore_document_nodes(payload, document_records)
+        retired_document_node_ids = {
+            row["id"]
+            for row in payload["document_nodes"]
+            if row["type"] in {"folder", "url"}
+        }
         rules, declarations = self._restore_legacy_declarations(payload, users)
         sign_attachment_documents, sign_documents = self._restore_sign_documents(
             payload,
@@ -1026,6 +916,21 @@ class UslCollaborationRestoreRun(models.Model):
                     "reason": "approved Knowledge demo/configuration exclusion",
                     "source_model": row["model"], "source_res_id": row["res_id"],
                     "source_parent_id": row["parent_id"], "source_sha256": self._checksum(row),
+                })
+                continue
+            if (
+                row["model"] == "documents.document"
+                and row["res_id"] in retired_document_node_ids
+            ):
+                dropped_message_ids.add(row["id"])
+                dispositions["messages"].append({
+                    "id": row["id"],
+                    "disposition": "deliberately_not_copied",
+                    "reason": "retired Documents folder or URL activity",
+                    "source_model": row["model"], "source_res_id": row["res_id"],
+                    "source_parent_id": row["parent_id"],
+                    "source_sha256": self._checksum(row),
+                    "source": row,
                 })
                 continue
             if not target:
@@ -1280,9 +1185,9 @@ class UslCollaborationRestoreRun(models.Model):
             "archives": len(archives),
         }
         if (
-            statistics["visible_messages"] != 49385
+            statistics["visible_messages"] != 49186
             or statistics["external_messages"] != 0
-            or statistics["deliberately_not_copied_messages"] != 620
+            or statistics["deliberately_not_copied_messages"] != 819
         ):
             raise RuntimeError(f"Collaboration disposition baseline changed: {statistics}")
         self.write({

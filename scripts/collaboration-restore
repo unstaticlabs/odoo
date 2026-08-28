@@ -78,6 +78,7 @@ run_shell() {
 
 import_restore() {
   [[ -f "$documents_evidence" ]] || { printf 'Full Documents evidence is missing: %s\n' "$documents_evidence" >&2; exit 2; }
+  run_shell migration/collaboration_restore/scripts/cleanup_generated_document_nodes.py
   run_shell migration/collaboration_restore/addons/usl_collaboration_restore/scripts/run_restore.py
 }
 
@@ -103,11 +104,12 @@ product_validate() {
 case "$command_name" in
   install) module_operation ;;
   import) import_restore ;;
+  cleanup-generated-documents) run_shell migration/collaboration_restore/scripts/cleanup_generated_document_nodes.py ;;
   validate) validate_restore ;;
   idempotence) idempotence ;;
   finalize) run_shell migration/collaboration_restore/addons/usl_collaboration_restore/scripts/finalize_restore.py ;;
   product-validate) product_validate ;;
   tests) python3 -m unittest migration/collaboration_restore/tests/test_routing.py ;;
   all) module_operation; import_restore; validate_restore; idempotence ;;
-  *) printf 'Usage: scripts/collaboration-restore [install|import|validate|idempotence|finalize|product-validate|tests|all]\n' >&2; exit 2 ;;
+  *) printf 'Usage: scripts/collaboration-restore [install|import|cleanup-generated-documents|validate|idempotence|finalize|product-validate|tests|all]\n' >&2; exit 2 ;;
 esac
