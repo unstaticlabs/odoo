@@ -1,5 +1,31 @@
 # Product performance audit
 
+## Native Ollama and embedding batches — 29 August 2026
+
+The final Online reconstruction initially reached BGE-M3 through Docker
+Desktop's Linux VM. That runtime had no Apple Metal device and saturated 16 CPU
+threads. The macOS-native Ollama 0.33.1 runtime detected the Apple M4 Max,
+offloaded all 25 BGE-M3 layers to Metal, and completed the governed semantic
+update for 1,056 documents and 8,467 vectors in 252 seconds. Release inventory
+reported zero active or historical failed tasks and exact document/vector
+coverage.
+
+The Ollama `/api/embed` endpoint accepts an input array, but Ollama deliberately
+loads embedding models with parallelism one. A representative benchmark used
+128 real 512-token Paperless chunks, two timed repetitions per batch size, and
+compared the first eight batched vectors against separately embedded vectors.
+Throughput rose from 23.0 chunks/s at batch 1 to 42.3 at batch 10, reached 43.8
+at batch 32, and then plateaued at 44.1–44.3 through batches 48–128. Every
+tested vector was bit-identical to its single-item result. Batch 32 is selected:
+it captures nearly all measured throughput with a 0.73-second median request,
+while batches 48–128 add response size and latency for less than 2% additional
+throughput.
+
+Local macOS Documents and migration wrappers now select native Ollama whenever
+it is installed and reachable, verify the exact BGE-M3 manifest, and fail rather
+than silently falling back to a CPU container. Linux production and recovery
+retain the pinned container and portable model volume.
+
 ## Integrated performance pass — 27 August 2026
 
 The combined Documents candidate exposed two additional measured bottlenecks.
@@ -30,7 +56,7 @@ The integrated fixes are deliberately separate:
   failure restores the normal runtime and fails the migration. Ordinary user
   uploads are unchanged, and production admission rejects the deferral switch.
 
-Paperless `3.0.5-usl.6` is the first overlay containing the controlled bulk
+Paperless `3.0.5-usl.7` contains the controlled bulk
 index path. Its hash-guarded ARM64 image built successfully and its final 22
 focused Django tests passed. The optimized locked-source reconstruction reused
 646 exact governed roots without re-uploading bytes, archived 832 eligible

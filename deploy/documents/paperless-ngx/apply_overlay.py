@@ -325,6 +325,49 @@ def rotate(
 )
 
 patch_file(
+    "paperless/settings/__init__.py",
+    "e906c68a5ee0fb738a807091a5714caeb8a2e9571f6a897961cccdc6b2ab137f",
+    (
+        (
+            '''if LLM_EMBEDDING_CHUNK_SIZE < 1:
+    raise ImproperlyConfigured("PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE must be >= 1")
+LLM_CONTEXT_SIZE = get_int_from_env("PAPERLESS_AI_LLM_CONTEXT_SIZE", 8192)
+''',
+            '''if LLM_EMBEDDING_CHUNK_SIZE < 1:
+    raise ImproperlyConfigured("PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE must be >= 1")
+LLM_EMBEDDING_BATCH_SIZE = get_int_from_env(
+    "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE",
+    32,
+)
+if not 1 <= LLM_EMBEDDING_BATCH_SIZE <= 2048:
+    raise ImproperlyConfigured(
+        "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE must be between 1 and 2048",
+    )
+LLM_CONTEXT_SIZE = get_int_from_env("PAPERLESS_AI_LLM_CONTEXT_SIZE", 8192)
+''',
+        ),
+    ),
+)
+
+patch_file(
+    "paperless_ai/embedding.py",
+    "46796dd71dd27ba6ed505832fbff81821340088069b0a50b725343580f4d2f5a",
+    (
+        (
+            '''                model_name=config.llm_embedding_model or "embeddinggemma",
+                base_url=endpoint,
+                ollama_additional_kwargs={"num_ctx": config.llm_context_size},
+''',
+            '''                model_name=config.llm_embedding_model or "embeddinggemma",
+                base_url=endpoint,
+                embed_batch_size=settings.LLM_EMBEDDING_BATCH_SIZE,
+                ollama_additional_kwargs={"num_ctx": config.llm_context_size},
+''',
+        ),
+    ),
+)
+
+patch_file(
     "paperless_ai/client.py",
     "253a058a3d91bb2a7f7ac388590202f988f5f9fea70a17ffc6db1ec425c91351",
     (

@@ -44,7 +44,7 @@ qualification still requires the signed-in browser matrix.
 The 27 August integrated performance pass additionally reduced the measured
 40-document workspace from 426 to 75 SQL queries and from 432.8 ms to 67.3 ms,
 and replaced per-record archive-status counts with one grouped query. The
-Paperless `3.0.5-usl.6` candidate separates bulk source ingestion from one
+Paperless `3.0.5-usl.7` candidate separates bulk source ingestion from one
 verified semantic-index update so CPU-bound BGE-M3 jobs no longer block every
 subsequent upload. Its image build, hash guards, focused Django tests and
 migration safety tests pass. The optimized locked-source reconstruction reused

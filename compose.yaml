@@ -41,7 +41,7 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.7}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.32.15@sha256:57d60e686821ea81a7748a3ec8141308c8b8f95b27105713954abf7a6529e700}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
@@ -49,6 +49,7 @@ services:
       PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
       PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
       PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
+      PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:-32}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.36@sha256:87c16b9f364279d321bc9772d31fa58aa6abe036423c270698bd636c3a8e9466}
@@ -137,6 +138,7 @@ services:
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BACKEND}" = "ollama" ] || { echo "Paperless embeddings must use Ollama"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" = "usl-bge-m3:documents-20260824-rc1" ] || { echo "Paperless BGE-M3 alias is not qualified"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE}" = "32" ] || { echo "Paperless embedding batch size is not qualified"; exit 1; }
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
           case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
@@ -256,7 +258,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.7}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
@@ -307,6 +309,7 @@ services:
       PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
       PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: ${PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT:-http://paperless-ollama:11434}
       PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
+      PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:-32}
       PAPERLESS_AI_LLM_CONTEXT_SIZE: ${PAPERLESS_AI_LLM_CONTEXT_SIZE:-8192}
       PAPERLESS_AI_LLM_REQUEST_TIMEOUT: ${PAPERLESS_AI_LLM_REQUEST_TIMEOUT:-300}
       PAPERLESS_AI_LLM_ALLOW_INTERNAL_ENDPOINTS: "true"
@@ -340,7 +343,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.7}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -361,7 +364,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.6}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.7}
     restart: "no"
     depends_on:
       paperless-webserver:

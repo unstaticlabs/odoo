@@ -1,0 +1,12 @@
+# Local macOS acceleration. Production and Linux recovery keep the pinned
+# containerized Ollama service and its portable model volume.
+services:
+  paperless-model-preflight:
+    depends_on: !reset {}
+    environment:
+      OLLAMA_HOST: ${USL_NATIVE_OLLAMA_CONTAINER_URL:-http://host.docker.internal:11434}
+
+  paperless-webserver:
+    environment:
+      PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: ${USL_NATIVE_OLLAMA_CONTAINER_URL:-http://host.docker.internal:11434}
+

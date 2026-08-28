@@ -65,13 +65,25 @@ catalog/UI permissions; Odoo continues to synchronize every document object
 grant. A failed initializer fails the target instead of leaving a newly
 authenticated user with a broken Paperless dashboard.
 
-The same fail-closed startup initializes the local semantic model. When the
-qualified `usl-bge-m3:documents-20260824-rc1` alias is absent, Compose pulls
-the source `bge-m3:latest` manifest, rejects any digest other than the
-repository-qualified SHA-256, copies that exact manifest to the qualified
-alias, and verifies it again before Paperless starts. Existing qualified model
-volumes perform no pull. This bootstrap is for the pinned model artifact, not
-permission to accept an arbitrary `latest` model in a release.
+The same fail-closed startup initializes the local semantic model. On macOS,
+the wrappers prefer an installed, reachable native Ollama so Apple Metal is
+used instead of CPU-only inference inside Docker Desktop. They verify the
+native `usl-bge-m3:documents-20260824-rc1` manifest against the repository
+SHA-256 and route Paperless through `host.docker.internal`; the Ollama daemon
+container and model initializer are not started. If native Ollama is installed
+but stopped or has the wrong model, startup fails instead of silently falling
+back to the CPU container. `USL_OLLAMA_RUNTIME=container` is the explicit local
+escape hatch, and `USL_OLLAMA_RUNTIME=native` makes native availability
+mandatory.
+
+Linux production and independent recovery continue to use the pinned
+containerized Ollama service and portable model volume. When its qualified
+alias is absent, Compose pulls `bge-m3:latest`, rejects any manifest other than
+the repository-qualified SHA-256, copies that exact manifest to the qualified
+alias, and verifies it again before Paperless starts. The embedding client uses
+the measured batch size of 32 with 512-token chunks. This is a runtime
+throughput setting; it does not change the model, chunking, vector dimension,
+or retrieval identity.
 
 QA-only credentials are intentionally simple:
 
