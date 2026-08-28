@@ -185,6 +185,20 @@ class AgentInterfaceTests(unittest.TestCase):
             ),
         )
 
+    def test_feature_ready_attribution_strictness_follows_policy(self) -> None:
+        with mock.patch.object(
+            self.verify,
+            "policy",
+            return_value={"enforcement": {"commit_attribution": "advisory"}},
+        ):
+            self.assertFalse(self.verify.commit_attribution_is_required())
+        with mock.patch.object(
+            self.verify,
+            "policy",
+            return_value={"enforcement": {"commit_attribution": "required"}},
+        ):
+            self.assertTrue(self.verify.commit_attribution_is_required())
+
     def test_handoff_evidence_renders_as_sentences(self) -> None:
         self.assertEqual(
             "Snapshot restored. Counts matched. Verification passed.",

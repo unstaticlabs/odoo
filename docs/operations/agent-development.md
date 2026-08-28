@@ -163,6 +163,11 @@ explicit stacked handoff opens against its parent feature branch rather than
 silently retargeting to `19-usl`. A Feature Developer then stops without
 merging or cleanup.
 
+During `migration-transition`, commit-attribution findings remain visible but
+follow the advisory policy declared in `agent/policy.json`; `feature-ready`
+blocks them once that policy becomes required. This permits legacy feature
+history to be handed off without rewriting already-published commits.
+
 ## Lead Developer integration
 
 Ask a separate agent: `Review and integrate PR <number> as Lead Developer.` It
