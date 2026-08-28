@@ -129,27 +129,28 @@ French catalogue and user-documentation gates. The shared full-QA cache is not
 refreshed by a linked worktree; that release-only gate remains separate from
 this integration candidate.
 
-## Upstream ancestry refresh: 28 August 2026
+## Upstream ancestry refresh: 28–29 August 2026
 
 The Distribution merged the latest fetched `upstream/saas-19.3` tip as a real
 second parent, preserving both histories:
 
 - Distribution base: `e3f0430053f260bd58c2c836e2f485b5e0a56335`;
 - previous integrated upstream: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`;
-- refreshed upstream: `1777f212a9d1a55fe70d5389a3decbf896ceff0b`,
-  fetched on 28 August 2026;
+- refreshed upstream: `363b4bb23a56139ca237c833a8348a662b8387f6`,
+  fetched on 29 August 2026;
 - exact upstream range:
-  `aef56898d9ea5a97948af04c03ae101d17b8b4a3..1777f212a9d1a55fe70d5389a3decbf896ceff0b`;
-- delta: 64 commits, 124 files, 1,614 insertions and 188 deletions.
+  `aef56898d9ea5a97948af04c03ae101d17b8b4a3..363b4bb23a56139ca237c833a8348a662b8387f6`;
+- delta: 65 commits, 124 files, 1,615 insertions and 188 deletions.
 
 There are no upstream release-note, migration-directory, Python dependency,
 container, Compose or deployment-workflow changes in the range. The incoming
 manifest changes add the `hr_skills_event` browser-test assets and the
 `l10n_tr` backend asset extension. Stored-schema changes are limited to
 partial B-tree indexes for Accounting analytic lines and payment destination
-accounts, plus a POS payment index that is outside the delivered product
-module set. A normal installed-module update creates the applicable indexes;
-no destructive data rewrite or one-shot product migration is required.
+accounts, an Accounting move index on `(journal_id, date)`, plus a POS payment
+index that is outside the delivered product module set. A normal
+installed-module update creates the applicable indexes; no destructive data
+rewrite or one-shot product migration is required.
 
 The merge had no literal conflicts. The only file changed by both lines was
 `addons/account/models/account_move.py`. Upstream added cash-rounding access
@@ -180,7 +181,7 @@ Qualification evidence on the isolated `usl-odoo-qa-afa2ab82` project:
 
 - the 154-module delivered clean registry installed, upgraded twice, compiled
   all 36 product bundles, passed source and database product/migration
-  boundaries, and materialized both applicable new Accounting indexes;
+  boundaries, and materialized all three applicable new Accounting indexes;
 - focused upstream Accounting sequence/date, sale access, stock, grouping-set,
   Peppol and offline French PDP tests passed;
 - `rebuild_account_migration_unit`, `usl_accounting_unit`,

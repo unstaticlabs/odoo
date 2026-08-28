@@ -1,7 +1,7 @@
 # AI Contributor Guide
 
 This branch starts from upstream Odoo `saas~19.3` at
-`1777f212a9d1a55fe70d5389a3decbf896ceff0b`. Keep it close to upstream Odoo:
+`363b4bb23a56139ca237c833a8348a662b8387f6`. Keep it close to upstream Odoo:
 avoid changes to core Odoo code unless the task explicitly requires a
 distribution-level core patch and the tradeoff is documented.
 

@@ -7,7 +7,7 @@ delivery state. It is an index, not a replacement for the linked product,
 accounting, user or operations specifications.
 
 The comparison point is upstream Odoo Community `saas~19.3` at
-`1777f212a9d1a55fe70d5389a3decbf896ceff0b`. The current release line is
+`363b4bb23a56139ca237c833a8348a662b8387f6`. The current release line is
 `19-usl`. [ROADMAP.md](../../ROADMAP.md) remains authoritative for changing
 release status and outstanding gates.
 
@@ -190,14 +190,14 @@ inventory. From the repository root:
 ```bash
 # First-parent Distribution history
 git log --first-parent --oneline \
-  1777f212a9d1a55fe70d5389a3decbf896ceff0b..19-usl
+  363b4bb23a56139ca237c833a8348a662b8387f6..19-usl
 
 # Every USL module on the delivered add-ons path
 find custom-addons -mindepth 2 -maxdepth 2 -name __manifest__.py -print | sort
 
 # Literal file delta against the integrated upstream baseline
 git diff --name-status \
-  1777f212a9d1a55fe70d5389a3decbf896ceff0b..19-usl
+  363b4bb23a56139ca237c833a8348a662b8387f6..19-usl
 ```
 
 When implementation and documentation disagree, resolve the discrepancy; do
