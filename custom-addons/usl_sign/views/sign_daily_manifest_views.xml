@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_daily_manifest_list" model="ir.ui.view">
+        <field name="name">usl.sign.daily.manifest.list</field>
+        <field name="model">usl.sign.daily.manifest</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0" edit="0" decoration-danger="state == 'failed' or anchoring_status == 'action_required' or archive_status == 'failed'" decoration-success="anchoring_status == 'confirmed' and archive_status != 'failed'">
+                <field name="manifest_date" string="UTC day"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" string="Daily record"/>
+                <field name="request_count" string="Requests"/>
+                <field name="event_count" string="Events"/>
+                <field name="anchoring_status" string="Timestamp proof" widget="badge"/>
+                <field name="bitcoin_confirmations" string="Confirmations" optional="show"/>
+                <field name="bitcoin_block_time" string="Existence established by" optional="show"/>
+                <field name="archive_status" string="Paperless" optional="show"/>
+                <button name="action_retry" type="object" string="Retry signing" invisible="state != 'failed'"/>
+                <button name="action_retry_anchoring" type="object" string="Retry proof" invisible="anchoring_status != 'action_required'"/>
+                <button name="action_retry_archive" type="object" string="Retry archive" invisible="archive_status != 'failed' or not confirmed_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sign_daily_manifest_form" model="ir.ui.view">
+        <field name="name">usl.sign.daily.manifest.form</field>
+        <field name="model">usl.sign.daily.manifest</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0" edit="0">
+                <header>
+                    <button name="action_retry" type="object" string="Try again" class="btn-primary" invisible="state != 'failed'"/>
+                    <button name="action_retry_anchoring" type="object" string="Retry timestamp proof" class="btn-primary" invisible="anchoring_status != 'action_required'"/>
+                    <button name="action_retry_archive" type="object" string="Retry Paperless archive" class="btn-primary" invisible="archive_status != 'failed' or not confirmed_at"/>
+                    <field name="anchoring_status" widget="statusbar" statusbar_visible="scheduled,pending,confirmed,action_required"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_archive" type="object" class="oe_stat_button" icon="fa-archive" invisible="not archive_document_id">
+                            <field name="archive_status" widget="statinfo" string="Paperless"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Daily timestamp proof</p>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <div class="alert alert-success" role="status" invisible="anchoring_status != 'confirmed'">
+                        <strong>Independent existence proof confirmed.</strong>
+                        The documents listed in this daily record existed no later than <field name="bitcoin_block_time" readonly="1" class="d-inline"/>.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="anchoring_status != 'pending'">
+                        The daily record was accepted for timestamping. Bitcoin confirmation normally takes several hours.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="anchoring_status != 'scheduled'">
+                        This closed UTC day is signed and scheduled for OpenTimestamps submission.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="anchoring_status != 'action_required'">
+                        <strong>Action required.</strong>
+                        <field name="failure_message" readonly="1" nolabel="1" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="archive_status != 'failed'">
+                        <strong>The Bitcoin proof is confirmed, but its daily dossier needs attention.</strong>
+                        <field name="archive_error" readonly="1" nolabel="1" class="d-inline"/>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        OpenTimestamps proves existence no later than a Bitcoin block time. It is not an RFC 3161 or qualified timestamp, does not identify a signer, and does not prove that signing happened at that exact time.
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signed documents</div><div class="h4 mb-0"><field name="request_count" readonly="1"/></div></div></div></div>
+                        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Bitcoin confirmations</div><div class="h4 mb-0"><field name="bitcoin_confirmations" readonly="1"/></div></div></div></div>
+                        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Paperless</div><div class="fw-semibold"><field name="archive_status" readonly="1"/></div></div></div></div>
+                    </div>
+
+                    <notebook>
+                        <page string="Covered documents" name="records">
+                            <field name="entry_ids" readonly="1" nolabel="1">
+                                <list create="0" edit="0" delete="0" decoration-success="completion_event_hash != False">
+                                    <field name="request_id" string="Signed document"/>
+                                    <field name="completed_at" string="Completed"/>
+                                    <field name="final_sha256" string="Final PDF SHA-256" optional="show"/>
+                                    <field name="dossier_sha256" string="Dossier SHA-256" optional="show"/>
+                                    <field name="chain_head_sequence" string="Event head" optional="hide"/>
+                                    <field name="chain_head_hash" string="Event-head SHA-256" optional="hide"/>
+                                    <field name="completion_event_hash" string="Completion event" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Proof Files" name="proof_files">
+                            <group>
+                                <group string="Daily proof files">
+                                    <field name="signed_envelope_filename" invisible="1"/>
+                                    <field name="signed_envelope" filename="signed_envelope_filename" string="Signed daily record" readonly="1" invisible="not signed_envelope"/>
+                                    <field name="verification_report_filename" invisible="1"/>
+                                    <field name="verification_report" filename="verification_report_filename" string="Explorer verification report" readonly="1" invisible="not verification_report"/>
+                                    <field name="proof_dossier_filename" invisible="1"/>
+                                    <field name="proof_dossier" filename="proof_dossier_filename" string="Daily proof dossier" readonly="1" invisible="not proof_dossier"/>
+                                </group>
+                                <group string="Confirmation">
+                                    <field name="bitcoin_block_height" readonly="1" invisible="not bitcoin_block_height"/>
+                                    <field name="bitcoin_block_hash" readonly="1" invisible="not bitcoin_block_hash"/>
+                                    <field name="bitcoin_block_time" readonly="1" invisible="not bitcoin_block_time"/>
+                                    <field name="confirmed_at" readonly="1" invisible="not confirmed_at"/>
+                                    <field name="archive_document_id" readonly="1" invisible="not archive_document_id"/>
+                                </group>
+                            </group>
+                            <h3 class="mt-3">OpenTimestamps receipts</h3>
+                            <field name="receipt_ids" readonly="1" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="sequence"/>
+                                    <field name="kind"/>
+                                    <field name="created_at"/>
+                                    <field name="sha256" string="Receipt SHA-256"/>
+                                    <field name="data" filename="name" string="Download"/>
+                                    <field name="name" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Verification details" name="technical">
+                            <group>
+                                <group string="Daily record integrity">
+                                    <field name="state" readonly="1"/>
+                                    <field name="manifest_date" string="Closed UTC day" readonly="1"/>
+                                    <field name="company_id" readonly="1"/>
+                                    <field name="previous_manifest_id" readonly="1" invisible="not previous_manifest_id"/>
+                                    <field name="previous_manifest_sha256" readonly="1" invisible="not previous_manifest_sha256"/>
+                                    <field name="payload_sha256" readonly="1"/>
+                                    <field name="signed_envelope_sha256" readonly="1" invisible="not signed_envelope_sha256"/>
+                                    <field name="signature_algorithm" readonly="1" invisible="not signature_algorithm"/>
+                                    <field name="signed_at" readonly="1" invisible="not signed_at"/>
+                                </group>
+                                <group string="Operations">
+                                    <field name="submitted_at" readonly="1" invisible="not submitted_at"/>
+                                    <field name="last_attempt_at" readonly="1" invisible="not last_attempt_at"/>
+                                    <field name="next_attempt_at" readonly="1" invisible="not next_attempt_at"/>
+                                    <field name="attempt_count" readonly="1"/>
+                                    <field name="failure_code" readonly="1" invisible="not failure_code"/>
+                                    <field name="archive_error" readonly="1" invisible="not archive_error"/>
+                                </group>
+                            </group>
+                            <group string="Original daily record data">
+                                <field name="payload_filename" invisible="1"/>
+                                <field name="payload" filename="payload_filename" string="Canonical payload" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_daily_manifest_action" model="ir.actions.act_window">
+        <field name="name">Daily Timestamps</field>
+        <field name="res_model">usl.sign.daily.manifest</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No closed-day proof has been created yet</p>
+            <p>After each UTC day closes, Sign collects the completed-document fingerprints into one signed daily record, timestamps it through OpenTimestamps, checks the Bitcoin confirmation through two public explorers, and stores the portable proof in Paperless.</p>
+        </field>
+    </record>
+</odoo>

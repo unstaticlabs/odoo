@@ -25,6 +25,1104 @@
         ],
         "createdAt": "2026-08-28T03:12:17.847Z",
         "reason": "Odoo QWeb dynamically supplies the authenticated thumbnail URL through t-att-src; the detector cannot resolve runtime template expressions."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#211a1f",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.035Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4f5964",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.073Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9b6b00",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.110Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 0, 0, .16)",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.144Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 0, 0, .22)",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.179Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 244, 204, .96)",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.214Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".35rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.250Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".4rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/portal_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.285Z",
+        "reason": "Agent review: the portal annotation and warning values are intentional semantic Sign states within the Odoo-operated signer surface; DESIGN.md delegates operational UI vocabulary to the native platform."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/configure_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.373Z",
+        "reason": "Agent review: the inline field preview uses Odoo's compact native corner treatment; DESIGN.md explicitly retains native Odoo control shapes."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "4px",
+        "files": [
+          "custom-addons/usl_sign/static/src/js/configure_patch.esm.js"
+        ],
+        "createdAt": "2026-08-28T19:17:47.408Z",
+        "reason": "Agent review: the inline field preview uses Odoo's compact native corner treatment; DESIGN.md explicitly retains native Odoo control shapes."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#017e84",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.561Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#166534",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.598Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1e40af",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.636Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b6cb0",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.673Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2f7d57",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.709Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#30272e",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.744Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#343a40",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.778Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3c2d3a",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.813Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#475569",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.850Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#495057",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.888Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4f474d",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.924Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5b5359",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.961Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#657184",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:47.997Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6c757d",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.035Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#757c84",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.072Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b617f",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.108Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#92400e",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.144Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9b7b93",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.180Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#adb5bd",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.215Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c9bec6",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.250Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d8d1d6",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.285Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d8dadd",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.321Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dbeafe",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.356Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dc3545",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.391Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dcfce7",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.428Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e2e8f0",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.466Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e7e9ec",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.510Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e9ecef",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.568Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3edf2",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.620Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fef3c7",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.662Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 0, 0, .08)",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.699Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(200, 167, 190, .22)",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.738Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "fontawesome",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.777Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".55rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.815Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".65rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.855Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".75rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.894Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".8125rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.941Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".8rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:48.981Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".95rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.017Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "0.7rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.058Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.05rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.096Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.125rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.136Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.1rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.172Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.25rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.207Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.2rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.244Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.35rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.280Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.5rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.317Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.75rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.352Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.389Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "2.25rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.425Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".375rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.461Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".375rem)",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.498Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".55rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.535Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".5rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.571Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".625rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.607Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".65rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.644Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".75rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.680Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "0.4rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.716Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "50rem)",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.750Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "999px",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.786Z",
+        "reason": "Agent review: these exact Bootstrap/Odoo tokens and existing Sign status, guide, and evidence values were reviewed as the intentional operational vocabulary; DESIGN.md delegates operational controls, typography, shape, and semantic state to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#236044",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.890Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2f353b",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.928Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3c5265",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:49.966Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#414a54",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.003Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4f5862",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.038Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#555f69",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.075Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#72501a",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.110Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#747c85",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.146Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7c2933",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.181Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b7284",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.216Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9299a1",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.252Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a69aa3",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.287Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#aeb6bf",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.322Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#b3a2ae",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.357Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#cee9da",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.393Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d5e7f2",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.430Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e1e4e8",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.466Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e4e7ea",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.503Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e5d7e1",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.572Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e5e8eb",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.615Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e9ebee",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.650Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e9f7f0",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.686Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#edf8f2",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.721Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f1d2d5",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.757Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f1dfb8",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.794Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5eff3",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.829Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fbecef",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.868Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fdf0f1",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.903Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fff4dc",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.939Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fff7e8",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:50.977Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".72rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.014Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".75rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.054Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".76rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.092Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".78rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.130Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".7rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.168Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".82rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.208Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".8rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.245Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".92rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.281Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".94rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.317Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": ".98rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.354Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.05rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.393Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.15rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.431Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.45rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.469Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.7rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.507Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.544Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".55rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.582Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".5rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.620Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".65rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.657Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".72rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.695Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": ".85rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.733Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "1rem",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.768Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "999px",
+        "files": [
+          "custom-addons/usl_sign/static/src/scss/strong_sign.scss"
+        ],
+        "createdAt": "2026-08-28T19:17:51.805Z",
+        "reason": "Agent review: these exact Strong-signing neutral and semantic state ramps, compact type steps, and native control radii are intentional for the protected portal; DESIGN.md delegates operational UI vocabulary to Odoo."
       }
     ]
   }

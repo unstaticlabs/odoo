@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sign" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.sign</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sign_oca.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='sign_oca']" position="attributes">
+                <attribute name="string">Sign</attribute>
+                <attribute name="data-string">Sign</attribute>
+            </xpath>
+            <xpath expr="//app[@name='sign_oca']//setting[field[@name='sign_oca_send_sign_request_copy']]" position="attributes">
+                <attribute name="help">When the request is complete, send every signer the final signed document and its signing record.</attribute>
+            </xpath>
+            <xpath expr="//app[@name='sign_oca']" position="inside">
+                <block title="Signing defaults" name="sign_trust">
+                    <setting string="Independent signing timestamps" help="Optional. Enable only after a reviewed timestamp service is configured on the server.">
+                        <field name="sign_rfc3161_enabled"/>
+                    </setting>
+                    <setting string="Daily Bitcoin timestamps" help="Add an independent existence timestamp to each day's completed documents. Confirmation normally takes several hours and does not delay completion.">
+                        <field name="sign_opentimestamps_enabled"/>
+                        <div class="text-muted mt-2">
+                            This proves that the listed files existed by a confirmed time. It does not identify who signed them.
+                        </div>
+                    </setting>
+                </block>
+                <block title="System status" name="sign_strong">
+                    <setting string="Signing services" help="Check whether each signing method and final-storage service is available.">
+                        <button name="action_open_sign_service_status" type="object" string="Open System Status" class="btn-link"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

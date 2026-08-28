@@ -278,6 +278,11 @@ msgid "Accounting Evidence"
 msgstr "justificatif comptable"
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__accounting_evidence
+msgid "Mark this document as supporting evidence for bookkeeping, tax, or audit work. With Accounting evidence privacy, it becomes available read-only to Accounting Evidence Readers. The document is also easier to retrieve in accounting filters and is put on retention hold if Paperless reports it in Trash. Changing this setting resynchronizes archive permissions."
+msgstr "Marquez ce document comme justificatif pour la comptabilité, la fiscalité ou l’audit. Avec la confidentialité Justificatif comptable, il devient accessible en lecture seule aux lecteurs de justificatifs comptables. Il est également plus facile à retrouver dans les filtres comptables et fait l’objet d’un blocage de conservation si Paperless le signale dans la corbeille. La modification de ce réglage resynchronise les autorisations de l’archive."
+
+#. module: usl_documents
 #: model:res.groups,name:usl_documents.group_documents_accountant
 msgid "Accounting Evidence Reader"
 msgstr "Lecteur de justificatifs comptables"
@@ -685,6 +690,11 @@ msgstr "Disponibilité"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__availability_state
 msgid "Availability State"
 msgstr "État de disponibilité"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__availability_state
+msgid "Updated automatically from Paperless processing, reconciliation, trash and restore operations, and permission checks. It cannot be changed manually."
+msgstr "Mis à jour automatiquement à partir du traitement et du rapprochement Paperless, des opérations de mise à la corbeille et de restauration, ainsi que des contrôles d’autorisation. Il ne peut pas être modifié manuellement."
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__availability_state__available
@@ -3100,6 +3110,24 @@ msgid ""
 msgstr ""
 "Ouvrir dans Paperless est bloqué jusqu'à ce que votre identité d'archive "
 "individuelle et les autorisations de ce document soient synchronisées."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless access is not set up for your account. You can still preview and download this document in Odoo. Ask a Documents administrator if you need Paperless access."
+msgstr "L’accès à Paperless n’est pas configuré pour votre compte. Vous pouvez toujours prévisualiser et télécharger ce document dans Odoo. Demandez l’accès à un administrateur de Documents si vous en avez besoin."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Your Paperless access needs attention. You can still preview and download this document in Odoo. Ask a Documents administrator to review your access."
+msgstr "Votre accès à Paperless nécessite une intervention. Vous pouvez toujours prévisualiser et télécharger ce document dans Odoo. Demandez à un administrateur de Documents de vérifier votre accès."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless access for this document needs attention. Use the Odoo preview for now, or ask a Documents administrator to retry access synchronization."
+msgstr "L’accès à ce document dans Paperless nécessite une intervention. Utilisez la prévisualisation Odoo pour le moment ou demandez à un administrateur de Documents de relancer la synchronisation des accès."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
@@ -5891,12 +5919,26 @@ msgstr "Documents : classer les enregistrements liés fiables"
 
 #. module: usl_documents
 #. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Remove this Odoo link without deleting the archived document."
-msgstr "Supprime ce lien Odoo sans effacer le document archivé."
-
-#. module: usl_documents
-#. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_loader.js:0
 msgid "The Documents workspace could not be loaded."
 msgstr "L’espace Documents n’a pas pu être chargé."
+
+#. module: usl_documents
+msgid "Open document"
+msgstr "Ouvrir le document"
+
+#. module: usl_documents
+msgid "Download file"
+msgstr "Télécharger le fichier"
+
+#. module: usl_documents
+msgid "Download Paperless copy"
+msgstr "Télécharger la copie Paperless"
+
+#. module: usl_documents
+msgid "File history"
+msgstr "Historique des fichiers"
+
+#. module: usl_documents
+msgid "Earlier files are kept only when this archived document was deliberately replaced or restored. The row marked Current is the file opened from the Document tab."
+msgstr "Les fichiers antérieurs ne sont conservés que lorsque ce document archivé a été remplacé ou restauré volontairement. La ligne marquée Actuel correspond au fichier ouvert depuis l’onglet Document."

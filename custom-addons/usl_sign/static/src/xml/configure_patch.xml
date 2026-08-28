@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignTemplateEditor">
+        <div class="o_sign_oca_content usl_sign_editor">
+            <ControlPanel display="{}"/>
+
+            <header class="usl_sign_editor_toolbar" aria-label="Template editor controls">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-light" t-on-click="toggleLibrary" t-att-aria-expanded="editor.libraryOpen">
+                        <i class="fa fa-columns me-1"/>Fields
+                    </button>
+                    <div class="btn-group" role="group" aria-label="Page navigation">
+                        <button type="button" class="btn btn-light" t-on-click="previousPage" title="Previous page"><i class="fa fa-chevron-left"/></button>
+                        <button type="button" class="btn btn-light" t-on-click="nextPage" title="Next page"><i class="fa fa-chevron-right"/></button>
+                        <button type="button" class="btn btn-light" t-on-click="showThumbnails" title="Thumbnails"><i class="fa fa-th-large"/></button>
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Zoom controls">
+                        <button type="button" class="btn btn-light" t-on-click="zoomOut" title="Zoom out"><i class="fa fa-search-minus"/></button>
+                        <button type="button" class="btn btn-light" t-on-click="zoomIn" title="Zoom in"><i class="fa fa-search-plus"/></button>
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Edit history">
+                        <button type="button" class="btn btn-light" t-on-click="undo" t-att-disabled="!editor.undoCount || !isEditable" title="Undo"><i class="fa fa-undo"/></button>
+                        <button type="button" class="btn btn-light" t-on-click="redo" t-att-disabled="!editor.redoCount || !isEditable" title="Redo"><i class="fa fa-repeat"/></button>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="usl_sign_save_status" role="status" aria-live="polite">
+                        <span t-if="editor.saveStatus === 'saving'" class="text-muted"><i class="fa fa-spinner fa-spin me-1"/>Saving</span>
+                        <span t-elif="editor.saveStatus === 'error'" class="text-danger"><i class="fa fa-exclamation-circle me-1"/>Could not save</span>
+                        <span t-else="" class="text-success"><i class="fa fa-check-circle me-1"/>Saved</span>
+                    </div>
+                    <button type="button" class="btn btn-primary" t-on-click="finishEditing" t-att-disabled="editor.saveStatus === 'saving' || editor.saveStatus === 'error' || editor.conflict">
+                        <t t-out="finishLabel"/><i class="fa fa-arrow-right ms-2"/>
+                    </button>
+                </div>
+            </header>
+
+            <div t-if="info.readonly" class="alert alert-info rounded-0 border-0 border-bottom mb-0" role="status">
+                <i class="fa fa-lock me-2"/>This version is read-only. Create a new template version to change its fields.
+            </div>
+            <div t-if="editor.conflict" class="alert alert-danger rounded-0 border-0 border-bottom mb-0 d-flex align-items-center justify-content-between" role="alert">
+                <span><i class="fa fa-exclamation-triangle me-2"/>Another editor changed this layout. Reload before continuing.</span>
+                <button type="button" class="btn btn-danger btn-sm" t-on-click="reloadEditor">Reload editor</button>
+            </div>
+            <div class="usl_sign_editor_workspace" t-att-class="{'usl_sign_library_closed': !editor.libraryOpen}">
+                <aside t-if="editor.libraryOpen" class="usl_sign_field_library" aria-label="Signing field library">
+                    <div class="usl_sign_panel_header">
+                        <div>
+                            <div class="fw-bold">Signing fields</div>
+                            <div class="small text-muted">Choose who fills the field, then click the document.</div>
+                        </div>
+                        <button type="button" class="btn-close" aria-label="Close field library" t-on-click="toggleLibrary"/>
+                    </div>
+
+                    <div class="usl_sign_panel_section">
+                        <label class="form-label small fw-semibold">Filled by</label>
+                        <div class="d-grid gap-2">
+                            <div t-foreach="info.roles" t-as="role" t-key="role.id" class="d-flex gap-1">
+                                <button type="button" class="btn usl_sign_role_button text-start flex-grow-1"
+                                        t-att-class="{'active': editor.selectedRoleId === role.id}"
+                                        t-att-data-role-id="role.id" t-att-style="roleButtonStyle(role)"
+                                        t-on-click="selectRole" t-att-disabled="!isEditable">
+                                    <span class="usl_sign_role_dot"/>
+                                    <span class="fw-semibold" t-out="roleLabel(role)"/>
+                                    <span t-if="role.signer_name" class="small opacity-75 ms-1" t-out="role.name"/>
+                                </button>
+                                <button t-if="info.editor_mode === 'template' &amp;&amp; info.can_manage_roles" type="button"
+                                        class="btn btn-light usl_sign_remove_role"
+                                        t-att-data-role-id="role.id" t-on-click="removeRole"
+                                        t-att-aria-label="'Remove ' + roleLabel(role)" t-att-disabled="!isEditable">
+                                    <i class="fa fa-times"/>
+                                </button>
+                            </div>
+                            <div t-if="info.editor_mode === 'template' &amp;&amp; info.can_manage_roles" class="input-group input-group-sm mt-1">
+                                <input type="text" class="form-control" placeholder="New signer role"
+                                       t-att-value="editor.newRoleName" t-on-input="updateNewRoleName"
+                                       t-on-keydown="onNewRoleKeydown" t-att-disabled="!isEditable"/>
+                                <button type="button" class="btn btn-outline-primary" t-on-click="addRole" t-att-disabled="!isEditable">
+                                    <i class="fa fa-plus me-1"/>Add
+                                </button>
+                            </div>
+                            <div t-if="info.editor_mode === 'request'" class="small text-muted">
+                                Signers are added or removed on the request form.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="usl_sign_panel_section flex-grow-1 overflow-auto">
+                        <label class="form-label small fw-semibold">Field type</label>
+                        <div class="usl_sign_field_grid">
+                            <button t-foreach="info.fields" t-as="field" t-key="field.id" type="button"
+                                    class="usl_sign_field_type"
+                                    t-att-class="{'active': editor.selectedFieldId === field.id}"
+                                    t-att-data-field-id="field.id"
+                                    t-on-click="selectField"
+                                    t-on-pointerdown="(event) => this.onPalettePointerDown(event, field)"
+                                    t-att-disabled="!isEditable">
+                                <i t-attf-class="fa #{field.icon}"/>
+                                <span t-out="field.name"/>
+                            </button>
+                        </div>
+                        <div t-if="canPlaceOnEveryPage" class="border rounded bg-light p-3 mt-3">
+                            <div class="form-check form-switch mb-1">
+                                <input id="usl_sign_initials_every_page" class="form-check-input" type="checkbox"
+                                       t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"
+                                       t-att-disabled="!isEditable"/>
+                                <label class="form-check-label fw-semibold" for="usl_sign_initials_every_page">Place on every page</label>
+                            </div>
+                            <div class="small text-muted">Click once to place these initials in the same position on every page.</div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="usl_sign_pdf_workspace">
+                    <div t-if="editor.loading" class="usl_sign_editor_loading" role="status">
+                        <i class="fa fa-spinner fa-spin fa-2x mb-2"/><span>Loading the PDF editor…</span>
+                    </div>
+                    <div class="usl_sign_mobile_authoring">
+                        <i class="fa fa-desktop fa-2x mb-2"/>
+                        <strong>Use a larger screen to configure templates</strong>
+                        <span>Signing remains available on mobile.</span>
+                    </div>
+                    <iframe class="o_sign_oca_iframe" t-att-src="viewer_url" t-ref="sign_oca_iframe" title="PDF template editor"/>
+                </main>
+
+                <aside class="usl_sign_field_inspector" aria-label="Field inspector">
+                    <t t-if="selectedItem">
+                        <div class="usl_sign_panel_header">
+                            <div>
+                                <div class="fw-bold"><i t-attf-class="fa #{fieldIcon(selectedItem)} me-2"/><t t-out="selectedItem.name"/></div>
+                                <div class="small text-muted">Field settings</div>
+                            </div>
+                            <button type="button" class="btn-close" aria-label="Close inspector" t-on-click.stop="() => this.closeInspector()"></button>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <label class="form-label" for="usl_sign_field_type">Field type</label>
+                            <select id="usl_sign_field_type" class="form-select" t-on-change="changeItemField" t-att-disabled="!isEditable">
+                                <option t-foreach="info.fields" t-as="field" t-key="field.id" t-att-value="field.id" t-att-selected="selectedItem.field_id === field.id" t-out="field.name"/>
+                            </select>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <label class="form-label" for="usl_sign_field_role">Filled by</label>
+                            <select id="usl_sign_field_role" class="form-select usl_sign_colored_select" t-on-change="changeItemRole" t-att-style="roleButtonStyle(role(selectedItem.role_id))" t-att-disabled="!isEditable">
+                                <option t-foreach="info.roles" t-as="role" t-key="role.id" t-att-value="role.id" t-att-selected="selectedItem.role_id === role.id" t-out="roleLabel(role)"/>
+                            </select>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <div class="form-check form-switch">
+                                <input id="usl_sign_required" class="form-check-input" type="checkbox" t-att-checked="selectedItem.required" t-on-change="changeItemRequired" t-att-disabled="!isEditable"/>
+                                <label class="form-check-label" for="usl_sign_required">Required field</label>
+                            </div>
+                            <div t-if="field(selectedItem.field_id).supports_placeholder" class="mt-3">
+                                <label class="form-label" for="usl_sign_placeholder">Placeholder</label>
+                                <input id="usl_sign_placeholder" class="form-control" type="text" maxlength="500" t-att-value="selectedItem.placeholder || ''" t-on-change="changeItemPlaceholder" t-att-disabled="!isEditable"/>
+                            </div>
+                        </div>
+                        <div t-if="field(selectedItem.field_id).kind === 'initials'" class="usl_sign_panel_section">
+                            <button type="button" class="btn btn-outline-primary w-100"
+                                    t-on-click="copySelectedFieldToEveryPage"
+                                    t-att-disabled="!isEditable || editor.saveStatus === 'saving'">
+                                <i class="fa fa-copy me-1"/>Place on every page
+                            </button>
+                            <div class="small text-muted mt-2">Copies these initials to the same position on every page that does not already have them.</div>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <div class="small fw-semibold mb-2">Position and size</div>
+                            <div class="row g-2">
+                                <div class="col-6"><label class="form-label small">Left %</label><input class="form-control form-control-sm" name="position_x" type="number" min="0" max="100" step="0.1" t-att-value="selectedItem.position_x" t-on-change="changeItemNumber" t-att-disabled="!isEditable"/></div>
+                                <div class="col-6"><label class="form-label small">Top %</label><input class="form-control form-control-sm" name="position_y" type="number" min="0" max="100" step="0.1" t-att-value="selectedItem.position_y" t-on-change="changeItemNumber" t-att-disabled="!isEditable"/></div>
+                                <div class="col-6"><label class="form-label small">Width %</label><input class="form-control form-control-sm" name="width" type="number" min="2" max="100" step="0.1" t-att-value="selectedItem.width" t-on-change="changeItemNumber" t-att-disabled="!isEditable"/></div>
+                                <div class="col-6"><label class="form-label small">Height %</label><input class="form-control form-control-sm" name="height" type="number" min="2" max="100" step="0.1" t-att-value="selectedItem.height" t-on-change="changeItemNumber" t-att-disabled="!isEditable"/></div>
+                            </div>
+                        </div>
+                        <div class="usl_sign_panel_section mt-auto">
+                            <button type="button" class="btn btn-outline-danger w-100" t-on-click="deleteSelectedField" t-att-disabled="!isEditable"><i class="fa fa-trash me-1"/>Delete field</button>
+                            <div class="small text-muted mt-2 text-center">Tip: right-click a field on the PDF to delete it.</div>
+                        </div>
+                    </t>
+                    <t t-elif="editor.contextPlacement">
+                        <div class="usl_sign_panel_header">
+                            <div><div class="fw-bold">Add field here</div><div class="small text-muted">Page <t t-out="editor.contextPlacement.page"/></div></div>
+                            <button type="button" class="btn-close" aria-label="Cancel placement" t-on-click.stop="() => this.cancelContextPlacement()"></button>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <label class="form-label">Field type</label>
+                            <select class="form-select" t-on-change="selectContextField">
+                                <option t-foreach="info.fields" t-as="field" t-key="field.id" t-att-value="field.id" t-att-selected="editor.selectedFieldId === field.id" t-out="field.name"/>
+                            </select>
+                        </div>
+                        <div class="usl_sign_panel_section">
+                            <label class="form-label">Filled by</label>
+                            <select class="form-select" t-on-change="selectContextRole">
+                                <option t-foreach="info.roles" t-as="role" t-key="role.id" t-att-value="role.id" t-att-selected="editor.selectedRoleId === role.id" t-out="roleLabel(role)"/>
+                            </select>
+                        </div>
+                        <div t-if="canPlaceOnEveryPage" class="usl_sign_panel_section">
+                            <div class="form-check form-switch">
+                                <input id="usl_sign_context_initials_every_page" class="form-check-input" type="checkbox"
+                                       t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"/>
+                                <label class="form-check-label fw-semibold" for="usl_sign_context_initials_every_page">Place on every page</label>
+                            </div>
+                            <div class="small text-muted mt-1">Repeat at this position throughout the document.</div>
+                        </div>
+                        <div class="usl_sign_panel_section d-grid gap-2">
+                            <button type="button" class="btn btn-primary" t-on-click="contextCreate">Add field</button>
+                            <button type="button" class="btn btn-light" t-on-click="cancelContextPlacement">Cancel</button>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="usl_sign_inspector_empty">
+                            <i class="fa fa-hand-pointer-o fa-2x mb-3"/>
+                            <div class="fw-semibold">Select a field</div>
+                            <div class="small text-muted">Click a field on the PDF to edit its type, signer, requirement, and size.</div>
+                        </div>
+                    </t>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>

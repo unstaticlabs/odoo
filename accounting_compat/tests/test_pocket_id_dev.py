@@ -62,6 +62,147 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "http://paperless.localhost:21946",
         )
 
+    def test_generated_environment_allows_explicit_tailscale_qa_host(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with patch.dict(
+                os.environ,
+                {
+                    "USL_POCKET_ID_DEV_PRIVATE_QA": "1",
+                    "USL_POCKET_ID_DEV_ODOO_HOSTNAME": "100.100.10.20",
+                    "USL_POCKET_ID_DEV_POCKET_HOSTNAME": "100.100.10.20",
+                    "USL_POCKET_ID_DEV_PAPERLESS_URL": (
+                        "http://100.100.10.20:21946"
+                    ),
+                },
+                clear=True,
+            ):
+                POCKET_ID_DEV._write_new_env(path)
+            values = POCKET_ID_DEV._read_env(path)
+
+        self.assertEqual(
+            values["ODOO_PUBLIC_BASE_URL"],
+            "http://100.100.10.20:8069",
+        )
+        self.assertEqual(
+            values["POCKET_ID_APP_URL"],
+            "http://100.100.10.20:1411",
+        )
+        self.assertIn("100.100.10.20", values["PAPERLESS_ALLOWED_HOSTS"])
+
+    def test_generated_environment_rejects_unapproved_remote_host(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with (
+                patch.dict(
+                    os.environ,
+                    {"USL_POCKET_ID_DEV_ODOO_HOSTNAME": "100.100.10.20"},
+                    clear=True,
+                ),
+                self.assertRaisesRegex(
+                    POCKET_ID_DEV.PocketIDError,
+                    "explicit private QA",
+                ),
+            ):
+                POCKET_ID_DEV._write_new_env(path)
+
+    def test_admin_api_can_use_a_private_origin_separate_from_public_issuer(self):
+        values = {
+            "POCKET_ID_APP_URL": "https://pocket-id.example.test",
+            "POCKET_ID_STATIC_API_KEY": "test-key",
+        }
+        with patch.dict(
+            os.environ,
+            {"USL_POCKET_ID_ADMIN_API_URL": "http://100.79.30.44:19025"},
+            clear=True,
+        ):
+            api = POCKET_ID_DEV.PocketIDAPI(values)
+
+        self.assertEqual(api.base_url, "http://100.79.30.44:19025")
+
+    def test_admin_api_override_rejects_a_public_origin(self):
+        values = {
+            "POCKET_ID_APP_URL": "https://pocket-id.example.test",
+            "POCKET_ID_STATIC_API_KEY": "test-key",
+        }
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_ADMIN_API_URL": "https://api.example.test"},
+                clear=True,
+            ),
+            self.assertRaisesRegex(
+                POCKET_ID_DEV.PocketIDError,
+                "private or localhost",
+            ),
+        ):
+            POCKET_ID_DEV.PocketIDAPI(values)
+
+    def test_sign_test_cleanup_reuses_the_built_test_image(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        test_body = stack[
+            stack.index("test_stack() {") : stack.index("\n}\n\ntest_pocket_patch()")
+        ]
+
+        self.assertIn("--no-deps --entrypoint sh", test_body)
+        self.assertIn(
+            'TEST_DATABASE="$database" test -c',
+            test_body,
+        )
+        self.assertNotIn(
+            'TEST_DATABASE="$database" init-db -c',
+            test_body,
+        )
+
+    def test_sign_stack_reprovisions_clients_when_public_urls_change(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        upgrade_body = stack[
+            stack.index("upgrade_qa() {") : stack.index("\n}\n\nlogs()")
+        ]
+        paperless_body = stack[
+            stack.index("configure_paperless_only() {") : stack.index(
+                "\n}\n\narchive_acceptance()",
+            )
+        ]
+
+        self.assertIn("provision_pocket", upgrade_body)
+        self.assertIn("provision_pocket", paperless_body)
+
+    def test_sign_qa_reuses_the_canonical_documents_integration_identity(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        integration_access = (
+            ROOT / "deploy" / "documents" / "paperless_integration_access.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            'deploy/documents/paperless_integration_access.py',
+            stack,
+        )
+        self.assertNotIn("paperless_sign_qa_init.py", stack)
+        self.assertIn('username = "odoo-integration"', integration_access)
+        self.assertIn(
+            'legacy_sign_username = "odoo-sign-integration"',
+            integration_access,
+        )
+        self.assertIn(
+            "PaperlessTask.objects.filter(",
+            integration_access,
+        )
+        self.assertIn(
+            "Token.objects.filter(user=legacy_sign_user).delete()",
+            integration_access,
+        )
+        self.assertIn(
+            "legacy_sign_user.is_active = False",
+            integration_access,
+        )
+
     def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"
@@ -213,6 +354,32 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertFalse(
             users_by_profile["accountant_reviewer"]["create_if_missing"],
         )
+
+    def test_sign_qa_policy_uses_profiles_owned_by_the_base_sso_module(self):
+        values = {
+            "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
+            "POCKET_ID_PROSPER_ODOO_EMAIL": "",
+            "POCKET_ID_PROSPER_ID": "prosper-subject",
+            "POCKET_ID_ROGER_ID": "roger-subject",
+            "POCKET_ID_VALENTIN_ID": "valentin-subject",
+        }
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY": "1"},
+                clear=True,
+            ),
+            patch("builtins.print") as print_mock,
+        ):
+            POCKET_ID_DEV.odoo_policy(values)
+        policy = json.loads(print_mock.call_args.args[0])
+        users_by_login = {entry["login"]: entry for entry in policy}
+
+        self.assertEqual(
+            users_by_login["roger@unstaticlabs.com"]["profile"],
+            "collaborator",
+        )
+        self.assertEqual(users_by_login["prosper"]["profile"], "collaborator")
 
     def test_paperless_policy_uses_immutable_pocket_people(self):
         values = {

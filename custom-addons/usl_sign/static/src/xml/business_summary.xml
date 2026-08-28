@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="web.FormView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-component='this.props.Renderer' and @archInfo='this.archInfo']" position="before">
+            <UslSignBusinessSummary
+                t-if="this.model.root.resId and !this.props.resModel.startsWith('sign.oca') and !this.props.resModel.startsWith('usl.sign')"
+                resModel="this.props.resModel"
+                resId="this.model.root.resId"
+            />
+        </xpath>
+    </t>
+
+    <t t-name="usl_sign.BusinessSummary">
+        <section t-if="state.summary" class="usl-sign-business-summary" aria-label="Document signing status">
+            <div class="usl-sign-business-summary__main">
+                <span class="usl-sign-business-summary__eyebrow">Document signing</span>
+                <button type="button" class="btn btn-link p-0 usl-sign-business-summary__title" t-on-click="openRequest"><t t-out="state.summary.request_name"/></button>
+                <span class="badge text-bg-info" t-out="state.summary.state_label"/>
+            </div>
+            <div class="usl-sign-business-summary__details">
+                <span><strong>Next:</strong> <t t-out="state.summary.next_step"/></span>
+                <span><strong>Requested:</strong> <t t-out="state.summary.requested_trust"/></span>
+                <span t-if="state.summary.achieved_trust"><strong>Achieved:</strong> <t t-out="state.summary.achieved_trust"/></span>
+                <span><strong>Storage:</strong> <t t-out="state.summary.archive_state"/></span>
+            </div>
+            <div class="usl-sign-business-summary__actions">
+                <button type="button" class="btn btn-sm btn-primary" t-on-click="openRequest">View request</button>
+                <a t-if="state.summary.final_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.final_url">Signed PDF</a>
+                <a t-if="state.summary.certificate_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.certificate_url">Completion certificate</a>
+                <a t-if="state.summary.evidence_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.evidence_url">Proof record</a>
+            </div>
+        </section>
+    </t>
+</templates>

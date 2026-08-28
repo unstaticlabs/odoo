@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import copy
 import importlib.util
 import re
@@ -17,6 +18,24 @@ COMMIT = "a" * 40
 DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
 BACKUP_TOOL_IMAGE = "ghcr.io/unstaticlabs/usl-odoo-backup"
+PRODUCT_MODULES = {
+    "rebuild_account_migration",
+    "usl_access_control",
+    "usl_accounting",
+    "usl_b2c",
+    "usl_documents",
+    "usl_documents_accounting",
+    "usl_documents_b2c",
+    "usl_expense_batch",
+    "usl_locale",
+    "usl_platform_billing",
+    "usl_platform_billing_pocketid",
+    "usl_pocketid",
+    "usl_project",
+    "usl_sign",
+    "usl_tese_accounting",
+    "usl_tese_payroll",
+}
 
 
 def artifact() -> dict:
@@ -100,6 +119,46 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("pull_request:", self.workflow)
         self.assertNotIn("merge_group:", self.workflow)
         self.assertNotIn("workflow_dispatch:", self.workflow)
+
+    def test_product_module_perimeters_are_identical(self) -> None:
+        qa_environment = (ROOT / "scripts/qa-environment").read_text(encoding="utf-8")
+        qa_match = re.search(r"product_modules='([^']+)'", qa_environment)
+        self.assertIsNotNone(qa_match)
+        qa_modules = set(qa_match.group(1).split(","))
+
+        target_finalize = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
+        target_match = re.search(r"product_modules=\(\n(?P<body>.*?)\n\)", target_finalize, re.DOTALL)
+        self.assertIsNotNone(target_match)
+        target_modules = {
+            line.strip()
+            for line in target_match.group("body").splitlines()
+            if line.strip()
+        }
+
+        release_identity_path = ROOT / "scripts/odoo/release_identity.py"
+        release_tree = ast.parse(release_identity_path.read_text(encoding="utf-8"))
+        release_modules = None
+        for statement in release_tree.body:
+            if (
+                isinstance(statement, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "PRODUCT_MODULES"
+                    for target in statement.targets
+                )
+            ):
+                release_modules = set(ast.literal_eval(statement.value))
+                break
+        self.assertIsNotNone(release_modules)
+
+        preprod_release = (ROOT / "scripts/preprod-release").read_text(encoding="utf-8")
+        preprod_match = re.search(r'product_modules="([^"]+)"', preprod_release)
+        self.assertIsNotNone(preprod_match)
+        preprod_modules = set(preprod_match.group(1).split(","))
+
+        self.assertEqual(PRODUCT_MODULES, qa_modules)
+        self.assertEqual(PRODUCT_MODULES, target_modules)
+        self.assertEqual(PRODUCT_MODULES, release_modules)
+        self.assertEqual(PRODUCT_MODULES, preprod_modules)
 
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)

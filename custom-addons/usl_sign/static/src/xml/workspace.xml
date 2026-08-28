@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.Landing">
+        <div class="o_action usl_sign_workspace">
+            <div class="o_content overflow-auto">
+                <div class="container-xxl py-4 px-3 px-lg-4">
+                    <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                        <div>
+                            <h1 class="h2 mb-1">What needs your attention?</h1>
+                            <p class="text-muted mb-0">Send documents for signature and follow what happens next.</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary" t-on-click="inspectSignatures">
+                                <i class="fa fa-shield me-2"/>Check signatures
+                            </button>
+                            <button t-if="state.data.can_start" type="button" class="btn btn-primary" t-on-click="start">
+                                <i class="fa fa-file-text-o me-2"/>Request signatures
+                            </button>
+                        </div>
+                    </header>
+                    <div t-if="state.loading" class="usl_sign_workspace_state" aria-busy="true">
+                        <i class="fa fa-spinner fa-spin me-2"/>Loading your work…
+                    </div>
+                    <div t-elif="state.error" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                        <span>This page could not be loaded.</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="load">Retry</button>
+                    </div>
+                    <div t-else="" class="row g-4">
+                        <t t-foreach="sections" t-as="section" t-key="section[0]">
+                            <t t-set="content" t-value="getSection(section[0])"/>
+                            <section class="col-12 col-xl-6">
+                                <div t-att-class="'card usl_sign_work_card' + (!content.items.length ? ' usl_sign_work_card--empty' : '')">
+                                    <div class="card-header bg-transparent d-flex align-items-start justify-content-between gap-3">
+                                        <div class="d-flex gap-3">
+                                            <span class="usl_sign_section_icon"><i t-att-class="'fa ' + section[3]"/></span>
+                                            <div>
+                                                <h2 class="h5 mb-1" t-out="section[1]"/>
+                                                <p class="text-muted small mb-0" t-out="section[2]"/>
+                                            </div>
+                                        </div>
+                                        <span class="badge rounded-pill text-bg-secondary" t-out="content.count"/>
+                                    </div>
+                                    <div class="list-group list-group-flush">
+                                        <button t-foreach="content.items" t-as="item" t-key="item.model + '-' + item.id"
+                                                type="button" class="list-group-item list-group-item-action py-3"
+                                                t-on-click="() => this.openItem(item)">
+                                            <div class="d-flex justify-content-between gap-3">
+                                                <div class="min-w-0 text-start">
+                                                    <div class="fw-semibold text-truncate" t-out="item.title"/>
+                                                    <div t-if="item.subtitle" class="small text-muted text-truncate" t-out="item.subtitle"/>
+                                                </div>
+                                                <span class="badge text-bg-light align-self-start" t-out="item.trust"/>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2 mt-2 small text-muted text-start">
+                                                <span t-out="item.status"/>
+                                                <span aria-hidden="true">·</span>
+                                                <span t-out="item.progress"/>
+                                                <span t-if="item.due"><span aria-hidden="true">·</span> Due <t t-out="item.due"/></span>
+                                            </div>
+                                            <div t-if="item.signers?.length" class="usl_sign_signer_chips mt-2" aria-label="Signer progress">
+                                                <span t-foreach="item.signers" t-as="signer" t-key="signer.id"
+                                                      t-attf-class="usl_sign_signer_chip usl_sign_signer_chip--{{ signer.tone }}"
+                                                      t-att-title="`${signer.name}: ${signer.label}`">
+                                                    <i t-att-class="'fa ' + signer.icon" aria-hidden="true"/>
+                                                    <span t-out="signer.name"/>
+                                                    <small t-out="signer.label"/>
+                                                </span>
+                                            </div>
+                                            <div t-if="item.next_step" class="small mt-1 text-start"><strong>Next:</strong> <t t-out="item.next_step"/></div>
+                                        </button>
+                                        <div t-if="!content.items.length" class="px-3 py-2 text-muted small">
+                                            Nothing needs attention here.
+                                        </div>
+                                    </div>
+                                    <div t-if="content.more_action" class="card-footer bg-transparent p-0">
+                                        <button type="button"
+                                                class="btn btn-link usl_sign_more_action w-100 d-flex align-items-center justify-content-between gap-3 px-3 py-2 text-start text-decoration-none"
+                                                t-on-click="() => this.viewMore(content.more_action)">
+                                            Show more
+                                            <i class="fa fa-arrow-right" aria-hidden="true"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

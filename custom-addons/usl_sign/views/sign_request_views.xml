@@ -1,0 +1,851 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_request_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.form.usl.journey</field>
+        <field name="model">sign.oca.request</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="configure" type="object" string="Add signing fields" class="btn-primary" invisible="state != 'draft' or has_signing_fields or not can_coordinate"/>
+                    <button name="action_mark_ready" type="object" string="Check and continue" class="btn-primary" invisible="state != 'draft' or not has_signing_fields or not can_coordinate" help="Freeze the document setup and review the signing method before sending."/>
+                    <button name="action_send" type="object" string="Send for signature" class="btn-primary" invisible="state != 'ready' or not can_send"/>
+                    <button name="action_resume_after_enrollment" type="object" string="Continue" class="btn-primary" invisible="state != 'waiting_enrollment' or not can_coordinate"/>
+                    <button name="action_validate_external" type="object" string="Check imported document" class="btn-primary" invisible="state != 'signed_to_import' or not can_coordinate"/>
+                    <button name="action_create_replacement" type="object" string="Create replacement" class="btn-primary" invisible="state != 'validation_failed' or not can_send" help="Create a new draft from this request. The rejected record and its evidence stay unchanged."/>
+                    <button name="action_retry_validation" type="object" string="Try again" class="btn-primary" invisible="state != 'action_required' or not can_coordinate"/>
+                    <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
+                    <button name="action_send_reminder" type="object" string="Remind signers" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders or not can_coordinate"/>
+                    <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and disable every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external', 'signed_to_import', 'action_required'] or not can_send"/>
+                    <field name="lifecycle_stage" widget="statusbar" statusbar_visible="draft,ready,sent,progress,checks,closed" readonly="1"/>
+                    <field name="state" invisible="1"/>
+                    <field name="archive_status" invisible="1"/>
+                    <field name="archive_document_id" invisible="1"/>
+                    <field name="archive_dossier_document_id" invisible="1"/>
+                    <field name="record_kind" invisible="1"/>
+                    <field name="has_signing_fields" invisible="1"/>
+                    <field name="can_coordinate" invisible="1"/>
+                    <field name="can_send" invisible="1"/>
+                    <field name="strong_enrollment_missing" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="configure" type="object" class="oe_stat_button" icon="fa-pencil-square-o" string="Edit fields" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
+                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="Open document" invisible="state in ['draft', 'ready', 'completed', 'external_archived']"/>
+                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="View signed PDF" invisible="state not in ['completed', 'external_archived']"/>
+                        <button name="action_open_archived_signed_document" type="object" class="oe_stat_button" icon="fa-folder-open" string="Signed file in Documents" groups="usl_documents.group_documents_user" invisible="not archive_document_id"/>
+                        <button name="action_open_archived_proof_package" type="object" class="oe_stat_button" icon="fa-archive" string="Proof in Documents" groups="usl_documents.group_documents_user" invisible="not archive_dossier_document_id or record_kind == 'external_archive'"/>
+                        <button name="action_open_archived_proof_package" type="object" class="oe_stat_button" icon="fa-certificate" string="Odoo certificate" groups="usl_documents.group_documents_user" invisible="not archive_dossier_document_id or record_kind != 'external_archive'"/>
+                    </div>
+                    <widget name="web_ribbon" title="Completed" invisible="state != 'completed'"/>
+                    <widget name="web_ribbon" title="Odoo Online (External)" bg_color="bg-info" invisible="state != 'external_archived'"/>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="bg-danger" invisible="state != 'cancelled'"/>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Document for signature</p>
+                        <h1><field name="name" placeholder="Document name" readonly="state != 'draft'"/></h1>
+                    </div>
+
+                    <div class="alert alert-info mt-3" role="status" invisible="state != 'external_archived'">
+                        <strong class="d-block mb-1">Archived Odoo Online signing record</strong>
+                        <span class="d-block">This document and its original Odoo Online certificate are preserved in Documents. USL Sign did not rerun the historical signing, identity, certificate, trust, or revocation checks, so this record does not claim native USL completion or verification.</span>
+                    </div>
+
+                    <div class="row g-3 my-3 usl_sign_request_summary" invisible="state == 'ready'">
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">People</div><div class="fw-semibold"><field name="signer_progress" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Deadline</div><div class="fw-semibold"><field name="due_date_summary" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="lifecycle_stage_label" readonly="1"/></div></div></div></div>
+                    </div>
+
+                    <div class="alert alert-danger" role="alert" invisible="state != 'evidence_incomplete' or archive_status != 'failed'">
+                        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                            <div>
+                                <strong class="d-block mb-1">Final storage needs attention</strong>
+                                <span class="d-block">Odoo retained the signed PDF and proof package, but this request is not complete until Paperless confirms both archive copies.</span>
+                                <field name="archive_last_error" nolabel="1" readonly="1" class="d-block mt-1" invisible="not archive_last_error or not can_coordinate"/>
+                                <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
+                                <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+                                <button name="preview" type="object" string="Open signed PDF" class="btn-secondary" invisible="not final_data"/>
+                                <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="archive_status != 'failed' or not can_coordinate"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'evidence_incomplete' or archive_status not in ['pending', 'processing']">
+                        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                            <div>
+                                <strong class="d-block mb-1">Final storage is in progress.</strong>
+                                <span class="d-block">The signed PDF and proof package are safe in Odoo while Paperless finishes storing both archive copies.</span>
+                            </div>
+                            <button name="action_refresh_archive" type="object" string="Check storage status" class="btn-secondary flex-shrink-0" invisible="not can_coordinate" help="Ask Paperless for the latest status of the signed PDF and proof package."/>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'validation_failed']">
+                        <div class="d-flex flex-column gap-1">
+                            <strong class="d-block">Needs attention</strong>
+                            <field name="blocking_summary" nolabel="1" readonly="1" class="d-block"/>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="not strong_enrollment_missing or state not in ['draft', 'ready']">
+                        <strong class="d-block mb-1">Signer identity setup is required before sending.</strong>
+                        <field name="strong_enrollment_summary" nolabel="1" readonly="1" class="d-block"/>
+                        <span class="d-block mt-1">An identity reviewer starts setup from <strong>Configuration → Signer Identity Reviews</strong>. Each signer connects Pocket ID, then the reviewer approves the match.</span>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state in ['ready', 'waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed', 'completed', 'cancelled', 'declined', 'expired']">
+                        <field name="next_step" nolabel="1" readonly="1"/>
+                    </div>
+
+                    <section class="card mb-3 usl_sign_send_review" aria-labelledby="usl_sign_send_review_title" invisible="state != 'ready'">
+                        <div class="card-body">
+                            <h2 id="usl_sign_send_review_title" class="h4 mb-1">Check before you send</h2>
+                            <p class="text-muted mb-3">Confirm the people, method and timing. Nothing is sent until you choose <strong>Send for signature</strong>.</p>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3">Document</dt>
+                                <dd class="col-sm-9"><field name="name" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Signers</dt>
+                                <dd class="col-sm-9"><field name="signer_names_summary" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Signing method</dt>
+                                <dd class="col-sm-9"><div class="fw-semibold"><field name="requested_trust_short" readonly="1" nolabel="1"/></div><div class="text-muted"><field name="signing_method_summary" readonly="1" nolabel="1"/></div></dd>
+                                <dt class="col-sm-3">Deadline</dt>
+                                <dd class="col-sm-9"><field name="due_date_summary" readonly="1" nolabel="1"/></dd>
+                                <dt class="col-sm-3">Message</dt>
+                                <dd class="col-sm-9"><field name="responsible_message" readonly="1" nolabel="1" invisible="not responsible_message"/><span invisible="responsible_message">No message</span></dd>
+                            </dl>
+                        </div>
+                    </section>
+
+                    <notebook>
+                        <page string="Overview" name="overview">
+                            <group string="Details">
+                                <field name="user_id" string="Sent by" readonly="state != 'draft'"/>
+                                <field name="record_ref" string="Linked record" readonly="state != 'draft'"/>
+                                <field name="template_id" string="Template" readonly="1" invisible="not template_id"/>
+                                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                                <field name="expires_at" string="Deadline" readonly="state != 'draft'"/>
+                                <field name="responsible_message" string="Message to signers" readonly="state != 'draft'" placeholder="Optional note shown with the invitation"/>
+                            </group>
+                            <details class="mt-3">
+                                <summary class="text-muted">More options</summary>
+                                <group class="mt-2">
+                                    <field name="coordinator_ids" string="People helping manage this request" widget="many2many_tags" readonly="not can_send" options="{'no_create': true}"/>
+                                    <field name="reminder_days" string="Remind after (days)" readonly="state != 'draft'"/>
+                                    <field name="max_reminders" string="Maximum reminders" readonly="state != 'draft'"/>
+                                    <field name="reminder_count" string="Reminders sent" readonly="1"/>
+                                </group>
+                            </details>
+                        </page>
+                        <page string="Signers" name="signers">
+                            <div class="border rounded bg-light p-3 mb-3" role="note" invisible="state != 'draft'">
+                                Add everyone who must sign. A signing role identifies the fields each person will complete.
+                            </div>
+                            <group invisible="state != 'draft'">
+                                <field name="signing_order" string="People must sign in this order" readonly="requested_trust == 'strong_personal'"/>
+                            </group>
+                            <field name="signer_ids" readonly="state != 'draft' or not can_coordinate" nolabel="1">
+                                <list editable="bottom" decoration-success="state == 'signed'" decoration-danger="state == 'declined'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="partner_id" string="Person"/>
+                                    <field name="role_id" string="Signing role"/>
+                                    <field name="state" string="Status" readonly="1"/>
+                                    <field name="invitation_delivery_state" string="Invitation" readonly="1" optional="show"/>
+                                    <field name="authentication_method" readonly="1" optional="hide" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+                                    <field name="signed_on" string="Signed on" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Files" name="documents">
+                            <section class="usl_sign_form_preview mb-4" aria-labelledby="usl_sign_request_preview_title">
+                                <h3 id="usl_sign_request_preview_title" class="h5 mb-2">Document preview</h3>
+                                <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                            </section>
+                            <group>
+                                <field name="data" filename="filename" string="Main PDF" readonly="state != 'draft'"/>
+                                <field name="filename" invisible="1"/>
+                            </group>
+                            <field name="document_ids" readonly="state != 'draft' or not can_coordinate" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="is_annex" string="Annex"/>
+                                    <field name="name" string="Document"/>
+                                    <field name="filename"/>
+                                    <field name="data" filename="filename"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Method, result &amp; proof" name="proof">
+                            <section class="border rounded bg-light p-3 mb-3" aria-labelledby="usl_sign_method_result_title">
+                                <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
+                                    <div>
+                                        <h3 id="usl_sign_method_result_title" class="h5 mb-1">Signing method</h3>
+                                        <div class="fw-semibold"><field name="requested_trust_short" readonly="1" nolabel="1"/></div>
+                                        <field name="signing_method_summary" nolabel="1" readonly="1" class="d-block text-muted mt-1"/>
+                                        <field name="signature_semantics_summary" nolabel="1" readonly="1" class="d-block mt-2"/>
+                                        <div class="mt-2" invisible="not achieved_trust_short">
+                                            <span class="text-muted">Achieved: </span><field name="achieved_trust_short" readonly="1" nolabel="1" class="fw-semibold"/>
+                                        </div>
+                                    </div>
+                                    <button name="action_open_signing_method" type="object" string="Change method" class="btn-secondary flex-shrink-0" invisible="state != 'draft' or not can_send"/>
+                                </div>
+                            </section>
+                            <div class="border rounded bg-light p-3" role="status" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external']">
+                                The final document will appear here after everyone has signed and the result has been checked.
+                            </div>
+                            <group invisible="state in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external'] or record_kind == 'external_archive'">
+                                <group string="Result">
+                                    <field name="achieved_trust_short" string="Signing method achieved" readonly="1" invisible="not achieved_trust_short"/>
+                                    <field name="completed_at" string="Completed on" readonly="1" invisible="not completed_at"/>
+                                    <field name="archive_document_id" string="Archived signed document" readonly="1" invisible="not archive_document_id" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+                                    <field name="archive_dossier_document_id" string="Archived proof package" readonly="1" invisible="not archive_dossier_document_id" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+                                </group>
+                                <group string="Files">
+                                    <field name="final_filename" invisible="1"/>
+                                    <field name="completion_filename" invisible="1"/>
+                                    <field name="dossier_filename" invisible="1"/>
+                                    <field name="final_data" filename="final_filename" string="Signed PDF" readonly="1" invisible="not final_data"/>
+                                    <field name="completion_certificate" filename="completion_filename" string="Completion certificate" readonly="1" invisible="not completion_certificate"/>
+                                    <field name="dossier_data" filename="dossier_filename" string="Complete proof package" readonly="1" invisible="not dossier_data"/>
+                                </group>
+                            </group>
+                            <group invisible="record_kind != 'external_archive'">
+                                <group string="External record">
+                                    <field name="completed_at" string="Recorded completed on" readonly="1"/>
+                                    <field name="archive_document_id" string="Signed PDF in Documents" readonly="1" groups="usl_documents.group_documents_user"/>
+                                    <field name="archive_dossier_document_id" string="Odoo Online certificate in Documents" readonly="1" groups="usl_documents.group_documents_user"/>
+                                </group>
+                                <group string="Preservation status">
+                                    <field name="record_kind" string="Record type" readonly="1"/>
+                                    <field name="archive_status" string="Paperless storage" readonly="1"/>
+                                    <field name="original_sha256" string="Signed PDF SHA-256" readonly="1"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-light border mt-3" role="status" invisible="not final_data">
+                                <strong>Which file should I use?</strong>
+                                <span>Use the signed PDF day to day. The certificate is a short receipt. The complete proof package keeps every file and check an auditor may need.</span>
+                            </div>
+                            <group string="Independent timestamp" invisible="state != 'completed'">
+                                <group>
+                                    <field name="daily_timestamp_status" readonly="1" widget="badge"/>
+                                    <field name="daily_timestamp_message" readonly="1" nolabel="1"/>
+                                </group>
+                                <div class="text-muted small" colspan="2">
+                                    A daily Bitcoin timestamp will independently show that this completed file existed by a verified date.
+                                </div>
+                            </group>
+                            <details class="mt-4" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready'] or record_kind == 'external_archive'">
+                                <summary class="text-muted">Verification details</summary>
+                                <group class="mt-3">
+                                    <group string="Checks">
+                                        <field name="validation_status" readonly="1"/>
+                                        <field name="evidence_status" readonly="1"/>
+                                        <field name="archive_status" readonly="1"/>
+                                    </group>
+                                    <group string="File fingerprints">
+                                        <field name="original_sha256" readonly="1"/>
+                                        <field name="final_sha256" readonly="1" invisible="not final_sha256"/>
+                                    </group>
+                                </group>
+                                <field name="daily_timestamp_manifest_id" readonly="1" invisible="not daily_timestamp_manifest_id"/>
+                                <button name="action_open_daily_timestamp_proof" type="object" string="Open timestamp record" class="btn-secondary" invisible="not daily_timestamp_manifest_id"/>
+                                <field name="daily_timestamp_has_pending_receipt" invisible="1"/>
+                                <field name="daily_timestamp_has_confirmed_receipt" invisible="1"/>
+                                <field name="daily_timestamp_has_report" invisible="1"/>
+                                <field name="daily_timestamp_has_dossier" invisible="1"/>
+                                <div class="d-flex flex-wrap gap-2 my-2" invisible="not daily_timestamp_manifest_id">
+                                    <button name="action_download_daily_signed_manifest" type="object" string="Daily record" class="btn-link"/>
+                                    <button name="action_download_daily_pending_receipt" type="object" string="Pending timestamp" class="btn-link" invisible="not daily_timestamp_has_pending_receipt"/>
+                                    <button name="action_download_daily_confirmed_receipt" type="object" string="Confirmed timestamp" class="btn-link" invisible="not daily_timestamp_has_confirmed_receipt"/>
+                                    <button name="action_download_daily_verification_report" type="object" string="Timestamp check" class="btn-link" invisible="not daily_timestamp_has_report"/>
+                                    <button name="action_download_daily_proof_dossier" type="object" string="Timestamp record" class="btn-link" invisible="not daily_timestamp_has_dossier"/>
+                                </div>
+                                <field name="validation_ids" readonly="1" nolabel="1">
+                                    <list create="0" delete="0" edit="0"><field name="engine"/><field name="engine_version"/><field name="expected_trust"/><field name="achieved_trust"/><field name="status"/><field name="signature_count"/><field name="qualified_provider"/></list>
+                                </field>
+                                <field name="evidence_ids" readonly="1" nolabel="1">
+                                    <list create="0" delete="0" edit="0"><field name="kind"/><field name="name"/><field name="signer_id"/><field name="created_at"/><field name="data" filename="name"/></list>
+                                </field>
+                            </details>
+                        </page>
+                        <page string="Activity record" name="timeline" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
+                            <field name="event_ids" readonly="1" nolabel="1">
+                                <list create="0" delete="0" edit="0"><field name="occurred_at"/><field name="event_type"/><field name="signer_id"/><field name="state_from" optional="hide"/><field name="state_to" optional="hide"/><field name="actor_id"/></list>
+                            </field>
+                        </page>
+                        <page string="External signing" name="external" invisible="requested_trust != 'qualified_external'">
+                            <div class="border rounded bg-light p-3 mb-3" role="status">
+                                Complete these steps outside Odoo, then return the signed PDF. Uploading it starts verification; it does not finish the request by itself.
+                            </div>
+                            <field name="external_journey_id" readonly="1" nolabel="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="provider_id" string="Provider"/>
+                                    <field name="next_step" string="Next step"/>
+                                    <field name="state" string="Status" optional="hide"/>
+                                    <field name="exported_at" string="Downloaded on" optional="hide"/>
+                                    <field name="imported_at" string="Returned on" optional="hide"/>
+                                    <button name="action_open_details" type="object" string="Continue" class="btn-primary"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_request_signer_result_form" model="ir.ui.view">
+        <field name="name">sign.oca.request.form.usl.signer.result</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <form string="Signed document" create="0" edit="0" delete="0">
+                <header>
+                    <button name="preview" type="object" string="Open signed PDF" class="btn-primary" invisible="state == 'external_archived' or not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']"/>
+                    <button name="preview" type="object" string="Open signed PDF" class="btn-primary" invisible="state != 'external_archived'"/>
+                    <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
+                    <field name="lifecycle_stage" widget="statusbar" statusbar_visible="sent,progress,checks,closed" readonly="1"/>
+                    <field name="state" invisible="1"/>
+                    <field name="validation_status" invisible="1"/>
+                    <field name="archive_status" invisible="1"/>
+                    <field name="archive_last_error" invisible="1"/>
+                    <field name="archive_document_id" invisible="1"/>
+                    <field name="archive_dossier_document_id" invisible="1"/>
+                    <field name="record_kind" invisible="1"/>
+                    <field name="can_coordinate" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_archived_signed_document" type="object" class="oe_stat_button" icon="fa-folder-open" string="Signed file in Documents" groups="usl_documents.group_documents_user" invisible="not archive_document_id"/>
+                        <button name="action_open_archived_proof_package" type="object" class="oe_stat_button" icon="fa-archive" string="Proof in Documents" groups="usl_documents.group_documents_user" invisible="not archive_dossier_document_id or record_kind == 'external_archive'"/>
+                        <button name="action_open_archived_proof_package" type="object" class="oe_stat_button" icon="fa-certificate" string="Odoo certificate" groups="usl_documents.group_documents_user" invisible="not archive_dossier_document_id or record_kind != 'external_archive'"/>
+                    </div>
+                    <widget name="web_ribbon" title="Completed" invisible="state != 'completed'"/>
+                    <widget name="web_ribbon" title="Odoo Online (External)" bg_color="bg-info" invisible="state != 'external_archived'"/>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Document sent to you</p>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <div class="row g-3 my-4">
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="user_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Progress</div><div class="fw-semibold"><field name="signer_progress" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="lifecycle_stage_label" readonly="1"/></div></div></div></div>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'evidence_incomplete' or archive_status != 'failed'">
+                        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                            <div>
+                                <strong class="d-block mb-1">Final storage is delayed.</strong>
+                                <span class="d-block">Your signature is recorded, but the request is not complete until Paperless stores both the signed PDF and proof package.</span>
+                                <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
+                                <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
+                            </div>
+                            <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary flex-shrink-0" invisible="archive_status != 'failed' or not can_coordinate"/>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'evidence_incomplete' or archive_status not in ['pending', 'processing']">
+                        <strong>Final storage is in progress.</strong> Your signed copy is safe in Odoo while Paperless stores the signed PDF and proof package.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'validation_failed'">
+                        <strong>Verification failed.</strong> The requester needs to review this result before it can be used.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state in ['completed', 'evidence_incomplete', 'validation_failed']">
+                        Your part is recorded. The final files will appear here after everyone has signed and the document has passed its checks.
+                    </div>
+                    <div class="alert alert-success" role="status" invisible="state != 'completed'">
+                        <strong>Complete.</strong> The signed document and its proof are ready below.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'external_archived'">
+                        <strong class="d-block mb-1">Recorded by Odoo Online.</strong>
+                        <span>The signed PDF and original Odoo Online certificate are preserved in Documents. USL Sign did not rerun or certify the historical signing checks.</span>
+                    </div>
+                    <section class="usl_sign_form_preview my-4" aria-labelledby="usl_sign_external_preview_title" invisible="state != 'external_archived'">
+                        <h2 id="usl_sign_external_preview_title" class="h5 mb-2">Archived signed document</h2>
+                        <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                    </section>
+                    <group invisible="state != 'external_archived'">
+                        <group string="External record">
+                            <field name="completed_at" string="Recorded completed on" readonly="1"/>
+                            <field name="requested_trust_short" string="Record type" readonly="1"/>
+                        </group>
+                        <group string="Files in Documents">
+                            <field name="archive_document_id" string="Signed PDF" readonly="1" groups="usl_documents.group_documents_user"/>
+                            <field name="archive_dossier_document_id" string="Odoo Online certificate" readonly="1" groups="usl_documents.group_documents_user"/>
+                        </group>
+                    </group>
+                    <section class="usl_sign_form_preview my-4" aria-labelledby="usl_sign_result_preview_title" invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
+                        <h2 id="usl_sign_result_preview_title" class="h5 mb-2">Signed document preview</h2>
+                        <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                    </section>
+                    <group invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
+                        <group string="Result">
+                            <field name="achieved_trust_short" string="Signing method achieved" readonly="1"/>
+                            <field name="completed_at" string="Completed on" readonly="1"/>
+                        </group>
+                        <group string="Files">
+                            <field name="final_filename" invisible="1"/>
+                            <field name="completion_filename" invisible="1"/>
+                            <field name="dossier_filename" invisible="1"/>
+                            <field name="final_data" filename="final_filename" string="Signed PDF" readonly="1" invisible="not final_data"/>
+                            <field name="completion_certificate" filename="completion_filename" string="Completion certificate" readonly="1" invisible="not completion_certificate"/>
+                            <field name="dossier_data" filename="dossier_filename" string="Complete proof package" readonly="1" invisible="not dossier_data"/>
+                        </group>
+                    </group>
+                    <div class="text-muted small mt-3" invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
+                        Use the signed PDF for everyday reference. Keep the proof package when an auditor or reviewer needs the full record.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_share_confirm_form" model="ir.ui.view">
+        <field name="name">usl.sign.share.confirm.form</field>
+        <field name="model">usl.sign.share.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Share and send">
+                <sheet>
+                    <field name="request_id" invisible="1"/>
+                    <field name="recipient_count" invisible="1"/>
+                    <field name="message" invisible="1"/>
+                    <div class="oe_title">
+                        <h2>Share this request with <field name="recipient_names" readonly="1" class="d-inline"/>?</h2>
+                    </div>
+                    <p class="mb-2">
+                        These invited people have an Odoo account. They will receive a signing activity, can open the request in <strong>My Signatures</strong>, and can retrieve the final files after completion.
+                    </p>
+                    <p class="text-muted mb-0">
+                        They will only see their own signing assignment. Other recipients still use their private signing link.
+                    </p>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" string="Share and send" class="btn-primary" help="Send the request and share each invited Odoo user's own signing assignment."/>
+                    <button string="Go back" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_request_method_form" model="ir.ui.view">
+        <field name="name">usl.sign.request.method.form</field>
+        <field name="model">usl.sign.request.method</field>
+        <field name="arch" type="xml">
+            <form string="Signing method" class="usl_sign_method_wizard">
+                <sheet class="mw-100">
+                    <field name="request_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="document_category" invisible="1"/>
+                    <field name="signer_type" invisible="1"/>
+                    <field name="risk_level" invisible="1"/>
+                    <field name="formal_qes_required" invisible="1"/>
+                    <div class="oe_title mb-3">
+                        <h2>Choose a signing method</h2>
+                        <p class="text-muted mb-0">Compare what each method asks of signers and what proof it keeps.</p>
+                    </div>
+                    <section>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 text-muted">
+                            <span>Suggested:</span>
+                            <strong class="text-body"><field name="recommended_trust" class="d-inline" readonly="1"/></strong>
+                            <span>— an informative default, not a restriction.</span>
+                        </div>
+                        <field name="requested_trust" widget="usl_sign_method_radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
+                        <div class="alert alert-light border mt-3 mb-3" role="status" aria-live="polite">
+                            <strong><field name="selected_method_summary" nolabel="1" readonly="1"/></strong>
+                            <div class="small text-muted mt-1"><field name="selected_method_readiness" nolabel="1" readonly="1"/></div>
+                        </div>
+
+                        <div class="card mb-3" invisible="requested_trust != 'qualified_external'">
+                            <div class="card-body">
+                                <label for="external_provider_id" class="o_form_label fw-semibold">Qualified provider <span class="text-danger" aria-hidden="true">*</span></label>
+                                <p class="small text-muted mb-2">Required. Choose the provider that will sign the frozen PDF outside Odoo.</p>
+                                <field name="external_provider_id" nolabel="1" required="requested_trust == 'qualified_external'"/>
+                            </div>
+                        </div>
+                    </section>
+                </sheet>
+                <footer>
+                    <button name="action_apply" type="object" string="Continue to fields" class="btn-primary" help="Save this signing method and continue to field placement."/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_request_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.list.usl.open</field>
+        <field name="model">sign.oca.request</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0" decoration-danger="state in ['action_required', 'validation_failed']" decoration-warning="state in ['waiting_enrollment', 'evidence_incomplete']">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
+                <field name="name" string="Request"/>
+                <field name="record_ref" string="Linked record"/>
+                <field name="lifecycle_stage" string="Stage"/>
+                <field name="signer_progress" string="Progress"/>
+                <field name="next_step" string="Next action"/>
+                <field name="expires_at" string="Due date"/>
+                <field name="requested_trust_short" string="Signing method"/>
+                <field name="validation_status" string="Proof status" optional="hide"/>
+                <field name="archive_status" string="Archive status" optional="hide"/>
+                <field name="user_id" optional="hide"/>
+                <field name="coordinator_ids" widget="many2many_tags" optional="hide"/>
+                <field name="state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_request_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.kanban.usl.open</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <kanban create="0" delete="0" quick_create="0" default_order="create_date desc" class="o_kanban_small_column usl_sign_document_kanban">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
+                <field name="name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="lifecycle_stage"/>
+                <field name="signer_progress"/>
+                <field name="next_step"/>
+                <field name="due_date_summary"/>
+                <field name="requested_trust_short"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <h2 class="h6 mb-0 text-break"><field name="name"/></h2>
+                                <field name="lifecycle_stage" widget="badge"
+                                    decoration-danger="state in ['action_required', 'validation_failed']"
+                                    decoration-warning="state in ['waiting_enrollment', 'evidence_incomplete']"
+                                    decoration-info="state in ['sent', 'viewed', 'partial', 'validating']"/>
+                            </div>
+                            <div class="small text-muted mt-2"><field name="requested_trust_short"/></div>
+                            <div class="usl_sign_document_next mt-3">
+                                <span class="small text-muted d-block">Next</span>
+                                <field name="next_step"/>
+                            </div>
+                            <footer class="mt-3 d-flex align-items-end justify-content-between gap-3">
+                                <div class="small text-muted min-w-0">
+                                    <span class="d-block"><field name="signer_progress"/></span>
+                                    <span class="d-block text-truncate"><field name="due_date_summary"/></span>
+                                </div>
+                                <button name="preview" type="object" string="Open document" class="btn btn-sm btn-outline-primary flex-shrink-0" invisible="state in ['draft', 'ready']"/>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="sign_request_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.search.usl.open</field>
+        <field name="model">sign.oca.request</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="record_ref"/>
+                <field name="signer_ids"/>
+                <filter name="needs_action" string="Needs my action" domain="[('state', 'in', ['draft', 'ready', 'waiting_enrollment', 'signed_to_import', 'action_required', 'evidence_incomplete'])]"/>
+                <filter name="waiting" string="Waiting for signers" domain="[('state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="final_checks" string="Finishing" domain="[('state', 'in', ['signed_to_import', 'validating', 'evidence_incomplete'])]"/>
+                <filter name="recovery" string="Needs attention" domain="[('state', 'in', ['action_required', 'validation_failed', 'evidence_incomplete'])]"/>
+                <filter name="external" string="External signing" domain="[('state', 'in', ['waiting_external', 'signed_to_import'])]"/>
+                <group><filter name="group_status" string="Status" context="{'group_by': 'state'}"/><filter name="group_requester" string="Requester" context="{'group_by': 'user_id'}"/></group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sign_request_completed_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.list.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="completed_at desc, id desc">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
+                <field name="name" string="Document"/>
+                <field name="record_ref" string="Linked record" optional="show"/>
+                <field name="completed_at" string="Completed on"/>
+                <field name="signer_progress" string="Signatures"/>
+                <field name="requested_trust_short" string="Signing method / source"/>
+                <field name="completed_proof_label" string="Proof" widget="badge"/>
+                <field name="completed_storage_label" string="Final storage" widget="badge"/>
+                <field name="daily_timestamp_status" string="Independent timestamp" widget="badge" optional="hide"/>
+                <button name="preview" type="object" string="Open signed PDF" class="btn-primary"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_request_completed_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.kanban.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="completed_at desc, id desc" class="o_kanban_small_column usl_sign_document_kanban">
+                <header>
+                    <button name="%(sign_start_action)d" type="action" string="New request" class="btn-primary" display="always" data-hotkey="c" groups="usl_sign.group_sign_user"/>
+                </header>
+                <field name="name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="completed_at"/>
+                <field name="signer_progress"/>
+                <field name="achieved_trust_short"/>
+                <field name="completed_proof_label"/>
+                <field name="completed_storage_label"/>
+                <field name="archive_document_id"/>
+                <field name="record_kind"/>
+                <field name="requested_trust_short"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <h2 class="h6 mb-1 text-break"><field name="name"/></h2>
+                            <div class="small text-muted"><field name="completed_at"/></div>
+                            <div class="d-flex flex-wrap gap-1 mt-3">
+                                <span t-if="record.record_kind.raw_value === 'external_archive'" class="badge text-bg-info"><i class="fa fa-info-circle me-1" title="External record"/><field name="completed_proof_label"/></span>
+                                <span t-else="" class="badge text-bg-success"><i class="fa fa-check me-1" title="Proof ready"/><field name="completed_proof_label"/></span>
+                                <span class="badge text-bg-success"><i class="fa fa-folder-open-o me-1" title="Stored in Documents"/><field name="completed_storage_label"/></span>
+                                <span class="badge text-bg-light"><field name="requested_trust_short"/></span>
+                            </div>
+                            <footer class="mt-3 d-flex align-items-center justify-content-between gap-3">
+                                <span class="small text-muted"><field name="signer_progress"/></span>
+                                <div class="d-flex flex-wrap justify-content-end gap-1">
+                                    <button name="action_open_archived_signed_document" type="object" string="Documents" class="btn btn-sm btn-outline-secondary" groups="usl_documents.group_documents_user" invisible="not archive_document_id"/>
+                                    <button name="preview" type="object" string="Open PDF" class="btn btn-sm btn-primary"/>
+                                </div>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="sign_request_completed_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.search.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Document"/>
+                <field name="record_ref"/>
+                <field name="signer_ids" string="Signer"/>
+                <filter name="completed_this_month" string="Completion date" date="completed_at" default_period="month"/>
+                <separator/>
+                <filter name="standard" string="Standard" domain="[('achieved_trust', '=', 'standard')]"/>
+                <filter name="strong" string="Strong personal" domain="[('achieved_trust', '=', 'strong_personal')]"/>
+                <filter name="qualified" string="Qualified external" domain="[('achieved_trust', '=', 'qualified_external')]"/>
+                <filter name="external_archive" string="Odoo Online (External)" domain="[('record_kind', '=', 'external_archive')]"/>
+                <group>
+                    <filter name="group_source" string="Record type" context="{'group_by': 'record_kind'}"/>
+                    <filter name="group_method" string="Signing method" context="{'group_by': 'achieved_trust'}"/>
+                    <filter name="group_month" string="Completion month" context="{'group_by': 'completed_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="my_signature_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.list.usl.mine</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" action="action_open_my_signature" type="object"
+                decoration-success="state == 'signed'"
+                decoration-info="state == 'external_recorded'"
+                decoration-danger="state == 'declined' or request_state == 'validation_failed'"
+                decoration-muted="request_state in ['expired', 'cancelled']"
+                decoration-warning="state in ['draft', 'notified', 'viewed', 'authorized'] and request_state not in ['expired', 'cancelled']">
+                <field name="request_id" string="Document" options="{'no_open': true}"/>
+                <field name="sender_id" string="Sent by"/>
+                <field name="role_id" string="Signing as"/>
+                <field name="personal_status" string="Your status"/>
+                <field name="personal_next_step" string="Next step"/>
+                <field name="request_due_at" string="Due date"/>
+                <field name="overall_status" string="Request status" optional="hide"/>
+                <field name="requested_trust_short" string="Signing method"/>
+                <field name="signed_on" string="Signed on" optional="show"/>
+                <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
+                <button name="action_open_signing_identity" type="object" string="View identity status" invisible="not can_open_signing_identity"/>
+                <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
+                <field name="is_allow_signature" column_invisible="1"/>
+                <field name="can_open_signing_identity" column_invisible="1"/>
+                <field name="can_open_external_signing" column_invisible="1"/>
+                <field name="state" column_invisible="1"/>
+                <field name="request_state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="my_signature_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.kanban.usl.mine</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="arch" type="xml">
+            <kanban create="0" edit="0" delete="0" quick_create="0" default_order="create_date desc" action="action_open_my_signature" type="object" class="o_kanban_small_column usl_sign_document_kanban">
+                <field name="document_name"/>
+                <field name="document_preview_url"/>
+                <field name="document_thumbnail_url"/>
+                <field name="sender_id"/>
+                <field name="role_id"/>
+                <field name="personal_status"/>
+                <field name="personal_next_step"/>
+                <field name="request_due_at"/>
+                <field name="requested_trust_short"/>
+                <field name="signed_on"/>
+                <field name="is_allow_signature"/>
+                <field name="can_open_signing_identity"/>
+                <field name="can_open_external_signing"/>
+                <field name="state"/>
+                <field name="request_state"/>
+                <templates>
+                    <t t-name="card" class="usl_sign_document_card p-0 overflow-hidden">
+                        <field name="document_preview_url" widget="usl_sign_document_card_preview" nolabel="1"/>
+                        <div class="p-3">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <h2 class="h6 mb-0 text-break"><field name="document_name"/></h2>
+                                <span t-att-class="'badge ' + (record.state.raw_value === 'signed' ? 'text-bg-success' : (record.state.raw_value === 'external_recorded' ? 'text-bg-info' : (['declined', 'expired', 'cancelled', 'validation_failed'].includes(record.request_state.raw_value) ? 'text-bg-danger' : 'text-bg-warning'))) ">
+                                    <i t-if="record.state.raw_value === 'signed'" class="fa fa-check me-1" title="Signed"/>
+                                    <i t-if="record.state.raw_value === 'external_recorded'" class="fa fa-info-circle me-1" title="Recorded externally"/>
+                                    <field name="personal_status"/>
+                                </span>
+                            </div>
+                            <div class="small text-muted mt-2 text-truncate">From <field name="sender_id"/> · <field name="role_id"/></div>
+                            <div class="usl_sign_document_next mt-3"><field name="personal_next_step"/></div>
+                            <footer class="mt-3 d-flex align-items-end justify-content-between gap-3">
+                                <div class="small text-muted min-w-0">
+                                    <span class="d-block"><field name="requested_trust_short"/></span>
+                                    <span t-if="record.signed_on.raw_value &amp;&amp; record.state.raw_value === 'external_recorded'" class="d-block">Recorded <field name="signed_on"/></span>
+                                    <span t-elif="record.signed_on.raw_value" class="d-block">Signed <field name="signed_on"/></span>
+                                    <span t-elif="record.request_due_at.raw_value" class="d-block">Due <field name="request_due_at"/></span>
+                                </div>
+                                <button name="sign" type="object" string="Review and sign" class="btn btn-sm btn-primary flex-shrink-0" invisible="not is_allow_signature"/>
+                                <button name="action_open_signing_identity" type="object" string="Set up identity" class="btn btn-sm btn-primary flex-shrink-0" invisible="not can_open_signing_identity"/>
+                                <button name="action_open_external_signing" type="object" string="Continue" class="btn btn-sm btn-primary flex-shrink-0" invisible="not can_open_external_signing"/>
+                                <button name="action_open_my_signature" type="object" string="Open record" class="btn btn-sm btn-outline-primary flex-shrink-0" invisible="is_allow_signature or can_open_signing_identity or can_open_external_signing"/>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="my_signature_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.form.usl.mine</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
+                    <button name="action_open_signing_identity" type="object" string="View identity status" class="btn-primary" invisible="not can_open_signing_identity"/>
+                    <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
+                </header>
+                <sheet>
+                    <field name="is_allow_signature" invisible="1"/>
+                    <field name="can_open_signing_identity" invisible="1"/>
+                    <field name="can_open_external_signing" invisible="1"/>
+                    <field name="state" invisible="1"/>
+                    <field name="request_state" invisible="1"/>
+                    <div class="oe_title"><p class="text-muted mb-1">Your signature</p><h1><field name="request_id" options="{'no_open': true}"/></h1></div>
+                    <div class="alert alert-info mt-3" role="status">
+                        <div>
+                            <strong><field name="personal_status" readonly="1" nolabel="1"/></strong>
+                            <div><field name="personal_next_step" readonly="1" nolabel="1"/></div>
+                        </div>
+                    </div>
+                    <section class="usl_sign_form_preview my-4" aria-labelledby="usl_sign_my_signature_preview_title">
+                        <h2 id="usl_sign_my_signature_preview_title" class="h5 mb-2">Document preview</h2>
+                        <field name="document_preview_url" widget="usl_sign_document_preview" nolabel="1" readonly="1"/>
+                    </section>
+                    <div class="row g-3 my-4">
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="sender_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing as</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Complete by</div><div class="fw-semibold"><field name="request_due_at" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
+                    </div>
+                    <field name="signed_on" string="Signed on" readonly="1" invisible="not signed_on"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="my_signature_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.search.usl.mine</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="request_id"/>
+                <field name="sender_id"/>
+                <field name="role_id"/>
+                <field name="state"/>
+                <field name="request_state"/>
+                <separator/>
+                <filter name="to_sign" string="Ready to sign" domain="[('state', 'in', ['notified', 'viewed', 'authorized']), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="waiting_turn" string="Waiting for my turn" domain="[('state', '=', 'draft'), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="identity_setup" string="Identity setup" domain="[('request_id.state', '=', 'waiting_enrollment')]"/>
+                <filter name="external_signing" string="External signing" domain="[('request_id.state', '=', 'waiting_external')]"/>
+                <filter name="signed_by_me" string="Signed by me" domain="[('state', '=', 'signed')]"/>
+                <filter name="external_recorded" string="Recorded externally" domain="[('state', '=', 'external_recorded')]"/>
+                <filter name="completed" string="Completed" domain="[('request_id.state', 'in', ['completed', 'external_archived'])]"/>
+                <filter name="closed" string="Closed" domain="[('request_id.state', 'in', ['declined', 'expired', 'cancelled', 'validation_failed'])]"/>
+                <separator/>
+                <filter name="due" string="Has a due date" domain="[('request_due_at', '!=', False)]"/>
+                <group>
+                    <filter name="group_signature" string="My signature status" context="{'group_by': 'state'}"/>
+                    <filter name="group_status" string="Request status" context="{'group_by': 'request_state'}"/>
+                    <filter name="group_sender" string="Sender" context="{'group_by': 'sender_id'}"/>
+                    <filter name="group_due" string="Due month" context="{'group_by': 'request_due_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sign_request_action" model="ir.actions.act_window">
+        <field name="name">Open Requests</field>
+        <field name="res_model">sign.oca.request</field>
+        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('sign_request_kanban_usl')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('sign_request_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('sign_request_form_usl')})
+        ]"/>
+        <field name="domain">[('state', 'not in', ['completed', 'external_archived', 'declined', 'expired', 'cancelled']), '|', ('user_id', '=', uid), ('coordinator_ids', 'in', [uid])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No open requests</p>
+            <p>Select <strong>New request</strong> to upload a PDF or use a template, add the signers, and place their fields.</p>
+        </field>
+    </record>
+    <record id="my_signatures_action" model="ir.actions.act_window">
+        <field name="name">My Signatures</field>
+        <field name="res_model">sign.oca.request.signer</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('my_signature_kanban_usl')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('my_signature_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('my_signature_form_usl')})
+        ]"/>
+        <field name="domain">[('partner_id.user_ids', 'in', [uid]), ('request_id.state', 'not in', ['draft', 'ready'])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No documents have been assigned to you</p>
+            <p>This page keeps both documents awaiting your signature and your earlier results. Use the search filters to focus on ready, signed, completed, or closed requests.</p>
+        </field>
+    </record>
+    <record id="completed_documents_action" model="ir.actions.act_window">
+        <field name="name">Completed Documents</field>
+        <field name="res_model">sign.oca.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('sign_request_completed_kanban_usl')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('sign_request_completed_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('sign_request_form_usl')})
+        ]"/>
+        <field name="search_view_id" ref="sign_request_completed_search_usl"/>
+        <field name="domain">[('state', 'in', ['completed', 'external_archived']), ('managed_by_current_user', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No completed documents yet</p>
+            <p>Final documents from requests you sent or coordinate appear here. Documents you signed are kept under <strong>My Signatures</strong>.</p>
+        </field>
+    </record>
+</odoo>

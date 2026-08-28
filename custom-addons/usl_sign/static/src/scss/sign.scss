@@ -1,0 +1,2382 @@
+.usl_sign_editor {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--o-view-background-color, #fff);
+}
+
+.usl_sign_editor_toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    min-height: 3.75rem;
+    padding: .625rem 1rem;
+    background: var(--o-view-background-color, #fff);
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    z-index: 5;
+}
+
+.usl_sign_role_button {
+    color: #17202a !important;
+    border: 1px solid color-mix(in srgb, var(--usl-role-color) 45%, #dee2e6) !important;
+    background: var(--usl-role-tint) !important;
+}
+
+.usl_sign_role_button.active {
+    color: var(--usl-role-foreground) !important;
+    border-color: var(--usl-role-color) !important;
+    background: var(--usl-role-color) !important;
+}
+
+.usl_sign_role_dot {
+    display: inline-block;
+    width: .65rem;
+    height: .65rem;
+    margin-right: .4rem;
+    border-radius: 50%;
+    background: var(--usl-role-color);
+    vertical-align: -.02rem;
+}
+
+.usl_sign_role_button.active .usl_sign_role_dot {
+    border: 1px solid var(--usl-role-foreground);
+}
+
+.usl_sign_save_status {
+    flex: 0 0 7.5rem;
+    text-align: right;
+    font-size: .875rem;
+}
+
+.usl_sign_editor_workspace {
+    display: grid;
+    grid-template-columns: 17rem minmax(0, 1fr) 18rem;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.usl_sign_editor_workspace.usl_sign_library_closed {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+}
+
+.usl_sign_field_library,
+.usl_sign_field_inspector {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--o-view-background-color, #fff);
+}
+
+.usl_sign_field_library {
+    border-right: 1px solid var(--border-color, #dee2e6);
+}
+
+.usl_sign_field_inspector {
+    border-left: 1px solid var(--border-color, #dee2e6);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.usl_sign_panel_header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+
+.usl_sign_panel_section {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color, #edf0f2);
+}
+
+.usl_sign_field_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+.usl_sign_field_type {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 2.75rem;
+    padding: .5rem .625rem;
+    color: var(--body-color, #343a40);
+    text-align: left;
+    background: var(--o-view-background-color, #fff);
+    border: 1px solid var(--border-color, #ced4da);
+    border-radius: .375rem;
+    touch-action: none;
+}
+
+.usl_sign_field_type:hover,
+.usl_sign_field_type.active {
+    color: #714b67;
+    background: #f6f0f4;
+    border-color: #714b67;
+}
+
+.usl_sign_field_type:focus-visible,
+.usl_sign_role_button:focus-visible {
+    outline: 3px solid rgba(113, 75, 103, .28);
+    outline-offset: 2px;
+}
+
+.usl_sign_library_help {
+    padding: .75rem 1rem;
+    background: var(--o-gray-100, #f8f9fa);
+    border-top: 1px solid var(--border-color, #dee2e6);
+}
+
+.usl_sign_pdf_workspace {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #e7e9ec;
+}
+
+.usl_sign_pdf_workspace .o_sign_oca_iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.usl_sign_editor_loading {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #714b67;
+    background: rgba(255, 255, 255, .94);
+}
+
+.usl_sign_inspector_empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    flex-direction: column;
+    padding: 2rem;
+    color: var(--o-gray-600, #6c757d);
+    text-align: center;
+}
+
+.usl_sign_colored_select {
+    border-left: .45rem solid var(--usl-role-color);
+    background-color: var(--usl-role-tint);
+}
+
+.usl_sign_mobile_authoring {
+    display: none;
+}
+
+.usl_sign_editor_state {
+    padding: 1rem;
+    text-align: center;
+}
+
+.usl_sign_consent {
+    max-width: 35rem;
+    flex: 1 1 26rem;
+}
+
+.usl_sign_field_progress {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 24rem;
+    flex-direction: column;
+
+    strong {
+        font-size: .875rem;
+    }
+
+    span {
+        color: #5b6168;
+        font-size: .8rem;
+        line-height: 1.3;
+    }
+}
+
+.usl_sign_location_status {
+    max-width: 65ch;
+    margin: .35rem 0 0 2.1rem;
+    color: #5b6168;
+    font-size: .75rem;
+    line-height: 1.35;
+}
+
+.usl_sign_consent_choice {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: .75rem;
+    margin: 0;
+    padding: .75rem .875rem;
+    background: #fff;
+    border: 1px solid #cfd4da;
+    border-radius: .5rem;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.usl_sign_consent_choice:hover {
+    background: #faf7f9;
+    border-color: #9b7b93;
+}
+
+.usl_sign_consent_choice.is-checked {
+    background: #f7f1f5;
+    border-color: #714b67;
+    box-shadow: 0 0 0 .15rem rgba(113, 75, 103, .1);
+}
+
+.usl_sign_consent_choice .form-check-input {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 1.35rem;
+    margin: .1rem 0 0;
+    cursor: pointer;
+}
+
+.usl_sign_consent_choice > span,
+.usl_sign_consent_choice strong {
+    display: block;
+}
+
+.usl_sign_consent_choice strong {
+    margin-bottom: .15rem;
+    color: #212529;
+    font-size: .875rem;
+}
+
+.usl_sign_consent_privacy {
+    display: block;
+    max-width: 65ch;
+    color: #5b6168;
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.usl_sign_consent_choice > span > span {
+    color: #495057;
+    font-size: .875rem;
+    line-height: 1.35;
+}
+
+.usl_sign_consent > .text-danger {
+    margin: .35rem 0 0 .875rem;
+}
+
+.usl_sign_method_icon {
+    width: 2rem;
+    height: 2rem;
+}
+
+.usl_sign_method_choice {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+}
+
+.usl_sign_journey_intro {
+    margin-bottom: 1rem;
+}
+
+.usl_sign_method_detail {
+    max-width: 48rem;
+}
+
+.usl_sign_method_detail .o_field_widget {
+    width: auto;
+}
+
+.o_portal_sign_document_body {
+    overflow: hidden;
+    background: #e7e9ec;
+}
+
+.o_portal_sign_document_body .o_sign_oca_content {
+    display: grid;
+    width: 100%;
+    height: 100dvh;
+    min-height: 30rem;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+}
+
+.o_sign_oca_content.usl_sign_is_processing {
+    display: grid;
+    width: 100%;
+    height: 100dvh;
+    min-height: 30rem;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.usl_sign_is_processing > .o_sign_oca_iframe,
+.usl_sign_is_processing > .o_sign_oca_footer {
+    display: none !important;
+}
+
+.usl_sign_is_processing .usl_sign_portal_header {
+    grid-template-columns: minmax(10rem, 1fr) auto;
+}
+
+.usl_sign_is_processing .usl_sign_portal_instruction {
+    display: none;
+}
+
+.usl_sign_processing {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    place-items: center;
+    overflow: auto;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1rem;
+    color: #30272e;
+    background: #f8f7f8;
+    outline: 0;
+}
+
+.usl_sign_processing_content {
+    width: 100%;
+    max-width: 31rem;
+    text-align: center;
+}
+
+.usl_sign_processing_motion {
+    display: block;
+    width: 100%;
+    max-width: 15rem;
+    margin: 0 auto 1.25rem;
+    contain: layout paint;
+}
+
+.usl_sign_processing_motion svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.usl_sign_processing_paper {
+    fill: #fff;
+    stroke: #c9bec6;
+    stroke-width: 2;
+}
+
+.usl_sign_processing_line,
+.usl_sign_processing_signature,
+.usl_sign_processing_flourish,
+.usl_sign_processing_scan_edge {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.usl_sign_processing_scan {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: usl-sign-processing-scan 2.2s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+
+.usl_sign_processing_scan_band {
+    fill: rgba(200, 167, 190, .22);
+}
+
+.usl_sign_processing_scan_edge {
+    stroke: #8b617f;
+    stroke-width: 2;
+}
+
+.usl_sign_processing_line {
+    stroke: #d8d1d6;
+    stroke-width: 4;
+}
+
+.usl_sign_processing_signature,
+.usl_sign_processing_flourish {
+    stroke: #714b67;
+    stroke-width: 4;
+}
+
+.usl_sign_page_hidden .usl_sign_processing_scan {
+    animation-play-state: paused;
+}
+
+.usl_sign_processing h1 {
+    margin: 0 0 .5rem;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    line-height: 1.2;
+}
+
+.usl_sign_processing_status {
+    min-height: 1.5em;
+    margin: 0;
+    color: #5b5359;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.usl_sign_processing_guard {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 1rem 0 0;
+    color: #4f474d;
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.usl_sign_processing_guard i {
+    color: #2f7d57;
+}
+
+@keyframes usl-sign-processing-scan {
+    0% { opacity: 0; transform: translateY(0); }
+    14% { opacity: 1; }
+    78% { opacity: 1; transform: translateY(86px); }
+    100% { opacity: 0; transform: translateY(86px); }
+}
+
+.o_portal_sign_document_body .usl_sign_portal_header {
+    z-index: 2;
+    display: grid;
+    min-height: 4.5rem;
+    align-items: center;
+    gap: 1rem;
+    padding: .75rem clamp(1rem, 3vw, 2.5rem);
+    grid-template-columns: minmax(10rem, auto) minmax(16rem, 1fr) auto;
+    background: #fff;
+    border-bottom: 1px solid #d8dadd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+
+.usl_sign_portal_brand {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: .75rem;
+    color: #3c2d3a;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.usl_sign_portal_brand > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.usl_sign_portal_brand small {
+    color: #757c84;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .045em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.usl_sign_portal_brand strong {
+    overflow: hidden;
+    font-size: .95rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.usl_sign_portal_brand_mark {
+    display: inline-flex;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 2.35rem;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: #714b67;
+    border-radius: .65rem;
+    box-shadow: 0 .2rem .6rem rgba(113, 75, 103, .2);
+}
+
+.usl_sign_portal_instruction {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: center;
+    gap: .6rem;
+    color: #5b6168;
+    text-align: center;
+}
+
+.usl_sign_portal_instruction strong {
+    color: #212529;
+}
+
+.o_portal_sign_document_body .o_sign_oca_iframe {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    background: #e7e9ec;
+}
+
+.o_portal_sign_document_body .o_sign_oca_footer {
+    position: static !important;
+    z-index: 2;
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid #d8dadd;
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, .08);
+    max-height: 12rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.o_portal_sign_document_body .o_sign_validation_buttons {
+    display: flex;
+    width: 100%;
+    max-width: 80rem;
+    height: auto;
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem 1rem;
+    margin: 0 auto;
+    padding: .75rem 1.25rem;
+}
+
+.usl_sign_portal_actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: .625rem;
+}
+
+.usl_sign_portal_actions #sign_oca_button {
+    min-width: 6rem;
+}
+
+.usl-sign-business-summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 1rem 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 0.4rem;
+    background: var(--body-bg, #fff);
+}
+
+.usl-sign-business-summary__main,
+.usl-sign-business-summary__details,
+.usl-sign-business-summary__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.usl-sign-business-summary__details {
+    flex: 1 1 28rem;
+    color: var(--body-color, #495057);
+    font-size: 0.875rem;
+}
+
+.usl-sign-business-summary__eyebrow {
+    color: #714b67;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.usl-sign-business-summary__title {
+    font-weight: 600;
+}
+
+.usl-sign-business-summary--loading,
+.usl-sign-business-summary--error {
+    color: var(--body-color, #6c757d);
+}
+
+.usl-sign-business-summary--error {
+    color: var(--o-danger, #dc3545);
+    border-color: color-mix(in srgb, var(--o-danger, #dc3545) 45%, #dee2e6);
+}
+
+.usl_sign_workspace {
+    background: var(--o-gray-100, #f8f9fa);
+}
+
+.usl_sign_workspace > .o_content {
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+
+.usl_sign_workspace .container-xxl {
+    max-width: 1480px;
+}
+
+.usl_sign_workspace_state,
+.usl_sign_empty_state {
+    display: flex;
+    min-height: 18rem;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--o-gray-600, #6c757d);
+    text-align: center;
+}
+
+.usl_sign_work_card,
+.usl_sign_library_card,
+.usl_sign_request_summary .card {
+    border-color: color-mix(in srgb, var(--border-color, #dee2e6) 78%, transparent);
+    box-shadow: 0 .125rem .5rem rgba(33, 37, 41, .05);
+}
+
+.usl_sign_work_card .card-header {
+    padding: 1rem 1.125rem;
+}
+
+.usl_sign_work_card--empty .card-header {
+    border-bottom: 0;
+}
+
+.usl_sign_work_card--empty .list-group {
+    border-top: 1px solid var(--o-border-color, #dee2e6);
+}
+
+.usl_sign_more_action {
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 0 0 var(--bs-card-inner-border-radius, .375rem)
+        var(--bs-card-inner-border-radius, .375rem);
+
+    &:hover {
+        color: var(--o-action-color, var(--o-brand-primary, #714b67));
+        background: color-mix(in srgb, var(--o-brand-primary, #714b67) 8%, transparent);
+    }
+
+    &:focus-visible {
+        z-index: 1;
+        outline: 2px solid var(--o-action-color, var(--o-brand-primary, #714b67));
+        outline-offset: -2px;
+    }
+}
+
+.usl_sign_service_status_kanban:not(.o_kanban_grouped) {
+    align-content: flex-start;
+
+    .o_kanban_record {
+        flex: 1 1 19rem;
+        width: auto;
+        max-width: 27rem;
+        margin: .5rem;
+    }
+}
+
+.usl_sign_document_kanban:not(.o_kanban_grouped) {
+    align-content: flex-start;
+
+    .o_kanban_record {
+        flex: 1 1 19rem;
+        width: auto;
+        min-width: 0;
+        max-width: 27rem;
+        margin: .5rem;
+    }
+}
+
+.usl_sign_document_card {
+    min-width: 0;
+
+    > .p-3 {
+        display: flex;
+        min-height: 13.5rem;
+        flex-direction: column;
+
+        > footer {
+            margin-top: auto !important;
+        }
+    }
+
+    &:focus-within {
+        outline: 3px solid #2b6cb0;
+        outline-offset: 2px;
+    }
+}
+
+.usl_sign_document_card_preview {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 13rem;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
+    background: #eef0f2;
+    border-bottom: 1px solid var(--o-border-color, #dee2e6);
+    pointer-events: none;
+
+    > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+    }
+
+    .o_usl_document_preview,
+    .o_usl_pdf_preview {
+        width: 100%;
+        min-height: 100%;
+    }
+
+    .o_usl_document_preview {
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .o_usl_pdf_preview_controls {
+        display: none;
+    }
+
+    .alert {
+        margin: 1rem;
+        font-size: .8125rem;
+    }
+}
+
+.usl_sign_document_preview_placeholder {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 10rem;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .5rem;
+    color: #657184;
+    background: #eef0f2;
+
+    i {
+        font-size: 2.25rem;
+    }
+}
+
+.usl_sign_document_next {
+    display: -webkit-box;
+    min-height: 2.7rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.usl_sign_form_preview {
+    max-width: 70rem;
+
+    .usl_sign_document_preview {
+        overflow: hidden;
+        background: #eef0f2;
+        border: 1px solid var(--o-border-color, #dee2e6);
+        border-radius: .75rem;
+    }
+
+    .o_usl_document_preview {
+        display: block;
+        width: 100%;
+        height: 62vh;
+        min-height: 24rem;
+        max-height: 44rem;
+        overflow: auto;
+        background: #eef0f2;
+    }
+
+    .o_usl_document_preview > img,
+    canvas {
+        display: block;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .o_usl_pdf_preview_controls {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .75rem;
+        padding: .5rem;
+        color: #212529;
+        background: rgba(255, 255, 255, .94);
+        border-top: 1px solid #dee2e6;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .usl_sign_document_kanban:not(.o_kanban_grouped) .o_kanban_record {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .usl_sign_form_preview .o_usl_document_preview {
+        height: 30rem;
+        min-height: 18rem;
+    }
+}
+
+.usl_sign_section_icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 2.25rem;
+    align-items: center;
+    justify-content: center;
+    color: #714b67;
+    background: #f3edf2;
+    border-radius: .55rem;
+}
+
+.usl_sign_signer_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
+.usl_sign_signer_chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .5rem;
+    color: #495057;
+    background: #f1f3f5;
+    border-radius: 999px;
+    font-size: .75rem;
+
+    > span {
+        overflow: hidden;
+        max-width: 10rem;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    > small {
+        opacity: .8;
+    }
+
+    &--signed {
+        color: #166534;
+        background: #dcfce7;
+    }
+
+    &--ready {
+        color: #1e40af;
+        background: #dbeafe;
+    }
+
+    &--attention {
+        color: #92400e;
+        background: #fef3c7;
+    }
+
+    &--muted,
+    &--waiting {
+        color: #475569;
+        background: #e2e8f0;
+    }
+}
+
+.usl_sign_library_search {
+    width: 100%;
+    max-width: 24rem;
+}
+
+.usl_sign_library_card .card-footer {
+    padding: .875rem 1rem;
+}
+
+.usl_sign_clamp {
+    display: -webkit-box;
+    min-height: 2.6rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.usl_sign_request_summary .o_field_widget {
+    width: auto;
+}
+
+.usl_sign_method_wizard {
+    .o_form_sheet {
+        max-width: 62rem;
+    }
+}
+
+.modal:has(.usl_sign_start_wizard) .modal-dialog {
+    width: calc(100% - 2rem);
+    max-width: 72rem;
+}
+
+.usl_sign_start_wizard {
+    .o_form_sheet {
+        max-width: 70rem;
+    }
+}
+
+.usl_sign_start_intro {
+    max-width: 70ch;
+}
+
+.usl_sign_start_source {
+    margin-top: 1.5rem;
+
+    .o_horizontal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .o_radio_item {
+        position: relative;
+        margin: 0;
+        padding: 0;
+
+        .o_radio_input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .o_form_label {
+            display: inline-flex;
+            min-height: 2.75rem;
+            align-items: center;
+            gap: .625rem;
+            margin: 0;
+            padding: .625rem .875rem;
+            border-radius: var(--border-radius, .375rem);
+            color: var(--o-gray-900, #212529);
+            cursor: pointer;
+
+            &::before {
+                width: 1rem;
+                color: var(--o-brand-primary, #714b67);
+                font-family: FontAwesome;
+                text-align: center;
+            }
+        }
+
+        &:first-child .o_form_label::before {
+            content: "\f093";
+        }
+
+        &:nth-child(2) .o_form_label::before {
+            content: "\f0c1";
+        }
+
+        &:hover .o_form_label {
+            background: var(--o-gray-100, #f8f9fa);
+        }
+
+        .o_radio_input:checked + .o_form_label {
+            color: var(--o-brand-primary, #714b67);
+            background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+        }
+
+        .o_radio_input:focus-visible + .o_form_label {
+            outline: 2px solid var(--o-action, #017e84);
+            outline-offset: 2px;
+        }
+    }
+}
+
+.usl_sign_start_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.75rem;
+}
+
+.usl_sign_start_block {
+    min-width: 0;
+
+    h3 {
+        margin: 0 0 .75rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .o_form_label {
+        display: block;
+        margin-bottom: .375rem;
+    }
+
+    .o_field_widget {
+        width: 100%;
+    }
+}
+
+.usl_sign_start_choice {
+    min-height: 10.25rem;
+    padding: 1.25rem;
+    border: 1px solid var(--o-border-color, #dee2e6);
+    border-radius: .75rem;
+    background: var(--o-view-background-color, #fff);
+
+    .o_field_many2many_tags,
+    .o_field_binary {
+        margin-top: .25rem;
+    }
+}
+
+.usl_sign_start_method {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--o-border-color, #dee2e6);
+}
+
+.usl_sign_start_details {
+    margin-top: 2rem;
+}
+
+.usl_sign_start_details .usl_sign_start_grid {
+    gap: 1.25rem 2rem;
+    margin-top: 1rem;
+}
+
+.usl_sign_start_field {
+    min-width: 0;
+
+    .o_field_widget {
+        width: 100%;
+    }
+
+    .o_field_text textarea {
+        min-height: 6.5rem;
+        resize: vertical;
+    }
+}
+
+.usl_sign_start_field_wide {
+    grid-column: 1 / -1;
+}
+
+.usl_sign_start_method > p {
+    margin: -.25rem 0 1.5rem;
+}
+
+.usl_sign_method_comparison.o_horizontal {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 1rem;
+    width: 100%;
+
+    .o_radio_item {
+        position: relative;
+        align-items: stretch;
+        min-width: 0;
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+        border: 1px solid var(--o-border-color, #dee2e6);
+        border-radius: .75rem;
+        background: var(--o-view-background-color, #fff);
+        cursor: pointer;
+        transition: border-color .15s ease-out, background-color .15s ease-out;
+
+        .o_radio_input {
+            &:focus-visible + .o_form_label {
+                outline: 2px solid var(--o-action, #017e84);
+                outline-offset: 3px;
+            }
+
+            &:disabled + .o_form_label {
+                cursor: default;
+                opacity: .65;
+            }
+        }
+
+        .o_form_label {
+            display: flex;
+            align-items: stretch;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100%;
+            padding: 1rem;
+            cursor: pointer;
+        }
+
+        &:hover:not(.is-selected):not(.is-readonly) {
+            border-color: var(--o-gray-500, #adb5bd);
+            background: var(--o-gray-100, #f8f9fa);
+        }
+
+        &.is-selected {
+            border-color: var(--o-brand-primary, #714b67);
+            background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .04);
+        }
+    }
+}
+
+.usl_sign_start_template_next {
+    display: flex;
+    min-height: 4rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: .25rem;
+}
+
+.usl_sign_method_card_top {
+    display: flex;
+    min-width: 0;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .5rem;
+}
+
+.usl_sign_method_card_radio {
+    display: inline-flex;
+    width: 1.375rem;
+    height: 1.375rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--o-gray-600, #6c757d);
+    border-radius: 50%;
+    color: transparent;
+    font-size: .55rem;
+}
+
+.is-selected .usl_sign_method_card_radio {
+    border-color: var(--o-brand-primary, #714b67);
+    color: var(--o-brand-primary, #714b67);
+}
+
+.usl_sign_method_recommendation {
+    margin-left: auto;
+    padding: .375rem .625rem;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+    font-weight: 500;
+}
+
+.usl_sign_method_card_icon {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    margin-left: auto;
+    border-radius: 50%;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .08);
+    font-size: 1rem;
+}
+
+.usl_sign_method_recommendation + .usl_sign_method_card_icon {
+    margin-left: 0;
+}
+
+.usl_sign_method_card_title {
+    margin-top: .875rem;
+    color: var(--o-gray-900, #212529);
+    font-size: 1.125rem;
+    line-height: 1.25;
+}
+
+.usl_sign_method_card_fit {
+    min-height: 2.5rem;
+    margin-top: .25rem;
+    color: var(--o-gray-700, #495057);
+    font-size: .875rem;
+    line-height: 1.45;
+}
+
+.usl_sign_method_facts {
+    display: grid;
+    flex: 1 1 auto;
+    gap: 1rem;
+    margin: 1.25rem 0;
+
+    div {
+        min-width: 0;
+    }
+
+    dt {
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        color: var(--o-gray-600, #6c757d);
+        font-size: .8125rem;
+        font-weight: 600;
+
+        .fa {
+            width: 1rem;
+            color: var(--o-brand-primary, #714b67);
+            text-align: center;
+        }
+    }
+
+    dd {
+        margin: .25rem 0 0 1.35rem;
+        color: var(--o-gray-900, #212529);
+        font-size: .8125rem;
+        font-weight: 400;
+        line-height: 1.4;
+    }
+}
+
+.usl_sign_method_select {
+    min-height: 2.5rem;
+}
+
+.usl_sign_method_select {
+    margin-top: auto;
+    pointer-events: none;
+}
+
+.is-selected .usl_sign_method_select {
+    color: #fff;
+    border-color: var(--o-brand-primary, #714b67);
+    background: var(--o-brand-primary, #714b67);
+}
+
+.is-selected .usl_sign_method_card_title {
+    color: var(--o-brand-primary, #714b67);
+}
+
+.usl_sign_inspector {
+    --usl-inspector-ink: var(--o-gray-900, #212529);
+    --usl-inspector-muted: var(--o-gray-600, #6c757d);
+    --usl-inspector-line: var(--border-color, #dee2e6);
+    --usl-inspector-soft: var(--o-gray-100, #f8f9fa);
+    --usl-inspector-success: var(--bs-success-text-emphasis, #0a3622);
+    --usl-inspector-success-soft: var(--bs-success-bg-subtle, #d1e7dd);
+    --usl-inspector-warning: var(--bs-warning-text-emphasis, #664d03);
+    --usl-inspector-warning-soft: var(--bs-warning-bg-subtle, #fff3cd);
+    --usl-inspector-danger: var(--bs-danger-text-emphasis, #58151c);
+    --usl-inspector-danger-soft: var(--bs-danger-bg-subtle, #f8d7da);
+    min-width: 0;
+    color: var(--usl-inspector-ink);
+    background: var(--o-view-background-color, #fff);
+
+    button:focus-visible,
+    summary:focus-visible {
+        outline: 3px solid rgba(113, 75, 103, .28);
+        outline-offset: 3px;
+    }
+}
+
+.usl_sign_inspector_header {
+    display: flex;
+    max-width: 72rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-inline: auto;
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        letter-spacing: normal;
+        line-height: 1.2;
+    }
+
+    p {
+        max-width: 64ch;
+        margin: 0;
+        color: var(--usl-inspector-muted);
+        font-size: .875rem;
+        line-height: 1.5;
+    }
+}
+
+.usl_sign_inspector_privacy {
+    display: flex;
+    max-width: 23rem;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .75rem;
+    padding-inline: .75rem;
+
+    > i {
+        margin-top: .1rem;
+    }
+
+    span,
+    strong {
+        display: block;
+        font-size: .8125rem;
+        line-height: 1.35;
+    }
+}
+
+.usl_sign_inspector_empty {
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.usl_sign_inspector_dropzone {
+    display: flex;
+    width: 100%;
+    min-height: 17rem;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .5rem;
+    padding: 2.5rem 1.5rem;
+    color: var(--usl-inspector-ink);
+    background: #fff;
+    border-style: dashed !important;
+    border-color: var(--o-gray-400, #ced4da) !important;
+    box-shadow: none;
+    transition: border-color .15s ease-out, background-color .15s ease-out;
+
+    &:hover,
+    &.is-dragging {
+        background: var(--o-gray-100, #f8f9fa) !important;
+        border-color: var(--o-brand-primary, #714b67) !important;
+    }
+
+    strong {
+        margin-top: .5rem;
+        font-size: 1.125rem;
+        font-weight: 500;
+    }
+
+    > span:not(.usl_sign_inspector_dropicon) {
+        color: var(--o-brand-primary, #714b67);
+        font-weight: 600;
+    }
+
+    small {
+        margin-top: .75rem;
+        color: var(--usl-inspector-muted);
+    }
+}
+
+.usl_sign_inspector_dropicon {
+    font-size: 2.25rem;
+}
+
+.usl_sign_inspector_intro {
+    display: grid;
+    gap: 1.5rem;
+    padding: 1rem .5rem 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    > div {
+        display: flex;
+        gap: .75rem;
+        color: var(--usl-inspector-muted);
+        line-height: 1.45;
+    }
+
+    i {
+        margin-top: .18rem;
+        color: var(--o-brand-primary, #714b67);
+        font-size: 1.1rem;
+    }
+
+    span,
+    strong {
+        display: block;
+    }
+
+    strong {
+        margin-bottom: .15rem;
+        color: var(--usl-inspector-ink);
+    }
+}
+
+.usl_sign_inspector_loading,
+.usl_sign_inspector_error {
+    display: flex;
+    width: 100%;
+    max-width: 42rem;
+    min-height: 15rem;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem auto 0;
+    padding: 2rem;
+    text-align: left;
+
+    h2 {
+        margin: 0 0 .35rem;
+        font-size: 1.5rem;
+    }
+
+    p {
+        max-width: 52ch;
+        margin: 0;
+        color: var(--usl-inspector-muted);
+    }
+}
+
+.usl_sign_inspector_scan,
+.usl_sign_inspector_error > i {
+    display: grid;
+    width: 4.5rem;
+    height: 4.5rem;
+    flex: 0 0 4.5rem;
+    place-items: center;
+    color: var(--o-brand-primary, #714b67);
+    background: transparent;
+    font-size: 1.75rem;
+}
+
+.usl_sign_inspector_scan {
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+        position: absolute;
+        width: 100%;
+        height: .2rem;
+        background: var(--o-brand-primary, #714b67);
+        box-shadow: 0 0 12px rgba(113, 75, 103, .3);
+        content: "";
+        animation: usl-sign-inspector-scan 1.4s cubic-bezier(.22, 1, .36, 1) infinite;
+    }
+}
+
+@keyframes usl-sign-inspector-scan {
+    from {
+        transform: translateY(-2.5rem);
+    }
+
+    to {
+        transform: translateY(2.5rem);
+    }
+}
+
+.usl_sign_inspector_error {
+    color: var(--usl-inspector-danger);
+
+    > i {
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
+    }
+
+    p {
+        margin-bottom: 1rem;
+        color: var(--usl-inspector-danger);
+    }
+}
+
+.usl_sign_inspector_filebar {
+    display: flex;
+    max-width: 72rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 auto 1rem;
+}
+
+.usl_sign_inspector_filename {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .75rem;
+
+    > i {
+        color: var(--bs-danger, #dc3545);
+        font-size: 1.75rem;
+    }
+
+    > span,
+    strong,
+    small {
+        display: block;
+        min-width: 0;
+    }
+
+    strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    small {
+        color: var(--usl-inspector-muted);
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.usl_sign_inspector_verdict {
+    display: grid;
+    max-width: 72rem;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 auto 1rem;
+    padding: 1rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+
+    &.is-success {
+        color: var(--usl-inspector-success);
+        background: var(--usl-inspector-success-soft);
+    }
+
+    &.is-warning {
+        color: var(--usl-inspector-warning);
+        background: var(--usl-inspector-warning-soft);
+    }
+
+    &.is-danger {
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
+    }
+
+    &.is-neutral {
+        color: var(--o-gray-800, #343a40);
+        background: var(--o-gray-200, #e9ecef);
+    }
+
+    h2 {
+        margin: 0 0 .25rem;
+        color: currentColor;
+        font-size: 1.125rem;
+    }
+
+    p {
+        max-width: 70ch;
+        margin: 0;
+        color: currentColor;
+        opacity: .86;
+    }
+
+    dl {
+        display: flex;
+        gap: 1.5rem;
+        margin: 0;
+    }
+
+    dl > div {
+        min-width: 5.5rem;
+    }
+
+    dt {
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    dd {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.usl_sign_inspector_verdict_icon {
+    width: 2rem;
+    text-align: center;
+
+    i {
+        color: currentColor;
+        font-size: 1.75rem;
+    }
+}
+
+.usl_sign_inspector_verdict.is-success .usl_sign_inspector_verdict_icon {
+    color: var(--usl-inspector-success);
+}
+
+.usl_sign_inspector_verdict.is-warning .usl_sign_inspector_verdict_icon {
+    color: var(--usl-inspector-warning);
+}
+
+.usl_sign_inspector_verdict.is-danger .usl_sign_inspector_verdict_icon {
+    color: var(--usl-inspector-danger);
+}
+
+.usl_sign_inspector_results {
+    display: grid;
+    max-width: 72rem;
+    align-items: start;
+    gap: 2rem;
+    margin: 0 auto;
+    grid-template-columns: minmax(0, 2fr) minmax(17rem, .72fr);
+}
+
+.usl_sign_inspector_primary {
+    min-width: 0;
+}
+
+.usl_sign_systray_menu {
+    width: 24rem;
+    max-width: calc(100vw - 1rem);
+    max-height: 70vh;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.usl_sign_systray_requests {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+}
+
+.usl_sign_systray_heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .85rem 1rem .7rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+
+    span:first-child,
+    small {
+        display: block;
+    }
+}
+
+.usl_sign_systray_request {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .75rem;
+    padding: .8rem 1rem;
+
+    > * {
+        min-width: 0;
+    }
+
+    .badge {
+        max-width: 7rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.usl_sign_systray_text {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.usl_sign_systray_request_icon {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    place-items: center;
+    color: var(--o-brand-primary, #714b67);
+    background: rgba(113, 75, 103, .1);
+    border-radius: .5rem;
+}
+
+.usl_sign_systray_all {
+    padding: .7rem 1rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    text-decoration: none;
+}
+
+@media (max-width: 480px) {
+    .usl_sign_systray_heading {
+        align-items: flex-start;
+        gap: .5rem;
+    }
+
+    .usl_sign_systray_request {
+        flex-wrap: wrap;
+
+        > .min-w-0 {
+            flex: 1 1 0;
+        }
+
+        .badge {
+            margin-inline-start: 2.75rem;
+        }
+    }
+}
+
+.usl_sign_inspector_section {
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.usl_sign_inspector_section_heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+
+    h2 {
+        margin: 0 0 .25rem;
+        font-size: 1rem;
+    }
+
+    p {
+        max-width: 68ch;
+        margin: 0;
+        color: var(--usl-inspector-muted);
+        font-size: .875rem;
+        line-height: 1.45;
+    }
+}
+
+.usl_sign_inspector_no_signatures {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 1.25rem;
+    color: var(--usl-inspector-muted);
+
+    > i {
+        color: var(--usl-inspector-muted);
+        font-size: 1.5rem;
+    }
+
+    strong {
+        display: block;
+        margin-bottom: .25rem;
+        color: var(--usl-inspector-ink);
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.usl_sign_inspector_document_group {
+    > h3 {
+        margin: 0;
+        padding: .75rem 1.5rem;
+        color: var(--usl-inspector-muted);
+        background: var(--o-gray-100, #f8f9fa);
+        border-bottom: 1px solid var(--usl-inspector-line);
+        font-size: .8125rem;
+        font-weight: 600;
+    }
+}
+
+.usl_sign_signature_result {
+    border-bottom: 1px solid var(--usl-inspector-line);
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    > summary {
+        display: grid;
+        align-items: center;
+        gap: .875rem;
+        padding: .875rem 1.25rem;
+        list-style: none;
+        cursor: pointer;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        &:hover {
+            background: var(--o-gray-100, #f8f9fa);
+        }
+    }
+
+    &[open] .usl_sign_signature_chevron {
+        transform: rotate(180deg);
+    }
+}
+
+.usl_sign_status_mark {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 50%;
+
+    &.is-success {
+        color: var(--usl-inspector-success);
+        background: var(--usl-inspector-success-soft);
+    }
+
+    &.is-warning {
+        color: var(--usl-inspector-warning);
+        background: var(--usl-inspector-warning-soft);
+    }
+
+    &.is-danger {
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
+    }
+}
+
+.usl_sign_signature_identity {
+    min-width: 0;
+
+    strong,
+    small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    small {
+        margin-top: .1rem;
+        color: var(--usl-inspector-muted);
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.usl_sign_result_label {
+    padding: .25rem .6rem;
+    border-radius: var(--bs-border-radius-pill, 50rem);
+    font-size: .75rem;
+    font-weight: 700;
+
+    &.is-success {
+        color: var(--usl-inspector-success);
+        background: var(--usl-inspector-success-soft);
+    }
+
+    &.is-warning {
+        color: var(--usl-inspector-warning);
+        background: var(--usl-inspector-warning-soft);
+    }
+
+    &.is-danger {
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
+    }
+}
+
+.usl_sign_signature_chevron {
+    color: var(--usl-inspector-muted);
+    transition: transform .16s ease-out;
+}
+
+.usl_sign_signature_details {
+    padding: 0 1.25rem 1.25rem 4.1rem;
+}
+
+.usl_sign_check_list {
+    display: grid;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+
+    > div {
+        display: flex;
+        align-items: flex-start;
+        gap: .65rem;
+        padding: .7rem .8rem;
+        border-radius: .625rem;
+
+        &.is-success {
+            color: var(--usl-inspector-success);
+            background: var(--usl-inspector-success-soft);
+        }
+
+        &.is-warning {
+            color: var(--usl-inspector-warning);
+            background: var(--usl-inspector-warning-soft);
+        }
+
+        &.is-danger {
+            color: var(--usl-inspector-danger);
+            background: var(--usl-inspector-danger-soft);
+        }
+
+        &.is-neutral {
+            color: var(--o-gray-700, #495057);
+            background: var(--o-gray-100, #f8f9fa);
+        }
+    }
+
+    i {
+        margin-top: .15rem;
+    }
+
+    span,
+    strong {
+        display: block;
+    }
+
+    strong {
+        margin-bottom: .1rem;
+    }
+}
+
+.usl_sign_signature_facts,
+.usl_sign_inspector_technical dl {
+    display: grid;
+    gap: .75rem 1.25rem;
+    margin: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    dt {
+        color: var(--usl-inspector-muted);
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    dd {
+        overflow-wrap: anywhere;
+        margin: .15rem 0 0;
+        color: var(--usl-inspector-ink);
+        line-height: 1.35;
+    }
+}
+
+.usl_sign_hash {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.usl_sign_timestamp,
+.usl_sign_dossier_verdict {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    margin-top: 1.25rem;
+    padding: .8rem;
+    border-radius: .625rem;
+
+    &.is-success {
+        color: var(--usl-inspector-success);
+        background: var(--usl-inspector-success-soft);
+    }
+
+    &.is-warning {
+        color: var(--usl-inspector-warning);
+        background: var(--usl-inspector-warning-soft);
+    }
+
+    &.is-danger {
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
+    }
+
+    span,
+    strong {
+        display: block;
+    }
+
+    strong {
+        margin-bottom: .1rem;
+    }
+}
+
+.usl_sign_inspector_technical {
+    margin-top: 1rem;
+
+    > summary {
+        width: fit-content;
+        color: var(--o-action-color, var(--o-brand-primary, #714b67));
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    > p {
+        max-width: 65ch;
+        margin: .5rem 0 0;
+        color: var(--usl-inspector-muted);
+        font-size: .875rem;
+    }
+
+    dl {
+        margin-top: .75rem;
+        padding: 1rem;
+        background: var(--usl-inspector-soft);
+        border-radius: .625rem;
+    }
+}
+
+.usl_sign_dossier_verdict {
+    margin: 1rem 1.25rem;
+}
+
+.usl_sign_attachment_list {
+    border-top: 1px solid var(--usl-inspector-line);
+
+    > div {
+        display: grid;
+        align-items: center;
+        gap: .75rem;
+        padding: .75rem 1.25rem;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        border-bottom: 1px solid var(--usl-inspector-line);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+
+        > i {
+            color: var(--o-brand-primary, #714b67);
+        }
+    }
+
+    span,
+    strong,
+    small {
+        display: block;
+        min-width: 0;
+    }
+
+    strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    small {
+        color: var(--usl-inspector-muted);
+        font-size: .75rem;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.usl_sign_dossier_mismatches {
+    margin: 0;
+    padding: 1rem 2.75rem;
+    color: var(--usl-inspector-danger);
+    background: var(--usl-inspector-danger-soft);
+}
+
+.usl_sign_inspector_limits {
+    position: sticky;
+    top: 1rem;
+    color: var(--usl-inspector-ink);
+
+    h2 {
+        margin: 0 0 1rem;
+        font-size: 1.2rem;
+    }
+
+    h3 {
+        margin: 1.5rem 0 .75rem;
+        font-size: .9rem;
+    }
+
+    ul {
+        display: grid;
+        gap: .8rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: .65rem;
+        line-height: 1.4;
+    }
+
+    li i {
+        margin-top: .18rem;
+        color: var(--o-brand-primary, #714b67);
+    }
+
+    .is-limited li i {
+        color: var(--usl-inspector-warning);
+    }
+
+    > p {
+        margin: 1.5rem 0 0;
+        padding-top: 1rem;
+        border-top: 1px solid var(--usl-inspector-line);
+        font-size: .8125rem;
+        line-height: 1.5;
+    }
+
+    .usl_sign_external_validation {
+        strong,
+        span {
+            display: block;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: .25rem;
+        }
+
+        span {
+            margin-top: .35rem;
+            color: var(--usl-inspector-muted);
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .usl_sign_processing_scan {
+        animation: none;
+        opacity: .55;
+        transform: translateY(43px);
+    }
+
+    .usl_sign_inspector_scan::after {
+        animation: none;
+        transform: none;
+    }
+
+    .usl_sign_signature_chevron,
+    .usl_sign_inspector_dropzone {
+        transition: none;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .usl_sign_inspector_header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .usl_sign_inspector_privacy {
+        max-width: none;
+    }
+
+    .usl_sign_inspector_results {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .usl_sign_inspector_limits {
+        position: static;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .usl_sign_editor_workspace {
+        grid-template-columns: 15rem minmax(0, 1fr) 16rem;
+    }
+
+    .usl_sign_role_button .opacity-75 {
+        display: none;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .usl_sign_editor_toolbar,
+    .usl_sign_field_library,
+    .usl_sign_field_inspector,
+    .usl_sign_pdf_workspace .o_sign_oca_iframe {
+        display: none;
+    }
+
+    .usl_sign_editor_workspace {
+        display: block;
+    }
+
+    .usl_sign_mobile_authoring {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: .5rem;
+        min-height: 24rem;
+        padding: 2rem;
+        color: var(--o-gray-600, #6c757d);
+        text-align: center;
+        background: var(--o-view-background-color, #fff);
+    }
+
+    .o_sign_validation_buttons {
+        align-items: stretch;
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+    .o_portal_sign_document_body .usl_sign_portal_header {
+        min-height: 4rem;
+        grid-template-columns: 1fr auto;
+    }
+
+    .usl_sign_portal_instruction {
+        display: none;
+    }
+
+    .o_portal_sign_document_body .o_sign_validation_buttons {
+        align-items: stretch;
+        gap: .75rem;
+    }
+
+    .usl_sign_field_progress {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .usl_sign_consent {
+        max-width: none;
+    }
+
+    .usl_sign_portal_actions .btn-primary {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .modal:has(.usl_sign_start_wizard) .modal-dialog {
+        width: calc(100% - 1rem);
+        margin: .5rem auto;
+    }
+
+    .usl_sign_start_wizard .o_form_sheet {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .usl_sign_start_grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+
+    .usl_sign_start_field_wide {
+        grid-column: auto;
+    }
+
+    .usl_sign_method_comparison.o_horizontal {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .usl_sign_start_choice {
+        min-height: 0;
+    }
+
+    .usl_sign_start_source .o_horizontal {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .usl_sign_start_source .o_radio_item .o_form_label {
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+
+    .usl_sign_inspector_header h1 {
+        font-size: 1.25rem;
+    }
+
+    .usl_sign_inspector_intro {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .usl_sign_inspector_dropzone {
+        min-height: 14rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .usl_sign_inspector_loading,
+    .usl_sign_inspector_error {
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .usl_sign_inspector_filebar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .usl_sign_inspector_filebar > .d-flex {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .usl_sign_inspector_verdict {
+        grid-template-columns: auto minmax(0, 1fr);
+
+        dl {
+            grid-column: 1 / -1;
+            padding-left: 4rem;
+        }
+    }
+
+    .usl_sign_signature_result > summary {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .usl_sign_result_label {
+        grid-column: 2;
+        width: fit-content;
+    }
+
+    .usl_sign_signature_chevron {
+        grid-column: 3;
+        grid-row: 1 / 3;
+    }
+
+    .usl_sign_signature_details {
+        padding: 0 1rem 1rem;
+    }
+
+    .usl_sign_signature_facts,
+    .usl_sign_inspector_technical dl {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .usl_sign_attachment_list > div {
+        grid-template-columns: auto minmax(0, 1fr);
+
+        > .badge {
+            grid-column: 2;
+            width: fit-content;
+        }
+    }
+
+    .o_portal_sign_document_body .usl_sign_portal_header {
+        padding: .625rem .75rem;
+    }
+
+    .usl_sign_portal_brand_mark {
+        width: 2rem;
+        height: 2rem;
+        flex-basis: 2rem;
+    }
+
+    .usl_sign_portal_header .badge {
+        display: none;
+    }
+
+    .o_portal_sign_document_body .o_sign_validation_buttons {
+        padding: .625rem .75rem;
+    }
+
+    .usl_sign_portal_actions {
+        width: 100%;
+    }
+
+    .usl_sign_portal_actions .btn {
+        flex: 1 1 0;
+    }
+
+}

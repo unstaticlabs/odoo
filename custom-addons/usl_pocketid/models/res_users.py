@@ -1,7 +1,7 @@
 import secrets
 import time
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessDenied, UserError, ValidationError
 from odoo.http import request
 
@@ -623,7 +623,7 @@ class ResUsers(models.Model):
             if not user:
                 user = self._usl_pocketid_create_configured_user(configuration)
             was_pocketid_managed = user.usl_pocketid_access
-            values = {
+            desired_values = {
                 "active": definition["active"],
                 "usl_identity_classification": definition["classification"],
                 "usl_pocketid_access": definition["pocketid"],
@@ -632,18 +632,20 @@ class ResUsers(models.Model):
                 ),
                 "usl_local_break_glass": configuration["profile"] == "break_glass",
             }
+            values = {
+                field_name: value
+                for field_name, value in desired_values.items()
+                if user[field_name] != value
+            }
             if definition["active"]:
-                values.update(
-                    {
-                        "company_id": configuration["companies_recordset"][0].id,
-                        "company_ids": [
-                            Command.set(configuration["companies_recordset"].ids),
-                        ],
-                        "group_ids": [
-                            Command.set(configuration["groups_recordset"].ids),
-                        ],
-                    },
-                )
+                companies = configuration["companies_recordset"]
+                groups = configuration["groups_recordset"]
+                if user.company_id != companies[0]:
+                    values["company_id"] = companies[0].id
+                if set(user.company_ids.ids) != set(companies.ids):
+                    values["company_ids"] = [Command.set(companies.ids)]
+                if set(user.group_ids.ids) != set(groups.ids):
+                    values["group_ids"] = [Command.set(groups.ids)]
             if definition["pocketid"] and (
                 created or not was_pocketid_managed
             ):
@@ -654,7 +656,8 @@ class ResUsers(models.Model):
                 usl_governed_identity_provisioning=True,
                 mail_auto_subscribe_no_notify=True,
             )
-            provisioned_user.write(values)
+            if values:
+                provisioned_user.write(values)
             provisioned_user._usl_pocketid_apply_identity_configuration(
                 provider=provider,
                 user=provisioned_user,
@@ -869,7 +872,11 @@ class ResUsers(models.Model):
             lambda identity: identity.issuer == provider.usl_oidc_issuer,
         ):
             raise PocketIDAccessDenied(PocketIDReason.IDENTITY_CONFLICT)
-        return self.env["usl.oidc.identity"].sudo().create(
+        # The verified OIDC callback is a bounded internal identity-linking
+        # service, not an administrator editing a security binding over RPC.
+        # Use Odoo's internal service identity so the distribution's generic
+        # irreversible-action guard remains enforced for direct model writes.
+        return self.env["usl.oidc.identity"].with_user(SUPERUSER_ID).create(
             {
                 "issuer": provider.usl_oidc_issuer,
                 "subject": claims["sub"],
@@ -899,7 +906,10 @@ class ResUsers(models.Model):
                 "oauth_access_token": access_token,
             },
         )
-        identity.sudo().write(
+        # Claims have already passed issuer, audience, nonce, group and subject
+        # validation. Persist only bounded login metadata as the internal
+        # service; direct identity administration stays protected.
+        identity.with_user(SUPERUSER_ID).write(
             {
                 "last_login_at": fields.Datetime.now(),
                 "last_email": claims.get("email"),

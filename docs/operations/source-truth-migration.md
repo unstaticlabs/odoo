@@ -157,8 +157,10 @@ unassigned enterprise evidence file through the supported Paperless API, with
 byte-for-byte read-back and preview checks. The genuine strategy PDF referenced
 by an experimental AI source record is added to that archive as private,
 needs-review business evidence; the AI index and configuration are not copied.
-The final Collaboration and Preferences stages close signing, chatter, saved-
-filter, and dashboard dispositions. Knowledge attachments are explicitly
+The Sign stage preserves every completed request, participant, business artifact
+and history item as an external record; it deliberately does not recreate
+reusable signature images. The final Collaboration and Preferences stages close
+chatter, saved-filter, and dashboard dispositions. Knowledge attachments are explicitly
 discarded with the approved demo-content disposition. Three dashboard
 definitions are recomputed from installed target modules and six unsupported
 Enterprise dashboard payloads receive explicit not-copied evidence. No source
@@ -171,7 +173,7 @@ package, runs the strict source-wide and attachment gates, creates a clean
 target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
 and Platform Billing, rebuilds the Paperless archive, restores source-wide
-Collaboration history, removes every temporary
+external Sign records and Collaboration history, removes every temporary
 migration module and its allow-listed physical provenance columns, then
 applies target-only configuration. It is blocked while any shipped scope is
 incomplete. The strict
@@ -255,6 +257,9 @@ The separate physical opening-stock evidence item remains a B2C operational
 go-live prerequisite even though it is not a fact contained in the source
 database. The migration correctly creates no unsupported historical stock
 moves, quants or valuation layers.
+
+The guarded Sign stage, artifact contract and final-state checks are documented
+in [Restore Odoo Online Sign records](sign-online-restoration.md).
 
 ### B2C commerce stage
 

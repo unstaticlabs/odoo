@@ -49,6 +49,7 @@ product_modules=(
   usl_platform_billing_pocketid
   usl_pocketid
   usl_project
+  usl_sign
   usl_tese_accounting
   usl_tese_payroll
 )
@@ -81,6 +82,15 @@ docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
   odoo odoo shell --config=/etc/odoo/odoo.conf \
   --database="$target_database" \
   < scripts/odoo/synchronize_shared_currency_rates.py
+# Identity restoration can create the governed expense manager after the
+# product module's migration hook has run.  Reconcile the native per-company
+# employee profiles against the final allowed-company set before acceptance.
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/synchronize_multi_company_expense_profiles.py
 # Validate the upgraded current-branch registry, not the schema captured in a
 # seed or left by the preceding migration stage.
 scripts/accounting-restore product-validate

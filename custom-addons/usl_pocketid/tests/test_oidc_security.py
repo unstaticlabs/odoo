@@ -16,6 +16,7 @@ from ..controllers.main import (
     _consume_transaction,
 )
 from ..exceptions import PocketIDAccessDenied
+from ..models.auth_oauth_provider import PocketIDClientConfiguration
 from odoo.addons.http_routing.tests.common import MockRequest
 
 
@@ -88,6 +89,25 @@ class TestPocketIDOidcSecurity(TransactionCase):
                 nonce=nonce,
             )
 
+    def _sign_configuration(self):
+        return PocketIDClientConfiguration(
+            issuer=self.provider.usl_oidc_issuer,
+            authorization_endpoint="https://id.example.test/authorize",
+            token_endpoint="https://id.example.test/token",
+            jwks_uri=self.provider.jwks_uri,
+            client_id="sign-client",
+            client_secret="environment-only-sign-secret",
+            required_group="signers",
+            redirect_uri="https://odoo.example.test/sign/pocketid/callback",
+            token_auth_method="client_secret_basic",
+            scopes="openid profile email groups",
+            fresh_passkey_supported=True,
+            discovery_snapshot={
+                "issuer": self.provider.usl_oidc_issuer,
+                "fresh_passkey_reauthentication_supported": True,
+            },
+        )
+
     def test_signed_token_validates_required_oidc_claims(self):
         claims = self._validate()
         self.assertEqual(claims["sub"], "immutable-pocket-id-subject")
@@ -133,6 +153,112 @@ class TestPocketIDOidcSecurity(TransactionCase):
         )
         with self.assertRaises(PocketIDAccessDenied):
             self._validate(token)
+
+    def test_sign_client_validates_dedicated_audience_group_and_nonce(self):
+        configuration = self._sign_configuration()
+        token = self._token(
+            aud=configuration.client_id,
+            groups=[configuration.required_group],
+            amr=["phr"],
+            auth_time=int(time.time()),
+        )
+        with patch(
+            "odoo.addons.usl_pocketid.models.auth_oauth_provider."
+            "AuthOauthProvider._usl_get_signing_keys",
+            return_value=[self.jwk],
+        ):
+            claims, keys = self.provider._usl_pocketid_validate_id_token_for_client(
+                configuration,
+                id_token=token,
+                access_token="opaque-access-token",
+                nonce="expected-nonce",
+            )
+        self.assertEqual(claims["sub"], "immutable-pocket-id-subject")
+        self.assertEqual(keys, [self.jwk])
+        for overrides in (
+            {"aud": "login-client"},
+            {"groups": ["odoo-preprod"]},
+            {"nonce": "another-binding"},
+        ):
+            invalid_claims = {
+                "aud": configuration.client_id,
+                "groups": [configuration.required_group],
+            }
+            invalid_claims.update(overrides)
+            invalid = self._token(**invalid_claims)
+            with (
+                patch(
+                    "odoo.addons.usl_pocketid.models.auth_oauth_provider."
+                    "AuthOauthProvider._usl_get_signing_keys",
+                    return_value=[self.jwk],
+                ),
+                self.assertRaises(PocketIDAccessDenied),
+            ):
+                self.provider._usl_pocketid_validate_id_token_for_client(
+                    configuration,
+                    id_token=invalid,
+                    access_token="opaque-access-token",
+                    nonce="expected-nonce",
+                )
+
+    def test_sign_configuration_fails_closed_without_fresh_capability(self):
+        environment = {
+            "USL_POCKET_ID_ISSUER": "https://id.example.test",
+            "USL_POCKET_ID_ODOO_BASE_URL": "https://odoo.example.test",
+            "USL_POCKET_ID_SIGN_CLIENT_ID": "sign-client",
+            "USL_POCKET_ID_SIGN_CLIENT_SECRET": "environment-only-sign-secret",
+            "USL_POCKET_ID_SIGN_REQUIRED_GROUP": "signers",
+            "USL_POCKET_ID_SIGN_FRESH_REQUIRED": "1",
+        }
+        discovery = {
+            "issuer": "https://id.example.test",
+            "authorization_endpoint": "https://id.example.test/authorize",
+            "token_endpoint": "https://id.example.test/token",
+            "jwks_uri": "https://id.example.test/jwks",
+            "prompt_values_supported": ["none", "login"],
+            "fresh_passkey_reauthentication_supported": False,
+            "token_endpoint_auth_methods_supported": ["client_secret_basic"],
+        }
+        with (
+            patch.dict(os.environ, environment, clear=False),
+            patch.object(
+                type(self.provider),
+                "_usl_discover_pocketid",
+                return_value=discovery,
+            ),
+            self.assertRaises(PocketIDAccessDenied),
+        ):
+            self.provider._usl_pocketid_sign_configuration()
+        discovery["fresh_passkey_reauthentication_supported"] = True
+        disabled_environment = environment | {
+            "USL_POCKET_ID_SIGN_FRESH_REQUIRED": "0",
+        }
+        with (
+            patch.dict(os.environ, disabled_environment, clear=False),
+            patch.object(
+                type(self.provider),
+                "_usl_discover_pocketid",
+                return_value=discovery,
+            ),
+            self.assertRaises(PocketIDAccessDenied),
+        ):
+            self.provider._usl_pocketid_sign_configuration()
+        with (
+            patch.dict(os.environ, environment, clear=False),
+            patch.object(
+                type(self.provider),
+                "_usl_discover_pocketid",
+                return_value=discovery,
+            ),
+        ):
+            configuration = self.provider._usl_pocketid_sign_configuration()
+        self.assertEqual(configuration.client_id, "sign-client")
+        self.assertTrue(configuration.fresh_passkey_supported)
+        self.assertTrue(
+            configuration.discovery_snapshot[
+                "fresh_passkey_reauthentication_supported"
+            ],
+        )
 
     def test_login_link_uses_session_bound_state_nonce_and_pkce(self):
         self.env["auth.oauth.provider"].search(
@@ -324,6 +450,53 @@ class TestPocketIDOidcSecurity(TransactionCase):
                 self.provider._usl_validate_url(
                     url,
                     label="unsafe test service",
+                )
+
+    def test_private_http_requires_explicit_development_qa_opt_in(self):
+        private_url = "http://100.79.30.44:1411"
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "USL_DEPLOYMENT_ENV": "development",
+                    "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "0",
+                },
+            ),
+            self.assertRaises(ValidationError),
+        ):
+            self.provider._usl_validate_url(
+                private_url,
+                label="private service without QA opt-in",
+            )
+        with patch.dict(
+            os.environ,
+            {
+                "USL_DEPLOYMENT_ENV": "development",
+                "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "1",
+            },
+        ):
+            self.assertEqual(
+                self.provider._usl_validate_url(
+                    private_url,
+                    label="private QA service",
+                ),
+                private_url,
+            )
+        for deployment in ("preproduction", "production"):
+            with (
+                self.subTest(deployment=deployment),
+                patch.dict(
+                    os.environ,
+                    {
+                        "USL_DEPLOYMENT_ENV": deployment,
+                        "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "1",
+                    },
+                ),
+                self.assertRaises(ValidationError),
+            ):
+                self.provider._usl_validate_url(
+                    private_url,
+                    label="unsafe private service",
                 )
 
     def test_jwks_requires_bounded_valid_rsa_key_selection(self):

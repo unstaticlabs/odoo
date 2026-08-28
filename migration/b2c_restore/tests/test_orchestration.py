@@ -30,7 +30,7 @@ class B2cOrchestrationTest(unittest.TestCase):
             'usl_verify_compose_scope "$compose_project" "$ROOT" "B2C restoration"',
             script,
         )
-        self.assertIn("usl-odoo-*)", script)
+        self.assertIn("usl-odoo-*|usl-migration-?*|codex-migration-?*)", script)
         self.assertIn("Refusing protected B2C target", script)
         self.assertIn(
             'source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"',

@@ -47,3 +47,6 @@ docs/*
 !oca-src/**
 oca-src/**/.git
 oca-src/**/.git/**
+!services/
+!services/usl-sign-dss/
+!services/usl-sign-dss/**

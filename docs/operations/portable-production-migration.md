@@ -146,6 +146,12 @@ Check out the exact release commit and pull all three candidate-bound image
 digests. Provision the Personal Gemini envelope-key ring as a mode-`0600`
 regular file at the absolute path configured by
 `USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH`.
+Also pull the digest-pinned Sign document-renderer, Step CA and DSS images.
+Provision the renderer certificate directory and the Step CA, DSS and Odoo
+Sign secret directories at the absolute paths named in the production env
+template. Each directory must be private to its owner and contain the complete
+certificate/key material created by the Sign provisioning runbook; preflight
+checks file presence and permissions without printing secret values.
 Copy these templates outside the repository, substitute owner-approved values,
 then set mode `0600`:
 
@@ -187,7 +193,8 @@ Preflight is read-only with respect to application/Pocket data. It rejects
 changed files/fingerprints, wrong commit/image/OCA/modules/source, unsafe DB
 names or URLs, public database manager, default secrets, live regulatory flags,
 missing external networks, existing target data, foreign volumes and any
-managed Pocket service. It also rejects a checkout, candidate or image whose
+managed Pocket service. It also rejects missing or mutable Sign service images,
+incomplete Sign secret directories, and a checkout, candidate or image whose
 canonical action-risk policy digest differs from the qualified release.
 
 Stage uses `pg_restore --jobs=4`, analyses the committed Odoo database, restores
@@ -223,7 +230,9 @@ make production-cutover-admit \
   FINGERPRINT=<approved-64-hex>
 ```
 
-Gate rechecks product/migration boundaries, database/image release identity,
+Gate starts the pinned internal renderer, Step CA and DSS services and requires
+the Odoo Sign service smoke check to pass. It then rechecks
+product/migration boundaries, database/image release identity,
 the exact installed action registry, Accounting totals/reconciliation,
 multi-company roles, Paperless sanity, links/checksums/object permissions,
 service health and journey evidence.

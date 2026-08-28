@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SigningMethodRadio">
+        <div role="radiogroup"
+             t-attf-class="{{ this.hasTouch ? 'o_input' : '' }} o_{{ this.props.orientation }} usl_sign_method_comparison"
+             t-att-aria-label="this.props.label">
+            <t t-foreach="this.items" t-as="item" t-key="item[0]">
+                <div t-attf-class="form-check o_radio_item usl_sign_method_card {{ item[0] === this.value ? 'is-selected' : '' }} {{ this.props.readonly ? 'is-readonly' : '' }} {{ this.hasTouch ? 'w-100' : '' }}" aria-atomic="true">
+                    <input type="radio" class="form-check-input o_radio_input visually-hidden"
+                           t-att-checked="item[0] === this.value"
+                           t-att-disabled="this.props.readonly"
+                           t-att-name="this.id"
+                           t-att-data-value="item[0]"
+                           t-att-data-index="item_index"
+                           t-att-id="`${this.id}_${item[0]}`"
+                           t-on-change="() => this.onChange(item)"/>
+                    <label class="form-check-label o_form_label" t-att-for="`${this.id}_${item[0]}`">
+                        <span class="usl_sign_method_card_top">
+                            <span class="usl_sign_method_card_radio" aria-hidden="true">
+                                <i class="fa fa-circle"/>
+                            </span>
+                            <span t-if="this.detailsFor(item[0]).recommendation" class="badge rounded-pill usl_sign_method_recommendation">
+                                <i class="fa fa-star me-1" aria-hidden="true"/>
+                                <t t-out="this.detailsFor(item[0]).recommendation"/>
+                            </span>
+                            <span class="usl_sign_method_card_icon" aria-hidden="true">
+                                <i t-attf-class="fa {{ this.detailsFor(item[0]).icon }}"/>
+                            </span>
+                        </span>
+                        <strong class="usl_sign_method_card_title" t-out="this.detailsFor(item[0]).title"/>
+                        <span class="usl_sign_method_card_fit" t-out="this.detailsFor(item[0]).fit"/>
+                        <dl class="usl_sign_method_facts">
+                            <div><dt><i class="fa fa-user-o" aria-hidden="true"/>Signer check</dt><dd t-out="this.detailsFor(item[0]).authentication"/></div>
+                            <div><dt><i class="fa fa-file-pdf-o" aria-hidden="true"/>Signed PDF</dt><dd t-out="this.detailsFor(item[0]).pdf"/></div>
+                            <div><dt><i class="fa fa-shield" aria-hidden="true"/>Proof kept</dt><dd t-out="this.detailsFor(item[0]).evidence"/></div>
+                        </dl>
+                        <span aria-hidden="true" class="btn btn-outline-primary w-100 usl_sign_method_select">
+                            <i t-if="item[0] === this.value" class="fa fa-check me-1" aria-hidden="true"/>
+                            <t t-if="item[0] === this.value">Selected</t>
+                            <t t-else="">Choose</t>
+                        </span>
+                    </label>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

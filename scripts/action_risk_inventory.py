@@ -79,6 +79,7 @@ PRODUCT_MODULES = frozenset(
         "usl_platform_billing_pocketid",
         "usl_pocketid",
         "usl_project",
+        "usl_sign",
         "usl_tese_accounting",
         "usl_tese_payroll",
     },
@@ -468,7 +469,13 @@ def _source_files(info: ModuleInfo, suffix: str) -> list[Path]:
 def _module_source_digest(info: ModuleInfo) -> str:
     digest = hashlib.sha256()
     included_suffixes = {".csv", ".js", ".json", ".py", ".scss", ".xml"}
-    ignored_parts = {"__pycache__", "i18n", "migrations", "tests"}
+    ignored_parts = {
+        "__pycache__",
+        "i18n",
+        "migrations",
+        "node_modules",
+        "tests",
+    }
     for path in sorted(info.path.rglob("*")):
         relative = path.relative_to(info.path)
         if (

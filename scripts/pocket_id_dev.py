@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import re
@@ -16,6 +17,7 @@ import stat
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
@@ -35,6 +37,9 @@ BASE_REQUIRED_ENV_KEYS = {
     "POCKET_ID_PROSPER_ID",
     "POCKET_ID_ROGER_ID",
     "POCKET_ID_STATIC_API_KEY",
+    "POCKET_ID_SIGN_CLIENT_ID",
+    "POCKET_ID_SIGN_CLIENT_SECRET",
+    "POCKET_ID_SIGN_GROUP_NAME",
     "POCKET_ID_VALENTIN_ID",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
 }
@@ -77,10 +82,33 @@ SAFE_PROJECT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 SAFE_LOCALHOST_PATTERN = re.compile(
     r"^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost$",
 )
+SAFE_TAILSCALE_HOST_PATTERN = re.compile(
+    r"^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+ts\.net$",
+)
+TAILSCALE_NETWORK = ipaddress.ip_network("100.64.0.0/10")
 
 
 class PocketIDError(RuntimeError):
     """A safe Pocket ID provisioning error."""
+
+
+def _is_private_qa_hostname(hostname: str) -> bool:
+    if SAFE_TAILSCALE_HOST_PATTERN.fullmatch(hostname):
+        return True
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        return False
+    return (
+        address.version == 4
+        and not address.is_unspecified
+        and not address.is_multicast
+        and (
+            address.is_loopback
+            or address.is_private
+            or address in TAILSCALE_NETWORK
+        )
+    )
 
 
 def _read_env(
@@ -115,14 +143,93 @@ def _read_env(
     return values
 
 
+def _replace_env_values(path: Path, replacements: dict[str, str]) -> None:
+    """Replace generated non-secret values without disturbing credentials."""
+    remaining = dict(replacements)
+    lines = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        key, separator, _value = raw_line.partition("=")
+        if separator and key in replacements:
+            if key in remaining:
+                lines.append(f"{key}={remaining.pop(key)}")
+            continue
+        lines.append(raw_line)
+    if remaining:
+        lines.append("")
+        lines.append("# Refreshed browser-facing service URLs.")
+        lines.extend(f"{key}={value}" for key, value in remaining.items())
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _paperless_public_settings(
+    public_url: str,
+    *,
+    private_qa: bool = False,
+) -> dict[str, str]:
+    parsed_url = urllib.parse.urlsplit(public_url)
+    hostname = parsed_url.hostname or ""
+    if (
+        parsed_url.scheme not in {"http", "https"}
+        or not hostname
+        or parsed_url.username
+        or parsed_url.password
+        or (
+            not SAFE_LOCALHOST_PATTERN.fullmatch(hostname)
+            and (not private_qa or not _is_private_qa_hostname(hostname))
+        )
+    ):
+        raise PocketIDError(
+            "Paperless public URL must use HTTP(S) on localhost or a private "
+            "QA host.",
+        )
+    allowed_hosts = [
+        "localhost",
+        "127.0.0.1",
+        "paperless-webserver",
+        "paperless.localhost",
+    ]
+    if hostname not in allowed_hosts:
+        allowed_hosts.append(hostname)
+    return {
+        "PAPERLESS_PUBLIC_BASE_URL": public_url,
+        "PAPERLESS_PUBLIC_URL": public_url,
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": parsed_url.scheme,
+        "PAPERLESS_ALLOWED_HOSTS": ",".join(allowed_hosts),
+        "PAPERLESS_CORS_ALLOWED_HOSTS": public_url,
+        "PAPERLESS_CSRF_TRUSTED_ORIGINS": public_url,
+    }
+
+
 def _write_new_env(path: Path) -> None:
     if path.exists():
-        values = _read_env(path, required_keys=BASE_REQUIRED_ENV_KEYS)
+        values = _read_env(
+            path,
+            required_keys=BASE_REQUIRED_ENV_KEYS
+            - {
+                "POCKET_ID_SIGN_CLIENT_ID",
+                "POCKET_ID_SIGN_CLIENT_SECRET",
+                "POCKET_ID_SIGN_GROUP_NAME",
+            },
+        )
         additions = {}
-        paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or os.getenv(
+        requested_paperless_url = os.getenv(
             "USL_POCKET_ID_DEV_PAPERLESS_URL",
-            "http://paperless.localhost:8010",
+            "",
         ).strip()
+        refresh_public_urls = (
+            os.getenv("USL_POCKET_ID_DEV_REFRESH_PUBLIC_URLS") == "1"
+            and requested_paperless_url
+        )
+        if refresh_public_urls:
+            public_settings = _paperless_public_settings(
+                requested_paperless_url,
+                private_qa=os.getenv("USL_POCKET_ID_DEV_PRIVATE_QA") == "1",
+            )
+            _replace_env_values(path, public_settings)
+            values.update(public_settings)
+        paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or (
+            requested_paperless_url or "http://paperless.localhost:8010"
+        )
         if not values.get("PAPERLESS_PUBLIC_BASE_URL"):
             additions["PAPERLESS_PUBLIC_BASE_URL"] = paperless_public_url
         if not values.get("PAPERLESS_PUBLIC_URL"):
@@ -153,16 +260,22 @@ def _write_new_env(path: Path) -> None:
             additions["POCKET_ID_PAPERLESS_CLIENT_SECRET"] = (
                 secrets.token_urlsafe(36)
             )
+        if not values.get("POCKET_ID_SIGN_CLIENT_ID"):
+            additions["POCKET_ID_SIGN_CLIENT_ID"] = "usl-sign-authorization"
+        if not values.get("POCKET_ID_SIGN_CLIENT_SECRET"):
+            additions["POCKET_ID_SIGN_CLIENT_SECRET"] = secrets.token_urlsafe(36)
+        if not values.get("POCKET_ID_SIGN_GROUP_NAME"):
+            additions["POCKET_ID_SIGN_GROUP_NAME"] = "usl-signers"
         if additions:
             with path.open("a", encoding="utf-8") as stream:
                 stream.write(
-                    "\n# Paperless Pocket ID client; generated during schema upgrade.\n",
+                    "\n# Separate Paperless and Sign authorization settings.\n",
                 )
                 for key, value in additions.items():
                     stream.write(f"{key}={value}\n")
             _read_env(path)
             print(
-                f"Upgraded {path.name} with the separate Paperless OIDC client.",
+                f"Upgraded {path.name} with separate Paperless and Sign settings.",
             )
         else:
             _read_env(path)
@@ -191,6 +304,7 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_DEV_POCKET_HOSTNAME",
         "pocket-id.localhost",
     ).strip()
+    private_qa = os.getenv("USL_POCKET_ID_DEV_PRIVATE_QA") == "1"
     prosper_odoo_email = os.getenv(
         "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
         "",
@@ -209,12 +323,21 @@ def _write_new_env(path: Path) -> None:
     if len(set(ports)) != len(ports):
         raise PocketIDError("Local service ports must be distinct.")
     for hostname in (odoo_hostname, pocket_hostname):
-        if not SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
-            raise PocketIDError("Local service hostnames must use .localhost.")
+        if SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
+            continue
+        if not private_qa or not _is_private_qa_hostname(hostname):
+            raise PocketIDError(
+                "Local service hostnames must use .localhost unless explicit "
+                "private QA uses a private IPv4 address or Tailscale DNS name.",
+            )
     paperless_public_url = os.getenv(
         "USL_POCKET_ID_DEV_PAPERLESS_URL",
         "http://paperless.localhost:8010",
     ).strip()
+    paperless_settings = _paperless_public_settings(
+        paperless_public_url,
+        private_qa=private_qa,
+    )
     values = {
         "COMPOSE_PROJECT_NAME": project_name,
         "ODOO_DB_FILTER": f"^{database}$",
@@ -223,14 +346,7 @@ def _write_new_env(path: Path) -> None:
         "ODOO_HTTP_PORT": odoo_port,
         "ODOO_INIT_DB": database,
         "ODOO_PUBLIC_BASE_URL": f"http://{odoo_hostname}:{odoo_port}",
-        "PAPERLESS_PUBLIC_BASE_URL": paperless_public_url,
-        "PAPERLESS_PUBLIC_URL": paperless_public_url,
-        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
-        "PAPERLESS_ALLOWED_HOSTS": (
-            "localhost,127.0.0.1,paperless-webserver,paperless.localhost"
-        ),
-        "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
-        "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
+        **paperless_settings,
         "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
         "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
         "PAPERLESS_HTTP_PORT": paperless_port,
@@ -254,6 +370,9 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_PAPERLESS_CLIENT_SECRET": secrets.token_urlsafe(36),
         "POCKET_ID_ROGER_ID": str(uuid.uuid4()),
         "POCKET_ID_STATIC_API_KEY": secrets.token_urlsafe(36),
+        "POCKET_ID_SIGN_CLIENT_ID": "usl-sign-authorization",
+        "POCKET_ID_SIGN_CLIENT_SECRET": secrets.token_urlsafe(36),
+        "POCKET_ID_SIGN_GROUP_NAME": "usl-signers",
         "POCKET_ID_VALENTIN_ID": str(uuid.uuid4()),
         "USL_EINVOICE_LIVE_ENABLED": "0",
         "USL_EREPORTING_LIVE_ENABLED": "0",
@@ -282,7 +401,52 @@ def _write_new_env(path: Path) -> None:
 
 class PocketIDAPI:
     def __init__(self, values: dict[str, str]) -> None:
-        self.base_url = values["POCKET_ID_APP_URL"].rstrip("/")
+        public_url = values["POCKET_ID_APP_URL"].rstrip("/")
+        admin_url = (
+            os.getenv("USL_POCKET_ID_ADMIN_API_URL", "").strip().rstrip("/")
+        )
+        parsed_url = urllib.parse.urlsplit(admin_url or public_url)
+        if admin_url:
+            hostname = parsed_url.hostname or ""
+            if (
+                parsed_url.scheme not in {"http", "https"}
+                or parsed_url.username
+                or parsed_url.password
+                or parsed_url.path not in {"", "/"}
+                or parsed_url.query
+                or parsed_url.fragment
+                or (
+                    not SAFE_LOCALHOST_PATTERN.fullmatch(hostname)
+                    and not _is_private_qa_hostname(hostname)
+                    and not (
+                        hostname == "pocket-id"
+                        and os.getenv("USL_POCKET_ID_ALLOW_COMPOSE_ADMIN") == "1"
+                    )
+                )
+            ):
+                raise PocketIDError(
+                    "Pocket ID admin API override must use a private or localhost "
+                    "HTTP(S) origin.",
+                )
+        # Browsers and curl treat every *.localhost name as loopback, while
+        # Python's system resolver does not on every macOS configuration. The
+        # administrative API is host-local in development, so use its explicit
+        # loopback address without changing the public OIDC issuer URL.
+        if parsed_url.hostname and SAFE_LOCALHOST_PATTERN.fullmatch(
+            parsed_url.hostname,
+        ):
+            port = f":{parsed_url.port}" if parsed_url.port else ""
+            self.base_url = urllib.parse.urlunsplit(
+                (
+                    parsed_url.scheme,
+                    f"127.0.0.1{port}",
+                    parsed_url.path,
+                    parsed_url.query,
+                    parsed_url.fragment,
+                ),
+            )
+        else:
+            self.base_url = admin_url or public_url
         self.api_key = values["POCKET_ID_STATIC_API_KEY"]
 
     def request(
@@ -327,13 +491,16 @@ class PocketIDAPI:
             ) from error
 
     def wait_until_ready(self) -> None:
-        for _attempt in range(40):
+        timeout_seconds = 60
+        for _attempt in range(timeout_seconds * 2):
             try:
                 self.request("GET", "/api/users?pagination%5Blimit%5D=100")
                 return
             except PocketIDError:
                 time.sleep(0.5)
-        raise PocketIDError("Pocket ID did not become API-ready within 20 seconds.")
+        raise PocketIDError(
+            f"Pocket ID did not become API-ready within {timeout_seconds} seconds.",
+        )
 
 
 def _paginated_data(payload: object, label: str) -> list[dict[str, object]]:
@@ -472,19 +639,46 @@ def _paperless_client_payload(values: dict[str, str]) -> dict[str, object]:
     }
 
 
-def _ensure_group(api: PocketIDAPI, values: dict[str, str]) -> dict[str, object]:
+def _sign_client_payload(values: dict[str, str]) -> dict[str, object]:
+    odoo_url = values["ODOO_PUBLIC_BASE_URL"].rstrip("/")
+    return {
+        "id": values["POCKET_ID_SIGN_CLIENT_ID"],
+        "name": "USL Sign Authorization",
+        "description": "Fresh passkey authorization for document-bound signatures",
+        "callbackURLs": [f"{odoo_url}/sign/pocketid/callback"],
+        "logoutCallbackURLs": [],
+        "isPublic": False,
+        "pkceEnabled": True,
+        "pkceSupported": True,
+        "requiresReauthentication": True,
+        "requiresFreshPasskey": True,
+        "requiresPushedAuthorizationRequests": False,
+        "disableRefreshTokens": True,
+        "skipConsent": True,
+        "credentials": {"federatedIdentities": []},
+        "launchURL": odoo_url,
+        "isGroupRestricted": True,
+    }
+
+
+def _ensure_group(
+    api: PocketIDAPI,
+    *,
+    name: str,
+    friendly_name: str,
+) -> dict[str, object]:
     groups = _paginated_data(
         api.request("GET", "/api/user-groups?pagination%5Blimit%5D=100"),
         "group",
     )
     matches = [
-        group for group in groups if group.get("name") == values["POCKET_ID_GROUP_NAME"]
+        group for group in groups if group.get("name") == name
     ]
     if len(matches) > 1:
         raise PocketIDError("The configured Pocket ID group name is ambiguous.")
     payload = {
-        "friendlyName": "Odoo Preproduction",
-        "name": values["POCKET_ID_GROUP_NAME"],
+        "friendlyName": friendly_name,
+        "name": name,
     }
     if matches:
         group = api.request("PUT", f"/api/user-groups/{matches[0]['id']}", payload)
@@ -544,27 +738,13 @@ def _ensure_client(
         client = api.request("PUT", f"/api/oidc/clients/{client_id}", payload)
     else:
         client = api.request("POST", "/api/oidc/clients", payload)
-    credentials = client.get("credentials", {}) if isinstance(client, dict) else {}
-    configured_secrets = (
-        credentials.get("secrets")
-        if isinstance(credentials, dict)
-        else None
+    _ensure_client_secret(
+        api,
+        client_id,
+        secret,
+        existing=bool(matches),
+        client=client,
     )
-    if isinstance(configured_secrets, list):
-        if not any(
-            isinstance(item, dict) and item.get("isActive", True)
-            for item in configured_secrets
-        ):
-            api.request(
-                "POST",
-                f"/api/oidc/clients/{client_id}/secrets",
-                {"secret": secret},
-            )
-    else:
-        # Pocket ID versions and response shapes differ here. Fall back to
-        # the dedicated plural endpoint so an existing environment-owned
-        # secret is detected by prefix and is never rotated on deployment.
-        _ensure_client_secret(api, client_id, secret)
     api.request(
         "PUT",
         f"/api/oidc/clients/{client_id}/allowed-user-groups",
@@ -575,16 +755,49 @@ def _ensure_client(
     return client
 
 
-def _ensure_client_secret(api: PocketIDAPI, client_id: str, secret: str) -> None:
+def _ensure_client_secret(
+    api: PocketIDAPI,
+    client_id: str,
+    secret: str,
+    *,
+    existing: bool,
+    client: dict[str, object],
+) -> None:
     """Keep the environment-owned secret present without rotating it on deploy."""
-    secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
+    credentials = client.get("credentials")
+    embedded_secrets = (
+        credentials.get("secrets", []) if isinstance(credentials, dict) else []
+    )
+    if isinstance(embedded_secrets, list) and any(
+        isinstance(item, dict) and item.get("isActive", True)
+        for item in embedded_secrets
+    ):
+        return
+    try:
+        secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
+    except PocketIDError as error:
+        # Pocket ID 2.12 supports one write-only secret through the singular
+        # endpoint. Existing QA clients already own the environment secret;
+        # rotating it on every refresh would invalidate active OIDC sessions.
+        if (
+            "returned HTTP 404" not in str(error)
+            or "API endpoint not found" not in str(error)
+        ):
+            raise
+        if not existing:
+            api.request(
+                "POST",
+                f"/api/oidc/clients/{client_id}/secret",
+                {"secret": secret},
+            )
+        return
     if not isinstance(secrets, list) or any(
         not isinstance(item, dict) for item in secrets
     ):
         raise PocketIDError("Pocket ID returned an invalid OIDC client secret list.")
     expected_prefix = secret[:4] if len(secret) > 4 else ""
     if any(
-        item.get("prefix") == expected_prefix and item.get("isActive") is True
+        item.get("prefix") == expected_prefix and item.get("isActive", True)
         for item in secrets
     ):
         return
@@ -598,11 +811,25 @@ def _ensure_client_secret(api: PocketIDAPI, client_id: str, secret: str) -> None
 def provision(values: dict[str, str]) -> None:
     api = PocketIDAPI(values)
     api.wait_until_ready()
-    group = _ensure_group(api, values)
+    group = _ensure_group(
+        api,
+        name=values["POCKET_ID_GROUP_NAME"],
+        friendly_name="Odoo Preproduction",
+    )
+    sign_group = _ensure_group(
+        api,
+        name=values["POCKET_ID_SIGN_GROUP_NAME"],
+        friendly_name="USL Strong Signers",
+    )
     users = _ensure_users(api, values, str(group["id"]))
     api.request(
         "PUT",
         f"/api/user-groups/{group['id']}/users",
+        {"userIds": [str(user["id"]) for user in users]},
+    )
+    api.request(
+        "PUT",
+        f"/api/user-groups/{sign_group['id']}/users",
         {"userIds": [str(user["id"]) for user in users]},
     )
     clients = [
@@ -618,12 +845,18 @@ def provision(values: dict[str, str]) -> None:
             values["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
             str(group["id"]),
         ),
+        _ensure_client(
+            api,
+            _sign_client_payload(values),
+            values["POCKET_ID_SIGN_CLIENT_SECRET"],
+            str(sign_group["id"]),
+        ),
     ]
     print(
         json.dumps(
             {
                 "client_ids": [client["id"] for client in clients],
-                "group": group["name"],
+                "groups": [group["name"], sign_group["name"]],
                 "issuer": values["POCKET_ID_APP_URL"],
                 "users": [
                     {
@@ -640,6 +873,14 @@ def provision(values: dict[str, str]) -> None:
 
 
 def odoo_policy(values: dict[str, str]) -> None:
+    single_company = os.getenv("USL_POCKET_ID_POLICY_SINGLE_COMPANY", "") == "1"
+    clean_database = os.getenv("USL_POCKET_ID_POLICY_CLEAN_DATABASE", "") == "1"
+    base_profiles_only = (
+        os.getenv("USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY", "") == "1"
+    )
+    collaborator_companies: str | list[str] = (
+        "all" if single_company else ["Unstatic Labs"]
+    )
     prosper_odoo_email = values.get(
         "POCKET_ID_PROSPER_ODOO_EMAIL",
         values["POCKET_ID_PROSPER_EMAIL"],
@@ -663,7 +904,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "login": "roger@unstaticlabs.com",
             "name": "Roger",
             "email": USER_DEFINITIONS["roger"]["email"],
-            "profile": "technical_operator",
+            "profile": "collaborator" if base_profiles_only else "technical_operator",
             "companies": "all",
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
@@ -676,12 +917,22 @@ def odoo_policy(values: dict[str, str]) -> None:
         {
             "login": "prosper",
             "name": "Prosper",
-            "profile": "accountant_reviewer",
+            "profile": "collaborator" if base_profiles_only else "accountant_reviewer",
             "companies": ["Unstatic Labs", "USL MEDIA"],
             "subject": values["POCKET_ID_PROSPER_ID"],
             "create_if_missing": bool(prosper_odoo_email),
         },
     ]
+    if clean_database and not prosper_odoo_email:
+        policy.pop()
+    if not clean_database:
+        policy.insert(
+            -1,
+            {
+                "login": "roger@xaic.cat",
+                "profile": "historical",
+            },
+        )
     if prosper_odoo_email:
         policy[-1]["email"] = prosper_odoo_email
     print(json.dumps(policy, separators=(",", ":")))
@@ -737,7 +988,11 @@ def _find_user(
 
 def ensure_unlinked_test_user(values: dict[str, str]) -> None:
     api = PocketIDAPI(values)
-    group = _ensure_group(api, values)
+    group = _ensure_group(
+        api,
+        name=values["POCKET_ID_GROUP_NAME"],
+        friendly_name="Odoo Preproduction",
+    )
     users = _paginated_data(
         api.request("GET", "/api/users?pagination%5Blimit%5D=100"),
         "user",
@@ -796,13 +1051,20 @@ def one_time_link(values: dict[str, str], username: str, ttl: str) -> None:
     )
     if not isinstance(result, dict) or not isinstance(result.get("token"), str):
         raise PocketIDError("Pocket ID did not return a one-time access token.")
-    print(f"{values['POCKET_ID_APP_URL'].rstrip('/')}/lc/{result['token']}")
+    redirect = urllib.parse.urlencode({"redirect": "/settings/account"})
+    print(
+        f"{values['POCKET_ID_APP_URL'].rstrip('/')}/lc/{result['token']}?{redirect}",
+    )
 
 
 def set_disabled(values: dict[str, str], username: str, disabled: bool) -> None:
     api = PocketIDAPI(values)
     user = _find_user(api, values, username)
-    group = _ensure_group(api, values)
+    group = _ensure_group(
+        api,
+        name=values["POCKET_ID_GROUP_NAME"],
+        friendly_name="Odoo Preproduction",
+    )
     payload = _user_payload(values, username, str(group["id"]))
     payload["disabled"] = disabled
     api.request("PUT", f"/api/users/{user['id']}", payload)
@@ -817,7 +1079,11 @@ def set_profile(
 ) -> None:
     api = PocketIDAPI(values)
     user = _find_user(api, values, username)
-    group = _ensure_group(api, values)
+    group = _ensure_group(
+        api,
+        name=values["POCKET_ID_GROUP_NAME"],
+        friendly_name="Odoo Preproduction",
+    )
     payload = _user_payload(values, username, str(group["id"]))
     payload.update(
         {
@@ -833,7 +1099,11 @@ def set_profile(
 def set_group(values: dict[str, str], username: str, present: bool) -> None:
     api = PocketIDAPI(values)
     user = _find_user(api, values, username)
-    group = _ensure_group(api, values)
+    group = _ensure_group(
+        api,
+        name=values["POCKET_ID_GROUP_NAME"],
+        friendly_name="Odoo Preproduction",
+    )
     current_users = group.get("users")
     if not isinstance(current_users, list):
         full_group = api.request("GET", f"/api/user-groups/{group['id']}")
