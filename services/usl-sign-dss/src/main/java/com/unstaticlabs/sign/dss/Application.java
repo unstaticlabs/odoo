@@ -58,16 +58,18 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
-import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
-import org.apache.pdfbox.multipdf.LayerUtility;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.AdobePDFSchema;
 import org.apache.xmpbox.schema.DublinCoreSchema;
@@ -82,6 +84,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_Profile;
+import java.awt.image.BufferedImage;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -179,7 +182,8 @@ public final class Application {
         server.createContext("/v1/pades/seal", application::seal);
         server.createContext("/v1/pades/data-to-sign", application::dataToSign);
         server.createContext("/v1/pades/embed", application::embed);
-        server.createContext("/v1/pdf/overlay-incremental", application::overlayIncrementally);
+        server.createContext("/v1/pdf/prepare-signing-fields", application::prepareSigningFields);
+        server.createContext("/v1/pdf/fill-signing-fields", application::fillSigningFields);
         server.createContext("/v1/pades/validate", application::validate);
         server.createContext("/v1/pades/revision-match", application::revisionMatch);
         server.createContext("/v1/pades/cross-validate", application::crossValidate);
@@ -245,6 +249,7 @@ public final class Application {
     private void seal(HttpExchange exchange) throws IOException {
         handle(exchange, payload -> {
             byte[] document = document(payload, "document");
+            byte[] signableDocument = normalizeSignedPdf(document);
             boolean timestamp = Boolean.TRUE.equals(payload.get("timestamp"));
             PAdESSignatureParameters parameters = parameters();
             parameters.setSignatureLevel(timestamp ? SignatureLevel.PAdES_BASELINE_T : SignatureLevel.PAdES_BASELINE_B);
@@ -256,11 +261,13 @@ public final class Application {
                 parameters.setSigningCertificate(privateKey.getCertificate());
                 parameters.setCertificateChain(privateKey.getCertificateChain());
                 PAdESService service = service(timestamp);
-                DSSDocument input = pdf(document);
+                DSSDocument input = pdf(signableDocument);
                 ToBeSigned toBeSigned = service.getDataToSign(input, parameters);
                 SignatureValue value = token.sign(toBeSigned, DigestAlgorithm.SHA256, privateKey);
                 DSSDocument result = service.signDocument(input, parameters, value);
-                return Map.of("document", b64(bytes(result)), "padesLevel", parameters.getSignatureLevel().name());
+                return Map.of(
+                        "document", b64(normalizeSignedPdf(bytes(result))),
+                        "padesLevel", parameters.getSignatureLevel().name());
             }
         });
     }
@@ -326,67 +333,260 @@ public final class Application {
             }
             DSSDocument result = service.signDocument(pdf(document), context.parameters(), signatureValue);
             return Map.of(
-                    "document", b64(bytes(result)),
+                    "document", b64(normalizeSignedPdf(bytes(result))),
                     "padesLevel", context.parameters().getSignatureLevel().name());
         });
     }
 
-    private void overlayIncrementally(HttpExchange exchange) throws IOException {
+    private static byte[] normalizeSignedPdf(byte[] source) throws Exception {
+        Path directory = Files.createTempDirectory("usl-sign-xref-");
+        Path input = directory.resolve("input.pdf");
+        Path output = directory.resolve("output.pdf");
+        Path errors = directory.resolve("errors.log");
+        try {
+            Files.write(input, source);
+            Process process = new ProcessBuilder(
+                    requiredEnv("USL_DSS_PYHANKO_PYTHON"),
+                    requiredEnv("USL_DSS_PYHANKO_NORMALIZE_SCRIPT"),
+                    input.toString(), output.toString())
+                    .redirectError(errors.toFile())
+                    .start();
+            if (!process.waitFor(30, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                throw new IllegalStateException("The signed PDF xref normalization exceeded its time limit.");
+            }
+            if (process.exitValue() != 0 || !Files.exists(output)
+                    || Files.size(output) <= source.length || Files.size(output) > MAX_REQUEST_BYTES) {
+                String detail = Files.exists(errors)
+                        ? Files.readString(errors, StandardCharsets.UTF_8) : "";
+                if (detail.length() > 4_000) {
+                    detail = detail.substring(detail.length() - 4_000);
+                }
+                throw new IllegalStateException("The signed PDF xref normalization failed: " + detail.strip());
+            }
+            byte[] result = Files.readAllBytes(output);
+            if (!Arrays.equals(source, Arrays.copyOf(result, source.length))) {
+                throw new IllegalStateException("The signed PDF xref normalization rewrote an existing revision.");
+            }
+            return result;
+        } finally {
+            Files.deleteIfExists(errors);
+            Files.deleteIfExists(output);
+            Files.deleteIfExists(input);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    private void prepareSigningFields(HttpExchange exchange) throws IOException {
         handle(exchange, payload -> {
             byte[] document = document(payload, "document");
-            Object rawOverlays = payload.get("overlays");
-            if (!(rawOverlays instanceof List<?> rows) || rows.isEmpty() || rows.size() > 200) {
-                throw new IllegalArgumentException("Between 1 and 200 PDF overlays are required.");
-            }
-            List<PdfOverlay> overlays = new ArrayList<>();
-            for (Object rawRow : rows) {
-                if (!(rawRow instanceof Map<?, ?> row)) {
-                    throw new IllegalArgumentException("Every PDF overlay must be an object.");
-                }
-                Object rawPage = row.get("page");
-                Object rawDocument = row.get("document");
-                if (!(rawPage instanceof Number number)
-                        || number.intValue() < 1
-                        || !(rawDocument instanceof String encoded)
-                        || encoded.isBlank()) {
-                    throw new IllegalArgumentException("Every PDF overlay needs a page and Base64 document.");
-                }
-                overlays.add(new PdfOverlay(number.intValue() - 1, decode(encoded)));
-            }
-            byte[] result = applyIncrementalOverlays(document, overlays);
+            List<PdfFormField> fields = formFields(payload.get("fields"), false);
+            byte[] result = prepareSigningFields(document, fields);
             return Map.of("document", b64(result), "documentSha256", sha256(result));
         });
     }
 
-    static byte[] applyIncrementalOverlays(byte[] source, List<PdfOverlay> overlays) throws IOException {
+    private void fillSigningFields(HttpExchange exchange) throws IOException {
+        handle(exchange, payload -> {
+            byte[] document = document(payload, "document");
+            List<PdfFormField> fields = formFields(payload.get("fields"), true);
+            byte[] result = fillSigningFields(document, fields);
+            return Map.of("document", b64(result), "documentSha256", sha256(result));
+        });
+    }
+
+    private static List<PdfFormField> formFields(Object rawFields, boolean requireOverlay) {
+        if (!(rawFields instanceof List<?> rows) || rows.isEmpty() || rows.size() > 200) {
+            throw new IllegalArgumentException("Between 1 and 200 signing fields are required.");
+        }
+        List<PdfFormField> result = new ArrayList<>();
+        HashSet<String> names = new HashSet<>();
+        for (Object rawRow : rows) {
+            if (!(rawRow instanceof Map<?, ?> row)) {
+                throw new IllegalArgumentException("Every signing field must be an object.");
+            }
+            String name = Objects.toString(row.get("name"), "").strip();
+            Object rawPage = row.get("page");
+            if (!name.matches("usl_sign_[0-9]+") || !names.add(name)
+                    || !(rawPage instanceof Number page) || page.intValue() < 1) {
+                throw new IllegalArgumentException("Every signing field needs a unique safe name and page.");
+            }
+            double x = boundedPercentage(row.get("position_x"), "position_x", 0, 100);
+            double y = boundedPercentage(row.get("position_y"), "position_y", 0, 100);
+            double width = boundedPercentage(row.get("width"), "width", 0.01, 100);
+            double height = boundedPercentage(row.get("height"), "height", 0.01, 100);
+            if (x + width > 100.001 || y + height > 100.001) {
+                throw new IllegalArgumentException("A signing field falls outside its PDF page.");
+            }
+            byte[] overlay = null;
+            if (requireOverlay) {
+                Object encoded = row.get("document");
+                if (!(encoded instanceof String text) || text.isBlank()) {
+                    throw new IllegalArgumentException("Every filled signing field needs a PDF appearance.");
+                }
+                overlay = decode(text);
+            }
+            result.add(new PdfFormField(name, page.intValue() - 1, x, y, width, height, overlay));
+        }
+        return result;
+    }
+
+    private static double boundedPercentage(Object value, String name, double minimum, double maximum) {
+        if (!(value instanceof Number number)) {
+            throw new IllegalArgumentException(name + " must be a number.");
+        }
+        double result = number.doubleValue();
+        if (!Double.isFinite(result) || result < minimum || result > maximum) {
+            throw new IllegalArgumentException(name + " falls outside its accepted range.");
+        }
+        return result;
+    }
+
+    static byte[] prepareSigningFields(byte[] source, List<PdfFormField> fields) throws IOException {
         pdf(source);
         ByteArrayOutputStream output = new ByteArrayOutputStream(source.length + 16_384);
         try (PDDocument target = Loader.loadPDF(source)) {
-            LayerUtility layers = new LayerUtility(target);
-            for (PdfOverlay overlay : overlays) {
-                if (overlay.pageIndex() >= target.getNumberOfPages()) {
-                    throw new IllegalArgumentException("A PDF overlay references a missing page.");
+            PDDocumentCatalog catalog = target.getDocumentCatalog();
+            PDAcroForm form = catalog.getAcroForm();
+            if (form == null) {
+                form = new PDAcroForm(target);
+                catalog.setAcroForm(form);
+            }
+            form.setNeedAppearances(false);
+            for (PdfFormField field : fields) {
+                if (field.pageIndex() >= target.getNumberOfPages() || form.getField(field.name()) != null) {
+                    throw new IllegalArgumentException("A signing field is invalid or already exists.");
                 }
-                pdf(overlay.document());
-                try (PDDocument overlayDocument = Loader.loadPDF(overlay.document())) {
+                PDPage page = target.getPage(field.pageIndex());
+                PDRectangle rect = fieldRectangle(page, field);
+                PDPushButton button = new PDPushButton(form);
+                button.setPartialName(field.name());
+                button.setReadOnly(true);
+                PDAnnotationWidget widget = button.getWidgets().get(0);
+                widget.setRectangle(rect);
+                widget.setPage(page);
+                widget.setPrinted(true);
+                page.getAnnotations().add(widget);
+                form.getFields().add(button);
+            }
+            target.save(output);
+        }
+        return output.toByteArray();
+    }
+
+    static byte[] fillSigningFields(byte[] source, List<PdfFormField> fields) throws Exception {
+        pdf(source);
+        List<Map<String, Object>> appearances = new ArrayList<>();
+        try (PDDocument target = Loader.loadPDF(source)) {
+            PDAcroForm form = target.getDocumentCatalog().getAcroForm();
+            if (form == null) {
+                throw new IllegalArgumentException("The PDF contains no reserved signing fields.");
+            }
+            for (PdfFormField requested : fields) {
+                PDField rawField = form.getField(requested.name());
+                if (!(rawField instanceof PDPushButton button) || button.getWidgets().size() != 1) {
+                    throw new IllegalArgumentException("A reserved signing field is missing or has the wrong type.");
+                }
+                PDAnnotationWidget widget = button.getWidgets().get(0);
+                PDPage page = target.getPage(requested.pageIndex());
+                if (widget.getPage() == null
+                        || !widget.getPage().getCOSObject().equals(page.getCOSObject())
+                        || !sameRectangle(widget.getRectangle(), fieldRectangle(page, requested))) {
+                    throw new IllegalArgumentException("A reserved signing field no longer matches its placement.");
+                }
+                pdf(requested.overlay());
+                try (PDDocument overlayDocument = Loader.loadPDF(requested.overlay())) {
                     if (overlayDocument.getNumberOfPages() != 1) {
-                        throw new IllegalArgumentException("Every PDF overlay must contain exactly one page.");
+                        throw new IllegalArgumentException("Every field appearance must contain exactly one page.");
                     }
-                    PDFormXObject form = layers.importPageAsForm(overlayDocument, 0);
-                    PDPage page = target.getPage(overlay.pageIndex());
-                    try (PDPageContentStream content = new PDPageContentStream(
-                            target, page, AppendMode.APPEND, true, true)) {
-                        content.drawForm(form);
+                    PDRectangle rect = widget.getRectangle();
+                    BufferedImage pageImage = new PDFRenderer(overlayDocument).renderImageWithDPI(0, 144);
+                    int cropX = Math.max(0, (int) Math.floor(requested.x() / 100 * pageImage.getWidth()));
+                    int cropY = Math.max(0, (int) Math.floor(requested.y() / 100 * pageImage.getHeight()));
+                    int cropWidth = Math.min(
+                            pageImage.getWidth() - cropX,
+                            Math.max(1, (int) Math.ceil(requested.width() / 100 * pageImage.getWidth())));
+                    int cropHeight = Math.min(
+                            pageImage.getHeight() - cropY,
+                            Math.max(1, (int) Math.ceil(requested.height() / 100 * pageImage.getHeight())));
+                    BufferedImage fieldImage = pageImage.getSubimage(cropX, cropY, cropWidth, cropHeight);
+                    byte[] rgb = new byte[cropWidth * cropHeight * 3];
+                    int offset = 0;
+                    for (int y = 0; y < cropHeight; y++) {
+                        for (int x = 0; x < cropWidth; x++) {
+                            int pixel = fieldImage.getRGB(x, y);
+                            rgb[offset++] = (byte) (pixel >> 16);
+                            rgb[offset++] = (byte) (pixel >> 8);
+                            rgb[offset++] = (byte) pixel;
+                        }
                     }
+                    appearances.add(Map.of(
+                            "name", requested.name(),
+                            "pixel_width", cropWidth,
+                            "pixel_height", cropHeight,
+                            "box_width", rect.getWidth(),
+                            "box_height", rect.getHeight(),
+                            "rgb", b64(rgb)));
                 }
             }
-            target.saveIncremental(output);
         }
-        byte[] result = output.toByteArray();
+        Path directory = Files.createTempDirectory("usl-sign-field-fill-");
+        Path input = directory.resolve("input.pdf");
+        Path payload = directory.resolve("fields.json");
+        Path output = directory.resolve("output.pdf");
+        Path errors = directory.resolve("errors.log");
+        byte[] result;
+        try {
+            Files.write(input, source);
+            JSON.writeValue(payload.toFile(), Map.of("fields", appearances));
+            Process process = new ProcessBuilder(
+                    requiredEnv("USL_DSS_PYHANKO_PYTHON"),
+                    requiredEnv("USL_DSS_PYHANKO_FILL_SCRIPT"),
+                    input.toString(), payload.toString(), output.toString())
+                    .redirectError(errors.toFile())
+                    .start();
+            if (!process.waitFor(30, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                throw new IllegalStateException("The strict PDF field writer exceeded its time limit.");
+            }
+            if (process.exitValue() != 0 || !Files.exists(output)
+                    || Files.size(output) <= source.length || Files.size(output) > MAX_REQUEST_BYTES) {
+                String detail = Files.exists(errors)
+                        ? Files.readString(errors, StandardCharsets.UTF_8) : "";
+                if (detail.length() > 4_000) {
+                    detail = detail.substring(detail.length() - 4_000);
+                }
+                throw new IllegalStateException("The strict PDF field writer failed: " + detail.strip());
+            }
+            result = Files.readAllBytes(output);
+        } finally {
+            Files.deleteIfExists(errors);
+            Files.deleteIfExists(output);
+            Files.deleteIfExists(payload);
+            Files.deleteIfExists(input);
+            Files.deleteIfExists(directory);
+        }
         if (!Arrays.equals(source, Arrays.copyOf(result, source.length))) {
             throw new IllegalStateException("Incremental PDF output did not preserve the base revision.");
         }
         return result;
+    }
+
+    private static PDRectangle fieldRectangle(PDPage page, PdfFormField field) {
+        PDRectangle box = page.getCropBox();
+        float x = box.getLowerLeftX() + (float) (field.x() / 100 * box.getWidth());
+        float y = box.getLowerLeftY() + (float) ((100 - field.y() - field.height()) / 100 * box.getHeight());
+        float width = (float) (field.width() / 100 * box.getWidth());
+        float height = (float) (field.height() / 100 * box.getHeight());
+        return new PDRectangle(x, y, width, height);
+    }
+
+    private static boolean sameRectangle(PDRectangle left, PDRectangle right) {
+        float epsilon = 0.02f;
+        return Math.abs(left.getLowerLeftX() - right.getLowerLeftX()) < epsilon
+                && Math.abs(left.getLowerLeftY() - right.getLowerLeftY()) < epsilon
+                && Math.abs(left.getWidth() - right.getWidth()) < epsilon
+                && Math.abs(left.getHeight() - right.getHeight()) < epsilon;
     }
 
     static void configureSignatureAppearance(
@@ -906,7 +1106,14 @@ public final class Application {
             if (process.exitValue() != 0 || !Files.exists(report)
                     || Files.size(report) == 0 || Files.size(report) > 2_000_000
                     || (Files.exists(errors) && Files.size(errors) > 200_000)) {
-                throw new IllegalStateException("pyHanko produced no bounded validation report.");
+                String detail = Files.exists(errors)
+                        ? Files.readString(errors, StandardCharsets.UTF_8) : "";
+                detail = detail.replace(input.toString(), "document.pdf");
+                if (detail.length() > 4_000) {
+                    detail = detail.substring(detail.length() - 4_000);
+                }
+                throw new IllegalStateException(
+                        "pyHanko produced no bounded validation report: " + detail.strip());
             }
             return JSON.readValue(report.toFile(), new TypeReference<>() {});
         } finally {
@@ -1138,7 +1345,9 @@ public final class Application {
         } catch (IllegalArgumentException exception) {
             send(exchange, 422, Map.of("ok", false, "error", exception.getMessage()));
         } catch (Exception exception) {
-            System.err.println("DSS operation failed: " + exception.getClass().getSimpleName());
+            System.err.println("DSS operation failed: " + exception.getClass().getSimpleName()
+                    + ": " + Objects.toString(exception.getMessage(), "no detail"));
+            exception.printStackTrace(System.err);
             send(exchange, 503, Map.of("ok", false, "error", "The DSS operation could not be completed."));
         } finally {
             exchange.close();
@@ -1219,5 +1428,12 @@ public final class Application {
             String relationship,
             String description) {}
 
-    record PdfOverlay(int pageIndex, byte[] document) {}
+    record PdfFormField(
+            String name,
+            int pageIndex,
+            double x,
+            double y,
+            double width,
+            double height,
+            byte[] overlay) {}
 }

@@ -126,17 +126,27 @@ class DSSClient:
             },
         )
 
-    def apply_incremental_overlays(self, data, overlays):
+    def prepare_signing_fields(self, data, fields):
+        return self._signing_fields_call("pdf/prepare-signing-fields", data, fields)
+
+    def fill_signing_fields(self, data, fields):
+        return self._signing_fields_call("pdf/fill-signing-fields", data, fields)
+
+    def _signing_fields_call(self, endpoint, data, fields):
         result = self._call(
-            "pdf/overlay-incremental",
+            endpoint,
             {
                 "document": self._document(data),
-                "overlays": [
+                "fields": [
                     {
-                        "page": overlay["page"],
-                        "document": self._document(overlay["document"]),
+                        key: (
+                            self._document(value)
+                            if key == "document"
+                            else value
+                        )
+                        for key, value in field.items()
                     }
-                    for overlay in overlays
+                    for field in fields
                 ],
             },
         )
