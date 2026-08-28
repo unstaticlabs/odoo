@@ -1,4 +1,5 @@
 from . import test_architecture_compatibility
+from . import test_analytic_pivot_export
 from . import test_bank_statement_hygiene
 from . import test_declaration_closing
 from . import test_einvoice_reception

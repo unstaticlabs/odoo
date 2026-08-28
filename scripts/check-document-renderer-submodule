@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SUBMODULE="services/usl-document-renderer"
+EXPECTED="140f0dc6b8c014ef39020cf34bac9b3a228d6417"
+
+cd "$ROOT"
+url="$(git config -f .gitmodules --get "submodule.${SUBMODULE}.url" || true)"
+if [[ "$url" != https://* ]]; then
+    printf 'Renderer submodule must use an HTTPS URL; found %s.\n' "${url:-<missing>}" >&2
+    exit 1
+fi
+if [[ ! -e "$SUBMODULE/.git" ]]; then
+    printf 'Renderer submodule is absent. Run: git submodule update --init --recursive %s\n' "$SUBMODULE" >&2
+    exit 1
+fi
+actual="$(git -C "$SUBMODULE" rev-parse HEAD)"
+if [[ "$actual" != "$EXPECTED" ]]; then
+    printf 'Renderer revision mismatch: expected %s, found %s.\n' "$EXPECTED" "$actual" >&2
+    exit 1
+fi
+if [[ -n "$(git -C "$SUBMODULE" status --porcelain)" ]]; then
+    printf 'Renderer submodule is dirty; release inputs must be immutable.\n' >&2
+    exit 1
+fi
+status="$(git submodule status "$SUBMODULE")"
+if [[ "${status:0:1}" != " " ]]; then
+    printf 'Renderer gitlink is absent or differs from the checked-out revision: %s\n' "$status" >&2
+    exit 1
+fi
+printf 'Renderer submodule is clean and pinned at %s.\n' "$EXPECTED"

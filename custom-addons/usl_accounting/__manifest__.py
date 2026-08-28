@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.2.0.1",
+    "version": "saas~19.3.2.1.1",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -15,6 +15,7 @@
         "spreadsheet_account",
         "usl_expense_batch",
         "usl_locale",
+        "usl_document_templates",
     ],
     "data": [
         "security/expense_bank_matching_security.xml",
@@ -23,6 +24,7 @@
         "security/ir.model.access.csv",
         "data/immediate_settlement_sequence.xml",
         "data/bank_ingestion_cron.xml",
+        "data/document_invoice_binding.xml",
         "wizard/expense_bank_match_wizard_views.xml",
         "wizard/bank_statement_review_wizard_views.xml",
         "views/bank_statement_ingestion_views.xml",
@@ -31,6 +33,7 @@
         "views/expense_batch_reporting_views.xml",
         "views/immediate_settlement_views.xml",
         "views/res_users_views.xml",
+        "views/document_invoice_settings_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

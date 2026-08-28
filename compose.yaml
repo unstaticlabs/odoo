@@ -408,6 +408,35 @@ services:
       retries: 10
       start_period: 30s
 
+  usl-document-renderer:
+    profiles: ["document-renderer"]
+    image: ${USL_DOCUMENT_RENDERER_IMAGE:-usl-document-renderer:140f0dc6b8c0}
+    build:
+      context: services/usl-document-renderer
+      args:
+        USL_TEMPLATE_REVISION: 140f0dc6b8c014ef39020cf34bac9b3a228d6417
+    restart: unless-stopped
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: 1.5
+    tmpfs:
+      - /tmp:size=128m,mode=1770,uid=10001,gid=10001,noexec,nosuid,nodev
+    environment:
+      USL_RENDERER_TLS_CERT: /run/secrets/document-renderer/renderer.crt
+      USL_RENDERER_TLS_KEY: /run/secrets/document-renderer/renderer.key
+      USL_RENDERER_TLS_CLIENT_CA: /run/secrets/document-renderer/ca.crt
+      USL_RENDER_CONCURRENCY: "2"
+      USL_RENDER_TIMEOUT_SECONDS: "30"
+    volumes:
+      - ./private/document-renderer-certs:/run/secrets/document-renderer:ro
+    networks:
+      - document-renderer
+
   odoo:
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     build:
@@ -471,6 +500,10 @@ services:
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
+      - ./private/document-renderer-certs:/run/secrets/document-renderer:ro
+    networks:
+      - default
+      - document-renderer
 
   init-db:
     profiles: ["init"]
@@ -873,6 +906,10 @@ volumes:
   paperless-consume:
   paperless-trash:
   paperless-ollama-data:
+
+networks:
+  document-renderer:
+    internal: true
 
 secrets:
   usl_personal_ai_master_keys:

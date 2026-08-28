@@ -91,6 +91,31 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
     },
 }
 
+# Odoo Online did not expose these governed document fields when the source
+# snapshot was taken.  Keep the enrichment offline and keyed by SIREN so a
+# reconstruction remains deterministic and cannot drift with a live registry
+# response.  Evidence reviewed for Unstatic Labs: the 24 September 2025 Paris
+# Kbis and updated statutes stored in the source dump.  Evidence reviewed for
+# USL MEDIA: BODACC creation notice A202601301643 and the restored Kbis facts
+# already governing its French declaration profile.  APE codes were
+# cross-checked against the public INSEE-backed company register.
+FRENCH_DOCUMENT_IDENTITIES_BY_SIREN = {
+    "983982950": {
+        "usl_document_legal_form": "SASU à capital variable",
+        "usl_document_share_capital": 1_000.0,
+        "usl_document_rcs_city": "Paris",
+        "ape": "62.01Z",
+        "street": "60 rue François Ier",
+        "street2": False,
+    },
+    "106928831": {
+        "usl_document_legal_form": "SASU",
+        "usl_document_share_capital": 1_000.0,
+        "usl_document_rcs_city": "Paris",
+        "ape": "74.20Z",
+    },
+}
+
 VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY = {
     "fiscalyear": "simplified",
     "monthly": "normal",
@@ -1573,6 +1598,7 @@ class RebuildAccountImportRun(models.Model):
                 **self._trace_values("res.company", row["id"], options),
             }
             vals.update(self._french_declaration_profile_values(row))
+            vals.update(self._french_document_identity_values(row))
             if row["account_fiscal_country_id"] in countries:
                 vals["account_fiscal_country_id"] = countries[row["account_fiscal_country_id"]].id
             if row["partner_country_id"] in countries:
@@ -1646,6 +1672,16 @@ class RebuildAccountImportRun(models.Model):
                 f"to the {vat_regime} VAT profile."
             ),
         }
+
+    @classmethod
+    def _french_document_identity_values(cls, row):
+        """Return reviewed legal mentions absent from the Online schema."""
+        return dict(
+            FRENCH_DOCUMENT_IDENTITIES_BY_SIREN.get(
+                cls._source_company_siren(row),
+                {},
+            )
+        )
 
     def _company_report_layout_defaults(self, company=False):
         """Avoid diverting accounting report users into document-layout setup."""

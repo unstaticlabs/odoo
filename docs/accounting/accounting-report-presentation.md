@@ -78,17 +78,24 @@ For official-document rendering, three credible options were compared:
 2. OCA QWeb/XLSX report outputs, which remain appropriate for their specialist
    wizards but do not cover the configured USL, French and management
    statements as one product;
-3. the existing deterministic ReportLab/XLSX exporters driven by the same
-   report session and hierarchy as the interactive client.
+3. the governed `accounting_statement.v2` LaTeX renderer driven by the same
+   report session and hierarchy as the interactive client, while preserving
+   the existing XLSX exporter.
 
-The third option remains the canonical exporter. Its visual tokens are no
-longer hardcoded per renderer: the resolved report definition supplies an
-official A4 template key, primary/muted colors, section background/text colors
-and footer label. The defaults follow the supplied USL LaTeX conventions:
-sans-serif typography, restrained black/gray hierarchy, compact tables,
-company legal identity in the repeated header and a quiet document footer.
-Company overrides are validated for six-digit hexadecimal colors and a minimum
-4.5:1 section contrast ratio.
+The third option is the canonical PDF exporter. It receives the report
+session's exact selected rows, hierarchy, filters, display unit and rounding;
+it performs no accounting calculation. The resolved report definition maps
+safe specialist theme overrides into the shared A4 template. The defaults use
+embedded Lato, restrained black/gray hierarchy, compact tables, company legal
+identity in the repeated header and a quiet document footer. Company overrides
+remain validated for six-digit hexadecimal colors and a minimum 4.5:1 section
+contrast ratio. XLSX remains unchanged and consumes the same session truth.
+
+Version 2 replaces the former flat columns/rows payload with allow-listed
+semantic columns, ordered sections, hierarchy roles, page-break policy, totals
+and controls. Version 1 remains registered only for immutable historical
+attachments. Current bindings and previews resolve to v2. Neither version
+accepts formulas, raw LaTeX or arbitrary template paths.
 
 For navigation, retaining Odoo's four broad report families was also compared
 with one flat list and with purpose-based families. A flat list made common
@@ -174,7 +181,35 @@ intentionally exact, unscaled and machine oriented.
 PDF pages repeat company identity, registry/VAT context, address, reporting
 date, official-document label and page number. Column headers and section rows
 use high-contrast light fills with dark text; final totals retain formal
-accounting rules rather than decorative saturated fills.
+accounting rules rather than decorative saturated fills. Physical top and
+bottom safety areas are balanced for office printing. Semantic section and
+total rows reserve enough remaining page space to avoid orphaned headings or
+detached totals; final totals use a bounded rule-and-wash treatment that stays
+recognisable in grayscale.
+
+The report-specific hierarchy is part of the shared session, not a PDF-only
+decoration. In particular:
+
+- the Balance générale uses PCG classes 1–8, exact class subtotals and a final
+  debit/credit equality control;
+- the Grand livre uses one account block with opening, movements and closing;
+- the Journal comptable groups journals by native journal type before journal;
+- the Grand livre auxiliaire nests account blocks below each partner;
+- open items separate customers and suppliers and ageing reports use their
+  real `1–30`, `31–60`, `61–90` and `> 90` buckets;
+- the Bilan and detailed Bilan emit separate Actif and Passif sections with a
+  deterministic page break, distinct equity, exact totals and an unnetted
+  balance control. Closing balances, including the closing class 6/7 result,
+  are authoritative for the statement-at-date; aggregate Actif, Passif and
+  equality values are repeated in a compact summary before the detailed sides;
+- the asset register labels each account section and places its grand total
+  after every account subtotal;
+- management, tax, analytic and schedule reports preserve their specialist
+  section keys and exact subtotal rows;
+- the analytic pivot PDF request contains only allow-listed axes, measures,
+  ordering, domain and safe context. The server reapplies active-company access
+  and recomputes the matrix with ORM aggregation. Wide matrices are split into
+  bounded landscape segments with the row header repeated.
 
 The French annual package adds deterministic cover, contents and preparation
 status pages before the canonical statements, then SIG/CAF and defined
@@ -206,8 +241,8 @@ review, filing or a recorded closing decision.
   https://www.odoo.com/documentation/19.0/de/developer/reference/standard_modules/account/account_report_line.html
 - Odoo 19 account-prefix and grouping report expressions:
   https://www.odoo.com/documentation/19.0/applications/finance/accounting/reporting/customize.html
-- Autorité des normes comptables, Plan comptable général:
-  https://www.anc.gouv.fr/files/anc/files/1_Normes_fran%C3%A7aises/Reglements/Recueils/PCG_Janvier2025/Recueil-NF-Janvier-2025.pdf
+- Autorité des normes comptables, recueil PCG au 1er janvier 2026:
+  https://www.anc.gouv.fr/files/anc/files/1_Normes_fran%C3%A7aises/recueil/2026/Recueil-PCG-Janvier-2026.pdf
 - Code de commerce, composition et structure des comptes annuels:
   https://www.legifrance.gouv.fr/loda/id/LEGISCTA000034161774
 - CGI, article 1649 undecies, fiscal bases rounded to the nearest euro:

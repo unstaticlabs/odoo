@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+      THESIS: Official-document readiness is one operational status, not a template editor.
+      OWN-WORLD: Native Odoo settings, white surface, restrained status color, concise field groups.
+      STORY: Complete legal identity, verify the pinned renderer, then review all four families.
+      FIRST VIEWPORT: Readiness and renderer health lead; configuration follows by operational priority.
+      FORM: Polished Odoo standard, approved canon, seed 6e9aedf4.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
+    <record id="res_config_settings_view_form_document_templates" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.document.templates</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Document Templates"
+                     name="usl_document_templates"
+                     groups="base.group_system">
+                    <field name="usl_document_currency_id" invisible="1"/>
+                    <block title="Official document readiness"
+                           name="usl_document_identity">
+                        <setting string="Legal identity"
+                                 help="Official documents use the selected company's native identity, address, registration, tax data, logo and colors.">
+                            <field name="usl_document_identity_ready" invisible="1"/>
+                            <field name="usl_document_identity_message"
+                                   readonly="1"
+                                   class="fw-semibold"
+                                   decoration-success="usl_document_identity_ready"
+                                   decoration-warning="not usl_document_identity_ready"/>
+                            <button name="open_company"
+                                    type="object"
+                                    string="Open company"
+                                    class="btn-link"
+                                    title="Complete the company address, registration, VAT, APE, logo and colors."/>
+                        </setting>
+                        <setting string="Legal form"
+                                 help="For example SAS, SASU or SARL.">
+                            <field name="usl_document_legal_form" placeholder="SAS"/>
+                        </setting>
+                        <setting string="Share capital">
+                            <field name="usl_document_share_capital"/>
+                        </setting>
+                        <setting string="RCS city"
+                                 help="Registry city used in the RCS mention.">
+                            <field name="usl_document_rcs_city" placeholder="Nice"/>
+                        </setting>
+                    </block>
+
+                    <block title="Isolated renderer"
+                           name="usl_document_renderer">
+                        <setting string="Renderer health"
+                                 help="The renderer must be healthy and match the pinned template revision. Covered reports never fall back silently.">
+                            <field name="usl_document_renderer_status"
+                                   widget="badge"
+                                   readonly="1"
+                                   decoration-success="usl_document_renderer_status == 'healthy'"
+                                   decoration-danger="usl_document_renderer_status == 'error'"/>
+                            <div class="content-group mt-2">
+                                <field name="usl_document_renderer_message" readonly="1"/>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_checked_at" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_checked_at" readonly="1" class="col-lg-8"/>
+                                </div>
+                            </div>
+                            <button name="action_usl_document_check_renderer"
+                                    type="object"
+                                    string="Check renderer"
+                                    class="btn-link"
+                                    title="Verify mTLS connectivity, service health and the pinned revision."/>
+                        </setting>
+                        <setting string="Internal service URL">
+                            <field name="usl_document_renderer_url"
+                                   placeholder="https://usl-document-renderer:8443"/>
+                        </setting>
+                        <setting string="Pinned template revision"
+                                 help="Immutable Git revision embedded in the reviewed renderer image.">
+                            <field name="usl_document_renderer_expected_revision"
+                                   placeholder="40-character Git commit"/>
+                            <div class="content-group mt-2">
+                                <span class="text-muted">Reported revision: </span>
+                                <field name="usl_document_renderer_revision" readonly="1" class="font-monospace"/>
+                                <span class="text-muted ms-3">Engine: </span>
+                                <field name="usl_document_renderer_version" readonly="1"/>
+                            </div>
+                        </setting>
+                        <setting string="mTLS trust paths"
+                                 help="Server-side paths only; certificate material is never stored in Odoo attachments or sent to browsers.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_ca_path" string="CA bundle" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_ca_path" placeholder="/run/secrets/renderer-ca.crt" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_certificate_path" string="Client certificate" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_certificate_path" placeholder="/run/secrets/odoo-renderer.crt" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="usl_document_renderer_private_key_path" string="Client private key" class="col-lg-4 o_light_label"/>
+                                    <field name="usl_document_renderer_private_key_path" placeholder="/run/secrets/odoo-renderer.key" class="col-lg-8"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Request timeout">
+                            <field name="usl_document_renderer_timeout"/>
+                        </setting>
+                    </block>
+
+                    <block title="Visual review"
+                           name="usl_document_visual_review">
+                        <setting string="Four-family preview pack"
+                                 help="Generate synthetic invoice, accounting, correspondence and signature-certificate PDFs for the selected company. Preview data has no legal or accounting value.">
+                            <button name="action_usl_document_preview_pack"
+                                    type="object"
+                                    string="Download preview pack"
+                                    class="btn-link"
+                                    title="Render and download the four synthetic reference documents."/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

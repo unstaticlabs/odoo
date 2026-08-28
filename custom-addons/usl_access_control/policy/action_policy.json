@@ -866,6 +866,83 @@
     },
     {
       "action_keys": [
+        "guard:documents.letter.cancel_issued",
+        "guard:documents.letter.finalize",
+        "guard:documents.letter.mark_sent",
+        "rpc:usl.document.letter.action_cancel",
+        "rpc:usl.document.letter.action_finalize",
+        "rpc:usl.document.letter.action_mark_sent",
+        "rpc:usl.document.letter.unlink",
+        "rpc:usl.document.renderer.unlink",
+        "rpc:usl.document.template.unlink"
+      ],
+      "classification": "protected",
+      "consequence": "May change authorization, locks, executable code, durable external registration, audit integrity, or permanently remove governed information.",
+      "domain": "documents_and_communications",
+      "evidence_id": "protected-deny-allow-audit-v1",
+      "id": "protected.documents_and_communications.latex_documents",
+      "overrides": {
+        "guard:documents.letter.cancel_issued": {
+          "action_name": "documents letter cancel_issued"
+        },
+        "guard:documents.letter.finalize": {
+          "action_name": "documents letter finalize"
+        },
+        "guard:documents.letter.mark_sent": {
+          "action_name": "documents letter mark_sent"
+        },
+        "rpc:usl.document.letter.action_cancel": {
+          "action_name": "cancel an issued official letter",
+          "guard_key": "guard:documents.letter.cancel_issued"
+        },
+        "rpc:usl.document.letter.action_finalize": {
+          "action_name": "issue an immutable official letter",
+          "guard_key": "guard:documents.letter.finalize"
+        },
+        "rpc:usl.document.letter.action_mark_sent": {
+          "action_name": "record an official letter as sent",
+          "guard_key": "guard:documents.letter.mark_sent"
+        },
+        "rpc:usl.document.letter.unlink": {
+          "action_name": "permanently delete usl.document.letter",
+          "enforcement": {
+            "kind": "model_operation",
+            "model": "usl.document.letter",
+            "operation": "unlink"
+          }
+        },
+        "rpc:usl.document.renderer.unlink": {
+          "action_name": "permanently delete usl.document.renderer",
+          "enforcement": {
+            "kind": "model_operation",
+            "model": "usl.document.renderer",
+            "operation": "unlink"
+          }
+        },
+        "rpc:usl.document.template.unlink": {
+          "action_name": "permanently delete usl.document.template",
+          "enforcement": {
+            "kind": "model_operation",
+            "model": "usl.document.template",
+            "operation": "unlink"
+          }
+        }
+      },
+      "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
+      "reviewed_digests": {
+        "guard:documents.letter.cancel_issued": "ec6b5a007b213e214a9077153e0b0ebcafddae4a4baa813c8bad275e42a77343",
+        "guard:documents.letter.finalize": "2dc9a864a4e44dea76925b78dcc6ebbddb49e96d11b50be1dea74150751d2cc0",
+        "guard:documents.letter.mark_sent": "df625f14b074aa7378ed68bbfa920e4e6e775b26a66f70a44e280450dc0d5fca",
+        "rpc:usl.document.letter.action_cancel": "3a9648f6dc5703b0c2f4c1411d1088ca5d0e5075562e965c6c8adf77daa637b8",
+        "rpc:usl.document.letter.action_finalize": "d4baf09834e6091bd275c838294d18fa879e5357daaf3fb69d7a776c0c831953",
+        "rpc:usl.document.letter.action_mark_sent": "965c07dc4b2cd7e9449b0c932b1c14ef763c73c0bca81796216074de09531776",
+        "rpc:usl.document.letter.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
+        "rpc:usl.document.renderer.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
+        "rpc:usl.document.template.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb"
+      }
+    },
+    {
+      "action_keys": [
         "server_action:hr.action_hr_employee_create_users",
         "server_action:hr.action_hr_employee_create_users_confirmation"
       ],
@@ -2477,6 +2554,7 @@
         "route:http:POST:/peppol/webhook/new-message",
         "route:http:POST:/peppol/webhook/new-regulatory-message",
         "route:http:POST:/peppol/webhook/user-state-update",
+        "route:http:POST:/usl/accounting/analytic-pivot/pdf",
         "route:jsonrpc:ANY:/invoice/transaction/<int:invoice_id>",
         "route:jsonrpc:ANY:/invoice/transaction/overdue",
         "route:jsonrpc:ANY:/product/catalog/create_section",
@@ -8855,6 +8933,7 @@
         "route:http:POST:/peppol/webhook/new-message": "7d6473c001360422a3ed8503c17aad64299ec97a8a58e0e349a9771847a5d67a",
         "route:http:POST:/peppol/webhook/new-regulatory-message": "f525672f8a6e5c3422f9fa57d6fcd4dfea97e4ccce9eb6abe23405d92f4ad58c",
         "route:http:POST:/peppol/webhook/user-state-update": "22d21a7789e5ff98db018c0a3895a1bb7e2131e8c7a86cb3a920b29bf66c292a",
+        "route:http:POST:/usl/accounting/analytic-pivot/pdf": "df12f0c4565e75c9546393ede1436b048ea50ce3409a91575a5992ce4280f92e",
         "route:jsonrpc:ANY:/invoice/transaction/<int:invoice_id>": "ad962340794f1e39c90c8bf8e12d274a053d1229eca550905077f0a94e2f9e3e",
         "route:jsonrpc:ANY:/invoice/transaction/overdue": "7859bb9bf684f600389c1791554b686d271ffba9f5367e60a61600329b1587ac",
         "route:jsonrpc:ANY:/product/catalog/create_section": "7b72d6b5389228fb99233d4fddeaa319ea692cd148bf93390ebe60bce824ea50",
@@ -14952,8 +15031,8 @@
         "rpc:wiz.asset.move.reverse.default_get": "02bb69d99766598b6a39dca7677a04519e59f3cbeaa10574b14b90cf773cc4f5",
         "rpc:wizard.open.tax.balances.open_taxes": "04e4c16a451e5b664f29c7864106b93db0f7046dba8eefcf0c8601f2a22282b7",
         "ui:account.account_automatic_entry_wizard_action": "046b1c31277c740c46c36d971491266c1c784beef30cec2bd0a4974fdbef7a00",
-        "ui:account.account_invoices": "b4744a26750778888996eb47f12c4dfb3691f5dfe8a0074b1e5475322e555e20",
-        "ui:account.account_invoices_without_payment": "29e34b2327b832a88f45e5799b0c0a9d6fd4ff6cecdf7521fd824eeaf95edb19",
+        "ui:account.account_invoices": "b58cc8dade310139c91d7a3b8029608aa51bff0df3f78db98add7a2515d93936",
+        "ui:account.account_invoices_without_payment": "ea702b749a18b9bab9e955ee0a86dd6161ba9f94ace174b43015533a59b06cc4",
         "ui:account.account_merge_wizard_action": "c07ee14ae49d0b71295f43ab2afd4a89f2e506782d8945a28a9180ba687942d6",
         "ui:account.account_send_payment_receipt_by_email_action": "994eceb21c9dfff02e7b502719cff2b76e0b340fe6dacab3aa5e54900ffc19c2",
         "ui:account.account_send_payment_receipt_by_email_action_multi": "80d22f5ef614915ce44b9a21036ae44e40435c3a8ec33e995d53d13ee7600546",
@@ -14976,7 +15055,7 @@
         "ui:account.action_account_moves_journal_purchase": "47a67983bc4b68437216714723763086a473998a62a521d7e9b3bbbd63aed6ae",
         "ui:account.action_account_moves_journal_sales": "577eb30d22da3f8184ecbb92193cdb8b56866395f7ccaf750831ae2bbf14a36a",
         "ui:account.action_account_moves_ledger_partner": "0b947ae028cf13ef370fec18bbdf986fa5c6338a99854c6af46025cdf8aa0afe",
-        "ui:account.action_account_original_vendor_bill": "dbb38aa08f94726724dbb169fdb518eecac135c675553265e5ff8641a2c6b9a1",
+        "ui:account.action_account_original_vendor_bill": "e8bf940846deb2d32f5e47eb109db0d9fbbddf7a6986913b70ec7ad17ba2809b",
         "ui:account.action_account_payments": "75167b3974bf19af14a64cb6d1a28fafb029445ae89615894ba8116f41e681da",
         "ui:account.action_account_payments_payable": "9f60366a2110693a9546884fc866ec3ae1e26d122dc9e9abe49224d80c34828a",
         "ui:account.action_account_payments_transfer": "194a51da95a1d8f793677b8461a2c1c473a9d1b78f18609e486ffc54f2bf7f81",
@@ -32437,6 +32516,248 @@
         "ui:usl_documents.action_usl_paperless_document_types": "5be54ade0bad90bfd1f59c16252c795d86cbaf7fa7242e65eb69b1ecd681ad11",
         "ui:usl_documents.action_usl_paperless_tags": "92ecfbf8a93b56d71ffa77db9ade3d054c9148952e7b7fccec92f49d8208f71e",
         "ui:usl_documents.action_usl_paperless_user_mappings": "561d82f46f7d5ce677aa39449cd8fb18ab036c6c6901d1e845ab10cfb138b619"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.letter.action_archive",
+        "rpc:usl.document.letter.action_download_pdf",
+        "rpc:usl.document.letter.action_reschedule_my_next_nextweek",
+        "rpc:usl.document.letter.action_reschedule_my_next_today",
+        "rpc:usl.document.letter.action_reschedule_my_next_tomorrow",
+        "rpc:usl.document.letter.action_unarchive",
+        "rpc:usl.document.letter.activity_feedback",
+        "rpc:usl.document.letter.activity_search",
+        "rpc:usl.document.letter.activity_unlink",
+        "rpc:usl.document.letter.check_field_access",
+        "rpc:usl.document.letter.copy_translations",
+        "rpc:usl.document.letter.default_get",
+        "rpc:usl.document.letter.export_data",
+        "rpc:usl.document.letter.fields_get",
+        "rpc:usl.document.letter.formatted_read_group",
+        "rpc:usl.document.letter.get_base_url",
+        "rpc:usl.document.letter.get_empty_list_help",
+        "rpc:usl.document.letter.get_external_id",
+        "rpc:usl.document.letter.get_field_translations",
+        "rpc:usl.document.letter.get_formview_action",
+        "rpc:usl.document.letter.get_formview_id",
+        "rpc:usl.document.letter.get_import_templates",
+        "rpc:usl.document.letter.get_metadata",
+        "rpc:usl.document.letter.get_property_definition",
+        "rpc:usl.document.letter.has_access",
+        "rpc:usl.document.letter.has_field_access",
+        "rpc:usl.document.letter.hierarchy_read",
+        "rpc:usl.document.letter.load",
+        "rpc:usl.document.letter.mail_allowed_qweb_expressions",
+        "rpc:usl.document.letter.mail_get_partner_fields",
+        "rpc:usl.document.letter.message_get_followers",
+        "rpc:usl.document.letter.name_search",
+        "rpc:usl.document.letter.rating_send_request",
+        "rpc:usl.document.letter.read",
+        "rpc:usl.document.letter.read_progress_bar",
+        "rpc:usl.document.letter.search",
+        "rpc:usl.document.letter.search_count",
+        "rpc:usl.document.letter.search_panel_select_multi_range",
+        "rpc:usl.document.letter.search_panel_select_range",
+        "rpc:usl.document.letter.search_read",
+        "rpc:usl.document.letter.view_header_get",
+        "rpc:usl.document.letter.web_name_search",
+        "rpc:usl.document.letter.web_read",
+        "rpc:usl.document.renderer.action_archive",
+        "rpc:usl.document.renderer.action_unarchive",
+        "rpc:usl.document.renderer.check_field_access",
+        "rpc:usl.document.renderer.copy_translations",
+        "rpc:usl.document.renderer.default_get",
+        "rpc:usl.document.renderer.export_data",
+        "rpc:usl.document.renderer.fields_get",
+        "rpc:usl.document.renderer.formatted_read_group",
+        "rpc:usl.document.renderer.get_base_url",
+        "rpc:usl.document.renderer.get_empty_list_help",
+        "rpc:usl.document.renderer.get_external_id",
+        "rpc:usl.document.renderer.get_field_translations",
+        "rpc:usl.document.renderer.get_formview_action",
+        "rpc:usl.document.renderer.get_formview_id",
+        "rpc:usl.document.renderer.get_import_templates",
+        "rpc:usl.document.renderer.get_metadata",
+        "rpc:usl.document.renderer.get_property_definition",
+        "rpc:usl.document.renderer.has_access",
+        "rpc:usl.document.renderer.has_field_access",
+        "rpc:usl.document.renderer.hierarchy_read",
+        "rpc:usl.document.renderer.load",
+        "rpc:usl.document.renderer.mail_allowed_qweb_expressions",
+        "rpc:usl.document.renderer.mail_get_partner_fields",
+        "rpc:usl.document.renderer.name_search",
+        "rpc:usl.document.renderer.read",
+        "rpc:usl.document.renderer.read_progress_bar",
+        "rpc:usl.document.renderer.search",
+        "rpc:usl.document.renderer.search_count",
+        "rpc:usl.document.renderer.search_panel_select_multi_range",
+        "rpc:usl.document.renderer.search_panel_select_range",
+        "rpc:usl.document.renderer.search_read",
+        "rpc:usl.document.renderer.view_header_get",
+        "rpc:usl.document.renderer.web_name_search",
+        "rpc:usl.document.renderer.web_read",
+        "rpc:usl.document.template.action_archive",
+        "rpc:usl.document.template.action_unarchive",
+        "rpc:usl.document.template.check_field_access",
+        "rpc:usl.document.template.copy_translations",
+        "rpc:usl.document.template.default_get",
+        "rpc:usl.document.template.export_data",
+        "rpc:usl.document.template.fields_get",
+        "rpc:usl.document.template.formatted_read_group",
+        "rpc:usl.document.template.get_base_url",
+        "rpc:usl.document.template.get_empty_list_help",
+        "rpc:usl.document.template.get_external_id",
+        "rpc:usl.document.template.get_field_translations",
+        "rpc:usl.document.template.get_formview_action",
+        "rpc:usl.document.template.get_formview_id",
+        "rpc:usl.document.template.get_import_templates",
+        "rpc:usl.document.template.get_metadata",
+        "rpc:usl.document.template.get_property_definition",
+        "rpc:usl.document.template.has_access",
+        "rpc:usl.document.template.has_field_access",
+        "rpc:usl.document.template.hierarchy_read",
+        "rpc:usl.document.template.load",
+        "rpc:usl.document.template.mail_allowed_qweb_expressions",
+        "rpc:usl.document.template.mail_get_partner_fields",
+        "rpc:usl.document.template.name_search",
+        "rpc:usl.document.template.read",
+        "rpc:usl.document.template.read_progress_bar",
+        "rpc:usl.document.template.search",
+        "rpc:usl.document.template.search_count",
+        "rpc:usl.document.template.search_panel_select_multi_range",
+        "rpc:usl.document.template.search_panel_select_range",
+        "rpc:usl.document.template.search_read",
+        "rpc:usl.document.template.view_header_get",
+        "rpc:usl.document.template.web_name_search",
+        "rpc:usl.document.template.web_read",
+        "ui:usl_document_templates.action_document_letters",
+        "ui:usl_document_templates.action_document_templates",
+        "ui:usl_document_templates.action_report_document_letter",
+        "ui:usl_document_templates.action_report_output_inventory"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
+      "domain": "documents_and_communications",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.documents_and_communications.latex_documents",
+      "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
+      "reviewed_digests": {
+        "rpc:usl.document.letter.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.letter.action_download_pdf": "d5c0899885dbd0fd00eae95e604a08c2a35a7b5d0326a7a99176c7a8e537b5de",
+        "rpc:usl.document.letter.action_reschedule_my_next_nextweek": "1f8b565136e347fa9e15542d23e050e09462ec69985f610715ed95b84dcef46f",
+        "rpc:usl.document.letter.action_reschedule_my_next_today": "62336990f6e0800dc3d5955fc8a573fc20ef2c3a47c7bbe0e75645730322f206",
+        "rpc:usl.document.letter.action_reschedule_my_next_tomorrow": "fe70844aa3aca077d267b7b608dc5d2f90ae1eaa7dc5754d79b937075b51c6e6",
+        "rpc:usl.document.letter.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.letter.activity_feedback": "81db87cf91b5b4c4fa86edddf1c1b5b76785febf85cfef3c7b1e52f8d5fe2d2e",
+        "rpc:usl.document.letter.activity_search": "e398cd5d9591651af45ce77c9c6ec37de28aa3510bdb76310ee066cfc015d438",
+        "rpc:usl.document.letter.activity_unlink": "7dfece5344a786c5be58e3aef93f092c543e6729ce183d52c1b2aae8e001a523",
+        "rpc:usl.document.letter.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.letter.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.letter.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.letter.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.letter.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.document.letter.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.letter.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.letter.get_empty_list_help": "4a45ae42c1905489f0e9be28813ed82287d8b540e4927b5f22dc4bbed6ddb486",
+        "rpc:usl.document.letter.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.letter.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.letter.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.letter.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.letter.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.letter.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.letter.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.letter.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.letter.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.letter.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.document.letter.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.letter.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.letter.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.letter.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
+        "rpc:usl.document.letter.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.letter.rating_send_request": "fff4486fcff746e1174ad48c341e87325cbfad003de78d24b8ea0101b7ce2486",
+        "rpc:usl.document.letter.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.letter.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.letter.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.letter.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.letter.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.letter.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.letter.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.letter.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.letter.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.letter.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.document.renderer.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.renderer.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.renderer.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.renderer.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.renderer.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.renderer.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.renderer.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.document.renderer.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.renderer.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.renderer.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.document.renderer.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.renderer.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.renderer.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.renderer.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.renderer.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.renderer.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.renderer.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.renderer.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.renderer.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.renderer.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.document.renderer.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.renderer.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.renderer.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.renderer.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.renderer.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.renderer.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.renderer.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.renderer.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.renderer.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.renderer.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.renderer.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.renderer.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.renderer.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.renderer.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.document.template.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.template.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.template.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.template.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.template.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.template.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.template.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.document.template.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.template.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.template.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.document.template.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.template.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.template.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.template.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.template.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.template.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.template.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.template.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.template.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.template.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.document.template.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.template.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.template.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.template.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.template.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.template.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.template.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.template.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.template.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.template.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.template.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.template.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.template.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.template.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "ui:usl_document_templates.action_document_letters": "78de01ef7dfd67ae41e39b407986a81dd663f711cbd958535ab8f275aa8b0ca5",
+        "ui:usl_document_templates.action_document_templates": "2735f6f893fae12516ce5dd3dc4e30c82cf7014fa81615de7593282070aad991",
+        "ui:usl_document_templates.action_report_document_letter": "ec31bb66cd7dccb6cc6db889afc57a24bab2bbc934e52a9d6a2bb5793512939c",
+        "ui:usl_document_templates.action_report_output_inventory": "016e960701b213e40c3b46aac6b846878747cb74cce93d5f1097c171a24f7b2f"
       }
     },
     {
@@ -72606,7 +72927,7 @@
         "rpc:rebuild.account.report.export.wizard.action_apply_period": "b37b79ff2023c36efa0f2180aed2072874802ab3b6dd103b43721889c3796d23",
         "rpc:rebuild.account.report.export.wizard.action_collapse_all": "458e6cdac7f0b46c5f23c0cae7713a19efe91ba67164de6c5af5ee9d153e5a72",
         "rpc:rebuild.account.report.export.wizard.action_expand_all": "f48185cc5d086aef523cd6af531c81adca8f027943f9a967d0c5d2c6a11206b3",
-        "rpc:rebuild.account.report.export.wizard.action_generate_export": "20887909ee7553db7422ab437a71a56420d6473d319887210cc7e35d9a6966ff",
+        "rpc:rebuild.account.report.export.wizard.action_generate_export": "bcbb24f06657bfe8187ccc0590820ce37ba381a8eace4918b21706161b22c837",
         "rpc:rebuild.account.report.export.wizard.action_preview_report": "ac4fb3dbd1f39354a8bb82fc35531f4fae61f1a36655806f22d385f2c397e75d",
         "rpc:rebuild.account.report.export.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.report.export.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -91919,6 +92240,365 @@
         "rpc:usl.tese.profile.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:usl.tese.profile.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.tese.profile.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:res.company.action_usl_document_check_renderer",
+        "rpc:res.config.settings.action_usl_document_preview_pack",
+        "rpc:usl.document.letter.action_create_correction",
+        "rpc:usl.document.letter.activity_reschedule",
+        "rpc:usl.document.letter.activity_schedule",
+        "rpc:usl.document.letter.activity_send_mail",
+        "rpc:usl.document.letter.copy",
+        "rpc:usl.document.letter.copy_data",
+        "rpc:usl.document.letter.create",
+        "rpc:usl.document.letter.formatted_read_grouping_sets",
+        "rpc:usl.document.letter.get_view",
+        "rpc:usl.document.letter.get_views",
+        "rpc:usl.document.letter.message_change_thread",
+        "rpc:usl.document.letter.message_mail_with_source",
+        "rpc:usl.document.letter.message_new",
+        "rpc:usl.document.letter.message_notify",
+        "rpc:usl.document.letter.message_parse",
+        "rpc:usl.document.letter.message_post",
+        "rpc:usl.document.letter.message_post_with_source",
+        "rpc:usl.document.letter.message_process",
+        "rpc:usl.document.letter.message_route",
+        "rpc:usl.document.letter.message_subscribe",
+        "rpc:usl.document.letter.message_unsubscribe",
+        "rpc:usl.document.letter.message_update",
+        "rpc:usl.document.letter.name_create",
+        "rpc:usl.document.letter.notify_cancel_by_type",
+        "rpc:usl.document.letter.onchange",
+        "rpc:usl.document.letter.rating_apply",
+        "rpc:usl.document.letter.set_message_pin",
+        "rpc:usl.document.letter.update_field_translations",
+        "rpc:usl.document.letter.web_override_translations",
+        "rpc:usl.document.letter.web_read_group",
+        "rpc:usl.document.letter.web_resequence",
+        "rpc:usl.document.letter.web_save",
+        "rpc:usl.document.letter.web_save_multi",
+        "rpc:usl.document.letter.web_search_read",
+        "rpc:usl.document.letter.write",
+        "rpc:usl.document.renderer.copy",
+        "rpc:usl.document.renderer.copy_data",
+        "rpc:usl.document.renderer.create",
+        "rpc:usl.document.renderer.formatted_read_grouping_sets",
+        "rpc:usl.document.renderer.get_view",
+        "rpc:usl.document.renderer.get_views",
+        "rpc:usl.document.renderer.name_create",
+        "rpc:usl.document.renderer.onchange",
+        "rpc:usl.document.renderer.update_field_translations",
+        "rpc:usl.document.renderer.web_override_translations",
+        "rpc:usl.document.renderer.web_read_group",
+        "rpc:usl.document.renderer.web_resequence",
+        "rpc:usl.document.renderer.web_save",
+        "rpc:usl.document.renderer.web_save_multi",
+        "rpc:usl.document.renderer.web_search_read",
+        "rpc:usl.document.renderer.write",
+        "rpc:usl.document.template.copy",
+        "rpc:usl.document.template.copy_data",
+        "rpc:usl.document.template.create",
+        "rpc:usl.document.template.formatted_read_grouping_sets",
+        "rpc:usl.document.template.get_view",
+        "rpc:usl.document.template.get_views",
+        "rpc:usl.document.template.name_create",
+        "rpc:usl.document.template.onchange",
+        "rpc:usl.document.template.update_field_translations",
+        "rpc:usl.document.template.web_override_translations",
+        "rpc:usl.document.template.web_read_group",
+        "rpc:usl.document.template.web_resequence",
+        "rpc:usl.document.template.web_save",
+        "rpc:usl.document.template.web_save_multi",
+        "rpc:usl.document.template.web_search_read",
+        "rpc:usl.document.template.write"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "documents_and_communications",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.documents_and_communications.latex_documents",
+      "overrides": {
+        "rpc:res.company.action_usl_document_check_renderer": {
+          "reversal_action": "rpc:res.company.write"
+        },
+        "rpc:res.config.settings.action_usl_document_preview_pack": {
+          "reversal_action": "rpc:ir.attachment.unlink"
+        },
+        "rpc:usl.document.letter.action_create_correction": {
+          "reversal_action": "rpc:usl.document.letter.unlink"
+        },
+        "rpc:usl.document.letter.activity_reschedule": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.activity_schedule": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.activity_send_mail": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.copy": {
+          "reversal_action": "rpc:usl.document.letter.unlink"
+        },
+        "rpc:usl.document.letter.copy_data": {
+          "reversal_action": "rpc:usl.document.letter.unlink"
+        },
+        "rpc:usl.document.letter.create": {
+          "reversal_action": "rpc:usl.document.letter.unlink"
+        },
+        "rpc:usl.document.letter.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.get_view": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.get_views": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_change_thread": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_mail_with_source": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_new": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_notify": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_parse": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_post": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_post_with_source": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_process": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_route": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_subscribe": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_unsubscribe": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.message_update": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.name_create": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.notify_cancel_by_type": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.onchange": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.rating_apply": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.set_message_pin": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.update_field_translations": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_override_translations": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_read_group": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_resequence": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_save": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_save_multi": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.web_search_read": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.write": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.renderer.copy": {
+          "reversal_action": "rpc:usl.document.renderer.unlink"
+        },
+        "rpc:usl.document.renderer.copy_data": {
+          "reversal_action": "rpc:usl.document.renderer.unlink"
+        },
+        "rpc:usl.document.renderer.create": {
+          "reversal_action": "rpc:usl.document.renderer.unlink"
+        },
+        "rpc:usl.document.renderer.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.get_view": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.get_views": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.name_create": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.onchange": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.update_field_translations": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_override_translations": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_read_group": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_resequence": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_save": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_save_multi": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.web_search_read": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.renderer.write": {
+          "reversal_action": "rpc:usl.document.renderer.write"
+        },
+        "rpc:usl.document.template.copy": {
+          "reversal_action": "rpc:usl.document.template.unlink"
+        },
+        "rpc:usl.document.template.copy_data": {
+          "reversal_action": "rpc:usl.document.template.unlink"
+        },
+        "rpc:usl.document.template.create": {
+          "reversal_action": "rpc:usl.document.template.unlink"
+        },
+        "rpc:usl.document.template.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.get_view": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.get_views": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.name_create": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.onchange": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.update_field_translations": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_override_translations": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_read_group": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_resequence": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_save": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_save_multi": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.web_search_read": {
+          "reversal_action": "rpc:usl.document.template.write"
+        },
+        "rpc:usl.document.template.write": {
+          "reversal_action": "rpc:usl.document.template.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:res.company.action_usl_document_check_renderer": "6f1e0ace7e534c254e91f19c496e898f7c65a34cfb5737433818fcc65e5e3db2",
+        "rpc:res.config.settings.action_usl_document_preview_pack": "829efb63f41091c412d918d5a4436609fb61d5f14bd9f7355ad77e92a4559147",
+        "rpc:usl.document.letter.action_create_correction": "ab4b01644ca139ec14c188bbdb5719f2f498d9ee5d9c3d0cc686568a49d23031",
+        "rpc:usl.document.letter.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
+        "rpc:usl.document.letter.activity_schedule": "c65d906e53422d17b160fac43de64a5e73e11a8d6c353175a0aaa2fec7351340",
+        "rpc:usl.document.letter.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
+        "rpc:usl.document.letter.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.letter.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.letter.create": "9bee83b222627f6fbfd55996d8f957f0f64e890fca3e32c39b13d85f198c11d0",
+        "rpc:usl.document.letter.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.document.letter.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.letter.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:usl.document.letter.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
+        "rpc:usl.document.letter.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
+        "rpc:usl.document.letter.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
+        "rpc:usl.document.letter.message_notify": "4882890f73684f5b5673c73be09050d2eff4e504b1530b35ce2a3bc5c0b140ac",
+        "rpc:usl.document.letter.message_parse": "c8e71ccbae570a707b8e261de28b25ea70dc463a1b40807f4b465ac337ac8707",
+        "rpc:usl.document.letter.message_post": "ef606737cf95455067f79930e77b03e7e63b562e0509fd9d3c342d3968eef9eb",
+        "rpc:usl.document.letter.message_post_with_source": "245fb964979dcb73e5a6189fb10c8ffceade74f7f6eada6d48977d1f86270d4e",
+        "rpc:usl.document.letter.message_process": "8851f3cc6e47c8cda040bd1642a4a6e4ef1326404b783fa917adafeb9a39a12e",
+        "rpc:usl.document.letter.message_route": "d61ba3fa54f5c4d768c7604cbbb24391e7ecb8c1e682277538660ff91b6732fd",
+        "rpc:usl.document.letter.message_subscribe": "68cd3d199f1ca83fe1b2fe6cd73f9da60b8c6a0e8e0f72ea772c12764233db94",
+        "rpc:usl.document.letter.message_unsubscribe": "0a3284a67050a610eb5da6c5a53afd3d8a5b6d81fa93791d18b3e2300d7eb922",
+        "rpc:usl.document.letter.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
+        "rpc:usl.document.letter.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.letter.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
+        "rpc:usl.document.letter.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.letter.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
+        "rpc:usl.document.letter.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
+        "rpc:usl.document.letter.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.letter.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.letter.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.letter.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.letter.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.letter.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.letter.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.document.letter.write": "919a3de898ee31899f7887df109e977f71f2d41b151064c329ed82efa60930eb",
+        "rpc:usl.document.renderer.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.renderer.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.renderer.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
+        "rpc:usl.document.renderer.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.document.renderer.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.renderer.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.document.renderer.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.renderer.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.renderer.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.renderer.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.renderer.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.renderer.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.renderer.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.renderer.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.renderer.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.document.renderer.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
+        "rpc:usl.document.template.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.template.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.template.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
+        "rpc:usl.document.template.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.document.template.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.template.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.document.template.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.template.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.template.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.template.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.template.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.template.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.template.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.template.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.template.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.document.template.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534"
       }
     },
     {
@@ -136405,7 +137085,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": "1db0f0d292aa6210049c70920638b32e38debc68b8896944f3f8e8eaf9b4de9a",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1": "cc1f59fb5d76bc1918809bdbeb19d32db26c1950de2836dad5f0d3629a5b3421",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_expand_all:orm_write:1": "581f3e26f767af8b77e435557cb349a58607271a7cc74c48a0a459f684105471",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "71a17885c91ff92533bedd1e161394e0828761cfbc1303a19abc3d17e938a723",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "88921874951a52aeb3aa60fa3118cda602f7346eaa1c0b07a5bc8a21f37bf400",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1": "e4e1d572e690bbecf963b63159c9dd2e3986f1551449d740837f35035bc8a567",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1": "01ee2606cf1e1f19bde50185d1b95657156f3d328ca17e9e2f481d5870c4c29c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2": "fe6455642f44ef21f1ce4b516a706fead2374fa3f8045dfe6f4f77489a9eb4c5",
@@ -144029,6 +144709,61 @@
         "cron:usl_documents.ir_cron_usl_documents_classification": "3a5946de8986184c864cd54d8c855511d7ca34dfa845be530b282e0f5b93902f",
         "cron:usl_documents.ir_cron_usl_documents_poll": "03b17c898c4139d7b417fddd61bdc2ae801da92a10c138e45ee7ac94e0122231",
         "cron:usl_documents.ir_cron_usl_documents_sync": "d048c34c7dab064a0a8f026aa560bf1ca09fcf4242e8cf90ea92b3afdb5f9ca9"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_metadata:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_partner_payload:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/hooks.py:post_init_hook:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:orm_create:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:sudo:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:sudo:2",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_cancel:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:message_send:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:orm_create:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_mark_sent:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.create:orm_create:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.write:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._parameter:sudo:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._request:external_call:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._request:external_call:2",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_company.py:res.company.action_usl_document_check_renderer:orm_write:1",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_company.py:res.company.action_usl_document_check_renderer:orm_write:2",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_config_settings.py:res.config.settings.action_usl_document_preview_pack:orm_create:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
+      "domain": "documents_and_communications",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.documents_and_communications.latex_documents",
+      "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
+      "reachability_proof": "This private/helper AST sink has no independent RPC, controller, UI, client, server-action, or cron entry; public callers are classified separately.",
+      "reviewed_digests": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:2": "012e9e8e510615e4135390a0246c3365007d22d969919674b8ffaf0502de6c23",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:sudo:1": "850dade2471a4cd963383477eea4181a749cf329284dc5c5117ab8eab6e951b1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_metadata:orm_write:1": "ada5502cc01ae3ac3e26b34a3289d0a24184ac349a819096fece4f7b28d779a3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/invoice_document.py:account.move._usl_invoice_partner_payload:orm_write:1": "e9a0f815bdbc755ab1fcd9fc08c67c03e11e7b10a8e1dbadaeb803e618ee28f2",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/hooks.py:post_init_hook:orm_write:1": "245c1ce78bdc0e1cd4320a0ab2d271982537d5ee8414037a3dcd8a024489448a",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:orm_create:1": "784697a9bf04ec8cc088e05ac377a288f30d8a3699bc050884af10681f96e973",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:sudo:1": "295b0ca4c72f3359c94e1b943487628d83e188d24451658a11e0f62ad8da524f",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter._sequence_for_company:sudo:2": "8dbdfcb4656b92157bb97475cddf2e65729204a764aff2c34e1d93175b7719b7",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_cancel:orm_write:1": "914d630166dd50af4e5ea2a42236055f815ddee0c5d2c86d0e8dc3b958b364cc",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:message_send:1": "40b579e3e8fab90cb04f41b73d78b46ff9f8a55830dfc7708e89a54898fb1bac",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:orm_create:1": "c8f8c2347e6271e13ab40212156e1aece2d51f63450d94a7197430ef30da1054",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_finalize:orm_write:1": "6b6d250b7ed60c018b1308abf5c8018b69e3290c674bf62829e29a6e33dad07f",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.action_mark_sent:orm_write:1": "fbf0953386b90e77d954f52f832ea5b26fa205cee6259c8df6e6eafcd859d8c4",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.create:orm_create:1": "7e56ada438c57224bba79ba65977f80795d1f297ceba7c13c221d9a2e988f1df",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_letter.py:usl.document.letter.write:orm_write:1": "91d039640bea165b2cc0d8c26168ae9609d38d56e791dc6d84e25b90d7508597",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._parameter:sudo:1": "e8bd7ee20f3e834e141f676da7fb44ee3fa4b29255ec9d94206f31148c1c83cf",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._request:external_call:1": "10ef8f197fa24975df412b00dd434c110c311682cc1b82b3c8c063cc4ebedebe",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/document_renderer.py:usl.document.renderer._request:external_call:2": "ad8007f79e17eb7e64477e5963ff7e7ab5f9e5dd58d92ff79401cdc944de50af",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_company.py:res.company.action_usl_document_check_renderer:orm_write:1": "c260cd3699eee56b95d5acddab7e64254de3a7d75c7f431456a3cdf142751a1c",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_company.py:res.company.action_usl_document_check_renderer:orm_write:2": "f8a7e2645aa98c877030710d32b04b93aa99ef304d78ff3e16adaafa2a1c2886",
+        "sink:usl_document_templates:custom-addons/usl_document_templates/models/res_config_settings.py:res.config.settings.action_usl_document_preview_pack:orm_create:1": "4aacba18d7aeb53483ad48e4bad2354f5f3652b825c7b2460ea560b08811de34"
       }
     },
     {
@@ -169860,6 +170595,97 @@
     },
     {
       "action_keys": [
+        "rpc:res.config.settings.action_usl_document_check_renderer",
+        "ui:usl_access_control.view_document_letter_irreversible:button:object:action_cancel:1",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_check_renderer:1",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_preview_pack:1",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:open_company:1",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_cancel:1",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_create_correction:1",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:1",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:2",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_finalize:1",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_mark_sent:1"
+      ],
+      "classification": "transport",
+      "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
+      "domain": "documents_and_communications",
+      "evidence_id": "transport-exact-targets-v1",
+      "id": "transport.documents_and_communications.latex_documents",
+      "overrides": {
+        "rpc:res.config.settings.action_usl_document_check_renderer": {
+          "targets": [
+            "rpc:res.company.action_usl_document_check_renderer"
+          ]
+        },
+        "ui:usl_access_control.view_document_letter_irreversible:button:object:action_cancel:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_cancel"
+          ]
+        },
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_check_renderer:1": {
+          "targets": [
+            "rpc:res.config.settings.action_usl_document_check_renderer"
+          ]
+        },
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_preview_pack:1": {
+          "targets": [
+            "rpc:res.config.settings.action_usl_document_preview_pack"
+          ]
+        },
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:open_company:1": {
+          "targets": [
+            "rpc:res.config.settings.open_company"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_cancel:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_cancel"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_create_correction:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_create_correction"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_download_pdf"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:2": {
+          "targets": [
+            "rpc:usl.document.letter.action_download_pdf"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_finalize:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_finalize"
+          ]
+        },
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_mark_sent:1": {
+          "targets": [
+            "rpc:usl.document.letter.action_mark_sent"
+          ]
+        }
+      },
+      "rationale": "The entry point is a UI, client, or controller transport; every statically resolved target is listed exactly and owns its own risk classification and guard.",
+      "reviewed_digests": {
+        "rpc:res.config.settings.action_usl_document_check_renderer": "ee19434bf7bdf2c7df4aaf25ba94a3161af6c7cf9e88307639b8fd278d346301",
+        "ui:usl_access_control.view_document_letter_irreversible:button:object:action_cancel:1": "c3ce381fa1541c679d9d1e370005ed832d3474885d6a80f34dcedfb19415efe7",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_check_renderer:1": "8a7a79684bfa5fb56271c54588d9f32bf0789f42c19e4f55dfd19d9ad2a96520",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:action_usl_document_preview_pack:1": "f5ca3739ba086a38b7f4477f7e109da8ab02fbc96ab837373b0a332bc00197ae",
+        "ui:usl_document_templates.res_config_settings_view_form_document_templates:button:object:open_company:1": "13a5073752452e525ccb15ee7c903741cbdec5835efe1ece4c66a9c2ba8703c8",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_cancel:1": "2510c2cf0f5e1f7d8c26e0d9fcc7eae532d33ad2617a7c21e600fd82357ad3bf",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_create_correction:1": "6226cf13839f06182dec50be2905660d2f0da503fdc8f8b2a07d3278cf392187",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:1": "19759208397f9ef0012fa9dfdf376b03e5e739beb4c254f0f8404a0499ff9509",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_download_pdf:2": "8ef61e062954c18c8f14bf720db488cdf48a0e974baba0037cf502884fe74e56",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_finalize:1": "743ecd8bbf0ca2e25b6f0042b4e37a5c753523aca64704cca51e36b9b3039083",
+        "ui:usl_document_templates.view_document_letter_form:button:object:action_mark_sent:1": "e3b408b4476debaa0bdcedd39c47d1b880bac74283b403883248fe23cd28a7dd"
+      }
+    },
+    {
+      "action_keys": [
         "client:hr:addons/hr/static/src/components/button_new_contract/button_new_contract.js:onClickNewContractBtn:rpc:1",
         "client:hr:addons/hr/static/src/components/button_new_contract/button_new_contract.js:tryAndCreateContract:rpc:1",
         "client:hr:addons/hr/static/src/components/department_chart/department_chart.js:fetchHierarchy:rpc:1",
@@ -173313,6 +174139,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "05f948c88d8414387eb38fb04205b7af9ec3c47e02a62d0da4c4e7075bc404e2",
+  "qualified_policy_digest": "3eb050a20cc7f9058c0cf21fb30a56da43c0291dfa73163305250b51c651ef4e",
   "schema": "usl-action-risk-policy-v1"
 }

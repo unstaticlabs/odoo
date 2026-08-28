@@ -16,6 +16,21 @@ from odoo.addons.rebuild_account_migration.models.closing import (
 )
 
 
+RENDERED_PDF = b"%PDF-1.7\n" + (b"0" * 12_000) + b"\n%%EOF\n"
+RENDER_RESULT = {
+    "pdf": RENDERED_PDF,
+    "template_revision": "reviewed-template",
+    "payload_sha256": "c" * 64,
+    "renderer_version": "1.0.0",
+}
+COMPANY_PAYLOAD = {
+    "name": "Rendered company",
+    "legal_identity_lines": ["SAS · RCS Paris"],
+    "primary_color": "714B67",
+    "footer_label": "Rendered company",
+}
+
+
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
 class TestDeclarationAndClosing(TransactionCase):
     @classmethod
@@ -395,11 +410,33 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn(b'Lock dates', shared_strings)
 
         wizard.export_format = "pdf"
-        wizard.action_generate_export()
+        renderer = self.env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT),
+        ):
+            wizard.action_generate_export()
         pdf_payload = bytes(wizard.export_file)
         self.assertTrue(pdf_payload.startswith(b"%PDF"))
         self.assertGreater(len(pdf_payload), 10_000)
-        self.assertIn(b"ReportLab PDF Library", pdf_payload)
+        pdf_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            pdf_metadata["document_render"]["template_revision"],
+            "reviewed-template",
+        )
+        export_attachment = self.env["ir.attachment"].search(
+            [
+                ("res_model", "=", wizard._name),
+                ("res_id", "=", wizard.id),
+                ("res_field", "=", "export_file"),
+            ],
+            limit=1,
+        )
+        self.assertEqual(export_attachment.usl_document_payload_sha256, "c" * 64)
         self.assertEqual(len(closing.package_attachment_ids), 2)
 
         closing_decision.action_record()
@@ -1329,13 +1366,487 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         )
 
         wizard.export_format = "pdf"
-        wizard.action_generate_export()
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT),
+        ):
+            wizard.action_generate_export()
         self.assertTrue(bytes(wizard.export_file).startswith(b"%PDF"))
         pdf_metadata = json.loads(wizard.export_metadata)
         self.assertEqual(
             {company["id"] for company in pdf_metadata["companies"]},
             {self.first_company.id, self.second_company.id},
         )
+
+    def test_pdf_adapter_uses_the_exact_selected_rows_and_display_rules(self):
+        wizard = self._wizard(
+            export_format="pdf",
+            display_unit="thousands",
+            amount_rounding="whole",
+        )
+        rows = [
+            {
+                "account_code": "706000",
+                "account_name": "Professional services",
+                "opening_debit": "0.00",
+                "opening_credit": "0.00",
+                "debit": "1250.49",
+                "credit": "0.00",
+                "closing_balance": "1250.49",
+                "row_level": 2,
+                "hierarchy_kind": "account",
+            }
+        ]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            result = wizard._pdf_payload(rows, return_result=True)
+
+        self.assertEqual(result, RENDER_RESULT)
+        payload = render.call_args.args[2]
+        rendered_row = payload["sections"][0]["rows"][0]
+        self.assertEqual(rendered_row["level"], 2)
+        self.assertIn("1", rendered_row["values"].values())
+        self.assertTrue(
+            any("Unité : Milliers d’euros" in item for item in payload["context"])
+        )
+        self.assertTrue(
+            any(
+                item.startswith("Écritures comptabilisées au ")
+                for item in payload["context"]
+            )
+        )
+        self.assertNotIn("Lignes sans mouvement masquées", payload["context"])
+        self.assertEqual(payload["orientation"], "landscape")
+        self.assertEqual(payload["layout_variant"], "statement")
+
+    def test_pdf_adapter_names_the_currency_instead_of_generic_units(self):
+        wizard = self._wizard(export_format="pdf", display_unit="units")
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload([], return_result=True)
+
+        payload = render.call_args.args[2]
+        self.assertTrue(
+            any("Unité : Euros" in item for item in payload["context"])
+        )
+
+    def test_statement_pdf_uses_business_labels_not_internal_codes(self):
+        renderer = self.allowed_env["usl.document.renderer"]
+        cases = (
+            (
+                "profit_loss",
+                {
+                    "section": "Produits d’exploitation",
+                    "line_code": "CR_SERVICES",
+                    "line_name": "Prestations de services",
+                    "amount": "1250.49",
+                },
+                "Prestations de services",
+                "Montant (€)",
+            ),
+            (
+                "balance_sheet",
+                {
+                    "section": "Capitaux propres",
+                    "account_code": "106100",
+                    "account_name": "Réserve légale",
+                    "amount": "100.00",
+                },
+                "Réserve légale",
+                "Solde (€)",
+            ),
+        )
+        for report_type, row, expected_label, expected_column in cases:
+            wizard = self._wizard(
+                report_type=report_type,
+                export_format="pdf",
+                date_from="2025-10-01",
+                date_to="2026-09-30",
+            )
+            with (
+                patch.object(
+                    type(self.first_company),
+                    "_usl_document_renderer_company_payload",
+                    return_value=(COMPANY_PAYLOAD, []),
+                ),
+                patch.object(
+                    type(renderer),
+                    "render",
+                    return_value=RENDER_RESULT,
+                ) as render,
+            ):
+                wizard._pdf_payload([row], return_result=True)
+
+            payload = render.call_args.args[2]
+            self.assertEqual(payload["columns"][1]["label"], expected_column)
+            rendered_row = payload["sections"][0]["rows"][0]
+            self.assertEqual(rendered_row["values"]["label"], expected_label)
+            self.assertNotIn(row.get("line_code"), rendered_row["values"].values())
+            self.assertEqual(payload["reference"], "Exercice 2025–2026")
+            self.assertEqual(payload["date"], "01/10/2025 – 30/09/2026")
+
+    def test_pdf_adapter_normalizes_negative_zero(self):
+        wizard = self._wizard(
+            export_format="pdf",
+            amount_rounding="whole",
+        )
+        rows = [{
+            "account_code": "471000",
+            "account_name": "Compte d’attente",
+            "opening_balance": "-0.004",
+            "debit": "0",
+            "credit": "0",
+            "closing_balance": "-0.004",
+        }]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(
+                type(renderer),
+                "render",
+                return_value=RENDER_RESULT,
+            ) as render,
+        ):
+            wizard._pdf_payload(rows, return_result=True)
+
+        values = render.call_args.args[2]["sections"][0]["rows"][0]["values"]
+        self.assertNotIn("-0", values.values())
+
+    def test_trial_balance_groups_pcg_classes_and_adds_equality_control(self):
+        wizard = self._wizard(group_by="section")
+        grouped = wizard._group_report_rows([
+            {
+                "section": "Classe 4 — Comptes de tiers",
+                "account_code": "401000",
+                "account_name": "Fournisseurs",
+                "debit": "100.00",
+                "credit": "100.00",
+                "closing_balance": "0.00",
+            },
+        ])
+        rows = wizard._append_shared_control_rows(grouped)
+
+        self.assertEqual(rows[0]["label"], "Classe 4 — Comptes de tiers")
+        self.assertEqual(rows[0]["debit"], "100.00")
+        self.assertEqual(rows[-1]["presentation_role"], "control")
+        self.assertEqual(rows[-1]["control_status"], "success")
+
+    def test_journal_hierarchy_groups_by_type_before_journal(self):
+        wizard = self._wizard(report_type="journal_report", group_by="journal")
+        rows = wizard._group_report_rows([
+            {
+                "journal_type": "sale",
+                "journal_code": "VE",
+                "journal_name": "Ventes",
+                "debit": "125.00",
+                "credit": "125.00",
+                "balance": "0.00",
+            },
+        ])
+
+        self.assertEqual(rows[0]["label"], "Journaux de ventes")
+        self.assertEqual(rows[0]["presentation_role"], "section")
+        self.assertEqual(rows[1]["label"], "VE — Ventes")
+        self.assertEqual(rows[1]["parent_group_key"], rows[0]["group_key"])
+
+    def test_partner_ledger_nests_accounts_and_closing_subtotals(self):
+        wizard = self._wizard(report_type="partner_ledger", group_by="partner")
+        rows = wizard._group_report_rows([
+            {
+                "partner_name": "Client Démonstration",
+                "account_code": "411000",
+                "account_name": "Clients",
+                "opening_balance": "20.00",
+                "debit": "100.00",
+                "credit": "0.00",
+                "balance": "100.00",
+                "running_balance": "120.00",
+            },
+        ])
+
+        self.assertEqual(rows[0]["presentation_role"], "section")
+        self.assertEqual(rows[1]["presentation_role"], "group")
+        self.assertEqual(rows[1]["opening_balance"], "20.00")
+        self.assertEqual(rows[-1]["presentation_role"], "subtotal")
+        self.assertEqual(rows[-1]["running_balance"], "120.00")
+
+    def test_open_items_separate_receivables_and_payables(self):
+        wizard = self._wizard(report_type="open_items", group_by="partner")
+        rows = wizard._group_report_rows([
+            {
+                "account_type": "asset_receivable",
+                "partner_name": "Client QA",
+                "presented_residual": "90.00",
+            },
+            {
+                "account_type": "liability_payable",
+                "partner_name": "Fournisseur QA",
+                "presented_residual": "40.00",
+            },
+        ])
+
+        sections = [
+            row["label"]
+            for row in rows
+            if row.get("presentation_role") == "section"
+        ]
+        self.assertEqual(sections, ["Clients", "Fournisseurs"])
+
+    def test_balance_sheet_pdf_has_dedicated_sides_and_exact_control(self):
+        wizard = self._wizard(report_type="balance_sheet", group_by="section")
+        rows = wizard._balance_sheet_hierarchy_rows([
+            {
+                "statement_key": "bilan_actif",
+                "section": "Actif circulant",
+                "account_name": "Banque",
+                "amount": "100.00",
+            },
+            {
+                "statement_key": "bilan_actif",
+                "line_code": "ACTIF_TOTAL",
+                "account_name": "Total Actif",
+                "amount": "100.00",
+                "presentation_role": "total",
+            },
+            {
+                "statement_key": "bilan_passif",
+                "section": "Capitaux propres",
+                "account_name": "Capital",
+                "amount": "100.00",
+            },
+            {
+                "statement_key": "bilan_passif",
+                "line_code": "PASSIF_TOTAL",
+                "account_name": "Total Passif",
+                "amount": "100.00",
+                "presentation_role": "total",
+            },
+        ])
+        rows = wizard._append_shared_control_rows(rows)
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload(rows, return_result=True)
+
+        payload = render.call_args.args[2]
+        self.assertEqual([section["title"] for section in payload["sections"]], ["Actif", "Passif"])
+        self.assertTrue(payload["sections"][1]["break_before"])
+        self.assertEqual(
+            [control["label"] for control in payload["controls"]],
+            [
+                "Total actif",
+                "Total passif",
+                "Écart actif − passif",
+            ],
+        )
+        self.assertEqual(payload["controls"][-1]["status"], "success")
+
+    def test_balance_sheet_uses_closing_balances(self):
+        wizard = self._wizard(report_type="balance_sheet")
+        trial_balance = [
+            {
+                "account_code": "512000",
+                "account_name": "Banque",
+                "account_type": "asset_cash",
+                "balance": "0.00",
+                "closing_balance": "100.00",
+            },
+            {
+                "account_code": "101000",
+                "account_name": "Capital",
+                "account_type": "equity",
+                "balance": "0.00",
+                "closing_balance": "-100.00",
+            },
+        ]
+        with patch.object(
+            type(wizard),
+            "_trial_balance_rows",
+            return_value=trial_balance,
+        ):
+            rows = wizard._balance_sheet_rows()
+
+        totals = {
+            row.get("line_code"): row.get("amount")
+            for row in rows
+            if row.get("line_code")
+        }
+        self.assertEqual(totals["ACTIF_TOTAL"], "100.00")
+        self.assertEqual(totals["PASSIF_TOTAL"], "100.00")
+
+    def test_asset_register_places_grand_total_after_account_subtotals(self):
+        wizard = self._wizard(report_type="fixed_assets", export_format="pdf")
+        rows = [
+            {
+                "label": "215400 — Matériel industriel",
+                "account_code": "215400",
+                "is_group": True,
+                "group_key": "account:215400",
+                "row_level": 0,
+                "presentation_role": "group",
+                "original_value": "1000.00",
+            },
+            {
+                "asset_name": "Machine A",
+                "account_code": "215400",
+                "parent_group_key": "account:215400",
+                "row_level": 1,
+                "acquisition_date": "2025-02-14",
+                "original_value": "1000.00",
+                "depreciation_amount": "100.00",
+                "imported_period_net_value": "900.00",
+                "state": "open",
+            },
+            {
+                "label": "218300 — Matériel de bureau et informatique",
+                "account_code": "218300",
+                "is_group": True,
+                "group_key": "account:218300",
+                "row_level": 0,
+                "presentation_role": "group",
+                "original_value": "500.00",
+            },
+            {
+                "asset_name": "Poste de travail",
+                "account_code": "218300",
+                "parent_group_key": "account:218300",
+                "row_level": 1,
+                "acquisition_date": "2025-06-19",
+                "original_value": "500.00",
+                "depreciation_amount": "50.00",
+                "imported_period_net_value": "450.00",
+                "state": "open",
+            },
+            {
+                "label": "Total des immobilisations",
+                "presentation_role": "total",
+                "original_value": "1500.00",
+            },
+        ]
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload(rows, return_result=True)
+
+        payload = render.call_args.args[2]
+        column_labels = [column["label"] for column in payload["columns"]]
+        for expected_label in (
+            "Compte",
+            "Date d’acquisition",
+            "Valeur d’origine (€)",
+            "Amortissements / provisions (€)",
+            "Valeur nette comptable (€)",
+            "Statut",
+        ):
+            self.assertIn(expected_label, column_labels)
+        self.assertFalse(
+            {"Acquisition Date", "Original Value (€)", "State"}
+            & set(column_labels),
+        )
+        self.assertEqual(
+            [section["title"] for section in payload["sections"]],
+            [
+                "215400 — Matériel industriel",
+                "218300 — Matériel de bureau et informatique",
+            ],
+        )
+        self.assertEqual(
+            [row["values"]["label"] for row in payload["sections"][-1]["rows"]][-2:],
+            [
+                "Total — 218300 — Matériel de bureau et informatique",
+                "Total des immobilisations",
+            ],
+        )
+
+    def test_detailed_balance_sheet_adds_an_exact_equality_control(self):
+        wizard = self._wizard(report_type="french_balance_sheet_2024")
+        rows = [
+            {
+                "statement_key": "bilan_actif",
+                "line_code": "ACTIF_TOTAL",
+                "net_amount": "151119.74",
+                "presentation_role": "total",
+            },
+            {
+                "statement_key": "bilan_passif",
+                "line_code": "PASSIF_TOTAL",
+                "net_amount": "151119.74",
+                "presentation_role": "total",
+            },
+        ]
+
+        controlled = wizard._append_shared_control_rows(rows)
+
+        self.assertEqual(controlled[-1]["label"], "Écart actif − passif")
+        self.assertEqual(controlled[-1]["net_amount"], "0.00")
+        self.assertEqual(controlled[-1]["control_status"], "success")
+
+    def test_professional_packages_receive_governed_front_matter(self):
+        wizard = self._wizard(report_type="french_annual", export_format="pdf")
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(COMPANY_PAYLOAD, []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload([], return_result=True)
+
+        front = render.call_args.args[2]["front_matter"]
+        self.assertEqual(front["status"], "Document préparatoire — non attesté")
+        self.assertIn("Bilan — Actif", front["contents"])
+        self.assertIn("Bilan — Passif", front["contents"])
+
+    def test_shared_legacy_document_color_uses_governed_accent(self):
+        wizard = self._wizard()
+        definition = self.env[
+            "rebuild.account.report.definition"
+        ].with_context(active_test=False).search([
+            ("code", "=", "trial_balance"),
+            ("company_id", "=", False),
+        ], limit=1)
+        self.assertTrue(definition)
+        self.assertEqual(definition.document_primary_color, "#111111")
+        wizard.report_definition_id = definition
+
+        self.assertEqual(wizard._document_theme()["primary_color"], "#714B67")
 
     def test_combined_report_rejects_different_company_currencies(self):
         usd = self.env.ref("base.USD")

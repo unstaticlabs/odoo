@@ -171,6 +171,30 @@ transaction would roll back. Successful protected and Agent mutations are
 stored in immutable Distribution Audit events with the stable action key and
 qualified policy digest.
 
+## Governed document actions
+
+The LaTeX renderer does not receive an Odoo credential and is not an authority
+boundary: Odoo checks report and record access before producing each
+company-scoped payload. Renderer health checks and previews use synthetic or
+configured company data and are recoverable local diagnostics. Downloading an
+existing attachment is read-only.
+
+Official-letter finalization is protected because it snapshots legal identity
+and issues an immutable company document. Marking a letter sent is protected
+because it records an externally meaningful lifecycle fact, and cancelling a
+finalized letter is protected because the issued PDF remains retained while
+its legal status changes. Cancelling a draft and creating a draft correction
+remain ordinary recoverable workflows. The exact guards are
+`documents.letter.finalize`, `documents.letter.mark_sent`, and
+`documents.letter.cancel_issued`; authorization must occur before rendering,
+attachment creation, chatter or state mutation. Report rendering itself
+retains the caller's native model/report permissions and is not a route around
+those document-lifecycle guards.
+
+The action-risk discovery, reviewed policy refresh, runtime compilation and
+clean-registry checks are required whenever a covered report binding or
+letter action changes.
+
 ## Boundary
 
 The inventory covers the exact installed Odoo registry and Odoo-facing
