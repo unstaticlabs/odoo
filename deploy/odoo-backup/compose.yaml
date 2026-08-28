@@ -94,7 +94,10 @@ services:
       timeout: 3s
       retries: 30
     volumes:
-      - clone-db-data:/var/lib/postgresql/data
+      # PostgreSQL 18 stores data below a major-version directory and rejects
+      # the legacy /var/lib/postgresql/data mount. The clone is disposable, so
+      # mount the 18+ volume root rather than introducing an upgrade path.
+      - clone-db-data:/var/lib/postgresql
     networks:
       - clone-internal
 

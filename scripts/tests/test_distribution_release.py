@@ -140,6 +140,26 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("distribution-release.json", self.workflow)
         self.assertIn("actions/upload-artifact@", self.workflow)
 
+    def test_document_service_versions_match_deployment_examples(self) -> None:
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        examples = (
+            ROOT / "deploy/documents/qa.env",
+            ROOT / "deploy/documents/preprod.env.example",
+            ROOT / "deploy/preprod.env.example",
+            ROOT / "deploy/production.external-pocket-id.env.example",
+        )
+        for key in ("PAPERLESS_TIKA_IMAGE", "OLLAMA_IMAGE"):
+            values = []
+            for path in examples:
+                value = next(
+                    line.split("=", 1)[1]
+                    for line in path.read_text(encoding="utf-8").splitlines()
+                    if line.startswith(f"{key}=")
+                )
+                values.append(value)
+            self.assertEqual([values[0]] * len(values), values, key)
+            self.assertIn(f"${{{key}:-{values[0]}}}", compose)
+
 
 if __name__ == "__main__":
     unittest.main()

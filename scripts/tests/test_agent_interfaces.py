@@ -326,6 +326,11 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertIn('dependency-name: "usl-paperless-ngx"', configuration)
         self.assertIn('dependency-name: "unstaticlabs/usl-odoo"', configuration)
 
+    def test_dependabot_holds_only_the_incompatible_html_clean_release(self) -> None:
+        configuration = (ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8")
+        self.assertIn('dependency-name: "lxml-html-clean"', configuration)
+        self.assertIn('- "0.4.5"', configuration)
+
 
 if __name__ == "__main__":
     unittest.main()
