@@ -306,6 +306,11 @@ test_stack() {
   bootstrap
   local database="odoo_sign_pocketid_test"
   local test_tags="${2:-/usl_pocketid,/usl_sign}"
+  local init_modules="${USL_SIGN_TEST_INIT_MODULES:-usl_sign}"
+  if [[ ! "$init_modules" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
+    printf 'USL_SIGN_TEST_INIT_MODULES must be a comma-separated Odoo module list.\n' >&2
+    return 2
+  fi
   local status=0
   "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
@@ -320,7 +325,7 @@ test_stack() {
     -e ODOO_INIT_DB="$database" \
     -e ODOO_DB_FILTER="^${database}$" \
     test odoo --config=/etc/odoo/odoo.conf --database="$database" \
-    --init=usl_sign --without-demo=true --test-enable \
+    --init="$init_modules" --without-demo=true --test-enable \
     --test-tags="$test_tags" --stop-after-init \
     --log-level=test || status=$?
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
