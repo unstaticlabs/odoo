@@ -1008,7 +1008,12 @@ class TestCleanUslSign(TransactionCase):
                 requested_trust="strong_personal",
             ),
         )
-        sign_request.action_send()
+        with patch.object(
+            type(sign_request),
+            "_sign_dss_client",
+            return_value=FakeDSS(),
+        ):
+            sign_request.action_send()
         self.assertEqual(sign_request.state, "waiting_enrollment")
 
         enrollment._bind_pocket_identity(
