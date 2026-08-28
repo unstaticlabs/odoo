@@ -10,8 +10,11 @@ test("signature inspector starts with a local-processing promise and one clear a
     await mountWithCleanup(SignatureInspector);
 
     expect(".usl_sign_inspector h1").toHaveText("Check Signatures");
+    expect(".usl_sign_inspector_header").toHaveClass("border-bottom");
     expect(".usl_sign_inspector_privacy").toHaveText(/stays in this browser/);
+    expect(".usl_sign_inspector_privacy").toHaveClass("alert-info");
     expect(".usl_sign_inspector_dropzone").toHaveCount(1);
+    expect(".usl_sign_inspector_dropzone").toHaveClass("btn");
     expect(".usl_sign_inspector_dropzone").toHaveText(/signed PDF or evidence dossier/);
     expect("input[type='file']").toHaveAttribute("accept", "application/pdf,.pdf");
 });
@@ -62,6 +65,11 @@ test("result view leads with integrity and keeps trust limitations explicit", as
     await animationFrame();
 
     expect(".usl_sign_inspector_verdict.is-success").toHaveText(/signatures are intact/i);
+    expect(".usl_sign_inspector_verdict").toHaveClass("alert");
+    expect(".usl_sign_inspector_verdict_icon .fa-check-circle").toHaveCount(1);
+    expect(".usl_sign_inspector_filebar").toHaveClass("card");
+    expect(".usl_sign_inspector_section").toHaveClass("card");
+    expect(".usl_sign_inspector_limits").toHaveClass("card");
     expect(".usl_sign_signature_result").toHaveText(/Alice Example/);
     expect(".usl_sign_check_list").toHaveText(/public key verifies this signature/);
     expect(".usl_sign_inspector_limits").toHaveText(/current EU or company trust list/);

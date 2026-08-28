@@ -1120,24 +1120,19 @@
 }
 
 .usl_sign_inspector {
-    --usl-inspector-ink: #251d23;
-    --usl-inspector-muted: #655c63;
-    --usl-inspector-line: #ded8dc;
-    --usl-inspector-soft: #f7f4f6;
-    --usl-inspector-success: #17653a;
-    --usl-inspector-success-soft: #e6f4eb;
-    --usl-inspector-warning: #8a5200;
-    --usl-inspector-warning-soft: #fff3d6;
-    --usl-inspector-danger: #a52b32;
-    --usl-inspector-danger-soft: #fae9ea;
+    --usl-inspector-ink: var(--o-gray-900, #212529);
+    --usl-inspector-muted: var(--o-gray-600, #6c757d);
+    --usl-inspector-line: var(--border-color, #dee2e6);
+    --usl-inspector-soft: var(--o-gray-100, #f8f9fa);
+    --usl-inspector-success: var(--bs-success-text-emphasis, #0a3622);
+    --usl-inspector-success-soft: var(--bs-success-bg-subtle, #d1e7dd);
+    --usl-inspector-warning: var(--bs-warning-text-emphasis, #664d03);
+    --usl-inspector-warning-soft: var(--bs-warning-bg-subtle, #fff3cd);
+    --usl-inspector-danger: var(--bs-danger-text-emphasis, #58151c);
+    --usl-inspector-danger-soft: var(--bs-danger-bg-subtle, #f8d7da);
     min-width: 0;
     color: var(--usl-inspector-ink);
-    background: #fbfafb;
-
-    ::selection {
-        color: #fff;
-        background: var(--o-brand-primary, #714b67);
-    }
+    background: var(--o-view-background-color, #fff);
 
     button:focus-visible,
     summary:focus-visible {
@@ -1148,26 +1143,25 @@
 
 .usl_sign_inspector_header {
     display: flex;
-    max-width: 78rem;
-    align-items: end;
+    max-width: 72rem;
+    align-items: center;
     justify-content: space-between;
     gap: 2rem;
-    margin: 0 auto 2rem;
+    margin-inline: auto;
 
     h1 {
-        margin: 0 0 .5rem;
-        font-size: clamp(2rem, 4vw, 3.25rem);
-        font-weight: 700;
-        letter-spacing: -.035em;
-        line-height: 1.05;
+        font-size: 1.5rem;
+        font-weight: 500;
+        letter-spacing: normal;
+        line-height: 1.2;
     }
 
     p {
         max-width: 64ch;
         margin: 0;
         color: var(--usl-inspector-muted);
-        font-size: 1.05rem;
-        line-height: 1.55;
+        font-size: .875rem;
+        line-height: 1.5;
     }
 }
 
@@ -1177,14 +1171,10 @@
     flex: 0 0 auto;
     align-items: center;
     gap: .75rem;
-    padding: .75rem 1rem;
-    color: #3d3140;
-    background: #eee8ec;
-    border-radius: .75rem;
+    padding-inline: .75rem;
 
     > i {
-        color: var(--o-brand-primary, #714b67);
-        font-size: 1.25rem;
+        margin-top: .1rem;
     }
 
     span,
@@ -1196,37 +1186,36 @@
 }
 
 .usl_sign_inspector_empty {
-    max-width: 78rem;
+    max-width: 72rem;
     margin: 0 auto;
 }
 
 .usl_sign_inspector_dropzone {
     display: flex;
     width: 100%;
-    min-height: 22rem;
+    min-height: 17rem;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: .5rem;
-    padding: 3rem 1.5rem;
+    padding: 2.5rem 1.5rem;
     color: var(--usl-inspector-ink);
     background: #fff;
-    border: 2px dashed #b9aeb5;
-    border-radius: 1rem;
-    box-shadow: 0 12px 30px rgba(55, 38, 50, .07);
-    transition: border-color .18s ease-out, background-color .18s ease-out, box-shadow .18s ease-out;
+    border-style: dashed !important;
+    border-color: var(--o-gray-400, #ced4da) !important;
+    box-shadow: none;
+    transition: border-color .15s ease-out, background-color .15s ease-out;
 
     &:hover,
     &.is-dragging {
-        background: #f8f2f6;
-        border-color: var(--o-brand-primary, #714b67);
-        box-shadow: 0 16px 34px rgba(55, 38, 50, .11);
+        background: var(--o-gray-100, #f8f9fa) !important;
+        border-color: var(--o-brand-primary, #714b67) !important;
     }
 
     strong {
         margin-top: .5rem;
-        font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-        letter-spacing: -.02em;
+        font-size: 1.125rem;
+        font-weight: 500;
     }
 
     > span:not(.usl_sign_inspector_dropicon) {
@@ -1241,21 +1230,13 @@
 }
 
 .usl_sign_inspector_dropicon {
-    display: grid;
-    width: 4.5rem;
-    height: 4.5rem;
-    place-items: center;
-    color: #fff;
-    background: var(--o-brand-primary, #714b67);
-    border-radius: 50%;
-    box-shadow: 0 8px 18px rgba(79, 48, 70, .2);
-    font-size: 2rem;
+    font-size: 2.25rem;
 }
 
 .usl_sign_inspector_intro {
     display: grid;
     gap: 1.5rem;
-    padding: 1.75rem 1rem 0;
+    padding: 1rem .5rem 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
 
     > div {
@@ -1286,12 +1267,12 @@
 .usl_sign_inspector_error {
     display: flex;
     width: 100%;
-    max-width: 44rem;
-    min-height: 22rem;
+    max-width: 42rem;
+    min-height: 15rem;
     align-items: center;
     justify-content: center;
     gap: 1.5rem;
-    margin: 0 auto;
+    margin: 2rem auto 0;
     padding: 2rem;
     text-align: left;
 
@@ -1315,8 +1296,7 @@
     flex: 0 0 4.5rem;
     place-items: center;
     color: var(--o-brand-primary, #714b67);
-    background: #eee8ec;
-    border-radius: 50%;
+    background: transparent;
     font-size: 1.75rem;
 }
 
@@ -1328,8 +1308,8 @@
         position: absolute;
         width: 100%;
         height: .2rem;
-        background: #a36e91;
-        box-shadow: 0 0 12px rgba(113, 75, 103, .4);
+        background: var(--o-brand-primary, #714b67);
+        box-shadow: 0 0 12px rgba(113, 75, 103, .3);
         content: "";
         animation: usl-sign-inspector-scan 1.4s cubic-bezier(.22, 1, .36, 1) infinite;
     }
@@ -1355,13 +1335,13 @@
 
     p {
         margin-bottom: 1rem;
-        color: #70494d;
+        color: var(--usl-inspector-danger);
     }
 }
 
 .usl_sign_inspector_filebar {
     display: flex;
-    max-width: 78rem;
+    max-width: 72rem;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
@@ -1375,7 +1355,7 @@
     gap: .75rem;
 
     > i {
-        color: #ad3038;
+        color: var(--bs-danger, #dc3545);
         font-size: 1.75rem;
     }
 
@@ -1400,39 +1380,37 @@
 
 .usl_sign_inspector_verdict {
     display: grid;
-    max-width: 78rem;
+    max-width: 72rem;
     align-items: center;
     gap: 1rem;
-    margin: 0 auto 2rem;
-    padding: 1.5rem;
+    margin: 0 auto 1rem;
+    padding: 1rem;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    border-radius: 1rem;
 
     &.is-success {
-        color: #124f2f;
+        color: var(--usl-inspector-success);
         background: var(--usl-inspector-success-soft);
     }
 
     &.is-warning {
-        color: #704400;
+        color: var(--usl-inspector-warning);
         background: var(--usl-inspector-warning-soft);
     }
 
     &.is-danger {
-        color: #81242a;
+        color: var(--usl-inspector-danger);
         background: var(--usl-inspector-danger-soft);
     }
 
     &.is-neutral {
-        color: #403a3e;
-        background: #ece9eb;
+        color: var(--o-gray-800, #343a40);
+        background: var(--o-gray-200, #e9ecef);
     }
 
     h2 {
         margin: 0 0 .25rem;
         color: currentColor;
-        font-size: 1.35rem;
-        letter-spacing: -.015em;
+        font-size: 1.125rem;
     }
 
     p {
@@ -1466,34 +1444,30 @@
 }
 
 .usl_sign_inspector_verdict_icon {
-    display: grid;
-    width: 3rem;
-    height: 3rem;
-    place-items: center;
-    color: #fff;
-    background: #403a3e;
-    border-radius: 50%;
+    width: 2rem;
+    text-align: center;
 
     i {
-        color: #fff;
+        color: currentColor;
+        font-size: 1.75rem;
     }
 }
 
 .usl_sign_inspector_verdict.is-success .usl_sign_inspector_verdict_icon {
-    background: #124f2f;
+    color: var(--usl-inspector-success);
 }
 
 .usl_sign_inspector_verdict.is-warning .usl_sign_inspector_verdict_icon {
-    background: #704400;
+    color: var(--usl-inspector-warning);
 }
 
 .usl_sign_inspector_verdict.is-danger .usl_sign_inspector_verdict_icon {
-    background: #81242a;
+    color: var(--usl-inspector-danger);
 }
 
 .usl_sign_inspector_results {
     display: grid;
-    max-width: 78rem;
+    max-width: 72rem;
     align-items: start;
     gap: 2rem;
     margin: 0 auto;
@@ -1584,7 +1558,7 @@
         flex-wrap: wrap;
 
         > .min-w-0 {
-            flex-basis: calc(100% - 3rem);
+            flex: 1 1 0;
         }
 
         .badge {
@@ -1595,10 +1569,7 @@
 
 .usl_sign_inspector_section {
     overflow: hidden;
-    margin-bottom: 2rem;
-    background: #fff;
-    border: 1px solid var(--usl-inspector-line);
-    border-radius: .875rem;
+    margin-bottom: 1rem;
 }
 
 .usl_sign_inspector_section_heading {
@@ -1606,13 +1577,11 @@
     align-items: start;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--usl-inspector-line);
+    padding: 1rem 1.25rem;
 
     h2 {
         margin: 0 0 .25rem;
-        font-size: 1.25rem;
-        letter-spacing: -.015em;
+        font-size: 1rem;
     }
 
     p {
@@ -1627,11 +1596,11 @@
 .usl_sign_inspector_no_signatures {
     display: flex;
     gap: 1rem;
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.25rem;
     color: var(--usl-inspector-muted);
 
     > i {
-        color: #80747c;
+        color: var(--usl-inspector-muted);
         font-size: 1.5rem;
     }
 
@@ -1651,7 +1620,7 @@
         margin: 0;
         padding: .75rem 1.5rem;
         color: var(--usl-inspector-muted);
-        background: var(--usl-inspector-soft);
+        background: var(--o-gray-100, #f8f9fa);
         border-bottom: 1px solid var(--usl-inspector-line);
         font-size: .8125rem;
         font-weight: 600;
@@ -1669,7 +1638,7 @@
         display: grid;
         align-items: center;
         gap: .875rem;
-        padding: 1rem 1.25rem;
+        padding: .875rem 1.25rem;
         list-style: none;
         cursor: pointer;
         grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -1679,7 +1648,7 @@
         }
 
         &:hover {
-            background: #fbf8fa;
+            background: var(--o-gray-100, #f8f9fa);
         }
     }
 
@@ -1731,7 +1700,7 @@
 
 .usl_sign_result_label {
     padding: .25rem .6rem;
-    border-radius: 999px;
+    border-radius: var(--bs-border-radius-pill, 50rem);
     font-size: .75rem;
     font-weight: 700;
 
@@ -1752,7 +1721,7 @@
 }
 
 .usl_sign_signature_chevron {
-    color: #81777e;
+    color: var(--usl-inspector-muted);
     transition: transform .16s ease-out;
 }
 
@@ -1773,23 +1742,23 @@
         border-radius: .625rem;
 
         &.is-success {
-            color: #174f31;
-            background: #f0f8f3;
+            color: var(--usl-inspector-success);
+            background: var(--usl-inspector-success-soft);
         }
 
         &.is-warning {
-            color: #704400;
-            background: #fff7e5;
+            color: var(--usl-inspector-warning);
+            background: var(--usl-inspector-warning-soft);
         }
 
         &.is-danger {
-            color: #7f2c31;
-            background: #fdf0f1;
+            color: var(--usl-inspector-danger);
+            background: var(--usl-inspector-danger-soft);
         }
 
         &.is-neutral {
-            color: #51494e;
-            background: #f3f1f2;
+            color: var(--o-gray-700, #495057);
+            background: var(--o-gray-100, #f8f9fa);
         }
     }
 
@@ -1844,18 +1813,18 @@
     border-radius: .625rem;
 
     &.is-success {
-        color: #174f31;
-        background: #f0f8f3;
+        color: var(--usl-inspector-success);
+        background: var(--usl-inspector-success-soft);
     }
 
     &.is-warning {
-        color: #704400;
-        background: #fff7e5;
+        color: var(--usl-inspector-warning);
+        background: var(--usl-inspector-warning-soft);
     }
 
     &.is-danger {
-        color: #7f2c31;
-        background: #fdf0f1;
+        color: var(--usl-inspector-danger);
+        background: var(--usl-inspector-danger-soft);
     }
 
     span,
@@ -1873,7 +1842,7 @@
 
     > summary {
         width: fit-content;
-        color: var(--o-brand-primary, #714b67);
+        color: var(--o-action-color, var(--o-brand-primary, #714b67));
         font-weight: 600;
         cursor: pointer;
     }
@@ -1899,7 +1868,7 @@
         gap: .75rem;
         padding: .75rem 1.25rem;
         grid-template-columns: auto minmax(0, 1fr) auto;
-        border-bottom: 1px solid #eee9ec;
+        border-bottom: 1px solid var(--usl-inspector-line);
 
         &:last-child {
             border-bottom: 0;
@@ -1940,10 +1909,7 @@
 .usl_sign_inspector_limits {
     position: sticky;
     top: 1rem;
-    padding: 1.5rem;
-    color: #3e353b;
-    background: #f1edef;
-    border-radius: .875rem;
+    color: var(--usl-inspector-ink);
 
     h2 {
         margin: 0 0 1rem;
@@ -1982,7 +1948,7 @@
     > p {
         margin: 1.5rem 0 0;
         padding-top: 1rem;
-        border-top: 1px solid #d6cdd2;
+        border-top: 1px solid var(--usl-inspector-line);
         font-size: .8125rem;
         line-height: 1.5;
     }
@@ -2111,7 +2077,7 @@
 @media (max-width: 575.98px) {
 
     .usl_sign_inspector_header h1 {
-        font-size: 2rem;
+        font-size: 1.25rem;
     }
 
     .usl_sign_inspector_intro {
@@ -2119,8 +2085,8 @@
     }
 
     .usl_sign_inspector_dropzone {
-        min-height: 19rem;
-        padding: 2rem 1rem;
+        min-height: 14rem;
+        padding: 1.5rem 1rem;
     }
 
     .usl_sign_inspector_loading,
