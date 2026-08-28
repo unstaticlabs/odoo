@@ -172,7 +172,9 @@ class FieldGuide {
         this.currentId = null;
         this.started = false;
         this.navigationToken = 0;
+        this.alignmentFrame = 0;
         this.cancelNavigation = this.cancelNavigation.bind(this);
+        this.scheduleAlignment = this.scheduleAlignment.bind(this);
         this.refresh = this.refresh.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.moveNext = this.moveNext.bind(this);
@@ -180,6 +182,7 @@ class FieldGuide {
         this.viewer?.addEventListener("wheel", this.cancelNavigation, {passive: true});
         this.viewer?.addEventListener("touchstart", this.cancelNavigation, {passive: true});
         this.viewer?.addEventListener("pointerdown", this.cancelNavigation, {passive: true});
+        this.viewer?.addEventListener("scroll", this.scheduleAlignment, {passive: true});
         window.addEventListener("resize", this.handleResize, {passive: true});
         if (this.navigator) {
             this.navigator.setAttribute("role", "button");
@@ -195,6 +198,8 @@ class FieldGuide {
         this.viewer?.removeEventListener("wheel", this.cancelNavigation);
         this.viewer?.removeEventListener("touchstart", this.cancelNavigation);
         this.viewer?.removeEventListener("pointerdown", this.cancelNavigation);
+        this.viewer?.removeEventListener("scroll", this.scheduleAlignment);
+        window.cancelAnimationFrame(this.alignmentFrame);
         window.removeEventListener("resize", this.handleResize);
         this.navigator?.removeEventListener("click", this.moveNext);
         this.navigator?.removeEventListener("keydown", this.handleKeydown);
@@ -213,6 +218,7 @@ class FieldGuide {
     handleResize() {
         this.cancelNavigation();
         this.refresh();
+        this.scheduleAlignment();
     }
 
     incompleteIds() {
@@ -262,7 +268,7 @@ class FieldGuide {
             this.navigator.setAttribute("aria-disabled", complete ? "true" : "false");
         }
         if (this.navLine) {
-            this.navLine.hidden = !ids.length;
+            this.navLine.hidden = !ids.length || !this.currentId;
         }
         return ids;
     }
@@ -311,8 +317,42 @@ class FieldGuide {
         );
         this.navigator.style.top = `${top}px`;
         if (this.navLine) {
-            this.navLine.style.top = `${top + navigatorHeight / 2}px`;
+            const navigatorBox = this.navigator.getBoundingClientRect();
+            const mobile = window.matchMedia("(max-width: 767px)").matches;
+            const fieldCenterY = fieldBox.top + fieldBox.height / 2;
+            const fieldIsVisible =
+                fieldCenterY >= viewerBox.top && fieldCenterY <= viewerBox.bottom;
+            const startX = mobile
+                ? navigatorBox.left + navigatorBox.width / 2
+                : navigatorBox.right + 16;
+            const startY = mobile
+                ? navigatorBox.bottom
+                : navigatorBox.top + navigatorBox.height / 2;
+            const endX = mobile
+                ? fieldBox.left + fieldBox.width / 2
+                : fieldBox.left - 3;
+            const endY = mobile ? fieldBox.top - 3 : fieldCenterY;
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            this.navLine.style.left = `${startX}px`;
+            this.navLine.style.top = `${startY}px`;
+            this.navLine.style.width = `${Math.hypot(deltaX, deltaY)}px`;
+            this.navLine.style.transform = `rotate(${Math.atan2(deltaY, deltaX)}rad)`;
+            this.navLine.hidden = !fieldIsVisible;
         }
+    }
+
+    scheduleAlignment() {
+        if (this.alignmentFrame || !this.currentId) {
+            return;
+        }
+        this.alignmentFrame = window.requestAnimationFrame(() => {
+            this.alignmentFrame = 0;
+            const field = signerFieldElement(this.parent, this.currentId);
+            if (field?.isConnected) {
+                this.positionAt(field);
+            }
+        });
     }
 
     focus(itemId) {
@@ -793,8 +833,24 @@ patch(SignOcaPdfPortal.prototype, {
                     position: fixed;
                     z-index: 80;
                     left: 0;
-                    width: 100%;
+                    width: 0;
+                    height: 0;
+                    border: 0;
+                    border-top: 1px dashed #714b67;
+                    opacity: .75;
+                    transform-origin: 0 50%;
                     pointer-events: none;
+                }
+                .o_sign_sign_item_navline::after {
+                    content: "";
+                    position: absolute;
+                    top: -.25rem;
+                    right: -.25rem;
+                    width: .5rem;
+                    height: .5rem;
+                    background: #714b67;
+                    border: 2px solid #fff;
+                    border-radius: 50%;
                 }
                 .o_sign_sign_item_navigator::after {
                     margin-left: .8rem;
