@@ -3,16 +3,16 @@
     <t t-name="usl_sign.SignatureInspector">
         <div class="o_action usl_sign_inspector">
             <div class="o_content overflow-auto">
-                <main class="container-xxl px-3 px-lg-4 py-4 py-lg-5">
+                <main class="container-xl px-3 py-3 py-lg-4">
                     <input t-ref="fileInput" type="file" class="visually-hidden" accept="application/pdf,.pdf"
                            t-on-change="onFileChange"/>
 
-                    <header class="usl_sign_inspector_header">
+                    <header class="usl_sign_inspector_header border-bottom pb-3 mb-3">
                         <div>
-                            <h1 class="h2 mb-1">Check Signatures</h1>
-                            <p class="text-muted mb-0">Choose a signed PDF or evidence dossier to check its digital signatures and embedded proof.</p>
+                            <h1 class="h3 mb-1">Check Signatures</h1>
+                            <p class="text-muted mb-0">Check a signed PDF or evidence dossier without sending it to Odoo.</p>
                         </div>
-                        <div class="usl_sign_inspector_privacy" aria-label="Local processing">
+                        <div class="usl_sign_inspector_privacy alert alert-info mb-0 py-2" aria-label="Local processing">
                             <i class="fa fa-lock" aria-hidden="true"/>
                             <span><strong>Your file stays in this browser.</strong> Nothing is uploaded to Odoo.</span>
                         </div>
@@ -20,12 +20,12 @@
 
                     <section t-if="state.stage === 'empty'" class="usl_sign_inspector_empty">
                         <button type="button"
-                                t-att-class="'usl_sign_inspector_dropzone' + (state.dragging ? ' is-dragging' : '')"
+                                t-att-class="'usl_sign_inspector_dropzone btn bg-white border rounded-3' + (state.dragging ? ' is-dragging' : '')"
                                 t-on-click="chooseFile" t-on-dragover="onDragOver" t-on-dragleave="onDragLeave"
                                 t-on-drop="onDrop">
-                            <span class="usl_sign_inspector_dropicon" aria-hidden="true"><i class="fa fa-shield"/></span>
+                            <span class="usl_sign_inspector_dropicon text-primary" aria-hidden="true"><i class="fa fa-file-pdf-o"/></span>
                             <strong>Drop a signed PDF or evidence dossier here</strong>
-                            <span>or choose a PDF from your Mac</span>
+                            <span class="text-primary">or choose a PDF</span>
                             <small>PDF only · up to 100 MB · checked locally</small>
                         </button>
                         <div class="usl_sign_inspector_intro">
@@ -44,7 +44,7 @@
                         </div>
                     </section>
 
-                    <section t-elif="state.stage === 'loading'" class="usl_sign_inspector_loading" aria-live="polite" aria-busy="true">
+                    <section t-elif="state.stage === 'loading'" class="usl_sign_inspector_loading card" aria-live="polite" aria-busy="true">
                         <span class="usl_sign_inspector_scan" aria-hidden="true"><i class="fa fa-file-pdf-o"/></span>
                         <div>
                             <h2>Checking <t t-out="state.fileName"/></h2>
@@ -52,7 +52,7 @@
                         </div>
                     </section>
 
-                    <section t-elif="state.stage === 'error'" class="usl_sign_inspector_error" role="alert">
+                    <section t-elif="state.stage === 'error'" class="usl_sign_inspector_error card" role="alert">
                         <i class="fa fa-exclamation-circle" aria-hidden="true"/>
                         <div>
                             <h2>This file could not be checked</h2>
@@ -62,22 +62,22 @@
                     </section>
 
                     <t t-else="">
-                        <div class="usl_sign_inspector_filebar">
+                        <div class="usl_sign_inspector_filebar card card-body">
                             <div class="usl_sign_inspector_filename">
                                 <i class="fa fa-file-pdf-o" aria-hidden="true"/>
                                 <span><strong t-out="state.fileName"/><small><t t-out="formatBytes(state.fileSize)"/> · SHA-256 <t t-out="shortHash(state.result.document.sha256)"/></small></span>
                             </div>
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-light" t-on-click="() => this.copyHash(state.result.document.sha256)" title="Copy the complete SHA-256 hash">
+                                <button type="button" class="btn btn-secondary" t-on-click="() => this.copyHash(state.result.document.sha256)" title="Copy the complete SHA-256 hash">
                                     <i class="fa fa-copy me-1" aria-hidden="true"/> Copy hash
                                 </button>
                                 <button type="button" class="btn btn-outline-primary" t-on-click="chooseFile">Check another PDF</button>
                             </div>
                         </div>
 
-                        <section t-attf-class="usl_sign_inspector_verdict is-{{ verdict.tone }}" aria-live="polite">
+                        <section t-attf-class="usl_sign_inspector_verdict alert is-{{ verdict.tone }}" aria-live="polite">
                             <span class="usl_sign_inspector_verdict_icon" aria-hidden="true">
-                                <i t-att-class="verdict.tone === 'success' ? 'fa fa-check' : verdict.tone === 'danger' ? 'fa fa-times' : verdict.tone === 'warning' ? 'fa fa-exclamation' : 'fa fa-minus'"/>
+                                <i t-att-class="verdict.tone === 'success' ? 'fa fa-check-circle' : verdict.tone === 'danger' ? 'fa fa-times-circle' : verdict.tone === 'warning' ? 'fa fa-exclamation-triangle' : 'fa fa-info-circle'"/>
                             </span>
                             <div>
                                 <h2 t-out="verdict.title"/>
@@ -91,13 +91,13 @@
 
                         <div class="usl_sign_inspector_results">
                             <div class="usl_sign_inspector_primary">
-                                <section class="usl_sign_inspector_section">
-                                    <div class="usl_sign_inspector_section_heading">
+                                <section class="usl_sign_inspector_section card">
+                                    <div class="usl_sign_inspector_section_heading card-header bg-white">
                                         <div>
                                             <h2>Digital signatures</h2>
                                             <p>Each result applies to one signed PDF revision. Later signatures normally add a new revision.</p>
                                         </div>
-                                        <span class="badge rounded-pill text-bg-light" t-out="totalSignatures"/>
+                                        <span class="badge rounded-pill text-bg-light border" t-out="totalSignatures"/>
                                     </div>
                                     <div t-if="!totalSignatures" class="usl_sign_inspector_no_signatures">
                                         <i class="fa fa-pencil-square-o" aria-hidden="true"/>
@@ -175,14 +175,14 @@
                                     </t>
                                 </section>
 
-                                <section t-if="state.result.dossier.detected" class="usl_sign_inspector_section usl_sign_dossier_section">
-                                    <div class="usl_sign_inspector_section_heading">
+                                <section t-if="state.result.dossier.detected" class="usl_sign_inspector_section usl_sign_dossier_section card">
+                                    <div class="usl_sign_inspector_section_heading card-header bg-white">
                                         <div>
                                             <h2>Evidence dossier</h2>
                                             <p>The PDF contains embedded files. Their bytes were hashed and compared with the USL manifest when present.</p>
                                         </div>
                                     </div>
-                                    <div t-attf-class="usl_sign_dossier_verdict is-{{ dossierVerdict.tone }}">
+                                    <div t-attf-class="usl_sign_dossier_verdict alert is-{{ dossierVerdict.tone }}">
                                         <i t-att-class="dossierVerdict.tone === 'success' ? 'fa fa-check-circle' : dossierVerdict.tone === 'danger' ? 'fa fa-times-circle' : 'fa fa-exclamation-circle'" aria-hidden="true"/>
                                         <span><strong t-out="dossierVerdict.title"/><t t-out="dossierVerdict.detail"/></span>
                                     </div>
@@ -199,7 +199,7 @@
                                 </section>
                             </div>
 
-                            <aside class="usl_sign_inspector_limits">
+                            <aside class="usl_sign_inspector_limits card card-body">
                                 <h2>What this browser checks</h2>
                                 <ul>
                                     <li><i class="fa fa-search" aria-hidden="true"/><span>Whether each signature covers only its declared PDF revision.</span></li>
