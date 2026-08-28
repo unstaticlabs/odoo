@@ -72,6 +72,26 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
+  # Repository-owned frontend/design tooling. Major updates stay separate so
+  # generated Impeccable provider assets can be refreshed and reviewed with
+  # the package update instead of being hidden in a compatibility group.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "07:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 2
+    groups:
+      compatible-node-tooling-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
   # Base images used by the multi-stage distribution Dockerfile. Major image
   # updates stay separate so Python/runtime-generation changes are explicit.
   - package-ecosystem: "docker"
@@ -92,6 +112,46 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
+  # The production backup tool is built from its own Dockerfile and is not
+  # discovered by the root Docker update entry.
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:15"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 2
+    groups:
+      compatible-backup-image-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The governed Paperless overlay has independent base and frontend build
+  # images. Keep its candidates separate from the Odoo Distribution image.
+  - package-ecosystem: "docker"
+    directory: "/deploy/documents/paperless-ngx"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:30"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 2
+    groups:
+      compatible-paperless-image-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
   # Runtime services shared by development, migration and pre-production.
   # A PR is only a candidate: Paperless, Pocket ID and data-service updates
   # still require the documented clean-install, reconstruction and release
@@ -104,8 +164,58 @@ updates:
       time: "06:00"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 5
+    # This image is built from deploy/documents/paperless-ngx/Dockerfile and
+    # qualified by the repository release workflow. It is not a Docker Hub
+    # dependency; its public base images are covered by the Docker entry above.
+    ignore:
+      - dependency-name: "usl-paperless-ngx"
     groups:
       compatible-service-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Production backup/recovery qualification uses a separate Compose boundary
+  # and therefore needs an explicit directory entry.
+  - package-ecosystem: "docker-compose"
+    directory: "/deploy/odoo-backup"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:15"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    # Qualification intentionally uses the Distribution release image. Its
+    # immutable digest is supplied by release admission, not discovered as a
+    # public dependency by Dependabot.
+    ignore:
+      - dependency-name: "unstaticlabs/usl-odoo"
+    groups:
+      compatible-backup-service-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Keep pinned third-party workflow actions current without allowing a bot PR
+  # to publish images or bypass the normal pull-request qualification job.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    groups:
+      compatible-action-updates:
         patterns:
           - "*"
         update-types:
