@@ -227,6 +227,8 @@ start_archive() {
     "${compose[@]}" --profile paperless up -d --wait --pull never \
         paperless-preflight paperless-db paperless-broker paperless-trash-init \
         paperless-gotenberg paperless-tika paperless-webserver
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
+        python manage.py shell < scripts/paperless_office_parser_preflight.py
 }
 
 enable_semantic_index_deferral() {

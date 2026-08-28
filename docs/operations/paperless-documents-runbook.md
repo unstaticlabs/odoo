@@ -123,7 +123,10 @@ with `latest` or let an image pull become an implicit upgrade.
 
 Compose health checks cover Odoo, Odoo PostgreSQL, Paperless web/worker,
 Paperless PostgreSQL, Valkey, Tika, Gotenberg, and the digest-pinned Pocket ID
-v2.14.0 service. Odoo has no runtime
+v2.14.0 service. Documents restoration additionally exercises Paperless's real
+Office parser against Tika and Gotenberg before it can submit source files, so
+an incompatible extraction endpoint or invalid PDF rendition fails closed.
+Odoo has no runtime
 `depends_on` relationship that makes Paperless availability a prerequisite.
 
 Monitor:

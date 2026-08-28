@@ -201,6 +201,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
             ROOT / "deploy/preprod.env.example",
             ROOT / "deploy/production.external-pocket-id.env.example",
         )
+        values_by_key = {}
         for key in ("PAPERLESS_TIKA_IMAGE", "OLLAMA_IMAGE"):
             values = []
             for path in examples:
@@ -212,6 +213,13 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
                 values.append(value)
             self.assertEqual([values[0]] * len(values), values, key)
             self.assertIn(f"${{{key}:-{values[0]}}}", compose)
+            values_by_key[key] = values[0]
+        development_tika = next(
+            line.split("=", 1)[1]
+            for line in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+            if line.startswith("PAPERLESS_TIKA_IMAGE=")
+        )
+        self.assertEqual(development_tika, values_by_key["PAPERLESS_TIKA_IMAGE"])
 
 
 if __name__ == "__main__":
