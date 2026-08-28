@@ -145,6 +145,13 @@ also use the GitHub web UI to review or approve. This prohibition applies to
 agents doing Git/GitHub work, not to browser-based Odoo product journeys or
 Worktree-QA required by the UI quality workflow.
 
+Dependabot is a separate authenticated GitHub bot, not a Coding Agent. Its PRs
+skip only Coding-Agent branch naming, commit attribution and structured-handoff
+metadata. The actor check is exactly `dependabot[bot]`; a branch named
+`dependabot/*` receives no exemption. Repository contract tests and the full
+Distribution image qualification still run, and stateful-service candidates
+retain their documented clean-install, migration and recovery review gates.
+
 Every Coding Agent commit uses Conventional Commits, contains
 `AI-generated commit`, and includes exactly
 `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
