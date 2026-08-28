@@ -41,6 +41,8 @@ test("result view leads with integrity and keeps trust limitations explicit", as
                         subFilter: "ETSI.CAdES.detached",
                         digestAlgorithm: "SHA-256",
                         signatureAlgorithm: "RSA with SHA-256",
+                        claimedReason: "Strong personal signature",
+                        claimedSigningTime: "D:20260827100000+00'00'",
                         certificate: {
                             subject: {label: "Alice Example", commonName: "Alice Example"},
                             issuer: {label: "Example Issuing CA"},
@@ -72,6 +74,11 @@ test("result view leads with integrity and keeps trust limitations explicit", as
     expect(".usl_sign_inspector_limits").toHaveClass("card");
     expect(".usl_sign_signature_result").toHaveText(/Alice Example/);
     expect(".usl_sign_check_list").toHaveText(/public key verifies this signature/);
+    expect(".usl_sign_inspector_technical").toHaveText(/PDF signature metadata/);
+    expect(".usl_sign_inspector_technical").toHaveText(
+        /Browser location collected by USL Sign is separate, restricted evidence/
+    );
+    expect(".usl_sign_inspector_technical").not.toHaveText(/LocationNot provided/);
     expect(".usl_sign_inspector_limits").toHaveText(/current EU or company trust list/);
     expect(".usl_sign_inspector_limits").toHaveText(/advanced or qualified/);
 });

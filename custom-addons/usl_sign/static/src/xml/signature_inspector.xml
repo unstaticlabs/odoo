@@ -160,13 +160,15 @@
                                                         <i class="fa fa-clock-o" aria-hidden="true"/>
                                                         <span><strong><t t-if="signature.timestamp.valid">Signature timestamp verified</t><t t-else="">Signature timestamp could not be verified</t></strong><t t-out="signature.timestamp.valid ? formatDate(signature.timestamp.time) : signature.timestamp.error"/></span>
                                                     </div>
-                                                    <details class="usl_sign_inspector_technical">
-                                                        <summary>Claimed PDF details</summary>
+                                                    <details t-if="signature.claimedName || signature.claimedReason || signature.claimedLocation || signature.claimedSigningTime"
+                                                             class="usl_sign_inspector_technical">
+                                                        <summary>PDF signature metadata</summary>
+                                                        <p>Browser location collected by USL Sign is separate, restricted evidence; it is not embedded in the signed PDF.</p>
                                                         <dl>
-                                                            <div><dt>Name</dt><dd t-out="signature.claimedName || 'Not provided'"/></div>
-                                                            <div><dt>Reason</dt><dd t-out="signature.claimedReason || 'Not provided'"/></div>
-                                                            <div><dt>Location</dt><dd t-out="signature.claimedLocation || 'Not provided'"/></div>
-                                                            <div><dt>PDF signing time</dt><dd t-out="signature.claimedSigningTime || 'Not provided'"/></div>
+                                                            <div t-if="signature.claimedName"><dt>Name</dt><dd t-out="signature.claimedName"/></div>
+                                                            <div t-if="signature.claimedReason"><dt>Reason</dt><dd t-out="signature.claimedReason"/></div>
+                                                            <div t-if="signature.claimedLocation"><dt>PDF-declared location</dt><dd t-out="signature.claimedLocation"/></div>
+                                                            <div t-if="signature.claimedSigningTime"><dt>PDF signing time</dt><dd t-out="signature.claimedSigningTime"/></div>
                                                         </dl>
                                                     </details>
                                                 </div>
