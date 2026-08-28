@@ -3768,6 +3768,51 @@ class TestDocuments(TransactionCase):
         self.assertIn(operations[0].id, result)
         self.assertNotIn(operations[-1].id, result)
 
+    def test_poll_cron_uses_trusted_context_only_for_backfill_operations(self):
+        backfill = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "historical.pdf",
+                "state": "processing",
+                "checksum": "a" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-backfill",
+                "attachment_origin": "backfill",
+                "user_id": self.user.id,
+            },
+        )
+        live = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "live.pdf",
+                "state": "processing",
+                "checksum": "b" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-live",
+                "attachment_origin": "documents_workspace",
+                "user_id": self.user.id,
+            },
+        )
+        seen = {}
+
+        def poll(operations):
+            trusted = bool(
+                operations.env.context.get("usl_documents_trusted_backfill_access"),
+            )
+            for operation in operations:
+                seen[operation.id] = trusted
+            return {operation.id: {"state": operation.state} for operation in operations}
+
+        with patch.object(type(backfill), "poll", autospec=True, side_effect=poll):
+            result = (
+                self.env["usl.document.operation"]
+                .with_user(self.manager)
+                .cron_poll_operations()
+            )
+
+        self.assertEqual(seen, {live.id: False, backfill.id: True})
+        self.assertEqual(set(result), {live.id, backfill.id})
+
     def test_backfill_validates_links_as_system_and_keeps_source_author(self):
         project = self.env["project.project"].create(
             {
