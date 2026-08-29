@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 source "$ROOT/scripts/lib/migration-addons.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-sign}"
@@ -92,7 +93,11 @@ export USL_POCKET_ID_ENABLED=0
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 
+usl_prepare_ollama_runtime "$ROOT"
 compose=(docker compose -p "$compose_project")
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+  compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+fi
 
 start_dependencies() {
   "${compose[@]}" --profile accounting-compat up -d --wait accounting-source-db db

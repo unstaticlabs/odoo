@@ -31,6 +31,14 @@ class SignOrchestrationTest(unittest.TestCase):
             restore,
         )
 
+    def test_local_sign_restore_uses_shared_ollama_runtime_selection(self):
+        restore = SIGN_RESTORE.read_text(encoding="utf-8")
+
+        self.assertIn('source "$ROOT/scripts/lib/ollama-runtime.sh"', restore)
+        self.assertIn('usl_prepare_ollama_runtime "$ROOT"', restore)
+        self.assertIn('if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]', restore)
+        self.assertIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', restore)
+
 
 if __name__ == "__main__":
     unittest.main()
