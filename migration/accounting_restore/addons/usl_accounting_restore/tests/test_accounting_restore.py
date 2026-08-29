@@ -5956,7 +5956,12 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(company.rebuild_legal_form, "sasu")
         self.assertEqual(company.rebuild_corporate_tax_regime, "is")
         self.assertEqual(company.rebuild_profit_tax_regime, "bic_simplified")
-        self.assertEqual(company.rebuild_vat_regime, "normal")
+        self.assertEqual(company.rebuild_vat_regime, "simplified")
+        self.assertEqual(
+            fields.Date.to_string(company.rebuild_vat_transition_date),
+            "2027-10-01",
+        )
+        self.assertFalse(company.rebuild_oss_registered)
         self.assertEqual(
             fields.Date.to_string(company.rebuild_first_fiscalyear_start),
             "2026-06-01",
@@ -5966,6 +5971,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "2027-09-30",
         )
         self.assertIn("monthly periodicity", company.rebuild_declaration_profile_evidence)
+        self.assertIn("reviewed legal transition profile", company.rebuild_declaration_profile_evidence)
         self.assertEqual(company.usl_document_legal_form, "SASU")
         self.assertEqual(company.usl_document_share_capital, 1_000.0)
         self.assertEqual(company.usl_document_rcs_city, "Paris")
@@ -6007,6 +6013,8 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertTrue(values["rebuild_declaration_profile_active"])
         self.assertEqual(values["rebuild_vat_regime"], "simplified")
+        self.assertEqual(values["rebuild_vat_transition_date"], "2027-10-01")
+        self.assertFalse(values["rebuild_oss_registered"])
         self.assertEqual(values["rebuild_first_fiscalyear_start"], "2024-01-10")
 
     def test_account_import_syncs_source_company_accounting_defaults(self):

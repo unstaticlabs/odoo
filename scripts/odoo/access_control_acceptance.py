@@ -36,6 +36,7 @@ expected = {
 }
 all_companies = set(env["res.company"].sudo().search([]).mapped("name"))  # noqa: F821
 evidence = []
+prosper_user = Users.browse()
 for login, policy in expected.items():
     users = Users.search([("login", "=", login)])
     if len(users) != 1:
@@ -69,6 +70,37 @@ for login, policy in expected.items():
             "irreversible_actions": user.usl_has_irreversible_actions,
         },
     )
+    if login == "prosper":
+        prosper_user = user
+
+prosper_context = {"allowed_company_ids": prosper_user.company_ids.ids}
+prosper_declarations = env["rebuild.account.declaration"].with_user(  # noqa: F821
+    prosper_user,
+).with_context(**prosper_context)
+prosper_decisions = env["rebuild.account.assurance.decision"].with_user(  # noqa: F821
+    prosper_user,
+).with_context(**prosper_context)
+capabilities = {
+    "declaration_read": prosper_declarations.has_access("read"),
+    "declaration_write": prosper_declarations.has_access("write"),
+    "decision_read": prosper_decisions.has_access("read"),
+    "decision_create": prosper_decisions.has_access("create"),
+    "decision_write": prosper_decisions.has_access("write"),
+    "decision_delete": prosper_decisions.has_access("unlink"),
+}
+expected_capabilities = {
+    "declaration_read": True,
+    "declaration_write": False,
+    "decision_read": True,
+    "decision_create": True,
+    "decision_write": True,
+    "decision_delete": False,
+}
+if capabilities != expected_capabilities:
+    raise ValidationError(
+        f"Unexpected Prosper declaration capabilities: {capabilities}; "
+        f"expected {expected_capabilities}."
+    )
 
 conflicts = Users.search([]).filtered(
     lambda user: user.usl_is_ai_agent and user.usl_has_irreversible_actions,
@@ -83,4 +115,7 @@ historical = Users.search([("login", "=", "roger@xaic.cat")])
 if historical and (historical.active or historical.usl_pocketid_access):
     raise ValidationError("The historical Roger identity is not inactive and sealed.")
 
-print(json.dumps({"named_users": evidence}, indent=2, sort_keys=True))  # noqa: T201
+print(json.dumps({  # noqa: T201
+    "named_users": evidence,
+    "prosper_declaration_capabilities": capabilities,
+}, indent=2, sort_keys=True))

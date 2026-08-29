@@ -9,38 +9,47 @@ The selected design is a thin USL workflow layer over standard Odoo accounting c
 Alternatives considered:
 
 1. Standard Odoo lock dates plus OCA reports, Bank Matching and General Reconciliation, with a small custom declaration/closing coordinator. Selected because the ledger, reconciliation and lock semantics remain standard while the missing French filing lifecycle is explicit and source-traced.
-2. OCA fiscal-year or cutoff modules alone. Rejected for this milestone because the pinned stack does not supply the required versioned French 2571, 2572, 2065, 2033, 3517/CA12, 3514 and conditional 2069-RCI/2777 preparation lifecycle.
-3. A custom tax engine or electronic filing integration. Rejected because it would duplicate official tax logic, create avoidable maintenance and compliance risk, and exceed the requirement for accurate preparation plus external filing tracking.
+2. A generic executable tax-query DSL. Rejected because arbitrary trigger queries would be difficult to review, unsafe to extend and too close to a second tax engine.
+3. OCA fiscal-year or cutoff modules alone. Rejected because the pinned stack does not supply period-aware French filing obligations.
+4. A custom electronic filing integration. Rejected because it would duplicate official tax logic and exceed the accurate-preparation and external-tracking boundary.
 
 The custom models never replace Odoo journal entries, taxes, reconciliation or locks. They schedule obligations, expose traceable inputs, collect evidence-backed review decisions and coordinate standard operations.
 
 ## Confirmed company profile
 
-The exact-target importer records the confirmed USL profile on source company `1`:
+The exact-target importer keys profiles by SIREN and records the confirmed profile for Unstatic Labs and USL MEDIA:
 
 - French SASU;
 - corporate income tax (`IS`);
 - simplified BIC/IS package;
 - simplified VAT / CA12-E workflow;
 - fiscal year ending 30 September;
-- first reconstructed fiscal year beginning 10 January 2024.
+- each company's exceptional first fiscal year;
+- simplified VAT through 30 September 2027 and quarterly CA3 from 1 October 2027;
+- OSS disabled unless explicit registration evidence is later recorded.
 
-Obligations are not generated until this profile is active. Conditional forms are created only when accounting or explicit evidence provides a signal: 2069-RCI requires a tax-credit evidence record and 2777 requires a dividend/RCM ledger event. The UI therefore does not display every possible French form automatically.
+USL MEDIA's first fiscal year is 1 June 2026–30 September 2027. It receives no 2571 instalment during that first year. Its simplified-VAT regularisation is split into 1 June–31 December 2026 and 1 January–30 September 2027. Obligations are not generated until a profile is active.
 
 ## Versioned declaration rules
 
-The add-on installs separate 2025 and 2026 versions for these families:
+The add-on installs versioned, whitelisted rules. Each rule declares its fiscal-year, calendar-year, quarter, month or event period; transaction/registration/threshold trigger; deadline basis; filing channel; and payment applicability.
 
 | Family | Applicability | Deadline basis |
 | --- | --- | --- |
 | 2571-SD | IS companies; amount/exemption remains a reviewed portal fact | four dates from the official closing-date band; a 30 September close uses 15 December, 15 March, 15 June and 15 September |
 | 2572-SD | final IS balance | 15th day of the fourth month after a non-calendar close |
-| 2065 / 2065-bis | IS result declaration | last day of the third month after close plus the published 15-day teleprocedure extension |
-| 2033 A-G | simplified BIC/IS package | same filing cycle as 2065 |
+| 2065 result dossier | 2065 / 2065-bis with 2033 A-G as supporting annexes, not a duplicate obligation | last day of the third month after close plus the published 15-day teleprocedure extension |
 | 2069-RCI | only when a qualifying reduction or credit is detected | accompanies the applicable result/IS filing cycle |
 | 3517-S / CA12-E | simplified VAT | within three months after a non-calendar close |
 | 3514 | simplified-VAT instalment task | company-specific portal day in the official 15-24 July/December window |
-| 2777 | only when a dividend/RCM event is detected | event-specific official fiscal calendar |
+| 2777 | one calendar month only when an RCM transaction is detected | 15th of the following month, reconciled to the official calendar |
+| 2561 IFU | calendar year only when RCM occurred | 15 February following the year |
+| DES | month containing a qualifying reverse-charge EU B2B service | tenth working day of the following month |
+| OSS | quarter only after explicit registration; nil filings continue while registered | end of the following month |
+| DAS2 | calendar-year review only when a beneficiary's account-622 evidence exceeds €2,400 | conservative 30 April campaign date; paid/category facts remain reviewable |
+| 1330-CVAE / 1329-AC | reporting above €152,500 turnover; instalments only with reviewed prior liability above €1,500 | result cycle / 15 June and 15 September |
+| 1447-C / CFE | creation event, annual balance, and prior-liability-only advance | 31 December / 15 December / conditional 15 June |
+| CA3 | quarterly from the company-specific post-RSI transition | conservative end of the following month pending portal reconciliation |
 
 Official sources retained on every rule:
 
@@ -69,7 +78,7 @@ Rules are routing and deadline metadata, not a substitute for the official porta
 - internal review, optional accountant review, filing and payment/refund status;
 - filing reference and attachment evidence.
 
-Ledger-derived tax-package lines are copied into the workbench with their existing mapping and review state. Information that cannot safely come from the ledger remains explicit: 2065-bis administrative facts and 2033 E/F/G payroll, ownership and subsidiary facts are unresolved until supported by external evidence and review.
+Ledger-derived tax-package lines are copied only to the matching evidenced fiscal period; values are never copied into a later fiscal year. Information that cannot safely come from the ledger remains explicit. A 3514 amount is never defaulted to zero or “not due”: the portal amount remains unresolved, with the 80% first-period guidance for a new company. USL-specific VAT refund facts never leak to USL MEDIA or to an unevidenced future period.
 
 An Accounting Manager can approve a prepared declaration for filing without waiting for an external accountant. Filing requires an external reference or evidence attachment. Payment/refund completion cannot be recorded before filing. Electronic submission is not implemented or claimed.
 
@@ -139,7 +148,7 @@ decision while leaving a controlled superseding-review path.
 ## Roles and review gates
 
 - Accounting Manager can refresh, prepare, post permitted corrections, record external filing/payment state and apply standard locks.
-- Read-only Accountant inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings, packages and manager-recorded review decisions. It cannot create or record review decisions, edit posted accounting, change declaration preparation or filing state, run closing controls, or change lock dates.
+- Accountant Reviewer inherits Odoo accounting read-only access and may create and record an audited `declaration_review` decision for a declaration in an allowed company. It cannot alter the declaration directly, file, pay, refresh ledger values, approve closings, change lock dates, supersede decisions or cross a company boundary. Prosper receives this role with Unstatic Labs and USL MEDIA as his only allowed companies.
 - Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration decisions require an evidence summary; accepted closing decisions also require a generated package and create immutable snapshots.
 - A closing acceptance does not override automated blockers. A close with blockers remains blocked.
 - Future finance agents should receive company-scoped read access or purpose-specific manager authority; they must not receive unrestricted cross-company accounting access.
@@ -172,3 +181,12 @@ re-extracting an unchanged source snapshot.
 ## Residual professional assumptions
 
 Final declaration values, actual filing, an external professional opinion and the legal decision to lock a production period remain human responsibilities. The product makes their source, evidence and status explicit. Their absence does not block engineering completion or internal preparation, and generated evidence must never be presented as a person’s acceptance.
+
+## Migration definition of done
+
+- USL has 2571, 2572, one 2065/2033 result dossier, 3514 through July 2027, CA12-E through 30 September 2027, and quarterly CA3 from 1 October 2027.
+- USL MEDIA has no 2571 through its first close; its first 2065/2033 and 2572 are due 15 January 2028; its long first VAT period is split; 1447-C is due 31 December 2026; its first annual CFE balance is represented in 2027.
+- No fiscal-year 2777 or independent 2033 obligation remains active. Superseded generated rows are retained as explicitly not applicable for auditability.
+- RCM, IFU, DES, OSS, DAS2 and CVAE instances exist only when their governed transaction, registration, threshold or reviewed-liability signal is present.
+- Synchronization is idempotent, never copies an old tax-package value into a future period and does not overwrite filed, paid or archived evidence.
+- Prosper can read both companies' declaration records and record declaration-review decisions, while direct mutations, closing approvals, filing/payment actions and unauthorized-company access fail closed.

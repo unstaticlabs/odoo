@@ -12,6 +12,8 @@
         <field name="sequence">10</field>
         <field name="category">corporate_tax</field>
         <field name="cadence">is_instalments</field>
+        <field name="trigger_kind">not_first_fiscal_year</field>
+        <field name="deadline_rule">is_instalments</field>
         <field name="form_code">2571-SD</field>
         <field name="version">2025</field>
         <field name="effective_from">2025-01-01</field>
@@ -30,6 +32,8 @@
         <field name="sequence">10</field>
         <field name="category">corporate_tax</field>
         <field name="cadence">is_instalments</field>
+        <field name="trigger_kind">not_first_fiscal_year</field>
+        <field name="deadline_rule">is_instalments</field>
         <field name="form_code">2571-SD</field>
         <field name="version">2026</field>
         <field name="effective_from">2026-01-01</field>
@@ -49,6 +53,7 @@
         <field name="sequence">20</field>
         <field name="category">corporate_tax</field>
         <field name="cadence">annual</field>
+        <field name="deadline_rule">is_balance</field>
         <field name="form_code">2572-SD</field>
         <field name="version">2025</field>
         <field name="effective_from">2025-01-01</field>
@@ -67,6 +72,7 @@
         <field name="sequence">20</field>
         <field name="category">corporate_tax</field>
         <field name="cadence">annual</field>
+        <field name="deadline_rule">is_balance</field>
         <field name="form_code">2572-SD</field>
         <field name="version">2026</field>
         <field name="effective_from">2026-01-01</field>
@@ -87,7 +93,9 @@
         <field name="category">profit_tax_package</field>
         <field name="cadence">annual</field>
         <field name="form_code">2065-SD / 2065-bis-SD</field>
-        <field name="tax_form_codes">2065-SD</field>
+        <field name="tax_form_codes">2065-SD,2033-A-SD,2033-B-SD,2033-C-SD,2033-D-SD,2033-E-SD,2033-F-SD,2033-G-SD</field>
+        <field name="supporting_form_codes">2065-bis-SD, 2033 A-G-SD</field>
+        <field name="deadline_rule">result_return</field>
         <field name="version">2025</field>
         <field name="effective_from">2025-01-01</field>
         <field name="effective_to">2025-12-31</field>
@@ -106,7 +114,9 @@
         <field name="category">profit_tax_package</field>
         <field name="cadence">annual</field>
         <field name="form_code">2065-SD / 2065-bis-SD</field>
-        <field name="tax_form_codes">2065-SD</field>
+        <field name="tax_form_codes">2065-SD,2033-A-SD,2033-B-SD,2033-C-SD,2033-D-SD,2033-E-SD,2033-F-SD,2033-G-SD</field>
+        <field name="supporting_form_codes">2065-bis-SD, 2033 A-G-SD</field>
+        <field name="deadline_rule">result_return</field>
         <field name="version">2026</field>
         <field name="effective_from">2026-01-01</field>
         <field name="effective_to">2026-12-31</field>
@@ -120,6 +130,8 @@
     </record>
 
     <record id="declaration_rule_2033_2025" model="rebuild.account.declaration.rule">
+        <field name="active" eval="False"/>
+        <field name="lifecycle">deprecated</field>
         <field name="name">2033 A-G - BIC/IS simplified package (2025)</field>
         <field name="code">FR_2033</field>
         <field name="sequence">40</field>
@@ -139,6 +151,8 @@
         <field name="deadline_guidance">The annex package follows the 2065 result-declaration deadline.</field>
     </record>
     <record id="declaration_rule_2033_2026" model="rebuild.account.declaration.rule">
+        <field name="active" eval="False"/>
+        <field name="lifecycle">deprecated</field>
         <field name="name">2033 A-G - BIC/IS simplified package (2026)</field>
         <field name="code">FR_2033</field>
         <field name="sequence">40</field>
@@ -203,6 +217,7 @@
         <field name="sequence">60</field>
         <field name="category">vat</field>
         <field name="cadence">annual</field>
+        <field name="deadline_rule">ca12_fiscal</field>
         <field name="form_code">3517-S-SD / CA12-E</field>
         <field name="tax_form_codes">3517-S-SD</field>
         <field name="version">2025</field>
@@ -222,6 +237,7 @@
         <field name="sequence">60</field>
         <field name="category">vat</field>
         <field name="cadence">annual</field>
+        <field name="deadline_rule">ca12_fiscal</field>
         <field name="form_code">3517-S-SD / CA12-E</field>
         <field name="tax_form_codes">3517-S-SD</field>
         <field name="version">2026</field>
@@ -242,6 +258,8 @@
         <field name="sequence">70</field>
         <field name="category">vat</field>
         <field name="cadence">vat_instalments</field>
+        <field name="period_basis">calendar_month</field>
+        <field name="deadline_rule">vat_instalment</field>
         <field name="form_code">3514-SD</field>
         <field name="version">2025</field>
         <field name="effective_from">2025-01-01</field>
@@ -260,6 +278,8 @@
         <field name="sequence">70</field>
         <field name="category">vat</field>
         <field name="cadence">vat_instalments</field>
+        <field name="period_basis">calendar_month</field>
+        <field name="deadline_rule">vat_instalment</field>
         <field name="form_code">3514-SD</field>
         <field name="version">2026</field>
         <field name="effective_from">2026-01-01</field>
@@ -279,6 +299,9 @@
         <field name="sequence">80</field>
         <field name="category">dividend</field>
         <field name="cadence">event</field>
+        <field name="period_basis">calendar_month</field>
+        <field name="trigger_kind">dividend_transactions</field>
+        <field name="deadline_rule">next_month_15</field>
         <field name="form_code">2777-SD</field>
         <field name="version">2025</field>
         <field name="effective_from">2025-01-01</field>
@@ -298,6 +321,9 @@
         <field name="sequence">80</field>
         <field name="category">dividend</field>
         <field name="cadence">event</field>
+        <field name="period_basis">calendar_month</field>
+        <field name="trigger_kind">dividend_transactions</field>
+        <field name="deadline_rule">next_month_15</field>
         <field name="form_code">2777-SD</field>
         <field name="version">2026</field>
         <field name="effective_from">2026-01-01</field>

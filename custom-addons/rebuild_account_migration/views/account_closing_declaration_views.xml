@@ -10,6 +10,8 @@
                 <field name="name"/>
                 <field name="category"/>
                 <field name="cadence"/>
+                <field name="period_basis"/>
+                <field name="trigger_kind" optional="hide"/>
                 <field name="form_code"/>
                 <field name="version"/>
                 <field name="effective_from"/>
@@ -35,8 +37,14 @@
                             <field name="code"/>
                             <field name="category"/>
                             <field name="cadence"/>
+                            <field name="period_basis"/>
+                            <field name="trigger_kind"/>
+                            <field name="deadline_rule"/>
+                            <field name="filing_channel"/>
+                            <field name="payment_required"/>
                             <field name="form_code"/>
                             <field name="tax_form_codes"/>
+                            <field name="supporting_form_codes"/>
                         </group>
                         <group>
                             <field name="version"/>
@@ -203,7 +211,7 @@
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
                     <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review'" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
                     <button name="action_request_accountant_review" type="object" string="Request Optional Accountant Review" groups="account.group_account_manager" invisible="status not in ['internal_review']"/>
-                    <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
+                    <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager,rebuild_account_migration.group_rebuild_accountant_reviewer" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_filed" type="object" string="Mark Filed Externally" class="oe_highlight" groups="account.group_account_manager" invisible="status not in ['accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_paid_or_refunded" type="object" string="Complete Payment / Refund" groups="account.group_account_manager" invisible="status != 'filed'"/>
                     <field name="status" widget="statusbar" statusbar_visible="to_prepare,data_missing,internal_review,accountant_review,accountant_reviewed,ready_to_file,filed,paid,archived"/>
@@ -771,6 +779,8 @@
                                 invisible="not rebuild_declaration_profile_active or rebuild_corporate_tax_regime != 'is'"/>
                             <field name="rebuild_profit_tax_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_vat_regime" required="rebuild_declaration_profile_active"/>
+                            <field name="rebuild_vat_transition_date"/>
+                            <field name="rebuild_oss_registered"/>
                             <field name="rebuild_first_fiscalyear_start"/>
                             <field name="rebuild_first_fiscalyear_end"/>
                         </group>
@@ -781,7 +791,10 @@
                                     class="oe_highlight" groups="account.group_account_manager"/>
                         </group>
                     </group>
-                    <group string="Profile Evidence"><field name="rebuild_declaration_profile_evidence" nolabel="1"/></group>
+                    <group string="Profile Evidence">
+                        <field name="rebuild_declaration_profile_evidence" nolabel="1"/>
+                        <field name="rebuild_oss_registration_evidence" invisible="not rebuild_oss_registered"/>
+                    </group>
                 </page>
             </xpath>
         </field>

@@ -24,7 +24,7 @@
     <record id="group_rebuild_accountant_reviewer" model="res.groups">
         <field name="name">USL Accountant Review</field>
         <field name="privilege_id" ref="account.res_groups_privilege_accounting"/>
-        <field name="comment">Read-only access to accounting records, reports, controls and supporting evidence.</field>
+        <field name="comment">Read-only accounting access plus scoped, audited declaration-review decisions for allowed companies.</field>
         <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
