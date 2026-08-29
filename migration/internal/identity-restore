@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
+usl_verify_compose_scope "$compose_project" "$ROOT" "Identity restoration"
+
+case "$target_database" in
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
+        echo "Refusing protected identity target $target_database." >&2
+        exit 2
+        ;;
+esac
+
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir." >&2
+    exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+[[ "$source_sha256" == "${USL_MIGRATION_SOURCE_SHA256:?migration/manage did not resolve the source checksum}" ]] || {
+  printf 'Identity source checksum differs from the recorded runtime.\n' >&2; exit 2;
+}
+source_snapshot="source-${source_sha256:0:12}"
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+compose=(docker compose -p "$compose_project")
+product_was_running=0
+if "${compose[@]}" ps --status running --services | grep -qx odoo; then
+    product_was_running=1
+    "${compose[@]}" stop odoo >/dev/null
+fi
+restore_product_service() {
+    if ((product_was_running)); then
+        "${compose[@]}" up -d --wait odoo
+    fi
+}
+trap restore_product_service EXIT INT TERM
+
+run_shell() {
+    local script_path="$1"
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e IDENTITY_SOURCE_DB_HOST="${IDENTITY_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e IDENTITY_SOURCE_DB_PORT="${IDENTITY_SOURCE_DB_PORT:-5432}" \
+        -e IDENTITY_SOURCE_DB_USER="${IDENTITY_SOURCE_DB_USER:-odoo}" \
+        -e IDENTITY_SOURCE_DB_PASSWORD="${IDENTITY_SOURCE_DB_PASSWORD:-odoo}" \
+        -e IDENTITY_SOURCE_DATABASE="${IDENTITY_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
+        -e IDENTITY_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e IDENTITY_MANAGER_TARGET_LOGIN="${IDENTITY_MANAGER_TARGET_LOGIN:-valentin}" \
+        project-migration \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" \
+        --database="$target_database" --shell-interface=python \
+        < "$script_path"
+}
+
+install_module() {
+    local operation="--init=usl_identity_restore"
+    if "${compose[@]}" exec -T db psql -U "${ODOO_DB_USER:-odoo}" \
+        -d "$target_database" -Atc \
+        "SELECT 1 FROM ir_module_module WHERE name='usl_identity_restore' AND state='installed'" \
+        | grep -qx 1; then
+        operation="--update=usl_identity_restore"
+    fi
+    "${compose[@]}" --profile project-migration run --rm \
+        -e ODOO_INIT_DB="$target_database" project-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        "$operation" --without-demo=true --stop-after-init
+}
+
+case "$command_name" in
+    install) install_module ;;
+    import) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_restore.py ;;
+    validate) run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py ;;
+    preferences)
+        # Full Identity parity is proven immediately after the Identity import.
+        # By this later stage HR has deliberately enriched source partner 26's
+        # inconsistent employee flag from its source hr.employee relationship,
+        # so replaying the pre-HR validator here would reject the canonical
+        # product state.  The preference importer validates the locked source
+        # perimeter, every referenced user/action/business record, ambiguity,
+        # and the exact target values while it performs its idempotent upsert.
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_preferences.py
+        ;;
+    finalize)
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/finalize_restore.py
+        scripts/check-product-migration-boundary
+        ;;
+    all)
+        install_module
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/run_restore.py
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/validate_restore.py
+        run_shell migration/identity_restore/addons/usl_identity_restore/scripts/finalize_restore.py
+        scripts/check-product-migration-boundary
+        ;;
+    *)
+        echo "Usage: migration/internal/identity-restore [install|import|validate|preferences|finalize|all]" >&2
+        exit 2
+        ;;
+esac

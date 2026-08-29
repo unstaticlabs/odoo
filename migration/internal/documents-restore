@@ -1,0 +1,722 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
+
+command_name="${1:-all}"
+canonical_env_file="${POCKET_ID_ENV_FILE:?migration/manage did not provide its temporary identity environment}"
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+source_database=odoo_online_source_saas_19_3
+source_dump_dir="${USL_ONLINE_DUMP_DIR:?migration/manage did not resolve USL_ONLINE_DUMP_DIR}"
+paperless_port="${PAPERLESS_HTTP_PORT:?migration/manage did not resolve PAPERLESS_HTTP_PORT}"
+odoo_port="${ODOO_HTTP_PORT:?migration/manage did not resolve ODOO_HTTP_PORT}"
+odoo_gevent_port="${ODOO_GEVENT_PORT:?migration/manage did not resolve ODOO_GEVENT_PORT}"
+canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
+restore_profile="${DOCUMENTS_RESTORE_PROFILE:-full}"
+paperless_task_workers="${DOCUMENTS_PAPERLESS_TASK_WORKERS:-1}"
+defer_semantic_index="${DOCUMENTS_DEFER_SEMANTIC_INDEX:-1}"
+restore_timeout="${DOCUMENTS_RESTORE_TIMEOUT-7200}"
+semantic_runtime_deferred=0
+case "$restore_profile" in
+    full|accounting|hr|smoke) ;;
+    *)
+        echo "Documents restore profile must be full, accounting, hr, or smoke." >&2
+        exit 2
+        ;;
+esac
+case "$paperless_task_workers" in
+    1|2|3|4) ;;
+    *)
+        echo "Documents Paperless task workers must be between 1 and 4." >&2
+        exit 2
+        ;;
+esac
+case "$defer_semantic_index" in
+    0|1) ;;
+    *)
+        echo "Documents semantic-index deferral must be 0 or 1." >&2
+        exit 2
+        ;;
+esac
+case "$restore_timeout" in
+    ""|*[!0-9]*|0)
+        echo "Documents restore timeout must be a positive number of seconds." >&2
+        exit 2
+        ;;
+esac
+case "$canonical_reset" in
+    0|1) ;;
+    *) echo "Documents reset flag must be 0 or 1." >&2; exit 2 ;;
+esac
+case "$compose_project" in
+    *[!A-Za-z0-9_.-]*|"")
+        echo "Documents Compose project is unsafe for evidence storage." >&2
+        exit 2
+        ;;
+esac
+archive_evidence_path="$(dirname "$USL_MIGRATION_RUNTIME_STATE")/paperless-archive.json"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
+
+if [[ "$target_database" != "odoo_dev" ]]; then
+    echo "Canonical Documents restoration is reserved for odoo_dev." >&2
+    exit 2
+fi
+usl_verify_compose_scope "$compose_project" "$ROOT" "Documents restoration"
+case "$target_database" in
+    ""|odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native|*[!A-Za-z0-9_]*)
+        echo "Refusing unsafe Documents migration target $target_database." >&2
+        exit 2
+        ;;
+esac
+case "$paperless_port:$odoo_port:$odoo_gevent_port" in
+    *[!0-9:]*)
+        echo "Documents restoration ports must be numeric." >&2
+        exit 2
+        ;;
+esac
+if [[ "$paperless_port" == "$odoo_port" \
+    || "$paperless_port" == "$odoo_gevent_port" \
+    || "$odoo_port" == "$odoo_gevent_port" ]]; then
+    echo "Documents restoration ports must be distinct." >&2
+    exit 2
+fi
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir." >&2
+    exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+[[ "$source_sha256" == "${USL_MIGRATION_SOURCE_SHA256:?migration/manage did not resolve the source checksum}" ]] || {
+    echo "Documents source checksum differs from the recorded runtime." >&2; exit 2;
+}
+source_snapshot="source-${source_sha256:0:12}"
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export PAPERLESS_HTTP_PORT="$paperless_port"
+export PAPERLESS_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:?migration/manage did not resolve PAPERLESS_PUBLIC_URL}"
+export PAPERLESS_ALLOWED_HOSTS="${PAPERLESS_ALLOWED_HOSTS:-localhost,127.0.0.1,paperless-webserver,paperless.localhost}"
+export PAPERLESS_CORS_ALLOWED_HOSTS="${PAPERLESS_CORS_ALLOWED_HOSTS:-$PAPERLESS_PUBLIC_URL}"
+export PAPERLESS_CSRF_TRUSTED_ORIGINS="${PAPERLESS_CSRF_TRUSTED_ORIGINS:-$PAPERLESS_PUBLIC_URL}"
+export PAPERLESS_EMPTY_TRASH_DELAY=36500
+export PAPERLESS_TASK_WORKERS="$paperless_task_workers"
+export ODOO_HTTP_PORT="$odoo_port"
+export ODOO_GEVENT_PORT="$odoo_gevent_port"
+export ODOO_DB_NAME="$target_database"
+export ODOO_DB_FILTER="^${target_database}$"
+export PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000
+export USL_POCKET_ID_ENABLED=0
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+usl_prepare_ollama_runtime "$ROOT"
+
+append_compose_file() {
+    local compose_file="$1"
+    case ":${COMPOSE_FILE:-}:" in
+        *":$compose_file:"*) ;;
+        *) export COMPOSE_FILE="${COMPOSE_FILE:+$COMPOSE_FILE:}$compose_file" ;;
+    esac
+}
+
+if [[ -z "${COMPOSE_FILE:-}" ]]; then
+    export COMPOSE_FILE="$ROOT/compose.yaml"
+fi
+append_compose_file "$ROOT/compose.pocket-id.yaml"
+if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]; then
+    append_compose_file "$USL_POCKET_ID_COMPOSE_EXTRA_FILE"
+fi
+compose=(docker compose -p "$compose_project" --env-file "$canonical_env_file")
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+    append_compose_file "$USL_OLLAMA_COMPOSE_OVERRIDE"
+fi
+
+validate_source() {
+    local source_status
+    "${compose[@]}" --profile accounting-compat up -d --wait accounting-source-db db
+    source_status="$("${compose[@]}" exec -T -e PGOPTIONS='-c default_transaction_read_only=on' \
+        accounting-source-db psql \
+        -U "${ACCOUNTING_SOURCE_POSTGRES_USER:-odoo}" \
+        -d "$source_database" -Atc \
+        "SELECT current_setting('transaction_read_only'), count(*) FROM documents_document")"
+    if [[ ! "$source_status" =~ ^on\|[1-9][0-9]*$ ]]; then
+        echo "The dump-bound source Documents table is absent, empty, or writable." >&2
+        exit 1
+    fi
+    printf 'Source Documents identities: %s\n' "${source_status#on|}"
+}
+
+start_archive() {
+    "${compose[@]}" --profile paperless up -d --wait --pull never \
+        paperless-preflight paperless-db paperless-broker paperless-trash-init \
+        paperless-gotenberg paperless-tika paperless-webserver
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
+        python manage.py shell < scripts/paperless_office_parser_preflight.py
+}
+
+enable_semantic_index_deferral() {
+    if [[ "$defer_semantic_index" != 1 ]]; then
+        return
+    fi
+    export PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true
+    semantic_runtime_deferred=1
+    printf 'Paperless semantic indexing: deferred until the bounded archive import completes.\n'
+}
+
+restore_semantic_runtime() {
+    if [[ "$semantic_runtime_deferred" != 1 ]]; then
+        return
+    fi
+    export PAPERLESS_USL_DEFER_SEMANTIC_INDEX=false
+    "${compose[@]}" --profile paperless up -d --wait --pull never \
+        --force-recreate --no-deps paperless-webserver
+    semantic_runtime_deferred=0
+    printf 'Paperless semantic indexing: normal incremental processing restored.\n'
+}
+
+wait_for_archive_tasks() {
+    local active_tasks deadline
+    deadline=$((SECONDS + restore_timeout))
+    while true; do
+        active_tasks="$(
+            "${compose[@]}" exec -T paperless-db psql \
+                -U "${PAPERLESS_DB_USER:-paperless}" \
+                -d "${PAPERLESS_DB_NAME:-paperless}" -Atc \
+                "SELECT count(*) FROM documents_paperlesstask
+                 WHERE status NOT IN ('success', 'failure', 'revoked')"
+        )"
+        [[ "$active_tasks" =~ ^[0-9]+$ ]] || {
+            echo "Could not read the Paperless task backlog." >&2
+            return 1
+        }
+        if [[ "$active_tasks" == 0 ]]; then
+            return
+        fi
+        if ((SECONDS >= deadline)); then
+            printf 'Paperless still has %s active tasks after the restore timeout.\n' \
+                "$active_tasks" >&2
+            return 1
+        fi
+        sleep 2
+    done
+}
+
+finalize_semantic_index() {
+    local elapsed inventory started
+    if [[ "$defer_semantic_index" != 1 ]]; then
+        return
+    fi
+    wait_for_archive_tasks
+    restore_semantic_runtime
+    started=$SECONDS
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
+        python manage.py document_llmindex migrate --no-progress-bar
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
+        python manage.py document_llmindex update --no-progress-bar
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
+        python manage.py document_llmindex compact --no-progress-bar
+    elapsed=$((SECONDS - started))
+    inventory="$(
+        "${compose[@]}" exec -T paperless-webserver python manage.py shell \
+            < scripts/paperless_release_inventory.py
+    )"
+    printf '%s\n' "$inventory"
+    printf '%s\n' "$inventory" | python3 -c '
+import json
+import sys
+
+payloads = {}
+for line in sys.stdin:
+    for prefix, key in (
+        ("USL_PAPERLESS_RELEASE_INVENTORY=", "paperless"),
+        ("USL_PAPERLESS_VECTOR_INVENTORY=", "vector"),
+    ):
+        if line.startswith(prefix):
+            payloads[key] = json.loads(line[len(prefix):])
+if set(payloads) != {"paperless", "vector"}:
+    raise SystemExit("Paperless semantic-index finalization emitted incomplete evidence")
+if any(payload["status"] != "passed" for payload in payloads.values()):
+    raise SystemExit("Paperless semantic-index finalization did not reach parity")
+'
+    printf 'Paperless semantic bulk update: %ss.\n' "$elapsed"
+}
+
+reset_canonical_archive() {
+    local volume
+    if [[ "$canonical_reset" != 1 ]]; then
+        return
+    fi
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e DOCUMENTS_CANONICAL_RESET_CONFIRMED=1 \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reset_target_cache.py
+    "${compose[@]}" --profile paperless rm -sf \
+        paperless-access-init paperless-webserver paperless-db paperless-broker \
+        paperless-trash-init paperless-gotenberg paperless-tika paperless-preflight
+    for volume in \
+        paperless-postgres-data paperless-broker-data paperless-data \
+        paperless-media paperless-export paperless-consume paperless-trash
+    do
+        if docker volume inspect "${compose_project}_${volume}" >/dev/null 2>&1; then
+            docker volume rm "${compose_project}_${volume}" >/dev/null
+        fi
+    done
+    printf 'Reset disposable canonical Paperless archive for dump reconstruction.\n'
+}
+
+read_archive_state() {
+    local archive_json archive_totals
+    archive_json="$(
+        "${compose[@]}" exec -T paperless-db psql \
+            -U "${PAPERLESS_DB_USER:-paperless}" \
+            -d "${PAPERLESS_DB_NAME:-paperless}" -Atc \
+            "SELECT COALESCE(
+                jsonb_agg(
+                    jsonb_build_array(
+                        id, deleted_at IS NOT NULL, title, mime_type, checksum,
+                        archive_checksum, page_count, created, filename,
+                        archive_filename, original_filename, correspondent_id,
+                        document_type_id, storage_path_id, content_length,
+                        root_document_id, version_label, version_index
+                    ) ORDER BY id
+                ),
+                '[]'::jsonb
+            )::text FROM documents_document"
+    )"
+    archive_totals="$(
+        "${compose[@]}" exec -T paperless-db psql \
+            -U "${PAPERLESS_DB_USER:-paperless}" \
+            -d "${PAPERLESS_DB_NAME:-paperless}" -Atc \
+            "SELECT count(*), count(*) FILTER (WHERE deleted_at IS NOT NULL)
+             FROM documents_document"
+    )"
+    IFS='|' read -r archive_document_count archive_trash_count <<<"$archive_totals"
+    archive_roots_sha256="$(
+        printf '%s' "$archive_json" | shasum -a 256 | awk '{print $1}'
+    )"
+    if [[ ! "$archive_document_count" =~ ^[0-9]+$ \
+        || ! "$archive_trash_count" =~ ^[0-9]+$ \
+        || ! "$archive_roots_sha256" =~ ^[0-9a-f]{64}$ ]]; then
+        echo "Could not calculate the Paperless archive evidence state." >&2
+        exit 1
+    fi
+}
+
+archive_evidence_args() {
+    local compose_config paperless_image postgres_image gotenberg_image tika_image
+    local ocr_language barcodes ocr_user_args
+    compose_config="$("${compose[@]}" --profile paperless config --format json)"
+    IFS=$'\t' read -r paperless_image postgres_image gotenberg_image tika_image \
+        ocr_language barcodes ocr_user_args < <(
+        python3 -c '
+import json, sys
+config = json.load(sys.stdin)
+services = config["services"]
+web = services["paperless-webserver"]
+environment = web.get("environment") or {}
+values = (
+    web["image"],
+    services["paperless-db"]["image"],
+    services["paperless-gotenberg"]["image"],
+    services["paperless-tika"]["image"],
+    str(environment.get("PAPERLESS_OCR_LANGUAGE", "")),
+    str(environment.get("PAPERLESS_CONSUMER_ENABLE_BARCODES", "")),
+    str(environment.get("PAPERLESS_OCR_USER_ARGS", "")),
+)
+print("\t".join(values))
+' <<<"$compose_config"
+    )
+    archive_evidence_arguments=(
+        --output "$archive_evidence_path"
+        --source-sha256 "$source_sha256"
+        --archive-sha256 "$archive_roots_sha256"
+        --document-count "$archive_document_count"
+        --trash-count "$archive_trash_count"
+        --runtime "paperless=$paperless_image"
+        --runtime "postgres=$postgres_image"
+        --runtime "gotenberg=$gotenberg_image"
+        --runtime "tika=$tika_image"
+        --runtime "ocr_language=$ocr_language"
+        --runtime "barcodes=$barcodes"
+        --runtime "ocr_user_args=$ocr_user_args"
+        --runtime "api=v10"
+    )
+}
+
+seal_archive_evidence() {
+    if [[ "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        printf 'Limited Documents restore cannot seal complete archive evidence.\n'
+        return
+    fi
+    read_archive_state
+    archive_evidence_args
+    python3 migration/documents_archive/archive_evidence.py \
+        "${archive_evidence_arguments[@]}"
+}
+
+validate_runtime() {
+    local database_exists runtime_database runtime_filter
+    runtime_database="$(
+        "${compose[@]}" exec -T odoo \
+            sed -n 's/^db_name[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+            | tr -d '\r' | tail -n 1
+    )"
+    runtime_filter="$(
+        "${compose[@]}" exec -T odoo \
+            sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+            | tr -d '\r' | tail -n 1
+    )"
+    [[ -z "$runtime_database" || "$runtime_database" = "$target_database" ]] || {
+        echo "Migration Odoo runtime database mismatch: $runtime_database" >&2
+        return 1
+    }
+    [[ "$runtime_filter" = "^${target_database}$" ]] || {
+        echo "Migration Odoo runtime filter mismatch: $runtime_filter" >&2
+        return 1
+    }
+    database_exists="$(
+        "${compose[@]}" exec -T db psql \
+            -U "${ODOO_DB_USER:-odoo}" -d postgres -Atc \
+            "SELECT count(*) FROM pg_database WHERE datname = '$target_database'" \
+            | tail -n 1
+    )"
+    [[ "$database_exists" = 1 ]] || {
+        echo "Migration Odoo target database is absent: $target_database" >&2
+        return 1
+    }
+    curl --fail --silent "http://127.0.0.1:$odoo_port/web/health?db_server_status=1" >/dev/null
+    curl --fail --silent "http://127.0.0.1:$paperless_port/api/" >/dev/null
+    printf 'Migration Odoo: http://127.0.0.1:%s\n' "$odoo_port"
+    printf 'Migration Paperless: http://127.0.0.1:%s\n' "$paperless_port"
+}
+
+require_source_bindings() {
+    local missing_bindings
+    missing_bindings="$(
+        "${compose[@]}" exec -T db psql \
+            -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -X -qAtc \
+            "WITH required(table_name, column_name) AS (
+                 VALUES
+                   ('res_company', 'rebuild_source_model'),
+                   ('res_company', 'rebuild_source_id'),
+                   ('res_users', 'rebuild_source_model'),
+                   ('res_users', 'rebuild_source_id'),
+                   ('res_partner', 'rebuild_source_model'),
+                   ('res_partner', 'rebuild_source_id'),
+                   ('account_move', 'rebuild_source_model'),
+                   ('account_move', 'rebuild_source_id'),
+                   ('hr_employee', 'rebuild_source_model'),
+                   ('hr_employee', 'rebuild_source_id'),
+                   ('ir_attachment', 'rebuild_source_model'),
+                   ('ir_attachment', 'rebuild_source_id')
+             )
+             SELECT string_agg(required.table_name || '.' || required.column_name, ', ' ORDER BY 1)
+               FROM required
+          LEFT JOIN information_schema.columns actual
+                 ON actual.table_schema = 'public'
+                AND actual.table_name = required.table_name
+                AND actual.column_name = required.column_name
+              WHERE actual.column_name IS NULL"
+    )"
+    if [[ -n "$missing_bindings" ]]; then
+        printf 'Documents restoration is blocked: migration source bindings are absent.\n' >&2
+        printf 'Missing: %s\n' "$missing_bindings" >&2
+        printf 'This target has already been finalized; no Documents or Paperless data was changed.\n' >&2
+        printf 'Run a fresh full reconstruction with migration/manage.\n' >&2
+        printf 'Focused import/validation is available only before migration finalization.\n' >&2
+        exit 2
+    fi
+}
+
+serve_target() {
+    start_archive
+    "${compose[@]}" up -d --wait --pull never odoo
+    validate_runtime
+}
+
+provision_archive_identity() {
+    local migration_service_user_id migration_setup runtime_setup
+    runtime_setup="$(
+        "${compose[@]}" --profile paperless exec -T paperless-webserver \
+            python manage.py shell \
+            < deploy/documents/paperless_integration_access.py
+    )"
+    documents_runtime_paperless_token="$(
+        sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$runtime_setup" | tail -n 1
+    )"
+    documents_paperless_service_user_id="$(
+        sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$runtime_setup" | tail -n 1
+    )"
+    migration_setup="$(
+        "${compose[@]}" --profile paperless exec -T paperless-webserver \
+            python manage.py shell \
+            < migration/documents_archive/scripts/paperless_migration_access.py
+    )"
+    documents_paperless_token="$(
+        sed -n 's/^DOCUMENTS_PAPERLESS_TOKEN=//p' <<<"$migration_setup" | tail -n 1
+    )"
+    migration_service_user_id="$(
+        sed -n 's/^DOCUMENTS_PAPERLESS_SERVICE_USER_ID=//p' <<<"$migration_setup" \
+            | tail -n 1
+    )"
+    if [[ -z "$documents_runtime_paperless_token" \
+        || -z "$documents_paperless_token" \
+        || ! "$documents_paperless_service_user_id" =~ ^[1-9][0-9]*$ \
+        || ! "$migration_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Could not provision the Paperless runtime and migration identities." >&2
+        exit 1
+    fi
+    trap cleanup_documents_restore EXIT
+}
+
+deprovision_archive_identity() {
+    if [[ -z "${documents_paperless_token:-}" ]]; then
+        return
+    fi
+    "${compose[@]}" --profile paperless exec -T paperless-webserver \
+        python manage.py shell \
+        < migration/documents_archive/scripts/paperless_migration_access_cleanup.py \
+        >/dev/null
+    documents_paperless_token=""
+}
+
+configure_runtime_archive_identity() {
+    local setup runtime_token runtime_service_user_id
+    runtime_token="${documents_runtime_paperless_token:-}"
+    runtime_service_user_id="${documents_paperless_service_user_id:-}"
+    if [[ -z "$runtime_token" || ! "$runtime_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        setup="$(
+            "${compose[@]}" --profile paperless exec -T paperless-webserver \
+                python manage.py shell \
+                < deploy/documents/paperless_integration_access.py
+        )"
+        runtime_token="$(
+            sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1
+        )"
+        runtime_service_user_id="$(
+            sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
+        )"
+    fi
+    if [[ -z "$runtime_token" || ! "$runtime_service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Could not restore the permanent Paperless integration identity." >&2
+        return 1
+    fi
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e PAPERLESS_RUNTIME_INTERNAL_URL=http://paperless-webserver:8000 \
+        -e PAPERLESS_RUNTIME_PUBLIC_URL="http://127.0.0.1:$paperless_port" \
+        -e PAPERLESS_RUNTIME_TOKEN="$runtime_token" \
+        -e PAPERLESS_RUNTIME_SERVICE_USER_ID="$runtime_service_user_id" \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < scripts/odoo/documents_runtime_config.py \
+        >/dev/null
+}
+
+cleanup_documents_restore() {
+    local cleanup_status=0 exit_status=$?
+    trap - EXIT
+    deprovision_archive_identity || cleanup_status=$?
+    # Archive migration owns a short-lived superuser token. Restoring the
+    # ordinary integration identity here is part of the boundary: downstream
+    # product stages must never inherit the revoked migration credential.
+    configure_runtime_archive_identity || cleanup_status=$?
+    restore_semantic_runtime || cleanup_status=$?
+    if ((exit_status == 0 && cleanup_status != 0)); then
+        exit_status=$cleanup_status
+    fi
+    exit "$exit_status"
+}
+
+install_module() {
+    local operation="--init=usl_documents,usl_documents_accounting"
+    if [[ "$("${compose[@]}" exec -T db psql -U "${ODOO_DB_USER:-odoo}" \
+        -d "$target_database" -Atc \
+        "SELECT count(*) FROM ir_module_module WHERE name IN ('usl_documents','usl_documents_accounting') AND state='installed'" \
+        | tail -n 1)" = 2 ]]; then
+        # Revalidate the accounting parent before its Documents extension.
+        # Existing reconstructed databases can still contain an older stored
+        # parent view even though the checked-out Python model is current.
+        operation="--update=rebuild_account_migration,usl_documents,usl_expense_batch,usl_platform_billing,usl_tese_payroll,usl_documents_accounting"
+    fi
+    "${compose[@]}" --profile project-migration run --rm \
+        -e ODOO_INIT_DB="$target_database" project-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        "$operation" --without-demo=true --stop-after-init --log-level=warn
+}
+
+run_restore() {
+    local evidence_dir evidence_label restore_log restore_result restore_status
+    provision_archive_identity
+    evidence_dir="accounting_compat/private/snapshots/$source_snapshot/evidence"
+    evidence_label="${restore_profile}-${command_name}"
+    if [[ "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        evidence_label="limit-${DOCUMENTS_RESTORE_LIMIT}-${command_name}"
+    fi
+    restore_log="$evidence_dir/documents-restore-$evidence_label.log"
+    restore_result="$evidence_dir/documents-restore-$evidence_label.json"
+    mkdir -p "$evidence_dir"
+    restore_status=0
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e DOCUMENTS_SOURCE_DB_HOST="${DOCUMENTS_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e DOCUMENTS_SOURCE_DB_PORT="${DOCUMENTS_SOURCE_DB_PORT:-5432}" \
+        -e DOCUMENTS_SOURCE_DB_USER="${DOCUMENTS_SOURCE_DB_USER:-odoo}" \
+        -e DOCUMENTS_SOURCE_DB_PASSWORD="${DOCUMENTS_SOURCE_DB_PASSWORD:-odoo}" \
+        -e DOCUMENTS_SOURCE_DATABASE="$source_database" \
+        -e DOCUMENTS_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
+        -e DOCUMENTS_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e DOCUMENTS_SOURCE_DUMP_SHA256="$source_sha256" \
+        -e DOCUMENTS_RESTORE_LIMIT="${DOCUMENTS_RESTORE_LIMIT:-0}" \
+        -e DOCUMENTS_RESTORE_PROFILE="$restore_profile" \
+        -e DOCUMENTS_RESTORE_MAX_IN_FLIGHT="${DOCUMENTS_RESTORE_MAX_IN_FLIGHT:-16}" \
+        -e DOCUMENTS_RESTORE_TIMEOUT="$restore_timeout" \
+        -e DOCUMENTS_PAPERLESS_URL=http://paperless-webserver:8000 \
+        -e DOCUMENTS_PAPERLESS_PUBLIC_URL="http://127.0.0.1:$paperless_port" \
+        -e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token" \
+        -e DOCUMENTS_PAPERLESS_SERVICE_USER_ID="$documents_paperless_service_user_id" \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/source_documents_restore.py \
+        | tee "$restore_log" \
+        || restore_status=${PIPESTATUS[0]}
+    if ((restore_status != 0)); then
+        return "$restore_status"
+    fi
+    python3 migration/documents_archive/evidence.py "$restore_log" "$restore_result"
+}
+
+run_native_attachment_bridge() {
+    local evidence_dir bridge_log bridge_result bridge_status
+    if [[ "$restore_profile" != full || "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        printf 'Native attachment bridge: skipped for partial Documents profile.\n'
+        return
+    fi
+    evidence_dir="accounting_compat/private/snapshots/$source_snapshot/evidence"
+    bridge_log="$evidence_dir/documents-native-attachment-bridge-$command_name.log"
+    bridge_result="$evidence_dir/documents-native-attachment-bridge-$command_name.json"
+    bridge_status=0
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token" \
+        -e DOCUMENTS_PAPERLESS_SERVICE_USER_ID="$documents_paperless_service_user_id" \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reconcile_native_attachments.py \
+        | tee "$bridge_log" \
+        || bridge_status=${PIPESTATUS[0]}
+    if ((bridge_status != 0)); then
+        return "$bridge_status"
+    fi
+    python3 - "$bridge_log" "$bridge_result" <<'PY'
+import json
+import pathlib
+import sys
+
+prefix = "USL_NATIVE_ATTACHMENT_BRIDGE="
+lines = pathlib.Path(sys.argv[1]).read_text().splitlines()
+payloads = [json.loads(line[len(prefix):]) for line in lines if line.startswith(prefix)]
+if len(payloads) != 1:
+    raise SystemExit("Native attachment bridge did not emit exactly one result.")
+path = pathlib.Path(sys.argv[2])
+path.write_text(json.dumps(payloads[0], indent=2, sort_keys=True) + "\n")
+PY
+    deprovision_archive_identity
+}
+
+reconcile_locked_classification() {
+    "${compose[@]}" --profile project-migration run --rm -T \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reconcile_locked_classification.py
+}
+
+case "$command_name" in
+    prepare-target)
+        # Install the product models and security before identity restoration so
+        # source Documents memberships can be translated deterministically.
+        # Paperless itself is intentionally not started until the archive stage.
+        validate_source
+        "${compose[@]}" --profile accounting-compat up -d --wait db
+        install_module
+        ;;
+    install)
+        validate_source
+        start_archive
+        install_module
+        ;;
+    import|validate)
+        validate_source
+        require_source_bindings
+        enable_semantic_index_deferral
+        trap cleanup_documents_restore EXIT
+        start_archive
+        run_restore
+        run_native_attachment_bridge
+        wait_for_archive_tasks
+        finalize_semantic_index
+        seal_archive_evidence
+        ;;
+    all)
+        validate_source
+        require_source_bindings
+        reset_canonical_archive
+        enable_semantic_index_deferral
+        trap cleanup_documents_restore EXIT
+        start_archive
+        install_module
+        run_restore
+        run_native_attachment_bridge
+        wait_for_archive_tasks
+        finalize_semantic_index
+        scripts/check-product-migration-boundary
+        seal_archive_evidence
+        ;;
+    seal-evidence)
+        if [[ "$restore_profile" != full ]]; then
+            echo "Final archive evidence requires the complete source profile." >&2
+            exit 2
+        fi
+        validate_source
+        require_source_bindings
+        start_archive
+        seal_archive_evidence
+        ;;
+    reconcile-locked-classification)
+        if [[ "$restore_profile" != full ]]; then
+            echo "Locked Documents classification reconciliation requires the canonical full target." >&2
+            exit 2
+        fi
+        start_archive
+        reconcile_locked_classification
+        ;;
+    semantic-finalize)
+        if [[ "$restore_profile" != full ]]; then
+            echo "Documents semantic finalization requires the canonical full target." >&2
+            exit 2
+        fi
+        start_archive
+        semantic_runtime_deferred=1
+        finalize_semantic_index
+        ;;
+    serve)
+        "${compose[@]}" --profile accounting-compat up -d --wait db
+        serve_target
+        ;;
+    status)
+        "${compose[@]}" ps
+        validate_runtime
+        ;;
+    *)
+        echo "Usage: migration/internal/documents-restore [prepare-target|install|import|validate|all|seal-evidence|reconcile-locked-classification|semantic-finalize|serve|status]" >&2
+        exit 2
+        ;;
+esac

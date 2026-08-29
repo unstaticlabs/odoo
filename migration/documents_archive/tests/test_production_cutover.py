@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
     "production_cutover",
-    ROOT / "scripts/production_cutover.py",
+    ROOT / "migration/cutover.py",
 )
 cutover = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(cutover)
@@ -113,7 +113,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.temporary.cleanup()
 
     def test_preproduction_overlay_uses_packaged_distribution_paths(self):
-        overlay = (ROOT / "compose.preprod.yaml").read_text(encoding="utf-8")
+        overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
         packaged_addons = (
@@ -139,8 +139,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "/run/usl-sign:ro"
         )
         for relative in (
-            "compose.preprod.yaml",
-            "compose.documents.preprod.yaml",
+            "compose.production.yaml",
             "compose.external-pocket-id.yaml",
         ):
             with self.subTest(overlay=relative):
@@ -148,28 +147,9 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 self.assertEqual(overlay.count(renderer_mount), 2)
                 self.assertEqual(overlay.count(sign_mount), 2)
 
-    def test_preproduction_clean_install_enforces_product_module_scope(self):
-        release_script = (ROOT / "scripts/preprod-release").read_text(
-            encoding="utf-8",
-        )
-        clean_install = release_script.split("clean_install_product() {", 1)[1].split(
-            "\n}\n\nreconstruct_target()",
-            1,
-        )[0]
-
-        install_position = clean_install.index('--init="$product_modules"')
-        scope_position = clean_install.index(
-            'scripts/odoo/enforce_product_module_scope.py',
-        )
-        boundary_position = clean_install.index(
-            'scripts/check-product-database-boundary',
-        )
-        self.assertLess(install_position, scope_position)
-        self.assertLess(scope_position, boundary_position)
-
     def test_production_admission_owns_sign_services(self):
-        overlay = (ROOT / "compose.preprod.yaml").read_text(encoding="utf-8")
-        release_script = (ROOT / "scripts/production-cutover").read_text(
+        overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
+        release_script = (ROOT / "migration/internal/cutover").read_text(
             encoding="utf-8",
         )
 

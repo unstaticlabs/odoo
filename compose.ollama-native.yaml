@@ -1,6 +1,14 @@
 # Local macOS acceleration. Production and Linux recovery keep the pinned
 # containerized Ollama service and its portable model volume.
 services:
+  paperless-ollama:
+    # Keep the portable service defined for Linux, but outside every local
+    # migration profile when native macOS Ollama is selected.
+    profiles: !override ["docker-ollama-disabled"]
+
+  paperless-model-init:
+    profiles: !override ["docker-ollama-disabled"]
+
   paperless-model-preflight:
     depends_on: !reset {}
     environment:

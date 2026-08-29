@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
     "documents_release_bundle",
-    ROOT / "scripts/documents_release_bundle.py",
+    ROOT / "migration/documents_archive/release_bundle.py",
 )
 bundle = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(bundle)
@@ -127,7 +127,7 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
             bundle.accept(self.root)
 
     def test_paperless_clone_sanitizer_bypasses_service_init(self):
-        script = (ROOT / "scripts/documents-release-bundle").read_text(
+        script = (ROOT / "migration/internal/documents-release").read_text(
             encoding="utf-8",
         )
 
@@ -138,7 +138,7 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
         self.assertIn('paperless-webserver manage.py shell \\\n', script)
 
     def test_extracted_inventory_ends_with_a_real_newline(self):
-        script = (ROOT / "scripts/documents-release-bundle").read_text(
+        script = (ROOT / "migration/internal/documents-release").read_text(
             encoding="utf-8",
         )
 
@@ -152,7 +152,7 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
         )
 
     def test_restore_provisions_odoo_runtime_volume_ownership(self):
-        script = (ROOT / "scripts/documents-release-bundle").read_text(
+        script = (ROOT / "migration/internal/documents-release").read_text(
             encoding="utf-8",
         )
 

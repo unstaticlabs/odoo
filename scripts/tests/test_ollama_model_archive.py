@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[2]
-SCRIPT = ROOT / "scripts/ollama_model_archive.py"
+SCRIPT = ROOT / "migration/documents_archive/ollama_model_archive.py"
 MANIFEST_RELATIVE = Path(
     "manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1",
 )

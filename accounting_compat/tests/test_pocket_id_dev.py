@@ -138,71 +138,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         ):
             POCKET_ID_DEV.PocketIDAPI(values)
 
-    def test_sign_test_cleanup_reuses_the_built_test_image(self):
-        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
-            encoding="utf-8",
-        )
-        test_body = stack[
-            stack.index("test_stack() {") : stack.index("\n}\n\ntest_pocket_patch()")
-        ]
-
-        self.assertIn("--no-deps --entrypoint sh", test_body)
-        self.assertIn(
-            'TEST_DATABASE="$database" test -c',
-            test_body,
-        )
-        self.assertNotIn(
-            'TEST_DATABASE="$database" init-db -c',
-            test_body,
-        )
-
-    def test_sign_stack_reprovisions_clients_when_public_urls_change(self):
-        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
-            encoding="utf-8",
-        )
-        upgrade_body = stack[
-            stack.index("upgrade_qa() {") : stack.index("\n}\n\nlogs()")
-        ]
-        paperless_body = stack[
-            stack.index("configure_paperless_only() {") : stack.index(
-                "\n}\n\narchive_acceptance()",
-            )
-        ]
-
-        self.assertIn("provision_pocket", upgrade_body)
-        self.assertIn("provision_pocket", paperless_body)
-
-    def test_sign_qa_reuses_the_canonical_documents_integration_identity(self):
-        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
-            encoding="utf-8",
-        )
-        integration_access = (
-            ROOT / "deploy" / "documents" / "paperless_integration_access.py"
-        ).read_text(encoding="utf-8")
-
-        self.assertIn(
-            'deploy/documents/paperless_integration_access.py',
-            stack,
-        )
-        self.assertNotIn("paperless_sign_qa_init.py", stack)
-        self.assertIn('username = "odoo-integration"', integration_access)
-        self.assertIn(
-            'legacy_sign_username = "odoo-sign-integration"',
-            integration_access,
-        )
-        self.assertIn(
-            "PaperlessTask.objects.filter(",
-            integration_access,
-        )
-        self.assertIn(
-            "Token.objects.filter(user=legacy_sign_user).delete()",
-            integration_access,
-        )
-        self.assertIn(
-            "legacy_sign_user.is_active = False",
-            integration_access,
-        )
-
     def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"
@@ -295,6 +230,8 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             api,
             "odoo-client",
             "qa-secret-value-for-tests",
+            existing=True,
+            client={},
         )
 
         self.assertEqual(
@@ -322,6 +259,8 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             api,
             "odoo-client",
             "qa-secret-value-for-tests",
+            existing=True,
+            client={},
         )
 
         api.request.assert_called_once_with(
@@ -414,58 +353,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
                 ),
             ):
                 POCKET_ID_DEV._write_new_env(path)
-
-    def test_canonical_reconstruction_applies_target_policy_last(self):
-        script = (ROOT / "scripts" / "target-reconstruct").read_text(
-            encoding="utf-8",
-        )
-        execution = script.split(
-            'run_stage "target identity preflight"',
-            1,
-        )[1]
-        ordered_steps = [
-            'run_stage "reset target database"',
-            'run_stage "import accounting"',
-            'run_stage "validate accounting"',
-            'run_stage "restore product data"',
-            'run_stage "restore B2C commerce evidence"',
-            'run_stage "restore Projects"',
-            'run_stage "restore Documents archive"',
-            'run_stage "finalize B2C relationships and Documents links"',
-            'run_stage "restore Paie TESE"',
-            'run_stage "restore Platform Billing"',
-            'run_stage "finalize migration boundary"',
-            'run_stage "apply target configuration"',
-        ]
-        positions = []
-        cursor = 0
-        for step in ordered_steps:
-            position = execution.index(step, cursor)
-            positions.append(position)
-            cursor = position + len(step)
-
-        self.assertEqual(positions, sorted(positions))
-        self.assertGreaterEqual(script.count("stop_product"), 5)
-        self.assertIn(
-            'docker compose -p "$compose_project" up -d --wait db',
-            script,
-        )
-        self.assertLess(
-            script.index("start_target_database"),
-            script.index("scripts/accounting-compat dev-reset"),
-        )
-        self.assertIn(
-            'export POCKET_ID_ENV_FILE="$ROOT/.pocket-id-${compose_project}.env"',
-            script,
-        )
-        self.assertIn(
-            'run_stage "restore Platform Billing" '
-            "restore_platform_billing_for_reconstruction",
-            script,
-        )
-        self.assertIn("scripts/platform-billing-restore idempotence", script)
-        self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", script)
-        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", script)
 
     def test_local_pocket_helper_has_no_database_clone_lifecycle(self):
         script = (ROOT / "scripts" / "pocket-id-dev").read_text(
@@ -577,9 +464,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         pocket_overlay = (ROOT / "compose.pocket-id.yaml").read_text(
             encoding="utf-8",
         )
-        stack = (ROOT / "scripts" / "documents-stack").read_text(
-            encoding="utf-8",
-        )
         initializer = (
             ROOT / "deploy" / "documents" / "paperless_access_init.py"
         ).read_text(encoding="utf-8")
@@ -603,16 +487,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             pocket_overlay.count("POCKET_ID_EXTRA_USERS_JSON: >-"),
             2,
         )
-        self.assertIn(
-            'run --rm --no-deps paperless-access-init',
-            stack,
-        )
-        self.assertIn(
-            'codename="view_user"',
-            stack,
-        )
-        self.assertNotIn("Permission.objects.all()", stack)
-        self.assertIn("service.set_unusable_password()", stack)
         self.assertIn('provider="pocket-id"', initializer)
         self.assertIn('f"view_{model}"', initializer)
         self.assertNotIn("view_user", initializer)
@@ -651,16 +525,13 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("USL_PAPERLESS_OWNERS_CLAIMED=", integration_access)
 
     def test_target_finalization_reconciles_paperless_people(self):
-        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-        finalizer = (ROOT / "scripts" / "target-finalize").read_text(
+        finalizer = (ROOT / "migration" / "internal" / "finalize").read_text(
             encoding="utf-8",
         )
         apply_script = (
             ROOT / "scripts" / "odoo" / "documents_identity_apply.py"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("paperless-users:", makefile)
-        self.assertIn("sync-paperless-users", makefile)
         self.assertIn("scripts/pocket-id-dev configure-odoo", finalizer)
         self.assertIn("_identity_is_safe", apply_script)
         self.assertIn('remote.get("is_active") is not True', apply_script)
@@ -697,77 +568,6 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             script,
         )
         self.assertIn("No containers were changed.", script)
-
-    def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
-        qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
-            encoding="utf-8",
-        )
-        sso_env = (ROOT / "scripts" / "documents_sso_env.py").read_text(
-            encoding="utf-8",
-        )
-        stack = (ROOT / "scripts" / "documents-stack").read_text(
-            encoding="utf-8",
-        )
-        runtime_config = (
-            ROOT / "scripts" / "odoo" / "documents_runtime_config.py"
-        ).read_text(encoding="utf-8")
-
-        self.assertIn("ODOO_HTTP_PORT=18080", qa_env)
-        self.assertIn("ODOO_GEVENT_PORT=18072", qa_env)
-        self.assertIn("PAPERLESS_HTTP_PORT=18010", qa_env)
-        self.assertIn("PAPERLESS_PUBLIC_URL=http://127.0.0.1:18010", qa_env)
-        self.assertIn(
-            'QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"',
-            sso_env,
-        )
-        self.assertIn('qa_paperless_port" = "18010"', stack)
-        self.assertEqual(stack.count("sync_odoo_runtime_config"), 3)
-        self.assertIn("usl_documents.paperless_public_url", runtime_config)
-        self.assertIn("ensure_fail_closed_ingestion_policy", runtime_config)
-
-    def test_documents_recovery_restores_the_source_callback_environment(self):
-        recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
-            encoding="utf-8",
-        )
-        restore_source = recovery[
-            recovery.index("restore_source() {") :
-            recovery.index("\n}\n\ncleanup_restore()")
-        ]
-
-        self.assertIn(
-            'PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL"',
-            restore_source,
-        )
-        self.assertIn(
-            'PAPERLESS_PUBLIC_BASE_URL="$SOURCE_PAPERLESS_PUBLIC_BASE_URL"',
-            restore_source,
-        )
-        self.assertNotIn("|| true", restore_source)
-        self.assertIn("if ! restore_source; then", recovery)
-        self.assertIn('ODOO_DB_NAME="$SOURCE_DATABASE"', restore_source)
-        self.assertIn('export ODOO_DB_NAME="$RESTORED_DATABASE"', recovery)
-
-    def test_documents_qa_scope_overrides_are_explicit_and_shared(self):
-        stack = (ROOT / "scripts" / "documents-stack").read_text(
-            encoding="utf-8",
-        )
-        recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
-            encoding="utf-8",
-        )
-
-        for script in (stack, recovery):
-            with self.subTest(script=script[:40]):
-                self.assertIn("USL_DOCUMENTS_QA_ISOLATED_OVERRIDE", script)
-                self.assertIn("USL_DOCUMENTS_QA_ENV", script)
-                self.assertIn("USL_DOCUMENTS_QA_SSO_ENV", script)
-                self.assertIn("USL_DOCUMENTS_QA_PROJECT", script)
-                self.assertIn("USL_DOCUMENTS_QA_DB", script)
-                self.assertIn(
-                    "QA scope overrides require "
-                    "USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.",
-                    script,
-                )
-
 
 if __name__ == "__main__":
     unittest.main()

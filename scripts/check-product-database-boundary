@@ -24,7 +24,7 @@ if [[ "${USL_PRODUCT_BOUNDARY_PREPROD:-0}" == "1" ]]; then
     docker compose -p "$COMPOSE_PROJECT_NAME"
     -f "$ROOT/compose.yaml"
     -f "$ROOT/compose.pocket-id.yaml"
-    -f "$ROOT/compose.preprod.yaml"
+    -f "$ROOT/compose.production.yaml"
   )
 fi
 

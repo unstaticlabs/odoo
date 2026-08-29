@@ -11,7 +11,7 @@ def migrate(cr, version):
     """Remove views left by the separately developed attachment bridge.
 
     The canonical development database briefly ran that feature before its
-    commits were intentionally moved to codex/fix-seamless-paperless-documents.
+    changes were intentionally isolated in the Documents migration implementation.
     Without this cleanup, any later account.payment view validation fails
     because the rolled-back view calls a method not present on this branch.
     """

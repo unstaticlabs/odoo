@@ -9,6 +9,26 @@ usl_prepare_ollama_runtime() {
   local host_url="${USL_NATIVE_OLLAMA_HOST_URL:-http://127.0.0.1:11434}"
   local models_root manifest actual
 
+  if [[ -n "${USL_MIGRATION_RUNTIME_STATE:-}" ]]; then
+    case "${USL_OLLAMA_RUNTIME_SELECTED:-}" in
+      native)
+        export USL_OLLAMA_COMPOSE_OVERRIDE="$root/compose.ollama-native.yaml"
+        ;;
+      container)
+        export USL_OLLAMA_COMPOSE_OVERRIDE=""
+        ;;
+      *)
+        printf 'migration/manage did not resolve the Ollama runtime.\n' >&2
+        return 2
+        ;;
+    esac
+    if [[ "$requested" != "$USL_OLLAMA_RUNTIME_SELECTED" ]]; then
+      printf 'Resolved Ollama state differs from the child-stage request.\n' >&2
+      return 2
+    fi
+    return
+  fi
+
   case "$requested" in
     auto|native|container) ;;
     *)

@@ -21,7 +21,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS_SPEC = importlib.util.spec_from_file_location(
     "documents_release_bundle",
-    ROOT / "scripts/documents_release_bundle.py",
+    ROOT / "migration/documents_archive/release_bundle.py",
 )
 documents_release_bundle = importlib.util.module_from_spec(DOCUMENTS_SPEC)
 assert DOCUMENTS_SPEC and DOCUMENTS_SPEC.loader

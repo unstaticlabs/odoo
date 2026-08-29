@@ -1,0 +1,603 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+
+command_name="${1:-help}"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+export COMPOSE_IGNORE_ORPHANS=1
+
+TEMP_FILES=()
+cleanup_private_temporaries() {
+  if ((${#TEMP_FILES[@]})); then
+    rm -f -- "${TEMP_FILES[@]}"
+  fi
+}
+trap cleanup_private_temporaries EXIT
+
+usage() {
+  cat <<'EOF'
+Usage:
+  migration/internal/cutover preflight ENV CANDIDATE FINGERPRINT
+  migration/internal/cutover stage ENV CANDIDATE FINGERPRINT
+  migration/internal/cutover configure ENV CANDIDATE IDENTITY_POLICY FINGERPRINT
+  migration/internal/cutover gate ENV CANDIDATE JOURNEY_EVIDENCE FINGERPRINT
+  migration/internal/cutover admit ENV CANDIDATE --confirm FINGERPRINT
+  migration/internal/cutover reset ENV CANDIDATE --confirm FINGERPRINT
+
+ENV and IDENTITY_POLICY must be mode 0600 regular files. Pocket ID is external:
+this helper never defines, starts, provisions, restores or mutates it.
+EOF
+}
+
+manifest_path() {
+  printf '%s/manifest.json\n' "$1"
+}
+
+env_field() {
+  local env_file="$1" candidate="$2" field="$3"
+  python3 migration/cutover.py env \
+    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+    --field "$field"
+}
+
+state_path() {
+  local project="$1" fingerprint="$2"
+  local root="${USL_CUTOVER_STATE_DIR:-$ROOT/artifacts/migration/private/cutover}"
+  mkdir -p "$root/$project/$fingerprint"
+  chmod 700 "$root" "$root/$project" "$root/$project/$fingerprint"
+  printf '%s/%s/%s/state.json\n' "$root" "$project" "$fingerprint"
+}
+
+compose_array() {
+  local env_file="$1" project="$2"
+  COMPOSE=(
+    docker compose --env-file "$env_file" -p "$project"
+    -f "$ROOT/compose.yaml"
+    -f "$ROOT/compose.production.yaml"
+    -f "$ROOT/compose.external-pocket-id.yaml"
+  )
+}
+
+verify_candidate_and_environment() {
+  local env_file="$1" candidate_argument="$2" fingerprint="$3"
+  local candidate project config commit expected_commit image label_commit
+  local label_oca expected_oca label_action_risk expected_action_risk
+  local runtime_label network sign_image_name sign_image
+  candidate="$(cd "$candidate_argument" && pwd -P)"
+  if [[ ! "$fingerprint" =~ ^[0-9a-f]{64}$ ]]; then
+    printf 'Invalid candidate fingerprint.\n' >&2
+    return 2
+  fi
+  PYTHONPATH="$ROOT" python3 migration/candidate.py verify \
+    --root "$ROOT" --candidate-dir "$candidate" \
+    --expected-fingerprint "$fingerprint" >/dev/null
+  project="$(env_field "$env_file" "$candidate" COMPOSE_PROJECT_NAME)"
+  compose_array "$env_file" "$project"
+
+  commit="$(git rev-parse HEAD)"
+  expected_commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["release_commit"])' "$(manifest_path "$candidate")")"
+  if [[ "$commit" != "$expected_commit" ]]; then
+    printf 'Checked-out release commit differs from the candidate.\n' >&2
+    return 2
+  fi
+  python3 scripts/action_risk_inventory.py check-source
+  PYTHONPATH="$ROOT" python3 - "$candidate/release-identity.json" <<'PY'
+import json
+import sys
+from migration.release_identity import (
+    action_risk_policy_sha256,
+    oca_bundle_sha256,
+    product_module_versions,
+)
+
+identity = json.load(open(sys.argv[1], encoding="utf-8"))
+if product_module_versions() != identity.get("product_module_versions"):
+    raise SystemExit("Checked-out product module versions differ from the candidate.")
+if oca_bundle_sha256() != (identity.get("oca") or {}).get("bundle_sha256"):
+    raise SystemExit("Checked-out OCA runtime bundle differs from the candidate.")
+if action_risk_policy_sha256() != identity.get("action_risk_policy_sha256"):
+    raise SystemExit("Checked-out action-risk policy differs from the candidate.")
+PY
+  image="$(env_field "$env_file" "$candidate" ODOO_IMAGE)"
+  docker image inspect "$image" >/dev/null
+  label_commit="$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+  label_oca="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')"
+  label_action_risk="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')"
+  runtime_label="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')"
+  expected_oca="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["oca_bundle_sha256"])' "$(manifest_path "$candidate")")"
+  expected_action_risk="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["action_risk_policy_sha256"])' "$(manifest_path "$candidate")")"
+  if [[ "$label_commit" != "$expected_commit" || "$label_oca" != "$expected_oca" \
+      || "$label_action_risk" != "$expected_action_risk" \
+      || "$runtime_label" != distribution ]]; then
+    printf 'Runtime image labels differ from the approved Distribution candidate.\n' >&2
+    return 2
+  fi
+  for sign_image_name in \
+    USL_DOCUMENT_RENDERER_IMAGE USL_SIGN_STEP_CA_IMAGE USL_SIGN_DSS_IMAGE
+  do
+    sign_image="$(env_field "$env_file" "$candidate" "$sign_image_name")"
+    docker image inspect "$sign_image" >/dev/null
+  done
+
+  for network in \
+    "$(env_field "$env_file" "$candidate" USL_EXTERNAL_IDENTITY_NETWORK)" \
+    "$(env_field "$env_file" "$candidate" USL_EXTERNAL_INGRESS_NETWORK)"
+  do
+    docker network inspect "$network" >/dev/null
+  done
+
+  config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.json.XXXXXX")"
+  TEMP_FILES+=("$config")
+  chmod 600 "$config"
+  "${COMPOSE[@]}" --profile paperless --profile sign \
+    --profile document-renderer config --format json > "$config"
+  python3 migration/cutover.py env \
+    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+    --compose-config "$config" >/dev/null
+  rm -f "$config"
+  if "${COMPOSE[@]}" config --services | grep -Eiq '(^|[-_])pocket[-_]?id($|[-_])'; then
+    printf 'Managed Pocket ID service detected in rendered topology.\n' >&2
+    return 2
+  fi
+  VERIFIED_CANDIDATE="$candidate"
+  VERIFIED_PROJECT="$project"
+}
+
+require_state() {
+  local path="$1" fingerprint="$2" expected="$3"
+  python3 - "$path" "$fingerprint" "$expected" <<'PY'
+import json
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+if not path.is_file():
+    raise SystemExit("Cut-over preflight state is missing.")
+value = json.loads(path.read_text(encoding="utf-8"))
+if value.get("candidate_fingerprint") != sys.argv[2] or value.get("status") != sys.argv[3]:
+    raise SystemExit(
+        f"Cut-over state is {value.get('status')!r}; expected {sys.argv[3]!r}.",
+    )
+PY
+}
+
+transition() {
+  python3 migration/cutover.py state \
+    --state "$1" --fingerprint "$2" --action "$3" >/dev/null
+}
+
+preflight() {
+  local env_file="${2:-}" candidate_argument="${3:-}" fingerprint="${4:-}"
+  local candidate project volume state volumes_json
+  if [[ -z "$env_file" || -z "$candidate_argument" || -z "$fingerprint" ]]; then
+    usage >&2; exit 2
+  fi
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"
+  project="$VERIFIED_PROJECT"
+  volumes_json="$(mktemp "${TMPDIR:-/tmp}/usl-production-volumes.json.XXXXXX")"
+  TEMP_FILES+=("$volumes_json")
+  chmod 600 "$volumes_json"
+  printf '{"volumes":[' > "$volumes_json"
+  local separator=""
+  for volume in $(python3 - "$env_file" "$(manifest_path "$candidate")" <<'PY'
+import sys
+from pathlib import Path
+sys.path.insert(0, ".")
+from migration.cutover import VOLUME_KEYS, parse_env
+values = parse_env(Path(sys.argv[1]))
+print(" ".join(values[key] for key in VOLUME_KEYS))
+PY
+  ); do
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
+      local owner file_count
+      owner="$(docker volume inspect "$volume" --format '{{index .Labels "com.unstaticlabs.migration.project"}}')"
+      if [[ "$owner" != "$project" ]]; then
+        printf 'Refusing target volume not owned by the recorded project: %s\n' "$volume" >&2
+        exit 2
+      fi
+      file_count="$(docker run --rm -v "$volume:/target:ro" alpine:3.24.1 \
+        sh -ec 'if find /target -mindepth 1 -print -quit | grep -q .; then echo 1; else echo 0; fi')"
+      printf '%s{"name":"%s","labels":{"com.unstaticlabs.migration.project":"%s"},"file_count":%s}' \
+        "$separator" "$volume" "$owner" "$file_count" >> "$volumes_json"
+      separator=,
+    fi
+  done
+  printf ']}\n' >> "$volumes_json"
+  python3 migration/cutover.py env \
+    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+    --volume-state "$volumes_json" >/dev/null
+  rm -f "$volumes_json"
+
+  state="$(state_path "$project" "$fingerprint")"
+  transition "$state" "$fingerprint" preflight
+  printf 'Production preflight passed (read-only application/Pocket state).\n'
+  printf 'Project: %s\nCandidate: %s\nFingerprint: %s\n' \
+    "$project" "$candidate" "$fingerprint"
+}
+
+stage() {
+  local env_file="${2:-}" candidate_argument="${3:-}" fingerprint="${4:-}"
+  local candidate project state database db_container jobs image target_inventory
+  local odoo_volume paperless_export queue_before queue_after tasks_before tasks_after
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"
+  project="$VERIFIED_PROJECT"
+  state="$(state_path "$project" "$fingerprint")"
+  require_state "$state" "$fingerprint" preflight
+  database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
+  image="$(env_field "$env_file" "$candidate" ODOO_IMAGE)"
+  jobs="${USL_PRODUCTION_PG_RESTORE_JOBS:-4}"
+  if [[ ! "$jobs" =~ ^[1-8]$ ]]; then
+    printf 'USL_PRODUCTION_PG_RESTORE_JOBS must be between 1 and 8.\n' >&2
+    exit 2
+  fi
+
+  printf '[1/5] Restore Odoo database with four-worker custom-format restore\n'
+  "${COMPOSE[@]}" up -d --wait db
+  db_container="$("${COMPOSE[@]}" ps -q db)"
+  docker cp "$candidate/odoo.dump" "$db_container:/tmp/usl-production-candidate.dump"
+  "${COMPOSE[@]}" exec -T -e TARGET_DB="$database" -e RESTORE_JOBS="$jobs" db sh -ec '
+    trap '\''rm -f /tmp/usl-production-candidate.dump'\'' EXIT
+    if psql -X -qAt -U "$POSTGRES_USER" -d postgres -c \
+      "SELECT 1 FROM pg_database WHERE datname='"'"'$TARGET_DB'"'"'" | grep -q 1; then
+      echo "Target database already exists" >&2; exit 1
+    fi
+    createdb -U "$POSTGRES_USER" "$TARGET_DB"
+    pg_restore -U "$POSTGRES_USER" -d "$TARGET_DB" --exit-on-error \
+      --jobs="$RESTORE_JOBS" --no-owner --no-privileges \
+      /tmp/usl-production-candidate.dump
+    vacuumdb -U "$POSTGRES_USER" -d "$TARGET_DB" --analyze-in-stages
+  '
+
+  printf '[2/5] Restore Odoo filestore into the dedicated volume\n'
+  "${COMPOSE[@]}" --profile init create init-db >/dev/null
+  odoo_volume="$(env_field "$env_file" "$candidate" USL_ODOO_DATA_VOLUME)"
+  docker run --rm -v "$odoo_volume:/target" -v "$candidate:/candidate:ro" \
+    alpine:3.24.1 sh -ec "
+      test ! -e '/target/filestore/$database'
+      mkdir -p '/target/filestore/$database' /target/sessions
+      tar -C '/target/filestore/$database' -xzf /candidate/odoo-filestore.tgz
+      chown -R 1000:1000 /target
+    "
+  target_inventory="$(mktemp "${TMPDIR:-/tmp}/usl-production-filestore.tsv.XXXXXX")"
+  TEMP_FILES+=("$target_inventory")
+  "${COMPOSE[@]}" exec -T -e TARGET_DB="$database" db sh -ec '
+    psql -X -qAt -U "$POSTGRES_USER" -d "$TARGET_DB" -c "
+      COPY (
+        SELECT DISTINCT store_fname, checksum, file_size
+          FROM ir_attachment
+         WHERE store_fname IS NOT NULL
+         ORDER BY store_fname, checksum, file_size
+      ) TO STDOUT WITH (FORMAT csv, DELIMITER E'\\t')"
+  ' > "$target_inventory"
+  if ! cmp -s "$target_inventory" \
+      "$candidate/evidence/odoo-filestore-attachments.tsv"; then
+    printf 'Staged Odoo attachment inventory differs from the candidate.\n' >&2
+    exit 1
+  fi
+  docker run --rm --user 0 --entrypoint python3 \
+    -v "$odoo_volume:/source:ro" \
+    -v "$target_inventory:/inventory.tsv:ro" \
+    -v "$ROOT/migration/portable_filestore.py:/portable_filestore.py:ro" \
+    "$image" /portable_filestore.py verify \
+    --root "/source/filestore/$database" --inventory /inventory.tsv >/dev/null
+
+  printf '[3/5] Restore official Paperless export without OCR workers\n'
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-preflight
+  "${COMPOSE[@]}" --profile paperless up -d --wait \
+    paperless-db paperless-broker paperless-trash-init
+  paperless_export="$(env_field "$env_file" "$candidate" USL_PAPERLESS_EXPORT_VOLUME)"
+  docker run --rm -v "$paperless_export:/export" -v "$candidate:/candidate:ro" \
+    alpine:3.24.1 sh -ec '
+      test ! -e /export/candidate
+      mkdir -p /export/candidate
+      tar -C /export/candidate -xzf /candidate/paperless-export.tgz
+    '
+  queue_before="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
+  tasks_before="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --user paperless --entrypoint python paperless-webserver \
+    manage.py document_importer --no-progress-bar \
+    /usr/src/paperless/export/candidate
+  queue_after="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
+  tasks_after="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
+  if [[ "$queue_before" != "$queue_after" || "$tasks_before" != "$tasks_after" ]]; then
+    printf 'Paperless import submitted background/OCR tasks; refusing stage.\n' >&2
+    exit 1
+  fi
+
+  printf '[4/5] Validate restored accounting/Documents controls\n'
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint python paperless-webserver manage.py document_sanity_checker
+  python3 - "$candidate/qualification.json" "$database" <<'PY'
+# The shell performs live SQL/API controls immediately below; this first check
+# keeps qualification parsing fail-closed before values reach shell variables.
+import json
+import sys
+value = json.load(open(sys.argv[1], encoding="utf-8"))
+if value.get("status") != "passed" or value.get("profile") != "full":
+    raise SystemExit("Candidate qualification is not a passed full profile.")
+PY
+  local actual_accounting actual_documents actual_paperless
+  actual_accounting="$("${COMPOSE[@]}" exec -T db psql -X -qAt -U odoo -d "$database" -c "
+    SELECT json_build_object(
+      'move_count',(SELECT count(*) FROM account_move),
+      'move_line_count',(SELECT count(*) FROM account_move_line),
+      'partial_reconcile_count',(SELECT count(*) FROM account_partial_reconcile),
+      'full_reconcile_count',(SELECT count(*) FROM account_full_reconcile),
+      'posted_debit',(SELECT COALESCE(sum(l.debit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted'),
+      'posted_credit',(SELECT COALESCE(sum(l.credit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted')
+    )::text")"
+  actual_documents="$("${COMPOSE[@]}" exec -T db psql -X -qAt -U odoo -d "$database" -c "
+    SELECT json_build_object(
+      'odoo_document_count',(SELECT count(*) FROM usl_document),
+      'active_link_count',(SELECT count(*) FROM usl_document_link WHERE active)
+    )::text")"
+  actual_paperless="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import Document; print(Document.objects.count())' | tail -n 1)"
+  python3 - "$candidate/qualification.json" "$actual_accounting" \
+    "$actual_documents" "$actual_paperless" <<'PY'
+import json
+import sys
+q = json.load(open(sys.argv[1], encoding="utf-8"))
+expected = {
+    "accounting": q["accounting"]["controls"],
+    "documents": q["documents"]["controls"],
+    "paperless": q["documents"]["paperless_document_count"],
+}
+actual = {
+    "accounting": json.loads(sys.argv[2]),
+    "documents": json.loads(sys.argv[3]),
+    "paperless": int(sys.argv[4]),
+}
+if actual != expected:
+    raise SystemExit("Staged controls differ: " + json.dumps({"actual": actual, "expected": expected}, sort_keys=True))
+PY
+
+  printf '[5/5] Pause application services and record staged state\n'
+  "${COMPOSE[@]}" stop odoo paperless-webserver >/dev/null 2>&1 || true
+  transition "$state" "$fingerprint" stage
+  printf 'Candidate staged with zero OCR submissions; cron, ingress and application workers remain paused.\n'
+}
+
+run_odoo_shell() {
+  local database="$1" script="$2"
+  shift 2
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$database" "$@" init-db odoo shell \
+    --config=/etc/odoo/odoo.conf --database="$database" \
+    --shell-interface=python < "$script"
+}
+
+start_sign_services() {
+  "${COMPOSE[@]}" --profile sign --profile document-renderer up -d --wait --pull never \
+    usl-document-renderer usl-sign-step-ca usl-sign-dss
+}
+
+configure() {
+  local env_file="${2:-}" candidate_argument="${3:-}" policy_file="${4:-}" fingerprint="${5:-}"
+  local candidate project state database odoo_users paperless_policy
+  local cron_allowlist plan_output plan paperless_output identities setup token service_user
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
+  state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" staged
+  database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
+  python3 migration/cutover.py policy --policy "$policy_file" \
+    --fingerprint "$fingerprint" >/dev/null
+  odoo_users="$(python3 migration/cutover.py policy --policy "$policy_file" \
+    --fingerprint "$fingerprint" --field odoo_users)"
+  paperless_policy="$(python3 migration/cutover.py policy --policy "$policy_file" \
+    --fingerprint "$fingerprint" --field paperless_identities)"
+  cron_allowlist="$(python3 migration/cutover.py policy --policy "$policy_file" \
+    --fingerprint "$fingerprint" --field approved_cron_xmlids)"
+
+  printf '[1/4] Odoo external Pocket policy dry-run/apply/dry-run\n'
+  run_odoo_shell "$database" scripts/odoo/pocket_id_configure.py \
+    -e USL_POCKET_ID_USERS_JSON="$odoo_users" -e USL_POCKET_ID_APPLY=0
+  run_odoo_shell "$database" scripts/odoo/pocket_id_configure.py \
+    -e USL_POCKET_ID_USERS_JSON="$odoo_users" -e USL_POCKET_ID_APPLY=1
+  run_odoo_shell "$database" scripts/odoo/pocket_id_configure.py \
+    -e USL_POCKET_ID_USERS_JSON="$odoo_users" -e USL_POCKET_ID_APPLY=0
+
+  printf '[2/4] Initial cron/outbound policy dry-run/apply/dry-run\n'
+  run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
+    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_ADMISSION_APPLY=0
+  run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
+    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_ADMISSION_APPLY=1
+  run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
+    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_ADMISSION_APPLY=0 \
+    -e USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED=1
+
+  printf '[3/4] Paperless identities, integration identity and object permissions\n'
+  "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-access-init
+  plan_output="$(run_odoo_shell "$database" scripts/odoo/documents_identity_plan.py \
+    -e USL_PAPERLESS_IDENTITY_POLICY_JSON="$paperless_policy")"
+  plan="$(sed -n 's/^USL_PAPERLESS_IDENTITY_PLAN=//p' <<<"$plan_output" | tail -n 1)"
+  [[ -n "$plan" ]] || { printf 'Odoo did not produce a Paperless identity plan.\n' >&2; exit 1; }
+  paperless_output="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps -T \
+    -e PAPERLESS_IDENTITY_PLAN_JSON="$plan" paperless-identity-init)"
+  identities="$(sed -n 's/^USL_PAPERLESS_IDENTITIES=//p' <<<"$paperless_output" | tail -n 1)"
+  [[ -n "$identities" ]] || { printf 'Paperless identity synchronization failed.\n' >&2; exit 1; }
+  setup="$("${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell \
+    < deploy/documents/paperless_integration_access.py)"
+  token="$(sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
+  service_user="$(sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1)"
+  [[ -n "$token" && "$service_user" =~ ^[1-9][0-9]*$ ]] || exit 1
+  run_odoo_shell "$database" scripts/odoo/documents_runtime_config.py \
+    -e PAPERLESS_RUNTIME_INTERNAL_URL=http://paperless-webserver:8000 \
+    -e PAPERLESS_RUNTIME_PUBLIC_URL="$(env_field "$env_file" "$candidate" PAPERLESS_PUBLIC_URL)" \
+    -e PAPERLESS_RUNTIME_TOKEN="$token" \
+    -e PAPERLESS_RUNTIME_SERVICE_USER_ID="$service_user"
+  run_odoo_shell "$database" scripts/odoo/documents_identity_apply.py \
+    -e USL_PAPERLESS_IDENTITIES_JSON="$identities" \
+    -e USL_PAPERLESS_FORCE_PERMISSION_SYNC=1
+  unset token setup
+
+  printf '[4/4] Leave runtime staged on loopback with cron disabled\n'
+  start_sign_services
+  "${COMPOSE[@]}" up -d --wait odoo
+  transition "$state" "$fingerprint" configure
+  printf 'External identity/application policy configured. No Pocket ID mutation API was called.\n'
+}
+
+gate() {
+  local env_file="${2:-}" candidate_argument="${3:-}" journey_file="${4:-}" fingerprint="${5:-}"
+  local candidate project state database identity_json accounting
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
+  state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" configured
+  python3 migration/cutover.py journeys --evidence "$journey_file" \
+    --fingerprint "$fingerprint" >/dev/null
+  database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
+  start_sign_services
+  "${COMPOSE[@]}" up -d --wait odoo
+  "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+
+  printf '[1/5] Product/migration, action-risk and immutable release boundaries\n'
+  scripts/check-product-migration-boundary
+  run_odoo_shell "$database" scripts/odoo/product_database_boundary.py \
+    -e USL_PRODUCT_BOUNDARY_PREPROD=1
+  identity_json="$(tr -d '\n' < "$candidate/release-identity.json")"
+  run_odoo_shell "$database" scripts/odoo/release_identity.py \
+    -e USL_RELEASE_IDENTITY_JSON="$identity_json" \
+    -e USL_RELEASE_IDENTITY_APPLY=0
+  run_odoo_shell "$database" scripts/odoo/action_risk_inventory.py \
+    -e ACTION_RISK_MODE=check
+
+  printf '[2/5] Accounting totals, reconciliation and multi-company role journeys\n'
+  run_odoo_shell "$database" scripts/odoo/multicompany_accounting_acceptance.py
+  accounting="$("${COMPOSE[@]}" exec -T db psql -X -qAt -U odoo -d "$database" -c "
+    SELECT json_build_object(
+      'move_count',(SELECT count(*) FROM account_move),
+      'move_line_count',(SELECT count(*) FROM account_move_line),
+      'partial_reconcile_count',(SELECT count(*) FROM account_partial_reconcile),
+      'full_reconcile_count',(SELECT count(*) FROM account_full_reconcile),
+      'posted_debit',(SELECT COALESCE(sum(l.debit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted'),
+      'posted_credit',(SELECT COALESCE(sum(l.credit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted')
+    )::text")"
+  python3 - "$candidate/qualification.json" "$accounting" <<'PY'
+import json, sys
+q=json.load(open(sys.argv[1],encoding="utf-8"))
+if json.loads(sys.argv[2]) != q["accounting"]["controls"]:
+    raise SystemExit("Accounting gate differs from the qualified candidate.")
+PY
+
+  printf '[3/5] Paperless sanity, checksums, links and object permissions\n'
+  "${COMPOSE[@]}" exec -T paperless-webserver python manage.py document_sanity_checker
+  run_odoo_shell "$database" scripts/odoo/documents_identity_boundary.py
+  run_odoo_shell "$database" scripts/odoo/documents_integrity_manifest.py
+
+  printf '[4/5] Health and loopback browser-entry journeys\n'
+  curl --fail --silent --show-error \
+    "http://127.0.0.1:$(env_field "$env_file" "$candidate" ODOO_HTTP_PORT)/web/login?db=$database" \
+    >/dev/null
+  curl --fail --silent --show-error \
+    "http://127.0.0.1:$(env_field "$env_file" "$candidate" PAPERLESS_HTTP_PORT)/api/" \
+    >/dev/null
+  "${COMPOSE[@]}" exec -T odoo python /usr/local/bin/usl-sign-services-smoke
+
+  printf '[5/5] Revalidate regulatory and cron admission guards\n'
+  if [[ "$(env_field "$env_file" "$candidate" ODOO_MAX_CRON_THREADS)" != 0 ]]; then
+    printf 'Cron unexpectedly enabled during gate.\n' >&2; exit 1
+  fi
+  run_odoo_shell "$database" scripts/odoo/production_side_effect_boundary.py
+  transition "$state" "$fingerprint" gate
+  printf 'Production candidate gate passed. Ingress remains an infrastructure-owner step.\n'
+}
+
+confirmed_fingerprint() {
+  if [[ "${4:-}" != --confirm || -z "${5:-}" ]]; then
+    usage >&2
+    exit 2
+  fi
+  printf '%s\n' "$5"
+}
+
+admit() {
+  local env_file="${2:-}" candidate_argument="${3:-}" fingerprint
+  local candidate project state database cron
+  fingerprint="$(confirmed_fingerprint "$@")"
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
+  state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" gated
+  database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
+  cron="$(env_field "$env_file" "$candidate" USL_PRODUCTION_CRON_THREADS)"
+  if [[ ! "$cron" =~ ^[1-4]$ ]]; then
+    printf 'USL_PRODUCTION_CRON_THREADS must be an approved value from 1 to 4.\n' >&2
+    exit 2
+  fi
+  # Disable reset before enabling workers. A failed worker start remains
+  # recoverable from normal coordinated backups, never candidate reset.
+  transition "$state" "$fingerprint" admit
+  run_odoo_shell "$database" scripts/odoo/production_record_admission.py \
+    -e USL_ADMITTED_CANDIDATE_FINGERPRINT="$fingerprint"
+  start_sign_services
+  ODOO_MAX_CRON_THREADS="$cron" "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  printf 'Candidate admitted; reset permanently disabled.\n'
+  printf 'Ingress activation is still owned by infrastructure. Regulatory/outbound integrations remain disabled.\n'
+}
+
+reset_candidate() {
+  local env_file="${2:-}" candidate_argument="${3:-}" fingerprint
+  local candidate project state volume owner
+  local -a owned_volumes
+  fingerprint="$(confirmed_fingerprint "$@")"
+  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
+  state="$(state_path "$project" "$fingerprint")"
+  python3 - "$state" <<'PY'
+import json, sys
+value=json.load(open(sys.argv[1],encoding="utf-8"))
+if not value.get("reset_allowed") or value.get("status") == "admitted":
+    raise SystemExit("Candidate reset is permanently disabled after admission.")
+PY
+  for volume in $(python3 - "$env_file" <<'PY'
+import sys
+from pathlib import Path
+sys.path.insert(0,".")
+from migration.cutover import VOLUME_KEYS, parse_env
+values=parse_env(Path(sys.argv[1])); print(" ".join(values[key] for key in VOLUME_KEYS))
+PY
+  ); do
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
+      owner="$(docker volume inspect "$volume" --format '{{index .Labels "com.unstaticlabs.migration.project"}}')"
+      if [[ "$owner" != "$project" ]]; then
+        printf 'Refusing foreign volume during reset: %s\n' "$volume" >&2
+        exit 1
+      fi
+      owned_volumes+=("$volume")
+    fi
+  done
+  # Validate every volume before stopping services or deleting any data.  This
+  # prevents a late foreign-volume discovery from leaving a partial reset.
+  "${COMPOSE[@]}" down --timeout 30
+  if ((${#owned_volumes[@]})); then
+    docker volume rm "${owned_volumes[@]}" >/dev/null
+  fi
+  transition "$state" "$fingerprint" reset
+  printf 'Candidate-owned application data reset. Pocket ID and unrelated projects were untouched.\n'
+}
+
+case "$command_name" in
+  preflight) preflight "$@" ;;
+  stage) stage "$@" ;;
+  configure) configure "$@" ;;
+  gate) gate "$@" ;;
+  admit) admit "$@" ;;
+  reset) reset_candidate "$@" ;;
+  help|-h|--help) usage ;;
+  *) usage >&2; exit 2 ;;
+esac

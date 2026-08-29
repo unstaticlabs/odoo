@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create and validate the immutable Distribution image handoff artifact."""
+"""Create and validate the immutable Distribution release artifact."""
 
 from __future__ import annotations
 

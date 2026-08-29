@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import subprocess
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -174,107 +173,12 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" --profile test build test', test_tag)
         self.assertIn("run_with_odoo_stopped test test odoo", test_tag)
 
-    def test_platform_restore_tests_use_browser_capable_image(self):
-        helper = (
-            REPOSITORY_ROOT / "scripts" / "platform-billing-restore"
-        ).read_text(encoding="utf-8")
-        makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
-        test_restore = helper.split("\ntest_restore() {\n", 1)[1].split(
-            "\ncase ",
-            1,
-        )[0]
-
-        self.assertIn("compose build odoo", test_restore)
-        self.assertIn("compose --profile test build test", test_restore)
-        self.assertIn("compose --profile test run --rm", test_restore)
-        self.assertIn("platform-billing-migration-addons:ro", test_restore)
-        self.assertIn("test \\", test_restore)
-        self.assertNotIn("platform-billing-migration \\", test_restore)
-        self.assertIn(
-            "COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) "
-            "scripts/platform-billing-restore test",
-            makefile,
-        )
-
-    def test_platform_qa_helpers_require_an_isolated_compose_project(self):
-        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
-            encoding="utf-8",
-        )
-        scope_guard = helper.split(
-            "\nverify_platform_billing_qa_scope() {\n",
-            1,
-        )[1].split("\n}\n", 1)[0]
-        audit_helper = helper.split(
-            "\naudit_platform_billing_qa() {\n",
-            1,
-        )[1].split("\n}\n", 1)[0]
-        bootstrap_helper = helper.split(
-            "\nbootstrap_platform_billing_qa() {\n",
-            1,
-        )[1].split("\n}\n", 1)[0]
-
-        self.assertIn('"$COMPOSE_PROJECT" != usl-odoo-fp-*', scope_guard)
-        self.assertIn('"${COMPOSE_PROJECT_NAME:-}"', scope_guard)
-        self.assertIn("com.docker.compose.project.working_dir", scope_guard)
-        self.assertGreaterEqual(audit_helper.count("platform_billing_compose"), 3)
-        self.assertIn("verify_platform_billing_qa_scope", audit_helper)
-        self.assertGreaterEqual(
-            bootstrap_helper.count("platform_billing_compose"),
-            3,
-        )
-        self.assertIn("verify_platform_billing_qa_scope", bootstrap_helper)
-
-    def test_worktree_helpers_guard_shared_compose_ownership(self):
-        guard = (
-            REPOSITORY_ROOT / "scripts" / "lib" / "compose-scope.sh"
-        ).read_text(encoding="utf-8")
-        self.assertIn("com.docker.compose.project.working_dir", guard)
-        self.assertIn('[[ -f "$repository_root/.git"', guard)
-
-        for relative_path in (
-            "scripts/accounting-restore",
-            "scripts/identity-restore",
-            "scripts/product-restore",
-            "scripts/hr-restore",
-            "scripts/project-restore",
-            "scripts/tese-restore",
-            "scripts/platform-billing-restore",
-            "scripts/documents-restore",
-            "scripts/documents-stack",
-            "scripts/odoo-dev",
-            "scripts/pocket-id-dev",
-            "scripts/target-finalize",
-            "scripts/target-reconstruct",
-        ):
-            helper = (REPOSITORY_ROOT / relative_path).read_text(
-                encoding="utf-8",
-            )
-            self.assertIn("compose-scope.sh", helper, relative_path)
-            self.assertIn("usl_verify_compose_scope", helper, relative_path)
-
-    def test_full_reconstruction_requires_an_explicit_project(self):
-        result = subprocess.run(
-            [str(REPOSITORY_ROOT / "scripts" / "target-reconstruct")],
-            cwd=REPOSITORY_ROOT,
-            env={
-                key: value
-                for key, value in os.environ.items()
-                if key != "COMPOSE_PROJECT_NAME"
-            },
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("requires an explicit COMPOSE_PROJECT_NAME", result.stderr)
-
     def test_dev_lifecycle_disables_automatic_tours(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
             encoding="utf-8",
         )
         makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
-        finalizer = (REPOSITORY_ROOT / "scripts" / "target-finalize").read_text(
+        finalizer = (REPOSITORY_ROOT / "migration/internal/finalize").read_text(
             encoding="utf-8",
         )
         disable_helper = (
@@ -387,37 +291,6 @@ class OdooTestHarnessTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("_usl_pocketid_apply_environment", repair)
         self.assertNotIn("_usl_pocketid_apply_user_configuration", repair)
-
-    def test_reconstruction_repairs_trip_products_after_product_restore(self):
-        reconstruction = (REPOSITORY_ROOT / "scripts" / "target-reconstruct").read_text(
-            encoding="utf-8",
-        )
-        accounting_restore = (
-            REPOSITORY_ROOT / "scripts" / "accounting-restore"
-        ).read_text(encoding="utf-8")
-        repair_script = (
-            REPOSITORY_ROOT
-            / "migration/accounting_restore/addons/usl_accounting_restore/scripts"
-            / "reapply_expense_batch_transition.py"
-        ).read_text(encoding="utf-8")
-        execution = reconstruction.split(
-            'run_stage "target identity preflight"',
-            1,
-        )[1]
-        product_restore = execution.index('run_stage "restore product data"')
-        transition = execution.index(
-            'run_stage "repair Expense Batch transition"',
-        )
-        b2c_restore = execution.index('run_stage "restore B2C commerce evidence"')
-        hr_restore = execution.index('run_stage "restore HR"')
-
-        self.assertLess(product_restore, transition)
-        self.assertLess(transition, b2c_restore)
-        self.assertLess(b2c_restore, hr_restore)
-        self.assertIn("expense-batch-transition)", accounting_restore)
-        self.assertEqual(repair_script.count("run_expense_batch_transition()"), 2)
-        self.assertIn('"rerun_is_noop"', repair_script)
-        self.assertIn('"trip_products_archived"', repair_script)
 
 
 if __name__ == "__main__":

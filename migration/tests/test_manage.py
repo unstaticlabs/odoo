@@ -1,0 +1,395 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import shutil
+import stat
+import subprocess
+import tempfile
+import unittest
+from argparse import Namespace
+from pathlib import Path
+from unittest.mock import patch
+
+from migration import manager
+from migration.guard_runtime import guard
+from migration.runtime import (
+    CommandRunner,
+    Completed,
+    MODEL_MANIFEST_SHA256,
+    RuntimeError,
+    RuntimeStore,
+    compose_files,
+    inspect_project,
+    read_secrets,
+    resolve_ollama,
+    runtime_environment,
+    source_identity,
+    verify_recorded_resources,
+)
+
+
+class FakeRunner(CommandRunner):
+    def __init__(self, root: Path, project: str = "project-without-name-policy"):
+        self.root = root
+        self.project = project
+        self.calls: list[tuple[str, ...]] = []
+        self.container_state = "running"
+        self.foreign_workdir: str | None = None
+        self.has_resources = True
+
+    def run(self, arguments, *, cwd=None, env=None, check=True):
+        command = tuple(arguments)
+        self.calls.append(command)
+        if command[:3] == ("docker", "ps", "-aq"):
+            return Completed(0, "container-1\n" if self.has_resources else "")
+        if command[:2] == ("docker", "inspect"):
+            owner = self.foreign_workdir or str(self.root)
+            return Completed(
+                0,
+                json.dumps(
+                    [
+                        {
+                            "Id": "container-1",
+                            "Name": "/runtime-odoo-1",
+                            "Image": "sha256:image",
+                            "Config": {
+                                "Labels": {
+                                    "com.docker.compose.project": self.project,
+                                    "com.docker.compose.project.working_dir": owner,
+                                    "com.docker.compose.service": "odoo",
+                                    "org.opencontainers.image.revision": "b" * 40,
+                                }
+                            },
+                            "State": {"Status": self.container_state},
+                        }
+                    ]
+                ),
+            )
+        if command[:4] == ("docker", "volume", "ls", "-q"):
+            return Completed(0, "runtime-data\n" if self.has_resources else "")
+        if command[:3] == ("docker", "volume", "inspect"):
+            return Completed(
+                0,
+                json.dumps(
+                    [
+                        {
+                            "Name": "runtime-data",
+                            "Mountpoint": "/var/lib/docker/volumes/runtime-data",
+                            "Labels": {"com.docker.compose.project": self.project},
+                        }
+                    ]
+                ),
+            )
+        if command[:4] == ("docker", "network", "ls", "-q"):
+            return Completed(0, "network-1\n" if self.has_resources else "")
+        if command[:3] == ("docker", "network", "inspect"):
+            return Completed(
+                0,
+                json.dumps(
+                    [
+                        {
+                            "Id": "network-1",
+                            "Name": "runtime-default",
+                            "Labels": {"com.docker.compose.project": self.project},
+                        }
+                    ]
+                ),
+            )
+        return Completed(0, "")
+
+
+class MigrationManageTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name).resolve()
+        (self.root / "private").mkdir(mode=0o700)
+        self.source = self.root / "source"
+        (self.source / "filestore").mkdir(parents=True)
+        (self.source / "dump.sql").write_bytes(b"frozen dump")
+        (self.source / "filestore/a").write_bytes(b"attachment")
+        self.identity = self.root / "legacy.env"
+        self.identity.write_text(
+            "\n".join(
+                (
+                    "COMPOSE_PROJECT_NAME=project-without-name-policy",
+                    "ODOO_INIT_DB=odoo_dev",
+                    "POCKET_ID_CLIENT_SECRET=client-secret",
+                    "POCKET_ID_ENCRYPTION_KEY=encryption-key",
+                    "POCKET_ID_STATIC_API_KEY=api-key",
+                    "POCKET_ID_VALENTIN_ID=valentin-id",
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        self.identity.chmod(0o600)
+        (self.root / "personal-ai-keys.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "personal-ai-keys.json").chmod(0o600)
+        self.runner = FakeRunner(self.root)
+        self.original_root = manager.ROOT
+        self.original_internal = manager.INTERNAL
+        manager.ROOT = self.root
+        manager.INTERNAL = self.root / "migration/internal"
+
+    def tearDown(self):
+        manager.ROOT = self.original_root
+        manager.INTERNAL = self.original_internal
+        self.temporary.cleanup()
+
+    def adopt_arguments(self):
+        return Namespace(
+            action="adopt",
+            id="qa-current",
+            project=self.runner.project,
+            database="odoo_dev",
+            source=self.source,
+            source_sha256=hashlib.sha256(b"frozen dump").hexdigest(),
+            identity_env=self.identity,
+            personal_ai_key_file=self.root / "personal-ai-keys.json",
+            profile="full",
+            odoo_port=28669,
+            gevent_port=28670,
+            pocket_id_port=28671,
+            paperless_port=28672,
+            odoo_url=None,
+            pocket_id_url=None,
+            paperless_url=None,
+            ollama="container",
+            ollama_models=None,
+            image=[],
+            release_commit=None,
+            paperless_task_workers=3,
+            embedding_batch_size=32,
+        )
+
+    def test_adoption_creates_private_resolved_state_and_status(self):
+        with patch.object(manager, "git", return_value="a" * 40):
+            runtime = manager.create_runtime(self.adopt_arguments(), self.runner, kind="qa")
+            status = manager.check_runtime(runtime, self.runner)
+        directory = self.root / "private/migration/runtimes/qa-current"
+        self.assertEqual(stat.S_IMODE(directory.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((directory / "runtime.json").stat().st_mode), 0o600)
+        self.assertEqual(stat.S_IMODE((directory / "secrets.env").stat().st_mode), 0o600)
+        self.assertEqual(runtime["compose"]["project"], self.runner.project)
+        self.assertEqual(runtime["release_commit"], "b" * 40)
+        self.assertFalse(status["checkout_matches"])
+        self.assertEqual(status["resources"], {"containers": 1, "volumes": 1, "networks": 1})
+        self.assertTrue(status["healthy"])
+
+    def test_secret_file_rejects_scope_fields(self):
+        path = self.root / "secrets.env"
+        path.write_text("COMPOSE_PROJECT_NAME=unsafe\n", encoding="utf-8")
+        path.chmod(0o600)
+        with self.assertRaisesRegex(RuntimeError, "scope fields"):
+            read_secrets(path)
+
+    def test_foreign_working_directory_fails_closed(self):
+        self.runner.foreign_workdir = "/foreign/checkout"
+        with self.assertRaisesRegex(RuntimeError, "foreign working-directory"):
+            inspect_project(self.runner, self.runner.project, self.root)
+
+    def test_exact_resource_sets_are_required_and_stop_preserves_volumes(self):
+        recorded = inspect_project(self.runner, self.runner.project, self.root)
+        changed = json.loads(json.dumps(recorded))
+        changed["volumes"][0]["name"] = "other-volume"
+        with self.assertRaisesRegex(RuntimeError, "exact resource set"):
+            verify_recorded_resources(recorded, changed)
+        manager.stop_runtime({"compose": {"project": self.runner.project}, "resources": recorded}, self.runner)
+        self.assertIn(("docker", "stop", "container-1"), self.runner.calls)
+        self.assertFalse(any(call[:3] == ("docker", "volume", "rm") for call in self.runner.calls))
+
+    def test_transition_protection_does_not_depend_on_project_name(self):
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": "qa-current",
+            "kind": "qa",
+            "status": "transition-live",
+            "private_directory": str(self.root / "private/migration/runtimes/qa-current"),
+            "compose": {
+                "project": "project-without-name-policy",
+                "working_directory": str(self.root),
+            },
+        }
+        store = RuntimeStore(self.root)
+        store.create(runtime, {})
+        args = Namespace(action="refresh", runtime="qa-current", fresh=True, confirm="REFRESH:qa-current")
+        with self.assertRaisesRegex(RuntimeError, "protected runtime"):
+            manager.command_qa(args, self.runner)
+        with self.assertRaisesRegex(SystemExit, "recorded as transition-live"):
+            guard(self.root, "project-without-name-policy", "test mutation")
+
+    def test_runtime_environment_overrides_ambient_scope_and_disables_live_integrations(self):
+        runtime = {
+            "id": "qa-current",
+            "database": "odoo_dev",
+            "private_directory": str(self.root / "private/runtime"),
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id"},
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "compose": {"project": "recorded-project", "files": [str(self.root / "compose.yaml")]},
+        }
+        with patch.dict(os.environ, {"COMPOSE_PROJECT_NAME": "ambient-project", "USL_EINVOICE_LIVE_ENABLED": "1"}):
+            environment = runtime_environment(runtime, {})
+        self.assertEqual(environment["COMPOSE_PROJECT_NAME"], "recorded-project")
+        self.assertEqual(environment["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertEqual(environment["USL_EREPORTING_LIVE_ENABLED"], "0")
+
+    def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
+        models = self.root / "models"
+        manifest = models / "manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1"
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text("manifest", encoding="utf-8")
+        with patch("migration.runtime.sha256_file", return_value=MODEL_MANIFEST_SHA256):
+            native = resolve_ollama(
+                "auto", system="Darwin", executable="/usr/local/bin/ollama", models=models, reachable=True
+            )
+        linux = resolve_ollama("auto", system="Linux", executable=None)
+        self.assertEqual(native["mode"], "native")
+        self.assertEqual(linux["mode"], "container")
+        self.assertIn("compose.ollama-native.yaml", compose_files(self.root, "qa", "native")[-1])
+        self.assertFalse(any("ollama-native" in item for item in compose_files(self.root, "production", "container")))
+
+    def test_installed_but_unreachable_native_ollama_fails_closed(self):
+        with self.assertRaisesRegex(RuntimeError, "fallback is forbidden"):
+            resolve_ollama(
+                "auto", system="Darwin", executable="/usr/local/bin/ollama", reachable=False
+            )
+
+    def test_login_link_ttl_is_limited_to_eight_hours(self):
+        self.assertEqual(manager.ttl_minutes("8h"), 480)
+        with self.assertRaisesRegex(RuntimeError, "may not exceed"):
+            manager.ttl_minutes("9h")
+
+    def test_source_checksum_mismatch_fails_before_runtime_use(self):
+        with self.assertRaisesRegex(RuntimeError, "checksum"):
+            source_identity(self.source, "0" * 64)
+
+    def test_new_transition_definition_has_no_project_name_convention(self):
+        self.runner.has_resources = False
+        secrets = self.root / "transition-secrets.env"
+        secrets.write_text(
+            "\n".join(
+                (
+                    "POCKET_ID_CLIENT_SECRET=client-secret",
+                    "POCKET_ID_ENCRYPTION_KEY=encryption-key",
+                    "POCKET_ID_STATIC_API_KEY=api-key",
+                    "POCKET_ID_VALENTIN_ID=valentin-id",
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        secrets.chmod(0o600)
+        args = self.adopt_arguments()
+        args.id = "transition-current"
+        args.project = "fixed-runtime"
+        self.runner.project = args.project
+        args.identity_env = None
+        args.secrets_file = secrets
+        with patch.object(
+            manager,
+            "git",
+            side_effect=lambda *arguments: "" if arguments[0] == "status" else "c" * 40,
+        ):
+            runtime = manager.create_runtime(args, self.runner, kind="transition", adopt=False)
+        self.assertEqual(runtime["status"], "defined")
+        self.assertFalse(runtime["adopted"])
+        self.assertEqual(runtime["resources"], {"containers": [], "volumes": [], "networks": []})
+
+    def test_candidate_arguments_are_ordered_by_the_public_interface(self):
+        with patch.object(manager, "git", return_value="b" * 40):
+            runtime = manager.create_runtime(self.adopt_arguments(), self.runner, kind="qa")
+        arguments = Namespace(
+            domain="candidate",
+            action="verify",
+            runtime=runtime["id"],
+            source_dir=None,
+            candidate_dir=self.root / "candidate",
+            fingerprint="d" * 64,
+        )
+        with (
+            patch.object(
+                manager,
+                "git",
+                side_effect=lambda *arguments: "" if arguments[0] == "status" else "b" * 40,
+            ),
+            patch.object(manager, "run_internal") as internal,
+        ):
+            manager.command_release_domain(arguments, self.runner)
+        command = internal.call_args.args[3]
+        self.assertEqual(command[1:4], ["verify", str(arguments.candidate_dir), "d" * 64])
+        self.assertEqual(command[4], str(self.source))
+
+    @unittest.skipUnless(shutil.which("docker"), "Docker Compose CLI is unavailable")
+    def test_native_and_linux_compose_topologies_render_distinct_ollama_services(self):
+        repository = Path(__file__).resolve().parents[2]
+        environment = {
+            **os.environ,
+            "POCKET_ID_CLIENT_SECRET": "dummy-client",
+            "POCKET_ID_ENCRYPTION_KEY": "dummy-encryption",
+            "POCKET_ID_STATIC_API_KEY": "dummy-api",
+            "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": "/tmp/dummy",
+        }
+        native = subprocess.run(
+            (
+                "docker", "compose", "-p", "usl-render-native-test",
+                "-f", "compose.yaml", "-f", "compose.pocket-id.yaml",
+                "-f", "compose.ollama-native.yaml", "--profile", "paperless",
+                "config", "--services",
+            ),
+            cwd=repository,
+            env=environment,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.splitlines()
+        production_environment = {
+            **environment,
+            "ODOO_HTTP_PORT": "18069",
+            "ODOO_GEVENT_PORT": "18072",
+            "PAPERLESS_HTTP_PORT": "18010",
+            "ODOO_PUBLIC_BASE_URL": "https://odoo.example.test",
+            "PAPERLESS_PUBLIC_URL": "https://paperless.example.test",
+            "POCKET_ID_APP_URL": "https://id.example.test",
+            "POCKET_ID_CLIENT_ID": "odoo-client",
+            "POCKET_ID_GROUP_NAME": "odoo-users",
+            "POCKET_ID_PAPERLESS_CLIENT_ID": "paperless-client",
+            "POCKET_ID_PAPERLESS_CLIENT_SECRET": "dummy-paperless",
+            "PAPERLESS_SSO_BASE_GROUP": "documents-users",
+            "USL_EXTERNAL_IDENTITY_NETWORK": "identity-net",
+            "USL_EXTERNAL_INGRESS_NETWORK": "ingress-net",
+        }
+        for name in (
+            "USL_ODOO_POSTGRES_VOLUME", "USL_ODOO_DATA_VOLUME",
+            "USL_PAPERLESS_POSTGRES_VOLUME", "USL_PAPERLESS_BROKER_VOLUME",
+            "USL_PAPERLESS_DATA_VOLUME", "USL_PAPERLESS_MEDIA_VOLUME",
+            "USL_PAPERLESS_EXPORT_VOLUME", "USL_PAPERLESS_CONSUME_VOLUME",
+            "USL_PAPERLESS_TRASH_VOLUME",
+        ):
+            production_environment[name] = name.lower().replace("_", "-")
+        linux = subprocess.run(
+            (
+                "docker", "compose", "-p", "usl-render-linux-test",
+                "-f", "compose.yaml", "-f", "compose.production.yaml",
+                "-f", "compose.external-pocket-id.yaml", "--profile", "paperless",
+                "config", "--services",
+            ),
+            cwd=repository,
+            env=production_environment,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.splitlines()
+        self.assertNotIn("paperless-ollama", native)
+        self.assertNotIn("paperless-model-init", native)
+        self.assertIn("paperless-model-preflight", native)
+        self.assertIn("paperless-ollama", linux)
+        self.assertIn("paperless-model-init", linux)
+
+
+if __name__ == "__main__":
+    unittest.main()

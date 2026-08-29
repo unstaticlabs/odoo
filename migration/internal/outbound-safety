@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
+
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+phase="${1:-unspecified}"
+usl_verify_compose_scope "$compose_project" "$ROOT" "Migration outbound safety"
+
+case "$target_database" in
+  ""|odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe outbound-safety target %s.\n' "$target_database" >&2
+    exit 2
+    ;;
+esac
+
+docker compose -p "$compose_project" --profile project-migration run --rm -T \
+  -e USL_MIGRATION_OUTBOUND_PHASE="$phase" \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  project-migration odoo shell --config=/etc/odoo/odoo.conf \
+  --addons-path="$USL_MIGRATION_ADDONS_PATH" \
+  --database="$target_database" --shell-interface=python \
+  < scripts/odoo/migration_outbound_queue_boundary.py

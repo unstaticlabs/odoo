@@ -123,12 +123,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("workflow_dispatch:", self.workflow)
 
     def test_product_module_perimeters_are_identical(self) -> None:
-        qa_environment = (ROOT / "scripts/qa-environment").read_text(encoding="utf-8")
-        qa_match = re.search(r"product_modules='([^']+)'", qa_environment)
-        self.assertIsNotNone(qa_match)
-        qa_modules = set(qa_match.group(1).split(","))
-
-        target_finalize = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
+        target_finalize = (ROOT / "migration/internal/finalize").read_text(encoding="utf-8")
         target_match = re.search(r"product_modules=\(\n(?P<body>.*?)\n\)", target_finalize, re.DOTALL)
         self.assertIsNotNone(target_match)
         target_modules = {
@@ -152,7 +147,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
                 break
         self.assertIsNotNone(release_modules)
 
-        host_release_identity_path = ROOT / "scripts/release_identity.py"
+        host_release_identity_path = ROOT / "migration/release_identity.py"
         host_release_tree = ast.parse(
             host_release_identity_path.read_text(encoding="utf-8")
         )
@@ -186,20 +181,13 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
                 break
         self.assertIsNotNone(database_boundary_modules)
 
-        preprod_release = (ROOT / "scripts/preprod-release").read_text(encoding="utf-8")
-        preprod_match = re.search(r'product_modules="([^"]+)"', preprod_release)
-        self.assertIsNotNone(preprod_match)
-        preprod_modules = set(preprod_match.group(1).split(","))
-
-        self.assertEqual(PRODUCT_MODULES, qa_modules)
         self.assertEqual(PRODUCT_MODULES, target_modules)
         self.assertEqual(PRODUCT_MODULES, release_modules)
         self.assertEqual(PRODUCT_MODULES, host_release_modules)
         self.assertEqual(PRODUCT_MODULES, database_boundary_modules)
-        self.assertEqual(PRODUCT_MODULES, preprod_modules)
 
     def test_target_finalization_reconciles_native_multi_company_ui(self) -> None:
-        target_finalize = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
+        target_finalize = (ROOT / "migration/internal/finalize").read_text(encoding="utf-8")
         synchronizer = (
             ROOT / "scripts/odoo/synchronize_multi_company_groups.py"
         ).read_text(encoding="utf-8")

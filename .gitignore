@@ -70,7 +70,6 @@ usl-online-dump/
 /artifacts/accounting-compat/private/
 /artifacts/action-risk/
 /artifacts/usl-document-templates/
-/artifacts/agent/
 /artifacts/b2c-restore/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
@@ -82,4 +81,3 @@ usl-online-dump/
 /.pocket-id-*.env
 /.documents-personal-ai-keys.json
 /private/
-/.agent/

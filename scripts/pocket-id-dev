@@ -190,8 +190,7 @@ require_target_database() {
       usl_cli_blocked \
         "Target database $ODOO_INIT_DB does not exist in Compose project $COMPOSE_PROJECT_NAME." \
         "Deploy updates an existing reconstructed target; it cannot recreate source accounting data." \
-        "Run: make target-reconstruct-product" \
-        "For unchanged Paperless inputs, run: make target-reconstruct-reuse-documents"
+        "Run a fresh target reconstruction with migration/manage."
     return 2
   fi
   USL_CLI_NO_CHANGES_MESSAGE='The database service was checked, but no Odoo modules or business data were changed.' \
