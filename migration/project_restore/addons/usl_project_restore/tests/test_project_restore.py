@@ -305,6 +305,7 @@ class TestProjectRestore(TransactionCase):
             "project_sales_link_count": 0,
             "linked_expense_ids": [],
         }
+        rows["tasks"][1]["parent_id"] = self.source_blocker_id
         list_count_keys = {
             "companies": "companies",
             "partners": "partners",
@@ -339,7 +340,7 @@ class TestProjectRestore(TransactionCase):
         }
         rows["counts"].update(
             {
-                "task_parent_links": 0,
+                "task_parent_links": 1,
                 "task_milestone_links": 0,
                 "task_recurrence_links": 0,
                 "project_aliases": 1,
@@ -471,12 +472,18 @@ class TestProjectRestore(TransactionCase):
         )
         self.assertEqual(len(projects), 1)
         self.assertEqual(len(tasks), 2)
+        self.assertEqual(projects.id, self.source_project_id)
+        self.assertEqual(
+            set(tasks.ids),
+            {self.source_blocker_id, self.source_task_id},
+        )
         planned = tasks.filtered(
             lambda task: task.rebuild_source_id == self.source_task_id,
         )
         blocker = tasks.filtered(
             lambda task: task.rebuild_source_id == self.source_blocker_id,
         )
+        self.assertEqual(planned.parent_id, blocker)
         self.assertEqual(planned.depend_on_ids, blocker)
         self.assertTrue(planned.usl_dependency_date_warning)
         self.assertEqual(planned.project_id.last_update_status, "at_risk")
@@ -590,6 +597,40 @@ class TestProjectRestore(TransactionCase):
             self.env["mail.notification"].sudo().search_count([]),
             notification_count,
         )
+
+        next_project = self.env["project.project"].create(
+            {"name": "Post-restore project"},
+        )
+        next_task = self.env["project.task"].create(
+            {"name": "Post-restore task"},
+        )
+        self.assertGreater(next_project.id, self.source_project_id)
+        self.assertGreater(next_task.id, self.source_task_id)
+
+    def test_source_primary_id_collisions_fail_closed(self):
+        target_project = self.env["project.project"].create(
+            {"name": "Occupied project identity"},
+        )
+        target_task = self.env["project.task"].create(
+            {"name": "Occupied task identity"},
+        )
+        run = self.env["usl.project.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "target_database": self.env.cr.dbname,
+            },
+        )
+        with self.env.cr.savepoint(), self.assertRaisesRegex(
+            RuntimeError,
+            "Online ID.*is occupied",
+        ):
+            run._acquire_preserved_primary_id_control(
+                {
+                    "projects": [{"id": target_project.id}],
+                    "tasks": [{"id": target_task.id}],
+                },
+            )
 
     def test_closed_recurrence_does_not_generate_target_only_task(self):
         payload = self._payload()

@@ -283,6 +283,22 @@ for row in source["follower_subtype_rel"]:
 
 assert len(project_map) == len(source["projects"])
 assert len(task_map) == len(source["tasks"])
+assert all(
+    project_map[row["id"]].id == row["id"] for row in source["projects"]
+), "Project IDs differ from their Online IDs."
+assert all(
+    task_map[row["id"]].id == row["id"] for row in source["tasks"]
+), "Task IDs differ from their Online IDs."
+for table, rows in (
+    ("project_project", source["projects"]),
+    ("project_task", source["tasks"]),
+):
+    env.cr.execute(f"SELECT last_value, is_called FROM {table}_id_seq")
+    last_value, is_called = env.cr.fetchone()
+    next_value = last_value + 1 if is_called else last_value
+    assert next_value > max(row["id"] for row in rows), (
+        f"{table} sequence would reuse an Online ID."
+    )
 assert env["project.task"].with_context(active_test=False).sudo().search_count([]) == len(
     source["tasks"],
 ), "Target-only Project tasks remain after reconstruction."

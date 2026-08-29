@@ -60,6 +60,26 @@ business records intact. Followers use their native target uniqueness rule.
 Relationships are applied after record creation so parents, subtasks, blockers,
 message parents, attachments and recipients can be resolved safely.
 
+Project and task database IDs are stable business identities in this migration.
+After referenced users have been reconciled, the importer removes only untouched
+native onboarding to-dos, locks both Project tables against concurrent writes,
+and preflights every Online project/task ID. A target row may occupy an Online ID
+only when it is the same source-bound record from an earlier execution; every
+other collision aborts the transaction before allocation. New projects and tasks
+are created through the ORM with their Online primary IDs, and both PostgreSQL
+sequences are reset so the next live ID is above every restored or existing row.
+For the frozen snapshot, the highest task ID is 2,446, so the next live task ID
+must be greater than 2,446. The gate derives this bound from the source rather
+than hard-coding it.
+
+Three allocation approaches were checked. Renumbering records after creation was
+rejected because it risks breaking polymorphic chatter, attachment and activity
+references. Rewinding the PostgreSQL sequence before every ORM create was
+rejected because sequence changes are non-transactional and can leak after a
+failed restore. The selected migration-only create hook injects the explicit ID
+after Odoo prepares normal create values, while the table lock prevents competing
+writes; this retains the complete ORM lifecycle and resets each sequence once.
+
 Existing target companies, partners, and users are matched conservatively by
 stable business identity before a record is created. Users are matched by
 login first; partners then require an unambiguous name-and-email, name, or
@@ -188,13 +208,16 @@ Before product review:
 3. A second import has the same counts and hashes, creates no duplicate traced
    records, messages, tracking values, activities, attachments, followers, or
    links, and leaves post-cutover target edits intact.
-4. Two clean targets produce equivalent source-keyed project, task,
+4. Every restored `project.project.id` and `project.task.id` equals its Online
+   ID; no unrelated row occupied a requested ID; both sequences allocate above
+   the greatest stored ID after restoration.
+5. Two clean targets produce equivalent source-keyed project, task,
    relationship, mail, activity, and attachment checksums.
-5. Verify active and archived project/task actions, private-project rules,
+6. Verify active and archived project/task actions, private-project rules,
    company access, stage and state distinctions, planned dates, milestones,
    subtasks, blockers, recurring configuration, chatter, attachment download,
    updates, and analytic links with representative records.
-6. Run the focused migration and product module tests:
+7. Run the focused migration and product module tests:
 
    ```bash
    docker compose --profile project-migration run --rm \
@@ -215,7 +238,7 @@ Before product review:
    make product-migration-boundary
    ```
 
-7. Finalize the database and require `product-validate` to report zero
+8. Finalize the database and require `product-validate` to report zero
    migration models, fields and XML IDs with `usl_project_restore`
    uninstalled.
 
