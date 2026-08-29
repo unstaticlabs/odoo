@@ -1645,6 +1645,27 @@ class TestMultiCompanyAccountingReports(TransactionCase):
                 "presentation_role": "total",
             },
         ])
+        side_headers = {
+            row["statement_key"]: row
+            for row in rows
+            if row.get("presentation_role") == "section"
+        }
+        self.assertEqual(side_headers["bilan_actif"]["amount"], "100.00")
+        self.assertEqual(side_headers["bilan_passif"]["amount"], "100.00")
+        total_rows = {
+            row["line_code"]: row
+            for row in rows
+            if row.get("line_code") in {"ACTIF_TOTAL", "PASSIF_TOTAL"}
+        }
+        for display_key in ("presentation_role", "is_group", "row_level"):
+            self.assertEqual(
+                total_rows["ACTIF_TOTAL"][display_key],
+                total_rows["PASSIF_TOTAL"][display_key],
+            )
+        self.assertEqual(
+            total_rows["PASSIF_TOTAL"]["presentation_role"],
+            "total",
+        )
         rows = wizard._append_shared_control_rows(rows)
         renderer = self.allowed_env["usl.document.renderer"]
         with (
