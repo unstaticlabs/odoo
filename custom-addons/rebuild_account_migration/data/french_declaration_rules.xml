@@ -91,12 +91,12 @@
     </record>
 
     <record id="declaration_rule_2065_2025" model="rebuild.account.declaration.rule">
-        <field name="name">2065 / 2065-bis - IS return (2025)</field>
+        <field name="name">IS result dossier - 2065 and 2033 A-G (2025)</field>
         <field name="code">FR_2065</field>
         <field name="sequence">30</field>
         <field name="category">profit_tax_package</field>
         <field name="cadence">annual</field>
-        <field name="form_code">2065-SD / 2065-bis-SD</field>
+        <field name="form_code">2065-SD result dossier</field>
         <field name="tax_form_codes">2065-SD,2033-A-SD,2033-B-SD,2033-C-SD,2033-D-SD,2033-E-SD,2033-F-SD,2033-G-SD</field>
         <field name="supporting_form_codes">2065-bis-SD, 2033 A-G-SD</field>
         <field name="deadline_rule">result_return</field>
@@ -107,17 +107,17 @@
         <field name="official_source_label">DGFiP form 2065-SD, 2025</field>
         <field name="official_url">https://www.impots.gouv.fr/formulaire/2065-sd/impot-sur-les-societes</field>
         <field name="official_updated_on">2025-01-01</field>
-        <field name="applicability_guidance">The result declaration applies to companies subject to French corporate income tax.</field>
+        <field name="applicability_guidance">The 2065 filing and its 2033 A-G simplified-regime annexes form one result dossier.</field>
         <field name="filing_guidance">Review fiscal adjustments and administrative 2065-bis facts, then enter the reviewed result and annex references through the professional filing workflow.</field>
         <field name="deadline_guidance">For a non-calendar close, the result declaration is due by the last day of the third month after close, with the published teleprocedure extension.</field>
     </record>
     <record id="declaration_rule_2065_2026" model="rebuild.account.declaration.rule">
-        <field name="name">2065 / 2065-bis - IS return (2026)</field>
+        <field name="name">IS result dossier - 2065 and 2033 A-G (2026)</field>
         <field name="code">FR_2065</field>
         <field name="sequence">30</field>
         <field name="category">profit_tax_package</field>
         <field name="cadence">annual</field>
-        <field name="form_code">2065-SD / 2065-bis-SD</field>
+        <field name="form_code">2065-SD result dossier</field>
         <field name="tax_form_codes">2065-SD,2033-A-SD,2033-B-SD,2033-C-SD,2033-D-SD,2033-E-SD,2033-F-SD,2033-G-SD</field>
         <field name="supporting_form_codes">2065-bis-SD, 2033 A-G-SD</field>
         <field name="deadline_rule">result_return</field>
@@ -128,7 +128,7 @@
         <field name="official_source_label">DGFiP form 2065-SD, 2026</field>
         <field name="official_url">https://www.impots.gouv.fr/sites/default/files/formulaires/2065-sd/2026/2065-sd_5381.pdf</field>
         <field name="official_updated_on">2026-06-01</field>
-        <field name="applicability_guidance">The result declaration applies to companies subject to French corporate income tax.</field>
+        <field name="applicability_guidance">The 2065 filing and its 2033 A-G simplified-regime annexes form one result dossier.</field>
         <field name="filing_guidance">Review fiscal adjustments and administrative 2065-bis facts, then enter the reviewed result and annex references through the professional filing workflow.</field>
         <field name="deadline_guidance">For a non-calendar close, the result declaration is due by the last day of the third month after close, with the published teleprocedure extension.</field>
     </record>

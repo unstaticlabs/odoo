@@ -1097,6 +1097,11 @@ class RebuildAccountDeclaration(models.Model):
                         if month.month == 7
                         else date(month.year, 12, 31)
                     )
+                    first_start, _first_end = company._rebuild_first_fiscalyear_dates()
+                    if first_start and period_end < first_start:
+                        continue
+                    if first_start and period_start < first_start <= period_end:
+                        period_start = first_start
                     deadline_start, deadline = date(month.year, month.month, 15), date(month.year, month.month, 24)
                     transition = fields.Date.to_date(company.rebuild_vat_transition_date)
                     if transition and deadline >= transition:

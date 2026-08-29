@@ -128,6 +128,15 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertFalse(first.filtered(lambda item: item.rule_id.code in {"FR_2033", "FR_2069_RCI", "FR_RCM_2777"}))
         self.assertTrue({"2025", "2026", "2027"}.issubset(set(first.mapped("rule_version"))))
+        result_dossiers = first.filtered(
+            lambda item: item.rule_id.code == "FR_2065",
+        )
+        self.assertTrue(result_dossiers)
+        self.assertEqual(set(result_dossiers.mapped("form_code")), {"2065-SD result dossier"})
+        self.assertTrue(all(
+            "2033 A-G-SD" in (item.rule_id.supporting_form_codes or "")
+            for item in result_dossiers
+        ))
 
         instalments = first.filtered(lambda item: item.rule_id.code == "FR_3514")
         refund_codes = {
@@ -197,8 +206,15 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         vat_instalments = declarations.filtered(lambda item: item.rule_id.code == "FR_3514")
         self.assertEqual(
-            set(vat_instalments.mapped("deadline_date")),
-            {date(2026, 7, 24), date(2026, 12, 24), date(2027, 7, 24)},
+            set(
+                (item.period_start, item.period_end, item.deadline_date)
+                for item in vat_instalments
+            ),
+            {
+                (date(2026, 6, 1), date(2026, 6, 30), date(2026, 7, 24)),
+                (date(2026, 7, 1), date(2026, 12, 31), date(2026, 12, 24)),
+                (date(2027, 1, 1), date(2027, 6, 30), date(2027, 7, 24)),
+            },
         )
         self.assertTrue(declarations.filtered(
             lambda item: item.rule_id.code == "FR_CA3"
