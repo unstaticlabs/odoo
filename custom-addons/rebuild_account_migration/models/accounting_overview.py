@@ -193,39 +193,66 @@ class RebuildAccountOverview(models.Model):
             )
 
     @api.model
+    def _selected_overviews(self):
+        """Return one overview for every company selected in the Odoo switcher."""
+        return self.search(
+            [("company_id", "in", self.env.companies.ids)],
+            order="company_id",
+        )
+
+    def _overview_form_action(self):
+        self.ensure_one()
+        form_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Accounting — %s", self.company_id.display_name),
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "view_id": form_view.id,
+            "views": [(form_view.id, "form")],
+            "target": "current",
+            "context": {"create": False, "delete": False},
+        }
+
+    @api.model
     def action_open_accounting_home(self):
         if not self.has_access("read"):
             return self.env["ir.actions.actions"]._for_xml_id(
                 "account.open_account_journal_dashboard_kanban",
             )
-        home = self.search(
-            [("company_id", "=", self.env.company.id)],
-            limit=1,
-        )
-        if not home:
+        overviews = self._selected_overviews()
+        if not overviews:
             return self.env["ir.actions.actions"]._for_xml_id(
                 "account.open_account_journal_dashboard_kanban",
             )
+        if len(overviews) == 1:
+            return overviews._overview_form_action()
+        kanban_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_kanban",
+        )
+        form_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        )
         return {
             "type": "ir.actions.act_window",
-            "name": "Accounting Home",
+            "name": self.env._(
+                "Accounting — %s selected companies",
+                len(overviews),
+            ),
             "res_model": self._name,
-            "res_id": home.id,
-            "view_mode": "form",
-            "view_id": self.env.ref(
-                "rebuild_account_migration.view_rebuild_accounting_home_form",
-            ).id,
-            "views": [
-                (
-                    self.env.ref(
-                        "rebuild_account_migration.view_rebuild_accounting_home_form",
-                    ).id,
-                    "form",
-                ),
-            ],
+            "view_mode": "kanban,form",
+            "view_id": kanban_view.id,
+            "views": [(kanban_view.id, "kanban"), (form_view.id, "form")],
+            "domain": [("id", "in", overviews.ids)],
             "target": "current",
             "context": {"create": False, "delete": False},
         }
+
+    def action_open_company_overview(self):
+        return self._overview_form_action()
 
     def _standard_company_action(self, xmlid, domain=None):
         """Return an upstream action with only its non-removable scope.
@@ -234,19 +261,32 @@ class RebuildAccountOverview(models.Model):
         context only. Repeating them here makes a removed facet ineffective
         and leaves the user trapped in an invisible filter.
         """
-        self.ensure_one()
+        if not self:
+            raise UserError(self.env._("No selected company is available."))
         action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
         if domain is not None:
+            company_ids = self.company_id.ids
+            company_domain = (
+                ("company_id", "=", company_ids[0])
+                if len(company_ids) == 1
+                else ("company_id", "in", company_ids)
+            )
             action["domain"] = [
-                ("company_id", "=", self.company_id.id),
+                company_domain,
                 *domain,
             ]
+            context = action.get("context") or {}
+            if isinstance(context, str):
+                context = safe_eval(context)
+            if len(company_ids) == 1:
+                context = {**context, "default_company_id": company_ids[0]}
+            action["context"] = context
         return action
 
     def action_open_journal_dashboard(self):
-        self.ensure_one()
-        return self.env["ir.actions.actions"]._for_xml_id(
+        return self._standard_company_action(
             "account.open_account_journal_dashboard_kanban",
+            [],
         )
 
     def action_open_bank_transactions(self):
@@ -376,8 +416,8 @@ class RebuildAccountOverview(models.Model):
         )
 
     def action_open_latest_closing_controls(self):
-        self.ensure_one()
-        if not self.latest_closing_period_id:
+        periods = self.mapped("latest_closing_period_id")
+        if not periods:
             message = "No closing controls are available for this company."
             raise UserError(message)
         return {
@@ -389,8 +429,8 @@ class RebuildAccountOverview(models.Model):
             "domain": [
                 (
                     "closing_period_id",
-                    "=",
-                    self.latest_closing_period_id.id,
+                    "in",
+                    periods.ids,
                 ),
             ],
             "context": {
@@ -427,20 +467,24 @@ class RebuildAccountOverview(models.Model):
         return self._hygiene_issues_action()
 
     def action_open_hygiene_issues(self):
+        if len(self) > 1:
+            return self._hygiene_issues_action()
         self.ensure_one()
         if self.env.user.has_group("account.group_account_manager"):
             return self.action_refresh_hygiene()
         return self._hygiene_issues_action()
 
     def _hygiene_issues_action(self):
-        self.ensure_one()
+        if not self:
+            raise UserError(self.env._("Accounting Hygiene is not available."))
+        company_ids = self.company_id.ids
         return {
             "type": "ir.actions.act_window",
             "name": "Accounting Hygiene",
             "res_model": "rebuild.account.hygiene.issue",
             "view_mode": "list,form",
             "views": [(False, "list"), (False, "form")],
-            "domain": [("company_id", "=", self.company_id.id)],
+            "domain": [("company_id", "in", company_ids)],
             "context": {
                 "create": False,
                 "delete": False,
@@ -450,14 +494,11 @@ class RebuildAccountOverview(models.Model):
 
     @api.model
     def action_open_current_company_hygiene(self):
-        overview = self.search(
-            [("company_id", "=", self.env.company.id)],
-            limit=1,
-        )
-        if not overview:
-            message = "Accounting Hygiene is not available for the current company."
+        overviews = self._selected_overviews()
+        if not overviews:
+            message = "Accounting Hygiene is not available for the selected companies."
             raise UserError(message)
-        return overview.action_open_hygiene_issues()
+        return overviews.action_open_hygiene_issues()
 
     def action_open_open_receivables(self):
         self.ensure_one()
@@ -550,7 +591,8 @@ class RebuildAccountOverview(models.Model):
         )
 
     def action_open_valentin_actions(self):
-        self.ensure_one()
+        if not self:
+            raise UserError(self.env._("No selected company is available."))
         return {
             "type": "ir.actions.act_window",
             "name": "Accounting Manager Decisions",
@@ -560,7 +602,7 @@ class RebuildAccountOverview(models.Model):
             "domain": [
                 "|",
                 ("company_id", "=", False),
-                ("company_id", "=", self.company_id.id),
+                ("company_id", "in", self.company_id.ids),
                 ("state", "=", "draft"),
                 ("required_authority", "in", ["valentin", "joint"]),
             ],
@@ -568,7 +610,8 @@ class RebuildAccountOverview(models.Model):
         }
 
     def action_open_accountant_actions(self):
-        self.ensure_one()
+        if not self:
+            raise UserError(self.env._("No selected company is available."))
         return {
             "type": "ir.actions.act_window",
             "name": "Accountant Review Decisions",
@@ -578,7 +621,7 @@ class RebuildAccountOverview(models.Model):
             "domain": [
                 "|",
                 ("company_id", "=", False),
-                ("company_id", "=", self.company_id.id),
+                ("company_id", "in", self.company_id.ids),
                 ("state", "=", "draft"),
                 ("required_authority", "in", ["accountant", "joint"]),
             ],
@@ -587,12 +630,26 @@ class RebuildAccountOverview(models.Model):
 
     def action_open_accounting_settings(self):
         self.ensure_one()
-        return self.env["ir.actions.actions"]._for_xml_id(
+        action = self.env["ir.actions.actions"]._for_xml_id(
             "account.action_account_config",
         )
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {
+            **context,
+            "allowed_company_ids": [self.company_id.id],
+            "default_company_id": self.company_id.id,
+        }
+        return action
 
     def action_open_review_decisions(self):
-        self.ensure_one()
+        if not self:
+            raise UserError(self.env._("No selected company is available."))
+        company_ids = self.company_id.ids
+        context = {"delete": False}
+        if len(company_ids) == 1:
+            context["default_company_id"] = company_ids[0]
         return {
             "type": "ir.actions.act_window",
             "name": "Accounting Review Decisions",
@@ -602,13 +659,10 @@ class RebuildAccountOverview(models.Model):
             "domain": [
                 "|",
                 ("company_id", "=", False),
-                ("company_id", "=", self.company_id.id),
+                ("company_id", "in", company_ids),
                 ("state", "!=", "superseded"),
             ],
-            "context": {
-                "default_company_id": self.company_id.id,
-                "delete": False,
-            },
+            "context": context,
         }
 
     def action_open_external_report_values(self):
