@@ -676,6 +676,35 @@ class TestProjectRestore(TransactionCase):
                 },
             )
 
+    def test_stage_less_task_preserves_zero_duration_stage_marker(self):
+        payload = self._payload()
+        source_id = 9017
+        task = self._task_row(
+            source_id,
+            "Stage-less archived task",
+            start=None,
+            deadline=None,
+        )
+        task.update({
+            "project_id": None,
+            "stage_id": None,
+            "duration_tracking": {
+                "d": "2026-01-28 14:21:09",
+                "s": 0,
+            },
+        })
+        payload["tasks"].append(task)
+        payload["counts"]["tasks"] += 1
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        restored = self.env["project.task"].browse(source_id)
+        self.assertTrue(restored.exists())
+        self.assertFalse(restored.project_id)
+        self.assertFalse(restored.stage_id)
+        self.assertEqual(restored.duration_tracking, task["duration_tracking"])
+
     def test_task_stage_ids_replace_only_unowned_target_fixtures(self):
         live_fixture, historical_fixture = self.env["project.task.type"].create(
             [

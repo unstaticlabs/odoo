@@ -551,7 +551,7 @@ for row in source["tasks"]:
         f"Task {row['id']} duration ledger differs from Online."
     )
     if source_duration:
-        assert target_duration.get("s") == row["stage_id"], (
+        assert target_duration.get("s") == (row["stage_id"] or 0), (
             f"Task {row['id']} duration ledger has the wrong current stage."
         )
         assert target_duration.get("d") == source_duration.get("d"), (
