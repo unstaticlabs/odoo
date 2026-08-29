@@ -131,10 +131,12 @@ Accounting parity passed with:
 The controlled closed slice contains 2,046 posted moves and 4,809 lines, with
 €1,064,045.02 debit and credit.
 
-The reconstructed electronic-invoice setup for Unstatic Labs contains the
-source accounting contact and phone, the mapped **Achats** journal and French
-identifier `0225:983982950`. It deliberately contains no proxy identity or live
-connection claim.
+The reconstructed electronic-invoice setup contains the source accounting
+contact and phone, mapped company-specific **Achats** journals and French
+identifiers `0225:983982950` for Unstatic Labs and `0225:106928831` for USL
+MEDIA. Because Online contains no electronic-invoice contact for USL MEDIA,
+its offline form uses the reviewed central USL accounting contact. Neither
+company contains a proxy identity or live connection claim.
 
 The Accounting Manager then ran the offline self-check on `odoo_dev`. Before
 and after counts were identical:

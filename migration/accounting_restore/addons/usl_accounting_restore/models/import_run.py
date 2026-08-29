@@ -125,6 +125,17 @@ FRENCH_DOCUMENT_IDENTITIES_BY_SIREN = {
     },
 }
 
+# USL MEDIA has no electronic-invoice contact in the frozen Online source.
+# Its accounting is handled through the same central contact already recorded
+# for Unstatic Labs. Keep this reviewed fallback offline and keyed by SIREN;
+# it prepares the company form without claiming registration or connectivity.
+FRENCH_EINVOICE_FALLBACK_CONTACTS_BY_SIREN = {
+    "106928831": {
+        "account_peppol_contact_email": "compta@unstaticlabs.com",
+        "account_peppol_phone_number": "+33651099030",
+    },
+}
+
 VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY = {
     "fiscalyear": "simplified",
     "monthly": "normal",
@@ -3541,6 +3552,10 @@ class RebuildAccountImportRun(models.Model):
                 for character in (company.company_registry or "")
                 if character.isdigit()
             )
+            siren = registry_digits[:9] if len(registry_digits) >= 9 else ""
+            fallback_contact = (
+                FRENCH_EINVOICE_FALLBACK_CONTACTS_BY_SIREN.get(siren, {})
+            )
             values = {
                 "rebuild_einvoice_provider": "odoo_pdp",
                 "rebuild_einvoice_environment": "development",
@@ -3552,25 +3567,46 @@ class RebuildAccountImportRun(models.Model):
                 "l10n_fr_pdp_send_to_ppf": False,
                 "l10n_fr_pdp_pilot_phase": False,
             }
-            if row["account_peppol_contact_email"]:
-                values["account_peppol_contact_email"] = row[
-                    "account_peppol_contact_email"
-                ]
-            if row["account_peppol_phone_number"]:
-                values["account_peppol_phone_number"] = row[
-                    "account_peppol_phone_number"
-                ]
+            contact_email = (
+                row["account_peppol_contact_email"]
+                or fallback_contact.get("account_peppol_contact_email")
+            )
+            phone_number = (
+                row["account_peppol_phone_number"]
+                or fallback_contact.get("account_peppol_phone_number")
+            )
+            if contact_email:
+                values["account_peppol_contact_email"] = contact_email
+            if phone_number:
+                values["account_peppol_phone_number"] = phone_number
             if row["peppol_purchase_journal_id"] in journals:
                 values["peppol_purchase_journal_id"] = journals[
                     row["peppol_purchase_journal_id"]
                 ].id
+            elif fallback_contact:
+                purchase_journals = [
+                    journal
+                    for journal in journals.values()
+                    if journal.company_id == company
+                    and journal.type == "purchase"
+                ]
+                if purchase_journals:
+                    purchase_journal = min(
+                        purchase_journals,
+                        key=lambda journal: (
+                            journal.code != "ACH",
+                            journal.sequence,
+                            journal.id,
+                        ),
+                    )
+                    values["peppol_purchase_journal_id"] = purchase_journal.id
             if (
                 company.account_fiscal_country_id.code == "FR"
-                and len(registry_digits) >= 9
+                and siren
             ):
                 values.update({
                     "peppol_eas": "0225",
-                    "peppol_endpoint": registry_digits[:9],
+                    "peppol_endpoint": siren,
                 })
             company.sudo().write(values)
 
