@@ -14,6 +14,7 @@ class SignOrchestrationTest(unittest.TestCase):
         reconstruction = TARGET_RECONSTRUCT.read_text(encoding="utf-8")
 
         self.assertIn("usl-odoo-migration-?*", restore)
+        self.assertIn("usl-odoo-qa-migration-?*", restore)
         self.assertIn('if [[ "$canonical_target" != 1 ]]', restore)
         self.assertIn(
             'usl_verify_compose_scope "$compose_project" "$ROOT" "Sign restoration"',

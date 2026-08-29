@@ -27,7 +27,7 @@ fi
 
 case "$compose_project" in
   codex-migration-?*|usl-migration-?*) ;;
-  usl-odoo-migration-?*)
+  usl-odoo-migration-?*|usl-odoo-qa-migration-?*)
     if [[ "$canonical_target" != 1 ]]; then
       printf 'Refusing non-canonical Sign target in governed reconstruction project %s.\n' \
         "$compose_project" >&2
