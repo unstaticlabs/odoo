@@ -40,6 +40,9 @@ POCKET_SIGN_PATCH = (
     ROOT / "services/usl-pocket-id/pocket-id-v2.14.0-fresh-passkey.patch"
 )
 POCKET_SIGN_OVERLAY = ROOT / "compose.sign-pocketid.qa.yaml"
+PRODUCTION_SIDE_EFFECT_BOUNDARY = (
+    ROOT / "scripts/odoo/production_side_effect_boundary.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -83,6 +86,12 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("DisableRefreshTokens", patch)
         self.assertIn('strings.HasPrefix(reauthenticationToken, "phr.")', patch)
         self.assertIn("TestFreshPasskeyClientOnlyAllowsAuthorizationCode", patch)
+
+    def test_production_side_effect_boundary_uses_current_typed_parameter_api(self):
+        script = PRODUCTION_SIDE_EFFECT_BOUNDARY.read_text(encoding="utf-8")
+
+        self.assertIn('get_bool("database.is_neutralized")', script)
+        self.assertNotIn("get_param(", script)
 
     def test_rejects_empty_or_protected_target_database(self):
         for database in ("", "odoo_online_source_saas_19_3"):
