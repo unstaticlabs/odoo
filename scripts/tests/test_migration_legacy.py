@@ -158,6 +158,14 @@ class MigrationLegacyBoundaryTests(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn("USL_MIGRATION_LEGACY_CONFIRM", result.stderr)
 
+    def test_wrapper_exposes_a_safe_static_verify_entrypoint(self) -> None:
+        wrapper = WRAPPER.read_text(encoding="utf-8")
+        verify_case = wrapper.split('  verify)\n', 1)[1].split('    ;;\n', 1)[0]
+        self.assertIn("check-product-migration-boundary", verify_case)
+        self.assertIn("scripts.tests.test_migration_legacy", verify_case)
+        self.assertNotIn("docker compose up", verify_case)
+        self.assertNotIn("target-reconstruct", verify_case)
+
     def test_wrapper_renders_only_after_exact_source_and_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory)

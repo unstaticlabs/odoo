@@ -7,7 +7,7 @@ cd "$ROOT"
 
 usage() {
   cat >&2 <<'EOF'
-Usage: scripts/migration-legacy <config|reconstruct|source-inventory|product-boundary>
+Usage: scripts/migration-legacy <verify|config|reconstruct|source-inventory|product-boundary>
 
 Required environment:
   COMPOSE_PROJECT_NAME                 usl-odoo-migration-legacy-<purpose>
@@ -29,6 +29,10 @@ fail() {
 
 command_name="${1:-}"
 case "$command_name" in
+  verify)
+    "$ROOT/scripts/check-product-migration-boundary"
+    exec python3 -m unittest scripts.tests.test_migration_legacy
+    ;;
   config|reconstruct|source-inventory|product-boundary) ;;
   *) usage ;;
 esac
