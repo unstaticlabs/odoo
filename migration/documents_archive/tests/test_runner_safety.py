@@ -90,19 +90,27 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
     def test_canonical_compose_honors_project_extra_file(self):
         script = SCRIPT.read_text(encoding="utf-8")
 
-        canonical_compose = script.index(
-            '-f compose.yaml -f compose.pocket-id.yaml',
-        )
+        canonical_compose = script.index('if [[ "$canonical_target" == 1 ]]')
         extra_file_guard = script.index(
             'if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]',
-            canonical_compose,
         )
         extra_file_append = script.index(
-            'compose+=(-f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE")',
+            'append_compose_file "$USL_POCKET_ID_COMPOSE_EXTRA_FILE"',
             extra_file_guard,
         )
         self.assertLess(canonical_compose, extra_file_guard)
         self.assertLess(extra_file_guard, extra_file_append)
+        self.assertIn('append_compose_file "$ROOT/compose.pocket-id.yaml"', script)
+
+    def test_documents_restore_preserves_inherited_compose_scope_for_native_ollama(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn('if [[ -z "${COMPOSE_FILE:-}" ]]', script)
+        self.assertIn(
+            'append_compose_file "$USL_OLLAMA_COMPOSE_OVERRIDE"',
+            script,
+        )
+        self.assertNotIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', script)
 
     def test_source_restore_maps_project_documents_after_project_restore(self):
         script = SOURCE_DOCUMENTS_RESTORE.read_text(encoding="utf-8")

@@ -198,19 +198,30 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 usl_prepare_ollama_runtime "$ROOT"
 
+append_compose_file() {
+    local compose_file="$1"
+    case ":${COMPOSE_FILE:-}:" in
+        *":$compose_file:"*) ;;
+        *) export COMPOSE_FILE="${COMPOSE_FILE:+$COMPOSE_FILE:}$compose_file" ;;
+    esac
+}
+
+if [[ -z "${COMPOSE_FILE:-}" ]]; then
+    export COMPOSE_FILE="$ROOT/compose.yaml"
+fi
 if [[ "$canonical_target" == 1 ]]; then
+    append_compose_file "$ROOT/compose.pocket-id.yaml"
+    if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]; then
+        append_compose_file "$USL_POCKET_ID_COMPOSE_EXTRA_FILE"
+    fi
     compose=(
         docker compose -p "$compose_project" --env-file "$canonical_env_file"
-        -f compose.yaml -f compose.pocket-id.yaml
     )
-    if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]; then
-        compose+=(-f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE")
-    fi
 else
     compose=(docker compose -p "$compose_project")
 fi
 if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
-    compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+    append_compose_file "$USL_OLLAMA_COMPOSE_OVERRIDE"
 fi
 
 validate_source() {
