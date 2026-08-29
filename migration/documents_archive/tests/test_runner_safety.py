@@ -43,6 +43,9 @@ POCKET_SIGN_OVERLAY = ROOT / "compose.sign-pocketid.qa.yaml"
 PRODUCTION_SIDE_EFFECT_BOUNDARY = (
     ROOT / "scripts/odoo/production_side_effect_boundary.py"
 )
+PRODUCTION_TRANSITION_NEUTRALIZE = (
+    ROOT / "scripts/odoo/production_transition_neutralize.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -92,6 +95,19 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
 
         self.assertIn('get_bool("database.is_neutralized")', script)
         self.assertNotIn("get_param(", script)
+
+    def test_transition_neutralization_is_quiesced_transactional_and_secret_safe(self):
+        script = PRODUCTION_TRANSITION_NEUTRALIZE.read_text(encoding="utf-8")
+
+        self.assertIn('USL_TRANSITION_WRITERS_QUIESCED") != "1"', script)
+        self.assertIn("pg_stat_activity", script)
+        self.assertIn("neutralize_database(env.cr)", script)
+        self.assertIn('env.registry.clear_cache("stable")', script)
+        self.assertIn('params.get_str("usl_documents.paperless_token")', script)
+        self.assertIn("restored_paperless != paperless", script)
+        self.assertIn("ensure_fail_closed_ingestion_policy()", script)
+        self.assertIn("env.cr.commit()", script)
+        self.assertNotIn('paperless["token"]', script[script.index("print(") :])
 
     def test_rejects_empty_or_protected_target_database(self):
         for database in ("", "odoo_online_source_saas_19_3"):
