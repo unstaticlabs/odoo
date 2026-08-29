@@ -2554,6 +2554,27 @@ class TestDocuments(TransactionCase):
             {mapped.id, explicitly_linked.id},
         )
 
+    def test_record_workspace_activates_its_authorized_company(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Company B document target",
+                "company_id": self.company_b.id,
+            },
+        )
+        record = partner.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id],
+        )
+
+        action = record.action_open_documents_workspace()
+
+        self.assertEqual(
+            action["context"]["allowed_company_ids"],
+            [self.company_a.id, self.company_b.id],
+        )
+        self.assertEqual(action["params"]["res_model"], "res.partner")
+        self.assertEqual(action["params"]["res_id"], partner.id)
+
     def test_company_smart_button_and_linked_workspace_include_trash(self):
         available = self._document(337, name="Available company evidence")
         trashed = self._document(338, name="Company evidence in Trash")

@@ -109,14 +109,44 @@ class DocumentLinkMixin(models.AbstractModel):
 
     def action_open_documents_workspace(self):
         self.ensure_one()
-        self.check_access("read")
+        # A record-scoped client action must keep the record's legal company
+        # active for every later RPC.  The web client can otherwise retain a
+        # different company from the switcher and fail while reading related
+        # records (notably hr.employee on TESE payrolls).  Resolve only the
+        # company under sudo, then re-run the normal record access check with
+        # that company added to the caller's active, authorized companies.
+        sudo_record = self.sudo()
+        company = (
+            sudo_record
+            if self._name == "res.company"
+            else getattr(sudo_record, "company_id", False)
+            or self.env.company
+        )
+        if not self.env.su and company not in self.env.user.company_ids:
+            raise AccessError(_("You cannot access documents for this company."))
+        authorized_company_ids = set(self.env.user.company_ids.ids)
+        active_company_ids = [
+            company_id
+            for company_id in (
+                self.env.context.get("allowed_company_ids")
+                or self.env.companies.ids
+            )
+            if self.env.su or company_id in authorized_company_ids
+        ]
+        if company.id not in active_company_ids:
+            active_company_ids.append(company.id)
+        record = self.with_context(allowed_company_ids=active_company_ids)
+        record.check_access("read")
         action = self.env.ref("usl_documents.action_documents_workspace").read()[0]
+        action["context"] = {"allowed_company_ids": active_company_ids}
         action["params"] = {
-            "res_model": self._name,
-            "res_id": self.id,
-            "record_name": self.display_name,
+            "res_model": record._name,
+            "res_id": record.id,
+            "record_name": record.display_name,
             "linked_filter": True,
-            "mapped_partner_id": self.id if self._name == "res.partner" else False,
+            "mapped_partner_id": (
+                record.id if record._name == "res.partner" else False
+            ),
         }
         return action
 

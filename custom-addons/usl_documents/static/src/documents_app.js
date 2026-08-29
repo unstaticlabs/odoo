@@ -485,6 +485,20 @@ export class DocumentsWorkspaceView extends Component {
         });
     }
 
+    rpc(model, method, args = [], kwargs = {}) {
+        const actionContext = this.props.action.context || {};
+        const callContext = {
+            ...actionContext,
+            ...(kwargs.context || {}),
+        };
+        return this.orm.call(model, method, args, {
+            ...kwargs,
+            ...(Object.keys(callContext).length
+                ? { context: callContext }
+                : {}),
+        });
+    }
+
     readUrlState() {
         try {
             const url = new URL(browser.location.href);
@@ -1821,7 +1835,7 @@ export class DocumentsWorkspaceView extends Component {
         this.state.semanticRefining = false;
         this.state.error = "";
         try {
-            const result = await this.orm.call(
+            const result = await this.rpc(
                 "usl.document",
                 "workspace_data",
                 [],
@@ -1838,7 +1852,7 @@ export class DocumentsWorkspaceView extends Component {
             if (progressive && !result.degraded && !result.error) {
                 this.state.semanticRefining = true;
                 try {
-                    const refined = await this.orm.call(
+                    const refined = await this.rpc(
                         "usl.document",
                         "workspace_data",
                         [],
@@ -2364,7 +2378,7 @@ export class DocumentsWorkspaceView extends Component {
         };
         this.state.selectedLoading = true;
         try {
-            const detail = await this.orm.call(
+            const detail = await this.rpc(
                 "usl.document",
                 "document_detail",
                 [document.id],
@@ -3119,7 +3133,7 @@ export class DocumentsWorkspaceView extends Component {
         }
         const documentName = this.state.selected.name;
         try {
-            await this.orm.call("usl.document", "link_to_record", [
+            await this.rpc("usl.document", "link_to_record", [
                 [this.state.selected.id],
                 this.recordContext.resModel,
                 this.recordContext.resId,
@@ -3145,7 +3159,7 @@ export class DocumentsWorkspaceView extends Component {
         }
         const documentName = this.state.selected.name;
         try {
-            await this.orm.call("usl.document", "unlink_from_record", [
+            await this.rpc("usl.document", "unlink_from_record", [
                 [this.state.selected.id],
                 this.recordContext.resModel,
                 this.recordContext.resId,
@@ -3168,7 +3182,7 @@ export class DocumentsWorkspaceView extends Component {
 
     async openLink(link) {
         this.persistState();
-        const action = await this.orm.call(
+        const action = await this.rpc(
             "usl.document",
             "action_open_linked_record",
             [[this.state.selected.id], link.id]

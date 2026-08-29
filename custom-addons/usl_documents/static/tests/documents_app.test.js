@@ -212,6 +212,51 @@ test("empty archive state is explicit and supports zero-filing upload", async ()
     expect("input[type=file]").toHaveCount(1);
 });
 
+test("record workspace forwards its company context when linking", async () => {
+    const document = {
+        id: 62,
+        name: "TESE statement",
+        availability_state: "available",
+        access_error: false,
+        tags: [],
+        link_count: 0,
+    };
+    const expectedContext = { allowed_company_ids: [1, 2] };
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return { ...emptyWorkspace, documents: [document], count: 1 };
+    });
+    onRpc("usl.document", "document_detail", ({ kwargs }) => {
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return {
+            ...document,
+            can_edit: true,
+            can_change_links: true,
+            can_manage: true,
+            archive_available: true,
+            links: [],
+            versions: [],
+        };
+    });
+    onRpc("usl.document", "link_to_record", ({ args, kwargs }) => {
+        expect(args).toEqual([[document.id], "usl.tese.payslip", 31]);
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return true;
+    });
+    const recordAction = action({
+        res_model: "usl.tese.payslip",
+        res_id: 31,
+        linked_filter: true,
+    });
+    recordAction.context = expectedContext;
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: recordAction },
+    });
+    await contains(".o_usl_document_card").click();
+    await contains("button", { text: "Link to this record" }).click();
+});
+
 test("degraded state keeps Odoo available and offers retry", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
