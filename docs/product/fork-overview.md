@@ -153,6 +153,7 @@ source bindings or technical reconstruction provenance.
 | `migration/documents_archive` | Paperless archive reconstruction, checksums, access, business links and resumable evidence processing | [Documents archive boundary](../../migration/documents_archive/README.md) |
 | `migration/collaboration_restore` | Final source-wide restoration of native chatter, tracking, followers, activities, recipients, reactions and evidence relationships after operational and Documents reconstruction | [Collaboration restoration](../operations/collaboration-restoration.md) |
 | `migration/bank_statement_ingestion` | One-time exact-FITID adoption of migrated Shine statement lines before scheduled ingestion starts | [Bank identity cut-over](../../migration/bank_statement_ingestion/README.md) |
+| `migration/cohort_promotion` | Fail-closed promotion of the post-work coordinated Odoo, Paperless, Ollama and Native Sign transfer cohort without comparing evolved business state to obsolete source-candidate counts | [Evolved migration cohort promotion](../operations/evolved-migration-cohort.md) |
 
 The product/migration separation is enforced by
 `make product-migration-boundary`, database-boundary checks and finalization.

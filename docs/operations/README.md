@@ -6,6 +6,7 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Production image CI boundary](production-image-ci.md)
 - [Pre-production release](preproduction-release.md)
 - [Portable production migration candidate](portable-production-migration.md)
+- [Evolved migration cohort promotion](evolved-migration-cohort.md)
 - [Production cut-over readiness register](production-cutover-readiness.md)
 - [Deployment runbook](deployment-runbook.md)
 - [Product performance audit and operating budgets](product-performance.md)
