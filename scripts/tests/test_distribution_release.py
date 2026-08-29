@@ -264,6 +264,9 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
 
     def test_product_module_perimeters_are_identical(self) -> None:
         qa_environment = (ROOT / "scripts/qa-environment").read_text(encoding="utf-8")
+        self.assertIn(
+            "USL_POCKET_ID_POLICY_CLEAN_DATABASE=1", qa_environment,
+        )
         qa_match = re.search(r"product_modules='([^']+)'", qa_environment)
         self.assertIsNotNone(qa_match)
         qa_modules = set(qa_match.group(1).split(","))

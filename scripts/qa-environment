@@ -524,6 +524,7 @@ clean_install() {
     init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
     < "$ROOT/scripts/odoo/qa_clean_install_company.py"
   USL_QA_DATA_PROFILE=clean-install \
+    USL_POCKET_ID_POLICY_CLEAN_DATABASE=1 \
     scripts/pocket-id-dev configure-odoo "$product_modules"
   "${compose[@]}" stop odoo
   "${compose[@]}" --profile init run --rm -T \
