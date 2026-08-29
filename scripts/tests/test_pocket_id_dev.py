@@ -1,4 +1,9 @@
+import contextlib
+import io
+import json
+import os
 import unittest
+from unittest import mock
 
 from scripts import pocket_id_dev
 
@@ -115,6 +120,54 @@ class PocketIdClientProvisioningTest(unittest.TestCase):
                 {"secret": "configured-secret"},
             ),
             api.calls,
+        )
+
+
+class PocketIdOdooPolicyTest(unittest.TestCase):
+    def _policy(self, **environment):
+        values = {
+            "POCKET_ID_APP_URL": "http://pocket-id.localhost:1411",
+            "POCKET_ID_VALENTIN_ID": "valentin-subject",
+            "POCKET_ID_ROGER_ID": "roger-subject",
+            "POCKET_ID_PROSPER_ID": "prosper-subject",
+            "POCKET_ID_PROSPER_EMAIL": "prosper@example.test",
+        }
+        output = io.StringIO()
+        with mock.patch.dict(os.environ, environment, clear=False):
+            with contextlib.redirect_stdout(output):
+                pocket_id_dev.odoo_policy(values)
+        return json.loads(output.getvalue())
+
+    def test_reconstructed_policy_contains_historical_login_once(self):
+        policy = self._policy(
+            USL_POCKET_ID_POLICY_CLEAN_DATABASE="0",
+            USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY="0",
+            USL_POCKET_ID_POLICY_SINGLE_COMPANY="0",
+        )
+        historical = [row for row in policy if row["login"] == "roger@xaic.cat"]
+
+        self.assertEqual(
+            historical,
+            [{"login": "roger@xaic.cat", "profile": "historical"}],
+        )
+
+    def test_clean_policy_keeps_historical_login_optional(self):
+        policy = self._policy(
+            USL_POCKET_ID_POLICY_CLEAN_DATABASE="1",
+            USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY="0",
+            USL_POCKET_ID_POLICY_SINGLE_COMPANY="0",
+        )
+        historical = [row for row in policy if row["login"] == "roger@xaic.cat"]
+
+        self.assertEqual(
+            historical,
+            [
+                {
+                    "login": "roger@xaic.cat",
+                    "profile": "historical",
+                    "optional_if_missing": True,
+                },
+            ],
         )
 
 

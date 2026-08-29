@@ -885,6 +885,12 @@ def odoo_policy(values: dict[str, str]) -> None:
         "POCKET_ID_PROSPER_ODOO_EMAIL",
         values["POCKET_ID_PROSPER_EMAIL"],
     )
+    historical_roger = {
+        "login": "roger@xaic.cat",
+        "profile": "historical",
+    }
+    if clean_database:
+        historical_roger["optional_if_missing"] = True
     policy = [
         {
             "login": "admin",
@@ -909,11 +915,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
         },
-        {
-            "login": "roger@xaic.cat",
-            "profile": "historical",
-            "optional_if_missing": True,
-        },
+        historical_roger,
         {
             "login": "prosper",
             "name": "Prosper",
@@ -925,14 +927,6 @@ def odoo_policy(values: dict[str, str]) -> None:
     ]
     if clean_database and not prosper_odoo_email:
         policy.pop()
-    if not clean_database:
-        policy.insert(
-            -1,
-            {
-                "login": "roger@xaic.cat",
-                "profile": "historical",
-            },
-        )
     if prosper_odoo_email:
         policy[-1]["email"] = prosper_odoo_email
     print(json.dumps(policy, separators=(",", ":")))
