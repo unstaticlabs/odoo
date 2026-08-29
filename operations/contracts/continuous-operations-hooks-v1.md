@@ -109,8 +109,11 @@ container forces both live e-invoice flags to `0`.
 | `record` | Seal run/evidence and send non-secret outcome; in an activated release run, revalidate candidate plus prior sidecar, require its contract checksum to equal `run.source.candidate_release_sha256`, update/read back only `USL_DEPLOYED_RELEASE_RUN_ID` from exact `build.workflow_run_id` after reopen | evidence/alert relay and GitHub Actions repository variable endpoint | scoped GitHub variable-write token only |
 
 `pre_mutation_verify` and `pre_mutation_reopen` verify unchanged production and
-reopen paused writers after a pre-mutation failure/defer. They need the same
-read access and scoped Komodo credential as `quiesce`/`reopen`, never GitLab.
+reopen paused intake, writers, consumers and cron after a pre-mutation
+failure/defer. They run once `drain` has started even when the writer-state
+marker is still `open`, because a partial drain may already have stopped
+intake. They need the same read access and scoped Komodo credential as
+`quiesce`/`reopen`, never GitLab.
 
 `rollback_restore_cohort` restores the exact recovery cohort using data/object
 store credentials. `rollback_restore_pins` is the only hook that needs

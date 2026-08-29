@@ -396,6 +396,39 @@ class DeploymentControllerTest(unittest.TestCase):
                     self.assertEqual(failed["state"], "failed_pre_mutation")
                     self.assertFalse(failed["mutation_started"])
 
+    def test_drain_failure_runs_audited_pre_mutation_reopen_hooks(self) -> None:
+        value = self.through("drain")
+        invoked = []
+
+        def hook(_directory, name, _run, *, dry_run):
+            self.assertFalse(dry_run)
+            invoked.append(name)
+            if name == "drain":
+                raise deployment_run.DeploymentRunError("partial drain")
+            return canonical_sha256({"hook": name})
+
+        with mock.patch.object(deployment_run, "_run_hook", side_effect=hook):
+            failed = deployment_run.advance(
+                value,
+                "drain",
+                now=NOW,
+                hook_dir=self.root,
+                dry_run=False,
+                fail_stage=None,
+                pins_output=None,
+                expected_gitops_commit=None,
+                observed_gitops_commit=None,
+                gitops_result=None,
+                snapshot_result=None,
+                upgrade_result=None,
+            )
+        self.assertEqual(
+            invoked, ["drain", "pre_mutation_verify", "pre_mutation_reopen"],
+        )
+        self.assertEqual(failed["state"], "failed_pre_mutation")
+        self.assertEqual(failed["writers"], "open")
+        self.assertEqual(failed["rollback"]["status"], "pre_mutation_reopened")
+
     def test_mismatched_candidate_sync_is_recovered_inside_mutation_boundary(
         self,
     ) -> None:

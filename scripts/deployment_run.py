@@ -683,8 +683,13 @@ def _rollback(
 def _safe_pre_mutation_reopen(
     run: dict[str, Any], hook_dir: Path | None, *, dry_run: bool, reason: str,
 ) -> bool:
-    """Verify unchanged production and reopen paused writers without a data restore."""
-    if run["writers"] == "open":
+    """Verify unchanged production and reopen paused intake/writers without restore."""
+    drain_started = any(
+        stage["name"] == "drain"
+        and stage["status"] in {"running", "succeeded", "failed"}
+        for stage in run["stages"]
+    )
+    if run["writers"] == "open" and not drain_started:
         return True
     evidence = []
     try:
