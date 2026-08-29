@@ -371,15 +371,22 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             )
 
         compose = (REPOSITORY_ROOT / "compose.yaml").read_text(encoding="utf-8")
+        legacy_compose = (
+            REPOSITORY_ROOT / "compose.migration-legacy.yaml"
+        ).read_text(encoding="utf-8")
 
-        def service(name):
+        def service(source, name):
             match = re.search(
                 rf"^  {re.escape(name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)",
-                compose,
+                source,
                 re.MULTILINE | re.DOTALL,
             )
             self.assertIsNotNone(match, name)
             return match.group(1)
+
+        self.assertIn(f"--addons-path={addons_path}", legacy_compose)
+        for mount in temporary_mounts:
+            self.assertIn(f"{mount}:ro", legacy_compose)
 
         for service_name in (
             "accounting-migration",
@@ -388,21 +395,29 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             "tese-migration",
             "platform-billing-migration",
         ):
-            section = service(service_name)
-            self.assertIn(f"--addons-path={addons_path}", section, service_name)
-            for mount in temporary_mounts:
-                self.assertIn(f"{mount}:ro", section, service_name)
+            section = service(legacy_compose, service_name)
+            self.assertIn("<<: *migration-legacy-odoo", section, service_name)
 
-        test_service = service("test")
+        test_service = service(legacy_compose, "test")
         for mount in temporary_mounts:
             self.assertIn(f"{mount}:ro", test_service)
 
-        project_service = service("project-migration")
+        project_service = service(legacy_compose, "project-migration")
         self.assertIn("/mnt/collaboration-migration-addons:ro", project_service)
 
-        product_service = service("odoo")
+        product_service = service(compose, "odoo")
+        product_test_service = service(compose, "test")
         for mount in temporary_mounts:
             self.assertNotIn(mount, product_service)
+            self.assertNotIn(mount, product_test_service)
+        for service_name in (
+            "accounting-migration",
+            "project-migration",
+            "b2c-migration",
+            "tese-migration",
+            "platform-billing-migration",
+        ):
+            self.assertNotRegex(compose, rf"(?m)^  {re.escape(service_name)}:$")
 
 
 if __name__ == "__main__":
