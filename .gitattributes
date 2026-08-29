@@ -1,6 +1,2 @@
 oca-patches/**/*.patch whitespace=-trailing-space,-blank-at-eof
-.agents/skills/impeccable/** whitespace=-trailing-space,-blank-at-eof
-.claude/skills/impeccable/** whitespace=-trailing-space,-blank-at-eof
-.cursor/skills/impeccable/** whitespace=-trailing-space,-blank-at-eof
-.github/skills/impeccable/** whitespace=-trailing-space,-blank-at-eof
 custom-addons/**/tests/fixtures/*.pdf binary

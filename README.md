@@ -59,7 +59,7 @@ Primary entry points:
   consolidation boundary.
 - [Projects restoration runbook](docs/operations/project-restoration.md) for
   repeatable Odoo Online project and task recovery.
-- [Product and migration boundary](docs/agents/product-migration-boundary.md)
+- [Product and migration boundary](docs/operations/product-migration-boundary.md)
   for keeping reconstruction machinery out of the delivered Odoo runtime.
 - [Source-truth migration](docs/operations/source-truth-migration.md) for the
   current-product gate, whole-source coverage ledger, filestore integrity and

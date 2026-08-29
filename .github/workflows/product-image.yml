@@ -1,6 +1,6 @@
 # Publish the production Distribution image exactly once after a commit lands
-# on 19-usl. Pull requests are qualified locally by their Coding and Lead
-# workflows; GitHub does not rebuild the product for candidate branches.
+# on 19-usl. Pull requests are qualified before merge; GitHub does not rebuild
+# the product for candidate branches.
 name: Distribution image
 
 on:

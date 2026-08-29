@@ -155,7 +155,6 @@ Final evidence and residual advisories are recorded in
 - [x] Create `docs/product/` for approved functional requirements.
 - [x] Create `docs/operations/` for deployment and recovery runbooks.
 - [x] Create `docs/accounting/` for accounting invariants and parity evidence.
-- [x] Create `docs/agents/` for agent mandates, permissions and action policies.
 - [x] Create a canonical feature-to-module, screen, documentation and maturity
   map in `docs/product/fork-overview.md`.
 - [x] Assign responsibility for product decisions.
