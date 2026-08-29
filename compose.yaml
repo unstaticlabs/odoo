@@ -660,6 +660,7 @@ services:
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
       - ./artifacts/migration/private:/mnt/migration-evidence:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   accounting-migration:
