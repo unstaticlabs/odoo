@@ -44,6 +44,24 @@ class SignOrchestrationTest(unittest.TestCase):
         )
         self.assertNotIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', restore)
 
+    def test_canonical_restore_uses_project_pocket_id_environment(self):
+        restore = SIGN_RESTORE.read_text(encoding="utf-8")
+
+        self.assertIn(
+            'canonical_env_file="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"',
+            restore,
+        )
+        self.assertIn(
+            'POCKET_ID_ENV_FILE="$canonical_env_file" '
+            "scripts/pocket-id-dev bootstrap",
+            restore,
+        )
+        self.assertIn(
+            'if [[ "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]',
+            restore,
+        )
+        self.assertIn('compose+=(--env-file "$canonical_env_file")', restore)
+
 
 if __name__ == "__main__":
     unittest.main()
