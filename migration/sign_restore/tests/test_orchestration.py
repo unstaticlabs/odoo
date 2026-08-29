@@ -93,6 +93,9 @@ class SignOrchestrationTest(unittest.TestCase):
         self.assertIn("Ambiguous finalized request", restore)
         self.assertIn("Ambiguous finalized history message", restore)
         self.assertIn("changed business identity", restore)
+        self.assertIn("expected_archives", restore)
+        self.assertIn("changed {field_name}", restore)
+        self.assertIn("usl_sign_transition=INTERNAL_OPERATION", restore)
         self.assertIn(') == len(source["requests"])', validation)
         self.assertIn(') == len(source["signers"])', validation)
 

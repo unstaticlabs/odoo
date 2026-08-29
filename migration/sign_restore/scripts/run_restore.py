@@ -20,6 +20,7 @@ from reportlab.pdfgen import canvas
 from odoo import fields
 from odoo.tools.pdf import PdfReader
 
+from odoo.addons.usl_sign.models.constants import INTERNAL_OPERATION
 from odoo.addons.usl_sign.services import field_content, field_value
 
 sys.path.insert(0, "/mnt/sign-restore-migration")
@@ -541,6 +542,22 @@ for request_row in source["requests"]:
             },
         )
         request_created = True
+    expected_archives = {
+        "archive_document_id": signed_document,
+        "archive_dossier_document_id": exported_certificate,
+    }
+    archive_changes = {}
+    for field_name, expected_document in expected_archives.items():
+        current_document = request_record[field_name]
+        if current_document and current_document != expected_document:
+            fail(f"Finalized request {source_id} changed {field_name}")
+        if not current_document:
+            archive_changes[field_name] = expected_document.id
+    if archive_changes:
+        request_record.with_context(
+            usl_sign_transition=INTERNAL_OPERATION,
+            usl_sign_freeze=INTERNAL_OPERATION,
+        ).write(archive_changes)
     if request_record.user_id != creator:
         fail(f"Finalized request {source_id} changed creator")
     if sha256(field_content(request_record.data)) != artifact_match["signed_sha256"]:
