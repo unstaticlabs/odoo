@@ -6745,18 +6745,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if account_type.startswith(("income", "expense")):
                 continue
             amount = _amount(row["closing_balance"])
-            is_asset = account_type.startswith("asset")
+            statement_key = self._french_balance_sheet_side(
+                row["account_code"],
+                account_type,
+                amount,
+            )
+            if not statement_key:
+                continue
+            is_asset = statement_key == "bilan_actif"
             rows.append({
                 "statement": "Bilan",
-                "statement_key": (
-                    "bilan_actif" if is_asset else "bilan_passif"
-                ),
+                "statement_key": statement_key,
                 "statement_side": "Actif" if is_asset else "Passif",
-                "section": self._balance_sheet_section(account_type),
+                "section": self._balance_sheet_section(
+                    account_type,
+                    statement_key,
+                ),
                 "account_code": row["account_code"],
                 "account_name": row["account_name"],
                 "account_type": account_type,
-                "amount": _amount_text(amount if not account_type.startswith(("liability", "equity")) else -amount),
+                "amount": _amount_text(amount if is_asset else -amount),
             })
         result = sum(
             -_amount(row["closing_balance"])
@@ -6829,16 +6837,46 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return rows
 
     @staticmethod
-    def _balance_sheet_section(account_type):
-        if account_type in ("asset_fixed", "asset_non_current"):
-            return "Immobilisations"
+    def _french_balance_sheet_side(account_code, account_type, balance):
+        """Apply French Bilan prefix D/C rules to one closing balance."""
+        code = str(account_code or "").strip()
+        account_type = account_type or ""
+
+        # These prefixes are fixed to the Actif even with a credit balance:
+        # classes 2/3 include depreciation provisions, while 49/59 are the
+        # corresponding impairment accounts for receivables and treasury.
+        if code.startswith(("109", "2", "3", "49", "59")):
+            return "bilan_actif"
+        if code.startswith("1"):
+            return "bilan_passif"
+        if code.startswith(("4", "5")):
+            if balance > 0:
+                return "bilan_actif"
+            if balance < 0:
+                return "bilan_passif"
+
+        # Preserve a deterministic fallback for custom/non-PCG accounts while
+        # retaining the same debit/credit inversion semantics.
         if account_type.startswith("asset"):
+            return "bilan_actif" if balance >= 0 else "bilan_passif"
+        if account_type.startswith("liability"):
+            return "bilan_passif" if balance <= 0 else "bilan_actif"
+        if account_type.startswith("equity"):
+            return "bilan_passif"
+        return False
+
+    @staticmethod
+    def _balance_sheet_section(account_type, statement_key):
+        if statement_key == "bilan_actif" and account_type in (
+            "asset_fixed",
+            "asset_non_current",
+        ):
+            return "Immobilisations"
+        if statement_key == "bilan_actif":
             return "Actif circulant"
         if account_type.startswith("equity"):
             return "Capitaux propres"
-        if account_type.startswith("liability"):
-            return "Dettes et passifs"
-        return "Autres postes"
+        return "Dettes et passifs"
 
     def _tax_report_rows(self):
         rows = self._tax_report_group_rows("account_tax")
