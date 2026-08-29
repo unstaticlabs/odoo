@@ -37,7 +37,12 @@ class SignOrchestrationTest(unittest.TestCase):
         self.assertIn('source "$ROOT/scripts/lib/ollama-runtime.sh"', restore)
         self.assertIn('usl_prepare_ollama_runtime "$ROOT"', restore)
         self.assertIn('if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]', restore)
-        self.assertIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', restore)
+        self.assertIn(
+            'export COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/compose.yaml}:'
+            '$USL_OLLAMA_COMPOSE_OVERRIDE"',
+            restore,
+        )
+        self.assertNotIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', restore)
 
 
 if __name__ == "__main__":
