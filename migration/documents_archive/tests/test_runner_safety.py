@@ -78,6 +78,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             QA_SCRIPT,
             DOCUMENTS_ACCEPTANCE_SCRIPT,
             POCKET_ID_DEV_SCRIPT,
+            ROOT / "scripts/documents-release-bundle",
         ):
             with self.subTest(path=path.name):
                 script = path.read_text(encoding="utf-8")

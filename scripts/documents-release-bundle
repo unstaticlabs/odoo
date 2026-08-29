@@ -5,6 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/compose-scope.sh
 source "$ROOT/scripts/lib/compose-scope.sh"
+# shellcheck source=lib/ollama-runtime.sh
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 usage() {
   printf '%s\n' \
@@ -80,6 +82,8 @@ build_bundle() {
   local inventory_output paperless_output mcp_artifacts compose_json
   local paperless_clone odoo_clone model_digest model_archive_sha
   local model_archive_size paperless_image paperless_base_image
+  local ollama_runtime native_models_root
+  local -a ollama_services=()
   [[ -n "$source_dir" ]] || usage
   source_dir="$(cd "$source_dir" && pwd -P)"
   [[ -f "$source_dir/dump.sql" && -d "$source_dir/filestore" ]] || {
@@ -132,18 +136,30 @@ build_bundle() {
   CAPTURE_PAPERLESS_CLONE=""
   CAPTURE_ODOO_CLONE=""
 
+  usl_prepare_ollama_runtime "$ROOT"
+  ollama_runtime="$USL_OLLAMA_RUNTIME_SELECTED"
+  if [[ "$ollama_runtime" == native ]]; then
+    native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
+  else
+    ollama_services=(paperless-ollama)
+  fi
+
   COMPOSE=(
     docker compose --env-file "$env_file" -p "$project"
     -f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml"
     --profile paperless
   )
+  if [[ -n "${USL_OLLAMA_COMPOSE_OVERRIDE:-}" ]]; then
+    COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+  fi
   usl_verify_compose_scope "$project" "$ROOT" "Documents release capture"
 
   restart_source() {
     if [[ "$CAPTURE_SOURCE_STOPPED" = 1 ]]; then
       "${COMPOSE[@]}" up -d --wait --pull never \
-        db paperless-db paperless-broker paperless-ollama \
-        paperless-gotenberg paperless-tika paperless-webserver odoo || true
+        db paperless-db paperless-broker \
+        paperless-gotenberg paperless-tika paperless-webserver odoo \
+        "${ollama_services[@]}" || true
     fi
     if [[ -n "$CAPTURE_PAPERLESS_CLONE" ]]; then
       "${COMPOSE[@]}" exec -T paperless-db dropdb -U paperless --if-exists \
@@ -246,14 +262,20 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
   python3 scripts/documents_image_identity.py \
     --compose-config "$compose_json" --target-platform "$target_platform" \
     --output "$temporary/images.json"
-  "${COMPOSE[@]}" exec -T paperless-ollama \
-    ollama show usl-bge-m3:documents-20260824-rc1 \
-    > "$temporary/bge-show.txt"
-  model_digest="$(
-    "${COMPOSE[@]}" exec -T paperless-ollama sha256sum \
-      /root/.ollama/models/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1 \
-      | awk '{print $1}'
-  )"
+  if [[ "$ollama_runtime" == native ]]; then
+    ollama show "$USL_OLLAMA_RELEASE_MODEL" > "$temporary/bge-show.txt"
+    model_digest="$(shasum -a 256 \
+      "$native_models_root/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1" \
+      | awk '{print $1}')"
+  else
+    "${COMPOSE[@]}" exec -T paperless-ollama \
+      ollama show "$USL_OLLAMA_RELEASE_MODEL" > "$temporary/bge-show.txt"
+    model_digest="$(
+      "${COMPOSE[@]}" exec -T paperless-ollama sha256sum \
+        /root/.ollama/models/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1 \
+        | awk '{print $1}'
+    )"
+  fi
 
   mkdir -p "$bundle"/{odoo,paperless,embeddings,mcp,images,evidence,configuration}
   chmod 700 "$bundle"/*
@@ -261,7 +283,7 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$bundle/paperless/paperless-export.tgz" .
   chmod 600 "$bundle/paperless/paperless-export.tgz"
 
-  "${COMPOSE[@]}" stop odoo paperless-webserver paperless-ollama
+  "${COMPOSE[@]}" stop odoo paperless-webserver "${ollama_services[@]}"
   CAPTURE_SOURCE_STOPPED=1
   "${COMPOSE[@]}" exec -T db pg_dump -U odoo -Fc "$database" \
     > "$temporary/odoo.raw.dump"
@@ -311,8 +333,16 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$bundle/paperless/paperless-media.tgz"
   archive_volume "${project}_paperless-trash" \
     "$bundle/paperless/paperless-trash.tgz"
-  archive_volume "${project}_paperless-ollama-data" \
-    "$bundle/embeddings/ollama-data.tgz"
+  if [[ "$ollama_runtime" == native ]]; then
+    python3 scripts/ollama_model_archive.py create \
+      --models-root "$native_models_root" \
+      --expected-manifest-sha256 "$USL_OLLAMA_RELEASE_MANIFEST_SHA256" \
+      --output "$bundle/embeddings/ollama-data.tgz" \
+      > "$temporary/native-ollama-archive.json"
+  else
+    archive_volume "${project}_paperless-ollama-data" \
+      "$bundle/embeddings/ollama-data.tgz"
+  fi
   chmod 600 "$bundle/odoo/odoo-filestore.tgz" "$bundle"/*/*.dump
 
   model_archive_sha="$(shasum -a 256 "$bundle/embeddings/ollama-data.tgz" | awk '{print $1}')"

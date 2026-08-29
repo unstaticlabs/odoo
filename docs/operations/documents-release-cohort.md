@@ -10,12 +10,16 @@ Odoo MCP Documents recovery point. A cohort is not a production release until
 Three credible capture approaches were compared.
 
 1. A coordinated quiesced snapshot is selected. Odoo is stopped before
-   Paperless finalization. Odoo, Paperless and Ollama application services are
-   then stopped while both databases, the Odoo filestore, Paperless
-   media/data/Trash/export state, the complete Ollama volume and the compiled
-   MCP Worker are captured. This preserves stable Paperless IDs, Tantivy,
-   `llmindex.db` plus its WAL/SHM state, model blobs and the cross-system
-   relationship ledger.
+   Paperless finalization. Odoo and Paperless application services are then
+   stopped while both databases, the Odoo filestore, Paperless
+   media/data/Trash/export state, the qualified Ollama model and the compiled
+   MCP Worker are captured. On macOS the builder uses native Metal Ollama and
+   archives only the qualified alias plus the exact manifest-referenced blobs;
+   unrelated local models, history and generated Ollama identity keys are not
+   transferred. Linux capture may use the project-owned Ollama volume. Both
+   paths restore the same model archive into containerized Ollama on Linux.
+   This preserves stable Paperless IDs, Tantivy, `llmindex.db` plus its WAL/SHM
+   state, model blobs and the cross-system relationship ledger.
 2. Paperless `document_exporter` plus an Odoo database dump was rejected
    as the only recovery format. The exporter is retained as a sanitized
    portable supplement, but it does not preserve the live Tantivy/vector state
