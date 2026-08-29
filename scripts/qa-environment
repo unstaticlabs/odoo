@@ -7,6 +7,8 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 # shellcheck source=lib/cli-ui.sh
 source "$ROOT/scripts/lib/cli-ui.sh"
+# shellcheck source=lib/ollama-runtime.sh
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 profile="${1:-${PROFILE:-full}}"
 case "$profile" in
@@ -91,10 +93,16 @@ if [[ "$profile" != no-documents ]]; then
   # it is handed to a reviewer.
   export PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true
 fi
+if [[ "$profile" == full || "$profile" == documents-smoke ]]; then
+  usl_prepare_ollama_runtime "$ROOT"
+fi
 compose=(
   docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$POCKET_ID_ENV_FILE"
   -f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml"
 )
+if [[ -n "${USL_OLLAMA_COMPOSE_OVERRIDE:-}" ]]; then
+  compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+fi
 
 timing_dir="$ROOT/artifacts/migration/private/qa-runs"
 mkdir -p "$timing_dir"

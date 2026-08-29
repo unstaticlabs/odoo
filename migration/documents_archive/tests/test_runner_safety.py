@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/documents-restore"
 QA_SCRIPT = ROOT / "scripts/qa-environment"
 QA_CLEAN_SCRIPT = ROOT / "scripts/qa-clean"
+DOCUMENTS_ACCEPTANCE_SCRIPT = ROOT / "scripts/documents-acceptance"
+POCKET_ID_DEV_SCRIPT = ROOT / "scripts/pocket-id-dev"
 SEED_SCRIPT = ROOT / "scripts/qa-seed"
 TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
 NATIVE_BRIDGE_SCRIPT = (
@@ -70,6 +72,18 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('ps --status running -q odoo', script)
         self.assertIn('exec -T', script)
         self.assertIn("--profile init run --rm -T --no-deps", script)
+
+    def test_local_paperless_entrypoints_select_the_shared_ollama_runtime(self):
+        for path in (
+            QA_SCRIPT,
+            DOCUMENTS_ACCEPTANCE_SCRIPT,
+            POCKET_ID_DEV_SCRIPT,
+        ):
+            with self.subTest(path=path.name):
+                script = path.read_text(encoding="utf-8")
+                self.assertIn('source "$ROOT/scripts/lib/ollama-runtime.sh"', script)
+                self.assertIn('usl_prepare_ollama_runtime "$ROOT"', script)
+                self.assertIn('USL_OLLAMA_COMPOSE_OVERRIDE', script)
 
     def test_sign_pocket_id_patch_tracks_current_forward_only_release(self):
         dockerfile = POCKET_SIGN_DOCKERFILE.read_text(encoding="utf-8")

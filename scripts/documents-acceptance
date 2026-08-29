@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=lib/ollama-runtime.sh
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 ENVIRONMENT="${1:-qa}"
 case "$ENVIRONMENT" in
@@ -51,6 +53,7 @@ ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
   ENV_FILES+=(--env-file "$SSO_ENV_FILE")
 fi
+usl_prepare_ollama_runtime "$ROOT"
 COMPOSE=(
   docker compose
   "${ENV_FILES[@]}"
@@ -60,6 +63,9 @@ COMPOSE=(
   -f "$OVERRIDE"
   --profile paperless
 )
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+  COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+fi
 PAPERLESS_SERVICES=(
   pocket-id
   paperless-preflight

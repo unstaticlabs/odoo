@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/ollama-runtime.sh
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-qa.env}"
 SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-qa}"
 PROJECT="${USL_SIGN_POCKETID_PROJECT:-usl-sign-pocketid-qa}"
@@ -91,6 +93,7 @@ load_environment() {
   # Custom add-ons are mounted from this worktree. Reuse the pinned base image
   # when available; rebuilding it adds no source freshness and wastes several GB.
   export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}"
+  usl_prepare_ollama_runtime "$ROOT"
   COMPOSE=(
     docker compose
     -p "$PROJECT"
@@ -100,6 +103,9 @@ load_environment() {
     --profile paperless
     --profile document-renderer
   )
+  if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+    COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+  fi
 }
 
 bootstrap() {
