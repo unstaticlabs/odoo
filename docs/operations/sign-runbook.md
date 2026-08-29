@@ -20,8 +20,8 @@ The pinned components are:
 
 - EU DSS 6.4 in `services/usl-sign-dss`;
 - `step-ca` 0.30.2;
-- Pocket ID 2.12.0 from exact commit
-  `b3fb8de5bc55aa813a27b4e15c1d761026fcceaa`, with the tracked strict
+- Pocket ID 2.14.0 from exact commit
+  `5521266227205dccb57ba58d820c833a5701346d`, with the tracked strict
   fresh-passkey patch in `services/usl-pocket-id`; the generic upstream design
   is tracked in Pocket ID issue
   [#1654](https://github.com/pocket-id/pocket-id/issues/1654);

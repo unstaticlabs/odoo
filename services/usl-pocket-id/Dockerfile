@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG POCKET_ID_COMMIT=b3fb8de5bc55aa813a27b4e15c1d761026fcceaa
+ARG POCKET_ID_COMMIT=5521266227205dccb57ba58d820c833a5701346d
 
 FROM alpine/git:2.49.1 AS source
 ARG POCKET_ID_COMMIT
@@ -8,7 +8,7 @@ WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
     && git checkout --detach "${POCKET_ID_COMMIT}" \
     && test "$(git rev-parse HEAD)" = "${POCKET_ID_COMMIT}"
-COPY services/usl-pocket-id/pocket-id-v2.12.0-fresh-passkey.patch /tmp/fresh-passkey.patch
+COPY services/usl-pocket-id/pocket-id-v2.14.0-fresh-passkey.patch /tmp/fresh-passkey.patch
 RUN git apply --check --unidiff-zero /tmp/fresh-passkey.patch \
     && git apply --unidiff-zero /tmp/fresh-passkey.patch
 
@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/build/frontend/node_modules/.vite \
     --mount=type=cache,target=/build/frontend/.svelte-kit \
     BUILD_OUTPUT_PATH=dist pnpm --filter pocket-id-frontend run build
 
-FROM golang:1.26.5-alpine AS backend-builder
+FROM golang:1.26.6-alpine AS backend-builder
 ARG BUILD_TAGS=""
 WORKDIR /build
 COPY --from=source /src/backend/go.mod /src/backend/go.sum ./
@@ -45,7 +45,7 @@ FROM backend-builder AS backend-test
 WORKDIR /build
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go test -tags=exclude_frontend,unit ./internal/oidc ./internal/webauthn
+    go test -tags=exclude_frontend,unit ./internal/oidc ./internal/service ./internal/webauthn
 
 FROM alpine:3.24.1
 WORKDIR /app

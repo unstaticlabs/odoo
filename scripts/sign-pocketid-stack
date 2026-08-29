@@ -9,6 +9,7 @@ ODOO_PORT="${USL_SIGN_POCKETID_ODOO_PORT:-16669}"
 GEVENT_PORT="${USL_SIGN_POCKETID_GEVENT_PORT:-16672}"
 POCKET_PORT="${USL_SIGN_POCKETID_POCKET_PORT:-16411}"
 PAPERLESS_PORT="${USL_SIGN_POCKETID_PAPERLESS_PORT:-16810}"
+POCKET_IMAGE="${USL_SIGN_POCKETID_IMAGE:-usl-pocket-id-sign:v2.14.0-usl1}"
 ODOO_HOSTNAME="${USL_SIGN_POCKETID_ODOO_HOSTNAME:-odoo-sign-qa.localhost}"
 POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-pocket-id-sign-qa.localhost}"
 PAPERLESS_HOSTNAME="${USL_SIGN_POCKETID_PAPERLESS_HOSTNAME:-paperless-sign-qa.localhost}"
@@ -245,7 +246,7 @@ start() {
         >/dev/null 2>&1; then
     "${COMPOSE[@]}" build odoo
   fi
-  docker image inspect usl-pocket-id-sign:v2.12.0-usl2 >/dev/null 2>&1 \
+  docker image inspect "$POCKET_IMAGE" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build pocket-id
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build usl-sign-dss
@@ -383,7 +384,7 @@ test_pocket_patch() {
   docker build \
     --file "$ROOT/services/usl-pocket-id/Dockerfile" \
     --target backend-test \
-    --tag usl-pocket-id-sign:v2.12.0-usl2-tests \
+    --tag usl-pocket-id-sign:v2.14.0-usl1-tests \
     "$ROOT"
 }
 
