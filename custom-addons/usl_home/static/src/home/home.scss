@@ -286,8 +286,18 @@
     border-block: 1px solid var(--usl-home-border);
     background: var(--usl-home-soft);
 
-    div { padding: .8rem .65rem; border-right: 1px solid var(--usl-home-border); }
-    div:last-child { border-right: 0; }
+    button {
+        padding: .8rem .65rem;
+        border: 0;
+        border-inline-end: 1px solid var(--usl-home-border);
+        background: transparent;
+        color: inherit;
+        text-align: start;
+        transition: background-color 140ms ease-out;
+
+        &:hover { background: color-mix(in srgb, var(--usl-home-action) 8%, transparent); }
+    }
+    button:last-child { border-inline-end: 0; }
     strong, span { display: block; }
     strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
     span { margin-top: .15rem; color: var(--usl-home-muted); font-size: .75rem; }
@@ -299,7 +309,26 @@
 
 .o_usl_home_stage_list {
     padding: .65rem 1rem .25rem;
-    li { display: flex; justify-content: space-between; gap: 1rem; padding: .42rem 0; }
+    li + li { border-top: 1px solid color-mix(in srgb, var(--usl-home-border) 75%, transparent); }
+    button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .42rem .35rem;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: start;
+        transition: background-color 140ms ease-out, color 140ms ease-out;
+
+        &:hover {
+            background: var(--usl-home-soft);
+            color: var(--usl-home-action);
+        }
+    }
+    .o_usl_home_stage_count { display: flex; align-items: center; gap: .5rem; }
     strong {
         min-width: 1.75rem;
         padding: .05rem .45rem;
@@ -436,8 +465,8 @@
     .o_usl_home_customize { grid-template-columns: 1fr; }
     .o_usl_home_customize_destinations { grid-column: 1; }
     .o_usl_home_task_signals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .o_usl_home_task_signals div:nth-child(2) { border-right: 0; }
-    .o_usl_home_task_signals div:nth-child(-n+2) { border-bottom: 1px solid var(--usl-home-border); }
+    .o_usl_home_task_signals button:nth-child(2) { border-inline-end: 0; }
+    .o_usl_home_task_signals button:nth-child(-n+2) { border-bottom: 1px solid var(--usl-home-border); }
     .o_usl_home_accounting_alerts { grid-template-columns: 1fr; }
     .o_usl_home_favorite_controls .btn { padding-inline: .35rem; }
 }

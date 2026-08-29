@@ -108,13 +108,18 @@
 
                     <t t-if="widgetKey === 'my_tasks' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
                         <div class="o_usl_home_task_signals">
-                            <div data-signal="overdue" t-att-data-active="widgetState(widgetKey).data.signals.overdue ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.overdue"/><span>Overdue</span></div>
-                            <div data-signal="due" t-att-data-active="widgetState(widgetKey).data.signals.due_soon ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.due_soon"/><span>Due in 7 days</span></div>
-                            <div data-signal="waiting" t-att-data-active="widgetState(widgetKey).data.signals.waiting ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.waiting"/><span>Waiting</span></div>
-                            <div data-signal="changes" t-att-data-active="widgetState(widgetKey).data.signals.changes_requested ? 'true' : 'false'"><strong t-esc="widgetState(widgetKey).data.signals.changes_requested"/><span>Changes requested</span></div>
+                            <button type="button" data-signal="overdue" t-att-data-active="widgetState(widgetKey).data.signals.overdue ? 'true' : 'false'" t-att-aria-label="this.taskMetricAriaLabel('Overdue', widgetState(widgetKey).data.signals.overdue)" t-on-click="() => this.openMyTasksFilter('signal', 'overdue')"><strong t-esc="widgetState(widgetKey).data.signals.overdue"/><span>Overdue</span></button>
+                            <button type="button" data-signal="due" t-att-data-active="widgetState(widgetKey).data.signals.due_soon ? 'true' : 'false'" t-att-aria-label="this.taskMetricAriaLabel('Due in 7 days', widgetState(widgetKey).data.signals.due_soon)" t-on-click="() => this.openMyTasksFilter('signal', 'due_soon')"><strong t-esc="widgetState(widgetKey).data.signals.due_soon"/><span>Due in 7 days</span></button>
+                            <button type="button" data-signal="waiting" t-att-data-active="widgetState(widgetKey).data.signals.waiting ? 'true' : 'false'" t-att-aria-label="this.taskMetricAriaLabel('Waiting', widgetState(widgetKey).data.signals.waiting)" t-on-click="() => this.openMyTasksFilter('signal', 'waiting')"><strong t-esc="widgetState(widgetKey).data.signals.waiting"/><span>Waiting</span></button>
+                            <button type="button" data-signal="changes" t-att-data-active="widgetState(widgetKey).data.signals.changes_requested ? 'true' : 'false'" t-att-aria-label="this.taskMetricAriaLabel('Changes requested', widgetState(widgetKey).data.signals.changes_requested)" t-on-click="() => this.openMyTasksFilter('signal', 'changes_requested')"><strong t-esc="widgetState(widgetKey).data.signals.changes_requested"/><span>Changes requested</span></button>
                         </div>
                         <ul t-if="widgetState(widgetKey).data.stages.length" class="o_usl_home_stage_list">
-                            <li t-foreach="widgetState(widgetKey).data.stages" t-as="stage" t-key="stage.id"><span t-esc="stage.name"/><strong t-esc="stage.count"/></li>
+                            <li t-foreach="widgetState(widgetKey).data.stages" t-as="stage" t-key="stage.id">
+                                <button type="button" t-att-aria-label="this.taskMetricAriaLabel(stage.name, stage.count)" t-on-click="() => this.openMyTasksFilter('stage', stage.id)">
+                                    <span t-esc="stage.name"/>
+                                    <span class="o_usl_home_stage_count"><strong t-esc="stage.count"/><i class="fa fa-arrow-right" aria-hidden="true"/></span>
+                                </button>
+                            </li>
                         </ul>
                         <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><p>No open tasks are assigned to you.</p></div>
                         <footer><button class="btn btn-primary" type="button" t-on-click="this.openMyTasks">Open My Tasks <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></button></footer>

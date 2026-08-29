@@ -384,6 +384,67 @@ class UslHomeService(models.AbstractModel):
         return {"stages": stages, "signals": signals, "today_end": tomorrow}
 
     @api.model
+    def get_my_tasks_action(self, filter_type, filter_value):
+        """Open the exact task population represented by a Home metric."""
+        self._ensure_internal()
+        if not self._model_is_readable("project.task"):
+            raise AccessError(self.env._("My Tasks is not available."))
+
+        open_domain = [*self._my_tasks_domain(), ("is_closed", "=", False)]
+        start, _tomorrow, due_soon = self._user_date_bounds()
+        if filter_type == "signal":
+            filters = {
+                "overdue": (
+                    self.env._("Overdue"),
+                    [
+                        ("date_deadline", "!=", False),
+                        ("date_deadline", "<", start),
+                    ],
+                ),
+                "due_soon": (
+                    self.env._("Due in 7 days"),
+                    [
+                        ("date_deadline", ">=", start),
+                        ("date_deadline", "<", due_soon),
+                    ],
+                ),
+                "waiting": (
+                    self.env._("Waiting"),
+                    [("state", "=", "04_waiting_normal")],
+                ),
+                "changes_requested": (
+                    self.env._("Changes requested"),
+                    [("state", "=", "02_changes_requested")],
+                ),
+            }
+            if filter_value not in filters:
+                raise UserError(self.env._("This task metric is not available."))
+            label, metric_domain = filters[filter_value]
+        elif filter_type == "stage":
+            if isinstance(filter_value, bool) or not isinstance(filter_value, int):
+                raise UserError(self.env._("This task metric is not available."))
+            stage = self.env["project.task.type"].search(
+                [("id", "=", filter_value)],
+                limit=1,
+            )
+            if not stage:
+                raise UserError(self.env._("This task metric is not available."))
+            label = stage.display_name
+            metric_domain = [
+                ("stage_id", "=", stage.id),
+                ("stage_id.fold", "=", False),
+            ]
+        else:
+            raise UserError(self.env._("This task metric is not available."))
+
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "project.action_view_my_task"
+        )
+        action["name"] = self.env._("My Tasks — %s", label)
+        action["domain"] = [*open_domain, *metric_domain]
+        return action
+
+    @api.model
     def get_ai_attention(self):
         self._ensure_internal()
         workspace_ids = self._ai_workspace_ids()

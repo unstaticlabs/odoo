@@ -2,7 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import Command, fields
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -116,6 +116,37 @@ class TestUslHome(TransactionCase):
         self.assertGreaterEqual(result["signals"]["due_soon"], 1)
         self.assertGreaterEqual(result["signals"]["waiting"], 1)
         self.assertGreaterEqual(result["signals"]["changes_requested"], 1)
+
+    def test_my_task_metric_actions_match_the_displayed_counts(self):
+        today = fields.Date.today()
+        self._task("Overdue", date_deadline=today - timedelta(days=1))
+        self._task("Due soon", date_deadline=today + timedelta(days=2))
+        self._task("Waiting", state="04_waiting_normal")
+        self._task("Changes", state="02_changes_requested")
+        service = self.env["usl.home.service"].with_user(self.project_user)
+        summary = service.get_my_tasks()
+        Task = self.env["project.task"].with_user(self.project_user)
+
+        for signal, expected_count in summary["signals"].items():
+            with self.subTest(signal=signal):
+                action = service.get_my_tasks_action("signal", signal)
+                self.assertEqual(action["res_model"], "project.task")
+                self.assertEqual(Task.search_count(action["domain"]), expected_count)
+
+        stage = next(item for item in summary["stages"] if item["id"] == self.stage.id)
+        action = service.get_my_tasks_action("stage", self.stage.id)
+        self.assertEqual(Task.search_count(action["domain"]), stage["count"])
+        self.assertIn(self.stage.display_name, action["name"])
+
+        for filter_type, filter_value in (
+            ("signal", "unknown"),
+            ("stage", False),
+            ("stage", 0),
+            ("unknown", "overdue"),
+        ):
+            with self.subTest(filter_type=filter_type, filter_value=filter_value):
+                with self.assertRaises(UserError):
+                    service.get_my_tasks_action(filter_type, filter_value)
 
     def test_project_widget_and_aggregate_are_omitted_without_access(self):
         service = self.env["usl.home.service"].with_user(self.other_user)
