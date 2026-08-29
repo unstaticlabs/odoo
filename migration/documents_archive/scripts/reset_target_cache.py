@@ -71,8 +71,16 @@ def _clear_external_references(referenced_table, internal_tables):
 Operation = env["usl.document.operation"].sudo()  # noqa: F821
 Link = env["usl.document.link"].sudo()  # noqa: F821
 Document = env["usl.document"].sudo()  # noqa: F821
+ContextTag = env["usl.document.context.tag"].sudo()  # noqa: F821
+SmartView = env["usl.document.smart.view"].sudo()  # noqa: F821
+UserMapping = env["usl.paperless.user.mapping"].sudo()  # noqa: F821
 Parameter = env["ir.config_parameter"].sudo()  # noqa: F821
 Evidence = env.get("b2c.provider.evidence")  # noqa: F821
+metadata_models = {
+    "paperless_correspondents": env["usl.paperless.correspondent"].sudo(),  # noqa: F821
+    "paperless_document_types": env["usl.paperless.document.type"].sudo(),  # noqa: F821
+    "paperless_tags": env["usl.paperless.tag"].sudo(),  # noqa: F821
+}
 
 evidence_links = (
     Evidence.sudo().search([("archived_document_id", "!=", False)])
@@ -106,7 +114,20 @@ counts = {
     "links": Link.search_count([]),
     "documents": Document.with_context(active_test=False).search_count([]),
     "b2c_evidence_links": len(evidence_links) if evidence_links else 0,
+    "context_tags": ContextTag.with_context(active_test=False).search_count([]),
+    "paperless_saved_view_identities": SmartView.with_context(
+        active_test=False,
+    ).search_count([("paperless_id", "!=", False)]),
+    "paperless_user_mappings": UserMapping.with_context(
+        active_test=False,
+    ).search_count([]),
 }
+counts.update(
+    {
+        name: model.with_context(active_test=False).search_count([])
+        for name, model in metadata_models.items()
+    },
+)
 Operation.search([]).unlink()
 Link.search([]).unlink()
 if evidence_links:
@@ -117,6 +138,46 @@ if evidence_links:
         {"archived_document_id": False},
     )
 Document.with_context(active_test=False).search([]).unlink()
+
+# Paperless allocates every catalog, saved-view, and user identity inside its
+# own PostgreSQL volume.  The volume is removed immediately after this script,
+# so retaining any of those numeric identities in Odoo could bind an unrelated
+# object after the fresh archive reuses the same integer.  Rebuild the cache
+# boundary completely; all business data and source-backed relationships are
+# reconstructed later in the same governed run.
+UserMapping.with_context(active_test=False).search([]).unlink()
+ContextTag.with_context(active_test=False).search([]).unlink()
+SmartView.with_context(active_test=False).search([]).with_context(
+    usl_documents_archive_view_sync=True,
+).write(
+    {
+        "tag_ids": [(5, 0, 0)],
+        "document_type_ids": [(5, 0, 0)],
+        "correspondent_ids": [(5, 0, 0)],
+        "paperless_filter_json": False,
+        "paperless_sync_state": "pending",
+        "paperless_sync_error": False,
+        "paperless_synced_at": False,
+    },
+)
+# Odoo's Integer conversion writes ``False`` as zero, which would violate the
+# unique saved-view identity constraint for the second row.  SQL NULL is the
+# actual unbound representation used when these records are first created.
+env.cr.execute(  # noqa: F821
+    "UPDATE usl_document_smart_view "
+    "SET paperless_id = NULL WHERE paperless_id IS NOT NULL"
+)
+SmartView.invalidate_model(["paperless_id"])
+paperless_tags = metadata_models["paperless_tags"].with_context(
+    active_test=False,
+).search([])
+paperless_tags.with_context(usl_documents_cache_write=True).write(
+    {"parent_id": False},
+)
+for model in metadata_models.values():
+    model.with_context(active_test=False).search([]).with_context(
+        usl_documents_cache_write=True,
+    ).unlink()
 
 Parameter.search(
     [
@@ -131,6 +192,7 @@ Parameter.search(
                 "usl_documents.sync_mode",
                 "usl_documents.sync_modified_after",
                 "usl_documents.sync_status",
+                "usl_documents.paperless_custom_fields",
             ],
         ),
     ],

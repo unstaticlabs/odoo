@@ -723,18 +723,30 @@ all_groups = group_source(source)
 groups = select_groups(all_groups, SOURCE_PROFILE, SOURCE_LIMIT)
 if not groups:
     fail(f"source profile {SOURCE_PROFILE} selected no document groups")
+company_scopes = []
+for group in groups:
+    try:
+        company_scopes.append(resolve_company_scope(group))
+    except ValueError as error:
+        item = representative(group)
+        fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
 admin = env.ref("base.user_admin")
 documents_model = env["usl.document"]
 manager_group = env.ref("usl_documents.group_documents_manager")
 companies = source_map(
     "res.company",
-    [
+    {
         source_id
         for group in groups
         for item in group
         for source_id in (item.get("company_id"), item.get("folder_company_id"))
         if source_id
-    ],
+    }
+    | {
+        scope["company_id"]
+        for scope in company_scopes
+        if scope["company_id"]
+    },
 )
 users = source_map(
     "res.users",
@@ -1151,10 +1163,7 @@ for index, group in enumerate(groups, start=1):
     if any(candidate != content for candidate in source_contents[1:]):
         fail(f"source SHA-1 group {item['checksum']} contains different binaries")
     source_sha256 = hashlib.sha256(content).hexdigest()
-    try:
-        company_scope = resolve_company_scope(group)
-    except ValueError as error:
-        fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
+    company_scope = company_scopes[index - 1]
     source_company_id = company_scope["company_id"]
     company = companies.get(source_company_id) or next(iter(companies.values()), env.company)
     target_records = business_targets(group)
@@ -1215,11 +1224,17 @@ for index, group in enumerate(groups, start=1):
         metadata_hash,
         company,
     )
-    processing_operation = (
-        env["usl.document.operation"]
-        if existing
-        else existing_processing_operation_for(paperless_sha256, company, target)
-    )
+    try:
+        processing_operation = (
+            env["usl.document.operation"]
+            if existing
+            else existing_processing_operation_for(paperless_sha256, company, target)
+        )
+    except RuntimeError as error:
+        source_ids = [entry["document_id"] for entry in group]
+        raise RuntimeError(
+            f"{error} (source group {index}, Documents {source_ids})",
+        ) from error
     task = {
         "index": index,
         "group": group,

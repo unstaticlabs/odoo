@@ -806,12 +806,14 @@ class PaperlessClient:
                     )
                 return str(task_id)
         except urllib.error.HTTPError as error:
+            payload = error.read().decode(errors="replace")[:1000]
             if error.code in (401, 403):
                 raise PaperlessAuthenticationError(
                     _("Paperless rejected the integration identity."),
                 ) from error
             raise PaperlessError(
-                _("Paperless rejected the upload (%s).") % error.code,
+                _("Paperless rejected the upload (%(status)s): %(detail)s")
+                % {"status": error.code, "detail": payload},
             ) from error
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(

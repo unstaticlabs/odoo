@@ -1,5 +1,7 @@
 import base64
+import io
 import json
+import urllib.error
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -5310,6 +5312,34 @@ class TestPaperlessClientContract(TransactionCase):
         self.assertIn(b'name="correspondent"\r\n\r\n12', body)
         self.assertIn(b'name="document_type"\r\n\r\n34', body)
         self.assertEqual(body.count(b'name="tags"'), 2)
+
+    def test_multipart_upload_reports_bounded_paperless_error_detail(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_str("usl_documents.paperless_url", "https://paperless.test")
+        params.set_str("usl_documents.paperless_token", "test-token")
+        error = urllib.error.HTTPError(
+            "https://paperless.test/api/documents/post_document/",
+            400,
+            "Bad Request",
+            {},
+            io.BytesIO(b'{"document_type":["Invalid pk 15."]}'),
+        )
+
+        with (
+            patch(
+                "odoo.addons.usl_documents.models.paperless_client.urllib.request.urlopen",
+                side_effect=error,
+            ),
+            self.assertRaisesRegex(
+                PaperlessError,
+                r'400.*"document_type".*Invalid pk 15',
+            ),
+        ):
+            PaperlessClient(self.env).upload_multipart(
+                b"invoice",
+                "invoice.pdf",
+                "application/pdf",
+            )
 
     def test_invalid_json_response_fails_as_api_compatibility_error(self):
         with self.assertRaises(PaperlessCompatibilityError):
