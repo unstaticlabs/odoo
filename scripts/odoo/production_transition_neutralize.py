@@ -65,6 +65,17 @@ params.set_int(
 )
 env["usl.document"]._paperless().ensure_fail_closed_ingestion_policy()
 
+# Standard neutralization disables every OAuth provider.  The transition
+# runtime admits interactive access only through its environment-owned Pocket
+# ID provider, so restore exactly that governed provider from the running
+# release configuration and leave every unrelated provider disabled.
+pocket_provider_enabled = env[
+    "auth.oauth.provider"
+]._usl_pocketid_apply_environment()
+pocket_provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+if not pocket_provider_enabled or not pocket_provider.enabled:
+    raise RuntimeError("The governed Pocket ID provider was not restored.")
+
 env.registry.clear_cache("stable")
 restored_paperless = {
     "internal_url": params.get_str("usl_documents.paperless_url"),
@@ -97,6 +108,7 @@ print(
             "database": env.cr.dbname,
             "neutralized_mail_servers": neutralized_mail_servers,
             "paperless_runtime_restored": True,
+            "pocket_id_runtime_restored": True,
             "scheduled_jobs_active": active_crons,
             "standard_neutralized": True,
             "status": "passed",

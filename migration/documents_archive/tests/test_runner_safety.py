@@ -120,6 +120,8 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('params.get_str("usl_documents.paperless_token")', script)
         self.assertIn("restored_paperless != paperless", script)
         self.assertIn("ensure_fail_closed_ingestion_policy()", script)
+        self.assertIn("_usl_pocketid_apply_environment()", script)
+        self.assertIn("pocket_provider.enabled", script)
         self.assertIn("env.cr.commit()", script)
         self.assertNotIn('paperless["token"]', script[script.index("print(") :])
 
