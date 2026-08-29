@@ -6127,6 +6127,105 @@ class TestRebuildAccountMigration(TransactionCase):
             proxy_count,
         )
 
+    def test_einvoice_import_preconfigures_usl_media_offline(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "USL MEDIA electronic invoice setup replay",
+            "source_snapshot_id": "unit-usl-media-einvoice-setup",
+        })
+        france = self.env.ref("base.fr")
+        Company = self.env["res.company"]
+        company = Company.search([("name", "=", "USL MEDIA")], limit=1)
+        company_values = {
+            "country_id": france.id,
+            "account_fiscal_country_id": france.id,
+            "company_registry": "10692883100010",
+            "vat": "FR36106928831",
+            "peppol_eas": "9957",
+            "peppol_endpoint": "FR36106928831",
+            "account_peppol_proxy_state": "receiver",
+            "rebuild_einvoice_activation_approved": True,
+            "rebuild_einvoice_exchange_enabled": True,
+            "l10n_fr_pdp_send_to_ppf": True,
+            "l10n_fr_pdp_pilot_phase": True,
+            "account_peppol_contact_email": False,
+            "account_peppol_phone_number": False,
+            "peppol_purchase_journal_id": False,
+        }
+        if company:
+            company.write(company_values)
+        else:
+            company = Company.create({
+                "name": "USL MEDIA",
+                **company_values,
+            })
+        purchase_journal = self.env["account.journal"].sudo().search([
+            ("company_id", "=", company.id),
+            ("type", "=", "purchase"),
+        ], order="sequence, id", limit=1)
+        if not purchase_journal:
+            purchase_journal = self.env["account.journal"].sudo().create({
+                "name": "USL MEDIA purchases",
+                "code": "ACH",
+                "type": "purchase",
+                "company_id": company.id,
+            })
+        source_row = {
+            "id": 990008,
+            "account_peppol_contact_email": False,
+            "account_peppol_phone_number": False,
+            "peppol_purchase_journal_id": False,
+            "account_peppol_proxy_state": "not_registered",
+            "peppol_eas": "9957",
+            "peppol_endpoint": "FR36106928831",
+        }
+        options = {"source_company_ids": [990008]}
+        proxy_count = self.env[
+            "account_edi_proxy_client.user"
+        ].search_count([])
+
+        for _repeat in range(2):
+            with (
+                patch.object(
+                    type(import_run),
+                    "_source_column_exists",
+                    return_value=True,
+                ),
+                patch.object(
+                    type(import_run),
+                    "_fetchall",
+                    return_value=[source_row],
+                ),
+            ):
+                import_run._sync_company_einvoice_configuration(
+                    object(),
+                    options,
+                    {990008: company},
+                    {990809: purchase_journal},
+                )
+
+        self.assertEqual(
+            company.account_peppol_contact_email,
+            "compta@unstaticlabs.com",
+        )
+        self.assertEqual(
+            company.account_peppol_phone_number,
+            "+33651099030",
+        )
+        self.assertEqual(company.peppol_purchase_journal_id, purchase_journal)
+        self.assertEqual(company.peppol_eas, "0225")
+        self.assertEqual(company.peppol_endpoint, "106928831")
+        self.assertEqual(company.rebuild_einvoice_provider, "odoo_pdp")
+        self.assertEqual(company.rebuild_einvoice_environment, "development")
+        self.assertEqual(company.account_peppol_proxy_state, "not_registered")
+        self.assertFalse(company.rebuild_einvoice_activation_approved)
+        self.assertFalse(company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(company.l10n_fr_pdp_pilot_phase)
+        self.assertEqual(
+            self.env["account_edi_proxy_client.user"].search_count([]),
+            proxy_count,
+        )
+
     def test_account_group_import_preserves_prefix_hierarchy_and_is_idempotent(self):
         snapshot = "unit-account-groups"
         import_run = self.env["rebuild.account.import.run"].create({
