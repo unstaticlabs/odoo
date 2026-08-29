@@ -4,7 +4,6 @@
 # ruff: noqa: F821, T201
 
 EXCLUDED_AUTO_INSTALL_MODULES = {
-    "contacts",
     "gamification",
     "hr_gamification",
     "hr_skills_survey",
