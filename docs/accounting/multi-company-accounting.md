@@ -39,9 +39,15 @@ global selector.
 - FEC, French tax packages and closing packages remain one-company outputs.
 - Companies with different company currencies must be reported separately.
 
-The Accounting Overview, Hygiene, Declarations and Closing workspaces remain
-focused on the active company. This keeps operational actions, deadlines and
-readiness decisions unambiguous; combined reading belongs in the reports.
+The Accounting Overview follows the global company selector. With one company
+selected it opens that company's complete cockpit directly. With several
+companies selected it shows one clearly labelled cockpit card per company,
+because cash projections, closing readiness, declarations and remediation
+actions are legal-company states that must not be presented as one synthetic
+state. Additive alert counts on Home are combined across the selected
+companies and retain a visible per-company contribution; their drill-downs use
+the exact same selected-company domain. Hygiene, Declarations and Closing
+records remain company-scoped inside those combined lists.
 
 These combined views are management totals, not legal consolidation. The
 Distribution does not currently implement consolidation account mapping,
@@ -101,6 +107,12 @@ historical move or sharing accounting records between legal entities.
   for new accounting records and company-dependent configuration.
 - Selecting several companies broadens permitted reading; it does not make a
   write operation cross-company.
+- Home labels combined widgets explicitly. Activities, assigned tasks and AI
+  attention use the selected-company record-rule scope; Accounting alert
+  counts aggregate that same scope and show the contributing companies.
+- Company-state Accounting cards never manufacture a consolidated readiness,
+  deadline, cash projection or closing status. They are duplicated and
+  labelled per company in multi-company mode.
 - Each company has a dedicated **Interface color** under **Settings > Users &
   Companies > Companies**. With one company selected, its color is applied to
   the top navigation bar and remains visible inside the company selector.

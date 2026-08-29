@@ -12975,3 +12975,72 @@ msgstr "Le relevé bancaire atteste chaque mois qu’Odoo contient tous les mouv
 #. module: rebuild_account_migration
 msgid "This is a bank-completeness checkpoint; it does not imply that every movement is matched to an invoice or payment."
 msgstr "Il s’agit d’un contrôle d’exhaustivité bancaire ; il ne signifie pas que chaque mouvement est rapproché d’une facture ou d’un paiement."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting — %s"
+msgstr "Comptabilité — %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting — %s selected companies"
+msgstr "Comptabilité — %s sociétés sélectionnées"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "No selected company is available."
+msgstr "Aucune société sélectionnée n’est disponible."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting Hygiene is not available for the selected companies."
+msgstr "L’hygiène comptable n’est pas disponible pour les sociétés sélectionnées."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Company accounting"
+msgstr "Comptabilité de la société"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "issues"
+msgstr "anomalies"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Bank and cash balance"
+msgstr "Solde bancaire et de trésorerie"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Bank review"
+msgstr "Revue bancaire"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "To match"
+msgstr "À rapprocher"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Draft invoices"
+msgstr "Factures clients brouillon"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Draft bills"
+msgstr "Factures fournisseurs brouillon"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Closing blockers"
+msgstr "Blocages de clôture"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Open company overview"
+msgstr "Ouvrir la vue de la société"
