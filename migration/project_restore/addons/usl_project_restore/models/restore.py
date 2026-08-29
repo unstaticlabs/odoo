@@ -7,7 +7,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
-from odoo import SUPERUSER_ID, Command, fields, models
+from odoo import SUPERUSER_ID, Command, api, fields, models
 from odoo.tools import html_sanitize
 
 SOURCE_MODELS = (
@@ -16,7 +16,40 @@ SOURCE_MODELS = (
     "project.update",
     "project.milestone",
 )
-RESTORE_REVISION = 6
+RESTORE_REVISION = 7
+SOURCE_PRIMARY_ID_CONTEXT = "usl_project_restore_source_primary_id"
+
+
+class ProjectProject(models.Model):
+    _inherit = "project.project"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID project allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
+
+
+class ProjectTask(models.Model):
+    _inherit = "project.task"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID task allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
 
 
 class UslProjectRestoreRun(models.Model):
@@ -128,6 +161,92 @@ class UslProjectRestoreRun(models.Model):
             generated.unlink()
         return len(generated)
 
+    def _acquire_preserved_primary_id_control(self, payload):
+        """Lock Project writes and reject ambiguous source identities."""
+        self.ensure_one()
+        specifications = (
+            ("project.project", "project_project", payload["projects"]),
+            ("project.task", "project_task", payload["tasks"]),
+        )
+        source_ids_by_model = {}
+        for model_name, _table, rows in specifications:
+            source_ids = [row.get("id") for row in rows]
+            invalid_ids = [
+                source_id
+                for source_id in source_ids
+                if isinstance(source_id, bool)
+                or not isinstance(source_id, int)
+                or source_id <= 0
+            ]
+            if invalid_ids:
+                raise RuntimeError(
+                    f"{model_name} contains invalid Online IDs: {invalid_ids!r}.",
+                )
+            if len(source_ids) != len(set(source_ids)):
+                raise RuntimeError(
+                    f"{model_name} contains duplicate Online IDs.",
+                )
+            source_ids_by_model[model_name] = source_ids
+
+        self.env.flush_all()
+        self.env.cr.execute(
+            "LOCK TABLE project_project, project_task IN ACCESS EXCLUSIVE MODE",
+        )
+        collisions = []
+        for model_name, table, _rows in specifications:
+            source_ids = source_ids_by_model[model_name]
+            if not source_ids:
+                continue
+            self.env.cr.execute(
+                f"""
+                    SELECT id,
+                           rebuild_source_database,
+                           rebuild_source_model,
+                           rebuild_source_id
+                      FROM {table}
+                     WHERE id = ANY(%s)
+                        OR (
+                            rebuild_source_model = %s
+                            AND rebuild_source_id = ANY(%s)
+                        )
+                     ORDER BY id
+                """,
+                (source_ids, model_name, source_ids),
+            )
+            for record_id, database, traced_model, traced_id in self.env.cr.fetchall():
+                same_source_identity = (
+                    database == self.source_database
+                    and traced_model == model_name
+                    and traced_id == record_id
+                )
+                if record_id in source_ids and not same_source_identity:
+                    collisions.append(
+                        f"{model_name} Online ID {record_id} is occupied",
+                    )
+                elif traced_id in source_ids and record_id != traced_id:
+                    collisions.append(
+                        f"{model_name} Online ID {traced_id} is already mapped "
+                        f"to target ID {record_id}",
+                    )
+        if collisions:
+            raise RuntimeError(
+                "Cannot preserve Project primary IDs: " + "; ".join(collisions),
+            )
+
+    def _reset_preserved_primary_id_sequences(self):
+        self.ensure_one()
+        for table in ("project_project", "project_task"):
+            self.env.cr.execute(
+                f"""
+                    SELECT setval(
+                        pg_get_serial_sequence('{table}', 'id'),
+                        COALESCE(max(id), 0) + 1,
+                        FALSE
+                    )
+                      FROM {table}
+                """,
+            )
+
     def _community_property_definition(self, definition):
         definition = copy.deepcopy(definition or [])
         field = self.env["project.project"]._fields[
@@ -213,6 +332,7 @@ class UslProjectRestoreRun(models.Model):
         values,
         snapshot,
         *,
+        preserve_primary_id=False,
         translation_fields=(),
     ):
         traced = self._traced(target_model, source_model, [row["id"]])
@@ -238,6 +358,11 @@ class UslProjectRestoreRun(models.Model):
             )
         )
         if record:
+            if preserve_primary_id and record.id != row["id"]:
+                raise RuntimeError(
+                    f"{source_model} Online ID {row['id']} is mapped to "
+                    f"target ID {record.id}.",
+                )
             if self._is_current_revision(record, snapshot):
                 return record
             record.with_context(
@@ -245,7 +370,17 @@ class UslProjectRestoreRun(models.Model):
                 mail_auto_subscribe_no_notify=True,
             ).write(values)
         else:
-            record = model.create(values)
+            create_model = model
+            if preserve_primary_id:
+                create_model = model.with_context(
+                    **{SOURCE_PRIMARY_ID_CONTEXT: row["id"]},
+                )
+            record = create_model.create(values)
+        if preserve_primary_id and record.id != row["id"]:
+            raise RuntimeError(
+                f"Failed to allocate {source_model} Online ID {row['id']}; "
+                f"the ORM returned target ID {record.id}.",
+            )
         if (
             record.rebuild_source_model != source_model
             or record.rebuild_source_id != row["id"]
@@ -737,6 +872,7 @@ class UslProjectRestoreRun(models.Model):
                 row,
                 values,
                 snapshot,
+                preserve_primary_id=True,
                 translation_fields=("name", "label_tasks"),
             )
             projects[row["id"]] = record
@@ -949,6 +1085,7 @@ class UslProjectRestoreRun(models.Model):
                 row,
                 values,
                 snapshot,
+                preserve_primary_id=True,
             )
             tasks[row["id"]] = record
             self._stamp_audit("project.task", record, row, users)
@@ -1576,11 +1713,12 @@ class UslProjectRestoreRun(models.Model):
     def restore_from_payload(self, payload, *, filestore):
         self.ensure_one()
         snapshot = self.source_snapshot
-        self._remove_generated_onboarding_todos()
         companies, partners, users = self._restore_partners_companies_users(
             payload,
             snapshot,
         )
+        self._remove_generated_onboarding_todos()
+        self._acquire_preserved_primary_id_control(payload)
         project_stages, task_stages, tags, activity_types = (
             self._restore_configuration(
                 payload,
@@ -1609,6 +1747,7 @@ class UslProjectRestoreRun(models.Model):
             task_stages,
             tags,
         )
+        self._reset_preserved_primary_id_sequences()
         updates = self._restore_updates(
             payload,
             snapshot,
