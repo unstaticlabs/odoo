@@ -188,14 +188,8 @@ As the restored project manager, confirm that ordinary Projects navigation
 contains no **Restoration Runs**, import reports, source IDs or reconstruction
 fields.
 
-From the repository, run:
-
-```bash
-PROJECT_TARGET_DATABASE="$QA_DATABASE" \
-  scripts/project-restore product-validate
-```
-
-It must report that `usl_project_restore` is uninstalled, with zero migration
+The final `migration/manage` product-boundary stage must report that
+`usl_project_restore` is uninstalled, with zero migration
 models, model metadata, fields, field metadata, project views and XML IDs. The
 operational `usl_project` module and Planned Start field must remain installed.
 

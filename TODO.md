@@ -4,91 +4,37 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current release preparation — updated 2026-08-27
+## Current release preparation — updated 2026-08-30
 
-Status: **Accounting v1 is engineering-complete, but the Distribution is not
-yet production-ready.** The current `19-usl` history contains the reviewed
-migration-performance foundation through `61580c1704c`, Expense Analytics
-through `aae5994a7ec`, B2C through merge `368812b2868`, the validated upstream
-SaaS 19.3 catch-up through merge `4104a3abbef`, and monthly bank-statement email
-ingestion through merge `64c1f2b1207` plus its focused fixes.
-
-After Docker capacity was increased, the integrated B2C baseline completed a
-fresh full reconstruction on 26 August. It published a reusable sanitized QA
-seed, restored the complete Accounting/Product/B2C/HR/Projects/Documents/TESE/
-Platform Billing perimeter, finalized to a product-only registry, and passed
-two isolated zero-OCR seed hydrations. A separate clean install and repeated
-update passed all fourteen delivered product modules. These are valid current
-rehearsal results, not a final production candidate: later feature merges
-invalidate them for release admission.
-
-Collaboration History is integrated on the current release candidate.
-Paperless 3.0, Native Sign, Distribution Access Control, the post-baseline
-migration-performance cache, and the project/task browser-title fix remain
-active, unmerged workstreams. Their final commits must be reviewed and merged
-or explicitly rejected before a new complete qualification. The
-strict source gate now dispositions all 19 scopes and 226,836 source records
-with no blocked records, relationships or stored fields. Product decisions
-explicitly drop demo Knowledge, AI/Sales/Marketing experiments and superseded
-Studio customizations; preferences and every attachment have a governed
-translation or non-copy disposition. The physical opening-stock count is not
-yet available. No topic worktree, old QA seed or rehearsal candidate may be
-promoted directly.
-
-The 27 August integration candidate also completed a canonical reconstruction,
-an identical second Collaboration import, finalization and product-boundary
-qualification. The resulting `odoo_dev` has 14 delivered modules, no migration
-registry/schema residue and 733 stable live Documents records, with zero
-changes on repeated identity synchronization. The removed 66 records were demo
-Knowledge content; the genuine strategy PDF remains restricted. Publishing
-the shared reusable QA seed remains deliberately deferred until the same
-result is run from a clean `19-usl` checkout.
-
-A second clean 27 August run reconfirmed exact Accounting, Product, B2C, HR,
-Projects, Identity, Documents, TESE, Platform Billing and Collaboration
-reconstruction; all 19 source scopes and all 2,601 attachment dispositions
-passed, multi-company acceptance passed, and all outbound delivery queues were
-empty after finalization and the supported `usl_pocketid` upgrade.
+Status: **The product and migration implementation are ready for fresh
+frozen-source QA, but production is not yet admitted.** Older source checksums,
+reconstruction seeds, candidates, count baselines, and fingerprints are stale
+for final evidence.
 
 ### Current production-candidate checklist
 
-- [x] Integrate migration performance and portable-candidate tooling.
-- [x] Integrate Expense Analytics.
-- [x] Integrate B2C sales/inventory and complete honest accounting, evidence
-  and SKU dispositions.
-- [x] Integrate the validated SaaS 19.3 upstream catch-up.
-- [x] Integrate scheduled Shine bank-statement ingestion.
-- [x] Complete one full integrated reconstruction, publish a reusable QA seed
-  and reproduce it twice in isolated projects.
-- [x] Prove clean install, update and repeated update for the current fourteen
-  delivered modules with no migration registry or schema residue.
-- [ ] Review and merge Paperless 3.0.
-- [ ] Review and merge Native Sign.
-- [ ] Review and merge the post-baseline migration-performance cache.
-- [ ] Review and merge the project/task browser-title fix.
-- [x] Integrate Collaboration History with source-backed chatter, activities,
-  tracking and evidence, zero outbound delivery state and no migration residue.
-- [ ] Review and merge Distribution Access Control.
-- [x] Resolve or explicitly translate every strict whole-source gap and source
-  attachment; no silent drop or blanket waiver.
-- [ ] Obtain and execute the governed physical opening-stock count; do not
-  fabricate historical stock.
-- [ ] Repeat static checks, clean install/update, full reconstruction, source
-  parity, browser/persona journeys and product-boundary validation from the
-  exact final merged commit.
-- [ ] Rehearse the complete intended production procedure on an isolated
-  production-shaped host, including reset/abort, backup and recovery.
-- [ ] Freeze Odoo Online, capture and verify the final dump and filestore, then
-  build and independently approve the immutable candidate.
-- [ ] Complete technical, infrastructure, Accounting Manager, professional
-  accounting and final business go/no-go decisions.
-- [ ] Admit the exact candidate and activate external services only through
-  their separate post-admission gates.
+- [x] Consolidate migration lifecycle operations under `migration/manage`.
+- [x] Remove shared reconstruction seeds, cache hydration, and resume paths.
+- [x] Preserve the product/migration boundary and CI-built release identities.
+- [ ] Run one fresh full-profile QA reconstruction from the frozen Online
+  package and retain the runtime for review.
+- [ ] Pass source-wide, attachment, Accounting, access, multi-company,
+  Projects, Expenses, Platform Billing, TESE, Inventory, Documents, Sign,
+  queue, repeated-upgrade, restart, and coordinated-recovery gates.
+- [ ] Complete changed-journey browser QA and obtain explicit QA acceptance.
+- [ ] Open a new production-grade transition runtime from the frozen source;
+  do not promote QA volumes.
+- [ ] Complete the local working period and explicit final cutoff.
+- [ ] Build and independently restore the final evolved cohort without OCR,
+  re-ingestion, vector rebuild, or model download.
+- [ ] Admit the exact production release and verify the first coordinated
+  production backup restore.
+- [ ] Activate each external integration only through its separate production
+  gate.
 
-The canonical remaining release sequence and owner/evidence checklist are in
-[`docs/operations/production-cutover-readiness.md`](docs/operations/production-cutover-readiness.md).
-The executable candidate procedure remains
-[`docs/operations/portable-production-migration.md`](docs/operations/portable-production-migration.md).
+The authoritative sequence is in
+[`docs/operations/migration.md`](docs/operations/migration.md) and
+[`docs/operations/production.md`](docs/operations/production.md).
 
 ## Historical Milestone 13 candidate — verified 2026-07-26
 
@@ -789,7 +735,7 @@ Final evidence and residual advisories are recorded in
 - [ ] Create an agent activity and exception dashboard.
 - [ ] Track infrastructure and AI costs.
 - [ ] Track cost per processed document.
-- [ ] Track cost per agent workflow.
+- [ ] Track cost per automated workflow.
 - [ ] Track error and human-intervention rates.
 - [ ] Test monitoring by intentionally triggering safe failures.
 - [ ] Ensure monitoring itself is monitored.
@@ -2173,10 +2119,9 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Resolve all migration blockers.
 - [ ] Freeze the cutover runbook.
 
-The full-profile QA seed publication and two zero-OCR hydrations passed on
-26 August. The optimized before/after timing comparison, interruption-window
-measurement and intended-host dress rehearsal remain open. Passing a cached or
-scoped reconstruction does not close those items.
+Historical reconstruction results do not close final qualification. The
+interruption-window measurement and intended-host dress rehearsal must use the
+current release and fresh frozen source.
 
 ## Milestone 26 exit criteria
 

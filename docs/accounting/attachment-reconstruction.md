@@ -66,11 +66,9 @@ only database metadata.
 
 Keep the restored source database read-only and mounted with its filestore:
 
-```bash
-make accounting-source-restore
-make accounting-dev-attachments
-make accounting-attachment-audit
-```
+Attachment restore and audit run in the fixed `migration/manage`
+reconstruction after the read-only source restore. Focused tests may invoke
+the internal stages only against a disposable database.
 
 `accounting-dev-attachments` is a focused development refresh. It is
 idempotent and does not rebuild the ledger. A clean full reconstruction also

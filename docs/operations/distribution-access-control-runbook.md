@@ -70,7 +70,7 @@ separate review. Any further company grant still requires explicit approval.
 ## Action-surface change procedure
 
 The machine-checked inventory in
-[Distribution action-risk inventory](../agents/distribution-access-risk-inventory.md)
+[Action-risk inventory](action-risk-inventory.md)
 is authoritative. Any Odoo, OCA, product-module, view, controller, job or
 provider change that alters the exposed action surface must be classified before
 the branch can qualify:

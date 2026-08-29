@@ -25,20 +25,15 @@ read-only transaction. It parses source filestore objects directly, so
 `no-documents` and `documents-smoke` are valid developer iteration profiles; a
 release qualification requires every final archive and business link.
 
-Always use an isolated Compose project and set both electronic-invoice guards
-to zero. Never open `odoo_online_source_saas_19_3` with target Odoo code.
+Always use a runtime resolved by `migration/manage`, with both
+electronic-invoice guards at zero. Never open
+`odoo_online_source_saas_19_3` with target Odoo code.
 
-```bash
-COMPOSE_PROJECT_NAME=usl-odoo-b2c-<worktree-id> \
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
-scripts/b2c-restore
-```
-
-The command installs the temporary registry, imports, validates, repeats safely
-when requested, uninstalls the temporary add-on, removes its rows/columns/XML
-IDs, and runs the product/migration boundary. `scripts/target-reconstruct`
-places the same stage after Product restoration. Do not use `-u all`.
+The internal stage installs the temporary registry, imports, validates,
+repeats safely when requested, uninstalls the temporary add-on, removes its
+rows, columns, and XML IDs, and runs the product/migration boundary.
+`migration/manage` places this stage after Product restoration. Do not use
+`-u all`.
 
 When Documents is enabled, canonical reconstruction repeats the idempotent B2C
 pass after full archive ingestion and before final migration cleanup. The

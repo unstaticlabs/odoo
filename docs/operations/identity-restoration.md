@@ -61,22 +61,9 @@ rejected because it would make migration mechanics part of the distribution.
 
 ## Run and validate
 
-Use an isolated Compose project and the exact protected source package:
-
-```bash
-COMPOSE_PROJECT_NAME=codex-migration-identity \
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-make identity-restore
-```
-
-For stepwise diagnosis:
-
-```bash
-make identity-restore-install
-make identity-restore-import
-make identity-restore-validate
-make identity-restore-finalize
-```
+Identity restoration is a fixed stage of `migration/manage` reconstruction,
+not a standalone public command. Focused importer tests may invoke the internal
+stage only against a disposable database.
 
 The validator requires exact counts and SHA-256 parity for material Contact,
 user, bank, category, industry, company-membership, and contact-tag data. It

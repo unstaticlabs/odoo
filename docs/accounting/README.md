@@ -8,7 +8,6 @@ These documents define the accounting truths that implementations and migrations
 - [Evidence catalogue](parity-evidence.md)
 - [Migration and release gates](migration-gates.md)
 - [Current SaaS 19.3 alignment register](saas-19.3-alignment-register.md)
-- [Historical SaaS 19.2 alignment register](saas-19.2-alignment-register.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
 - [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)

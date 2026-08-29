@@ -28,13 +28,8 @@ private migration evidence. Retired folder activity is represented by the
 final archived document state and never creates synthetic PDFs. The delivered
 product does not retain a shadow archive or Knowledge compatibility model.
 
-Run the stage only inside canonical reconstruction:
-
-```bash
-scripts/collaboration-restore all
-scripts/collaboration-restore finalize
-scripts/collaboration-restore product-validate
-```
+Run the stage only inside the fixed `migration/manage` reconstruction. It is
+not a standalone public command.
 
 Meaningful aliases retain their local part and target record but are rebound to
 the target-owned mail domain. Set `COLLABORATION_TARGET_MAIL_DOMAIN` for a

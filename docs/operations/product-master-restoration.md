@@ -35,17 +35,9 @@ count is therefore a blocking release input. When supplied, it must be entered
 as a native opening inventory adjustment at the approved cutoff. Historical
 receipts or deliveries must never be manufactured.
 
-Run in an isolated Compose project after Accounting and Identity:
-
-```bash
-COMPOSE_PROJECT_NAME=codex-migration-products \
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-make product-restore
-```
-
-Stepwise commands are `make product-restore-install`,
-`make product-restore-import`, `make product-restore-validate`, and
-`make product-restore-finalize`. Import can be repeated safely. Validation
+`migration/manage` runs Product restoration after Accounting and Identity in
+the exact recorded runtime. Import can be repeated safely during focused tests
+on a disposable database. Validation
 compares exact counts and SHA-256 digests for the multilingual catalog,
 relations, prices, costs, and taxes. Finalization proves row counts survive
 temporary-module removal and runs the product/migration boundary check.

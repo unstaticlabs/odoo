@@ -177,7 +177,7 @@ private Accounting and stock compute `sudo()` sinks are `system_internal` and
 have no direct RPC, controller, UI, client, server-action or cron entry point.
 The refreshed policy covers 55,146 source actions and 47,069 runtime actions.
 
-Qualification evidence on the isolated `usl-odoo-qa-afa2ab82` project:
+Qualification evidence on an isolated migration QA runtime:
 
 - the 154-module delivered clean registry installed, upgraded twice, compiled
   all 36 product bundles, passed source and database product/migration

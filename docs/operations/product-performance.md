@@ -104,7 +104,7 @@ chunks, OCR output and final vector parity.
 The 2026-08-27 audit covered the delivered custom add-ons, the Odoo runtime
 configuration, generated backend assets, scheduled Documents work, and idle
 container resources. Measurements used the isolated Compose project
-`usl-odoo-qa-bd5efa49`, dedicated ports, and the disposable
+an isolated QA runtime, dedicated ports, and the disposable
 `odoo_product_perf` database. Regulatory live flags remained disabled.
 
 The code audit searched every custom add-on for computed fields, unbounded

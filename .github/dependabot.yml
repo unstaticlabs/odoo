@@ -79,9 +79,8 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Repository-owned frontend/design tooling. Major updates stay separate so
-  # generated Impeccable provider assets can be refreshed and reviewed with
-  # the package update instead of being hidden in a compatibility group.
+  # Repository-owned frontend dependencies. Major updates stay separate so
+  # generated assets can be reviewed with the package update.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

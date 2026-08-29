@@ -81,7 +81,8 @@ USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
   '/rebuild_account_migration:TestFrenchEinvoiceReception'
 
 USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
-  make target-reconstruct-product
+  migration/manage qa refresh --runtime <runtime-id> --fresh \
+  --confirm REFRESH:<runtime-id>
 
 USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
   make deploy
@@ -107,9 +108,9 @@ negative tests. They are not test failures.
 
 ## Canonical reconstruction and parity
 
-`make target-reconstruct-product` rebuilt the single canonical developer/QA database,
-`odoo_dev`, from the preserved Online source. It also completed the downstream
-Projects restoration and removed its temporary migration module.
+The fresh migration QA reconstruction rebuilt `odoo_dev` from the preserved
+Online source, completed downstream restoration, and removed temporary
+migration modules.
 
 Accounting parity passed with:
 

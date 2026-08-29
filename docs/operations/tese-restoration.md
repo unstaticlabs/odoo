@@ -23,8 +23,7 @@ Temporary mapping records make the import repeatable. Finalization uninstalls
 the migration module and removes those mappings, run records, issues and XML
 IDs while retaining native business records.
 
-The production `make migrate-production SOURCE_SHA=<sha256>` command runs the
-stages in this order:
+The full `migration/manage` reconstruction runs the stages in this order:
 
 1. restore and validate the source database through the Accounting harness;
 2. complete and validate the source-faithful Accounting import, leaving its
@@ -95,11 +94,11 @@ The ignored checkout-local `usl-online-dump/` is the development default. Set
 `USL_ONLINE_DUMP_DIR` to the approved absolute external package path for
 rehearsal or production use; never commit the private dump.
 
-For the normal disposable developer/QA database, use the single canonical
-pipeline:
+For migration QA, use the single public lifecycle:
 
 ```bash
-make target-reconstruct-product
+migration/manage qa refresh \
+  --runtime <runtime-id> --fresh --confirm REFRESH:<runtime-id>
 ```
 
 The following stage commands are for focused migration development only. They
@@ -107,12 +106,12 @@ must run after Accounting import and before Accounting finalization; they are
 not an alternative way to patch an already finalized product database:
 
 ```bash
-scripts/tese-restore install
-scripts/tese-restore import
-scripts/tese-restore validate
-scripts/tese-restore idempotence
-scripts/tese-restore finalize
-scripts/tese-restore product-validate
+migration/internal/tese-restore install
+migration/internal/tese-restore import
+migration/internal/tese-restore validate
+migration/internal/tese-restore idempotence
+migration/internal/tese-restore finalize
+migration/internal/tese-restore product-validate
 ```
 
 The default target is `odoo_dev`. Set `TESE_TARGET_DATABASE` only for an
@@ -120,19 +119,8 @@ explicitly named, disposable proof. The harness refuses the preserved source
 database and canonical Accounting proof databases unless the protected-target
 override is set for an intentional downstream rehearsal.
 
-When several worktrees share Docker, always give the proof its own Compose
-project:
-
-```bash
-COMPOSE_PROJECT_NAME=usl-tese-proof \
-TESE_TARGET_DATABASE=odoo_tese_proof \
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-scripts/tese-restore all
-```
-
-Do not point the temporary service at another worktree's target database or
-volumes. The harness only stops and restarts the normal Odoo service inside
-the selected Compose project.
+Do not point a focused proof at another runtime's database or volumes. Use a
+disposable target and exact ownership checks.
 
 ## Acceptance gates
 

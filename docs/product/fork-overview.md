@@ -27,8 +27,8 @@ release status and outstanding gates.
 - **Test-only** means a disposable fixture that must not enter the production
   dependency graph.
 
-No individual feature state overrides the release-level blockers in the
-[production cut-over readiness register](../operations/production-cutover-readiness.md).
+No individual feature state overrides the release and admission gates in the
+[production runbook](../operations/production.md).
 
 ## User-facing capability map
 
@@ -48,10 +48,10 @@ No individual feature state overrides the release-level blockers in the
 | External-provider payroll accounting for TESE: versioned profiles, immutable monthly snapshots, provider-PDF gate, native entries, settlement and closing controls | `usl_tese_payroll` plus `usl_tese_accounting` | **Paie TESE**, payroll records, linked entries and Accounting closing controls | [Paie TESE](paie-tese.md), [French user guide](../users/guides/paie-tese.md), [restoration runbook](../operations/tese-restoration.md) | **Integrated**; TESE remains the legal payroll calculator |
 | Content-platform payout billing with monthly sessions, payouts, native customer invoices, commission bills, compensation and bank settlement | `usl_platform_billing`; optional identity-role bridge in `usl_platform_billing_pocketid` | **Platform Billing** sessions, payouts and bank-import/reconciliation actions | [Platform Billing product](platform-billing.md), [accounting design](../accounting/platform-billing.md), [operator guide](../users/how-to/process-platform-payouts.md) | **Integrated** |
 | Pocket ID OIDC login with PKCE, state/nonce/JWKS validation, immutable identity links, named-user policy and sealed emergency access | `usl_pocketid` over pinned OCA `auth_oidc` | Odoo sign-in and governed user/identity configuration | [Pocket ID architecture](pocket-id-sso.md), [sign-in guide](../users/how-to/sign-in-with-pocket-id.md), [operations runbook](../operations/pocket-id-sso-runbook.md) | **Integrated**; external production provider configuration is environment-specific and applied after reconstruction |
-| Recoverability-based named roles, explicit Agent denial, separately governed irreversible actions and immutable security audit evidence | `usl_access_control` over native ACLs, record rules and company scope | User **Access Rights**, protected workflows and **Settings > Distribution Audit** | [Distribution access control](distribution-access-control.md), [operations runbook](../operations/distribution-access-control-runbook.md), [action review procedure](../agents/distribution-access-risk-inventory.md) | **Integration candidate qualified**; clean and canonical backend acceptance pass, while merge-commit PR and live browser acceptance remain |
-| French-first terminology, European date presentation, company context and company-aware list presentation | `usl_locale` plus translations owned by each feature | All affected backend views; **Settings > Companies** for company presentation | [European date presentation](european-date-presentation.md), [localization rules](../agents/french-localization.md), [multi-company Accounting](../accounting/multi-company-accounting.md) | **Integrated** |
+| Recoverability-based named roles, explicit automation denial, separately governed irreversible actions and immutable security audit evidence | `usl_access_control` over native ACLs, record rules and company scope | User **Access Rights**, protected workflows and **Settings > Distribution Audit** | [Distribution access control](distribution-access-control.md), [operations runbook](../operations/distribution-access-control-runbook.md), [action review procedure](../operations/action-risk-inventory.md) | **Integrated security foundation**; final runtime acceptance remains a release gate |
+| French-first terminology, European date presentation, company context and company-aware list presentation | `usl_locale` plus translations owned by each feature | All affected backend views; **Settings > Companies** for company presentation | [European date presentation](european-date-presentation.md), [localization rules](french-localization.md), [multi-company Accounting](../accounting/multi-company-accounting.md) | **Integrated** |
 | French electronic-invoice reception for UBL, CII and Factur-X, duplicate/retry controls, review states and guarded activation | `rebuild_account_migration` over native Accounting/localization capabilities | **Vendors > Incoming E-Invoices** and **Configuration > Invoicing > E-Invoicing** | [Reception readiness](../accounting/french-electronic-invoicing-readiness.md), [validation evidence](../accounting/french-electronic-invoicing-validation.md), [activation runbook](../operations/activate-french-electronic-invoicing.md) | **Ready but inactive**; live reception and e-reporting flags remain `0` until separately approved |
-| Reproducible local development, QA, pre-production candidates, backup/recovery, immutable image publication and controlled production admission | Compose files, `Dockerfile`, `scripts/`, `deploy/`, and `.github/workflows/product-image.yml` | Command-line operational workflows; no business-user menu | [README](../../README.md), [environment policy](../operations/environment-and-release-policy.md), [pre-production release](../operations/preproduction-release.md), [production readiness](../operations/production-cutover-readiness.md) | **Integrated tooling**; the final production candidate has not yet been admitted |
+| Reproducible local development, migration QA, immutable candidates and cohorts, backup/recovery, image publication and controlled production admission | `migration/manage`, Compose files, `Dockerfile`, `deploy/`, and `.github/workflows/product-image.yml` | Command-line operational workflows; no business-user menu | [README](../../README.md), [migration operations](../operations/migration.md), [production operations](../operations/production.md) | **Integrated tooling**; production admission remains an explicit gate |
 
 ## Delivered add-on inventory
 
@@ -132,33 +132,33 @@ explicit architecture decision and regression evidence.
 ## One-shot migration and reconstruction tooling
 
 Migration is a production-critical delivery tool, not part of the final Odoo
-product. The canonical flow is orchestrated by `scripts/target-reconstruct`
-and finalized by `scripts/target-finalize`. Temporary add-ons are loaded from
-their dedicated migration paths, then uninstalled and removed from the final
+product. `migration/manage` owns the complete lifecycle and invokes private
+stages under `migration/internal/`. Temporary add-ons are loaded from their
+dedicated migration paths, then uninstalled and removed from the final
 registry. The final database must have no migration models, menus, fields,
-source bindings or technical reconstruction provenance.
+source bindings, or technical reconstruction provenance.
 
 | Migration area | Responsibility | Durable reference |
 | --- | --- | --- |
-| `migration/source_truth` | Whole-source coverage ledger, stage ownership and fatal unexplained-scope checks | [Source-truth migration](../operations/source-truth-migration.md) |
+| `migration/source_truth` | Whole-source coverage ledger, stage ownership and fatal unexplained-scope checks | [Migration operations](../operations/migration.md) |
 | `migration/runtime_preflight` | Resource and runtime safety checks before destructive reconstruction stages | [Accounting development workflow](../operations/accounting-development-workflow.md) |
 | `migration/accounting_restore` | Native Accounting reconstruction, exact ledger/reconciliation parity and temporary source identity | [Accounting restoration boundary](../../migration/accounting_restore/README.md) |
-| `migration/attachment_ledger` | Source attachment disposition and completeness evidence | [Source-truth migration](../operations/source-truth-migration.md#attachment-disposition-ledger) |
+| `migration/attachment_ledger` | Source attachment disposition and completeness evidence | [Migration operations](../operations/migration.md#reconstruction-acceptance) |
 | `migration/product_restore` | Product templates, variants, attributes, values, categories, costs, warehouses and locations | [Product master restoration](../operations/product-master-restoration.md) |
 | `migration/identity_restore` | Users, companies and governed target identity preparation | [Identity restoration](../operations/identity-restoration.md) |
-| `migration/hr_restore` | Employees, versions and related HR configuration needed by product workflows | [Source-truth migration](../operations/source-truth-migration.md) |
+| `migration/hr_restore` | Employees, versions and related HR configuration needed by product workflows | [Migration operations](../operations/migration.md) |
 | `migration/project_restore` | Native Projects, tasks, messages, tracking, followers, dependencies and evidence | [Projects restoration](../operations/project-restoration.md) |
 | `migration/tese_restore` | TESE profiles, payroll records, PDFs, accounting relationships and parity | [TESE restoration](../operations/tese-restoration.md) |
 | `migration/platform_billing_restore` | Historical platform configurations, sessions, payouts and native Accounting links | [Platform Billing restoration](../operations/platform-billing-migration.md) |
 | `migration/b2c_restore` | Locked provider evidence, historical B2C records, accounting coverage, SKU dispositions and Documents links | [B2C migration](../operations/b2c-migration.md), [source-field matrix](../../migration/b2c_restore/source-field-matrix.md) |
-| `migration/documents_archive` | Paperless archive reconstruction, checksums, access, business links and resumable evidence processing | [Documents archive boundary](../../migration/documents_archive/README.md) |
+| `migration/documents_archive` | Fresh Paperless archive reconstruction, checksums, access, business links, OCR, search and vector evidence | [Documents archive boundary](../../migration/documents_archive/README.md) |
 | `migration/collaboration_restore` | Final source-wide restoration of native chatter, tracking, followers, activities, recipients, reactions and evidence relationships after operational and Documents reconstruction | [Collaboration restoration](../operations/collaboration-restoration.md) |
 | `migration/bank_statement_ingestion` | One-time exact-FITID adoption of migrated Shine statement lines before scheduled ingestion starts | [Bank identity cut-over](../../migration/bank_statement_ingestion/README.md) |
-| `migration/cohort_promotion` | Fail-closed promotion of the post-work coordinated Odoo, Paperless, Ollama and Native Sign transfer cohort without comparing evolved business state to obsolete source-candidate counts | [Evolved migration cohort promotion](../operations/evolved-migration-cohort.md) |
+| `migration/cohort_promotion` | Fail-closed promotion of the post-work coordinated Odoo, Paperless, Ollama and Native Sign transfer cohort without comparing evolved business state to obsolete source-candidate counts | [Migration operations](../operations/migration.md#transition-candidate-and-cohort) |
 
 The product/migration separation is enforced by
 `make product-migration-boundary`, database-boundary checks and finalization.
-See the [product and migration boundary](../agents/product-migration-boundary.md).
+See the [product and migration boundary](../operations/product-migration-boundary.md).
 
 ## Important non-features and boundaries
 
@@ -176,13 +176,9 @@ The Distribution intentionally does **not**:
 - permit probabilistic or autonomous accounting posting;
 - ship source-dump importers or migration diagnostics in the end-user product.
 
-Paperless 3.0, Collaboration History, the migration-performance cache, and
-Distribution Access Control and the project/task browser-title fix are
-consolidated on the current production-migration readiness candidate with their
-reviewed ancestry preserved. Native Sign remains the named release workstream.
-Neither topic worktrees nor integration/archive branches are production
-authority; the consolidated result must pass final qualification and land on
-`19-usl` through an auditable merge commit.
+Only the current `19-usl` release and evidence bound to the frozen source may
+qualify production. Earlier candidates, reconstruction results, and archive
+branches are not production authority.
 
 ## Inspecting the literal fork delta
 

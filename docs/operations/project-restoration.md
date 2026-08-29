@@ -149,26 +149,11 @@ databases as targets. The harness stops the normal product service before
 loading migration code and restores it afterward, preventing user writes or a
 stale product registry from racing the reconstruction.
 
-```bash
-scripts/project-restore all
-```
+Project restoration runs only within the ordered `migration/manage`
+reconstruction. Focused tests may invoke internal stages against a deliberately
+named disposable database.
 
-The operations can be separated:
-
-```bash
-scripts/project-restore install
-
-scripts/project-restore import
-
-scripts/project-restore validate
-
-scripts/project-restore finalize
-
-scripts/project-restore product-validate
-```
-
-Set `PROJECT_TARGET_DATABASE` only for a deliberately named, disposable,
-on-demand proof. Do not retain that proof as another development environment.
+Do not retain an on-demand proof as another development environment.
 
 `finalize` is terminal for that reconstruction: it requires a passed validation,
 uninstalls the temporary migration module, checks that business counts did not
@@ -186,18 +171,17 @@ created referenced user.
 
 ## Acceptance gates
 
-For the canonical production-shaped `odoo_dev` target, prefer the complete
-repository workflow:
+For the canonical production-shaped target, use the complete public workflow:
 
 ```bash
-make migrate-production SOURCE_SHA=<exact-dump-sha256>
+migration/manage qa refresh \
+  --runtime <runtime-id> --fresh --confirm REFRESH:<runtime-id>
 ```
 
-It runs Accounting reconstruction and parity first, then this Projects
-workflow and the downstream Platform Billing restoration. It removes both
-temporary importers, validates the product boundary and applies target-only
-Pocket ID configuration last. Use the Project-specific commands below only
-when iterating on this migration stage in isolation.
+It runs Accounting reconstruction and parity first, then Projects and the
+downstream stages. It removes temporary importers, validates the product
+boundary, and applies target-only identity configuration last. Invoke internal
+Project commands only in focused migration tests on disposable databases.
 
 Before product review:
 

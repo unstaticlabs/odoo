@@ -87,9 +87,9 @@ After this workflow has run at least once, a repository administrator must:
 1. Extend the `19-usl` ruleset to require pull requests, at least one
    independent approval, dismissal of stale approvals, resolved conversations,
    and branches current with `19-usl` before merge.
-2. Require `Distribution image / Qualify repository and image` and
-   `Agent process / contracts`. Do not require the publish job on PRs because
-   it intentionally runs only after merge.
+2. Require `Distribution image / Qualify repository and image`. Do not require
+   the publish job on pull requests because it intentionally runs only after
+   merge.
 3. Keep force pushes and branch deletion blocked. Restrict bypass to a named,
    audited emergency role if an operational exception is ever necessary.
 4. Keep merge commits enabled and disable squash and rebase merging so the

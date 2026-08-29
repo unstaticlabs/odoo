@@ -38,48 +38,17 @@ start, stop or alter it. Both electronic-invoice live flags are forced to `0`.
 
 ## Isolated Accounting reconstruction
 
-Export all of the following values before the upstream Accounting
-reconstruction. `ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT` prevents an
-accidental fallback to the canonical Compose project. The harness always
-checks existing container project and working-directory labels before every
-Compose operation.
+Run Platform Billing only inside a runtime resolved by `migration/manage`.
+The recorded runtime fixes the project, source, database, ports, working
+directory, and disabled live integrations. Never override those values to work
+around a guard failure; inspect the recorded resource labels and IDs instead.
 
-```bash
-export COMPOSE_PROJECT_NAME=usl-odoo-fp-qa
-export ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-fp-qa
-export ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-fp-qa
-export ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT=1
-export ACCOUNTING_COMPAT_SOURCE_DIR=/approved/private/usl-online-dump
-export USL_ONLINE_DUMP_DIR=/approved/private/usl-online-dump
-export ODOO_HTTP_PORT=19469
-export ODOO_GEVENT_PORT=19472
-export USL_EINVOICE_LIVE_ENABLED=0
-export USL_EREPORTING_LIVE_ENABLED=0
-```
+## Platform restoration
 
-Run the documented Accounting exact reconstruction and `odoo_dev`
-reconstruction using that environment. Never unset the isolated-project
-requirement to work around a guard failure; inspect the project labels and
-working directory instead.
-
-## Platform restoration commands
-
-After Accounting validation passes, select the target database and run:
-
-```bash
-export PLATFORM_BILLING_TARGET_DATABASE=odoo_dev
-
-make platform-billing-restore-install
-make platform-billing-restore-import
-make platform-billing-restore-validate
-make platform-billing-restore-idempotence
-make platform-billing-restore-finalize
-make platform-billing-product-validate
-```
-
-`make platform-billing-restore` performs the full sequence, including a second
-import/validation pass. Evidence is written to the ignored
-`artifacts/platform-billing-restore/` directory.
+After Accounting validation, `migration/manage` runs install, import,
+validation, idempotence, finalization, and product-boundary stages in order.
+Evidence is written to the runtime's ignored private directory. These stages
+are not standalone public commands.
 
 Repeat the complete Accounting reconstruction and this downstream sequence on
 the exact validation database and then `odoo_dev`, because the product install
