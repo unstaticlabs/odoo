@@ -478,7 +478,8 @@ accounting-restore-finalize:
 accounting-product-validate:
 	scripts/accounting-restore product-validate
 
-accounting-restore-tests: oca-addons-sync
+accounting-restore-tests: oca-addons-sync document-renderer-certs
+	docker compose -p $(COMPOSE_PROJECT) --profile document-renderer up -d --wait usl-document-renderer
 	docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) test odoo --config=/etc/odoo/odoo.conf --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons --database=$(ACCOUNTING_TEST_DB) --init=usl_accounting_restore --without-demo=true --test-enable --test-tags=usl_accounting_restore --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
 tese-restore:
@@ -661,7 +662,8 @@ accounting-readiness:
 accounting-evidence:
 	$(ACCOUNTING_COMPAT) evidence
 
-accounting-addon-tests: oca-addons-sync
+accounting-addon-tests: oca-addons-sync document-renderer-certs
+	docker compose -p $(COMPOSE_PROJECT) --profile document-renderer up -d --wait usl-document-renderer
 	docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) test odoo --config=/etc/odoo/odoo.conf --database=$(ACCOUNTING_TEST_DB) --init=rebuild_account_migration --without-demo=true --test-enable --test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
 $(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt

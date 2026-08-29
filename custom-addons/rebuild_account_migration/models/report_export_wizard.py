@@ -4372,6 +4372,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 f" · Arrondi : {metadata['amount_rounding_label']}"
             ),
         ]
+        if self.hide_zero_accounts:
+            context.append("Lignes à zéro masquées")
         if self.comparison_mode != "none":
             context.append(
                 "Comparaison : "
