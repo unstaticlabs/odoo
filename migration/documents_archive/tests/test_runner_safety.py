@@ -35,6 +35,11 @@ PRODUCT_DATABASE_BOUNDARY_SCRIPT = (
 EXPENSE_BATCH_MANIFEST = (
     ROOT / "custom-addons/usl_expense_batch/__manifest__.py"
 )
+POCKET_SIGN_DOCKERFILE = ROOT / "services/usl-pocket-id/Dockerfile"
+POCKET_SIGN_PATCH = (
+    ROOT / "services/usl-pocket-id/pocket-id-v2.14.0-fresh-passkey.patch"
+)
+POCKET_SIGN_OVERLAY = ROOT / "compose.sign-pocketid.qa.yaml"
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -59,6 +64,25 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('ps --status running -q odoo', script)
         self.assertIn('exec -T', script)
         self.assertIn("--profile init run --rm -T --no-deps", script)
+
+    def test_sign_pocket_id_patch_tracks_current_forward_only_release(self):
+        dockerfile = POCKET_SIGN_DOCKERFILE.read_text(encoding="utf-8")
+        overlay = POCKET_SIGN_OVERLAY.read_text(encoding="utf-8")
+        patch = POCKET_SIGN_PATCH.read_text(encoding="utf-8")
+
+        exact_commit = "5521266227205dccb57ba58d820c833a5701346d"
+        self.assertIn(f"POCKET_ID_COMMIT={exact_commit}", dockerfile)
+        self.assertIn(f"POCKET_ID_COMMIT: {exact_commit}", overlay)
+        self.assertIn("golang:1.26.6-alpine", dockerfile)
+        self.assertIn("v2.14.0-usl1", overlay)
+        self.assertIn("20260829000000_disable_oidc_refresh_tokens", patch)
+        self.assertIn("20260829001000_requires_fresh_passkey", patch)
+        self.assertNotIn("20260806000000_disable_oidc_refresh_tokens", patch)
+        self.assertNotIn("20260806001000_requires_fresh_passkey", patch)
+        self.assertIn("RequiresFreshPasskey", patch)
+        self.assertIn("DisableRefreshTokens", patch)
+        self.assertIn('strings.HasPrefix(reauthenticationToken, "phr.")', patch)
+        self.assertIn("TestFreshPasskeyClientOnlyAllowsAuthorizationCode", patch)
 
     def test_rejects_empty_or_protected_target_database(self):
         for database in ("", "odoo_online_source_saas_19_3"):
