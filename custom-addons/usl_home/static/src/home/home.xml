@@ -3,9 +3,12 @@
     <t t-name="usl_home.Home">
         <main class="o_usl_home" aria-label="Home">
             <header class="o_usl_home_header">
-                <p t-if="state.activeCompany" class="o_usl_home_scope">
+                <p t-if="state.companyScope" class="o_usl_home_scope" t-att-data-mode="state.companyScope.mode">
                     <i class="fa fa-building-o" aria-hidden="true"/>
-                    <t t-esc="state.activeCompany.name"/>
+                    <span>
+                        <t t-esc="state.companyScope.label"/>
+                        <small t-if="state.companyScope.combined" t-esc="this.companyScopeNames()"/>
+                    </span>
                 </p>
                 <div class="o_usl_home_header_actions">
                     <button class="btn btn-light" type="button" t-on-click="this.refreshAll">
@@ -62,11 +65,8 @@
                             </span>
                             <div>
                                 <h2 t-esc="widgetLabel(widgetKey)"/>
-                                <p t-if="widgetKey === 'activities'">What needs you now</p>
-                                <p t-elif="widgetKey === 'my_tasks'">Your workload by real project state</p>
-                                <p t-elif="widgetKey === 'favorites'">Resume the exact place you use</p>
-                                <p t-elif="widgetKey === 'ai_pipelines'">Human review, blockers, and failures</p>
-                                <p t-elif="widgetKey === 'accounting' and widgetState(widgetKey).data"><t t-esc="widgetState(widgetKey).data.company.name"/></p>
+                                <p t-if="widgetKey !== 'accounting'" t-esc="this.widgetScopeLabel(widgetKey)"/>
+                                <p t-elif="widgetState(widgetKey).data"><t t-esc="widgetState(widgetKey).data.scope.label"/></p>
                             </div>
                         </div>
                         <button t-if="state.customize" class="o_usl_home_drag btn btn-link" type="button" aria-label="Drag to reorder widget">
@@ -159,7 +159,10 @@
                             <li t-foreach="widgetState(widgetKey).data.items" t-as="item" t-key="item.id">
                                 <button type="button" t-on-click="() => this.openRecord('project.task', item.id)">
                                     <span class="o_usl_home_attention_icon" t-att-data-status="item.status"><i class="fa" t-att-class="item.status === 'failed' ? 'fa-exclamation' : item.status === 'blocked' ? 'fa-ban' : 'fa-eye'" aria-hidden="true"/></span>
-                                    <span class="o_usl_home_item_main"><strong t-esc="item.name"/><small t-esc="item.project"/></span>
+                                    <span class="o_usl_home_item_main">
+                                        <strong t-esc="item.name"/>
+                                        <small><t t-esc="item.project"/><t t-if="state.companyScope.combined and item.company"> · <t t-esc="item.company"/></t></small>
+                                    </span>
                                     <span class="o_usl_home_status" t-att-data-status="item.status" t-esc="item.status === 'failed' ? 'Failed' : item.status === 'blocked' ? 'Blocked' : 'Review'"/>
                                 </button>
                             </li>
@@ -172,11 +175,15 @@
                         <div t-if="widgetState(widgetKey).data.alerts.length" class="o_usl_home_accounting_alerts">
                             <button t-foreach="widgetState(widgetKey).data.alerts" t-as="alert" t-key="alert.key" type="button" t-on-click="() => this.openAccountingAlert(alert.key)">
                                 <span class="o_usl_home_alert_icon" t-att-data-status="alert.status"><i class="fa" t-att-class="this.accountingIcon(alert.key)" aria-hidden="true"/></span>
-                                <span><strong class="o_usl_home_alert_count" t-esc="alert.count"/><small t-esc="alert.label"/></span>
+                                <span>
+                                    <strong class="o_usl_home_alert_count" t-esc="alert.count"/>
+                                    <small t-esc="alert.label"/>
+                                    <small t-if="widgetState(widgetKey).data.scope.combined" class="o_usl_home_alert_breakdown" t-esc="this.accountingBreakdown(alert)"/>
+                                </span>
                                 <i class="fa fa-arrow-right" aria-hidden="true"/>
                             </button>
                         </div>
-                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><i class="fa fa-check-circle" aria-hidden="true"/><p>No accounting or compliance alerts for this company.</p></div>
+                        <div t-else="" class="o_usl_home_widget_state o_usl_home_empty"><i class="fa fa-check-circle" aria-hidden="true"/><p>No accounting or compliance alerts for the selected company scope.</p></div>
                     </t>
                 </article>
                 <div t-if="!visibleWidgets.length" class="o_usl_home_all_hidden">

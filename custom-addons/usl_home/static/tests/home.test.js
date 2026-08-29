@@ -19,6 +19,13 @@ const configuration = {
     },
     available_widgets: ["activities", "my_tasks", "favorites", "ai_pipelines", "accounting"],
     active_company: { id: 1, name: "Unstatic Labs" },
+    company_scope: {
+        mode: "single",
+        combined: false,
+        active_company: { id: 1, name: "Unstatic Labs" },
+        companies: [{ id: 1, name: "Unstatic Labs" }],
+        label: "Unstatic Labs",
+    },
     favorites: [
         {
             id: 9,
@@ -77,8 +84,15 @@ beforeEach(() => {
     }));
     onRpc("usl.home.service", "get_ai_attention", () => ({ items: [] }));
     onRpc("usl.home.service", "get_accounting_alerts", () => ({
+        scope: configuration.company_scope,
         company: { id: 1, name: "Unstatic Labs" },
-        alerts: [{ key: "bank", label: "Bank items to review", count: 2, status: "review" }],
+        alerts: [{
+            key: "bank",
+            label: "Bank items to review",
+            count: 2,
+            status: "review",
+            companies: [{ id: 1, name: "Unstatic Labs", count: 2 }],
+        }],
     }));
     onRpc("usl.home.service", "save_layout", ({ args }) => args[0]);
 });
@@ -96,6 +110,48 @@ test("renders the complete native Home hierarchy from independent providers", as
     expect(".o_usl_home_favorite_icon .fa-check-square-o").toHaveCount(1);
     expect(".o_usl_home_widget[data-widget='ai_pipelines']").toHaveText(/No AI pipeline work needs you/);
     expect(".o_usl_home_widget[data-widget='accounting']").toHaveText(/Bank items to review/);
+});
+
+test("multi-company mode labels combined widgets and accounting contributions", async () => {
+    const companyScope = {
+        mode: "multi",
+        combined: true,
+        active_company: { id: 1, name: "Unstatic Labs" },
+        companies: [
+            { id: 1, name: "Unstatic Labs" },
+            { id: 2, name: "USL MEDIA" },
+        ],
+        label: "Combined across 2 selected companies",
+    };
+    onRpc("usl.home.service", "get_configuration", () => ({
+        ...configuration,
+        company_scope: companyScope,
+    }));
+    onRpc("usl.home.service", "get_accounting_alerts", () => ({
+        scope: companyScope,
+        company: false,
+        alerts: [{
+            key: "bank",
+            label: "Bank items to review",
+            count: 5,
+            status: "review",
+            companies: [
+                { id: 1, name: "Unstatic Labs", count: 2 },
+                { id: 2, name: "USL MEDIA", count: 3 },
+            ],
+        }],
+    }));
+
+    await mountWithCleanup(UslHome);
+    await animationFrame();
+
+    expect(".o_usl_home_scope").toHaveText(/Combined across 2 selected companies/);
+    expect(".o_usl_home_widget[data-widget='my_tasks'] header").toHaveText(
+        /Combined across 2 selected companies/
+    );
+    expect(".o_usl_home_widget[data-widget='accounting']").toHaveText(
+        /Unstatic Labs: 2 · USL MEDIA: 3/
+    );
 });
 
 test("every task metric opens its exact filtered action", async () => {

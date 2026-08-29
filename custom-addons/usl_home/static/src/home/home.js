@@ -68,6 +68,7 @@ export class UslHome extends Component {
             favorites: [],
             availableDestinations: [],
             activeCompany: null,
+            companyScope: null,
             widgets: {},
         });
 
@@ -117,6 +118,34 @@ export class UslHome extends Component {
         return WIDGET_ICONS[key] || "fa-circle-o";
     }
 
+    widgetScopeLabel(key) {
+        const scope = this.state.companyScope;
+        if (!scope?.combined) {
+            return {
+                activities: _t("What needs you now"),
+                my_tasks: _t("Your workload by real project state"),
+                favorites: _t("Resume the exact place you use"),
+                ai_pipelines: _t("Human review, blockers, and failures"),
+            }[key];
+        }
+        if (key === "favorites") {
+            return _t("Personal destinations; company-specific links are labeled");
+        }
+        return _t("Combined across %s selected companies", scope.companies.length);
+    }
+
+    companyScopeNames() {
+        return (this.state.companyScope?.companies || [])
+            .map((company) => company.name)
+            .join(" · ");
+    }
+
+    accountingBreakdown(alert) {
+        return (alert.companies || [])
+            .map((company) => `${company.name}: ${company.count}`)
+            .join(" · ");
+    }
+
     favoriteIcon(key) {
         return FAVORITE_ICONS[key] || FAVORITE_ICONS.destination;
     }
@@ -139,6 +168,13 @@ export class UslHome extends Component {
             this.state.favorites = configuration.favorites;
             this.state.availableDestinations = configuration.available_destinations;
             this.state.activeCompany = configuration.active_company;
+            this.state.companyScope = configuration.company_scope || {
+                mode: "single",
+                combined: false,
+                active_company: configuration.active_company,
+                companies: [configuration.active_company],
+                label: configuration.active_company?.name,
+            };
             for (const key of configuration.available_widgets) {
                 if (!this.state.widgets[key]) {
                     this.state.widgets[key] = { loading: true, error: false, data: null };

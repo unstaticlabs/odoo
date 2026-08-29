@@ -273,7 +273,7 @@ class TestUslHome(TransactionCase):
             )["available"],
         )
 
-    def test_accounting_widget_uses_only_the_active_company_and_hides_from_restricted_user(self):
+    def test_accounting_widget_aggregates_selected_companies_and_preserves_scope(self):
         if "rebuild.account.overview" not in self.env.registry:
             self.skipTest("Accounting overview is not installed in the minimal dependency graph")
         other_company = self.env["res.company"].create({"name": "Home accounting company"})
@@ -285,12 +285,36 @@ class TestUslHome(TransactionCase):
             company_ids=[Command.set((self.env.company | other_company).ids)],
         )
         service = self.env["usl.home.service"].with_user(accounting_user)
-        first = service.with_company(self.env.company).get_accounting_alerts()
-        second = service.with_company(other_company).get_accounting_alerts()
-        self.assertEqual(first["company"]["id"], self.env.company.id)
-        self.assertEqual(second["company"]["id"], other_company.id)
-        self.assertNotEqual(first["company"]["id"], second["company"]["id"])
+        single = service.with_context(
+            allowed_company_ids=[self.env.company.id],
+        ).get_accounting_alerts()
+        combined_service = service.with_context(
+            allowed_company_ids=[self.env.company.id, other_company.id],
+        )
+        combined = combined_service.get_accounting_alerts()
+        self.assertEqual(single["company"]["id"], self.env.company.id)
+        self.assertEqual(single["scope"]["mode"], "single")
+        self.assertFalse(combined["company"])
+        self.assertEqual(combined["scope"]["mode"], "multi")
+        self.assertEqual(
+            {company["id"] for company in combined["scope"]["companies"]},
+            {self.env.company.id, other_company.id},
+        )
 
+        declaration_action = combined_service.get_accounting_alert_action(
+            "declarations",
+        )
+        company_domain = next(
+            condition
+            for condition in declaration_action["domain"]
+            if condition[:2] == ("company_id", "in")
+        )
+        self.assertEqual(
+            set(company_domain[2]),
+            {self.env.company.id, other_company.id},
+        )
+
+    def test_accounting_widget_hides_from_restricted_user(self):
         restricted_service = self.env["usl.home.service"].with_user(self.other_user)
         self.assertNotIn("accounting", restricted_service._available_widgets())
         with self.assertRaises(AccessError):

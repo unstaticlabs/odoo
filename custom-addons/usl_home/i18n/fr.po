@@ -657,3 +657,23 @@ msgstr "« %s » a été ajouté à l’accueil."
 
 #~ msgid "Review"
 #~ msgstr "Vérifier"
+
+#. module: usl_home
+#. odoo-python
+#. odoo-javascript
+#: code:addons/usl_home/models/home_service.py:0
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Combined across %s selected companies"
+msgstr "Vue combinée de %s sociétés sélectionnées"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.js:0
+msgid "Personal destinations; company-specific links are labeled"
+msgstr "Destinations personnelles ; les liens propres à une société sont identifiés"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/home.xml:0
+msgid "No accounting or compliance alerts for the selected company scope."
+msgstr "Aucune alerte comptable ou de conformité pour les sociétés sélectionnées."

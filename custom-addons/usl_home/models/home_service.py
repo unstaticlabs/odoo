@@ -60,13 +60,35 @@ class UslHomeService(models.AbstractModel):
         return [project.id for (project,) in grouped if project]
 
     @api.model
-    def _accounting_overview(self):
+    def _accounting_overviews(self):
         if not self._model_is_readable("rebuild.account.overview"):
             return self.env["rebuild.account.overview"] if "rebuild.account.overview" in self.env.registry else False
         return self.env["rebuild.account.overview"].search(
-            [("company_id", "=", self.env.company.id)],
-            limit=1,
+            [("company_id", "in", self.env.companies.ids)],
+            order="company_id",
         )
+
+    @api.model
+    def _company_scope(self):
+        companies = self.env.companies
+        multi_company = len(companies) > 1
+        return {
+            "mode": "multi" if multi_company else "single",
+            "combined": multi_company,
+            "active_company": {
+                "id": self.env.company.id,
+                "name": self.env.company.display_name,
+            },
+            "companies": [
+                {"id": company.id, "name": company.display_name}
+                for company in companies
+            ],
+            "label": (
+                self.env._("Combined across %s selected companies", len(companies))
+                if multi_company
+                else self.env.company.display_name
+            ),
+        }
 
     @api.model
     def _available_widgets(self):
@@ -76,7 +98,7 @@ class UslHomeService(models.AbstractModel):
         available.append("favorites")
         if self._ai_workspace_ids():
             available.append("ai_pipelines")
-        if self._accounting_overview():
+        if self._accounting_overviews():
             available.append("accounting")
         return [key for key in WIDGET_KEYS if key in available]
 
@@ -88,7 +110,7 @@ class UslHomeService(models.AbstractModel):
         providers = []
         if self._model_is_readable("project.task"):
             providers.append(("my_tasks", self.env._("My Tasks")))
-        if self._accounting_overview():
+        if self._accounting_overviews():
             providers.append(("accounting_hygiene", self.env._("Accounting Hygiene")))
         if self._ai_workspace_ids():
             providers.append(("ai_pipelines", self.env._("AI Pipelines")))
@@ -113,13 +135,12 @@ class UslHomeService(models.AbstractModel):
         if layout != settings.usl_home_layout:
             settings.usl_home_layout = layout
         favorites = self.env["usl.home.favorite"].search([("user_id", "=", self.env.uid)])
+        company_scope = self._company_scope()
         return {
             "layout": layout,
             "available_widgets": available,
-            "active_company": {
-                "id": self.env.company.id,
-                "name": self.env.company.display_name,
-            },
+            "active_company": company_scope["active_company"],
+            "company_scope": company_scope,
             "favorites": [self._favorite_summary(favorite) for favorite in favorites],
             "available_destinations": self._available_provider_choices(favorites),
         }
@@ -138,7 +159,7 @@ class UslHomeService(models.AbstractModel):
         choices = []
         if "my_tasks" not in used and self._model_is_readable("project.task"):
             choices.append({"key": "my_tasks", "name": self.env._("My Tasks")})
-        if "accounting_hygiene" not in used and self._accounting_overview():
+        if "accounting_hygiene" not in used and self._accounting_overviews():
             choices.append({"key": "accounting_hygiene", "name": self.env._("Accounting Hygiene")})
         if "ai_pipelines" not in used and self._ai_workspace_ids():
             choices.append({"key": "ai_pipelines", "name": self.env._("AI Pipelines")})
@@ -211,7 +232,7 @@ class UslHomeService(models.AbstractModel):
             if favorite.provider_key == "my_tasks":
                 return self._model_is_readable("project.task")
             if favorite.provider_key == "accounting_hygiene":
-                return bool(self._accounting_overview())
+                return bool(self._accounting_overviews())
             if favorite.provider_key == "ai_pipelines":
                 return bool(self._ai_workspace_ids())
             return False
@@ -285,10 +306,10 @@ class UslHomeService(models.AbstractModel):
         if provider_key == "my_tasks":
             return self.env["ir.actions.actions"]._for_xml_id("project.action_view_my_task")
         if provider_key == "accounting_hygiene":
-            overview = self._accounting_overview()
-            if not overview:
+            overviews = self._accounting_overviews()
+            if not overviews:
                 raise AccessError(self.env._("Accounting Hygiene is not available."))
-            return overview.action_open_hygiene_issues()
+            return overviews.action_open_hygiene_issues()
         if provider_key == "ai_pipelines":
             return self.get_ai_workspace_action()
         raise UserError(self.env._("This Home destination is not available."))
@@ -499,6 +520,7 @@ class UslHomeService(models.AbstractModel):
                     "id": task.id,
                     "name": task.display_name,
                     "project": task.project_id.display_name,
+                    "company": task.company_id.display_name if task.company_id else False,
                     "status": status,
                     "deadline": fields.Date.to_string(task.date_deadline) if task.date_deadline else False,
                 }
@@ -525,35 +547,78 @@ class UslHomeService(models.AbstractModel):
     @api.model
     def get_accounting_alerts(self):
         self._ensure_internal()
-        overview = self._accounting_overview()
-        if not overview:
+        overviews = self._accounting_overviews()
+        if not overviews:
             raise AccessError(self.env._("Accounting alerts are not available."))
-        declaration_count = overview.overdue_declaration_count
-        if overview.next_declaration_status == "blocked" and not declaration_count:
-            declaration_count = 1
+        values = {
+            "closing": {},
+            "declarations": {},
+            "reviews": {},
+            "bank": {},
+            "evidence": {},
+            "hygiene": {},
+        }
+        for overview in overviews:
+            declaration_count = overview.overdue_declaration_count
+            if overview.next_declaration_status == "blocked" and not declaration_count:
+                declaration_count = 1
+            company_id = overview.company_id.id
+            values["closing"][company_id] = overview.latest_closing_blocking_count
+            values["declarations"][company_id] = declaration_count
+            values["reviews"][company_id] = overview.pending_review_decision_count
+            values["bank"][company_id] = (
+                overview.unmatched_bank_transaction_count + overview.bank_review_count
+            )
+            values["evidence"][company_id] = (
+                overview.missing_vendor_attachment_count
+                + overview.missing_expense_attachment_count
+            )
+            values["hygiene"][company_id] = overview.hygiene_issue_count
         candidates = [
-            (0, "closing", self.env._("Closing blockers"), overview.latest_closing_blocking_count, "blocked"),
-            (1, "declarations", self.env._("Declarations requiring attention"), declaration_count, "deadline"),
-            (2, "reviews", self.env._("Accounting reviews pending"), overview.pending_review_decision_count, "review"),
-            (3, "bank", self.env._("Bank items to review"), overview.unmatched_bank_transaction_count + overview.bank_review_count, "review"),
-            (4, "evidence", self.env._("Supporting evidence missing"), overview.missing_vendor_attachment_count + overview.missing_expense_attachment_count, "evidence"),
-            (5, "hygiene", self.env._("Accounting hygiene issues"), overview.hygiene_issue_count, "review"),
+            (0, "closing", self.env._("Closing blockers"), "blocked"),
+            (1, "declarations", self.env._("Declarations requiring attention"), "deadline"),
+            (2, "reviews", self.env._("Accounting reviews pending"), "review"),
+            (3, "bank", self.env._("Bank items to review"), "review"),
+            (4, "evidence", self.env._("Supporting evidence missing"), "evidence"),
+            (5, "hygiene", self.env._("Accounting hygiene issues"), "review"),
         ]
         alerts = [
-            {"key": key, "label": label, "count": count, "status": status}
-            for _rank, key, label, count, status in candidates
-            if count
+            {
+                "key": key,
+                "label": label,
+                "count": sum(values[key].values()),
+                "status": status,
+                "companies": [
+                    {
+                        "id": overview.company_id.id,
+                        "name": overview.company_id.display_name,
+                        "count": values[key][overview.company_id.id],
+                    }
+                    for overview in overviews
+                    if values[key][overview.company_id.id]
+                ],
+            }
+            for _rank, key, label, status in candidates
+            if sum(values[key].values())
         ][:5]
         return {
-            "company": {"id": overview.company_id.id, "name": overview.company_id.display_name},
+            "scope": self._company_scope(),
+            "company": (
+                {
+                    "id": overviews.company_id.id,
+                    "name": overviews.company_id.display_name,
+                }
+                if len(overviews) == 1
+                else False
+            ),
             "alerts": alerts,
         }
 
     @api.model
     def get_accounting_alert_action(self, alert_key):
         self._ensure_internal()
-        overview = self._accounting_overview()
-        if not overview:
+        overviews = self._accounting_overviews()
+        if not overviews:
             raise AccessError(self.env._("Accounting alerts are not available."))
         methods = {
             "closing": "action_open_latest_closing_controls",
@@ -565,4 +630,4 @@ class UslHomeService(models.AbstractModel):
         }
         if alert_key not in methods:
             raise UserError(self.env._("This accounting alert is not available."))
-        return getattr(overview, methods[alert_key])()
+        return getattr(overviews, methods[alert_key])()

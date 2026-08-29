@@ -20,14 +20,20 @@ the user into the complete native workflow.
   `Pipeline`. It surfaces assigned open work marked `Agent Failed`, `Blocked`
   or `Needs Human`, plus changes-requested and Review-stage work. Renaming these
   operational tags intentionally changes discovery.
-- **Accounting & Compliance Alerts** reads the current active company's
-  `rebuild.account.overview` and links to existing closing, declaration,
-  review, bank, evidence and hygiene workflows. It never reports financial
-  values or aggregates companies.
+- **Accounting & Compliance Alerts** reads every selected company's
+  `rebuild.account.overview`. Counts are additive and combined by default,
+  with the non-zero per-company contributions visible on each tile. Links open
+  the matching selected-company population for closing, declaration, review,
+  bank, evidence and hygiene workflows; no financial values or legal-company
+  readiness states are consolidated.
 
 Each provider runs under the current user's ACLs and record rules. A failed
-provider does not prevent the others from loading. Company changes reload the
-available widgets and company-sensitive data.
+provider does not prevent the others from loading. The header states whether
+Home is showing one company or a combined selected-company scope. Activities,
+My Tasks and AI Pipelines combine readable records in multi-company mode;
+company-specific favorites remain labelled. Company changes reload the
+available widgets and company-sensitive data without changing the user's
+selected-company mode.
 
 ## Personalization and extension
 
