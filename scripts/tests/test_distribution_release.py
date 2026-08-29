@@ -152,6 +152,40 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
                 break
         self.assertIsNotNone(release_modules)
 
+        host_release_identity_path = ROOT / "scripts/release_identity.py"
+        host_release_tree = ast.parse(
+            host_release_identity_path.read_text(encoding="utf-8")
+        )
+        host_release_modules = None
+        for statement in host_release_tree.body:
+            if (
+                isinstance(statement, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "PRODUCT_MODULES"
+                    for target in statement.targets
+                )
+            ):
+                host_release_modules = set(ast.literal_eval(statement.value))
+                break
+        self.assertIsNotNone(host_release_modules)
+
+        database_boundary_path = ROOT / "scripts/odoo/product_database_boundary.py"
+        database_boundary_tree = ast.parse(
+            database_boundary_path.read_text(encoding="utf-8")
+        )
+        database_boundary_modules = None
+        for statement in database_boundary_tree.body:
+            if (
+                isinstance(statement, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "PRODUCT_MODULES"
+                    for target in statement.targets
+                )
+            ):
+                database_boundary_modules = set(ast.literal_eval(statement.value))
+                break
+        self.assertIsNotNone(database_boundary_modules)
+
         preprod_release = (ROOT / "scripts/preprod-release").read_text(encoding="utf-8")
         preprod_match = re.search(r'product_modules="([^"]+)"', preprod_release)
         self.assertIsNotNone(preprod_match)
@@ -160,6 +194,8 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertEqual(PRODUCT_MODULES, qa_modules)
         self.assertEqual(PRODUCT_MODULES, target_modules)
         self.assertEqual(PRODUCT_MODULES, release_modules)
+        self.assertEqual(PRODUCT_MODULES, host_release_modules)
+        self.assertEqual(PRODUCT_MODULES, database_boundary_modules)
         self.assertEqual(PRODUCT_MODULES, preprod_modules)
 
     def test_action_surface_matches_lean_product_module_scope(self) -> None:
