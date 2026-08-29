@@ -1951,8 +1951,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "bd4c5f67b161894c21c0ed451314f7bbed533b57704fad64280b2a69dfb35667",
-  "runtime_policy_sha256": "24f7790c9c17a1d7ddb36ae49edcc7e80bf8f3d23fb8bac48ed0b540caff598c",
+  "qualified_policy_digest": "42007b2e6373bc1b9f8dbe1427010411fc16792726d34738ec88155f8dff76b2",
+  "runtime_policy_sha256": "83153569feaeaaefa2972ad94c3d68d6c408ad50d0bc4538aad4534eaf6dad25",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2112,14 +2112,6 @@
       "classification": "operational"
     },
     {
-      "action_key": "server_action:gamification.ir_cron_check_challenge_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:gamification.ir_cron_consolidate_ir_actions_server",
-      "classification": "operational"
-    },
-    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "classification": "protected"
     },
@@ -2217,18 +2209,6 @@
     },
     {
       "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_ab_testing_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_queue_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.mailing_list_merge_action",
       "classification": "operational"
     },
     {
@@ -2533,10 +2513,6 @@
     },
     {
       "action_key": "server_action:stock_account.stock_move_action_adjust_valuation",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:survey.action_survey_print",
       "classification": "operational"
     },
     {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import copy
 import importlib.util
+import json
 import re
 import unittest
 from pathlib import Path
@@ -160,6 +161,40 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertEqual(PRODUCT_MODULES, target_modules)
         self.assertEqual(PRODUCT_MODULES, release_modules)
         self.assertEqual(PRODUCT_MODULES, preprod_modules)
+
+    def test_action_surface_matches_lean_product_module_scope(self) -> None:
+        def assigned_set(path: Path, name: str) -> set[str]:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for statement in tree.body:
+                if (
+                    isinstance(statement, ast.Assign)
+                    and any(
+                        isinstance(target, ast.Name) and target.id == name
+                        for target in statement.targets
+                    )
+                ):
+                    return set(ast.literal_eval(statement.value))
+            self.fail(f"{path} does not assign {name}")
+
+        excluded = assigned_set(
+            ROOT / "scripts/odoo/enforce_product_module_scope.py",
+            "EXCLUDED_AUTO_INSTALL_MODULES",
+        )
+        boundary_excluded = assigned_set(
+            ROOT / "scripts/odoo/product_database_boundary.py",
+            "EXCLUDED_AUTO_INSTALL_MODULES",
+        )
+        surface = json.loads(
+            (
+                ROOT
+                / "custom-addons/usl_access_control/policy/action_surface.json"
+            ).read_text(encoding="utf-8")
+        )
+        surface_modules = {module["name"] for module in surface["modules"]}
+
+        self.assertEqual(excluded, boundary_excluded)
+        self.assertTrue(excluded)
+        self.assertFalse(excluded & surface_modules)
 
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)
