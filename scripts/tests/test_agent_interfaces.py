@@ -370,9 +370,9 @@ class AgentInterfaceTests(unittest.TestCase):
                     exposure_dir = root / provider / "skills"
                     exposure_dir.mkdir(parents=True, exist_ok=True)
                     (exposure_dir / name).symlink_to(Path("../../agent-skills") / name)
-            drift = root / ".agents" / "skills" / "usl-feature-developer"
+            drift = root / ".agents" / "skills" / "odoo-accounting-integrity"
             drift.unlink()
-            drift.symlink_to(Path("../../agent-skills") / "usl-lead-developer")
+            drift.symlink_to(Path("../../agent-skills") / "odoo-access-control-safety")
             errors = self.verify.check_skills(root)
         self.assertTrue(any("does not resolve" in error for error in errors))
 
