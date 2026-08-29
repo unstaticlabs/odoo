@@ -1,7 +1,12 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
 import { animationFrame } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
-import { contains, mountWithCleanup, onRpc } from "@web/../tests/web_test_helpers";
+import {
+    contains,
+    mockService,
+    mountWithCleanup,
+    onRpc,
+} from "@web/../tests/web_test_helpers";
 import { UslHome } from "../src/home/home";
 
 defineMailModels();
@@ -91,6 +96,46 @@ test("renders the complete native Home hierarchy from independent providers", as
     expect(".o_usl_home_favorite_icon .fa-check-square-o").toHaveCount(1);
     expect(".o_usl_home_widget[data-widget='ai_pipelines']").toHaveText(/No AI pipeline work needs you/);
     expect(".o_usl_home_widget[data-widget='accounting']").toHaveText(/Bank items to review/);
+});
+
+test("every task metric opens its exact filtered action", async () => {
+    const requests = [];
+    const actions = [];
+    onRpc("usl.home.service", "get_my_tasks_action", ({ args }) => {
+        requests.push(args);
+        return {
+            type: "ir.actions.act_window",
+            name: `My Tasks — ${args[1]}`,
+            res_model: "project.task",
+            domain: [[args[0], "=", args[1]]],
+        };
+    });
+    mockService("action", {
+        doAction(action) {
+            actions.push(action);
+        },
+    });
+
+    await mountWithCleanup(UslHome);
+    await animationFrame();
+
+    expect(".o_usl_home_task_signals button").toHaveCount(4);
+    expect(".o_usl_home_stage_list button").toHaveCount(1);
+    expect(".o_usl_home_task_signals button[data-signal='overdue']").toHaveAttribute(
+        "aria-label",
+        "Open Overdue tasks (1)"
+    );
+
+    await contains(".o_usl_home_task_signals button[data-signal='overdue']").click();
+    await contains(".o_usl_home_stage_list button").click();
+
+    expect(requests).toEqual([
+        ["signal", "overdue"],
+        ["stage", 1],
+    ]);
+    expect(actions).toHaveLength(2);
+    expect(actions[0].domain).toEqual([["signal", "=", "overdue"]]);
+    expect(actions[1].domain).toEqual([["stage", "=", 1]]);
 });
 
 test("widget visibility is saved without affecting other cards", async () => {

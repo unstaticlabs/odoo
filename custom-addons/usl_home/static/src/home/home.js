@@ -265,6 +265,19 @@ export class UslHome extends Component {
         return this.action.doAction("project.action_view_my_task");
     }
 
+    taskMetricAriaLabel(label, count) {
+        return _t("Open %s tasks (%s)", label, count);
+    }
+
+    async openMyTasksFilter(filterType, filterValue) {
+        const action = await this.orm.call(
+            "usl.home.service",
+            "get_my_tasks_action",
+            [filterType, filterValue]
+        );
+        return this.action.doAction(action);
+    }
+
     async openAiPipelines() {
         const action = await this.orm.call("usl.home.service", "get_ai_workspace_action", []);
         return this.action.doAction(action);
