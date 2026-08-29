@@ -36,10 +36,19 @@ PREVIOUS = "9" * 40
 NOW = datetime(2026, 8, 29, 2, 0, tzinfo=UTC)  # 04:00 Europe/Paris
 
 
-def release(commit: str = COMMIT) -> dict:
+def release(commit: str = COMMIT, *, prior: dict | None = None) -> dict:
     versions = product_module_versions()
     artifacts = {}
     for index, role in enumerate(ARTIFACT_ROLES, 1):
+        if prior is not None and role != "odoo_distribution":
+            artifacts[role] = copy.deepcopy(prior["artifacts"][role])
+            artifacts[role]["origin"] = {
+                "kind": "reused_from_release",
+                "release_commit_sha": commit,
+                "prior_release_contract_sha256": prior["contract_sha256"],
+                "prior_release_source_commit_sha": prior["source"]["commit_sha"],
+            }
+            continue
         digest = f"sha256:{index:064x}"
         name = distribution_release.ARTIFACT_NAMES[role]
         artifacts[role] = {
@@ -48,14 +57,20 @@ def release(commit: str = COMMIT) -> dict:
             "digest": digest,
             "digest_reference": f"{name}@{digest}",
             "source_commit_sha": commit,
-            "origin": {"kind": "built_for_release", "release_commit_sha": commit},
             "attestations": {
-                "oci_sbom": "generated",
-                "buildkit_provenance": "generated",
-                "github_provenance": "generated",
+                key: {"status": "generated", "subject_digest": digest}
+                for key in (
+                    "oci_sbom", "buildkit_provenance", "github_provenance",
+                )
             },
         }
-    return {
+        artifacts[role]["identity_sha256"] = distribution_release._identity(
+            artifacts[role],
+        )
+        artifacts[role]["origin"] = {
+            "kind": "built_for_release", "release_commit_sha": commit,
+        }
+    return with_checksum({
         "schema": "usl-distribution-release/v3",
         "source": {"repository": "unstaticlabs/odoo", "commit_sha": commit},
         "artifacts": artifacts,
@@ -77,17 +92,37 @@ def release(commit: str = COMMIT) -> dict:
             "workflow_run_attempt": 1,
             "workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/1",
         },
+        "artifact_plan": {
+            "schema": "usl-artifact-build-plan/v1",
+            "from_commit_sha": prior["source"]["commit_sha"] if prior else None,
+            "to_commit_sha": commit,
+            "mode": "selective" if prior else "build_all",
+            "reason": "changed_runtime_inputs" if prior else "prior_release_unavailable",
+            "changed_paths": ["custom-addons/usl_base/models/x.py"] if prior else [],
+            "build_roles": ["odoo_distribution"] if prior else sorted(ARTIFACT_ROLES),
+            "reuse_roles": (
+                sorted(set(ARTIFACT_ROLES) - {"odoo_distribution"})
+                if prior else []
+            ),
+        },
         "upgrade_plan": {
             "schema": "usl-upgrade-plan/v1",
-            "from_commit_sha": None,
+            "from_commit_sha": prior["source"]["commit_sha"] if prior else None,
             "to_commit_sha": commit,
             "mode": "full_fallback",
-            "reason": "prior_release_unavailable",
+            "reason": "foundation_or_ownership_changed" if prior else "prior_release_unavailable",
             "changed_modules": [],
             "upgrade_modules": sorted(PRODUCT_MODULES),
             "foundation_paths": [],
         },
-    }
+        "prior_release": (
+            {
+                "source_commit_sha": prior["source"]["commit_sha"],
+                "contract_sha256": prior["contract_sha256"],
+            }
+            if prior else None
+        ),
+    })
 
 
 def cohort(deployed: dict | None = None, *, cohort_id: str = "cohort-20260829") -> dict:
@@ -99,7 +134,7 @@ def cohort(deployed: dict | None = None, *, cohort_id: str = "cohort-20260829") 
         "created_at": created,
         "release": {
             "source_commit_sha": deployed["source"]["commit_sha"],
-            "release_contract_sha256": canonical_sha256(deployed),
+            "release_contract_sha256": deployed["contract_sha256"],
             "artifacts": {
                 role: deployed["artifacts"][role]["digest_reference"]
                 for role in ARTIFACT_ROLES
@@ -176,6 +211,8 @@ class UpgradePlannerTest(unittest.TestCase):
     def _git(self, changed: str):
         def fake(*args: str) -> str:
             if args[0] == "cat-file":
+                return ""
+            if args[0] == "merge-base":
                 return ""
             if args[0] == "diff":
                 return changed
@@ -319,6 +356,28 @@ class DeploymentControllerTest(unittest.TestCase):
         self.assertFalse(value["mutation_started"])
         self.assertFalse(value["production_reopened"])
         self.assertEqual(value["state"], "recorded")
+
+    def test_reused_candidate_requires_and_validates_complete_prior_sidecar(self) -> None:
+        candidate = release(COMMIT, prior=self.deployed)
+        self._write("candidate.json", candidate)
+        with self.assertRaisesRegex(
+            distribution_release.ReleaseArtifactError, "complete validated prior",
+        ):
+            self.initial()
+        prior_path = self._write("candidate-prior.json", self.deployed)
+        value = deployment_run.initialize(
+            run_id="run-20260829",
+            mode="release",
+            deployed_release_path=self.root / "deployed.json",
+            candidate_release_path=self.root / "candidate.json",
+            candidate_prior_release_path=prior_path,
+            cohort_path=self.root / "cohort.json",
+            now=NOW - timedelta(minutes=15),
+        )
+        self.assertEqual(
+            value["source"]["candidate_release_sha256"],
+            candidate["contract_sha256"],
+        )
 
     def test_failure_injection_at_every_stage(self) -> None:
         for stage in STAGES:

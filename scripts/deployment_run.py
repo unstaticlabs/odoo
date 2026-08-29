@@ -143,10 +143,13 @@ def initialize(
     candidate_release_path: Path | None,
     cohort_path: Path,
     now: datetime,
+    candidate_prior_release_path: Path | None = None,
 ) -> dict[str, Any]:
     if mode not in {"release", "backup_only", "auto"}:
         raise DeploymentRunError("mode must be release, backup_only, or auto")
-    deployed = distribution_release.validate(load_json(deployed_release_path))
+    deployed = distribution_release.validate(
+        load_json(deployed_release_path), historical=True,
+    )
     candidate = deployed
     if mode == "auto":
         mode = (
@@ -157,10 +160,17 @@ def initialize(
     if mode == "release":
         if candidate_release_path is None:
             raise DeploymentRunError("release mode requires --candidate-release")
-        candidate = distribution_release.validate(load_json(candidate_release_path))
+        candidate_prior = (
+            load_json(candidate_prior_release_path)
+            if candidate_prior_release_path and candidate_prior_release_path.is_file()
+            else None
+        )
+        candidate = distribution_release.validate(
+            load_json(candidate_release_path), prior_release=candidate_prior,
+        )
     cohort = production_cohort.validate(load_json(cohort_path))
-    deployed_sha = canonical_sha256(deployed)
-    candidate_sha = canonical_sha256(candidate)
+    deployed_sha = deployed["contract_sha256"]
+    candidate_sha = candidate["contract_sha256"]
     if cohort["release"]["release_contract_sha256"] != deployed_sha:
         raise DeploymentRunError(
             "the recovery cohort does not identify the deployed release",
@@ -951,6 +961,7 @@ def main() -> int:
     )
     init_cmd.add_argument("--deployed-release", required=True)
     init_cmd.add_argument("--candidate-release")
+    init_cmd.add_argument("--candidate-prior-release")
     init_cmd.add_argument("--cohort", required=True)
     init_cmd.add_argument("--state", required=True)
     init_cmd.add_argument("--now")
@@ -983,6 +994,11 @@ def main() -> int:
                 else None,
                 cohort_path=Path(args.cohort),
                 now=parse_now(args.now),
+                candidate_prior_release_path=(
+                    Path(args.candidate_prior_release)
+                    if args.candidate_prior_release
+                    else None
+                ),
             )
             created = initialize_state(Path(args.state), value)
             print(f"{args.state} ({'created' if created else 'unchanged'})")

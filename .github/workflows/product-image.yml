@@ -15,8 +15,70 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  plan:
+    name: Validate deployed release and plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+    env:
+      USL_DEPLOYED_RELEASE_RUN_ID: ${{ vars.USL_DEPLOYED_RELEASE_RUN_ID }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout immutable source and full release ancestry
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Resolve only the explicitly selected deployed release
+        run: |
+          mkdir -p planning
+          run_id="${USL_DEPLOYED_RELEASE_RUN_ID:-}"
+          if [ -n "$run_id" ]; then
+            if printf '%s\n' "$run_id" | grep -Eq '^[1-9][0-9]*$' && \
+              python3 scripts/prior_release_input.py \
+                --repository "$GITHUB_REPOSITORY" \
+                --run-id "$run_id" \
+                --to-commit "$GITHUB_SHA" \
+                --output planning/prior-release.json; then
+              echo "Validated deployed release input from Actions run $run_id"
+            else
+              rm -f planning/prior-release.json
+              echo "::warning::Configured deployed release is unavailable or invalid; building all artifacts and planning a full upgrade"
+            fi
+          else
+            echo "::notice::No deployed release input is configured; building all artifacts and planning a full upgrade"
+          fi
+
+      - name: Derive artifact and Odoo upgrade plans
+        run: |
+          from_args=()
+          if [ -f planning/prior-release.json ]; then
+            from_sha="$(python3 -c 'import json; print(json.load(open("planning/prior-release.json"))["source"]["commit_sha"])')"
+            from_args=(--from-commit "$from_sha")
+          fi
+          python3 scripts/artifact_build_plan.py \
+            "${from_args[@]}" \
+            --to-commit "$GITHUB_SHA" \
+            --output planning/artifact-build-plan.json
+          python3 scripts/upgrade_plan.py \
+            "${from_args[@]}" \
+            --to-commit "$GITHUB_SHA" \
+            --output planning/upgrade-plan.json
+
+      - name: Upload immutable planning inputs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-planning-${{ github.sha }}
+          path: planning
+          if-no-files-found: error
+          retention-days: 7
+
   publish:
     name: Publish ${{ matrix.role }}
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -67,12 +129,40 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Download validated planning inputs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.0.0
+        with:
+          name: release-planning-${{ github.sha }}
+          path: planning
+
+      - name: Resolve role decision without registry inference
+        id: role
+        env:
+          ROLE: ${{ matrix.role }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          plan = json.loads(Path("planning/artifact-build-plan.json").read_text())
+          role = os.environ["ROLE"]
+          build = role in plan["build_roles"]
+          if not build:
+              prior = json.loads(Path("planning/prior-release.json").read_text())
+              digest = prior["artifacts"][role]["digest"]
+          else:
+              digest = ""
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a") as stream:
+              stream.write(f"build={'true' if build else 'false'}\n")
+              stream.write(f"prior_digest={digest}\n")
+          PY
+
       - name: Sync pinned OCA add-ons
-        if: matrix.role == 'odoo_distribution'
+        if: steps.role.outputs.build == 'true' && matrix.role == 'odoo_distribution'
         run: scripts/sync-oca-addons
 
       - name: Resolve Distribution identity inputs
         id: identity
+        if: steps.role.outputs.build == 'true'
         run: |
           if [ "${{ matrix.role }}" = odoo_distribution ]; then
             oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
@@ -85,52 +175,20 @@ jobs:
           echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
+        if: steps.role.outputs.build == 'true'
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       - name: Log in to GHCR with the workflow token
+        if: steps.role.outputs.build == 'true'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Reuse only an identical artifact for this exact release SHA
-        id: existing
-        env:
-          IMAGE: ${{ matrix.image }}
-          RUNTIME: ${{ matrix.runtime }}
-          EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
-          EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
-        run: |
-          reference="$IMAGE:$IMAGE_TAG"
-          set +e
-          inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            if printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
-              echo "exists=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            printf 'Unable to inspect %s:\n%s\n' "$reference" "$inspection" >&2
-            exit "$status"
-          fi
-          docker pull "$reference"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = "$RUNTIME"
-          if [ "${{ matrix.role }}" = odoo_distribution ]; then
-            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          fi
-          digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
-          digest="${digest_reference#*@}"
-          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Build and push immutable artifact
+      - name: Build and push changed immutable artifact
         id: build
-        if: steps.existing.outputs.exists != 'true'
+        if: steps.role.outputs.build == 'true'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: ${{ matrix.context }}
@@ -151,19 +209,17 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.role }}
           cache-to: type=gha,mode=max,scope=${{ matrix.role }}
 
-      - name: Resolve and verify immutable digest
-        id: release
+      - name: Verify newly built immutable digest
+        if: steps.role.outputs.build == 'true'
         env:
           IMAGE: ${{ matrix.image }}
           RUNTIME: ${{ matrix.runtime }}
           EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
           EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
-          EXISTING_DIGEST: ${{ steps.existing.outputs.digest }}
-          BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          digest="${EXISTING_DIGEST:-$BUILT_DIGEST}"
-          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
-          reference="$IMAGE@$digest"
+          printf '%s\n' "$DIGEST" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          reference="$IMAGE@$DIGEST"
           docker pull "$reference"
           test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
           test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = "$RUNTIME"
@@ -171,22 +227,25 @@ jobs:
             test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
             test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
           fi
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
 
       - name: Generate GitHub build provenance
+        if: steps.role.outputs.build == 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ matrix.image }}
-          subject-digest: ${{ steps.release.outputs.digest }}
+          subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
-      - name: Record artifact digest
+      - name: Record exact artifact digest
         env:
           ROLE: ${{ matrix.role }}
-          DIGEST: ${{ steps.release.outputs.digest }}
+          BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          PRIOR_DIGEST: ${{ steps.role.outputs.prior_digest }}
         run: |
           mkdir -p digests
-          printf '{"role":"%s","digest":"%s"}\n' "$ROLE" "$DIGEST" > "digests/$ROLE.json"
+          digest="${BUILT_DIGEST:-$PRIOR_DIGEST}"
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          printf '{"role":"%s","digest":"%s"}\n' "$ROLE" "$digest" > "digests/$ROLE.json"
 
       - name: Upload artifact digest
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -198,7 +257,7 @@ jobs:
 
   metadata:
     name: Publish release v3 metadata
-    needs: publish
+    needs: [plan, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -213,6 +272,12 @@ jobs:
       - name: Sync pinned OCA add-ons
         run: scripts/sync-oca-addons
 
+      - name: Download validated planning inputs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.0.0
+        with:
+          name: release-planning-${{ github.sha }}
+          path: planning
+
       - name: Download exact artifact digests
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.0.0
         with:
@@ -220,20 +285,21 @@ jobs:
           path: digests
           merge-multiple: true
 
-      - name: Build conservative upgrade plan
-        run: python3 scripts/upgrade_plan.py --to-commit "$GITHUB_SHA" --output upgrade-plan.json
-
       - name: Write and validate release contract
         id: metadata
         run: |
           digest() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "digests/$1.json"; }
+          prior_args=()
+          if [ -f planning/prior-release.json ]; then
+            prior_args=(--prior-release planning/prior-release.json)
+          fi
           oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
           action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
           renderer_commit="$(git rev-parse HEAD:services/usl-document-renderer)"
+          mkdir -p release-metadata
           python3 scripts/distribution_release.py create \
             --repository "$GITHUB_REPOSITORY" \
             --commit "$GITHUB_SHA" \
-            --tag "sha-$GITHUB_SHA" \
             --odoo-distribution-digest "$(digest odoo_distribution)" \
             --operations-tool-digest "$(digest operations_tool)" \
             --paperless-overlay-digest "$(digest paperless_overlay)" \
@@ -243,18 +309,26 @@ jobs:
             --action-risk-policy-sha256 "$action_risk_digest" \
             --renderer-repository unstaticlabs/usl-document-renderer \
             --renderer-commit "$renderer_commit" \
-            --upgrade-plan upgrade-plan.json \
+            --artifact-plan planning/artifact-build-plan.json \
+            --upgrade-plan planning/upgrade-plan.json \
+            "${prior_args[@]}" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --output distribution-release.json
-          python3 scripts/distribution_release.py validate distribution-release.json --commit "$GITHUB_SHA"
+            --output release-metadata/distribution-release.json
+          python3 scripts/distribution_release.py validate \
+            release-metadata/distribution-release.json \
+            --commit "$GITHUB_SHA" \
+            "${prior_args[@]}"
+          if [ -f planning/prior-release.json ]; then
+            cp planning/prior-release.json release-metadata/candidate-prior-release.json
+          fi
           echo "artifact_name=distribution-release-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Upload lightweight release metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.metadata.outputs.artifact_name }}
-          path: distribution-release.json
+          path: release-metadata
           if-no-files-found: error
           retention-days: 90

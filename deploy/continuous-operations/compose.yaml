@@ -36,6 +36,8 @@ services:
       - /contracts/deployed-release.json
       - --candidate-release
       - /contracts/candidate-release.json
+      - --candidate-prior-release
+      - /contracts/candidate-prior-release.json
       - --cohort
       - /contracts/recovery-cohort.json
       - --state

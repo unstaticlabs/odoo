@@ -18,14 +18,18 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from continuous_operations_contracts import (  # noqa: E402
+    ARTIFACT_BUILD_PLAN_SCHEMA,
     ARTIFACT_ROLES,
     DIGEST,
     RELEASE_SCHEMA,
     UPGRADE_SCHEMA,
     ContractError,
+    canonical_sha256,
     exact_keys,
     validate_commit,
     validate_sha256,
+    verify_checksum,
+    with_checksum,
 )
 from release_identity import (  # noqa: E402
     PRODUCT_MODULES,
@@ -53,7 +57,31 @@ def _release_error(error: ContractError) -> ReleaseArtifactError:
     return ReleaseArtifactError(str(error))
 
 
-def _validate_image(value: object, *, role: str, commit: str) -> dict[str, Any]:
+def _identity(image: dict[str, Any]) -> str:
+    return canonical_sha256(
+        {
+            key: image[key]
+            for key in (
+                "name",
+                "tag",
+                "digest",
+                "digest_reference",
+                "source_commit_sha",
+                "attestations",
+            )
+        },
+    )
+
+
+def _validate_image(
+    value: object,
+    *,
+    role: str,
+    commit: str,
+    prior_release: dict[str, Any] | None,
+    prior_identity: dict[str, Any] | None,
+    historical: bool,
+) -> dict[str, Any]:
     try:
         image = exact_keys(
             value,
@@ -63,6 +91,7 @@ def _validate_image(value: object, *, role: str, commit: str) -> dict[str, Any]:
                 "digest",
                 "digest_reference",
                 "source_commit_sha",
+                "identity_sha256",
                 "origin",
                 "attestations",
             },
@@ -73,7 +102,13 @@ def _validate_image(value: object, *, role: str, commit: str) -> dict[str, Any]:
     expected_name = ARTIFACT_NAMES[role]
     if image["name"] != expected_name or not IMAGE.fullmatch(str(image["name"])):
         raise ReleaseArtifactError(f"artifacts.{role}.name must be {expected_name!r}")
-    expected_tag = f"sha-{commit}"
+    try:
+        artifact_commit = validate_commit(
+            image["source_commit_sha"], f"artifacts.{role}.source_commit_sha",
+        )
+    except ContractError as error:
+        raise _release_error(error) from error
+    expected_tag = f"sha-{artifact_commit}"
     if image["tag"] != expected_tag:
         raise ReleaseArtifactError(f"artifacts.{role}.tag must be {expected_tag!r}")
     if not isinstance(image["digest"], str) or not DIGEST.fullmatch(image["digest"]):
@@ -85,21 +120,6 @@ def _validate_image(value: object, *, role: str, commit: str) -> dict[str, Any]:
         raise ReleaseArtifactError(
             f"artifacts.{role}.digest_reference must be {expected_reference!r}",
         )
-    if image["source_commit_sha"] != commit:
-        raise ReleaseArtifactError(
-            f"artifacts.{role}.source_commit_sha must match source",
-        )
-    try:
-        origin = exact_keys(
-            image["origin"], {"kind", "release_commit_sha"}, f"artifacts.{role}.origin",
-        )
-    except ContractError as error:
-        raise _release_error(error) from error
-    if origin != {"kind": "built_for_release", "release_commit_sha": commit}:
-        raise ReleaseArtifactError(
-            f"artifacts.{role}.origin must prove this release built the artifact; "
-            "reuse requires a separately validated prior release input",
-        )
     try:
         attestations = exact_keys(
             image["attestations"],
@@ -108,12 +128,143 @@ def _validate_image(value: object, *, role: str, commit: str) -> dict[str, Any]:
         )
     except ContractError as error:
         raise _release_error(error) from error
-    for key, status in attestations.items():
-        if status != "generated":
-            raise ReleaseArtifactError(
-                f"artifacts.{role}.attestations.{key} must be 'generated'",
+    for key, attestation in attestations.items():
+        try:
+            attestation = exact_keys(
+                attestation,
+                {"status", "subject_digest"},
+                f"artifacts.{role}.attestations.{key}",
             )
+        except ContractError as error:
+            raise _release_error(error) from error
+        if attestation != {"status": "generated", "subject_digest": image["digest"]}:
+            raise ReleaseArtifactError(
+                f"artifacts.{role}.attestations.{key} must bind the artifact digest",
+            )
+    try:
+        validate_sha256(image["identity_sha256"], f"artifacts.{role}.identity_sha256")
+    except ContractError as error:
+        raise _release_error(error) from error
+    if image["identity_sha256"] != _identity(image):
+        raise ReleaseArtifactError(f"artifacts.{role}.identity_sha256 does not match")
+
+    if not isinstance(image["origin"], dict):
+        raise ReleaseArtifactError(f"artifacts.{role}.origin must be an object")
+    kind = image["origin"].get("kind")
+    try:
+        if kind == "built_for_release":
+            origin = exact_keys(
+                image["origin"],
+                {"kind", "release_commit_sha"},
+                f"artifacts.{role}.origin",
+            )
+            if origin["release_commit_sha"] != commit or artifact_commit != commit:
+                raise ReleaseArtifactError(
+                    f"artifacts.{role} built origin must match the release source",
+                )
+        elif kind == "reused_from_release":
+            origin = exact_keys(
+                image["origin"],
+                {
+                    "kind",
+                    "release_commit_sha",
+                    "prior_release_contract_sha256",
+                    "prior_release_source_commit_sha",
+                },
+                f"artifacts.{role}.origin",
+            )
+            validate_sha256(
+                origin["prior_release_contract_sha256"],
+                f"artifacts.{role}.origin.prior_release_contract_sha256",
+            )
+            validate_commit(
+                origin["prior_release_source_commit_sha"],
+                f"artifacts.{role}.origin.prior_release_source_commit_sha",
+            )
+            if origin["release_commit_sha"] != commit:
+                raise ReleaseArtifactError(
+                    f"artifacts.{role} reuse must identify the current release",
+                )
+            if prior_identity is None or (
+                origin["prior_release_contract_sha256"]
+                != prior_identity["contract_sha256"]
+                or origin["prior_release_source_commit_sha"]
+                != prior_identity["source_commit_sha"]
+            ):
+                raise ReleaseArtifactError(
+                    f"artifacts.{role} reuse differs from the release prior identity",
+                )
+            if not historical:
+                if prior_release is None:
+                    raise ReleaseArtifactError(
+                        f"artifacts.{role} reuse requires the complete validated prior release",
+                    )
+                if origin["prior_release_contract_sha256"] != prior_release["contract_sha256"]:
+                    raise ReleaseArtifactError(
+                        f"artifacts.{role} prior release checksum differs",
+                    )
+                if origin["prior_release_source_commit_sha"] != prior_release["source"]["commit_sha"]:
+                    raise ReleaseArtifactError(
+                        f"artifacts.{role} prior release source differs",
+                    )
+                prior_artifact = prior_release["artifacts"][role]
+                if image["identity_sha256"] != prior_artifact["identity_sha256"]:
+                    raise ReleaseArtifactError(
+                        f"artifacts.{role} reuse identity differs from the prior release",
+                    )
+                for field in (
+                    "name", "tag", "digest", "digest_reference",
+                    "source_commit_sha", "attestations",
+                ):
+                    if image[field] != prior_artifact[field]:
+                        raise ReleaseArtifactError(
+                            f"artifacts.{role}.{field} differs from the prior release",
+                        )
+        else:
+            raise ReleaseArtifactError(f"artifacts.{role}.origin.kind is unsupported")
+    except ContractError as error:
+        raise _release_error(error) from error
     return image
+
+
+def _validate_artifact_plan(
+    value: object, *, commit: str, prior_commit: str | None,
+) -> dict[str, Any]:
+    try:
+        plan = exact_keys(
+            value,
+            {
+                "schema", "from_commit_sha", "to_commit_sha", "mode", "reason",
+                "changed_paths", "build_roles", "reuse_roles",
+            },
+            "artifact_plan",
+        )
+    except ContractError as error:
+        raise _release_error(error) from error
+    if plan["schema"] != ARTIFACT_BUILD_PLAN_SCHEMA:
+        raise ReleaseArtifactError("artifact_plan.schema is unsupported")
+    if plan["from_commit_sha"] != prior_commit or plan["to_commit_sha"] != commit:
+        raise ReleaseArtifactError("artifact_plan source range differs from the release")
+    if plan["mode"] not in {"build_all", "selective"}:
+        raise ReleaseArtifactError("artifact_plan.mode is invalid")
+    for key in ("changed_paths", "build_roles", "reuse_roles"):
+        if (
+            not isinstance(plan[key], list)
+            or not all(isinstance(item, str) for item in plan[key])
+            or plan[key] != sorted(set(plan[key]))
+        ):
+            raise ReleaseArtifactError(f"artifact_plan.{key} must be sorted and unique")
+    build = set(plan["build_roles"])
+    reuse = set(plan["reuse_roles"])
+    if build | reuse != set(ARTIFACT_ROLES) or build & reuse:
+        raise ReleaseArtifactError("artifact_plan must partition every artifact role")
+    if plan["mode"] == "build_all" and build != set(ARTIFACT_ROLES):
+        raise ReleaseArtifactError("build_all must include every artifact role")
+    if reuse and prior_commit is None:
+        raise ReleaseArtifactError("artifact reuse requires a prior release")
+    if not isinstance(plan["reason"], str) or not plan["reason"]:
+        raise ReleaseArtifactError("artifact_plan.reason is required")
+    return plan
 
 
 def _validate_upgrade_plan(
@@ -175,7 +326,13 @@ def _validate_upgrade_plan(
     return plan
 
 
-def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
+def validate(
+    payload: object,
+    *,
+    commit: str | None = None,
+    prior_release: dict[str, Any] | None = None,
+    historical: bool = False,
+) -> dict[str, Any]:
     try:
         root = exact_keys(
             payload,
@@ -186,7 +343,10 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
                 "product",
                 "component_sources",
                 "build",
+                "artifact_plan",
                 "upgrade_plan",
+                "prior_release",
+                "contract_sha256",
             },
             "artifact",
         )
@@ -194,6 +354,10 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         raise _release_error(error) from error
     if root["schema"] != SCHEMA:
         raise ReleaseArtifactError(f"unsupported schema: {root['schema']!r}")
+    try:
+        verify_checksum(root, "artifact")
+    except ContractError as error:
+        raise _release_error(error) from error
     try:
         source = exact_keys(root["source"], {"repository", "commit_sha"}, "source")
         source_commit = validate_commit(source["commit_sha"], "source.commit_sha")
@@ -208,12 +372,57 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
             "artifact commit does not match the requested commit",
         )
 
+    prior_identity = root["prior_release"]
+    prior_commit: str | None = None
+    if prior_identity is not None:
+        try:
+            prior_identity = exact_keys(
+                prior_identity,
+                {"source_commit_sha", "contract_sha256"},
+                "prior_release",
+            )
+            prior_commit = validate_commit(
+                prior_identity["source_commit_sha"], "prior_release.source_commit_sha",
+            )
+            validate_sha256(
+                prior_identity["contract_sha256"], "prior_release.contract_sha256",
+            )
+        except ContractError as error:
+            raise _release_error(error) from error
+    if prior_release is not None:
+        prior_release = validate(prior_release, historical=True)
+        expected_prior = {
+            "source_commit_sha": prior_release["source"]["commit_sha"],
+            "contract_sha256": prior_release["contract_sha256"],
+        }
+        if prior_identity != expected_prior:
+            raise ReleaseArtifactError("prior_release identity differs from the supplied contract")
+
+    artifact_plan = _validate_artifact_plan(
+        root["artifact_plan"], commit=source_commit, prior_commit=prior_commit,
+    )
     try:
         artifacts = exact_keys(root["artifacts"], set(ARTIFACT_ROLES), "artifacts")
     except ContractError as error:
         raise _release_error(error) from error
     for role in ARTIFACT_ROLES:
-        _validate_image(artifacts[role], role=role, commit=source_commit)
+        image = _validate_image(
+            artifacts[role],
+            role=role,
+            commit=source_commit,
+            prior_release=prior_release,
+            prior_identity=prior_identity,
+            historical=historical,
+        )
+        expected_kind = (
+            "built_for_release"
+            if role in artifact_plan["build_roles"]
+            else "reused_from_release"
+        )
+        if image["origin"]["kind"] != expected_kind:
+            raise ReleaseArtifactError(
+                f"artifacts.{role}.origin disagrees with artifact_plan",
+            )
 
     try:
         product = exact_keys(
@@ -221,8 +430,8 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         )
     except ContractError as error:
         raise _release_error(error) from error
-    if not isinstance(product["modules"], list):
-        raise ReleaseArtifactError("product.modules must be a list")
+    if not isinstance(product["modules"], list) or not product["modules"]:
+        raise ReleaseArtifactError("product.modules must be a non-empty list")
     module_names: list[str] = []
     for index, item in enumerate(product["modules"]):
         try:
@@ -236,7 +445,9 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
                 f"product.modules[{index}] values must be non-empty strings",
             )
         module_names.append(module["name"])
-    if module_names != sorted(PRODUCT_MODULES):
+    if module_names != sorted(set(module_names)):
+        raise ReleaseArtifactError("product.modules must be sorted and unique")
+    if not historical and module_names != sorted(PRODUCT_MODULES):
         raise ReleaseArtifactError(
             "product.modules must be the sorted canonical product perimeter",
         )
@@ -305,37 +516,78 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
     if build["workflow_url"] != expected_url:
         raise ReleaseArtifactError(f"build.workflow_url must be {expected_url!r}")
 
-    _validate_upgrade_plan(
+    upgrade_plan = _validate_upgrade_plan(
         root["upgrade_plan"], commit=source_commit, modules=set(module_names),
     )
+    if upgrade_plan["from_commit_sha"] != prior_commit:
+        raise ReleaseArtifactError("upgrade_plan.from_commit_sha must match the prior release")
     return root
 
 
-def _artifact(arguments: argparse.Namespace, role: str) -> dict[str, Any]:
-    digest = getattr(arguments, f"{role}_digest")
+def _artifact(
+    arguments: argparse.Namespace,
+    role: str,
+    artifact_plan: dict[str, Any],
+    prior_release: dict[str, Any] | None,
+) -> dict[str, Any]:
     name = ARTIFACT_NAMES[role]
-    return {
+    if role in artifact_plan["reuse_roles"]:
+        if prior_release is None:
+            raise ReleaseArtifactError(f"{role} reuse requires --prior-release")
+        prior = prior_release["artifacts"][role]
+        supplied_digest = getattr(arguments, f"{role}_digest")
+        if supplied_digest is not None and supplied_digest != prior["digest"]:
+            raise ReleaseArtifactError(f"{role} digest differs from the prior release")
+        image = {
+            key: prior[key]
+            for key in (
+                "name", "tag", "digest", "digest_reference", "source_commit_sha",
+                "identity_sha256", "attestations",
+            )
+        }
+        image["origin"] = {
+            "kind": "reused_from_release",
+            "release_commit_sha": arguments.commit,
+            "prior_release_contract_sha256": prior_release["contract_sha256"],
+            "prior_release_source_commit_sha": prior_release["source"]["commit_sha"],
+        }
+        return image
+    digest = getattr(arguments, f"{role}_digest")
+    if digest is None:
+        raise ReleaseArtifactError(f"{role} build requires its digest")
+    image = {
         "name": name,
-        "tag": arguments.tag,
+        "tag": f"sha-{arguments.commit}",
         "digest": digest,
         "digest_reference": f"{name}@{digest}",
         "source_commit_sha": arguments.commit,
-        "origin": {"kind": "built_for_release", "release_commit_sha": arguments.commit},
         "attestations": {
-            "oci_sbom": "generated",
-            "buildkit_provenance": "generated",
-            "github_provenance": "generated",
+            key: {"status": "generated", "subject_digest": digest}
+            for key in ("oci_sbom", "buildkit_provenance", "github_provenance")
         },
     }
+    image["identity_sha256"] = _identity(image)
+    image["origin"] = {
+        "kind": "built_for_release", "release_commit_sha": arguments.commit,
+    }
+    return image
 
 
 def create(arguments: argparse.Namespace) -> int:
     upgrade_plan = json.loads(Path(arguments.upgrade_plan).read_text(encoding="utf-8"))
+    artifact_plan = json.loads(Path(arguments.artifact_plan).read_text(encoding="utf-8"))
+    prior_release = None
+    if arguments.prior_release:
+        prior_release = json.loads(Path(arguments.prior_release).read_text(encoding="utf-8"))
+        prior_release = validate(prior_release, historical=True)
     versions = product_module_versions()
     payload = {
         "schema": SCHEMA,
         "source": {"repository": arguments.repository, "commit_sha": arguments.commit},
-        "artifacts": {role: _artifact(arguments, role) for role in ARTIFACT_ROLES},
+        "artifacts": {
+            role: _artifact(arguments, role, artifact_plan, prior_release)
+            for role in ARTIFACT_ROLES
+        },
         "product": {
             "modules": [
                 {"name": name, "version": versions[name]} for name in sorted(versions)
@@ -357,9 +609,20 @@ def create(arguments: argparse.Namespace) -> int:
             "workflow_run_attempt": arguments.workflow_run_attempt,
             "workflow_url": arguments.workflow_url,
         },
+        "artifact_plan": artifact_plan,
         "upgrade_plan": upgrade_plan,
+        "prior_release": (
+            {
+                "source_commit_sha": prior_release["source"]["commit_sha"],
+                "contract_sha256": prior_release["contract_sha256"],
+            }
+            if prior_release
+            else None
+        ),
+        "contract_sha256": "0" * 64,
     }
-    validate(payload, commit=arguments.commit)
+    payload = with_checksum(payload)
+    validate(payload, commit=arguments.commit, prior_release=prior_release)
     output = Path(arguments.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
@@ -379,7 +642,15 @@ def validate_file(arguments: argparse.Namespace) -> int:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ReleaseArtifactError(f"cannot read {path}: {error}") from error
-    validate(payload, commit=arguments.commit)
+    prior_release = None
+    if arguments.prior_release:
+        prior_release = json.loads(Path(arguments.prior_release).read_text(encoding="utf-8"))
+    validate(
+        payload,
+        commit=arguments.commit,
+        prior_release=prior_release,
+        historical=arguments.historical,
+    )
     print(f"Valid {SCHEMA}: {path}")
     return 0
 
@@ -390,14 +661,15 @@ def parser() -> argparse.ArgumentParser:
     create_command = subcommands.add_parser("create")
     create_command.add_argument("--repository", required=True)
     create_command.add_argument("--commit", required=True)
-    create_command.add_argument("--tag", required=True)
     for role in ARTIFACT_ROLES:
-        create_command.add_argument(f"--{role.replace('_', '-')}-digest", required=True)
+        create_command.add_argument(f"--{role.replace('_', '-')}-digest")
     create_command.add_argument("--oca-bundle-sha256", required=True)
     create_command.add_argument("--action-risk-policy-sha256", required=True)
     create_command.add_argument("--renderer-repository", required=True)
     create_command.add_argument("--renderer-commit", required=True)
     create_command.add_argument("--upgrade-plan", required=True)
+    create_command.add_argument("--artifact-plan", required=True)
+    create_command.add_argument("--prior-release")
     create_command.add_argument("--workflow-run-id", required=True, type=int)
     create_command.add_argument("--workflow-run-attempt", required=True, type=int)
     create_command.add_argument("--workflow-url", required=True)
@@ -406,6 +678,8 @@ def parser() -> argparse.ArgumentParser:
     validate_command = subcommands.add_parser("validate")
     validate_command.add_argument("path")
     validate_command.add_argument("--commit")
+    validate_command.add_argument("--prior-release")
+    validate_command.add_argument("--historical", action="store_true")
     validate_command.set_defaults(handler=validate_file)
     return command
 

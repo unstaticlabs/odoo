@@ -103,6 +103,7 @@ def plan(from_commit: str | None, to_commit: str) -> dict:
     try:
         run_git("cat-file", "-e", f"{from_commit}^{{commit}}")
         run_git("cat-file", "-e", f"{to_commit}^{{commit}}")
+        run_git("merge-base", "--is-ancestor", from_commit, to_commit)
         changed_paths = sorted(
             path
             for path in run_git(

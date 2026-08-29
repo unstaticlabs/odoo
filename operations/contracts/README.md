@@ -15,7 +15,8 @@ cross-field identities, canonical module/role perimeters, ordering, checksums,
 queue semantics and state invariants that JSON Schema cannot fully express:
 
 ```bash
-python3 scripts/distribution_release.py validate <release.json>
+python3 scripts/distribution_release.py validate <release.json> \
+  [--prior-release <complete-prior-release.json>]
 python3 scripts/production_cohort.py <cohort.json>
 python3 scripts/deployment_run.py validate <run.json>
 ```
@@ -26,6 +27,15 @@ is produced by `deployment_run.initialize()` in the same test. Tampering,
 missing-unit, queue, state, deadline and every-stage failure examples are kept
 beside them so a consumer can port the same acceptance cases without inventing
 a parallel contract.
+
+`usl-distribution-release/v3` has its own canonical `contract_sha256`. A
+candidate that declares `reused_from_release` is valid only with the complete
+prior v3 contract supplied to the executable validator. The GitHub metadata
+artifact names that sidecar `candidate-prior-release.json`; controller cutoff
+passes it through `run init --candidate-prior-release`. Historical deployed
+contracts can be structurally/checksum validated without recursively fetching
+their ancestors, but their own prior pointer and every reuse origin must still
+agree exactly.
 
 Hook bridge result files are deliberately small exact-key objects:
 
@@ -57,6 +67,8 @@ The mutation hook writes `/evidence/upgrade-result.json`:
 }
 ```
 
-Candidate GitOps synchronization alone is not production mutation. The
-controller marks mutation immediately before invoking the hook that performs
-DeployStack/readback and the Odoo upgrade.
+The controller marks mutation immediately before invoking the single supervised
+hook that appends/synchronizes candidate GitOps state, performs
+DeployStack/readback and applies the Odoo upgrade. A failure at any point in
+that hook therefore enters coordinated recovery rather than escaping through a
+standalone procedure step.

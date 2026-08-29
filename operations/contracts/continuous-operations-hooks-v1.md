@@ -83,6 +83,7 @@ USL_BACKUP_R2_SECRET_KEY_FILE
 USL_KOMODO_API_KEY_FILE
 USL_KOMODO_API_SECRET_FILE
 USL_GITLAB_LEDGER_TOKEN_FILE
+USL_GITHUB_VARIABLE_TOKEN_FILE
 ```
 
 The overlay also supplies explicit external network/volume names using the
@@ -105,7 +106,7 @@ container forces both live e-invoice flags to `0`.
 | `upgrade_production` | After the controller marks mutation started, append the candidate ledger commit from the exact pin file, Resource Sync, call DeployStack, read back the deployed hash, then apply the planned Odoo upgrade while writers stay paused | GitOps ledger, production stack and Odoo DB | scoped GitLab and Komodo APIs |
 | `admit` | Verify deployed services, cohort parity, module versions and accounting/action-risk controls; append the admitted ledger commit and Resource Sync/readback before succeeding | GitOps ledger and production read/health | scoped GitLab and Komodo APIs |
 | `reopen` | Re-enable verified writers, consumers and cron only after admission | production services | scoped Komodo API |
-| `record` | Seal run/evidence and send non-secret outcome | evidence/alert relay | none beyond relay secret mounted by base Compose |
+| `record` | Seal run/evidence and send non-secret outcome; in an activated release run, revalidate candidate plus prior sidecar, require its contract checksum to equal `run.source.candidate_release_sha256`, update/read back only `USL_DEPLOYED_RELEASE_RUN_ID` from exact `build.workflow_run_id` after reopen | evidence/alert relay and GitHub Actions repository variable endpoint | scoped GitHub variable-write token only |
 
 `pre_mutation_verify` and `pre_mutation_reopen` verify unchanged production and
 reopen paused writers after a pre-mutation failure/defer. They need the same
@@ -127,3 +128,13 @@ There are no standalone candidate or admitted bridge procedure stages. The
 `upgrade_production` and `admit` hooks receive both scoped credentials because
 the controller must supervise their failures. Both hooks no-op when they are
 skipped in `backup_only`. No other forward stage receives the GitLab token.
+
+The GitHub token is file-backed and scoped only to the repository Actions
+variable endpoint. It is mounted only into `record`, never into another forward
+or recovery hook. `record` must read back the variable before succeeding. A
+failure occurs after production has reopened, so the controller records
+`incident_required`; it must not automatically roll production back. The old
+run ID remains safe because the next publisher conservatively rebuilds and
+full-upgrades from a stale or unavailable input. Candidate, admitted, rollback
+and `backup_only` paths never update the variable. This credential and hook are
+an activation requirement, not an enabled resource on this branch.

@@ -18,6 +18,7 @@ RELEASE_SCHEMA = "usl-distribution-release/v3"
 COHORT_SCHEMA = "usl-production-cohort/v1"
 RUN_SCHEMA = "usl-deployment-run/v1"
 UPGRADE_SCHEMA = "usl-upgrade-plan/v1"
+ARTIFACT_BUILD_PLAN_SCHEMA = "usl-artifact-build-plan/v1"
 
 ARTIFACT_ROLES = (
     "odoo_distribution",

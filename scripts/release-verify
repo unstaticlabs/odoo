@@ -8,12 +8,17 @@ python3 -m py_compile \
   scripts/continuous_operations_contracts.py \
   scripts/continuous_operations_compose.py \
   scripts/deployment_run.py \
+  scripts/artifact_build_plan.py \
+  scripts/artifact_build_plan.py \
   scripts/distribution_release.py \
+  scripts/prior_release_input.py \
   scripts/production_cohort.py \
   scripts/retention_policy.py \
   scripts/upgrade_plan.py
 python3 -m unittest \
   scripts.tests.test_distribution_release \
+  scripts.tests.test_artifact_build_plan \
+  scripts.tests.test_artifact_build_plan \
   scripts.tests.test_continuous_operations \
   scripts.tests.test_odoo_backup
 python3 -m json.tool operations/contracts/distribution-release-v3.schema.json >/dev/null
