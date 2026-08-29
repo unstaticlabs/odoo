@@ -78,6 +78,16 @@ class RoutingTest(unittest.TestCase):
             "private_archive",
         )
 
+    def test_legacy_declaration_workflow_is_translated_to_current_axes(self):
+        self.assertEqual(
+            routing.legacy_declaration_workflow_values(submitted_on=None),
+            {"preparation_status": "not_required", "filing_status": "not_open"},
+        )
+        self.assertEqual(
+            routing.legacy_declaration_workflow_values(submitted_on="2026-01-15"),
+            {"preparation_status": "not_required", "filing_status": "filed"},
+        )
+
     def test_late_expense_materialization_defers_synthetic_attachment_chatter(self):
         restore_source = RESTORE_PATH.read_text()
         accounting_source = ACCOUNTING_IMPORT_PATH.read_text()

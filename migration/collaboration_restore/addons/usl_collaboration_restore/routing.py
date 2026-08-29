@@ -106,3 +106,11 @@ def route_technical_table(table):
     if table.startswith(discard_prefixes):
         return "discard_transient_state"
     return "private_archive"
+
+
+def legacy_declaration_workflow_values(*, submitted_on):
+    """Translate retired Online declarations into the current workflow axes."""
+    return {
+        "preparation_status": "not_required",
+        "filing_status": "filed" if submitted_on else "not_open",
+    }

@@ -19,6 +19,7 @@ from odoo.addons.usl_collaboration_restore.routing import (
     EXPECTED_MESSAGE_DISPOSITIONS,
     EXTERNAL_ARCHIVE_MODELS,
     TRANSLATED_MODELS,
+    legacy_declaration_workflow_values,
     route_model,
     route_technical_table,
 )
@@ -544,10 +545,10 @@ class UslCollaborationRestoreRun(models.Model):
                 "status": "archived",
                 "validation_status": "not_run",
                 "review_status": "not_started",
-                "filing_status": "not_started",
                 "payment_status": "not_assessed",
                 "acceptance_status": "not_submitted",
                 "amount_due": row["total_amount_to_pay"] or row["period_amount_to_pay"] or 0,
+                **legacy_declaration_workflow_values(submitted_on=row["date_submission"]),
             }
             context = {"tracking_disable": True, "mail_create_nolog": True, "mail_create_nosubscribe": True}
             if existing:
