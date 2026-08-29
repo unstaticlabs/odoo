@@ -129,7 +129,7 @@ class AccountMove(models.Model):
         "list of available exemption codes based on the selected "
         "GIB Invoice Type or other criteria.",
     )
-    l10n_tr_zero_vat_warning = fields.Binary(compute="_compute_l10n_tr_l10n_tr_zero_vat_warning")
+    l10n_tr_zero_vat_warning = fields.Boolean(compute="_compute_l10n_tr_l10n_tr_zero_vat_warning")
     l10n_tr_nilvera_customer_status = fields.Selection(
         string="Partner Nilvera Status",
         related='partner_id.l10n_tr_nilvera_customer_status',
@@ -537,13 +537,13 @@ class AccountMove(models.Model):
             if (
                 invoice.l10n_tr_nilvera_customer_status not in {'einvoice', 'earchive'}
                 or invoice.l10n_tr_nilvera_pdf_id
-                or invoice.l10n_tr_nilvera_send_status in {'not_sent', 'unknown'}
+                or invoice.l10n_tr_nilvera_send_status == 'not_sent'
             ):
                 continue
             status = invoice.l10n_tr_nilvera_send_status
             if status == 'succeed':
                 successful_invoice_ids.append(invoice.id)
-            elif status in {'sent', 'waiting'}:
+            elif status in {'sent', 'waiting', 'unknown'}:
                 pending_invoices_ids.append(invoice.id)
             elif status == 'error':
                 failed_invoices_ids.append(invoice.id)
@@ -597,7 +597,7 @@ class AccountMove(models.Model):
 
     def _l10n_tr_nilvera_company_get_documents(self, invoice_channel, category, journal_type):
         for company in self.env.companies:
-            if company.country_code != "TR" or not company.l10n_tr_nilvera_api_key:
+            if company.country_code != "TR" or not company.sudo().l10n_tr_nilvera_api_key:
                 continue
             self.with_company(company)._l10n_tr_nilvera_get_documents(invoice_channel, category, journal_type)
 
