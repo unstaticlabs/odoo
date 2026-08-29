@@ -158,6 +158,18 @@ The product/migration separation is enforced by
 `make product-migration-boundary`, database-boundary checks and finalization.
 See the [product and migration boundary](../agents/product-migration-boundary.md).
 
+## Permanent release and recovery foundation
+
+The Distribution now owns the inactive post-migration continuous-operations
+foundation: multi-runtime `usl-distribution-release/v3`, coordinated
+`usl-production-cohort/v1`, `usl-deployment-run/v1`, fail-closed module upgrade
+planning, operations/backup OCI tooling and the canonical Komodo
+RunStackService Compose source. These are repository operations interfaces,
+not Odoo models or user menus; all state and evidence stays outside the product
+database. The capability is **delivered but inactive during
+`migration-transition`**. See
+[Post-migration continuous operations](../operations/continuous-releases.md).
+
 ## Important non-features and boundaries
 
 The Distribution intentionally does **not**:

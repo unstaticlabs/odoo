@@ -15,9 +15,10 @@ Production data must not create external side effects from non-production enviro
 
 The repository-to-image boundary is defined in
 [Production image CI boundary](production-image-ci.md). A successful merge to
-`19-usl` produces one GHCR image tagged for discovery by its full commit and
+`19-usl` produces the five repository-owned GHCR runtime images recorded by
+`usl-distribution-release/v3`, each tagged for discovery by the full commit and
 identified for deployment by its immutable digest. Deployment automation must
-consume the release metadata artifact and must not rebuild source on a host.
+validate that artifact and must not rebuild source on a host.
 
 A release is eligible for production only when:
 
@@ -30,7 +31,9 @@ A release is eligible for production only when:
 - backup and rollback expectations are explicit;
 - permissions are reviewed when access changes;
 - known differences and risks are visible;
-- an authorized human approves the release.
+- the reviewed merge and governed continuous-operations admission policy
+  authorize the release; an incident or exception still requires its named
+  human decision owner.
 
 ## Change discipline
 
@@ -70,13 +73,12 @@ Each production release records:
 
 - version and included changes;
 - Git commit, upstream baseline, OCA pins and patched bundle digest;
-- qualified image reference, image ID and embedded revision, OCA and action-risk
-  policy labels;
-- database UUID, installed module versions, qualified action-risk digest and
-  migration-input SHA-256;
+- all five qualified digest references, embedded revisions, attestations, OCA
+  and action-risk identities;
+- database UUID, installed module versions and coordinated cohort identity;
 - approver;
 - deployment time;
 - validation results;
-- migrations performed;
+- upgrade plan and modules upgraded;
 - observed warnings;
 - rollback decision and outcome if used.

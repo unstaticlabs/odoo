@@ -66,6 +66,9 @@ Primary entry points:
   deterministic replay contract.
 - [Pre-production release](docs/operations/preproduction-release.md) for the
   one-command qualified build, reconstruction, gate, deployment and rollback.
+- [Post-migration continuous operations](docs/operations/continuous-releases.md)
+  for immutable v3 releases, coordinated cohorts, rehearsed upgrades and
+  recovery.
 
 The integration baseline is upstream commit
 `aef56898d9ea5a97948af04c03ae101d17b8b4a3`. The source dump and generated
@@ -120,12 +123,19 @@ add-ons, pinned OCA add-ons and user documentation. The qualified
 System packages, Python wheels, Odoo core and standard add-ons use separate
 cache boundaries. Editing ordinary Python/XML/JavaScript source does not
 recompile Python dependencies; changing only `custom-addons/` does not require
-an image rebuild at all. Use:
+an image rebuild at all. The authoritative everyday command surface is:
 
 ```bash
-make deploy    # custom add-on code, views, security or documentation mounts
-make rebuild   # Dockerfile, requirements, system packages or upstream core
+make dev-up
+make test MODULES=usl_accounting
+make qa
+make release-verify
+make dev-down
 ```
+
+`make deploy` and `make rebuild` remain focused implementation helpers.
+`make migration-legacy-verify` is reserved for the gated forensic migration
+overlay and is never a production deployment command.
 
 Keep BuildKit enabled (the default in current Docker Engine and Docker
 Desktop). The Dockerfile uses cache and bind mounts that do not become image
@@ -139,7 +149,7 @@ exact pinned commits are already present.
 ### Dependency updates
 
 Dependabot monitors the maintained Python and Node tooling dependency sets,
-pinned GitHub Actions, the Distribution and Paperless/backup Dockerfiles, and
+pinned GitHub Actions, the Distribution, Paperless and operations Dockerfiles, and
 the root and production-backup Compose service images from
 `.github/dependabot.yml`. Compatible language-tooling updates are grouped
 monthly; workflow and container updates are checked weekly. Python major
@@ -154,10 +164,11 @@ their documented replay/synchronization workflow, not by Dependabot.
 
 Dependabot is not a Coding Agent, so its authenticated bot PRs are exempt from
 Coding-Agent branch, attribution and structured-handoff metadata. They still
-run repository contracts and the full Distribution image qualification; this
-exception is keyed to GitHub's `dependabot[bot]` actor, never to a spoofable
-branch name. Impeccable package candidates must refresh and review the generated
-provider assets in the same dependency PR.
+require local Coding/Lead contract and affected-runtime qualification before
+merge; GitHub does not run candidate compute. This exception is keyed to
+GitHub's `dependabot[bot]` actor, never to a spoofable branch name. Impeccable
+package candidates must refresh and review the generated provider assets in the
+same dependency PR.
 
 Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
 

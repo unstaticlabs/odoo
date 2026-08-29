@@ -361,8 +361,8 @@ The reviewed settings are merge method `MERGE`, no required status checks,
 minimum and maximum group size `1`, build concurrency `2`, zero group wait,
 and a 120-minute response timeout. The queue constructs the current target
 candidate without running GitHub compute qualification. The sole workflow runs
-only on an actual `push` to `refs/heads/19-usl` and publishes the immutable
-Distribution and backup-tool OCI artifacts, SBOMs, attestations and release
+only on an actual `push` to `refs/heads/19-usl` and publishes the five immutable
+repository-owned runtime OCI artifacts, SBOMs, attestations and v3 release
 metadata.
 
 ## Transition to continuous delivery
@@ -377,9 +377,9 @@ becomes canonical:
    commits, and narrowly controlled bypass actors. Do not introduce required
    checks or an approval count without a new explicit cost and governance
    decision.
-3. Activate the production backup stack, then add the deployment pipeline with
-   preflight, quiesced checkpoint, module/data upgrade, digest deployment,
-   verification, and tested recovery. Set
+3. Bind the delivered continuous-operations contracts to audited host hooks,
+   admit a complete disabled dry-run and independent production restore, then
+   activate its single backup/release procedure. Set
    `continuous_deployment_enabled` only when that pipeline is admitted.
 4. Remove any temporary cutover exception that is no longer active. Do not
    retain the Online dump as a rollback assumption.

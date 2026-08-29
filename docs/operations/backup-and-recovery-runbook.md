@@ -66,7 +66,7 @@ The release metadata artifact supplies both immutable images:
 
 ```text
 ghcr.io/unstaticlabs/usl-odoo@sha256:<digest>
-ghcr.io/unstaticlabs/usl-odoo-backup@sha256:<digest>
+ghcr.io/unstaticlabs/usl-odoo-operations@sha256:<digest>
 ```
 
 Tags are lookup aids only. Production and recovery configuration must use
@@ -120,8 +120,8 @@ before an upgrade. It is not the deployment pipeline itself.
 
 The following non-secret configuration is mandatory:
 
-- `USL_BACKUP_TOOL_IMAGE` and `USL_BACKUP_TOOL_IMAGE_DIGEST`: the same backup
-  tool digest reference;
+- `USL_OPERATIONS_IMAGE` and `USL_OPERATIONS_IMAGE_DIGEST`: the same operations
+  tool digest reference from the validated v3 release;
 - `USL_SOURCE_GIT_SHA`: full 40-character deployed commit;
 - `USL_SOURCE_IMAGE_DIGEST` and `ODOO_SOURCE_IMAGE`: the same Odoo distribution
   digest reference;
@@ -183,36 +183,25 @@ abandons it, preserve the pending snapshot and evidence, then run:
 scripts/odoo-backup stage abandon <backup-id>
 ```
 
-No command in this feature forgets snapshots or prunes repository packs. The
-retention policy remains an explicit unresolved production decision.
+No backup command directly forgets snapshots or prunes repository packs.
+`scripts/retention_policy.py` emits the governed 14-daily/8-weekly/12-monthly
+plan only after independent restore evidence and append-only expiry; deletion
+remains a separate audited storage action.
 
-## Later Komodo/GitOps activation
+## Continuous-operations integration
 
-This repository contains the canonical Compose services, but this feature does
-not modify the separate GitOps repository and does not activate a schedule.
-After production admission, the Lead Developer must add a dedicated backup
-stack using `deploy/odoo-backup/compose.yaml`, bind the exact v2 release
-artifact digests and configuration above, and keep `clone-db` running only on
-the internal clone network.
+`deploy/odoo-backup/compose.yaml` remains the Odoo-only primitive used by the
+operations image. Permanent release and no-release runs coordinate it with
+Paperless, models and Native Sign through the controller described in
+[Post-migration continuous operations](continuous-releases.md). Do not enable a
+separate competing backup schedule.
 
-Declare one Komodo procedure with concurrency limited to one run, failure
-alerts enabled, timezone `Europe/Paris`, and these four stages:
-
-1. **Prepare:** `RunStackService(preflight)`, then
-   `RunStackService(prepare)`.
-2. **Push:** `RunStackService(push)`.
-3. **Restore:** `RunStackService(restore-fetch)`, then
-   `RunStackService(restore-apply)`, then `RunStackService(neutralize)`.
-4. **Verify:** `RunStackService(verify)`, then
-   `RunStackService(finalize)`.
-
-Schedule it daily at `00:30 Europe/Paris`. This avoids the existing backup
-chain on `prod-odoo-nbg1-2` beginning with Paperless at 02:00; the separate
-Immich host may use the same wall-clock slot because it has independent compute
-and a different backup repository. Do not enable the schedule until a manual
-non-empty production-path qualification has passed prepare, R2 push, exact
-restore, native neutralization and verification twice, and missed-run alerts
-are visible.
+The canonical controller stack is
+`deploy/continuous-operations/compose.yaml`. Its no-release path runs daily
+cohort backup and fresh-volume restore verification inside the 04:00–07:00
+window when no valid release was selected by 03:45. Its release path takes the
+same checkpoint before any upgrade. The GitOps repository owns schedule
+activation, but this branch keeps it disabled.
 
 ## Incident recovery
 
@@ -226,6 +215,6 @@ When recovery is required:
 6. resume external side effects only after explicit authorization;
 7. record the incident, accepted data gap and follow-up work.
 
-Production recovery is intentionally not automated here. A later deployment
-pipeline may consume these primitives, but it must retain an approval boundary
-before replacing canonical production data.
+Pre-reopen deployment rollback may automate this coordinated restore only under
+the v1 run-state guard. After candidate writers reopen, production replacement
+requires an incident decision and explicit authority.

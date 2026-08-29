@@ -13,6 +13,7 @@ ODOO_DEV ?= scripts/odoo-dev
 ODOO_DEV_DB ?= odoo_dev
 TESE_QA_GENERATION ?= 01
 MODULE ?=
+MODULES ?=
 SERVICE ?=
 CONFIRM ?=
 PROFILE ?= full
@@ -35,7 +36,7 @@ fi
 endef
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status sign-restore
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync document-renderer-certs document-renderer-check
+.PHONY: help help-advanced doctor status dev dev-up dev-down test deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune release-verify migration-legacy-verify target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: sign-product-validate
 .PHONY: migration-source-inventory migration-source-report migration-source-gate migration-outbound-safety attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
@@ -58,12 +59,16 @@ help:
 	  '' \
 	  'Common workflow' \
 	  '  make doctor                         Diagnose ownership and configuration' \
-	  '  make dev                            Start the existing development target' \
+	  '  make dev-up                         Start the existing development target' \
+	  '  make dev-down                       Stop containers and preserve data' \
+	  '  make test MODULES=usl_accounting    Run focused module tests' \
+	  '  make qa                             Run the representative product QA gate' \
+	  '  make release-verify                 Verify continuous-release contracts' \
+	  '  make migration-legacy-verify        Verify the guarded legacy overlay only' \
 	  '  make deploy [MODULE=module_name]    Update mounted add-ons without rebuilding' \
 	  '  make rebuild [MODULE=module_name]   Rebuild the image, then deploy' \
 	  '  make status                         Show service ownership, health, and URLs' \
 	  '  make logs [SERVICE=odoo]            Follow all or one service log' \
-	  '  make stop                           Stop containers and preserve data' \
 	  '  make document-renderer-certs        Generate isolated local mTLS credentials' \
 	  '  make document-renderer-check        Verify the pinned renderer submodule' \
 	  '' \
@@ -151,6 +156,20 @@ status:
 dev:
 	@$(ODOO_DEV) start
 
+dev-up: dev
+
+dev-down: stop
+
+test:
+	@if [ -z "$(strip $(MODULES))" ]; then \
+		printf 'Usage: make test MODULES=module_a[,module_b]\n' >&2; \
+		exit 2; \
+	fi
+	@case "$(MODULES)" in *[!A-Za-z0-9_,\ ]*) printf 'MODULES contains an unsafe module name.\n' >&2; exit 2;; esac
+	@for module in $$(printf '%s' "$(MODULES)" | tr ',' ' '); do \
+		$(ODOO_DEV) test "$$module" || exit $$?; \
+	done
+
 deploy:
 	@if [ -n "$(strip $(MODULE))" ]; then \
 		$(ODOO_DEV) deploy "$(MODULE)"; \
@@ -174,6 +193,16 @@ logs:
 
 stop:
 	@$(ODOO_DEV) stop
+
+release-verify:
+	@scripts/release-verify
+
+migration-legacy-verify:
+	@if [ ! -x scripts/migration-legacy ]; then \
+		printf 'scripts/migration-legacy is delivered by the gated post-migration cleanup; it is not present on this branch.\n' >&2; \
+		exit 2; \
+	fi
+	@scripts/migration-legacy verify
 
 dev-reclaim:
 	@USL_DEV_RECLAIM_CONFIRM="$(CONFIRM)" $(ODOO_DEV) reclaim

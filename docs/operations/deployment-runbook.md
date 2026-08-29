@@ -1,70 +1,57 @@
 # Deployment runbook
 
-## Objective
+## Current boundary
 
-Deploy an approved Odoo release without losing data, weakening controls or leaving the service in an ambiguous state.
+During `migration-transition`, the governed one-off cutover remains the only
+production-admission path. This repository does not enable a Komodo schedule or
+change the running environment. After admission, the permanent authority is
+[Post-migration continuous operations](continuous-releases.md).
 
-For the exact USL distribution build, reconstruction, identity and local
-qualification command, follow [Pre-production release](preproduction-release.md).
-For the final freeze, portable sanitized assets, external-Pocket staging and
-fingerprint-confirmed admission, follow
-[Portable production migration candidate](portable-production-migration.md).
-Track feature integration, owner assignments, infrastructure inputs, service
-activation and go/no-go evidence in the
-[Production cut-over readiness register](production-cutover-readiness.md).
+## Permanent release path
 
-## Before deployment
+An operator or schedule may select a candidate only by explicit validated
+`usl-distribution-release/v3` contract before 03:45 Europe/Paris. At 04:00 the
+controller validates identities and window, drains queues, pauses writers,
+creates the coordinated `usl-production-cohort/v1`, restores every unit into
+fresh isolated volumes, rehearses the planned upgrade and runs affected
+qualification.
 
-Confirm:
+Only then does the controller record that mutation started and enter the
+supervised `upgrade-production` hook. That hook appends the candidate pins,
+Resource Syncs Komodo, DeployStacks/readbacks the exact commit, and applies only
+the planned Odoo `-u` set while writers remain paused. The supervised `admit`
+hook validates service, data and accounting controls, appends and reads back
+the admitted GitOps identity, then the controller may reopen writers and record
+`usl-deployment-run/v1`.
 
-- the release and scope are approved;
-- required checks and accounting gates pass;
-- a recent recoverable backup exists;
-- database and document storage are covered together;
-- expected data changes are documented and rehearsed;
-- external integrations and scheduled actions are understood;
-- a rollback point and decision owner are identified;
-- users know about material downtime or behaviour changes.
+When no valid candidate exists at cutoff, the same run becomes `backup_only`:
+it drains, snapshots, independently restores, verifies, reopens and records,
+with release-only stages explicitly skipped.
 
-The future automated deployment flow must stop Odoo writers and take a
-verified quiesced checkpoint with `scripts/odoo-backup create --mode quiesced`
-before applying an upgrade. The command is defined in the
-[backup and recovery runbook](backup-and-recovery-runbook.md); this runbook
-does not authorize running it manually against production during deployment.
+## Admission controls
 
-## Deployment
+Before reopening, prove at minimum:
 
-During deployment:
+- exact release, image, source, OCA, module-version and action-risk identities;
+- database/filestore and Paperless cohort checksums and fresh restore evidence;
+- authentication, company boundaries, governed permissions and attachments;
+- balanced and immutable posted entries, lock dates, journal sequences,
+  reconciliations, analytic/currency/tax semantics and evidence;
+- representative reports, FEC, queues, scheduled work and integrations;
+- the affected clean install, representative upgrade and identical repeated
+  upgrade;
+- `USL_EINVOICE_LIVE_ENABLED=0` and `USL_EREPORTING_LIVE_ENABLED=0` in every
+  rehearsal, restore, recovery and non-production runtime.
 
-- prevent competing writes where required;
-- record the exact release being deployed;
-- apply only approved changes;
-- keep external side effects controlled;
-- stop on an unexplained critical error;
-- retain logs and evidence needed to understand the outcome.
+## Failure decisions
 
-## Validation
+Before mutation, failure records a safe deferral/failure and reopens without
+changing production data. After mutation and before candidate writers reopen,
+the controller automatically restores the previous coordinated cohort and
+recovery pins, verifies them and only then reopens. If this recovery fails,
+writers stay paused for an incident decision.
 
-Before normal use resumes, verify:
-
-- users can authenticate with expected permissions;
-- each company opens in the correct context;
-- core records are readable;
-- attachments are accessible;
-- scheduled work is controlled;
-- Odoo worker, database-pool, memory and request-recycling budgets match the
-  approved [product performance policy](product-performance.md);
-- critical integrations are healthy or visibly paused;
-- accounting entries remain balanced;
-- key reports and control totals remain consistent;
-- no unexpected migration warning remains unresolved.
-
-## Completion
-
-A deployment is complete only when:
-
-- validation passes;
-- service status is communicated;
-- evidence is recorded;
-- unresolved non-critical issues have owners;
-- rollback is no longer the recommended action.
+Once candidate writers reopen, automatic rollback is forbidden because new
+business writes may exist. A later failure is an incident requiring a human
+decision. Reaching 07:00 before mutation defers; reaching it after mutation
+does not authorize reopening an uncertain state.

@@ -280,6 +280,20 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertEqual(PRODUCT_MODULES, qa_modules)
         self.assertEqual(PRODUCT_MODULES, release_modules)
 
+    def test_authoritative_make_surface_is_present_without_new_aliases(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        for target in (
+            "dev-up", "dev-down", "test", "qa", "release-verify",
+            "migration-legacy-verify",
+        ):
+            self.assertEqual(
+                len(re.findall(rf"^{re.escape(target)}(?:\s*:[^=]|\s*:$)", makefile, re.M)),
+                1,
+                target,
+            )
+        self.assertIn("MODULES ?=", makefile)
+        self.assertIn("scripts/migration-legacy verify", makefile)
+
 
 if __name__ == "__main__":
     unittest.main()
