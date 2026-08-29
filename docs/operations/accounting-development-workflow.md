@@ -99,7 +99,7 @@ boundary without depending on evidence from the project that created it.
 Existing v2 seeds are intentionally rejected; after first deploying this
 tooling, run `make qa-cache-refresh` once from the main checkout to publish a
 qualified v4 seed before worktrees use `make qa` or `make qa-reuse`. Do not
-replace that shared seed from a feature worktree.
+replace that shared seed from a topic worktree.
 
 After a cold `make qa` succeeds, use `make qa-reuse` for the unchanged
 worktree's tight validation loop. It reuses only that worktree's independent

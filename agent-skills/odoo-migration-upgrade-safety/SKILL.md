@@ -16,4 +16,6 @@ After cutover, the Community production database is canonical. The old Odoo Onli
 7. Never exercise destructive migration logic on production or the protected read-only Online source. Use named disposable validation databases and repository runbooks.
 8. Keep one-shot Online-to-Community reconstruction machinery under `migration/` and out of the delivered registry. Run `make product-migration-boundary` when that boundary is affected.
 
-Put precise forward/recovery steps and module-upgrade evidence in the handoff. The Lead Developer independently validates them; CI eventually owns production backup, upgrade, verify, and recovery orchestration.
+Record precise forward/recovery steps and module-upgrade evidence in the task
+or pull request. CI eventually owns production backup, upgrade, verification
+and recovery orchestration.

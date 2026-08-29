@@ -10,8 +10,7 @@
   ],
   "enforcement": {
     "branch_worktree": "advisory",
-    "commit_attribution": "advisory",
-    "feature_handoff": "advisory"
+    "commit_attribution": "advisory"
   },
   "github": {
     "repository": "unstaticlabs/odoo",

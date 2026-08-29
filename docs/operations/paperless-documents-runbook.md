@@ -21,7 +21,7 @@ Local QA is fixed to:
 
 Ports `8069`, `8072`, `8010`, and `1411` belong to the canonical `19-usl`
 development stack. The Documents wrapper refuses a QA configuration that
-reuses them, so a feature worktree cannot silently replace the main runtime.
+reuses them, so a topic worktree cannot silently replace the main runtime.
 
 Use:
 

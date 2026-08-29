@@ -43,7 +43,6 @@ class AgentInterfaceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.github = load_script("github")
-        cls.handoff = load_script("handoff")
         cls.lib = load_script("lib.py")
         cls.verify = load_script("verify")
 
@@ -74,7 +73,7 @@ class AgentInterfaceTests(unittest.TestCase):
             self.assertIn("clean-install", up.stdout)
         else:
             self.assertEqual(2, up.returncode)
-            self.assertIn("dedicated feature branch", up.stderr)
+            self.assertIn("dedicated topic branch", up.stderr)
         wrong = execute(str(AGENT / "qa-down"), "--dry-run", "--confirm", "foreign-project")
         self.assertEqual(2, wrong.returncode)
         project = execute(str(AGENT / "qa-status"), "--project")
@@ -145,23 +144,21 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn("expected dedicated agent", result.stderr)
 
-    def test_feature_branch_guard_rejects_protected_and_detached(self) -> None:
+    def test_topic_branch_guard_rejects_protected_and_detached(self) -> None:
         for branch in ("19-usl", "<detached>"):
             with self.subTest(branch=branch), mock.patch.object(self.github, "branch_name", return_value=branch):
                 with self.assertRaises(self.github.AgentError):
-                    self.github.ensure_feature_branch()
+                    self.github.ensure_topic_branch()
 
     def test_pull_request_base_supports_validated_stacks(self) -> None:
         self.assertEqual(
             "codex/production-release-foundation",
-            self.github.pull_request_base(
-                {"feature": {"base": "origin/codex/production-release-foundation"}}
-            ),
+            self.github.pull_request_base("origin/codex/production-release-foundation"),
         )
 
-    def test_pull_request_base_rejects_unsafe_handoff_value(self) -> None:
+    def test_pull_request_base_rejects_unsafe_value(self) -> None:
         with self.assertRaises(self.github.AgentError):
-            self.github.pull_request_base({"feature": {"base": "origin/../unsafe"}})
+            self.github.pull_request_base("origin/../unsafe")
 
     def test_merge_queue_configuration_removes_compute_checks_and_preserves_static_rules(self) -> None:
         configuration = json.loads((ROOT / "agent" / "policy.json").read_text(encoding="utf-8"))["github"][
@@ -195,13 +192,12 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertEqual(2, by_type["merge_queue"]["parameters"]["max_entries_to_build"])
         self.assertEqual(desired, self.github.configure_merge_queue_ruleset(desired, configuration))
 
-    def test_merge_queue_activation_refuses_coding_identity(self) -> None:
+    def test_merge_queue_activation_requires_canonical_branch(self) -> None:
         with (
-            mock.patch.object(self.github, "branch_name", return_value="19-usl"),
+            mock.patch.object(self.github, "branch_name", return_value="codex/topic"),
             mock.patch.object(self.github, "dirty_entries", return_value=[]),
-            mock.patch.object(self.github, "identity", return_value={"agent": {"name": "Coding Agent"}}),
         ):
-            with self.assertRaisesRegex(self.github.AgentError, "Lead Agent"):
+            with self.assertRaisesRegex(self.github.AgentError, "clean authoritative"):
                 self.github.verify_merge_queue_prerequisite("unstaticlabs/odoo", "a" * 40)
 
     def test_merge_candidate_check_detects_a_real_content_conflict(self) -> None:
@@ -234,52 +230,7 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertNotIn("workflow_dispatch:", text)
         self.assertIn("push:\n    branches:\n      - 19-usl", text)
 
-    def test_feature_ready_rejects_not_ready_contract(self) -> None:
-        self.assertIn(
-            "not merge-ready",
-            self.verify.merge_readiness_error(
-                {"readiness": {"status": "NOT READY TO MERGE"}}
-            ),
-        )
-
-    def test_feature_ready_accepts_documented_follow_up(self) -> None:
-        self.assertIsNone(
-            self.verify.merge_readiness_error(
-                {"readiness": {"status": "READY TO MERGE WITH DOCUMENTED FOLLOW-UP"}}
-            )
-        )
-
-    def test_feature_ready_uses_handoff_base_for_stacked_commits(self) -> None:
-        self.assertEqual(
-            "origin/codex/production-release-foundation",
-            self.verify.feature_commit_base(
-                {"feature": {"base": "origin/codex/production-release-foundation"}}
-            ),
-        )
-
-    def test_feature_ready_attribution_strictness_follows_policy(self) -> None:
-        with mock.patch.object(
-            self.verify,
-            "policy",
-            return_value={"enforcement": {"commit_attribution": "advisory"}},
-        ):
-            self.assertFalse(self.verify.commit_attribution_is_required())
-        with mock.patch.object(
-            self.verify,
-            "policy",
-            return_value={"enforcement": {"commit_attribution": "required"}},
-        ):
-            self.assertTrue(self.verify.commit_attribution_is_required())
-
-    def test_handoff_evidence_renders_as_sentences(self) -> None:
-        self.assertEqual(
-            "Snapshot restored. Counts matched. Verification passed.",
-            self.handoff.evidence_summary(
-                ["Snapshot restored.", "Counts matched"], "Verification passed."
-            ),
-        )
-
-    def test_feature_start_refuses_protected_and_detached_repository(self) -> None:
+    def test_branch_start_refuses_protected_and_detached_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "scripts" / "agent").mkdir(parents=True)
@@ -297,7 +248,7 @@ class AgentInterfaceTests(unittest.TestCase):
                 process = subprocess.run(command, cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 self.assertEqual(0, process.returncode, process.stderr)
             protected = subprocess.run(
-                [str(root / "scripts" / "agent" / "verify"), "feature-start"],
+                [str(root / "scripts" / "agent" / "verify"), "branch-start"],
                 cwd=root,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -306,7 +257,7 @@ class AgentInterfaceTests(unittest.TestCase):
             )
             subprocess.run(("git", "checkout", "--detach", "-q"), cwd=root, check=True)
             detached = subprocess.run(
-                [str(root / "scripts" / "agent" / "verify"), "feature-start"],
+                [str(root / "scripts" / "agent" / "verify"), "branch-start"],
                 cwd=root,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

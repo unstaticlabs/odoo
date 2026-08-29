@@ -13,6 +13,6 @@ Apply stable accounting invariants independently of the temporary migration mile
 4. Test permitted and forbidden paths using realistic roles and multiple companies. Never rely on UI hiding or `sudo()` as a substitute for accounting authorization.
 5. For schema, data, module, or ownership changes, also use `odoo-migration-upgrade-safety`. Prove upgrades on a disposable representative database when warranted.
 6. Keep source reconstruction bindings, parity evidence, and migration-only provenance out of the delivered product registry.
-7. Record assumptions, exceptions, before/after evidence, lock-date behavior, upgrade/recovery, and any residual audit risk in the handoff.
+7. Record assumptions, exceptions, before/after evidence, lock-date behavior, upgrade/recovery, and any residual audit risk in the task or pull request.
 
 Never weaken an accounting control to make a test or merge pass. Escalate unresolved legal, fiscal, or audit meaning to a qualified human decision-maker.

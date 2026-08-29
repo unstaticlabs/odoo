@@ -23,10 +23,10 @@ Control, and the project/task browser-title fix are merged directly into
 `19-usl` with their reviewed ancestry preserved. Native Sign and the Templating
 system remain the final independently reviewable product workstreams. Both must
 be merged or explicitly rejected before final production qualification; no
-feature worktree, old QA seed, or rehearsal candidate can be promoted directly.
+topic worktree, old QA seed, or rehearsal candidate can be promoted directly.
 
 The combined Documents implementation preserves the exact reviewed tips of
-both feature branches through explicit merge commits. Its five affected product
+both topic branches through explicit merge commits. Its five affected product
 modules passed clean install, upgrade and identical repeated upgrade; Documents
 also passed its query budgets and desktop/mobile Chromium suites. The exact
 Paperless overlay also builds successfully for production `linux/amd64`. A

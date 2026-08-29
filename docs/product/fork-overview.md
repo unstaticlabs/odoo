@@ -180,7 +180,7 @@ Paperless 3.0, Collaboration History, the migration-performance cache, and
 Distribution Access Control and the project/task browser-title fix are
 consolidated on the current production-migration readiness candidate with their
 reviewed ancestry preserved. Native Sign remains the named release workstream.
-Neither feature worktrees nor integration/archive branches are production
+Neither topic worktrees nor integration/archive branches are production
 authority; the consolidated result must pass final qualification and land on
 `19-usl` through an auditable merge commit.
 

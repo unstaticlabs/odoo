@@ -33,7 +33,7 @@ attestation treatment.
 Every pull request runs repository unit checks, the existing action-risk and
 delivered-registry qualification, and no-push builds of the Distribution and
 backup-tool images. This includes stacked pull requests whose temporary base is
-another feature branch; the `19-usl` ruleset still makes this check mandatory at
+another topic branch; the `19-usl` ruleset still makes this check mandatory at
 final integration. The PR job has only `contents: read`, does not log in to
 GHCR, and cannot access production credentials.
 
@@ -103,7 +103,7 @@ After this workflow has run at least once, a repository administrator must:
    pull policy required by the future production runner. Limit package write
    access to trusted repository automation and administrators.
    Apply the same controls to `usl-odoo-backup`.
-7. Create or select a Lead Developer CODEOWNERS team, then protect
+7. Create or select a maintainer CODEOWNERS team, then protect
    `.github/workflows/**`, `Dockerfile`, `docker/**`,
    `scripts/distribution_release.py`, and future deployment/upgrade tooling
    with required Code Owner review. No team name is guessed in this change.

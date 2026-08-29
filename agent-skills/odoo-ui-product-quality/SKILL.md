@@ -19,6 +19,6 @@ State the user, permissions, company, starting state, task, expected result, and
 4. Critique usability, information hierarchy, Odoo consistency, affordances, defaults, validation/errors, empty/loading/error states, responsiveness, keyboard use, focus, contrast, labels, and unnecessary complexity.
 5. Repair the implementation and repeat browser → screenshot → critique → repair until material defects are resolved.
 
-Prefer native Odoo components and interaction semantics. UI hiding is not access control; verify ACLs and record rules separately. Do not claim browser/product QA from static source inspection. When a browser or representative data is unavailable, record the exact limitation and mark the journey unverified in the handoff.
+Prefer native Odoo components and interaction semantics. UI hiding is not access control; verify ACLs and record rules separately. Do not claim browser/product QA from static source inspection. When a browser or representative data is unavailable, record the exact limitation and mark the journey unverified.
 
-Store or link concise evidence outside source history unless a durable product document needs it. Record the journey, result, evidence location, viewport, identity, database, branch, and SHA in the handoff.
+Store or link concise evidence outside source history unless a durable product document needs it. Record the journey, result, evidence location, viewport, identity, database, branch, and SHA in the task or pull request.

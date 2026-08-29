@@ -74,7 +74,7 @@ COMPOSE_PROJECT_NAME=usl-odoo-qa-hydration-a make qa PROFILE=full
 COMPOSE_PROJECT_NAME=usl-odoo-qa-hydration-b make qa PROFILE=full
 ```
 
-Do not publish a seed from a feature worktree or represent a `qa-cache`
+Do not publish a seed from a topic worktree or represent a `qa-cache`
 source perimeter as whole-source production evidence.
 
 ## 2. Final Online freeze and reconstruction

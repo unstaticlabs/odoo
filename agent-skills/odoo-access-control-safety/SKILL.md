@@ -13,6 +13,6 @@ Treat server-side permissions as the boundary. Menus, views, button visibility, 
 4. Put irreversible or destructive operations behind explicit authorization, confirmation, idempotency/concurrency guards, and durable evidence. Prefer reversible state transitions and recovery paths.
 5. Verify allowed and forbidden behavior with non-admin test users. Test cross-company and crafted RPC/API access, not only button visibility.
 6. Keep development agents away from production credentials and live external side effects. Follow repository electronic-invoice live-safety flags and production-data rules.
-7. Record permissions changed, negative tests, destructive/irreversible effects, audit behavior, and remaining enforcement gaps in the handoff.
+7. Record permissions changed, negative tests, destructive/irreversible effects, audit behavior, and remaining enforcement gaps in the task or pull request.
 
 The repository's Irreversibility add-on can support a control; it does not replace ACL, record-rule, data-integrity, backup, or recovery analysis.

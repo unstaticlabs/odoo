@@ -11,7 +11,6 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY_PATH = Path(os.environ.get("USL_AGENT_POLICY_PATH", ROOT / "agent" / "policy.json"))
-HANDOFF_SCHEMA_PATH = ROOT / "agent" / "contracts" / "v1" / "feature-handoff.schema.json"
 QA_SCHEMA_PATH = ROOT / "agent" / "contracts" / "v1" / "qa-environment.schema.json"
 
 
@@ -263,7 +262,7 @@ def qa_status_payload() -> dict[str, Any]:
             "shared_seed_read_only": True,
         },
         "cleanup": {
-            "owner": "Lead Developer after merge and CI",
+            "owner": "CI after merge",
             "command": f"scripts/agent/qa-down --confirm {project}",
         },
     }

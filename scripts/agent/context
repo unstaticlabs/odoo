@@ -61,7 +61,7 @@ def build_context(base: str) -> dict[str, object]:
         },
         "compose": {
             "canonical_development": compose_project_status("usl-odoo-saas-19-3"),
-            "feature_qa": {
+            "task_qa": {
                 "project": qa["compose_project"],
                 "health": qa["health"],
                 "ownership": qa["ownership"]["state"],

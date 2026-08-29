@@ -36,7 +36,7 @@ esac
 branch="$(git branch --show-current)"
 development_branch="$(python3 -c 'import json; print(json.load(open("agent/policy.json"))["development_branch"])')"
 if [[ -z "$branch" || "$branch" == "$development_branch" ]]; then
-  printf 'qa-up: use a dedicated feature branch; current branch is %s\n' "${branch:-<detached>}" >&2
+  printf 'qa-up: use a dedicated topic branch; current branch is %s\n' "${branch:-<detached>}" >&2
   exit 2
 fi
 

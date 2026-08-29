@@ -60,7 +60,7 @@
       "additionalProperties": false,
       "required": ["owner", "command"],
       "properties": {
-        "owner": {"const": "Lead Developer after merge and CI"},
+        "owner": {"const": "CI after merge"},
         "command": {"type": "string", "minLength": 1}
       }
     }

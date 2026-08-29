@@ -152,20 +152,18 @@ def status(_arguments: argparse.Namespace) -> int:
     return 0
 
 
-def ensure_feature_branch() -> str:
+def ensure_topic_branch() -> str:
     branch = branch_name()
     development = policy()["development_branch"]
     if branch == "<detached>" or branch == development:
-        raise AgentError(f"Refusing GitHub feature operation from {branch!r}")
+        raise AgentError(f"Refusing GitHub topic-branch operation from {branch!r}")
     if not any(branch.startswith(prefix) for prefix in policy()["branch_prefixes"]):
-        raise AgentError(f"Branch {branch!r} does not use an allowed feature prefix")
+        raise AgentError(f"Branch {branch!r} does not use an allowed prefix")
     return branch
 
 
-def pull_request_base(handoff: dict[str, Any]) -> str:
-    raw = handoff.get("feature", {}).get("base")
-    if not isinstance(raw, str) or not raw:
-        raise AgentError("Handoff feature.base is required for pull-request creation")
+def pull_request_base(raw: str | None) -> str:
+    raw = raw or policy()["development_branch"]
     base = raw.removeprefix("origin/")
     check = subprocess.run(
         ["git", "check-ref-format", "--branch", base],
@@ -175,13 +173,13 @@ def pull_request_base(handoff: dict[str, Any]) -> str:
         check=False,
     )
     if check.returncode:
-        raise AgentError(f"Handoff feature.base is not a safe branch: {raw!r}")
+        raise AgentError(f"Pull-request base is not a safe branch: {raw!r}")
     return base
 
 
 def push(_arguments: argparse.Namespace) -> int:
     status(_arguments)
-    branch = ensure_feature_branch()
+    branch = ensure_topic_branch()
     configured = identity()
     https_remote = f"https://github.com/{configured['repository']}.git"
     environment = gh_environment()
@@ -205,67 +203,35 @@ def push(_arguments: argparse.Namespace) -> int:
 
 def pr(arguments: argparse.Namespace) -> int:
     status(arguments)
-    branch = ensure_feature_branch()
-    handoff = Path(arguments.handoff)
-    if not handoff.is_absolute():
-        handoff = ROOT / handoff
-    subprocess.run(
-        [str(ROOT / "scripts" / "agent" / "verify"), "feature-ready", "--handoff", str(handoff)],
-        cwd=ROOT,
-        check=True,
+    branch = ensure_topic_branch()
+    base = pull_request_base(arguments.base)
+    body_path = Path(arguments.body_file)
+    if not body_path.is_absolute():
+        body_path = ROOT / body_path
+    if not body_path.is_file():
+        raise AgentError(f"Pull-request body file does not exist: {body_path}")
+    existing = gh(
+        "pr", "list", "--repo", repository_slug(), "--head", branch,
+        "--state", "open", "--json", "number,url", "--jq", ".[0] // empty",
     )
-    value = load_json(handoff)
-    base = pull_request_base(value)
-    title = arguments.title or value["goal"]["summary"]
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", dir=STATE_ROOT, delete=False) as temporary:
-        body_path = Path(temporary.name)
-    try:
-        process = subprocess.run(
-            [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
-            cwd=ROOT,
-            check=False,
+    if existing:
+        item = json.loads(existing)
+        gh(
+            "pr", "edit", str(item["number"]), "--repo", repository_slug(),
+            "--base", base, "--title", arguments.title, "--body-file", str(body_path),
         )
-        if process.returncode:
-            raise AgentError("Handoff rendering failed")
-        existing = gh(
-            "pr", "list", "--repo", repository_slug(), "--head", branch,
-            "--state", "open", "--json", "number,url", "--jq", ".[0] // empty",
-        )
-        if existing:
-            item = json.loads(existing)
-            value["feature"]["pull_request"] = item["url"]
-            write_json(handoff, value)
-            subprocess.run(
-                [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
-                cwd=ROOT,
-                check=True,
-            )
-            gh(
-                "pr", "edit", str(item["number"]), "--repo", repository_slug(),
-                "--base", base, "--title", title, "--body-file", str(body_path),
-            )
-            url = item["url"]
-            action = "Updated"
-        else:
-            arguments_list = [
-                "pr", "create", "--repo", repository_slug(), "--base", base,
-                "--head", branch, "--title", title, "--body-file", str(body_path),
-            ]
-            if arguments.draft:
-                arguments_list.append("--draft")
-            url = gh(*arguments_list)
-            value["feature"]["pull_request"] = url
-            write_json(handoff, value)
-            subprocess.run(
-                [str(ROOT / "scripts" / "agent" / "handoff"), "render", str(handoff), "--repository", "--output", str(body_path)],
-                cwd=ROOT,
-                check=True,
-            )
-            gh("pr", "edit", url, "--repo", repository_slug(), "--body-file", str(body_path))
-            action = "Opened"
-        print(f"{action} PR: {url}")
-    finally:
-        body_path.unlink(missing_ok=True)
+        url = item["url"]
+        action = "Updated"
+    else:
+        command = [
+            "pr", "create", "--repo", repository_slug(), "--base", base,
+            "--head", branch, "--title", arguments.title, "--body-file", str(body_path),
+        ]
+        if arguments.draft:
+            command.append("--draft")
+        url = gh(*command)
+        action = "Opened"
+    print(f"{action} PR: {url}")
     return 0
 
 
@@ -351,9 +317,6 @@ def verify_merge_queue_prerequisite(repository: str, after_sha: str) -> None:
     development = policy()["development_branch"]
     if branch_name() != development or dirty_entries():
         raise AgentError(f"Merge-queue activation requires the clean authoritative {development} checkout")
-    configured = identity()
-    if configured.get("agent", {}).get("name") != "Lead Agent":
-        raise AgentError("Merge-queue activation is reserved for the Lead Agent after prerequisite review and merge")
     remote_head = gh("api", f"repos/{repository}/git/ref/heads/{development}", "--jq", ".object.sha")
     if head_sha() != remote_head:
         raise AgentError(f"Local {development} is not at the current GitHub tip {remote_head}; fetch and update first")
@@ -426,8 +389,9 @@ def parser() -> argparse.ArgumentParser:
     push_command = commands.add_parser("push")
     push_command.set_defaults(handler=push)
     pr_command = commands.add_parser("pr")
-    pr_command.add_argument("--handoff", required=True)
-    pr_command.add_argument("--title")
+    pr_command.add_argument("--base")
+    pr_command.add_argument("--title", required=True)
+    pr_command.add_argument("--body-file", required=True)
     pr_command.add_argument("--draft", action="store_true")
     pr_command.set_defaults(handler=pr)
     queue_command = commands.add_parser("merge-queue")

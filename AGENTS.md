@@ -5,14 +5,14 @@ This branch starts from upstream Odoo `saas~19.3` at
 avoid changes to core Odoo code unless the task explicitly requires a
 distribution-level core patch and the tradeoff is documented.
 
-## Development Lifecycle Constitution
+## Development Workflow
 
 - `19-usl` is the canonical development branch. Ordinary features, fixes and
   upstream syncs must originate in dedicated branches and worktrees and reach
   it through reviewed pull requests. Run `scripts/agent/context` before work.
 - Each task owns its implementation, focused verification, scoped commits and
-  review evidence in its current worktree. Do not introduce role-specific
-  dispatch, polling or handoff protocols into the repository.
+  review evidence in its current worktree. The repository has no Lead/Feature
+  roles, task-routing protocol or machine-readable handoff contract.
 - Branches normally use `codex/<type>-<work-slug>`, where `<type>` is
   one of `feat`, `fix`, `chore`, `docs`, `perf`, `refactor`, `test`, `ci`, or
   `build`. Preserve explicit user-provided branch names and established archive
@@ -31,10 +31,10 @@ distribution-level core patch and the tradeoff is documented.
   a human can use the browser; the agent must not open it. If a required
   operation has no non-browser path, stop and report the limitation instead of
   using a browser workaround. This does not restrict browser-based Odoo product
-  or Worktree-QA validation.
-- Ordinary integration uses GitHub's merge queue. A clean pushed feature head
+  or QA validation.
+- Ordinary integration uses GitHub's merge queue. A clean pushed topic head
   is queue-eligible when Git can construct a conflict-free candidate with the
-  latest fetched `origin/19-usl`; the feature branch does not need to contain
+  latest fetched `origin/19-usl`; the topic branch does not need to contain
   that target tip. Manual catch-up is reserved for real conflicts,
   dependency/stack changes or generated-state reconciliation. GitHub does not
   run compute-heavy candidate qualification or require an approval count.
@@ -62,6 +62,11 @@ Repository-owned Agent Skills have one canonical source under `agent-skills/`.
 Codex and Claude discover the same content through `.agents/skills/` and
 `.claude/skills/`. Use the migration, accounting, access-control or UI
 specialist guidance only when its technical risk domain applies.
+
+Load `writing-clearly-and-concisely` whenever writing or editing text that a
+user, operator, reviewer or maintainer will read. This includes product copy,
+labels, help and error messages, documentation, comments, reports, commit
+messages and pull-request descriptions.
 
 ## Repository Context
 

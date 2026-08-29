@@ -190,7 +190,7 @@ retention policy remains an explicit unresolved production decision.
 
 This repository contains the canonical Compose services, but this feature does
 not modify the separate GitOps repository and does not activate a schedule.
-After production admission, the Lead Developer must add a dedicated backup
+After production admission, a repository maintainer must add a dedicated backup
 stack using `deploy/odoo-backup/compose.yaml`, bind the exact v2 release
 artifact digests and configuration above, and keep `clone-db` running only on
 the internal clone network.

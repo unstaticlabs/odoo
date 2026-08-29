@@ -22,7 +22,7 @@ Mainline later advanced again by exact fast-forward successor to
 first-parent feature / second-parent mainline structure. That remains the
 authoritative target and merge base at branch closeout.
 
-The rebuild does not merge the feature branch's divergent saas~19.2 ancestry.
+The rebuild does not merge the topic branch's divergent saas~19.2 ancestry.
 Its product intent is replayed as eight ordered commits:
 
 | Original commit | Replayed commit | Intent |

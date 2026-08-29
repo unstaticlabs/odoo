@@ -123,7 +123,7 @@ either remaining feature merge and is not a final frozen-source candidate.
 ## Current release train
 
 The following work must remain independently reviewable. Merge only approved
-final state into `19-usl`; never qualify production from the feature worktree.
+final state into `19-usl`; never qualify production from a topic worktree.
 
 | Workstream | Required release outcome | Status on 28 August 2026 |
 | --- | --- | --- |
@@ -132,8 +132,8 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Expense Analytics | expense-batch analytics/product behavior and migration parity | merged through `aae5994a7ec` |
 | B2C sales and inventory | canonical order/payment/refund/fulfilment/accounting/stock links and historical B2C parity | merged through `368812b2868`; clean full reconstruction and complete source dispositions passed; physical opening stock remains separate |
 | Paperless 3.0 | final Documents behavior, identity, export/import and full archive parity | merged into `19-usl` from reviewed tip `2ba19d6fa90`; clean suites, AMD64 overlay build, full archive and vector parity pass; release-cohort restore and signed-in browser evidence pending |
-| Native Sign | final signing workflow and retained evidence | active feature branch; review and merge pending |
-| Templating system | governed business-document templates and rendered output | active feature worktree; close to merge readiness, but no uncommitted feature state is release evidence |
+| Native Sign | final signing workflow and retained evidence | active topic branch; review and merge pending |
+| Templating system | governed business-document templates and rendered output | active topic worktree; close to merge readiness, but no uncommitted branch state is release evidence |
 | Collaboration History | source-backed business collaboration history with explicit attachment dispositions and no migration residue | merged into `19-usl`; clean reconstruction, repeated import and final product-boundary requalification passed |
 | Distribution Access Control | final named-persona, company, recoverability and irreversible-action policy across delivered applications | merged into `19-usl`; 50,041 source actions and 42,669 runtime actions pass on the final reconstructed registry |
 | Post-baseline migration-performance cache | bounded worker budgets, reusable qualified state and additional Documents hot-path batching | consolidated into the merged migration-cache/Documents work; no separate active feature remains |
@@ -141,8 +141,8 @@ final state into `19-usl`; never qualify production from the feature worktree.
 | Project task history titles | preserve the project-specific action label in browser tabs and breadcrumbs through Back/Forward restoration | merged into `19-usl` through merge `602df379352`; focused desktop webclient suite passed; signed-in Projects acceptance pending |
 
 Native Sign and the Templating system are the remaining product heads to review
-on this consolidated candidate. Feature-worktree evidence is not release
-evidence; each exact reviewed tip still requires Lead Developer integration
+on this consolidated candidate. Topic-branch evidence is not release evidence;
+each exact reviewed tip still requires integration
 and requalification.
 
 For every merge:

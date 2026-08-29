@@ -32,7 +32,7 @@ with no blocked records, relationships or stored fields. Product decisions
 explicitly drop demo Knowledge, AI/Sales/Marketing experiments and superseded
 Studio customizations; preferences and every attachment have a governed
 translation or non-copy disposition. The physical opening-stock count is not
-yet available. No feature worktree, old QA seed or rehearsal candidate may be
+yet available. No topic worktree, old QA seed or rehearsal candidate may be
 promoted directly.
 
 The 27 August integration candidate also completed a canonical reconstruction,
