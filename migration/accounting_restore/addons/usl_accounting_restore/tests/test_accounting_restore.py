@@ -5968,6 +5968,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "2027-10-01",
         )
         self.assertFalse(company.rebuild_oss_registered)
+        self.assertFalse(company.rebuild_cfe_monthly_payment)
         self.assertEqual(
             fields.Date.to_string(company.rebuild_first_fiscalyear_start),
             "2026-06-01",
@@ -6021,6 +6022,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(values["rebuild_vat_regime"], "simplified")
         self.assertEqual(values["rebuild_vat_transition_date"], "2027-10-01")
         self.assertFalse(values["rebuild_oss_registered"])
+        self.assertFalse(values["rebuild_cfe_monthly_payment"])
         self.assertEqual(values["rebuild_first_fiscalyear_start"], "2024-01-10")
 
     def test_account_import_syncs_source_company_accounting_defaults(self):

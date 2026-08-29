@@ -312,9 +312,17 @@ class RebuildAccountAssuranceDecision(models.Model):
             return
         vals = {"review_status": review_status}
         if self.conclusion in {"accepted", "accepted_with_difference", "not_applicable"}:
-            vals["status"] = "ready_to_file"
+            vals.update({
+                "status": "ready_to_file",
+                "preparation_status": "reviewed",
+                "filing_status": "ready",
+            })
         else:
-            vals["status"] = "data_missing"
+            vals.update({
+                "status": "data_missing",
+                "preparation_status": "missing_data",
+                "filing_status": "not_open",
+            })
         self.declaration_id.sudo().write(vals)
 
     def _apply_closing_decision(self):

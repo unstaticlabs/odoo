@@ -106,6 +106,13 @@ class ResCompany(models.Model):
     rebuild_oss_registration_evidence = fields.Text(
         string="OSS Registration Evidence",
     )
+    rebuild_cfe_monthly_payment = fields.Boolean(
+        string="CFE Paid Monthly",
+        help=(
+            "Suppress the June CFE advance when the company uses the monthly "
+            "payment scheme. The annual CFE balance notice remains scheduled."
+        ),
+    )
     rebuild_first_fiscalyear_start = fields.Date(
         string="Exceptional First Fiscal-Year Start",
         help="Optional first-year exception used before the company's recurring fiscal-year cadence.",
@@ -316,6 +323,17 @@ class RebuildAccountDeclarationRule(models.Model):
     supporting_form_codes = fields.Char(
         help="Forms and annexes filed as components of this obligation rather than as duplicate declarations.",
     )
+    threshold_amount = fields.Float(
+        string="Primary Threshold",
+        help=(
+            "Statutory amount interpreted by the selected trigger, such as "
+            "beneficiary payments, turnover or prior assessed tax."
+        ),
+    )
+    secondary_threshold_amount = fields.Float(
+        string="Secondary Threshold",
+        help="Additional statutory amount that must also be satisfied by the trigger.",
+    )
     form_code = fields.Char(required=True)
     tax_form_codes = fields.Char(
         help="Comma-separated tax-package form codes whose ledger-derived fields feed this obligation.",
@@ -373,6 +391,8 @@ class RebuildAccountDeclarationRule(models.Model):
             "deadline_rule": self.deadline_rule,
             "filing_channel": self.filing_channel,
             "payment_required": self.payment_required,
+            "threshold_amount": self.threshold_amount,
+            "secondary_threshold_amount": self.secondary_threshold_amount,
             "supporting_form_codes": self.supporting_form_codes or "",
             "country_id": self.country_id.id,
             "country_code": self.country_id.code,
@@ -480,6 +500,8 @@ class RebuildAccountDeclarationRule(models.Model):
             "deadline_rule",
             "filing_channel",
             "payment_required",
+            "threshold_amount",
+            "secondary_threshold_amount",
             "supporting_form_codes",
             "version",
             "lifecycle",
@@ -595,6 +617,18 @@ class RebuildAccountDeclaration(models.Model):
         index=True,
         tracking=True,
     )
+    preparation_status = fields.Selection(
+        [
+            ("missing_data", "Missing Data"),
+            ("ready_for_review", "Ready for Review"),
+            ("reviewed", "Reviewed"),
+            ("not_required", "Not Required"),
+        ],
+        required=True,
+        default="missing_data",
+        index=True,
+        tracking=True,
+    )
     review_status = fields.Selection(
         [
             ("not_started", "Not Started"),
@@ -610,14 +644,14 @@ class RebuildAccountDeclaration(models.Model):
     )
     filing_status = fields.Selection(
         [
-            ("not_started", "Not Started"),
-            ("portal_draft", "Draft in Portal"),
-            ("submitted", "Submitted Externally"),
+            ("not_open", "Not Open"),
+            ("ready", "Ready to File"),
+            ("filed", "Filed Externally"),
             ("accepted", "Accepted Externally"),
             ("rejected", "Rejected Externally"),
         ],
         required=True,
-        default="not_started",
+        default="not_open",
         tracking=True,
     )
     payment_status = fields.Selection(
@@ -678,18 +712,24 @@ class RebuildAccountDeclaration(models.Model):
             declaration.prefilled_line_count = len(declaration.field_line_ids)
             declaration.unresolved_count = len(declaration.field_line_ids.filtered("is_unresolved"))
 
-    @api.depends("deadline_date", "status")
+    @api.depends("deadline_date", "status", "applicability")
     def _compute_is_overdue(self):
         today = fields.Date.context_today(self)
         finished = {"filed", "paid", "archived", "not_applicable"}
         for declaration in self:
-            declaration.is_overdue = bool(declaration.deadline_date and declaration.deadline_date < today and declaration.status not in finished)
+            declaration.is_overdue = bool(
+                declaration.applicability == "applicable"
+                and declaration.deadline_date
+                and declaration.deadline_date < today
+                and declaration.status not in finished
+            )
 
     @api.model
     def _search_is_overdue(self, operator, value):
         positive = (operator in ("=", "==") and value) or (operator == "!=" and not value)
         domain = [
             ("deadline_date", "<", fields.Date.context_today(self)),
+            ("applicability", "=", "applicable"),
             ("status", "not in", ["filed", "paid", "archived", "not_applicable"]),
         ]
         return domain if positive else ["!", *domain]
@@ -801,17 +841,46 @@ class RebuildAccountDeclaration(models.Model):
         if rule.trigger_kind == "oss_registration":
             return bool(company.rebuild_oss_registered)
         if rule.trigger_kind == "das2_threshold":
-            return self._has_das2_signal(company, period_start, period_end)
+            return self._has_das2_signal(
+                company,
+                period_start,
+                period_end,
+                rule.threshold_amount or 2400.0,
+            )
         if rule.trigger_kind == "cvae_turnover_threshold":
-            return self._turnover(company, period_start, period_end) > 152500.0
+            return self._turnover(company, period_start, period_end) > (
+                rule.threshold_amount or 152500.0
+            )
         if rule.trigger_kind == "cvae_prior_liability":
-            return self._external_value_exceeds(company, "1329-CVAE-PRIOR", period_end, 1500.0)
+            prior_start, prior_end = self._previous_closed_fiscal_period(
+                company,
+                period_start,
+            )
+            return (
+                self._turnover(company, prior_start, prior_end)
+                > (rule.threshold_amount or 500000.0)
+                and self._external_value_exceeds(
+                    company,
+                    "1329-CVAE-PRIOR",
+                    period_end,
+                    rule.secondary_threshold_amount or 1500.0,
+                )
+            )
         if rule.trigger_kind == "company_creation":
             return bool(first_start and period_start <= first_start <= period_end)
         if rule.trigger_kind == "cfe_annual":
             return bool(first_start and period_end.year > first_start.year)
         if rule.trigger_kind == "cfe_prior_liability":
-            return self._external_value_exceeds(company, "CFE-PRIOR", period_end, 3000.0)
+            return (
+                not company.rebuild_cfe_monthly_payment
+                and self._external_value_exceeds(
+                    company,
+                    "CFE-PRIOR",
+                    period_end,
+                    rule.threshold_amount or 3000.0,
+                    inclusive=True,
+                )
+            )
         return True
 
     @api.model
@@ -856,7 +925,19 @@ class RebuildAccountDeclaration(models.Model):
         )
 
     @api.model
-    def _has_das2_signal(self, company, period_start, period_end):
+    def _has_das2_signal(self, company, period_start, period_end, threshold=2400.0):
+        totals = self._das2_paid_totals(company, period_start, period_end)
+        return any(total > threshold for total in totals.values())
+
+    @api.model
+    def _das2_paid_totals(self, company, period_start, period_end):
+        """Return calendar-period payments to each DAS2 beneficiary.
+
+        Direct bank/cash postings to 622 accounts and payments reconciled to
+        posted supplier documents are counted. Merely posting an expense or
+        accrual never creates the legal payment signal.
+        """
+        totals = {}
         lines = self.env["account.move.line"].with_company(company).search([
             ("company_id", "=", company.id),
             ("move_id.state", "=", "posted"),
@@ -864,11 +945,57 @@ class RebuildAccountDeclaration(models.Model):
             ("date", "<=", period_end),
             ("account_id.code", "=like", "622%"),
             ("partner_id", "!=", False),
+            ("journal_id.type", "in", ["bank", "cash"]),
         ])
-        totals = {}
         for line in lines:
-            totals[line.partner_id.id] = totals.get(line.partner_id.id, 0.0) + abs(line.balance)
-        return any(total > 2400.0 for total in totals.values())
+            partner = line.partner_id.commercial_partner_id
+            totals[partner.id] = totals.get(partner.id, 0.0) + line.balance
+
+        bills = self.env["account.move"].with_company(company).search([
+            ("company_id", "=", company.id),
+            ("state", "=", "posted"),
+            ("move_type", "in", ["in_invoice", "in_refund"]),
+            ("invoice_line_ids.account_id.code", "=like", "622%"),
+        ])
+        for bill in bills:
+            eligible_balance = sum(
+                bill.invoice_line_ids.filtered(
+                    lambda line: (line.account_id.code or "").startswith("622"),
+                ).mapped("balance")
+            )
+            payable_lines = bill.line_ids.filtered(
+                lambda line: line.account_id.account_type == "liability_payable",
+            )
+            payable_total = sum(abs(line.balance) for line in payable_lines)
+            if not eligible_balance or not payable_total:
+                continue
+            eligible_ratio = min(abs(eligible_balance) / payable_total, 1.0)
+            paid_amount = 0.0
+            for payable_line in payable_lines:
+                for partial in payable_line.matched_debit_ids | payable_line.matched_credit_ids:
+                    payment_date = fields.Date.to_date(partial.max_date)
+                    if not payment_date or not period_start <= payment_date <= period_end:
+                        continue
+                    other_line = (
+                        partial.credit_move_id
+                        if partial.debit_move_id == payable_line
+                        else partial.debit_move_id
+                    )
+                    other_move = other_line.move_id
+                    if not (
+                        other_move.origin_payment_id
+                        or other_move.statement_line_id
+                        or other_move.journal_id.type in {"bank", "cash"}
+                    ):
+                        continue
+                    paid_amount += partial.amount
+            if paid_amount:
+                partner = bill.commercial_partner_id
+                sign = -1.0 if bill.move_type == "in_refund" else 1.0
+                totals[partner.id] = totals.get(partner.id, 0.0) + (
+                    sign * paid_amount * eligible_ratio
+                )
+        return totals
 
     @api.model
     def _turnover(self, company, period_start, period_end):
@@ -882,7 +1009,24 @@ class RebuildAccountDeclaration(models.Model):
         return sum(lines.mapped("credit")) - sum(lines.mapped("debit"))
 
     @api.model
-    def _external_value_exceeds(self, company, form_code, period_end, threshold):
+    def _previous_closed_fiscal_period(self, company, as_of):
+        anchor = fields.Date.to_date(as_of) - relativedelta(days=1)
+        period_start, period_end = company.rebuild_compute_fiscalyear_dates(anchor)
+        if period_end >= as_of:
+            period_start, period_end = company.rebuild_compute_fiscalyear_dates(
+                period_start - relativedelta(days=1),
+            )
+        return period_start, period_end
+
+    @api.model
+    def _external_value_exceeds(
+        self,
+        company,
+        form_code,
+        period_end,
+        threshold,
+        inclusive=False,
+    ):
         values = self.env["rebuild.account.external.report.value"].search([
             ("company_id", "=", company.id),
             ("form_code", "=", form_code),
@@ -891,7 +1035,11 @@ class RebuildAccountDeclaration(models.Model):
         prior_year = str(period_end.year - 1)
         return any(
             prior_year in (value.period_key or "")
-            and (value.amount or 0.0) > threshold
+            and (
+                (value.amount or 0.0) >= threshold
+                if inclusive
+                else (value.amount or 0.0) > threshold
+            )
             for value in values
         )
 
@@ -972,7 +1120,7 @@ class RebuildAccountDeclaration(models.Model):
                 if rule.code == "FR_IFU_2561":
                     deadline = date(year + 1, 2, 15)
                 elif rule.code == "FR_DAS2":
-                    deadline = date(year + 1, 4, 30)
+                    deadline = self._das2_deadline(company, year_end)
                 elif rule.code == "FR_CFE_1447_C":
                     deadline = date(year, 12, 31)
                 elif rule.code == "FR_CFE_BALANCE":
@@ -1015,6 +1163,7 @@ class RebuildAccountDeclaration(models.Model):
                 "applicability": "not_applicable",
                 "status": "not_applicable",
                 "validation_status": "ready",
+                "preparation_status": "not_required",
                 "applicability_reason": "Superseded by the governed period-aware French declaration schedule; retained for audit traceability.",
             })
 
@@ -1078,6 +1227,12 @@ class RebuildAccountDeclaration(models.Model):
                 f"the conservative displayed deadline is {fields.Date.to_string(deadline)}. "
                 "Confirm the company's exact day in the professional tax portal."
             )
+        if rule.code == "FR_DAS2":
+            return (
+                f"{rule.deadline_guidance} The payment year ends "
+                f"{fields.Date.to_string(fiscal_end)} and this company's "
+                f"governed filing deadline is {fields.Date.to_string(deadline)}."
+            )
         return (
             f"{rule.deadline_guidance} Computed from the governed {rule.period_basis.replace('_', ' ')} "
             f"ending {fields.Date.to_string(fiscal_end)} under rule version {rule.version}."
@@ -1091,6 +1246,15 @@ class RebuildAccountDeclaration(models.Model):
             return (fiscal_end + relativedelta(months=4)).replace(day=15)
         if code == "FR_3517_S":
             return _month_end(fiscal_end + relativedelta(months=3))
+        return fiscal_end + relativedelta(months=3)
+
+    @api.model
+    def _das2_deadline(self, company, payment_year_end):
+        _fiscal_start, fiscal_end = company.rebuild_compute_fiscalyear_dates(
+            payment_year_end,
+        )
+        if fiscal_end == payment_year_end:
+            return date(payment_year_end.year + 1, 4, 30)
         return fiscal_end + relativedelta(months=3)
 
     @api.model
@@ -1144,15 +1308,23 @@ class RebuildAccountDeclaration(models.Model):
             if declaration.applicability == "not_applicable":
                 validation_status = "ready"
                 next_status = "not_applicable"
+                preparation_status = "not_required"
             elif unresolved or mismatches:
-                validation_status = "blocked"
-                next_status = "data_missing"
+                if declaration.applicability == "conditional":
+                    validation_status = "warning"
+                    next_status = "to_prepare"
+                else:
+                    validation_status = "blocked"
+                    next_status = "data_missing"
+                preparation_status = "missing_data"
             else:
                 validation_status = "ready"
                 next_status = "internal_review"
+                preparation_status = "ready_for_review"
                 messages.append("Ledger-derived fields and confirmed facts currently pass automated checks.")
             vals = {
                 "validation_status": validation_status,
+                "preparation_status": preparation_status,
                 "validation_summary": "\n".join(messages),
                 "unresolved_information": "\n".join(unresolved.mapped("unresolved_reason")),
                 "last_refreshed_at": fields.Datetime.now(),
@@ -1390,7 +1562,11 @@ class RebuildAccountDeclaration(models.Model):
             if declaration.validation_status == "blocked":
                 message = "Resolve the declaration's missing or mismatched fields before internal review."
                 raise UserError(message)
-            declaration.write({"status": "internal_review", "review_status": "internal_ready"})
+            declaration.write({
+                "status": "internal_review",
+                "review_status": "internal_ready",
+                "preparation_status": "ready_for_review",
+            })
         return True
 
     def action_request_accountant_review(self):
@@ -1404,7 +1580,11 @@ class RebuildAccountDeclaration(models.Model):
                 "Only an Accounting Manager can approve a declaration for filing.",
             )
         self.action_mark_internal_ready()
-        self.write({"status": "ready_to_file"})
+        self.write({
+            "status": "ready_to_file",
+            "preparation_status": "reviewed",
+            "filing_status": "ready",
+        })
         return True
 
     def action_record_review_decision(self):
@@ -1447,7 +1627,7 @@ class RebuildAccountDeclaration(models.Model):
                 raise UserError(message)
             declaration.write({
                 "status": "filed",
-                "filing_status": "submitted",
+                "filing_status": "filed",
                 "acceptance_status": "pending",
                 "filed_at": fields.Datetime.now(),
                 "filed_by_id": self.env.user.id,

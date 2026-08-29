@@ -19,6 +19,8 @@
         <field name="effective_from">2025-01-01</field>
         <field name="effective_to">2025-12-31</field>
         <field name="corporate_tax_required" eval="True"/>
+        <field name="conditional" eval="True"/>
+        <field name="payment_required">conditional</field>
         <field name="official_source_label">DGFiP form 2571-SD and notice, 2025</field>
         <field name="official_url">https://www.impots.gouv.fr/formulaire/2571-sd/releve-dacompte</field>
         <field name="official_updated_on">2025-01-01</field>
@@ -39,6 +41,8 @@
         <field name="effective_from">2026-01-01</field>
         <field name="effective_to">2026-12-31</field>
         <field name="corporate_tax_required" eval="True"/>
+        <field name="conditional" eval="True"/>
+        <field name="payment_required">conditional</field>
         <field name="official_source_label">DGFiP form 2571-SD and notice, 2026</field>
         <field name="official_url">https://www.impots.gouv.fr/sites/default/files/formulaires/2571-sd/2026/2571-sd_5289.pdf</field>
         <field name="official_updated_on">2026-06-01</field>

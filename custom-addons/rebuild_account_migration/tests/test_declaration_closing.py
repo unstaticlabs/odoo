@@ -74,7 +74,8 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn("legacy", dict(Rule._fields["category"].selection))
         for field_name in (
             "deadline_date", "status", "validation_status", "review_status",
-            "filing_status", "payment_status", "acceptance_status", "amount_due",
+            "preparation_status", "filing_status", "payment_status",
+            "acceptance_status", "amount_due",
         ):
             self.assertTrue(Declaration._fields[field_name].tracking)
 
@@ -155,6 +156,14 @@ class TestDeclarationAndClosing(TransactionCase):
             lambda item: item.rule_id.code == "FR_2571" and item.fiscalyear_end == date(2025, 9, 30),
         )
         self.assertFalse(first_year_is)
+        later_is_instalments = first.filtered(
+            lambda item: item.rule_id.code == "FR_2571",
+        )
+        self.assertTrue(later_is_instalments)
+        self.assertEqual(set(later_is_instalments.mapped("applicability")), {"conditional"})
+        self.assertEqual(set(later_is_instalments.mapped("validation_status")), {"warning"})
+        self.assertEqual(set(later_is_instalments.mapped("preparation_status")), {"missing_data"})
+        self.assertFalse(later_is_instalments.filtered("is_overdue"))
 
     def test_long_first_year_and_vat_transition_schedule(self):
         company = self._company("USL MEDIA schedule")
@@ -219,6 +228,12 @@ class TestDeclarationAndClosing(TransactionCase):
             "type": "general",
             "company_id": company.id,
         })
+        bank_journal = self.env["account.journal"].with_company(company).create({
+            "name": "Declaration payment journal",
+            "code": "DPAY",
+            "type": "bank",
+            "company_id": company.id,
+        })
         beneficiary = self.env["res.partner"].create({
             "name": "DAS2 threshold beneficiary",
         })
@@ -239,6 +254,23 @@ class TestDeclarationAndClosing(TransactionCase):
             ],
         })
         revenue_move.action_post()
+        prior_revenue_move = self.env["account.move"].with_company(company).create({
+            "date": "2025-06-30",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Prior CVAE turnover",
+                    "account_id": cash.id,
+                    "debit": 510_000.0,
+                }),
+                Command.create({
+                    "name": "Prior CVAE turnover",
+                    "account_id": revenue.id,
+                    "credit": 510_000.0,
+                }),
+            ],
+        })
+        prior_revenue_move.action_post()
         dividend_move = self.env["account.move"].with_company(company).create({
             "date": "2026-08-10",
             "journal_id": journal.id,
@@ -257,8 +289,8 @@ class TestDeclarationAndClosing(TransactionCase):
         })
         dividend_move.action_post()
         das2_move = self.env["account.move"].with_company(company).create({
-            "date": "2026-03-10",
-            "journal_id": journal.id,
+            "date": "2025-03-10",
+            "journal_id": bank_journal.id,
             "line_ids": [
                 Command.create({
                     "name": "Professional fees",
@@ -329,7 +361,8 @@ class TestDeclarationAndClosing(TransactionCase):
         ))
         self.assertTrue(declarations.filtered(
             lambda item: item.rule_id.code == "FR_DAS2"
-            and item.period_start == date(2026, 1, 1),
+            and item.period_start == date(2025, 1, 1)
+            and item.deadline_date == date(2026, 12, 30),
         ))
         self.assertTrue(declarations.filtered(
             lambda item: item.rule_id.code == "FR_CVAE_1330"
@@ -342,6 +375,61 @@ class TestDeclarationAndClosing(TransactionCase):
             ).mapped("deadline_date")),
             {date(2026, 6, 15), date(2026, 9, 15)},
         )
+        das2_rule = self.env.ref(
+            "rebuild_account_migration.declaration_rule_das2",
+        )
+        cvae_instalment_rule = self.env.ref(
+            "rebuild_account_migration.declaration_rule_cvae_1329",
+        )
+        self.assertEqual(das2_rule.threshold_amount, 2400.0)
+        self.assertEqual(cvae_instalment_rule.threshold_amount, 500000.0)
+        self.assertEqual(cvae_instalment_rule.secondary_threshold_amount, 1500.0)
+
+    def test_das2_uses_payments_not_unpaid_expense_accruals(self):
+        company = self._company("DAS2 payment-basis schedule")
+        fees = self._account(company, "622992", "Unpaid fees", "expense")
+        equity = self._account(company, "101992", "Accrual counterpart", "equity")
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "DAS2 accrual journal",
+            "code": "DACR",
+            "type": "general",
+            "company_id": company.id,
+        })
+        beneficiary = self.env["res.partner"].create({
+            "name": "Unpaid DAS2 beneficiary",
+        })
+        accrual = self.env["account.move"].with_company(company).create({
+            "date": "2025-07-10",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Unpaid professional fees",
+                    "account_id": fees.id,
+                    "partner_id": beneficiary.id,
+                    "debit": 3_000.0,
+                }),
+                Command.create({
+                    "name": "Unpaid professional fees",
+                    "account_id": equity.id,
+                    "partner_id": beneficiary.id,
+                    "credit": 3_000.0,
+                }),
+            ],
+        })
+        accrual.action_post()
+
+        Declaration = self.env["rebuild.account.declaration"]
+        self.assertFalse(Declaration._has_das2_signal(
+            company,
+            date(2025, 1, 1),
+            date(2025, 12, 31),
+        ))
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 8, 29)):
+            declarations = Declaration.sync_for_company(company)
+        self.assertFalse(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_DAS2"
+            and item.period_start == date(2025, 1, 1),
+        ))
 
     def test_sync_retires_obsolete_open_rows_without_rewriting_filed_evidence(self):
         company = self._company("Declaration retirement audit")
@@ -366,7 +454,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "name": "Filed legacy 2033 evidence",
             "instalment_number": 1,
             "status": "filed",
-            "filing_status": "submitted",
+            "filing_status": "filed",
             "external_filing_reference": "UNIT-FILED-2033",
         })
 

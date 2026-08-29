@@ -78,6 +78,7 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_vat_regime": "simplified",
         "rebuild_vat_transition_date": "2027-10-01",
         "rebuild_oss_registered": False,
+        "rebuild_cfe_monthly_payment": False,
         "rebuild_first_fiscalyear_start": "2024-01-10",
         "rebuild_first_fiscalyear_end": "2025-09-30",
         "evidence": (
@@ -97,6 +98,7 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_vat_regime": "simplified",
         "rebuild_vat_transition_date": "2027-10-01",
         "rebuild_oss_registered": False,
+        "rebuild_cfe_monthly_payment": False,
         "rebuild_first_fiscalyear_start": "2026-06-01",
         "rebuild_first_fiscalyear_end": "2027-09-30",
         "evidence": (
@@ -1725,6 +1727,9 @@ class RebuildAccountImportRun(models.Model):
                 "rebuild_vat_transition_date"
             ],
             "rebuild_oss_registered": profile["rebuild_oss_registered"],
+            "rebuild_cfe_monthly_payment": profile[
+                "rebuild_cfe_monthly_payment"
+            ],
             "rebuild_oss_registration_evidence": (
                 "No OSS registration was evidenced in the frozen Online "
                 "source; foreign platform revenue is not OSS registration."

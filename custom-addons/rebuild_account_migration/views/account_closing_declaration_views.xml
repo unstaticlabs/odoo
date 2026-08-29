@@ -12,6 +12,8 @@
                 <field name="cadence"/>
                 <field name="period_basis"/>
                 <field name="trigger_kind" optional="hide"/>
+                <field name="threshold_amount" optional="hide"/>
+                <field name="secondary_threshold_amount" optional="hide"/>
                 <field name="form_code"/>
                 <field name="version"/>
                 <field name="effective_from"/>
@@ -42,6 +44,8 @@
                             <field name="deadline_rule"/>
                             <field name="filing_channel"/>
                             <field name="payment_required"/>
+                            <field name="threshold_amount" invisible="not threshold_amount"/>
+                            <field name="secondary_threshold_amount" invisible="not secondary_threshold_amount"/>
                             <field name="form_code"/>
                             <field name="tax_form_codes"/>
                             <field name="supporting_form_codes"/>
@@ -151,6 +155,8 @@
                 <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
                 <filter name="group_deadline" string="Deadline Month" context="{'group_by': 'deadline_date:month'}"/>
                 <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                <filter name="group_applicability" string="Applicability" context="{'group_by': 'applicability'}"/>
+                <filter name="group_preparation" string="Preparation" context="{'group_by': 'preparation_status'}"/>
             </search>
         </field>
     </record>
@@ -167,6 +173,15 @@
                 <field name="rule_version" string="Version"/>
                 <field name="period_start" optional="hide"/>
                 <field name="period_end"/>
+                <field name="applicability" widget="badge"
+                    decoration-success="applicability == 'applicable'"
+                    decoration-warning="applicability == 'conditional'"
+                    decoration-muted="applicability == 'not_applicable'"/>
+                <field name="preparation_status" widget="badge"
+                    decoration-success="preparation_status in ('ready_for_review', 'reviewed')"
+                    decoration-warning="preparation_status == 'missing_data' and applicability == 'conditional'"
+                    decoration-danger="preparation_status == 'missing_data' and applicability == 'applicable'"
+                    decoration-muted="preparation_status == 'not_required'"/>
                 <field name="status" widget="badge"
                     decoration-success="status in ('ready_to_file', 'filed', 'paid')"
                     decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
@@ -179,7 +194,11 @@
                     decoration-danger="validation_status == 'blocked'"
                     decoration-muted="validation_status == 'not_run'"/>
                 <field name="review_status" optional="hide"/>
-                <field name="filing_status" optional="hide"/>
+                <field name="filing_status" widget="badge" optional="show"
+                    decoration-success="filing_status in ('filed', 'accepted')"
+                    decoration-info="filing_status == 'ready'"
+                    decoration-danger="filing_status == 'rejected'"
+                    decoration-muted="filing_status == 'not_open'"/>
                 <field name="payment_status" optional="hide"/>
                 <field name="unresolved_count"/>
                 <field name="is_overdue" optional="hide"/>
@@ -237,6 +256,8 @@
                             <field name="form_code"/>
                             <field name="rule_version"/>
                             <field name="applicability"/>
+                            <field name="preparation_status"/>
+                            <field name="filing_status"/>
                         </group>
                         <group>
                             <field name="period_start"/>
@@ -279,7 +300,6 @@
                             <group>
                                 <group>
                                     <field name="review_status"/>
-                                    <field name="filing_status"/>
                                     <field name="acceptance_status"/>
                                     <field name="payment_status"/>
                                 </group>
@@ -781,6 +801,7 @@
                             <field name="rebuild_vat_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_vat_transition_date"/>
                             <field name="rebuild_oss_registered"/>
+                            <field name="rebuild_cfe_monthly_payment"/>
                             <field name="rebuild_first_fiscalyear_start"/>
                             <field name="rebuild_first_fiscalyear_end"/>
                         </group>
