@@ -211,6 +211,10 @@ project_stage_map = traced_map(
     "project.project.stage",
 )
 task_stage_map = traced_map("project.task.type", "project.task.type")
+historical_task_stage_map = traced_map(
+    "project.task.type",
+    "project.task.type.history",
+)
 tag_map = traced_map("project.tags", "project.tags")
 milestone_map = traced_map("project.milestone", "project.milestone")
 recurrence_map = traced_map(
@@ -289,9 +293,28 @@ assert all(
 assert all(
     task_map[row["id"]].id == row["id"] for row in source["tasks"]
 ), "Task IDs differ from their Online IDs."
+assert all(
+    task_stage_map[row["id"]].id == row["id"]
+    for row in source["task_stages"]
+), "Task-stage IDs differ from their Online IDs."
+assert set(historical_task_stage_map) == set(
+    source["historical_task_stage_ids"],
+), "Deleted historical task-stage identities are not reserved exactly."
+assert all(
+    stage.id == source_id and not stage.active and not stage.project_ids
+    for source_id, stage in historical_task_stage_map.items()
+), "A deleted historical task stage is not a hidden, exact-ID reservation."
+assert not env["project.task"].with_context(active_test=False).sudo().search_count(
+    [("stage_id", "in", [stage.id for stage in historical_task_stage_map.values()])]
+), "A current task points to a deleted historical task stage."
 for table, rows in (
     ("project_project", source["projects"]),
     ("project_task", source["tasks"]),
+    (
+        "project_task_type",
+        source["task_stages"]
+        + [{"id": stage_id} for stage_id in source["historical_task_stage_ids"]],
+    ),
 ):
     env.cr.execute(f"SELECT last_value, is_called FROM {table}_id_seq")
     last_value, is_called = env.cr.fetchone()
@@ -423,6 +446,7 @@ for row in source["tasks"]:
                 "state": row["state"],
                 "email_from": row["email_from"],
                 "html_history": row["html_field_history"] or {},
+                "duration_tracking": row["duration_tracking"],
                 "properties": row["task_properties"] or {},
                 "description": row["description"],
                 "active": row["active"],
@@ -459,6 +483,7 @@ for row in source["tasks"]:
                 "state": task.state,
                 "email_from": task.email_from,
                 "html_history": task.html_field_history or {},
+                "duration_tracking": task.duration_tracking,
                 "properties": task.usl_source_task_properties or {},
                 "description": task.description,
                 "active": task.active,
@@ -488,6 +513,50 @@ for row in source["tasks"]:
             },
         ),
     )
+
+source_duration_bucket_count = sum(
+    len(set((row["duration_tracking"] or {})) - {"d", "s"})
+    for row in source["tasks"]
+)
+target_duration_bucket_count = sum(
+    len(set((task_map[row["id"]].duration_tracking or {})) - {"d", "s"})
+    for row in source["tasks"]
+)
+source_duration_total_minutes = sum(
+    sum(
+        value
+        for key, value in (row["duration_tracking"] or {}).items()
+        if key not in {"d", "s"}
+    )
+    for row in source["tasks"]
+)
+target_duration_total_minutes = sum(
+    sum(
+        value
+        for key, value in (task_map[row["id"]].duration_tracking or {}).items()
+        if key not in {"d", "s"}
+    )
+    for row in source["tasks"]
+)
+assert target_duration_bucket_count == source_duration_bucket_count, (
+    "Task duration bucket count differs from Online."
+)
+assert target_duration_total_minutes == source_duration_total_minutes, (
+    "Task accumulated stage minutes differ from Online."
+)
+for row in source["tasks"]:
+    source_duration = row["duration_tracking"] or {}
+    target_duration = task_map[row["id"]].duration_tracking or {}
+    assert normalized(target_duration) == normalized(source_duration), (
+        f"Task {row['id']} duration ledger differs from Online."
+    )
+    if source_duration:
+        assert target_duration.get("s") == row["stage_id"], (
+            f"Task {row['id']} duration ledger has the wrong current stage."
+        )
+        assert target_duration.get("d") == source_duration.get("d"), (
+            f"Task {row['id']} duration clock start differs from Online."
+        )
 
 source_message_rows = []
 target_message_rows = []
