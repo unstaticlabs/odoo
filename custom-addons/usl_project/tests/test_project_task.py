@@ -6,6 +6,34 @@ from odoo.tests import TransactionCase, tagged
 
 @tagged("usl_project", "post_install", "-at_install")
 class TestProjectTask(TransactionCase):
+    def test_project_card_company_label_tracks_active_companies(self):
+        second_company = self.env["res.company"].create({
+            "name": "Second card company",
+        })
+        self.env.user.company_ids = [Command.link(second_company.id)]
+        project = self.env["project.project"].create({
+            "name": "Multi-company card project",
+            "company_id": self.env.company.id,
+        })
+
+        single_company_project = project.with_context(
+            allowed_company_ids=[self.env.company.id],
+        )
+        multi_company_project = project.with_context(
+            allowed_company_ids=[self.env.company.id, second_company.id],
+        )
+
+        self.assertFalse(single_company_project.usl_show_company_on_card)
+        self.assertTrue(multi_company_project.usl_show_company_on_card)
+
+        arch = self.env.ref("project.view_project_kanban")._get_combined_arch()
+        company_labels = arch.xpath(
+            "//t[@t-name='card']//*[@t-if="
+            "'record.usl_show_company_on_card.raw_value']",
+        )
+        self.assertEqual(len(company_labels), 1)
+        self.assertTrue(company_labels[0].xpath(".//field[@name='company_id']"))
+
     def test_planned_start_warns_only_for_open_late_blocker(self):
         start = datetime(2026, 8, 10, 9)
         blocker = self.env["project.task"].create(

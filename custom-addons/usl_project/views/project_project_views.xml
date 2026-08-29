@@ -1,0 +1,19 @@
+<odoo>
+    <record id="view_project_kanban_company_label" model="ir.ui.view">
+        <field name="name">project.project.kanban.company.label</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="usl_show_company_on_card"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']//div[hasclass('o_project_kanban_body')]" position="inside">
+                <div t-if="record.usl_show_company_on_card.raw_value"
+                     class="text-muted d-flex align-items-baseline">
+                    <span class="fa fa-building-o me-2" aria-label="Company" title="Company"/>
+                    <field class="text-truncate" name="company_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
