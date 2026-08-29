@@ -29,6 +29,9 @@ RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
 RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
 MIGRATION_CANDIDATE_SCRIPT = ROOT / "scripts/migration-candidate"
 PRODUCTION_CUTOVER_SCRIPT = ROOT / "scripts/production-cutover"
+PRODUCT_DATABASE_BOUNDARY_SCRIPT = (
+    ROOT / "scripts/check-product-database-boundary"
+)
 EXPENSE_BATCH_MANIFEST = (
     ROOT / "custom-addons/usl_expense_batch/__manifest__.py"
 )
@@ -49,6 +52,13 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         completed = self.run_runner(COMPOSE_PROJECT_NAME="main-development")
         self.assertEqual(completed.returncode, 2)
         self.assertIn("Refusing non-isolated", completed.stderr)
+
+    def test_product_boundary_never_reconciles_runtime_dependencies(self):
+        script = PRODUCT_DATABASE_BOUNDARY_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn('ps --status running -q odoo', script)
+        self.assertIn('exec -T', script)
+        self.assertIn("--profile init run --rm -T --no-deps", script)
 
     def test_rejects_empty_or_protected_target_database(self):
         for database in ("", "odoo_online_source_saas_19_3"):
