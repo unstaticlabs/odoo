@@ -5551,7 +5551,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 None,
             )
             side_group_key = f"balance-sheet|{side_key}"
-            result.append({
+            side_header = {
                 "statement_key": side_key,
                 "statement_side": side_label,
                 "label": side_label,
@@ -5559,7 +5559,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "group_key": side_group_key,
                 "row_level": 0,
                 "presentation_role": "section",
-            })
+            }
+            if total_row:
+                side_header["amount"] = total_row.get("amount")
+            result.append(side_header)
             sections = {}
             for row in side_rows:
                 sections.setdefault(row.get("section") or side_label, []).append(row)
