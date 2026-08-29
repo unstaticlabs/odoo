@@ -61,7 +61,7 @@ ensure_shared_volumes() {
 run_tool() {
   local service="$1"
   shift
-  compose run --rm --no-deps "$service" "$@"
+  compose run --rm --no-deps "$service" backup "$@"
 }
 
 stage_restore() {

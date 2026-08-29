@@ -1,7 +1,6 @@
-# Publish the production Distribution image exactly once after a commit lands
-# on 19-usl. Pull requests are qualified locally by their Coding and Lead
-# workflows; GitHub does not rebuild the product for candidate branches.
-name: Distribution image
+# Publish repository-owned production runtime artifacts only after a merge has
+# reached 19-usl. Candidate and merge-group compute intentionally remains local.
+name: Distribution release
 
 on:
   push:
@@ -12,48 +11,76 @@ permissions:
   contents: read
 
 concurrency:
-  group: distribution-image-${{ github.ref }}
+  group: distribution-release-${{ github.ref }}
   cancel-in-progress: false
-
-env:
-  DISTRIBUTION_IMAGE: ghcr.io/unstaticlabs/usl-odoo
-  BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup
 
 jobs:
   publish:
-    name: Publish immutable Distribution image
+    name: Publish ${{ matrix.role }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     permissions:
       contents: read
       packages: write
       id-token: write
       attestations: write
       artifact-metadata: write
-    outputs:
-      image: ${{ steps.release.outputs.image }}
-      tag: ${{ steps.release.outputs.tag }}
-      digest: ${{ steps.release.outputs.digest }}
-      digest_reference: ${{ steps.release.outputs.digest_reference }}
-      metadata_artifact: ${{ steps.metadata.outputs.artifact_name }}
-      backup_tool_image: ${{ steps.backup-release.outputs.image }}
-      backup_tool_tag: ${{ steps.backup-release.outputs.tag }}
-      backup_tool_digest: ${{ steps.backup-release.outputs.digest }}
-      backup_tool_digest_reference: ${{ steps.backup-release.outputs.digest_reference }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - role: odoo_distribution
+            image: ghcr.io/unstaticlabs/usl-odoo
+            context: .
+            file: Dockerfile
+            target: distribution
+            runtime: distribution
+          - role: operations_tool
+            image: ghcr.io/unstaticlabs/usl-odoo-operations
+            context: .
+            file: docker/operations.Dockerfile
+            target: runtime
+            runtime: continuous-operations
+          - role: paperless_overlay
+            image: ghcr.io/unstaticlabs/usl-paperless-ngx
+            context: .
+            file: deploy/documents/paperless-ngx/Dockerfile
+            target: ""
+            runtime: paperless-overlay
+          - role: document_renderer
+            image: ghcr.io/unstaticlabs/usl-document-renderer
+            context: services/usl-document-renderer
+            file: Dockerfile
+            target: ""
+            runtime: document-renderer
+          - role: native_sign_dss
+            image: ghcr.io/unstaticlabs/usl-sign-dss
+            context: .
+            file: services/usl-sign-dss/Dockerfile
+            target: ""
+            runtime: native-sign-dss
     env:
       IMAGE_TAG: sha-${{ github.sha }}
     steps:
-      - name: Checkout
+      - name: Checkout immutable source and renderer
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
 
       - name: Sync pinned OCA add-ons
+        if: matrix.role == 'odoo_distribution'
         run: scripts/sync-oca-addons
 
-      - name: Resolve release build identity
+      - name: Resolve Distribution identity inputs
         id: identity
         run: |
-          oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
-          action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
+          if [ "${{ matrix.role }}" = odoo_distribution ]; then
+            oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+            action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
+          else
+            oca_digest=not-applicable
+            action_risk_digest=not-applicable
+          fi
           echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
           echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
 
@@ -67,14 +94,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Reuse only an identical existing commit image
+      - name: Reuse only an identical artifact for this exact release SHA
         id: existing
         env:
-          EXPECTED_COMMIT: ${{ github.sha }}
+          IMAGE: ${{ matrix.image }}
+          RUNTIME: ${{ matrix.runtime }}
           EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
           EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
         run: |
-          reference="$DISTRIBUTION_IMAGE:$IMAGE_TAG"
+          reference="$IMAGE:$IMAGE_TAG"
           set +e
           inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
           status=$?
@@ -88,206 +116,145 @@ jobs:
             exit "$status"
           fi
           docker pull "$reference"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
+          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
+          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = "$RUNTIME"
+          if [ "${{ matrix.role }}" = odoo_distribution ]; then
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
+          fi
           digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
           digest="${digest_reference#*@}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Existing image has no valid digest" >&2
-            exit 1
-          fi
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
           echo "exists=true" >> "$GITHUB_OUTPUT"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push Distribution image once
+      - name: Build and push immutable artifact
         id: build
         if: steps.existing.outputs.exists != 'true'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
-          context: .
-          target: distribution
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
           push: true
-          tags: ${{ env.DISTRIBUTION_IMAGE }}:${{ env.IMAGE_TAG }}
+          tags: ${{ matrix.image }}:${{ env.IMAGE_TAG }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+            com.unstaticlabs.odoo.runtime=${{ matrix.runtime }}
           build-args: |
             USL_RELEASE_COMMIT=${{ github.sha }}
             USL_OCA_BUNDLE_SHA256=${{ steps.identity.outputs.oca_digest }}
             USL_ACTION_RISK_POLICY_SHA256=${{ steps.identity.outputs.action_risk_digest }}
           provenance: mode=max
           sbom: true
-          cache-from: type=gha,scope=distribution
-          cache-to: type=gha,mode=max,scope=distribution
+          cache-from: type=gha,scope=${{ matrix.role }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.role }}
 
-      - name: Resolve immutable image digest
+      - name: Resolve and verify immutable digest
         id: release
         env:
+          IMAGE: ${{ matrix.image }}
+          RUNTIME: ${{ matrix.runtime }}
+          EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
+          EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
           EXISTING_DIGEST: ${{ steps.existing.outputs.digest }}
           BUILT_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           digest="${EXISTING_DIGEST:-$BUILT_DIGEST}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Build produced no valid sha256 digest" >&2
-            exit 1
-          fi
-          echo "image=$DISTRIBUTION_IMAGE" >> "$GITHUB_OUTPUT"
-          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          echo "digest_reference=$DISTRIBUTION_IMAGE@$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Verify immutable Distribution labels and digest
-        env:
-          DIGEST_REFERENCE: ${{ steps.release.outputs.digest_reference }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-          EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
-          EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
-        run: |
-          docker pull "$DIGEST_REFERENCE"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
-
-      - name: Reuse only an identical existing backup-tool image
-        id: existing-backup
-        env:
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          reference="$BACKUP_TOOL_IMAGE:$IMAGE_TAG"
-          set +e
-          inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            if printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
-              echo "exists=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            printf 'Unable to inspect %s:\n%s\n' "$reference" "$inspection" >&2
-            exit "$status"
-          fi
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          reference="$IMAGE@$digest"
           docker pull "$reference"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = backup
-          digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
-          digest="${digest_reference#*@}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Existing backup-tool image has no valid digest" >&2
-            exit 1
+          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
+          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = "$RUNTIME"
+          if [ "${{ matrix.role }}" = odoo_distribution ]; then
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
           fi
-          echo "exists=true" >> "$GITHUB_OUTPUT"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Build and push backup tool once
-        id: backup-build
-        if: steps.existing-backup.outputs.exists != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          file: docker/backup.Dockerfile
-          push: true
-          tags: ${{ env.BACKUP_TOOL_IMAGE }}:${{ env.IMAGE_TAG }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          build-args: |
-            USL_RELEASE_COMMIT=${{ github.sha }}
-          provenance: mode=max
-          sbom: true
-          cache-from: type=gha,scope=backup-tool
-          cache-to: type=gha,mode=max,scope=backup-tool
-
-      - name: Resolve immutable backup-tool digest
-        id: backup-release
-        env:
-          EXISTING_DIGEST: ${{ steps.existing-backup.outputs.digest }}
-          BUILT_DIGEST: ${{ steps.backup-build.outputs.digest }}
-        run: |
-          digest="${EXISTING_DIGEST:-$BUILT_DIGEST}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Backup-tool build produced no valid sha256 digest" >&2
-            exit 1
-          fi
-          echo "image=$BACKUP_TOOL_IMAGE" >> "$GITHUB_OUTPUT"
-          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          echo "digest_reference=$BACKUP_TOOL_IMAGE@$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Verify immutable backup-tool labels and runtime
-        env:
-          DIGEST_REFERENCE: ${{ steps.backup-release.outputs.digest_reference }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          docker pull "$DIGEST_REFERENCE"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = backup
-          docker run --rm --entrypoint pg_dump "$DIGEST_REFERENCE" --version | grep -Eq ' 16([.]|$)'
-          docker run --rm --entrypoint restic "$DIGEST_REFERENCE" version | grep -Eq '^restic 0[.]19[.]1'
-
-      - name: Generate backup-tool build provenance
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-name: ${{ steps.backup-release.outputs.image }}
-          subject-digest: ${{ steps.backup-release.outputs.digest }}
-          push-to-registry: true
 
       - name: Generate GitHub build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-name: ${{ steps.release.outputs.image }}
+          subject-name: ${{ matrix.image }}
           subject-digest: ${{ steps.release.outputs.digest }}
           push-to-registry: true
 
-      - name: Write release metadata contract
-        id: metadata
+      - name: Record artifact digest
         env:
-          IMAGE_DIGEST: ${{ steps.release.outputs.digest }}
-          BACKUP_TOOL_DIGEST: ${{ steps.backup-release.outputs.digest }}
+          ROLE: ${{ matrix.role }}
+          DIGEST: ${{ steps.release.outputs.digest }}
         run: |
-          artifact_name="distribution-release-$GITHUB_SHA"
+          mkdir -p digests
+          printf '{"role":"%s","digest":"%s"}\n' "$ROLE" "$DIGEST" > "digests/$ROLE.json"
+
+      - name: Upload artifact digest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-digest-${{ matrix.role }}
+          path: digests/${{ matrix.role }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  metadata:
+    name: Publish release v3 metadata
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout immutable source and renderer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Sync pinned OCA add-ons
+        run: scripts/sync-oca-addons
+
+      - name: Download exact artifact digests
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.0.0
+        with:
+          pattern: release-digest-*
+          path: digests
+          merge-multiple: true
+
+      - name: Build conservative upgrade plan
+        run: python3 scripts/upgrade_plan.py --to-commit "$GITHUB_SHA" --output upgrade-plan.json
+
+      - name: Write and validate release contract
+        id: metadata
+        run: |
+          digest() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "digests/$1.json"; }
+          oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+          action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
+          renderer_commit="$(git rev-parse HEAD:services/usl-document-renderer)"
           python3 scripts/distribution_release.py create \
             --repository "$GITHUB_REPOSITORY" \
             --commit "$GITHUB_SHA" \
-            --image "$DISTRIBUTION_IMAGE" \
-            --tag "$IMAGE_TAG" \
-            --digest "$IMAGE_DIGEST" \
-            --backup-tool-image "$BACKUP_TOOL_IMAGE" \
-            --backup-tool-digest "$BACKUP_TOOL_DIGEST" \
+            --tag "sha-$GITHUB_SHA" \
+            --odoo-distribution-digest "$(digest odoo_distribution)" \
+            --operations-tool-digest "$(digest operations_tool)" \
+            --paperless-overlay-digest "$(digest paperless_overlay)" \
+            --document-renderer-digest "$(digest document_renderer)" \
+            --native-sign-dss-digest "$(digest native_sign_dss)" \
+            --oca-bundle-sha256 "$oca_digest" \
+            --action-risk-policy-sha256 "$action_risk_digest" \
+            --renderer-repository unstaticlabs/usl-document-renderer \
+            --renderer-commit "$renderer_commit" \
+            --upgrade-plan upgrade-plan.json \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             --output distribution-release.json
-          python3 scripts/distribution_release.py validate \
-            distribution-release.json \
-            --commit "$GITHUB_SHA" \
-            --image "$DISTRIBUTION_IMAGE" \
-            --backup-tool-image "$BACKUP_TOOL_IMAGE"
-          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          python3 scripts/distribution_release.py validate distribution-release.json --commit "$GITHUB_SHA"
+          echo "artifact_name=distribution-release-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Upload release metadata
+      - name: Upload lightweight release metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.metadata.outputs.artifact_name }}
           path: distribution-release.json
           if-no-files-found: error
           retention-days: 90
-
-      - name: Expose immutable release identity
-        env:
-          DIGEST_REFERENCE: ${{ steps.release.outputs.digest_reference }}
-          BACKUP_TOOL_DIGEST_REFERENCE: ${{ steps.backup-release.outputs.digest_reference }}
-          METADATA_ARTIFACT: ${{ steps.metadata.outputs.artifact_name }}
-        run: |
-          {
-            printf '## Distribution release\n\n'
-            printf -- '- Commit: `%s`\n' "$GITHUB_SHA"
-            printf -- '- Commit tag: `%s:%s`\n' "$DISTRIBUTION_IMAGE" "$IMAGE_TAG"
-            printf -- '- Production identity: `%s`\n' "$DIGEST_REFERENCE"
-            printf -- '- Backup-tool identity: `%s`\n' "$BACKUP_TOOL_DIGEST_REFERENCE"
-            printf -- '- Metadata artifact: `%s`\n' "$METADATA_ARTIFACT"
-            printf -- '- OCI SBOM: attached by BuildKit\n'
-            printf -- '- Build provenance: BuildKit plus GitHub artifact attestation\n'
-          } >> "$GITHUB_STEP_SUMMARY"

@@ -28,7 +28,7 @@
       "additionalProperties": false,
       "required": ["image_digest_reference"],
       "properties": {
-        "image_digest_reference": {"type": "string", "pattern": "^ghcr\\.io/unstaticlabs/usl-odoo-backup@sha256:[0-9a-f]{64}$"}
+        "image_digest_reference": {"type": "string", "pattern": "^ghcr\\.io/unstaticlabs/usl-odoo-operations@sha256:[0-9a-f]{64}$"}
       }
     },
     "database": {

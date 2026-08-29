@@ -119,7 +119,7 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # The production backup tool is built from its own Dockerfile and is not
+  # Permanent operations and backup tooling uses its own Dockerfile and is not
   # discovered by the root Docker update entry.
   - package-ecosystem: "docker"
     directory: "/docker"
@@ -130,7 +130,7 @@ updates:
       timezone: "Europe/Paris"
     open-pull-requests-limit: 2
     groups:
-      compatible-backup-image-updates:
+      compatible-operations-image-updates:
         patterns:
           - "*"
         update-types:

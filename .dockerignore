@@ -14,6 +14,15 @@
 !scripts/
 scripts/*
 !scripts/odoo_backup.py
+!scripts/continuous-operations
+!scripts/continuous_operations_compose.py
+!scripts/continuous_operations_contracts.py
+!scripts/deployment_run.py
+!scripts/distribution_release.py
+!scripts/production_cohort.py
+!scripts/release_identity.py
+!scripts/retention_policy.py
+!scripts/upgrade_plan.py
 
 !addons/
 !addons/**
@@ -27,6 +36,8 @@ deploy/*
 deploy/documents/*
 !deploy/documents/paperless-ngx/
 !deploy/documents/paperless-ngx/**
+!deploy/continuous-operations/
+!deploy/continuous-operations/**
 !odoo/
 !odoo/**
 !setup/

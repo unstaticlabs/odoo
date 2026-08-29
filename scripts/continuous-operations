@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+
+case "${1:-}" in
+  backup)
+    shift
+    exec python3 /opt/usl/odoo_backup.py "$@"
+    ;;
+  release)
+    shift
+    exec python3 /opt/usl/distribution_release.py "$@"
+    ;;
+  cohort)
+    shift
+    exec python3 /opt/usl/production_cohort.py "$@"
+    ;;
+  compose)
+    shift
+    exec python3 /opt/usl/continuous_operations_compose.py "$@"
+    ;;
+  run)
+    shift
+    exec python3 /opt/usl/deployment_run.py "$@"
+    ;;
+  retention)
+    shift
+    exec python3 /opt/usl/retention_policy.py "$@"
+    ;;
+  upgrade-plan)
+    shift
+    exec python3 /opt/usl/upgrade_plan.py "$@"
+    ;;
+  *)
+    printf '%s\n' 'usage: continuous-operations {backup|release|cohort|compose|run|retention|upgrade-plan} ...' >&2
+    exit 2
+    ;;
+esac

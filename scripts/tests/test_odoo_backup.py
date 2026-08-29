@@ -30,7 +30,7 @@ def manifest() -> dict:
             "git_sha": "a" * 40,
             "image_digest_reference": f"ghcr.io/unstaticlabs/usl-odoo@sha256:{'b' * 64}",
         },
-        "tool": {"image_digest_reference": f"ghcr.io/unstaticlabs/usl-odoo-backup@sha256:{'c' * 64}"},
+        "tool": {"image_digest_reference": f"ghcr.io/unstaticlabs/usl-odoo-operations@sha256:{'c' * 64}"},
         "database": {
             "dump_file": "database.dump",
             "dump_bytes": 42,
@@ -205,7 +205,7 @@ class OrchestrationPolicyTest(unittest.TestCase):
         cls.compose = (ROOT / "deploy/odoo-backup/compose.yaml").read_text(encoding="utf-8")
         cls.backup_wrapper = (ROOT / "scripts/odoo-backup").read_text(encoding="utf-8")
         cls.restore_wrapper = (ROOT / "scripts/odoo-restore").read_text(encoding="utf-8")
-        cls.dockerfile = (ROOT / "docker/backup.Dockerfile").read_text(encoding="utf-8")
+        cls.dockerfile = (ROOT / "docker/operations.Dockerfile").read_text(encoding="utf-8")
         cls.qualification = (ROOT / "deploy/odoo-backup/compose.qualification.yaml").read_text(encoding="utf-8")
         cls.r2_qualification = (ROOT / "deploy/odoo-backup/compose.r2-qualification.yaml").read_text(encoding="utf-8")
 
@@ -261,13 +261,13 @@ class OrchestrationPolicyTest(unittest.TestCase):
 
     def test_komodo_services_have_zero_argument_stage_commands(self) -> None:
         for command in (
-            '["preflight"]',
-            '["prepare", "--mode", "live"]',
-            '["push"]',
-            '["restore-fetch"]',
-            '["restore-reset-apply"]',
-            '["verify"]',
-            '["finalize"]',
+            '["backup", "preflight"]',
+            '["backup", "prepare", "--mode", "live"]',
+            '["backup", "push"]',
+            '["backup", "restore-fetch"]',
+            '["backup", "restore-reset-apply"]',
+            '["backup", "verify"]',
+            '["backup", "finalize"]',
         ):
             self.assertIn(f"command: {command}", self.compose)
 

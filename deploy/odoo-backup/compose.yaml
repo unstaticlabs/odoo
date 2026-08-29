@@ -2,7 +2,7 @@
 # names (the live network and Odoo data volume) are supplied by GitOps. No
 # restore service mounts either production resource.
 x-backup-tool: &backup-tool
-  image: ${USL_BACKUP_TOOL_IMAGE:-usl-odoo-backup:local}
+  image: ${USL_OPERATIONS_IMAGE:-usl-odoo-operations:local}
   profiles: ["backup"]
   restart: "no"
 
@@ -30,7 +30,7 @@ services:
       <<: *restic
     networks:
       - egress
-    command: ["preflight"]
+    command: ["backup", "preflight"]
 
   prepare:
     <<: *backup-tool
@@ -42,7 +42,7 @@ services:
       ODOO_DATA_ROOT: /source-data
       USL_SOURCE_GIT_SHA: ${USL_SOURCE_GIT_SHA:-}
       USL_SOURCE_IMAGE_DIGEST: ${USL_SOURCE_IMAGE_DIGEST:-}
-      USL_BACKUP_TOOL_IMAGE_DIGEST: ${USL_BACKUP_TOOL_IMAGE_DIGEST:-}
+      USL_OPERATIONS_IMAGE_DIGEST: ${USL_OPERATIONS_IMAGE_DIGEST:-}
       USL_BACKUP_QUIESCED_CONFIRMED: ${USL_BACKUP_QUIESCED_CONFIRMED:-}
     volumes:
       - staging:/staging
@@ -50,7 +50,7 @@ services:
       - source-data:/source-data:ro
     networks:
       - production-db
-    command: ["prepare", "--mode", "live"]
+    command: ["backup", "prepare", "--mode", "live"]
 
   push:
     <<: *backup-tool
@@ -64,7 +64,7 @@ services:
       - restic-cache:/cache
     networks:
       - egress
-    command: ["push"]
+    command: ["backup", "push"]
 
   restore-fetch:
     <<: *backup-tool
@@ -78,7 +78,7 @@ services:
       - restic-cache:/cache
     networks:
       - egress
-    command: ["restore-fetch"]
+    command: ["backup", "restore-fetch"]
 
   clone-db:
     image: postgres:18-bookworm@sha256:1c59e2c3c818eaa0f0628f695b36e7c9e362d6b219b36a54a32df645cbd7e1af
@@ -122,7 +122,7 @@ services:
       - state:/state
     networks:
       - clone-internal
-    command: ["restore-reset-apply"]
+    command: ["backup", "restore-reset-apply"]
 
   neutralize:
     image: ${ODOO_SOURCE_IMAGE:-ghcr.io/unstaticlabs/usl-odoo@sha256:0000000000000000000000000000000000000000000000000000000000000000}
@@ -169,7 +169,7 @@ services:
       - state:/state
     networks:
       - clone-internal
-    command: ["verify"]
+    command: ["backup", "verify"]
 
   finalize:
     <<: *backup-tool
@@ -181,7 +181,7 @@ services:
       - restic-cache:/cache
     networks:
       - egress
-    command: ["finalize"]
+    command: ["backup", "finalize"]
 
 volumes:
   staging:

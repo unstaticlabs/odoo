@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+
+python3 -m py_compile \
+  scripts/continuous_operations_contracts.py \
+  scripts/continuous_operations_compose.py \
+  scripts/deployment_run.py \
+  scripts/distribution_release.py \
+  scripts/production_cohort.py \
+  scripts/retention_policy.py \
+  scripts/upgrade_plan.py
+python3 -m unittest \
+  scripts.tests.test_distribution_release \
+  scripts.tests.test_continuous_operations \
+  scripts.tests.test_odoo_backup
+python3 -m json.tool operations/contracts/distribution-release-v3.schema.json >/dev/null
+python3 -m json.tool operations/contracts/production-cohort-v1.schema.json >/dev/null
+python3 -m json.tool operations/contracts/deployment-run-v1.schema.json >/dev/null
+docker compose -f deploy/continuous-operations/compose.yaml config --no-interpolate >/dev/null
+python3 scripts/continuous_operations_compose.py hash
+
+if [[ -n "${RELEASE:-}" ]]; then
+  python3 scripts/distribution_release.py validate "$RELEASE"
+fi
+if [[ -n "${COHORT:-}" ]]; then
+  python3 scripts/production_cohort.py "$COHORT"
+fi
+if [[ -n "${RUN:-}" ]]; then
+  python3 scripts/deployment_run.py validate "$RUN"
+fi
+
+printf '%s\n' 'Continuous release verification: PASS'

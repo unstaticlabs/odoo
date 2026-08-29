@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/contracts/usl-distribution-release-v3.schema.json",
+  "title": "usl-distribution-release/v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "artifacts", "product", "component_sources", "build", "upgrade_plan"],
+  "properties": {
+    "schema": {"const": "usl-distribution-release/v3"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repository", "commit_sha"],
+      "properties": {
+        "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+        "commit_sha": {"$ref": "#/$defs/commit"}
+      }
+    },
+    "artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["odoo_distribution", "operations_tool", "paperless_overlay", "document_renderer", "native_sign_dss"],
+      "properties": {
+        "odoo_distribution": {"$ref": "#/$defs/artifact"},
+        "operations_tool": {"$ref": "#/$defs/artifact"},
+        "paperless_overlay": {"$ref": "#/$defs/artifact"},
+        "document_renderer": {"$ref": "#/$defs/artifact"},
+        "native_sign_dss": {"$ref": "#/$defs/artifact"}
+      }
+    },
+    "product": {
+      "type": "object", "additionalProperties": false,
+      "required": ["modules", "oca", "action_risk"],
+      "properties": {
+        "modules": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["name", "version"], "properties": {"name": {"type": "string"}, "version": {"type": "string"}}}},
+        "oca": {"type": "object", "additionalProperties": false, "required": ["bundle_sha256", "repositories"], "properties": {"bundle_sha256": {"$ref": "#/$defs/sha256"}, "repositories": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["name", "url", "branch", "commit"], "properties": {"name": {"type": "string"}, "url": {"type": "string"}, "branch": {"type": "string"}, "commit": {"$ref": "#/$defs/commit"}}}}}},
+        "action_risk": {"type": "object", "additionalProperties": false, "required": ["policy_sha256"], "properties": {"policy_sha256": {"$ref": "#/$defs/sha256"}}}
+      }
+    },
+    "component_sources": {"type": "object", "additionalProperties": false, "required": ["document_renderer"], "properties": {"document_renderer": {"type": "object", "additionalProperties": false, "required": ["repository", "commit_sha"], "properties": {"repository": {"type": "string"}, "commit_sha": {"$ref": "#/$defs/commit"}}}}},
+    "build": {"type": "object", "additionalProperties": false, "required": ["workflow_run_id", "workflow_run_attempt", "workflow_url"], "properties": {"workflow_run_id": {"type": "integer", "minimum": 1}, "workflow_run_attempt": {"type": "integer", "minimum": 1}, "workflow_url": {"type": "string", "format": "uri"}}},
+    "upgrade_plan": {"$ref": "#/$defs/upgradePlan"}
+  },
+  "$defs": {
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "tag", "digest", "digest_reference", "source_commit_sha", "origin", "attestations"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^ghcr\\.io/[a-z0-9][a-z0-9._/-]*$"},
+        "tag": {"type": "string", "pattern": "^sha-[0-9a-f]{40}$"},
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "digest_reference": {"type": "string", "pattern": "^ghcr\\.io/[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}$"},
+        "source_commit_sha": {"$ref": "#/$defs/commit"},
+        "origin": {"type": "object", "additionalProperties": false, "required": ["kind", "release_commit_sha"], "properties": {"kind": {"const": "built_for_release"}, "release_commit_sha": {"$ref": "#/$defs/commit"}}},
+        "attestations": {"type": "object", "additionalProperties": false, "required": ["oci_sbom", "buildkit_provenance", "github_provenance"], "properties": {"oci_sbom": {"const": "generated"}, "buildkit_provenance": {"const": "generated"}, "github_provenance": {"const": "generated"}}}
+      }
+    },
+    "upgradePlan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "from_commit_sha", "to_commit_sha", "mode", "reason", "changed_modules", "upgrade_modules", "foundation_paths"],
+      "properties": {
+        "schema": {"const": "usl-upgrade-plan/v1"},
+        "from_commit_sha": {"oneOf": [{"$ref": "#/$defs/commit"}, {"type": "null"}]},
+        "to_commit_sha": {"$ref": "#/$defs/commit"},
+        "mode": {"enum": ["none", "dependency_closure", "full_fallback"]},
+        "reason": {"type": "string", "minLength": 1},
+        "changed_modules": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "upgrade_modules": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "foundation_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    }
+  }
+}

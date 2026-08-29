@@ -1,0 +1,120 @@
+# Canonical source for the GitOps-vendored permanent operations stack. This
+# stack never commits or pushes the GitOps checkout; it emits exact pin evidence.
+x-operation: &operation
+  image: ${USL_OPERATIONS_IMAGE:?Pin ghcr.io/unstaticlabs/usl-odoo-operations by digest}
+  profiles: ["operations"]
+  restart: "no"
+  environment: &operation-environment
+    TZ: Europe/Paris
+    USL_ALERT_RELAY_URL: ${USL_ALERT_RELAY_URL:-}
+    USL_ALERT_RELAY_SECRET_FILE: /run/secrets/alert_relay_secret
+    USL_OPERATIONS_CONTRACT_ROOT: /contracts
+    USL_OPERATIONS_STATE_ROOT: /state
+    USL_OPERATIONS_EVIDENCE_ROOT: /evidence
+    USL_STAGE_RESULT_DIR: /evidence/stage-results
+    USL_GITOPS_CHECKOUT: /gitops
+    USL_EINVOICE_LIVE_ENABLED: "0"
+    USL_EREPORTING_LIVE_ENABLED: "0"
+  volumes: &operation-volumes
+    - ${USL_OPERATIONS_CONTRACT_DIR:?Contract directory required}:/contracts:ro
+    - ${USL_OPERATIONS_STATE_DIR:?State directory required}:/state
+    - ${USL_OPERATIONS_EVIDENCE_DIR:?Evidence directory required}:/evidence
+    - ${USL_OPERATIONS_HOOK_DIR:?Audited hook directory required}:/hooks:ro
+    - ${USL_GITOPS_CHECKOUT:?GitOps checkout required}:/gitops:ro
+  secrets:
+    - alert_relay_secret
+
+services:
+  release-cutoff:
+    <<: *operation
+    command:
+      - run
+      - init
+      - --mode
+      - auto
+      - --deployed-release
+      - /contracts/deployed-release.json
+      - --candidate-release
+      - /contracts/candidate-release.json
+      - --cohort
+      - /contracts/recovery-cohort.json
+      - --state
+      - /state/deployment-run.json
+
+  validate:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, validate, --hook-dir, /hooks]
+
+  drain:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, drain, --hook-dir, /hooks]
+
+  quiesce:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, quiesce, --hook-dir, /hooks]
+
+  snapshot:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, snapshot, --hook-dir, /hooks, --snapshot-result, /evidence/snapshot-cohort.json]
+
+  restore:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, restore, --hook-dir, /hooks]
+
+  rehearse-upgrade:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, rehearse_upgrade, --hook-dir, /hooks]
+
+  qualify:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, qualify, --hook-dir, /hooks]
+
+  prepare-pins:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, prepare_pins, --hook-dir, /hooks, --pins-output, /evidence/gitops-pins.json]
+
+  upgrade-production:
+    <<: *operation
+    command:
+      - run
+      - stage
+      - --state
+      - /state/deployment-run.json
+      - --name
+      - upgrade_production
+      - --hook-dir
+      - /hooks
+      - --gitops-result
+      - /evidence/candidate-gitops.json
+      - --upgrade-result
+      - /evidence/upgrade-result.json
+
+  admit:
+    <<: *operation
+    command:
+      - run
+      - stage
+      - --state
+      - /state/deployment-run.json
+      - --name
+      - admit
+      - --hook-dir
+      - /hooks
+      - --gitops-result
+      - /evidence/admitted-gitops.json
+
+  reopen:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, reopen, --hook-dir, /hooks]
+
+  record:
+    <<: *operation
+    command: [run, stage, --state, /state/deployment-run.json, --name, record, --hook-dir, /hooks]
+
+  retention-plan:
+    <<: *operation
+    command: [retention, --inventory, /contracts/cohort-retention-inventory.json, --output, /evidence/retention-plan.json]
+
+secrets:
+  alert_relay_secret:
+    file: ${USL_ALERT_RELAY_SECRET_HOST_FILE:?Alert relay secret file required}

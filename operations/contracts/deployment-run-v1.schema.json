@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/contracts/usl-deployment-run-v1.schema.json",
+  "title": "usl-deployment-run/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "mode", "source", "schedule", "state", "writers", "mutation_started", "production_reopened", "stages", "pins", "rollback", "incident", "created_at", "updated_at", "contract_sha256"],
+  "properties": {
+    "schema": {"const": "usl-deployment-run/v1"},
+    "run_id": {"type": "string"},
+    "mode": {"enum": ["release", "backup_only"]},
+    "source": {"type": "object", "additionalProperties": false, "required": ["candidate_release_sha256", "deployed_release_sha256", "candidate_commit_sha", "deployed_commit_sha", "recovery_cohort_id", "active_cohort_id", "active_cohort_sha256"], "properties": {"candidate_release_sha256": {"$ref": "#/$defs/sha256"}, "deployed_release_sha256": {"$ref": "#/$defs/sha256"}, "candidate_commit_sha": {"$ref": "#/$defs/commit"}, "deployed_commit_sha": {"$ref": "#/$defs/commit"}, "recovery_cohort_id": {"type": "string"}, "active_cohort_id": {"type": "string"}, "active_cohort_sha256": {"$ref": "#/$defs/sha256"}}},
+    "schedule": {"type": "object", "additionalProperties": false, "required": ["timezone", "service_date", "release_cutoff", "window_opens", "window_closes"], "properties": {"timezone": {"const": "Europe/Paris"}, "service_date": {"type": "string", "format": "date"}, "release_cutoff": {"const": "03:45"}, "window_opens": {"const": "04:00"}, "window_closes": {"const": "07:00"}}},
+    "state": {"type": "string"},
+    "writers": {"enum": ["open", "paused"]},
+    "mutation_started": {"type": "boolean"},
+    "production_reopened": {"type": "boolean"},
+    "stages": {"type": "array", "minItems": 12, "maxItems": 12, "items": {"type": "object", "additionalProperties": false, "required": ["name", "status", "attempts", "started_at", "completed_at", "evidence_sha256", "error"], "properties": {"name": {"type": "string"}, "status": {"enum": ["pending", "running", "succeeded", "failed", "skipped"]}, "attempts": {"type": "integer", "minimum": 0}, "started_at": {"type": ["string", "null"]}, "completed_at": {"type": ["string", "null"]}, "evidence_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}, "error": {"type": ["string", "null"]}}}},
+    "pins": {"type": "object", "additionalProperties": false, "required": ["candidate", "deployed", "recovery", "patch_sha256", "gitops"], "properties": {"candidate": {"$ref": "#/$defs/artifactPins"}, "deployed": {"$ref": "#/$defs/artifactPins"}, "recovery": {"$ref": "#/$defs/artifactPins"}, "patch_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}, "gitops": {"type": "object", "additionalProperties": false, "required": ["candidate", "admitted", "recovery"], "properties": {"candidate": {"$ref": "#/$defs/gitopsResult"}, "admitted": {"$ref": "#/$defs/gitopsResult"}, "recovery": {"$ref": "#/$defs/gitopsResult"}}}}},
+    "rollback": {"type": "object", "additionalProperties": false, "required": ["status", "reason", "evidence_sha256"], "properties": {"status": {"enum": ["not_required", "pre_mutation_reopened", "running", "completed", "failed"]}, "reason": {"type": ["string", "null"]}, "evidence_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}}},
+    "incident": {"type": "object", "additionalProperties": false, "required": ["decision_required", "reason"], "properties": {"decision_required": {"type": "boolean"}, "reason": {"type": ["string", "null"]}}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "digestReference": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}$"},
+    "artifactPins": {"type": "object", "additionalProperties": false, "required": ["odoo_distribution", "operations_tool", "paperless_overlay", "document_renderer", "native_sign_dss"], "properties": {"odoo_distribution": {"$ref": "#/$defs/digestReference"}, "operations_tool": {"$ref": "#/$defs/digestReference"}, "paperless_overlay": {"$ref": "#/$defs/digestReference"}, "document_renderer": {"$ref": "#/$defs/digestReference"}, "native_sign_dss": {"$ref": "#/$defs/digestReference"}}},
+    "gitopsResult": {"type": "object", "additionalProperties": false, "required": ["expected_commit", "observed_commit"], "properties": {"expected_commit": {"oneOf": [{"$ref": "#/$defs/commit"}, {"type": "null"}]}, "observed_commit": {"oneOf": [{"$ref": "#/$defs/commit"}, {"type": "null"}]}}}
+  }
+}

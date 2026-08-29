@@ -21,7 +21,7 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SNAPSHOT_RE = re.compile(r"^[0-9a-f]{64}$")
 BACKUP_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{7,95}$")
 SOURCE_IMAGE_RE = re.compile(r"^ghcr\.io/unstaticlabs/usl-odoo@sha256:[0-9a-f]{64}$")
-TOOL_IMAGE_RE = re.compile(r"^ghcr\.io/unstaticlabs/usl-odoo-backup@sha256:[0-9a-f]{64}$")
+TOOL_IMAGE_RE = re.compile(r"^ghcr\.io/unstaticlabs/usl-odoo-operations@sha256:[0-9a-f]{64}$")
 PRODUCTION_REPOSITORY_RE = re.compile(r"/usl-backups/odoo-production/(?:prod|qualification)(?:/|$)")
 COUNT_TABLES = (
     "res_users",
@@ -333,13 +333,13 @@ def prepare(args: argparse.Namespace) -> None:
     ):
         fail("ODOO_DB_NAME is required and contains an unsafe character")
     source_image = os.environ.get("USL_SOURCE_IMAGE_DIGEST", "")
-    tool_image = os.environ.get("USL_BACKUP_TOOL_IMAGE_DIGEST", "")
+    tool_image = os.environ.get("USL_OPERATIONS_IMAGE_DIGEST", "")
     if not SHA_RE.fullmatch(git_sha):
         fail("USL_SOURCE_GIT_SHA must be a full Git SHA")
     if not SOURCE_IMAGE_RE.fullmatch(source_image):
         fail("USL_SOURCE_IMAGE_DIGEST must be an immutable USL Odoo digest reference")
     if not TOOL_IMAGE_RE.fullmatch(tool_image):
-        fail("USL_BACKUP_TOOL_IMAGE_DIGEST must be an immutable USL backup-tool digest reference")
+        fail("USL_OPERATIONS_IMAGE_DIGEST must be an immutable USL operations-tool digest reference")
     if args.mode == "quiesced" and os.environ.get("USL_BACKUP_QUIESCED_CONFIRMED") != "odoo-writers-stopped":
         fail("quiesced mode requires USL_BACKUP_QUIESCED_CONFIRMED=odoo-writers-stopped")
 
