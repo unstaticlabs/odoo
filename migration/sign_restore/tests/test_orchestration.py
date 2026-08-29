@@ -77,6 +77,33 @@ class SignOrchestrationTest(unittest.TestCase):
         self.assertNotIn("len(external_documents) == 41", validation)
         self.assertNotIn('counts["mail.message"] == 86', validation)
 
+    def test_restore_rebinds_exact_finalized_business_records(self):
+        restore = (
+            ROOT / "migration/sign_restore/scripts/run_restore.py"
+        ).read_text(encoding="utf-8")
+        validation = (
+            ROOT / "migration/sign_restore/scripts/validate_restore.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("finalized_candidates", restore)
+        self.assertIn(
+            '("original_sha256", "=", artifact_match["signed_sha256"])',
+            restore,
+        )
+        self.assertIn("Ambiguous finalized request", restore)
+        self.assertIn("Ambiguous finalized history message", restore)
+        self.assertIn("changed business identity", restore)
+        self.assertIn(') == len(source["requests"])', validation)
+        self.assertIn(') == len(source["signers"])', validation)
+
+    def test_scoped_paperless_identity_is_removed_on_success_and_failure(self):
+        restore = SIGN_RESTORE.read_text(encoding="utf-8")
+
+        self.assertIn("deprovision_archive_identity()", restore)
+        self.assertIn("cleanup_sign_restore()", restore)
+        self.assertIn('trap cleanup_sign_restore EXIT', restore)
+        self.assertIn("paperless_migration_access_cleanup.py", restore)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -171,6 +171,12 @@ assert counts["mail.message"] == (
 assert env["sign.oca.request"].sudo().search_count(  # noqa: F821
     [("record_kind", "=", "external_archive"), ("state", "!=", "external_archived")],
 ) == 0
+assert env["sign.oca.request"].sudo().search_count(  # noqa: F821
+    [("record_kind", "=", "external_archive")],
+) == len(source["requests"])
+assert env["sign.oca.request.signer"].sudo().search_count(  # noqa: F821
+    [("state", "=", "external_recorded")],
+) == len(source["signers"])
 
 result = {
     "source_snapshot": SOURCE_SNAPSHOT,
