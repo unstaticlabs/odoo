@@ -176,6 +176,9 @@ specialist guidance only when its technical risk domain applies.
 
 ## Commit Discipline
 
+- Load `usl-commit-work` whenever creating or repairing commits. Create
+  agent-authored commits through `scripts/agent/commit`; it reads the
+  worktree-local identities and adds the required attribution exactly once.
 - Make regular scoped commits after validated chunks of work.
 - Use Conventional Commits 1.0.0 syntax: `<type>(<scope>): <description>`.
 - Include a short body describing validation for non-trivial accounting, migration, reporting or security work.

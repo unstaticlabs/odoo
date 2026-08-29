@@ -356,6 +356,94 @@ class AgentInterfaceTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("Validated 1", result.stdout)
 
+    def test_commit_helper_builds_real_newlines_and_exact_attribution(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            agent_dir = root / "scripts" / "agent"
+            state = root / ".agent"
+            agent_dir.mkdir(parents=True)
+            state.mkdir(mode=0o700)
+            shutil.copy2(AGENT / "commit", agent_dir / "commit")
+            identity = {
+                "schema": "usl-agent-github-identity/v1",
+                "repository": "unstaticlabs/odoo",
+                "agent": {
+                    "login": "elio-usl",
+                    "name": "Coding Agent",
+                    "email": "agent@example.invalid",
+                },
+                "driving_human": {
+                    "name": "ValentinViennot",
+                    "email": "driver@example.invalid",
+                },
+            }
+            (state / "identity.json").write_text(
+                json.dumps(identity),
+                encoding="utf-8",
+            )
+            for command in (
+                ("git", "init", "-q"),
+                ("git", "config", "extensions.worktreeConfig", "true"),
+                ("git", "config", "--worktree", "user.name", "Coding Agent"),
+                ("git", "config", "--worktree", "user.email", "agent@example.invalid"),
+            ):
+                subprocess.run(command, cwd=root, check=True)
+            (root / "change.txt").write_text("change\n", encoding="utf-8")
+            subprocess.run(("git", "add", "change.txt"), cwd=root, check=True)
+            result = subprocess.run(
+                (
+                    str(agent_dir / "commit"),
+                    "--type",
+                    "fix",
+                    "--scope",
+                    "migration",
+                    "--summary",
+                    "preserve source identity",
+                    "--body",
+                    "Allocate native identifiers deterministically.",
+                    "--validation",
+                    "focused migration tests passed",
+                ),
+                cwd=root,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            message = subprocess.check_output(
+                ("git", "show", "-s", "--format=%B", "HEAD"),
+                cwd=root,
+                text=True,
+            )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn("\\n", message)
+        self.assertEqual(1, message.count("AI-generated commit"))
+        self.assertEqual(1, message.count("Co-authored-by:"))
+        self.assertIn("\n\nValidation:\n- focused migration tests passed\n", message)
+
+    def test_commit_helper_rejects_literal_newline_escape(self) -> None:
+        configured = {
+            "agent": {"name": "Coding Agent", "email": "agent@example.invalid"},
+            "driving_human": {
+                "name": "ValentinViennot",
+                "email": "driver@example.invalid",
+            },
+        }
+        commit = load_script("commit")
+        arguments = type(
+            "Arguments",
+            (),
+            {
+                "type": "fix",
+                "scope": "migration",
+                "summary": "repair message",
+                "body": ["first\\nsecond"],
+                "validation": [],
+            },
+        )()
+        with self.assertRaisesRegex(commit.CommitError, "escaped or embedded"):
+            commit.build_message(arguments, configured)
+
     def test_skill_verifier_detects_symlink_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

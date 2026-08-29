@@ -26,6 +26,7 @@ from lib import (  # noqa: E402
 
 
 SKILLS = {
+    "usl-commit-work",
     "usl-upstream-sync",
     "odoo-ui-product-quality",
     "odoo-migration-upgrade-safety",
@@ -145,7 +146,16 @@ def show(errors: list[str]) -> int:
 
 def repository(_arguments: argparse.Namespace) -> int:
     errors = check_contracts() + check_policy() + check_skills()
-    for script in ("context", "handoff", "verify", "qa-up", "qa-status", "qa-down", "github"):
+    for script in (
+        "commit",
+        "context",
+        "handoff",
+        "verify",
+        "qa-up",
+        "qa-status",
+        "qa-down",
+        "github",
+    ):
         path = ROOT / "scripts" / "agent" / script
         if not path.is_file() or not os.access(path, os.X_OK):
             errors.append(f"scripts/agent/{script} is missing or not executable")
