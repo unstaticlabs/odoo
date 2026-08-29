@@ -612,6 +612,19 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('USL_DOCUMENTS_TASK_WORKERS:-1', target)
         self.assertIn('USL_DOCUMENTS_TASK_WORKERS:-3', target)
 
+    def test_paperless_periodic_side_effects_are_disabled_by_default(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+
+        for setting in (
+            "PAPERLESS_EMAIL_TASK_CRON",
+            "PAPERLESS_TRAIN_TASK_CRON",
+            "PAPERLESS_SANITY_TASK_CRON",
+            "PAPERLESS_EMPTY_TRASH_TASK_CRON",
+            "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON",
+            "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON",
+        ):
+            self.assertIn(f"{setting}: ${{{setting}:-disable}}", compose)
+
     def test_fast_qa_verifies_seed_before_reset_and_uses_official_importer(self):
         script = QA_SCRIPT.read_text(encoding="utf-8")
 
