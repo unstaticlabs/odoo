@@ -335,6 +335,15 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('env["usl.document.operation"]', reset)
         self.assertIn('env["usl.document.link"]', reset)
         self.assertIn('env["usl.document"]', reset)
+        self.assertIn('env["usl.document.context.tag"]', reset)
+        self.assertIn('env["usl.document.smart.view"]', reset)
+        self.assertIn('env["usl.paperless.user.mapping"]', reset)
+        for model_name in (
+            "usl.paperless.tag",
+            "usl.paperless.correspondent",
+            "usl.paperless.document.type",
+        ):
+            self.assertIn(f'env["{model_name}"]', reset)
         self.assertIn('env.get("b2c.provider.evidence")', reset)
         self.assertIn("with_context(b2c_evidence_import=True).write", reset)
         self.assertLess(
@@ -352,6 +361,18 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             reset.index('_clear_external_references(\n        "usl_document"'),
             reset.index("Operation.search([]).unlink()"),
         )
+        self.assertLess(
+            reset.index("Document.with_context(active_test=False).search([]).unlink()"),
+            reset.index("UserMapping.with_context(active_test=False).search([]).unlink()"),
+        )
+        self.assertLess(
+            reset.index("ContextTag.with_context(active_test=False).search([]).unlink()"),
+            reset.index('paperless_tags = metadata_models["paperless_tags"]'),
+        )
+        self.assertIn("SET paperless_id = NULL", reset)
+        self.assertIn('SmartView.invalidate_model(["paperless_id"])', reset)
+        self.assertIn("usl_documents_cache_write=True", reset)
+        self.assertIn('"usl_documents.paperless_custom_fields"', reset)
 
     def test_restore_uses_all_mapped_companies_for_archive_policy(self):
         restore = (
@@ -377,6 +398,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             self.assertIn(f'"{model_name}"', restore)
         self.assertIn("unsupported_relationships", restore)
         self.assertIn("preserved_governed_extension_relationship_count", restore)
+        self.assertIn("company_scopes.append(resolve_company_scope(group))", restore)
+        self.assertIn('for scope in company_scopes', restore)
+        self.assertIn("company_scope = company_scopes[index - 1]", restore)
 
     def test_repeated_restore_skips_unchanged_permission_writes(self):
         restore = (
