@@ -13,7 +13,7 @@ if os.environ.get("USL_EREPORTING_LIVE_ENABLED", "") != "0":
     errors.append("e-reporting live access is enabled")
 
 parameters = env["ir.config_parameter"].sudo()  # noqa: F821
-if not parameters.get_param("database.is_neutralized") in {"1", "True", "true"}:
+if not parameters.get_bool("database.is_neutralized"):
     errors.append("Odoo standard neutralization marker is absent")
 
 active_mail_servers = env["ir.mail_server"].sudo().search([("active", "=", True)])  # noqa: F821
