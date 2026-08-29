@@ -13,6 +13,7 @@ authorizations or execute destructive technical maintenance.
 | Technical Administrator | Roger's daily product and safe technical work | B2C operations and sensitive evidence, Projects, Documents, Accounting read-only, audit and technical inspection | Accounting mutation, identity/security mutation, locks, governed-history deletion, modules and unreviewed automation |
 | Accounting Reviewer | Prosper's annual Accounting work | Read and reversible write work in unlocked Accounting periods, posting, reset to draft, reconciliation, Accounting evidence and reports | Unrelated applications, user/security administration, locks and permanent deletion |
 | AI Agent | Explicit machine-identity marker, combined with separate application groups | The application groups assigned to the Agent | Every irreversible action, even through an implied group, RPC or `sudo()` |
+| Feedback Maintainer | Explicit Product Feedback capability for a human maintainer or approved service identity | The governed Product Feedback Project and all company-allowed feedback tasks | Other Project administration and feedback from inactive companies |
 | Irreversible Actions | Separately visible human capability | Permanent deletion, lock and authorization changes, destructive technical maintenance and external registration changes | Incompatible with AI Agent |
 
 Roles do not replace company access. Odoo's allowed-company list and active

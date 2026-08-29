@@ -436,6 +436,21 @@
     },
     {
       "action_keys": [
+        "rpc:usl.feedback.submission.action_submit",
+        "rpc:usl.feedback.submission.copy",
+        "rpc:usl.feedback.submission.copy_data",
+        "rpc:usl.feedback.submission.create",
+        "rpc:usl.feedback.submission.formatted_read_grouping_sets",
+        "rpc:usl.feedback.submission.get_view",
+        "rpc:usl.feedback.submission.name_create",
+        "rpc:usl.feedback.submission.onchange",
+        "rpc:usl.feedback.submission.unlink",
+        "rpc:usl.feedback.submission.update_field_translations",
+        "rpc:usl.feedback.submission.web_read_group",
+        "rpc:usl.feedback.submission.web_resequence",
+        "rpc:usl.feedback.submission.web_save",
+        "rpc:usl.feedback.submission.web_save_multi",
+        "rpc:usl.feedback.submission.write",
         "server_action:project.action_server_convert_project_to_template",
         "server_action:project.action_server_convert_to_subtask",
         "server_action:project.action_server_convert_to_template",
@@ -451,6 +466,21 @@
       "id": "operational.projects.actions",
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
+        "rpc:usl.feedback.submission.action_submit": "6f35f0b22a361cd0ca462382860685a6d1e0cebb12215d65282ce7806b5acb9c",
+        "rpc:usl.feedback.submission.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.feedback.submission.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.feedback.submission.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
+        "rpc:usl.feedback.submission.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.feedback.submission.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.feedback.submission.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.feedback.submission.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.feedback.submission.unlink": "c319737bffbc3c15e179b902d0a74a3172e3a3d37ee3f05b86316a9d4b07412d",
+        "rpc:usl.feedback.submission.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.feedback.submission.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.feedback.submission.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.feedback.submission.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.feedback.submission.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.feedback.submission.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
         "server_action:project.action_server_convert_project_to_template": "83acab65ef281b745c94e900387b1945477ab28e9cf707121d9ea4935ba605f9",
         "server_action:project.action_server_convert_to_subtask": "86b8645d0452fdfe28315e22fbcec868678ed1f4b6b6d4034d39b4431ac043cd",
         "server_action:project.action_server_convert_to_template": "721cb42a566406dd3d75770331c8fe3c53ce7f8a3ce65a546a60ab7d41e76596",
@@ -2583,7 +2613,7 @@
         "rpc:project.project.unlink": "1dcd5d6f95d1c6db83838d5897b0638c1e142a73fadb3ef9091fd9398b70070a",
         "rpc:project.role.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:project.task.type.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
-        "rpc:project.task.unlink": "2b67ce14e2a7566173946adb968bb14769f8870f19af594198f623bba774eea9",
+        "rpc:project.task.unlink": "6d39ca93cbb8ecd1a77bb23d33e0b7e5516a228e7f02d2a3a8178d01d6919afb",
         "rpc:purchase.order.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
         "rpc:quotation.document.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:res.company.unlink": "2b318640af06fa068b0ec53868669931471b7c55a992b741d89af86ab83d04ae",
@@ -37301,6 +37331,43 @@
         "rpc:task.share.wizard.view_header_get",
         "rpc:task.share.wizard.web_name_search",
         "rpc:task.share.wizard.web_read",
+        "rpc:usl.feedback.submission.action_archive",
+        "rpc:usl.feedback.submission.action_unarchive",
+        "rpc:usl.feedback.submission.check_field_access",
+        "rpc:usl.feedback.submission.copy_translations",
+        "rpc:usl.feedback.submission.default_get",
+        "rpc:usl.feedback.submission.export_data",
+        "rpc:usl.feedback.submission.fields_get",
+        "rpc:usl.feedback.submission.formatted_read_group",
+        "rpc:usl.feedback.submission.get_base_url",
+        "rpc:usl.feedback.submission.get_empty_list_help",
+        "rpc:usl.feedback.submission.get_external_id",
+        "rpc:usl.feedback.submission.get_field_translations",
+        "rpc:usl.feedback.submission.get_formview_action",
+        "rpc:usl.feedback.submission.get_formview_id",
+        "rpc:usl.feedback.submission.get_import_templates",
+        "rpc:usl.feedback.submission.get_metadata",
+        "rpc:usl.feedback.submission.get_property_definition",
+        "rpc:usl.feedback.submission.get_views",
+        "rpc:usl.feedback.submission.has_access",
+        "rpc:usl.feedback.submission.has_field_access",
+        "rpc:usl.feedback.submission.hierarchy_read",
+        "rpc:usl.feedback.submission.load",
+        "rpc:usl.feedback.submission.mail_allowed_qweb_expressions",
+        "rpc:usl.feedback.submission.mail_get_partner_fields",
+        "rpc:usl.feedback.submission.name_search",
+        "rpc:usl.feedback.submission.read",
+        "rpc:usl.feedback.submission.read_progress_bar",
+        "rpc:usl.feedback.submission.search",
+        "rpc:usl.feedback.submission.search_count",
+        "rpc:usl.feedback.submission.search_panel_select_multi_range",
+        "rpc:usl.feedback.submission.search_panel_select_range",
+        "rpc:usl.feedback.submission.search_read",
+        "rpc:usl.feedback.submission.view_header_get",
+        "rpc:usl.feedback.submission.web_name_search",
+        "rpc:usl.feedback.submission.web_override_translations",
+        "rpc:usl.feedback.submission.web_read",
+        "rpc:usl.feedback.submission.web_search_read",
         "ui:project.act_project_project_2_project_task_all",
         "ui:project.action_project_task_burndown_chart_report",
         "ui:project.action_project_task_user_tree",
@@ -37339,7 +37406,10 @@
         "ui:project_todo.project_task_action_convert_todo_to_task",
         "ui:project_todo.project_task_action_todo",
         "ui:sale_margin.action_order_report_projected_margins",
-        "ui:sale_project.action_analytic_reporting_inherit_sale_project"
+        "ui:sale_project.action_analytic_reporting_inherit_sale_project",
+        "ui:usl_feedback.action_feedback_maintainer",
+        "ui:usl_feedback.action_feedback_submission",
+        "ui:usl_feedback.action_my_feedback"
       ],
       "classification": "read_only",
       "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
@@ -38067,6 +38137,43 @@
         "rpc:task.share.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:task.share.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:task.share.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.feedback.submission.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.feedback.submission.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.feedback.submission.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.feedback.submission.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.feedback.submission.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.feedback.submission.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.feedback.submission.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
+        "rpc:usl.feedback.submission.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.feedback.submission.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.feedback.submission.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.feedback.submission.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.feedback.submission.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.feedback.submission.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.feedback.submission.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.feedback.submission.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.feedback.submission.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.feedback.submission.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.feedback.submission.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.feedback.submission.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.feedback.submission.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.feedback.submission.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.feedback.submission.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.feedback.submission.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.feedback.submission.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.feedback.submission.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.feedback.submission.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.feedback.submission.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.feedback.submission.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.feedback.submission.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.feedback.submission.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.feedback.submission.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.feedback.submission.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.feedback.submission.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.feedback.submission.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.feedback.submission.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.feedback.submission.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.feedback.submission.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "ui:project.act_project_project_2_project_task_all": "64ff83ef9a0db1124bbf3ff7e3b398a8dae2b7f7c8cde38edd5998b743fe0435",
         "ui:project.action_project_task_burndown_chart_report": "f5f60a015a1800064bbce31a75804c70266aa1ea1c1a732de6d034ade1d5abc6",
         "ui:project.action_project_task_user_tree": "bc9569194ce6e08e55a75ae3faec5375662f89a1cc326d8c9c2756714ffcd1a1",
@@ -38105,7 +38212,10 @@
         "ui:project_todo.project_task_action_convert_todo_to_task": "fbb237552d492b08ae9d89ca56431875d9efabad12351d272a7928f1aaa7f12d",
         "ui:project_todo.project_task_action_todo": "97aadd36ca9864efc83f989ffff40d053f94846875bab4a120569957e9adb08c",
         "ui:sale_margin.action_order_report_projected_margins": "61a0169ec71957b15aff797238fd58e2e401486bab491a184cee2ac5d07f3ed7",
-        "ui:sale_project.action_analytic_reporting_inherit_sale_project": "05f2a51cba88dfa059bc33f1f3f0aac08e5912e5934000d59ba791904ae19664"
+        "ui:sale_project.action_analytic_reporting_inherit_sale_project": "05f2a51cba88dfa059bc33f1f3f0aac08e5912e5934000d59ba791904ae19664",
+        "ui:usl_feedback.action_feedback_maintainer": "07902432bebefb35f9ca7f6d0376ecdd7d53947c9fb3d965143007b9ae0692ce",
+        "ui:usl_feedback.action_feedback_submission": "fb2a52e2b48ba3813f0c2b8b13f132a65450267cb5dc1317b7554fce95c8c252",
+        "ui:usl_feedback.action_my_feedback": "ba426b1c9d98a9efc412b2f9890c978df2314da3adcd1b2e178bbeab5b575063"
       }
     },
     {
@@ -114495,7 +114605,7 @@
         "rpc:project.task.burndown.chart.report.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.burndown.chart.report.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
         "rpc:project.task.burndown.chart.report.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
-        "rpc:project.task.create": "1912b44a14d224875167ef7e783a7cf1227e770fdc44eb785a51ad6ca5d732bd",
+        "rpc:project.task.create": "03cbcdf545857b6dc82ed3155309f1f39d2d5bdd0c43a468dd91183b058361b9",
         "rpc:project.task.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.recurrence.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
         "rpc:project.task.recurrence.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -114512,7 +114622,7 @@
         "rpc:project.task.type.delete.wizard.write": "8ac30633c900288f4c7939f478530c585e1006439d3931521560c3d3c1a38534",
         "rpc:project.task.type.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.type.write": "530cf7e24ed86127c40e7a32963ad08b717e6463feba97ac4d085384b434eab0",
-        "rpc:project.task.write": "ed803ea5a5e4c030921e612c853cfc2ec81910b3ecb290137820e16df80d3e8f",
+        "rpc:project.task.write": "199f8070e27a49d075477f67ea10ce20fdf70bc453ad1c854082c7696f8fe9e4",
         "rpc:project.template.create.wizard.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
         "rpc:project.template.create.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.template.create.wizard.unlink": "4446861c40a5034ac5c179679ff1c844b0a60cfb878bafa5f6d7f0ee0d67e9cb",
@@ -169226,7 +169336,30 @@
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:1",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:2",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:3",
-        "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4"
+        "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:orm_create:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:orm_unlink:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:orm_write:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:2",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._release_sha:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:message_send:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_create:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_unlink:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_write:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:2",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:3",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:4",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:5",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:6",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:orm_unlink:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -170031,6 +170164,75 @@
         },
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:orm_create:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:orm_unlink:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:orm_write:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:2": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._release_sha:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:message_send:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_create:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_unlink:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_write:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:2": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:3": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:4": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:5": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:6": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:orm_unlink:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:sudo:1": {
+          "reachability_proof": "This fixed feedback implementation sink is reachable only through its separately reviewed RPC parent or a private validation helper; record rules, typed validation, and reporter-attributed audit evidence bound the operation."
         }
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
@@ -170300,7 +170502,30 @@
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:1": "0e80af1360ee7ec9e454fe36679f527708828d2164470d9ad8fbbf217c105f22",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:2": "ea371d67919af7f099ba242730ddecb160b4960412cb58f64c97c41110d88bad",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:3": "321cb9785e4e8b68f57e084b84c82d608b4f1ac22da920281852d2e1df68aa68",
-        "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": "83fde25d8c9891c12d1f5a00a98f387aa442bbe0a6707dde360d7f366b6ee294"
+        "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": "83fde25d8c9891c12d1f5a00a98f387aa442bbe0a6707dde360d7f366b6ee294",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:orm_create:1": "6c2e0d37c6e726a367db5595528f900f415b2978dd7556e970c15953b348bc69",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:sudo:1": "2a7b358cf054eaf2a1fa3983b3ae6991bf3d4e2cf685567d3003f818cf23e490",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:orm_unlink:1": "220cfde78ae332740c90e73cbd751f4057e4756e85ac61384ceebe639990f351",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:sudo:1": "dbbf70452b70d5de4ca5a36d85ab40176bbce06cc14347f53cda9162ea545750",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:orm_write:1": "80e577ad154f4f234d7919c3cc8946b0472486f4134a2213ac1d9023124decca",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:1": "30396f4f50c10ab97f0ef92aad957a62869aeaa8f49001adfe9a995dd499ea0e",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:sudo:2": "6f672e261ac26a23d6549b7a0b93e1b595f055505ba3e2922a7368e086bb7bd5",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._release_sha:sudo:1": "8fcc1d061795aa9e01860a6c6578d74b855078ff955587a2e314421bbc18e384",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": "42ff244db5f3daf97920848d9d7929780a68df79eeab6b4b7d1f7a6d5590de54",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "8e636dc271b13143d78d3f09109b9a920401a55a1f93804ef38726c71e8f504f",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "85dfe009bdcb08f1c4168a25f763e8e4f38f39e9531bcd7044b6cc2d97f46d56",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:message_send:1": "e251411af0b783f040651b4cad1e85619a1c0778d8e603ec5ffa9d1a0a528269",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_create:1": "8e29383f92ab4c209fae3cb0ed064fef5073156caf6df974c22f67e1a2835359",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_unlink:1": "27c8237217be19074e7b0cfcb307c603ebeecbc6e15dc188cd1f3215ccc967e3",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:orm_write:1": "44488c2bda8578919c13e49eb6993ea37486924a8fe205d30c9869dc84f6f994",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:1": "27e108e520bde801cdb1d15aac396cf7b5ba3aed9bfc1ed1d2b543bc9acdb541",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:2": "c9ab59e84dbf4ded3d1eacc81d9f13dc27fa52297bf66f5b0d6db2d3dc0aabfb",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:3": "80f6760ea409c0c88593d8841b2811c5eda3fcc3f8cd1eacb040d69f68da28c9",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:4": "abd34e3eaad0c934a2c35ebdb3510e805ac4cfd882c2158322433fed11be86d0",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:5": "d77d3c13e502cdb6d3e3d06e6ddc6a8cb966a099dbb5ea57f1f1f25c9184db09",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.action_submit:sudo:6": "70282e022c5454e0adc95acfefe2d1591e8a23c2ebdfbcc68ad601ff36e7df8f",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:orm_unlink:1": "e2b4b641d1a740e83e77eb048fd6b641b923c0a48a48385cdfb9ab30182645bd",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:sudo:1": "cc8083e8c6132d09d6f2c3d572a1754f68948d3b76cc6cd52655478ad33047bc"
       }
     },
     {
@@ -188913,7 +189138,8 @@
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_milestone:1",
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_project_ids:1",
         "ui:sale_project.view_sale_project_inherit_form:button:object:action_view_so:1",
-        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1"
+        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1",
+        "ui:usl_feedback.view_feedback_submission_form:button:object:action_submit:1"
       ],
       "classification": "transport",
       "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
@@ -189220,6 +189446,11 @@
           "targets": [
             "rpc:project.project.action_estimated_margin"
           ]
+        },
+        "ui:usl_feedback.view_feedback_submission_form:button:object:action_submit:1": {
+          "targets": [
+            "rpc:usl.feedback.submission.action_submit"
+          ]
         }
       },
       "rationale": "The entry point is a UI, client, or controller transport; every statically resolved target is listed exactly and owns its own risk classification and guard.",
@@ -189283,7 +189514,8 @@
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_milestone:1": "0b9e30e3b7600aef99ce59df5bff09076dfbbe90d8a888f5df99cf88115e57e5",
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_project_ids:1": "4ae3554ac94c51c6fab326b4970fddfa13a67b50e779f6d379a00d0f15b99a07",
         "ui:sale_project.view_sale_project_inherit_form:button:object:action_view_so:1": "cec0cfae6413a298f7671238d47974765055c635266ede75856f1478a73b08bd",
-        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1": "b44f1fbfc2bad7aa1db9d49620e4f0b497be1707b44b0210a18eda52ec328e59"
+        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1": "b44f1fbfc2bad7aa1db9d49620e4f0b497be1707b44b0210a18eda52ec328e59",
+        "ui:usl_feedback.view_feedback_submission_form:button:object:action_submit:1": "388a27544742f7467a2b824908d7938e8d716964d32dab45feaba104e7f500de"
       }
     },
     {
@@ -191467,6 +191699,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "43a8c511f8570b70222904257fb3612fda4ee04fe37ab7b84c9aa94abeb3dded",
+  "qualified_policy_digest": "3b23d6f1a714e69a174a231eeaf27591bdb4fb3b54803f5cb8cd976ad389786c",
   "schema": "usl-action-risk-policy-v1"
 }

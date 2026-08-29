@@ -177,7 +177,7 @@ reset_project() {
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
-product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_home,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_sign,usl_tese_accounting,usl_tese_payroll'
+product_modules='rebuild_account_migration,usl_access_control,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_documents_b2c,usl_expense_batch,usl_feedback,usl_home,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_sign,usl_tese_accounting,usl_tese_payroll'
 
 verify_seed() {
   local runtime_json verify_command

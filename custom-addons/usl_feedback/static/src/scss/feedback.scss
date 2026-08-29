@@ -1,0 +1,25 @@
+.o_usl_feedback_submission {
+    .oe_title h1 {
+        max-width: 100%;
+    }
+
+    .o_field_html {
+        min-height: 8rem;
+    }
+
+    .o_usl_feedback_context .o_group_label {
+        margin-bottom: var(--o-horizontal-padding, 8px);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .o_usl_feedback_submission {
+        .o_form_sheet_bg > .o_form_sheet {
+            padding-inline: 1rem;
+        }
+
+        .o_field_html {
+            min-height: 6rem;
+        }
+    }
+}

@@ -171,6 +171,30 @@ transaction would roll back. Successful protected and Agent mutations are
 stored in immutable Distribution Audit events with the stable action key and
 qualified policy digest.
 
+## Product feedback actions
+
+`usl.feedback.submission.action_submit` is an operational action that creates
+one attributable native task in the fixed **Odoo Product Feedback** Project.
+Its only elevated region runs after summary, sanitized HTML, category, native
+priority, company, exact release identity, page context and attachment
+ownership have been validated. It has no external target and cannot reach
+GitHub or another network service. Recovery is to decline the retained task or,
+for a failed deployment, restore the consistent database and filestore backup.
+
+The user-menu client action delegates only to the fixed submission window
+action. Its context payload contains typed action/model/record/viewport values
+and never a URL or arbitrary browser state. Source records are checked with the
+reporter's own access before their model and identifier are stored.
+
+Feedback task and Project rules are global so native Project-manager rules
+cannot union around them. Ordinary reporters have read/chatter access only to
+their own followed feedback task; cross-reporter search, grouping, chatter,
+activity and attachment paths are negative-tested. The explicit **Feedback
+Maintainer** group is the only non-superuser bypass and remains bounded by the
+native multi-company task rule. Approved service identities receive that group
+explicitly. When Distribution Access Control is installed, an identity also
+marked **AI Agent** retains that module's existing mutation audit.
+
 ## Governed document actions
 
 The LaTeX renderer does not receive an Odoo credential and is not an authority

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_feedback_submission_user,usl.feedback.submission user,model_usl_feedback_submission,base.group_user,1,1,1,1
+access_feedback_project_maintainer,project.project feedback maintainer,project.model_project_project,group_feedback_maintainer,1,1,0,0
+access_feedback_task_maintainer,project.task feedback maintainer,project.model_project_task,group_feedback_maintainer,1,1,1,0
+
