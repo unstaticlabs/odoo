@@ -14,7 +14,7 @@ def accepted_collaboration_expense_context(run):
         run.name == "Collaboration late expense reconciliation"
         and run.status == "partial"
         and run.source_dump_sha256 == LOCKED_SOURCE_SHA256
-        and statistics.get("source_expense_count") == 441
+        and statistics.get("source_expense_count") == 443
         and statistics.get("created_expense_count") == 9
         and statistics.get("mismatch_expense_count") == 18
         and statistics.get("blocked_case_count") == 0

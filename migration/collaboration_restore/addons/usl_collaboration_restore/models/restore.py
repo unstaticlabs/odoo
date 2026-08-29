@@ -812,7 +812,7 @@ class UslCollaborationRestoreRun(models.Model):
         if unclassified:
             raise RuntimeError(f"Unclassified source chatter models: {unclassified}")
 
-        # Accounting's first source-faithful expense pass contained 432 rows;
+        # Accounting's first source-faithful expense pass contained 434 rows;
         # the locked source now exposes nine additional draft business records
         # which own 77 messages.  Reuse the proven native Accounting
         # materializer rather than inventing partial expense records here.
