@@ -2,6 +2,9 @@
 # ruff: noqa: T201
 
 import ast
+import json
+import os
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +35,7 @@ MIGRATION_PATHS = (
     "/mnt/project-migration-addons",
     "/mnt/tese-migration-addons",
     "/mnt/platform-billing-migration-addons",
+    "/mnt/collaboration-migration-addons",
 )
 MIGRATION_SERVICES = (
     "accounting-migration",
@@ -40,7 +44,7 @@ MIGRATION_SERVICES = (
     "tese-migration",
     "platform-billing-migration",
 )
-COLLABORATION_MIGRATION_PATH = "/mnt/collaboration-migration-addons"
+LEGACY_COMPOSE = ROOT / "compose.migration-legacy.yaml"
 
 
 def manifest(path):
@@ -49,6 +53,34 @@ def manifest(path):
 
 def compose_service(compose, name, next_name):
     return compose.split(f"  {name}:", 1)[1].split(f"\n  {next_name}:", 1)[0]
+
+
+def render_compose(*files, profiles=()):
+    command = ["docker", "compose"]
+    for path in files:
+        command.extend(("-f", str(path)))
+    for profile in profiles:
+        command.extend(("--profile", profile))
+    command.extend(("config", "--format", "json"))
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "COMPOSE_PROJECT_NAME": "usl-odoo-migration-legacy-boundary",
+            "USL_ONLINE_DUMP_DIR": "/private/tmp/usl-frozen-source-boundary",
+        },
+    )
+    result = subprocess.run(
+        command,
+        cwd=ROOT,
+        env=environment,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or "Docker Compose rendering failed")
+    return json.loads(result.stdout)
 
 
 errors = []
@@ -115,6 +147,7 @@ for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
             )
 
 compose = (ROOT / "compose.yaml").read_text()
+legacy_compose = LEGACY_COMPOSE.read_text()
 default_addons_path = (
     "/opt/odoo/addons,/opt/odoo/odoo/addons,"
     "/mnt/custom-addons,/mnt/oca-addons"
@@ -123,48 +156,92 @@ if default_addons_path not in compose:
     errors.append("The expected production add-ons path guard is missing.")
 
 normal_odoo_service = compose_service(compose, "odoo", "init-db")
-service_text = {
-    "accounting-migration": compose_service(
-        compose, "accounting-migration", "project-migration",
-    ),
-    "project-migration": compose_service(
-        compose, "project-migration", "b2c-migration",
-    ),
-    "b2c-migration": compose_service(
-        compose, "b2c-migration", "tese-migration",
-    ),
-    "tese-migration": compose_service(
-        compose, "tese-migration", "platform-billing-migration",
-    ),
-    "platform-billing-migration": compose_service(
-        compose, "platform-billing-migration", "test",
-    ),
+normal_init_service = compose_service(compose, "init-db", "test")
+normal_test_service = compose_service(compose, "test", "devcontainer")
+normal_services = {
+    "odoo": normal_odoo_service,
+    "init-db": normal_init_service,
+    "test": normal_test_service,
 }
-for migration_path in MIGRATION_PATHS:
-    if migration_path in normal_odoo_service:
+for service_name, current_service in normal_services.items():
+    for migration_path in MIGRATION_PATHS:
+        if migration_path in current_service:
+            errors.append(
+                f"The normal {service_name} service exposes migration path "
+                f"{migration_path}.",
+            )
+    for forbidden_path in (
+        "/mnt/accounting-source",
+        "/mnt/documents-archive-migration",
+        "/mnt/sign-restore-migration",
+        "./migration/",
+    ):
+        if forbidden_path in current_service:
+            errors.append(
+                f"The normal {service_name} service exposes legacy input "
+                f"{forbidden_path}.",
+            )
+
+for service_name in (*MIGRATION_SERVICES, "accounting-source-db"):
+    if f"\n  {service_name}:\n" in compose:
         errors.append(
-            f"The normal Odoo service exposes migration path {migration_path}.",
+            f"Normal compose.yaml still defines legacy service {service_name}.",
         )
-if COLLABORATION_MIGRATION_PATH in normal_odoo_service:
+if "accounting-source-postgres-data:" in compose:
     errors.append(
-        f"The normal Odoo service exposes migration path {COLLABORATION_MIGRATION_PATH}.",
+        "Normal compose.yaml still defines the legacy source database volume.",
     )
 
 expected_addons_path = default_addons_path + "," + ",".join(MIGRATION_PATHS)
+try:
+    legacy_services = render_compose(
+        ROOT / "compose.yaml",
+        LEGACY_COMPOSE,
+        profiles=("migration-legacy",),
+    )["services"]
+except (OSError, RuntimeError, ValueError, KeyError) as error:
+    errors.append(f"Legacy migration Compose overlay does not render: {error}")
+    legacy_services = {}
+
 for service_name in MIGRATION_SERVICES:
-    current_service = service_text[service_name]
-    if f"--addons-path={expected_addons_path}" not in current_service:
+    current_service = legacy_services.get(service_name, {})
+    if not current_service:
+        errors.append(f"The legacy overlay does not render {service_name}.")
+        continue
+    if f"--addons-path={expected_addons_path}" not in current_service.get("command", []):
         errors.append(
             f"The {service_name} service does not expose the complete staged "
             "migration add-ons path.",
         )
+    mounted_paths = {
+        volume.get("target")
+        for volume in current_service.get("volumes", [])
+        if volume.get("read_only") is True
+    }
     for migration_path in MIGRATION_PATHS:
-        if f"{migration_path}:ro" not in current_service:
+        if migration_path not in mounted_paths:
             errors.append(
                 f"The {service_name} service does not mount {migration_path} read-only.",
             )
-if COLLABORATION_MIGRATION_PATH not in service_text["project-migration"]:
+if "/mnt/collaboration-migration-addons" not in {
+    volume.get("target")
+    for volume in legacy_services.get("project-migration", {}).get("volumes", [])
+}:
     errors.append("The project-migration service does not expose Collaboration restoration.")
+
+legacy_wrapper = (ROOT / "scripts" / "migration-legacy").read_text()
+for required_guard in (
+    "usl-odoo-migration-legacy-*",
+    "USL_MIGRATION_LEGACY_CONFIRM",
+    "USL_MIGRATION_LEGACY_SOURCE_SHA256",
+    "*production*|*preprod*|*transition*",
+    "USL_EINVOICE_LIVE_ENABLED=0",
+    "USL_EREPORTING_LIVE_ENABLED=0",
+):
+    if required_guard not in legacy_wrapper:
+        errors.append(
+            f"The migration legacy wrapper lacks guard {required_guard!r}.",
+        )
 
 restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",

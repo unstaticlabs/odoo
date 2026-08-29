@@ -1,0 +1,187 @@
+name: ${COMPOSE_PROJECT_NAME:?Set an explicit migration-legacy Compose project}
+
+# Dormant forensic reconstruction overlay.
+#
+# Normal development, test, QA, release, and production commands must use only
+# compose.yaml (plus their product overlays). This file is loaded exclusively
+# by scripts/migration-legacy after its project and confirmation guards pass.
+x-migration-legacy-odoo: &migration-legacy-odoo
+  image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
+  depends_on:
+    db:
+      condition: service_healthy
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+    ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+    ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+    ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+    ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+    ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
+    ODOO_MAX_CRON_THREADS: 0
+    USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+    USL_EINVOICE_LIVE_ENABLED: 0
+    USL_EREPORTING_LIVE_ENABLED: 0
+  command:
+    - odoo
+    - --config=/etc/odoo/odoo.conf
+    - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
+    - --database=${ODOO_INIT_DB:-odoo_dev}
+    - --without-demo=true
+    - --stop-after-init
+  restart: "no"
+  volumes: &migration-legacy-volumes
+    - odoo-data:/var/lib/odoo
+    - ./custom-addons:/mnt/custom-addons:ro
+    - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+    - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+    - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+    - ./migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro
+    - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+    - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+    - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+    - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+    - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
+    - ./oca-src:/mnt/oca-src:ro
+    - ./oca-addons:/mnt/oca-addons:ro
+    - ./docs/users:/mnt/user-docs:ro
+    - ${USL_ONLINE_DUMP_DIR:?Set the approved frozen source directory}:/mnt/accounting-source:ro
+
+services:
+  accounting-source-db:
+    profiles: ["migration-legacy", "accounting-compat"]
+    image: ${ACCOUNTING_SOURCE_POSTGRES_IMAGE:-pgvector/pgvector:pg16-bookworm}
+    restart: "no"
+    environment:
+      POSTGRES_DB: ${ACCOUNTING_SOURCE_POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${ACCOUNTING_SOURCE_POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${ACCOUNTING_SOURCE_POSTGRES_PASSWORD:-odoo}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - accounting-source-postgres-data:/var/lib/postgresql/data
+
+  init-db:
+    volumes:
+      - ${USL_ONLINE_DUMP_DIR:?Set the approved frozen source directory}:/mnt/accounting-source:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence:ro
+
+  accounting-migration:
+    <<: *migration-legacy-odoo
+    profiles: ["migration-legacy", "accounting-migration"]
+
+  project-migration:
+    <<: *migration-legacy-odoo
+    profiles: ["migration-legacy", "project-migration"]
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons:ro
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+      - ./migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro
+      - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+      - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_ONLINE_DUMP_DIR:?Set the approved frozen source directory}:/mnt/accounting-source:ro
+      - ./migration/documents_archive:/mnt/documents-archive-migration:ro
+      - ./migration/sign_restore:/mnt/sign-restore-migration:ro
+      - ./accounting_compat/private:/mnt/accounting-private:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence
+
+  b2c-migration:
+    <<: *migration-legacy-odoo
+    profiles: ["migration-legacy", "b2c-migration"]
+    depends_on:
+      db:
+        condition: service_healthy
+      accounting-source-db:
+        condition: service_healthy
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
+      ODOO_MAX_CRON_THREADS: 0
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+      B2C_EVIDENCE_DIR: /mnt/b2c-evidence
+      B2C_SUPPLEMENTAL_EVIDENCE_DIR: /mnt/accounting-source/supplemental/b2c
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons:ro
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+      - ./migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro
+      - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+      - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_ONLINE_DUMP_DIR:?Set the approved frozen source directory}:/mnt/accounting-source:ro
+      - ./artifacts/b2c-restore:/mnt/b2c-evidence
+
+  tese-migration:
+    <<: *migration-legacy-odoo
+    profiles: ["migration-legacy", "tese-migration"]
+    depends_on:
+      db:
+        condition: service_healthy
+      accounting-source-db:
+        condition: service_healthy
+
+  platform-billing-migration:
+    <<: *migration-legacy-odoo
+    profiles: ["migration-legacy", "platform-billing-migration"]
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons:ro
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+      - ./migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro
+      - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+      - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_ONLINE_DUMP_DIR:?Set the approved frozen source directory}:/mnt/accounting-source:ro
+      - ./artifacts/platform-billing-restore:/mnt/platform-billing-evidence
+
+  test:
+    volumes:
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+      - ./migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro
+      - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+      - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
+
+volumes:
+  accounting-source-postgres-data:

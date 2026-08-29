@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage: scripts/migration-legacy <config|reconstruct|source-inventory|product-boundary>
+
+Required environment:
+  COMPOSE_PROJECT_NAME                 usl-odoo-migration-legacy-<purpose>
+  USL_MIGRATION_LEGACY_CONFIRM        migration-legacy:<project>
+  USL_ONLINE_DUMP_DIR                 absolute frozen-source directory
+  USL_MIGRATION_LEGACY_SOURCE_SHA256  exact SHA-256 of dump.sql
+
+This dormant forensic interface refuses production, pre-production, canonical,
+and transition-live project identities. It never enables e-invoice or
+e-reporting live traffic.
+EOF
+  exit 2
+}
+
+fail() {
+  printf 'Migration legacy refused: %s\n' "$1" >&2
+  exit 2
+}
+
+command_name="${1:-}"
+case "$command_name" in
+  config|reconstruct|source-inventory|product-boundary) ;;
+  *) usage ;;
+esac
+
+project="${COMPOSE_PROJECT_NAME:-}"
+case "$project" in
+  *production*|*preprod*|*transition*|prod-*|usl-odoo-saas-19-3)
+    fail "project '$project' is production, pre-production, canonical, or transition-live"
+    ;;
+  usl-odoo-migration-legacy-*) ;;
+  "") fail "COMPOSE_PROJECT_NAME is required" ;;
+  *) fail "project must use the isolated usl-odoo-migration-legacy-* namespace" ;;
+esac
+
+case "${USL_DEPLOYMENT_ENV:-development}" in
+  development|forensic) ;;
+  *) fail "USL_DEPLOYMENT_ENV must be development or forensic" ;;
+esac
+
+expected_confirmation="migration-legacy:$project"
+if [[ "${USL_MIGRATION_LEGACY_CONFIRM:-}" != "$expected_confirmation" ]]; then
+  fail "set USL_MIGRATION_LEGACY_CONFIRM=$expected_confirmation"
+fi
+
+source_dir="${USL_ONLINE_DUMP_DIR:-}"
+[[ "$source_dir" == /* ]] || fail "USL_ONLINE_DUMP_DIR must be an absolute path"
+[[ -f "$source_dir/dump.sql" && -d "$source_dir/filestore" ]] \
+  || fail "frozen source must contain dump.sql and filestore/"
+
+expected_source_sha="${USL_MIGRATION_LEGACY_SOURCE_SHA256:-}"
+case "$expected_source_sha" in
+  ""|*[!0-9a-f]* ) fail "USL_MIGRATION_LEGACY_SOURCE_SHA256 must be lowercase hexadecimal" ;;
+esac
+[[ "${#expected_source_sha}" == 64 ]] \
+  || fail "USL_MIGRATION_LEGACY_SOURCE_SHA256 must contain exactly 64 characters"
+actual_source_sha="$(shasum -a 256 "$source_dir/dump.sql" | awk '{print $1}')"
+[[ "$actual_source_sha" == "$expected_source_sha" ]] \
+  || fail "frozen source SHA-256 does not match the approved identity"
+
+export COMPOSE_FILE="$ROOT/compose.yaml:$ROOT/compose.migration-legacy.yaml"
+export COMPOSE_PROJECT_NAME="$project"
+export COMPOSE_IGNORE_ORPHANS=1
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+case "$command_name" in
+  config)
+    exec docker compose --profile migration-legacy config --format json
+    ;;
+  reconstruct)
+    export USL_MIGRATION_PURPOSE=development
+    export USL_QA_DATA_PROFILE=full
+    exec "$ROOT/scripts/target-reconstruct"
+    ;;
+  source-inventory)
+    exec "$ROOT/scripts/migration-source-truth" inventory
+    ;;
+  product-boundary)
+    "$ROOT/scripts/check-product-migration-boundary"
+    exec "$ROOT/scripts/check-product-database-boundary"
+    ;;
+esac
