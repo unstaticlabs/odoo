@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SIGN_RESTORE = ROOT / "scripts/sign-restore"
 TARGET_RECONSTRUCT = ROOT / "scripts/target-reconstruct"
+SIGN_QA_STACK = ROOT / "scripts/sign-pocketid-stack"
 
 
 class SignOrchestrationTest(unittest.TestCase):
@@ -43,6 +44,13 @@ class SignOrchestrationTest(unittest.TestCase):
             restore,
         )
         self.assertNotIn('compose+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', restore)
+
+    def test_local_sign_qa_uses_shared_ollama_runtime_selection(self):
+        stack = SIGN_QA_STACK.read_text(encoding="utf-8")
+
+        self.assertIn('source "$ROOT/scripts/lib/ollama-runtime.sh"', stack)
+        self.assertIn('usl_prepare_ollama_runtime "$ROOT"', stack)
+        self.assertIn('COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")', stack)
 
     def test_canonical_restore_uses_project_pocket_id_environment(self):
         restore = SIGN_RESTORE.read_text(encoding="utf-8")

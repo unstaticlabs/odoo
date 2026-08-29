@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 # Secrets and immutable subjects belong to the Compose project owned by this
 # checkout. Linked worktrees must not silently reuse the main checkout's key.
@@ -136,6 +137,10 @@ start_idp() {
 }
 
 start_paperless_runtime() {
+  usl_prepare_ollama_runtime "$ROOT"
+  if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+    COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+  fi
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-access-init
 }
