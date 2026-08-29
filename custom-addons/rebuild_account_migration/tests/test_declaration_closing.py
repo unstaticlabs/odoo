@@ -1703,6 +1703,108 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         self.assertEqual(totals["ACTIF_TOTAL"], "100.00")
         self.assertEqual(totals["PASSIF_TOTAL"], "100.00")
 
+    def test_balance_sheet_uses_french_debit_credit_prefix_rules(self):
+        wizard = self._wizard(report_type="balance_sheet")
+        trial_balance = [
+            {
+                "account_code": "444000",
+                "account_name": "État — impôts sur les bénéfices",
+                "account_type": "liability_current",
+                "balance": "5670.00",
+                "closing_balance": "5670.00",
+            },
+            {
+                "account_code": "512008",
+                "account_name": "Banque — compte créditeur",
+                "account_type": "asset_cash",
+                "balance": "-0.16",
+                "closing_balance": "-0.16",
+            },
+            {
+                "account_code": "491000",
+                "account_name": "Dépréciation des comptes clients",
+                "account_type": "asset_current",
+                "balance": "-20.00",
+                "closing_balance": "-20.00",
+            },
+        ]
+        with patch.object(
+            type(wizard),
+            "_trial_balance_rows",
+            return_value=trial_balance,
+        ):
+            rows = wizard._balance_sheet_rows()
+
+        accounts = {
+            row["account_code"]: row
+            for row in rows
+            if row.get("account_code") not in {"", "RESULT"}
+        }
+        self.assertEqual(accounts["444000"]["statement_key"], "bilan_actif")
+        self.assertEqual(accounts["444000"]["amount"], "5670.00")
+        self.assertEqual(accounts["444000"]["section"], "Actif circulant")
+        self.assertEqual(accounts["512008"]["statement_key"], "bilan_passif")
+        self.assertEqual(accounts["512008"]["amount"], "0.16")
+        self.assertEqual(accounts["512008"]["section"], "Dettes et passifs")
+        self.assertEqual(accounts["491000"]["statement_key"], "bilan_actif")
+        self.assertEqual(accounts["491000"]["amount"], "-20.00")
+
+    def test_balance_sheet_matches_online_total_at_2026_08_29(self):
+        wizard = self._wizard(report_type="balance_sheet")
+        trial_balance = [
+            {
+                "account_code": "512007",
+                "account_name": "Banque — soldes débiteurs",
+                "account_type": "asset_cash",
+                "balance": "126493.30",
+                "closing_balance": "126493.30",
+            },
+            {
+                "account_code": "444000",
+                "account_name": "État — impôts sur les bénéfices",
+                "account_type": "liability_current",
+                "balance": "5670.00",
+                "closing_balance": "5670.00",
+            },
+            {
+                "account_code": "512008",
+                "account_name": "Banque — compte créditeur",
+                "account_type": "asset_cash",
+                "balance": "-0.16",
+                "closing_balance": "-0.16",
+            },
+            {
+                "account_code": "101000",
+                "account_name": "Capital social et autres passifs",
+                "account_type": "equity",
+                "balance": "-132163.14",
+                "closing_balance": "-132163.14",
+            },
+        ]
+        self.assertEqual(
+            sum(
+                Decimal(row["closing_balance"])
+                for row in trial_balance
+            ),
+            Decimal("0.00"),
+        )
+        with patch.object(
+            type(wizard),
+            "_trial_balance_rows",
+            return_value=trial_balance,
+        ):
+            rows = wizard._balance_sheet_rows()
+
+        totals = {
+            row.get("line_code"): row.get("amount")
+            for row in rows
+            if row.get("line_code") in {"ACTIF_TOTAL", "PASSIF_TOTAL"}
+        }
+        online_total = "132163.30"
+        self.assertEqual(totals["ACTIF_TOTAL"], online_total)
+        self.assertEqual(totals["PASSIF_TOTAL"], online_total)
+        self.assertEqual(totals["ACTIF_TOTAL"], totals["PASSIF_TOTAL"])
+
     def test_asset_register_places_grand_total_after_account_subtotals(self):
         wizard = self._wizard(report_type="fixed_assets", export_format="pdf")
         rows = [
