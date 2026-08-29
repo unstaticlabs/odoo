@@ -26,8 +26,6 @@ from lib import (  # noqa: E402
 
 
 SKILLS = {
-    "usl-feature-developer",
-    "usl-lead-developer",
     "usl-upstream-sync",
     "odoo-ui-product-quality",
     "odoo-migration-upgrade-safety",

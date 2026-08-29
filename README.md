@@ -152,12 +152,12 @@ install, reconstructed `odoo_dev` and pre-production release gates before
 merge. Odoo upstream commits and pinned OCA source revisions are updated by
 their documented replay/synchronization workflow, not by Dependabot.
 
-Dependabot is not a Coding Agent, so its authenticated bot PRs are exempt from
-Coding-Agent branch, attribution and structured-handoff metadata. They still
-run repository contracts and the full Distribution image qualification; this
-exception is keyed to GitHub's `dependabot[bot]` actor, never to a spoofable
-branch name. Impeccable package candidates must refresh and review the generated
-provider assets in the same dependency PR.
+Dependabot's authenticated bot PRs are exempt from human/agent commit
+attribution metadata. They still run repository contracts and the full
+Distribution image qualification; this exception is keyed to GitHub's
+`dependabot[bot]` actor, never to a spoofable branch name. Impeccable package
+candidates must refresh and review the generated provider assets in the same
+dependency PR.
 
 Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
 
