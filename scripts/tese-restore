@@ -28,7 +28,8 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 
 product_was_running=0
-if docker compose -p "$compose_project" ps --status running --services \
+if [[ "$command_name" != product-validate ]] \
+    && docker compose -p "$compose_project" ps --status running --services \
     | grep -qx odoo; then
     product_was_running=1
     docker compose -p "$compose_project" stop odoo >/dev/null
@@ -142,13 +143,18 @@ finalize_tese() {
 }
 
 validate_product_boundary() {
-    docker compose -p "$compose_project" --profile init run --rm \
-        -e ODOO_INIT_DB="$target_database" \
-        init-db \
-        odoo shell --config=/etc/odoo/odoo.conf \
-        --database="$target_database" \
-        --shell-interface=python \
-        < migration/tese_restore/scripts/validate_product_boundary.py
+    if [[ -n "$(docker compose -p "$compose_project" ps --status running -q odoo)" ]]; then
+        docker compose -p "$compose_project" exec -T odoo \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/tese_restore/scripts/validate_product_boundary.py
+    else
+        docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+            -e ODOO_INIT_DB="$target_database" init-db \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/tese_restore/scripts/validate_product_boundary.py
+    fi
 }
 
 case "$command_name" in

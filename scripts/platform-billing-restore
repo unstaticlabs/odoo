@@ -52,9 +52,17 @@ verify_workspace() {
     local container_id
     while IFS= read -r container_id; do
         [[ -z "$container_id" ]] && continue
-        local project_label working_dir_label
+        local project_label working_dir_label running
         project_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "$container_id")"
         working_dir_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' "$container_id")"
+        running="$(docker inspect --format '{{.State.Running}}' "$container_id")"
+        # Governed one-off rehearsals may intentionally keep a stopped
+        # container with only the project/service labels as evidence.  They
+        # own no active runtime endpoint and must not make a read-only product
+        # boundary reconcile or delete preserved evidence.
+        if [[ -z "$working_dir_label" && "$running" == false ]]; then
+            continue
+        fi
         if [[ "$project_label" != "$compose_project" || "$working_dir_label" != "$repo_root" ]]; then
             echo "Compose label mismatch on container $container_id."
             echo "Expected project=$compose_project working_dir=$repo_root."
@@ -90,7 +98,8 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 
 product_was_running=0
-if compose ps --status running --services | grep -qx odoo; then
+if [[ "$command_name" != product-validate ]] \
+    && compose ps --status running --services | grep -qx odoo; then
     product_was_running=1
     compose stop odoo >/dev/null
 fi
@@ -198,13 +207,18 @@ finalize_product_schema() {
 }
 
 validate_product_boundary() {
-    compose --profile init run --rm \
-        -e ODOO_INIT_DB="$target_database" \
-        init-db \
-        odoo shell --config=/etc/odoo/odoo.conf \
-        --database="$target_database" \
-        --shell-interface=python \
-        < migration/platform_billing_restore/scripts/validate_product_boundary.py
+    if [[ -n "$(compose ps --status running -q odoo)" ]]; then
+        compose exec -T odoo \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/platform_billing_restore/scripts/validate_product_boundary.py
+    else
+        compose --profile init run --rm -T --no-deps \
+            -e ODOO_INIT_DB="$target_database" init-db \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/platform_billing_restore/scripts/validate_product_boundary.py
+    fi
 }
 
 cleanup_test_database() {
