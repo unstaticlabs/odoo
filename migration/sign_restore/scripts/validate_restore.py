@@ -7,10 +7,14 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from odoo import fields
-
 sys.path.insert(0, "/mnt/sign-restore-migration")
-from source import SourceReader, match_exports, sha256, source_options  # noqa: E402
+from source import (  # noqa: E402
+    SourceReader,
+    match_exports,
+    sha256,
+    source_datetime,
+    source_options,
+)
 
 from odoo.addons.usl_sign.services import field_content
 
@@ -86,9 +90,7 @@ for request_row in source["requests"]:
         assert target_signer.authentication_method == "external_record"
         assert not target_signer.signature_hash
         assert not target_signer.certificate_serial
-        assert target_signer.signed_on == fields.Datetime.to_datetime(
-            str(source_signer["signing_date"]),
-        )
+        assert target_signer.signed_on == source_datetime(source_signer["signing_date"])
 
     messages = request_record.message_ids
     expected_message_ids = {

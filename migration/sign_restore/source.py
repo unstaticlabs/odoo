@@ -8,6 +8,7 @@ import os
 import re
 import unicodedata
 from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -19,6 +20,20 @@ def text(value):
 
 def normalized_name(value):
     return unicodedata.normalize("NFC", (value or "").strip()).casefold()
+
+
+def source_datetime(value):
+    """Parse a source timestamp without discarding PostgreSQL microseconds."""
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        normalized = str(value).strip()
+        if normalized.endswith("Z"):
+            normalized = f"{normalized[:-1]}+00:00"
+        parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed
 
 
 def redact_historical_links(value):

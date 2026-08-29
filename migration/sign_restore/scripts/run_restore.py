@@ -31,6 +31,7 @@ from source import (  # noqa: E402
     match_exports,
     redact_historical_links,
     sha256,
+    source_datetime,
     source_options,
     text,
 )
@@ -285,7 +286,7 @@ def archived_message(request_record, name, values):
         if existing.model != request_record._name or existing.res_id != request_record.id:
             fail(f"History binding {name} points to another request")
         return existing
-    expected_date = fields.Datetime.to_datetime(str(values["date"]))
+    expected_date = source_datetime(values["date"])
     expected_subject = values.get("subject") or False
     expected_type = values.get("message_type") or "comment"
     expected_author_id = values.get("author_id") or False
@@ -317,12 +318,12 @@ def archived_message(request_record, name, values):
             "body": values["body"],
             "author_id": values.get("author_id") or False,
             "email_from": values.get("email_from") or False,
-            "date": values["date"],
+            "date": expected_date,
         },
     )
     env.cr.execute(  # noqa: F821
         "UPDATE mail_message SET create_date = %s, write_date = %s WHERE id = %s",
-        [values["date"], values["date"], message.id],
+        [expected_date, expected_date, message.id],
     )
     bind(name, message)
     return message
@@ -400,7 +401,7 @@ for request_row in source["requests"]:
     signer_emails = [row["signer_email"] or row["partner_email"] for row in signers]
     verify_certificate(certificate_content, source_id, signer_emails)
     completion_at = max(
-        fields.Datetime.to_datetime(str(value))
+        source_datetime(value)
         for value in (
             [row["signing_date"] for row in signers if row["signing_date"]]
             + [request_row["completion_date"]]
@@ -500,7 +501,7 @@ for request_row in source["requests"]:
                     "partner_id": partner.id,
                     "role_id": role.id,
                     "sequence": sequence,
-                    "signed_on": signer["signing_date"],
+                    "signed_on": source_datetime(signer["signing_date"]),
                 },
             ),
         )
@@ -536,7 +537,7 @@ for request_row in source["requests"]:
                 "archive_document_id": signed_document.id,
                 "archive_dossier_document_id": exported_certificate.id,
                 "signer_ids": signer_commands,
-                "create_date": request_row["create_date"],
+                "create_date": source_datetime(request_row["create_date"]),
             },
         )
         request_created = True
@@ -552,7 +553,7 @@ for request_row in source["requests"]:
         signer_expectations,
         target_signers,
     ):
-        expected_signed_on = fields.Datetime.to_datetime(str(source_signer["signing_date"]))
+        expected_signed_on = source_datetime(source_signer["signing_date"])
         if (
             target_signer.partner_id != partner
             or target_signer.role_id != role
