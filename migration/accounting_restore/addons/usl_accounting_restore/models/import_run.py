@@ -56,6 +56,15 @@ ENTERPRISE_ONLY_PAYMENT_METHOD_CODES = frozenset({
     "sepa_ct",
 })
 
+INVOICE_MOVE_TYPES = frozenset({
+    "out_invoice",
+    "out_refund",
+    "in_invoice",
+    "in_refund",
+    "out_receipt",
+    "in_receipt",
+})
+
 
 # These profiles translate verified legal documents and tax-return settings
 # from the Online snapshot.  The SIREN is the durable company identity; source
@@ -512,6 +521,35 @@ class RebuildAccountImportRun(models.Model):
             "source_sequence_number": expected_number,
             "target_sequence_number": move.sequence_number or 0,
             "identity_normalized": normalized,
+        }
+
+    def _invoice_currency_rate_parity(self, source_rows, target_moves):
+        """Prove historical document rates survived ORM creation and posting."""
+        compared = []
+        mismatches = []
+        for source_move in source_rows:
+            if source_move["move_type"] not in INVOICE_MOVE_TYPES:
+                continue
+            source_rate = self._amount(source_move["invoice_currency_rate"])
+            target_move = target_moves.get(source_move["id"])
+            target_rate = (
+                target_move.invoice_currency_rate if target_move else None
+            )
+            detail = {
+                "source_move_id": source_move["id"],
+                "source_move_name": source_move["name"],
+                "source_rate": source_rate,
+                "target_move_id": target_move.id if target_move else None,
+                "target_rate": target_rate,
+            }
+            compared.append(detail)
+            if not target_move or source_rate != target_rate:
+                mismatches.append(detail)
+        return {
+            "source_document_count": len(compared),
+            "matching_document_count": len(compared) - len(mismatches),
+            "mismatch_count": len(mismatches),
+            "mismatch_examples": mismatches[:20],
         }
 
     @staticmethod
@@ -4289,6 +4327,7 @@ class RebuildAccountImportRun(models.Model):
             SELECT id, name, ref, state, move_type, journal_id, company_id, partner_id,
                    currency_id, date, invoice_date, invoice_date_due, payment_reference,
                    fiscal_position_id, invoice_payment_term_id,
+                   invoice_currency_rate,
                    sequence_prefix, sequence_number, secure_sequence_number
             FROM account_move
             WHERE company_id = ANY(%(source_company_ids)s)
@@ -9996,6 +10035,12 @@ class RebuildAccountImportRun(models.Model):
                 )
                 due_date_matches = move.invoice_date_due == source_move["invoice_date_due"]
                 account_totals_match = source_account_totals == target_account_totals
+                source_currency_rate = self._amount(
+                    source_move["invoice_currency_rate"],
+                )
+                currency_rate_matches = (
+                    move.invoice_currency_rate == source_currency_rate
+                )
                 result = {
                     "source_move_id": source_move["id"],
                     "source_name": source_move["name"],
@@ -10010,8 +10055,17 @@ class RebuildAccountImportRun(models.Model):
                     "amount_checks": amount_checks,
                     "due_date_matches": due_date_matches,
                     "account_totals_match": account_totals_match,
+                    "source_invoice_currency_rate": source_currency_rate,
+                    "target_invoice_currency_rate": move.invoice_currency_rate,
+                    "invoice_currency_rate_matches": currency_rate_matches,
                 }
-                if move.state == "posted" and amounts_match and due_date_matches and account_totals_match:
+                if (
+                    move.state == "posted"
+                    and amounts_match
+                    and due_date_matches
+                    and account_totals_match
+                    and currency_rate_matches
+                ):
                     passed_cases.append(result)
                 else:
                     mismatch_cases.append({
@@ -10460,6 +10514,9 @@ class RebuildAccountImportRun(models.Model):
                     move_vals.update({
                         "invoice_date": move_row["invoice_date"],
                         "invoice_date_due": move_row["invoice_date_due"],
+                        "invoice_currency_rate": self._amount(
+                            move_row["invoice_currency_rate"],
+                        ),
                         "fiscal_position_id": (
                             fiscal_positions[move_row["fiscal_position_id"]].id
                             if move_row["fiscal_position_id"] in fiscal_positions
@@ -10519,6 +10576,30 @@ class RebuildAccountImportRun(models.Model):
                 [move_row["id"] for move_row in move_rows],
                 options,
             )
+            invoice_currency_rate_parity = (
+                self._invoice_currency_rate_parity(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "matching_document_count": 0,
+                    "mismatch_count": 0,
+                    "mismatch_examples": [],
+                }
+            )
+            if invoice_currency_rate_parity["mismatch_count"]:
+                raise ValueError(
+                    "Imported invoice_currency_rate differs from the Online "
+                    "document history: %s"
+                    % json.dumps(
+                        invoice_currency_rate_parity["mismatch_examples"],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
             sequence_chronology_stats = self._sequence_chronology_stats(
                 [row for row in move_rows if row["state"] == "posted"],
                 imported_move_map,
@@ -10910,6 +10991,9 @@ class RebuildAccountImportRun(models.Model):
                     reused_native_move_representations
                 ),
                 "sequence_chronology": sequence_chronology_stats,
+                "invoice_currency_rate_parity": (
+                    invoice_currency_rate_parity
+                ),
                 "skipped_non_account_line_count": skipped_non_account_line_count,
                 "skipped_non_account_line_examples": skipped_non_account_line_examples,
                 "account_count": len(accounts),

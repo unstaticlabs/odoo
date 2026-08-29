@@ -7588,6 +7588,83 @@ class TestRebuildAccountMigration(TransactionCase):
         ]), 1)
         self.assertAlmostEqual(existing_rate.rate, 1.30)
 
+    def test_historical_invoice_currency_rate_drives_bill_analysis(self):
+        expense_account = self._account(
+            "T606881",
+            "Historical currency-rate expense",
+            "expense",
+        )
+        payable_account = self._account(
+            "T401881",
+            "Historical currency-rate payable",
+            "liability_payable",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Historical currency-rate supplier",
+        })
+        partner.with_company(self.company).property_account_payable_id = (
+            payable_account
+        )
+        foreign_currency = self.env.ref("base.USD")
+        if foreign_currency == self.company.currency_id:
+            foreign_currency = self.env.ref("base.EUR")
+        foreign_currency.active = True
+        historical_rate = 1.234567891
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "journal_id": self._journal("purchase").id,
+            "company_id": self.company.id,
+            "partner_id": partner.id,
+            "currency_id": foreign_currency.id,
+            "invoice_date": fields.Date.from_string("2026-02-10"),
+            "invoice_currency_rate": historical_rate,
+            "invoice_line_ids": [Command.create({
+                "name": "Historically converted service",
+                "account_id": expense_account.id,
+                "quantity": 1.0,
+                "price_unit": 123.45,
+            })],
+        })
+        bill.action_post()
+
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Historical document currency-rate parity",
+        })
+        source_row = {
+            "id": 881001,
+            "name": "BILL/2026/881001",
+            "move_type": "in_invoice",
+            "invoice_currency_rate": historical_rate,
+        }
+        parity = import_run._invoice_currency_rate_parity(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(parity["source_document_count"], 1)
+        self.assertEqual(parity["matching_document_count"], 1)
+        self.assertEqual(parity["mismatch_count"], 0)
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+
+        analysis_rows = self.env["account.invoice.report"].search([
+            ("move_id", "=", bill.id),
+        ])
+        self.assertEqual(len(analysis_rows), 1)
+        self.assertAlmostEqual(
+            sum(analysis_rows.mapped("price_total")),
+            -bill.invoice_line_ids.price_total / historical_rate,
+            places=9,
+        )
+
+        mismatched_source = {
+            **source_row,
+            "invoice_currency_rate": historical_rate + 0.01,
+        }
+        mismatch = import_run._invoice_currency_rate_parity(
+            [mismatched_source],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(mismatch["mismatch_count"], 1)
+
     def test_ecb_reference_rate_provider_is_idempotent_and_traced(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
