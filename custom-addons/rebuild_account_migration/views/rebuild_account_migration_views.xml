@@ -2675,7 +2675,7 @@
                     <header>
                         <button name="action_record" type="object" string="Mark Recorded"
                                 title="Freeze this review decision and apply its result to the related workflow."
-                                groups="account.group_account_manager" invisible="state != 'draft'"/>
+                                groups="account.group_account_manager,rebuild_account_migration.group_rebuild_accountant_reviewer" invisible="state != 'draft'"/>
                         <button name="action_supersede" type="object" string="Supersede"
                                 title="Retire this decision while keeping it in the audit history."
                                 groups="account.group_account_manager" invisible="state == 'superseded'"/>

@@ -58,6 +58,7 @@ class TestDeclarationAndClosing(TransactionCase):
                 "rebuild_corporate_tax_regime": "is",
                 "rebuild_profit_tax_regime": "bic_simplified",
                 "rebuild_vat_regime": "simplified",
+                "rebuild_vat_transition_date": "2027-10-01",
                 "rebuild_first_fiscalyear_start": "2024-01-10",
                 "rebuild_first_fiscalyear_end": "2025-09-30",
                 "rebuild_declaration_profile_evidence": "Unit-test confirmed French SASU profile.",
@@ -103,6 +104,7 @@ class TestDeclarationAndClosing(TransactionCase):
 
     def test_versioned_rules_deadlines_and_idempotent_profile_sync(self):
         company = self._company()
+        company.company_registry = "98398295000021"
         company.fiscalyear_lock_date = fields.Date.from_string("2025-09-30")
         Declaration = self.env["rebuild.account.declaration"]
 
@@ -118,14 +120,13 @@ class TestDeclarationAndClosing(TransactionCase):
             first = Declaration.sync_for_company(company)
             second = Declaration.sync_for_company(company)
 
-        self.assertEqual(len(first), 21)
-        self.assertEqual(second, first)
+        self.assertEqual(second.ids, first.ids)
         self.assertEqual(
             Declaration.search_count([("company_id", "=", company.id)]),
-            21,
+            len(first),
         )
-        self.assertFalse(first.filtered(lambda item: item.rule_id.code in {"FR_2069_RCI", "FR_RCM_2777"}))
-        self.assertEqual(set(first.mapped("rule_version")), {"2025", "2026"})
+        self.assertFalse(first.filtered(lambda item: item.rule_id.code in {"FR_2033", "FR_2069_RCI", "FR_RCM_2777"}))
+        self.assertTrue({"2025", "2026", "2027"}.issubset(set(first.mapped("rule_version"))))
 
         instalments = first.filtered(lambda item: item.rule_id.code == "FR_3514")
         refund_codes = {
@@ -135,11 +136,14 @@ class TestDeclarationAndClosing(TransactionCase):
         }
         self.assertEqual(len(instalments), 5)
         self.assertFalse(instalments.field_line_ids.filtered(lambda line: line.field_code in refund_codes))
-        self.assertEqual(set(instalments.mapped("payment_status")), {"not_due"})
+        self.assertEqual(set(instalments.mapped("payment_status")), {"not_assessed"})
+        self.assertTrue(all(instalments.field_line_ids.filtered(
+            lambda line: line.field_code == "VAT_3514_PORTAL_AMOUNT",
+        ).mapped("is_unresolved")))
 
         ca12 = first.filtered(lambda item: item.rule_id.code == "FR_3517_S")
-        self.assertEqual(len(ca12), 2)
-        self.assertEqual(len(ca12.field_line_ids.filtered(lambda line: line.field_code in refund_codes)), 6)
+        self.assertEqual(len(ca12), 4)
+        self.assertEqual(len(ca12.field_line_ids.filtered(lambda line: line.field_code in refund_codes)), 3)
         self.assertEqual(
             set(ca12.field_line_ids.filtered(
                 lambda line: line.field_code == "USL_CA12_942_LEDGER_CLASSIFICATION",
@@ -150,15 +154,230 @@ class TestDeclarationAndClosing(TransactionCase):
         first_year_is = first.filtered(
             lambda item: item.rule_id.code == "FR_2571" and item.fiscalyear_end == date(2025, 9, 30),
         )
-        self.assertEqual(
-            set(first_year_is.mapped("fiscalyear_start")),
-            {date(2024, 1, 10)},
-        )
-        self.assertEqual(set(first_year_is.field_line_ids.mapped("amount")), {0.0})
-        self.assertTrue(all(
-            "No prior fiscal-year" in reference
-            for reference in first_year_is.field_line_ids.mapped("source_reference")
+        self.assertFalse(first_year_is)
+
+    def test_long_first_year_and_vat_transition_schedule(self):
+        company = self._company("USL MEDIA schedule")
+        company.write({
+            "rebuild_first_fiscalyear_start": "2026-06-01",
+            "rebuild_first_fiscalyear_end": "2027-09-30",
+        })
+        Declaration = self.env["rebuild.account.declaration"]
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 8, 29)):
+            declarations = Declaration.sync_for_company(company)
+
+        self.assertFalse(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_2571"
+            and item.fiscalyear_end == date(2027, 9, 30),
         ))
+        result = declarations.filtered(
+            lambda item: item.rule_id.code == "FR_2065"
+            and item.fiscalyear_end == date(2027, 9, 30),
+        )
+        self.assertEqual(result.deadline_date, date(2028, 1, 15))
+        self.assertIn("2033 A-G-SD", result.rule_id.supporting_form_codes)
+
+        ca12 = declarations.filtered(lambda item: item.rule_id.code == "FR_3517_S")
+        self.assertEqual(
+            set((item.period_start, item.period_end, item.deadline_date) for item in ca12),
+            {
+                (date(2026, 6, 1), date(2026, 12, 31), date(2027, 5, 4)),
+                (date(2027, 1, 1), date(2027, 9, 30), date(2027, 12, 31)),
+            },
+        )
+        vat_instalments = declarations.filtered(lambda item: item.rule_id.code == "FR_3514")
+        self.assertEqual(
+            set(vat_instalments.mapped("deadline_date")),
+            {date(2026, 7, 24), date(2026, 12, 24), date(2027, 7, 24)},
+        )
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_CA3"
+            and item.period_start == date(2027, 10, 1),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_CFE_1447_C"
+            and item.deadline_date == date(2026, 12, 31),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_CFE_BALANCE"
+            and item.deadline_date == date(2027, 12, 15),
+        ))
+
+    def test_transaction_registration_and_threshold_rules_create_only_real_periods(self):
+        company = self._company("Triggered declaration schedule")
+        company.rebuild_oss_registered = True
+
+        rcm = self._account(company, "457991", "Dividend payable", "liability_current")
+        das2_expense = self._account(company, "622991", "Professional fees", "expense")
+        equity = self._account(company, "101991", "Trigger balancing equity", "equity")
+        cash = self._account(company, "512991", "Trigger bank", "asset_cash")
+        revenue = self._account(company, "706991", "Trigger revenue", "income")
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "Declaration trigger journal",
+            "code": "DTRG",
+            "type": "general",
+            "company_id": company.id,
+        })
+        beneficiary = self.env["res.partner"].create({
+            "name": "DAS2 threshold beneficiary",
+        })
+        revenue_move = self.env["account.move"].with_company(company).create({
+            "date": "2026-06-30",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "CVAE turnover",
+                    "account_id": cash.id,
+                    "debit": 160_000.0,
+                }),
+                Command.create({
+                    "name": "CVAE turnover",
+                    "account_id": revenue.id,
+                    "credit": 160_000.0,
+                }),
+            ],
+        })
+        revenue_move.action_post()
+        dividend_move = self.env["account.move"].with_company(company).create({
+            "date": "2026-08-10",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "RCM event",
+                    "account_id": equity.id,
+                    "debit": 100.0,
+                }),
+                Command.create({
+                    "name": "RCM event",
+                    "account_id": rcm.id,
+                    "credit": 100.0,
+                }),
+            ],
+        })
+        dividend_move.action_post()
+        das2_move = self.env["account.move"].with_company(company).create({
+            "date": "2026-03-10",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Professional fees",
+                    "account_id": das2_expense.id,
+                    "partner_id": beneficiary.id,
+                    "debit": 2_501.0,
+                }),
+                Command.create({
+                    "name": "Professional fees",
+                    "account_id": equity.id,
+                    "partner_id": beneficiary.id,
+                    "credit": 2_501.0,
+                }),
+            ],
+        })
+        das2_move.action_post()
+        self.env["rebuild.account.external.report.value"].create({
+            "name": "Reviewed prior CVAE liability",
+            "company_id": company.id,
+            "currency_id": company.currency_id.id,
+            "period_key": "Calendar year 2025",
+            "form_code": "1329-CVAE-PRIOR",
+            "field_code": "PRIOR_LIABILITY",
+            "source_key": "unit-cvae-prior-2025",
+            "amount": 2_000.0,
+            "review_status": "accepted",
+        })
+
+        Declaration = self.env["rebuild.account.declaration"]
+
+        def eu_b2b_signal(_records, _company, period_start, period_end):
+            return (
+                period_start == date(2026, 8, 1)
+                and period_end == date(2026, 8, 31)
+            )
+
+        with (
+            patch.object(fields.Date, "context_today", return_value=date(2026, 8, 29)),
+            patch.object(
+                type(Declaration),
+                "_has_eu_b2b_service_signal",
+                autospec=True,
+                side_effect=eu_b2b_signal,
+            ),
+        ):
+            declarations = Declaration.sync_for_company(company)
+
+        rcm_declaration = declarations.filtered(
+            lambda item: item.rule_id.code == "FR_RCM_2777",
+        )
+        self.assertEqual(
+            (rcm_declaration.period_start, rcm_declaration.period_end, rcm_declaration.deadline_date),
+            (date(2026, 8, 1), date(2026, 8, 31), date(2026, 9, 15)),
+        )
+        self.assertNotIn("FY ending", rcm_declaration.name)
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_IFU_2561"
+            and item.period_start == date(2026, 1, 1),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_DES"
+            and item.period_start == date(2026, 8, 1),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_OSS"
+            and item.period_start == date(2026, 4, 1)
+            and item.deadline_date == date(2026, 7, 31),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_DAS2"
+            and item.period_start == date(2026, 1, 1),
+        ))
+        self.assertTrue(declarations.filtered(
+            lambda item: item.rule_id.code == "FR_CVAE_1330"
+            and item.fiscalyear_end == date(2026, 9, 30),
+        ))
+        self.assertEqual(
+            set(declarations.filtered(
+                lambda item: item.rule_id.code == "FR_CVAE_1329_AC"
+                and item.period_start == date(2026, 1, 1),
+            ).mapped("deadline_date")),
+            {date(2026, 6, 15), date(2026, 9, 15)},
+        )
+
+    def test_sync_retires_obsolete_open_rows_without_rewriting_filed_evidence(self):
+        company = self._company("Declaration retirement audit")
+        retired_rule = self.env.ref(
+            "rebuild_account_migration.declaration_rule_2033_2026",
+        )
+        base_values = {
+            "name": "Obsolete independent 2033 obligation",
+            "company_id": company.id,
+            "rule_id": retired_rule.id,
+            "period_start": date(2025, 10, 1),
+            "period_end": date(2026, 9, 30),
+            "fiscalyear_start": date(2025, 10, 1),
+            "fiscalyear_end": date(2026, 9, 30),
+            "deadline_date": date(2027, 1, 15),
+            "deadline_basis": "Legacy fiscal-year-only schedule.",
+            "applicability_reason": "Legacy generated row.",
+        }
+        open_row = self.env["rebuild.account.declaration"].create(base_values)
+        filed_row = self.env["rebuild.account.declaration"].create({
+            **base_values,
+            "name": "Filed legacy 2033 evidence",
+            "instalment_number": 1,
+            "status": "filed",
+            "filing_status": "submitted",
+            "external_filing_reference": "UNIT-FILED-2033",
+        })
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 8, 29)):
+            self.env["rebuild.account.declaration"].sync_for_company(company)
+
+        self.assertEqual(open_row.status, "not_applicable")
+        self.assertEqual(open_row.applicability, "not_applicable")
+        self.assertIn("retained for audit traceability", open_row.applicability_reason)
+        self.assertEqual(filed_row.status, "filed")
+        self.assertEqual(filed_row.external_filing_reference, "UNIT-FILED-2033")
 
     def test_reviewer_scope_and_manager_evidence_backed_decisions(self):
         company = self._company("Reviewer Scope Company")
@@ -181,12 +400,20 @@ class TestDeclarationAndClosing(TransactionCase):
             "summary": "A unit-test blocker remains.",
             "next_action": "Resolve the unit-test blocker.",
         })
+        media_company = self._company("USL MEDIA reviewer scope")
+        media_declaration = self._declaration(media_company)
+        foreign_company = self._company("Outside reviewer scope")
+        foreign_declaration = self._declaration(foreign_company)
+        (declaration | media_declaration | foreign_declaration).write({
+            "status": "accountant_review",
+            "review_status": "accountant_requested",
+        })
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "Declaration Reviewer",
             "login": "declaration.reviewer@example.invalid",
             "email": "declaration.reviewer@example.invalid",
             "company_id": company.id,
-            "company_ids": [Command.set([company.id])],
+            "company_ids": [Command.set([company.id, media_company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
 
@@ -215,16 +442,49 @@ class TestDeclarationAndClosing(TransactionCase):
             **reviewer_context,
         )
         self.assertTrue(reviewer_decisions.has_access("read"))
-        self.assertFalse(reviewer_decisions.has_access("write"))
-        self.assertFalse(reviewer_decisions.has_access("create"))
+        self.assertTrue(reviewer_decisions.has_access("write"))
+        self.assertTrue(reviewer_decisions.has_access("create"))
+        reviewer_decision = reviewer_decisions.create({
+            "gate": "declaration_review",
+            "conclusion": "accepted_with_difference",
+            "required_authority": "accountant",
+            "company_id": company.id,
+            "declaration_id": declaration.id,
+            "decision_summary": "Reviewed the declaration and documented the remaining portal confirmation.",
+            "evidence_summary": "Declaration schedule and ledger-derived field review.",
+        })
+        reviewer_decision.action_record()
+        self.assertEqual(reviewer_decision.reviewer_user_id, reviewer)
+        self.assertEqual(declaration.review_status, "accepted_with_difference")
+        media_decision = reviewer_decisions.create({
+            "gate": "declaration_review",
+            "conclusion": "requires_change",
+            "required_authority": "accountant",
+            "company_id": media_company.id,
+            "declaration_id": media_declaration.id,
+            "decision_summary": "USL MEDIA declaration requires a corrected supporting fact.",
+        })
+        media_decision.action_record()
+        self.assertEqual(media_declaration.review_status, "rejected")
+        with self.assertRaises(AccessError):
+            reviewer_decisions.create({
+                "gate": "closing_review",
+                "conclusion": "accepted_with_difference",
+                "required_authority": "accountant",
+                "company_id": company.id,
+                "closing_period_id": closing.id,
+                "decision_summary": "A scoped declaration reviewer cannot approve closing workspaces.",
+            })
+        with self.assertRaises(AccessError):
+            reviewer_decision.action_supersede()
         with self.assertRaises(AccessError):
             reviewer_decisions.create({
                 "gate": "declaration_review",
-                "conclusion": "accepted",
+                "conclusion": "requires_change",
                 "required_authority": "accountant",
-                "company_id": company.id,
-                "declaration_id": declaration.id,
-                "decision_summary": "Reviewer cannot create decisions.",
+                "company_id": foreign_company.id,
+                "declaration_id": foreign_declaration.id,
+                "decision_summary": "Cross-company action must remain impossible.",
             })
 
         missing_evidence = decision_model.create({
@@ -926,7 +1186,7 @@ class TestDeclarationAndClosing(TransactionCase):
     def test_opening_hygiene_refreshes_for_manager_only(self):
         company = self._company("Automatic Hygiene Refresh Company", profile=False)
         overview = self.env["rebuild.account.overview"].with_company(company).search(
-            [("company_id", "=", company.id)],
+            [("company_id", "in", [company.id])],
             limit=1,
         )
         self.assertTrue(overview)
@@ -971,7 +1231,7 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertEqual(
             reviewer_action["domain"],
-            [("company_id", "=", company.id)],
+            [("company_id", "in", [company.id])],
         )
 
         client_action = self.env.ref(

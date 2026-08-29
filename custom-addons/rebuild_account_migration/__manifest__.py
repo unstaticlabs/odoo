@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.3.1.13.10",
+    "version": "saas~19.3.1.13.11",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -38,6 +38,7 @@
         "security/ir.model.access.csv",
         "data/currency_rate_provider.xml",
         "data/french_declaration_rules.xml",
+        "data/french_declaration_rules_extended.xml",
         "data/accounting_framework.xml",
         "data/einvoice_readiness.xml",
         "views/rebuild_account_migration_views.xml",

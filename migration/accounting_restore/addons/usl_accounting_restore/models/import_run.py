@@ -75,12 +75,18 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_corporate_tax_regime": "is",
         "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
         "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_vat_regime": "simplified",
+        "rebuild_vat_transition_date": "2027-10-01",
+        "rebuild_oss_registered": False,
         "rebuild_first_fiscalyear_start": "2024-01-10",
         "rebuild_first_fiscalyear_end": "2025-09-30",
         "evidence": (
             "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS "
             "tax package: Unstatic Labs is a French SASU subject to IS, "
-            "using the simplified BIC/IS package."
+            "using the simplified BIC/IS package. VAT remains under RSI "
+            "through the fiscal year ending 30 September 2027, then changes "
+            "to quarterly CA3 from 1 October 2027. No OSS registration is "
+            "evidenced by the frozen source."
         ),
     },
     "106928831": {
@@ -88,6 +94,9 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_corporate_tax_regime": "is",
         "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
         "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_vat_regime": "simplified",
+        "rebuild_vat_transition_date": "2027-10-01",
+        "rebuild_oss_registered": False,
         "rebuild_first_fiscalyear_start": "2026-06-01",
         "rebuild_first_fiscalyear_end": "2027-09-30",
         "evidence": (
@@ -95,7 +104,9 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
             "SAS, activity from 1 June 2026 and a first fiscal close on "
             "30 September 2027. The company is subject to IS; the simplified "
             "BIC/IS package and French SME projection remain reviewable at the "
-            "annual 2065 preparation."
+            "annual 2065 preparation. VAT remains under RSI through the long "
+            "first fiscal year and changes to quarterly CA3 from 1 October "
+            "2027. No OSS registration is evidenced by the frozen source."
         ),
     },
 }
@@ -1692,10 +1703,11 @@ class RebuildAccountImportRun(models.Model):
             return {}
 
         periodicity = row.get("account_return_periodicity") or ""
-        vat_regime = VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY.get(
+        source_vat_regime = VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY.get(
             periodicity,
             "unknown",
         )
+        vat_regime = profile.get("rebuild_vat_regime", source_vat_regime)
         return {
             "rebuild_declaration_profile_active": True,
             "rebuild_legal_form": profile["rebuild_legal_form"],
@@ -1709,6 +1721,14 @@ class RebuildAccountImportRun(models.Model):
                 "rebuild_profit_tax_regime"
             ],
             "rebuild_vat_regime": vat_regime,
+            "rebuild_vat_transition_date": profile[
+                "rebuild_vat_transition_date"
+            ],
+            "rebuild_oss_registered": profile["rebuild_oss_registered"],
+            "rebuild_oss_registration_evidence": (
+                "No OSS registration was evidenced in the frozen Online "
+                "source; foreign platform revenue is not OSS registration."
+            ),
             "rebuild_first_fiscalyear_start": profile[
                 "rebuild_first_fiscalyear_start"
             ],
@@ -1718,7 +1738,8 @@ class RebuildAccountImportRun(models.Model):
             "rebuild_declaration_profile_evidence": (
                 f"{profile['evidence']} The Online source configures tax returns "
                 f"with {periodicity or 'an unclassified'} periodicity, translated "
-                f"to the {vat_regime} VAT profile."
+                f"to {source_vat_regime}. The reviewed legal transition profile "
+                f"governs the migrated {vat_regime} schedule."
             ),
         }
 
