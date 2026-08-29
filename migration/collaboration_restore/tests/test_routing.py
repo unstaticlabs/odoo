@@ -12,6 +12,10 @@ PROJECT_VALIDATION_PATH = (
     Path(__file__).parents[2]
     / "project_restore/addons/usl_project_restore/scripts/validate_restore.py"
 )
+ACCOUNTING_FINALIZE_PATH = (
+    Path(__file__).parents[2]
+    / "accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py"
+)
 SPEC = spec_from_file_location("collaboration_routing", PATH)
 routing = module_from_spec(SPEC)
 SPEC.loader.exec_module(routing)
@@ -77,6 +81,7 @@ class RoutingTest(unittest.TestCase):
     def test_late_expense_materialization_defers_synthetic_attachment_chatter(self):
         restore_source = RESTORE_PATH.read_text()
         accounting_source = ACCOUNTING_IMPORT_PATH.read_text()
+        accounting_finalize_source = ACCOUNTING_FINALIZE_PATH.read_text()
         project_validation_source = PROJECT_VALIDATION_PATH.read_text()
 
         self.assertIn(
@@ -99,6 +104,10 @@ class RoutingTest(unittest.TestCase):
         self.assertIn(
             '"outbound_side_effect_counts_before": side_effect_before',
             restore_source,
+        )
+        self.assertIn(
+            'statistics.get("source_expense_count") == 443',
+            accounting_finalize_source,
         )
         self.assertIn("collaboration_fallback_note", project_validation_source)
         self.assertIn(
