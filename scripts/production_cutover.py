@@ -358,6 +358,28 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
             service_networks,
         ):
             raise CutoverError(f"{name} is not joined to approved external networks")
+    required_odoo_secrets = {
+        "/run/secrets/document-renderer": values["USL_DOCUMENT_RENDERER_CERT_DIR"],
+        "/run/usl-sign": values["USL_SIGN_ODOO_SECRET_DIR"],
+    }
+    for service_name in ("odoo", "init-db"):
+        service = services.get(service_name)
+        if not service:
+            raise CutoverError(f"Compose topology is missing {service_name}")
+        mounts = service.get("volumes") or []
+        for target, source in required_odoo_secrets.items():
+            if not any(
+                isinstance(mount, dict)
+                and mount.get("type") == "bind"
+                and mount.get("source") == source
+                and mount.get("target") == target
+                and mount.get("read_only") is True
+                for mount in mounts
+            ):
+                raise CutoverError(
+                    f"{service_name} does not mount {target} from its approved "
+                    "secret directory read-only",
+                )
     expected_images = {
         "odoo": values["ODOO_IMAGE"],
         "paperless-webserver": values["PAPERLESS_IMAGE"],

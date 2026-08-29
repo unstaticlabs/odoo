@@ -28,6 +28,8 @@ services:
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
     volumes: !override
       - odoo-data:/var/lib/odoo
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   init-db:
     build: !reset null
@@ -37,6 +39,8 @@ services:
       - external-identity
     volumes: !override
       - odoo-data:/var/lib/odoo
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   paperless-preflight:
     environment:
