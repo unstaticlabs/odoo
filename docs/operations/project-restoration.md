@@ -208,16 +208,27 @@ Before product review:
 3. A second import has the same counts and hashes, creates no duplicate traced
    records, messages, tracking values, activities, attachments, followers, or
    links, and leaves post-cutover target edits intact.
-4. Every restored `project.project.id` and `project.task.id` equals its Online
-   ID; no unrelated row occupied a requested ID; both sequences allocate above
-   the greatest stored ID after restoration.
-5. Two clean targets produce equivalent source-keyed project, task,
+4. Every restored `project.project.id`, `project.task.id`, and live
+   `project.task.type.id` equals its Online ID; no unrelated business row
+   occupied a requested ID; their sequences allocate above the greatest stored
+   ID after restoration. IDs referenced only by duration history are retained
+   as inactive, project-less historical stages and can never identify an
+   unrelated Community stage.
+5. Every task's normalized native `duration_tracking` ledger matches Online,
+   including accumulated bucket count and minutes, current-stage ID, and the
+   current-stage start timestamp. The frozen snapshot must retain 1,548 tasks
+   with history, 3,676 buckets, and 31,838,349 accumulated minutes; 300 buckets
+   and 4,178,009 minutes across 25 deleted stage IDs remain represented.
+6. A normal post-restore stage transition adds elapsed time to the restored
+   current-stage bucket without changing earlier buckets. An identical repeated
+   import leaves that continued ledger and its clock untouched.
+7. Two clean targets produce equivalent source-keyed project, task,
    relationship, mail, activity, and attachment checksums.
-6. Verify active and archived project/task actions, private-project rules,
+8. Verify active and archived project/task actions, private-project rules,
    company access, stage and state distinctions, planned dates, milestones,
    subtasks, blockers, recurring configuration, chatter, attachment download,
    updates, and analytic links with representative records.
-7. Run the focused migration and product module tests:
+9. Run the focused migration and product module tests:
 
    ```bash
    docker compose --profile project-migration run --rm \
@@ -238,7 +249,7 @@ Before product review:
    make product-migration-boundary
    ```
 
-8. Finalize the database and require `product-validate` to report zero
+10. Finalize the database and require `product-validate` to report zero
    migration models, fields and XML IDs with `usl_project_restore`
    uninstalled.
 
