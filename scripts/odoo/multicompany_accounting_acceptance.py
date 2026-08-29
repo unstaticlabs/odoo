@@ -223,12 +223,15 @@ if reviewer and main_company and media_company:
     summary["reviewer_scope"] = {
         "login": reviewer.login,
         "allowed_companies": sorted(reviewer_companies),
+        "multi_company_ui": reviewer.has_group("base.group_multi_company"),
         "main_move_count": main_move_count,
         "media_move_count": media_move_count,
         "media_custom_counts": media_custom_counts,
     }
     if not required_reviewer_companies.issubset(reviewer_companies):
         errors.append("Accounting reviewer lacks the approved two-company scope")
+    if not reviewer.has_group("base.group_multi_company"):
+        errors.append("Accounting reviewer lacks the native multi-company UI group")
     if not main_move_count or not media_move_count:
         errors.append("Accounting reviewer cannot read both companies' ledgers")
 else:

@@ -198,6 +198,18 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertEqual(PRODUCT_MODULES, database_boundary_modules)
         self.assertEqual(PRODUCT_MODULES, preprod_modules)
 
+    def test_target_finalization_reconciles_native_multi_company_ui(self) -> None:
+        target_finalize = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
+        synchronizer = (
+            ROOT / "scripts/odoo/synchronize_multi_company_groups.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("synchronize_multi_company_groups.py", target_finalize)
+        self.assertIn('env.ref("base.group_multi_company")', synchronizer)
+        self.assertIn("len(user.company_ids) > 1", synchronizer)
+        self.assertIn("Command.link(group.id)", synchronizer)
+        self.assertIn("env.cr.commit()", synchronizer)
+
     def test_action_surface_matches_lean_product_module_scope(self) -> None:
         def assigned_set(path: Path, name: str) -> set[str]:
             tree = ast.parse(path.read_text(encoding="utf-8"))

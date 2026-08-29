@@ -55,6 +55,9 @@ for login, policy in expected.items():
         raise ValidationError(f"Unexpected Pocket ID state for {login}.")
     if user.usl_has_irreversible_actions != policy["irreversible"]:
         raise ValidationError(f"Unexpected irreversible capability for {login}.")
+    multi_company_ui = user.has_group("base.group_multi_company")
+    if len(user.company_ids) > 1 and not multi_company_ui:
+        raise ValidationError(f"Missing native multi-company UI access for {login}.")
     identities = user.usl_oidc_identity_ids.filtered("active")
     if policy["pocketid"] and len(identities) != 1:
         raise ValidationError(f"Expected one active immutable identity for {login}.")
@@ -68,6 +71,7 @@ for login, policy in expected.items():
             "pocketid_subject": identities.subject if identities else None,
             "ai_agent": user.usl_is_ai_agent,
             "irreversible_actions": user.usl_has_irreversible_actions,
+            "multi_company_ui": multi_company_ui,
         },
     )
     if login == "prosper":
