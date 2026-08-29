@@ -213,6 +213,30 @@ provision_archive_identity() {
   }
 }
 
+deprovision_archive_identity() {
+  if [[ -z "${sign_paperless_token:-}" ]]; then
+    return
+  fi
+  "${compose[@]}" --profile paperless exec -T paperless-webserver \
+    python manage.py shell \
+    < migration/documents_archive/scripts/paperless_migration_access_cleanup.py \
+    >/dev/null
+  sign_paperless_token=""
+}
+
+cleanup_sign_restore() {
+  local cleanup_status=0 status=$?
+  trap - EXIT
+  set +e
+  deprovision_archive_identity
+  cleanup_status=$?
+  set -e
+  if ((status)); then
+    exit "$status"
+  fi
+  exit "$cleanup_status"
+}
+
 run_shell() {
   local script_path="$1"
   "${compose[@]}" --profile project-migration run --rm -T \
@@ -258,6 +282,7 @@ esac
 start_dependencies
 require_target
 provision_archive_identity
+trap cleanup_sign_restore EXIT
 case "$command_name" in
   import)
     run_stage migration/sign_restore/scripts/run_restore.py
