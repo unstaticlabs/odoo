@@ -234,6 +234,7 @@ for required_guard in (
     "usl-odoo-migration-legacy-*",
     "USL_MIGRATION_LEGACY_CONFIRM",
     "USL_MIGRATION_LEGACY_SOURCE_SHA256",
+    "USL_MIGRATION_LEGACY_ACTIVE=1",
     "*production*|*preprod*|*transition*",
     "USL_EINVOICE_LIVE_ENABLED=0",
     "USL_EREPORTING_LIVE_ENABLED=0",
@@ -242,6 +243,12 @@ for required_guard in (
         errors.append(
             f"The migration legacy wrapper lacks guard {required_guard!r}.",
         )
+
+documents_restore = (ROOT / "scripts" / "documents-restore").read_text()
+if '"${USL_MIGRATION_LEGACY_ACTIVE:-0}" == 1' not in documents_restore:
+    errors.append("Canonical Documents recovery cannot activate the guarded legacy overlay.")
+if 'compose+=( -f "$ROOT/compose.migration-legacy.yaml" )' not in documents_restore:
+    errors.append("Canonical Documents recovery does not append the legacy overlay explicitly.")
 
 restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",

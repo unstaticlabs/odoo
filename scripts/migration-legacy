@@ -75,6 +75,7 @@ actual_source_sha="$(shasum -a 256 "$source_dir/dump.sql" | awk '{print $1}')"
 export COMPOSE_FILE="$ROOT/compose.yaml:$ROOT/compose.migration-legacy.yaml"
 export COMPOSE_PROJECT_NAME="$project"
 export COMPOSE_IGNORE_ORPHANS=1
+export USL_MIGRATION_LEGACY_ACTIVE=1
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 

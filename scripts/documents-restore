@@ -204,6 +204,9 @@ if [[ "$canonical_target" == 1 ]]; then
 else
     compose=(docker compose -p "$compose_project")
 fi
+if [[ "${USL_MIGRATION_LEGACY_ACTIVE:-0}" == 1 ]]; then
+    compose+=( -f "$ROOT/compose.migration-legacy.yaml" )
+fi
 
 validate_source() {
     local source_status

@@ -166,6 +166,13 @@ class MigrationLegacyBoundaryTests(unittest.TestCase):
         self.assertNotIn("docker compose up", verify_case)
         self.assertNotIn("target-reconstruct", verify_case)
 
+    def test_canonical_documents_recovery_uses_only_guarded_overlay_activation(self) -> None:
+        restore = (ROOT / "scripts" / "documents-restore").read_text(encoding="utf-8")
+        self.assertIn('"${USL_MIGRATION_LEGACY_ACTIVE:-0}" == 1', restore)
+        self.assertIn('compose+=( -f "$ROOT/compose.migration-legacy.yaml" )', restore)
+        wrapper = WRAPPER.read_text(encoding="utf-8")
+        self.assertIn("export USL_MIGRATION_LEGACY_ACTIVE=1", wrapper)
+
     def test_wrapper_renders_only_after_exact_source_and_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory)
