@@ -14,6 +14,7 @@ target_database="${SIGN_TARGET_DATABASE:-odoo_sign_restore}"
 source_database="${SIGN_SOURCE_DATABASE:-odoo_online_source_saas_19_3}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
 canonical_target="${SIGN_CANONICAL_TARGET:-0}"
+canonical_env_file=""
 if [[ "$canonical_target" == 1 ]]; then
   paperless_port="${SIGN_MIGRATION_PAPERLESS_PORT:-${PAPERLESS_HTTP_PORT:-8010}}"
   odoo_port="${SIGN_MIGRATION_ODOO_PORT:-${ODOO_HTTP_PORT:-8069}}"
@@ -56,6 +57,38 @@ case "$canonical_target" in
     exit 2
     ;;
 esac
+if [[ "$canonical_target" == 1 ]]; then
+  usl_require_explicit_compose_project "Canonical Sign restoration"
+  requested_compose_project="$compose_project"
+  requested_odoo_http_port="${ODOO_HTTP_PORT:-8069}"
+  requested_odoo_gevent_port="${ODOO_GEVENT_PORT:-8072}"
+  requested_pocket_id_http_port="${POCKET_ID_HTTP_PORT:-1411}"
+  requested_paperless_http_port="${PAPERLESS_HTTP_PORT:-8010}"
+  requested_paperless_public_url="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$requested_paperless_http_port}"
+  canonical_env_file="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"
+  export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$requested_compose_project"
+  export USL_POCKET_ID_DEV_ODOO_PORT="$requested_odoo_http_port"
+  export USL_POCKET_ID_DEV_GEVENT_PORT="$requested_odoo_gevent_port"
+  export USL_POCKET_ID_DEV_POCKET_PORT="$requested_pocket_id_http_port"
+  export USL_POCKET_ID_DEV_PAPERLESS_PORT="$requested_paperless_http_port"
+  export USL_POCKET_ID_DEV_PAPERLESS_URL="$requested_paperless_public_url"
+  POCKET_ID_ENV_FILE="$canonical_env_file" scripts/pocket-id-dev bootstrap >/dev/null
+  set -a
+  # shellcheck disable=SC1090
+  source "$canonical_env_file"
+  set +a
+  if [[ "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]; then
+    printf 'Pocket ID environment targets %s, not requested project %s.\n' \
+      "$COMPOSE_PROJECT_NAME" "$requested_compose_project" >&2
+    exit 2
+  fi
+  compose_project="$requested_compose_project"
+  export ODOO_HTTP_PORT="$requested_odoo_http_port"
+  export ODOO_GEVENT_PORT="$requested_odoo_gevent_port"
+  export POCKET_ID_HTTP_PORT="$requested_pocket_id_http_port"
+  export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"
+  export PAPERLESS_PUBLIC_URL="$requested_paperless_public_url"
+fi
 case "$target_database" in
   ""|odoo_online_source_saas_19_3|*[!A-Za-z0-9_]*)
     printf 'Refusing protected or unsafe Sign migration target %s.\n' "$target_database" >&2
@@ -102,6 +135,9 @@ if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
   export COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/compose.yaml}:$USL_OLLAMA_COMPOSE_OVERRIDE"
 fi
 compose=(docker compose -p "$compose_project")
+if [[ "$canonical_target" == 1 ]]; then
+  compose+=(--env-file "$canonical_env_file")
+fi
 
 start_dependencies() {
   "${compose[@]}" --profile accounting-compat up -d --wait accounting-source-db db
