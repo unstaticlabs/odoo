@@ -5,9 +5,12 @@ umask 077
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+# shellcheck source=lib/transition-live.sh
+source "$ROOT/scripts/lib/transition-live.sh"
 
 usl_require_explicit_compose_project "Canonical reconstruction"
 compose_project="$COMPOSE_PROJECT_NAME"
+usl_refuse_protected_transition "$ROOT" "$compose_project" "canonical reconstruction"
 usl_verify_compose_scope "$compose_project" "$ROOT" "Canonical reconstruction"
 
 if [[ -z "${POCKET_ID_ENV_FILE:-}" ]]; then

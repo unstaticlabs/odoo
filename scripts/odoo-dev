@@ -5,6 +5,7 @@ export COMPOSE_IGNORE_ORPHANS=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/transition-live.sh"
 usl_cli_load_local_port_defaults "$ROOT"
 
 COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}}"
@@ -20,6 +21,12 @@ case "$DEV_DB" in
 esac
 export ODOO_INIT_DB="$DEV_DB"
 export ODOO_DB_FILTER="^${DEV_DB}$"
+
+case "${1:-}" in
+  init-db|test-js|test-tag|bootstrap-*-qa|disable-tours|reset)
+    usl_refuse_protected_transition "$ROOT" "$COMPOSE_PROJECT" "Odoo development helper ${1:-}"
+    ;;
+esac
 
 current_branch() {
   local branch

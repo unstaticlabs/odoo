@@ -7,6 +7,8 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 # shellcheck source=lib/cli-ui.sh
 source "$ROOT/scripts/lib/cli-ui.sh"
+# shellcheck source=lib/transition-live.sh
+source "$ROOT/scripts/lib/transition-live.sh"
 usl_cli_load_local_port_defaults "$ROOT"
 
 command_name="${1:-status}"
@@ -32,6 +34,12 @@ fi
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
+
+case "$command_name" in
+    capture|publish|discard)
+        usl_refuse_protected_transition "$ROOT" "$compose_project" "QA seed $command_name"
+        ;;
+esac
 
 require_source() {
     if [[ ! -f "$source_dump" || ! -d "$source_dump_dir/filestore" ]]; then

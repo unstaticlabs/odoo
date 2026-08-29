@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 source "$ROOT/scripts/lib/ollama-runtime.sh"
+source "$ROOT/scripts/lib/transition-live.sh"
 
 usage() {
   printf '%s\n' \
@@ -91,6 +92,12 @@ case "$DATABASE" in
       printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
       exit 2
     fi
+    ;;
+esac
+
+case "$COMMAND" in
+  bootstrap|test|test-accounting|test-pocket|test-js)
+    usl_refuse_protected_transition "$ROOT" "$PROJECT" "Documents QA helper $COMMAND"
     ;;
 esac
 usl_verify_compose_scope "$PROJECT" "$ROOT" "Documents stack"

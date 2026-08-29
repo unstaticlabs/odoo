@@ -4,4 +4,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# shellcheck source=lib/transition-live.sh
+source "$ROOT/scripts/lib/transition-live.sh"
+if [[ "${1:-}" == dev-reset ]]; then
+  compose_project="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-3}}}"
+  usl_refuse_protected_transition "$ROOT" "$compose_project" "Accounting target reset"
+fi
+
 exec python3 -m accounting_compat.cli "$@"
