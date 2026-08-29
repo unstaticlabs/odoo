@@ -16,6 +16,7 @@ from odoo import Command, fields, models
 from odoo.addons.usl_collaboration_restore.routing import (
     DIRECT_MODELS,
     EXPECTED_COUNTS,
+    EXPECTED_MESSAGE_DISPOSITIONS,
     EXTERNAL_ARCHIVE_MODELS,
     TRANSLATED_MODELS,
     route_model,
@@ -1185,9 +1186,12 @@ class UslCollaborationRestoreRun(models.Model):
             "archives": len(archives),
         }
         if (
-            statistics["visible_messages"] != 49186
-            or statistics["external_messages"] != 0
-            or statistics["deliberately_not_copied_messages"] != 819
+            statistics["visible_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["visible"]
+            or statistics["external_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["external"]
+            or statistics["deliberately_not_copied_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["deliberately_not_copied"]
         ):
             raise RuntimeError(f"Collaboration disposition baseline changed: {statistics}")
         self.write({

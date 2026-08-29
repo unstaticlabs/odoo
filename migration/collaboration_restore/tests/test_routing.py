@@ -34,11 +34,15 @@ class RoutingTest(unittest.TestCase):
         self.assertEqual(routing.route_model("unexpected.model"), "unclassified")
 
     def test_locked_source_counts_are_declared(self):
-        self.assertEqual(routing.EXPECTED_COUNTS["messages"], 50005)
-        self.assertEqual(routing.EXPECTED_COUNTS["tracking"], 36946)
+        self.assertEqual(routing.EXPECTED_COUNTS["messages"], 51491)
+        self.assertEqual(routing.EXPECTED_COUNTS["tracking"], 37579)
         self.assertEqual(routing.EXPECTED_COUNTS["aliases"], 29)
-        self.assertEqual(routing.EXPECTED_COUNTS["parent_links"], 23093)
+        self.assertEqual(routing.EXPECTED_COUNTS["parent_links"], 24069)
         self.assertEqual(routing.EXPECTED_COUNTS["cross_accounting_parent_links"], 1643)
+        self.assertEqual(
+            routing.EXPECTED_MESSAGE_DISPOSITIONS,
+            {"visible": 50588, "external": 0, "deliberately_not_copied": 903},
+        )
 
     def test_every_populated_source_message_model_is_classified(self):
         populated = {

@@ -6,21 +6,21 @@ database through a read-only connection and routes every message, tracking
 value, follower, activity, reaction, recipient and attachment relationship to
 either a native business successor or sealed private archive evidence.
 
-The locked source contains 50,005 messages, 36,946 tracking values, 5,862
-followers and 895 activities. The production gate requires 49,186 messages on
-native or rebuilt operational records and 819 explicit non-copy dispositions.
+The final frozen source contains 51,491 messages, 37,579 tracking values, 6,010
+followers and 918 activities. The production gate requires 50,588 messages on
+native or rebuilt operational records and 903 explicit non-copy dispositions.
 A changed count or unknown model blocks the run.
 
 The deliberately omitted set comprises 66 default/demo Knowledge messages,
-554 generated technical configuration notes, and 199 activity messages on 83
+636 generated technical configuration notes, and 201 activity messages on 83
 retired Documents folders plus the default Documents tutorial URL. Knowledge is not part of the
 Distribution, and product review determined that its source records are demo
-content from the default Online setup. The 554 technical notes are 350
-generated notifications and 204 tracking events, all using the internal Note
-subtype. They contain no email, comment, reply, subject, recipient, attachment,
-reaction or parent relationship. Their 291 threads comprise 371 server-action
-events, 94 scheduled-action events, 60 orphaned partner/Peppol notifications,
-seven automation events, six bank-link events, six depreciation-rule events,
+content from the default Online setup. The 636 technical notes are generated
+notifications and tracking events using the internal Note subtype. They
+contain no email, comment, reply, subject, recipient, attachment, reaction or
+parent relationship. Their configuration records comprise 371 server-action
+events, 130 scheduled-action events, 60 orphaned partner/Peppol notifications,
+53 automation events, six bank-link events, six depreciation-rule events,
 three IAP-account events, four CRM team/member events, two deleted-product
 creation notices and one Quality team creation notice. Neither set is customer
 or operational history. Exact source-level dispositions are checksum-sealed in
