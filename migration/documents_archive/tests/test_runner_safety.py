@@ -79,6 +79,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             DOCUMENTS_ACCEPTANCE_SCRIPT,
             POCKET_ID_DEV_SCRIPT,
             ROOT / "scripts/documents-release-bundle",
+            RECOVERY_SCRIPT,
         ):
             with self.subTest(path=path.name):
                 script = path.read_text(encoding="utf-8")
@@ -766,12 +767,15 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             self.assertIn("USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY", script)
             self.assertIn("usl-odoo-preprod-*", script)
             self.assertIn("usl-odoo-paperless-*", script)
+            self.assertIn("usl-odoo-qa-migration-*", script)
             self.assertNotIn('"$PROJECT" = "*"', script)
         self.assertIn("LOCAL_DEV_RECOVERY", recovery)
         self.assertIn("SOURCE_OVERRIDE=()", recovery)
         self.assertIn("COMPOSE_OVERRIDE=()", stack)
         self.assertIn("SOURCE_PAPERLESS_OLLAMA_VOLUME", recovery)
         self.assertIn("paperless-ollama-data.tgz", recovery)
+        self.assertIn('USL_OLLAMA_RUNTIME_SELECTED" = native', recovery)
+        self.assertIn("native-ollama-manifest.sha256", recovery)
 
     def test_clean_paperless_bootstrap_is_digest_pinned(self):
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")

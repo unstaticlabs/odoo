@@ -88,7 +88,8 @@ case "$DATABASE" in
         || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
         || "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" != "1" \
         || ( "$PROJECT" != usl-odoo-preprod-* \
-          && "$PROJECT" != usl-odoo-paperless-* ) ]]; then
+          && "$PROJECT" != usl-odoo-paperless-* \
+          && "$PROJECT" != usl-odoo-qa-migration-* ) ]]; then
       printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
       exit 2
     fi
@@ -109,7 +110,8 @@ fi
 COMPOSE_OVERRIDE=(-f "$OVERRIDE")
 if [[ "$ENVIRONMENT" = "preprod" \
     && "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
-    && "$PROJECT" = usl-odoo-paperless-* ]]; then
+    && ( "$PROJECT" = usl-odoo-paperless-* \
+      || "$PROJECT" = usl-odoo-qa-migration-* ) ]]; then
   COMPOSE_OVERRIDE=()
 fi
 usl_prepare_ollama_runtime "$ROOT"
@@ -266,7 +268,8 @@ validate_config() {
     if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
         && "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" = "1" \
         && ( "$PROJECT" = usl-odoo-preprod-* \
-          || "$PROJECT" = usl-odoo-paperless-* ) ]]; then
+          || "$PROJECT" = usl-odoo-paperless-* \
+          || "$PROJECT" = usl-odoo-qa-migration-* ) ]]; then
       grep -Fq "USL_DEPLOYMENT_ENV: qa" <<<"$config" || {
         printf 'Local pre-production recovery must keep QA live guards.\n' >&2
         return 1

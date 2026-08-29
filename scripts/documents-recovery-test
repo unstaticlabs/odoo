@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/ollama-runtime.sh
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 ENVIRONMENT="${1:-qa}"
 case "$ENVIRONMENT" in
@@ -60,7 +62,8 @@ esac
 LOCAL_DEV_RECOVERY=0
 if [[ "$ENVIRONMENT" = "preprod" \
     && "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
-    && "$SOURCE_PROJECT" = usl-odoo-paperless-* ]]; then
+    && ( "$SOURCE_PROJECT" = usl-odoo-paperless-* \
+      || "$SOURCE_PROJECT" = usl-odoo-qa-migration-* ) ]]; then
   LOCAL_DEV_RECOVERY=1
 fi
 RESTORE_PROJECT="${USL_DOCUMENTS_RESTORE_PROJECT:-${SOURCE_PROJECT}-restore-$(date -u +%Y%m%d%H%M%S)}"
@@ -78,7 +81,8 @@ case "$SOURCE_DATABASE" in
         || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
         || "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" != "1" \
         || ( "$SOURCE_PROJECT" != usl-odoo-preprod-* \
-          && "$SOURCE_PROJECT" != usl-odoo-paperless-* ) ]]; then
+          && "$SOURCE_PROJECT" != usl-odoo-paperless-* \
+          && "$SOURCE_PROJECT" != usl-odoo-qa-migration-* ) ]]; then
       printf 'Refusing unsafe source database: %s\n' "$SOURCE_DATABASE" >&2
       exit 2
     fi
@@ -96,6 +100,7 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${RESTORE_PROJECT}-"; then
 fi
 
 scripts/documents-stack "$ENVIRONMENT" preflight
+usl_prepare_ollama_runtime "$ROOT"
 SOURCE_ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
   SOURCE_ENV_FILES+=(--env-file "$SSO_ENV_FILE")
@@ -105,6 +110,10 @@ RESTORE_OVERRIDE=()
 if [[ "$LOCAL_DEV_RECOVERY" = "0" ]]; then
   SOURCE_OVERRIDE=(-f "$OVERRIDE")
   RESTORE_OVERRIDE=(-f "$OVERRIDE")
+fi
+if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+  SOURCE_OVERRIDE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+  RESTORE_OVERRIDE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
 fi
 SOURCE=(
   docker compose
@@ -181,6 +190,10 @@ RESTORE_PAPERLESS_MEDIA_VOLUME="${RESTORE_PROJECT}_paperless-media"
 RESTORE_PAPERLESS_EXPORT_VOLUME="${RESTORE_PROJECT}_paperless-export"
 RESTORE_PAPERLESS_TRASH_VOLUME="${RESTORE_PROJECT}_paperless-trash"
 RESTORE_PAPERLESS_OLLAMA_VOLUME="${RESTORE_PROJECT}_paperless-ollama-data"
+NATIVE_OLLAMA_MANIFEST=""
+if [[ "$USL_OLLAMA_RUNTIME_SELECTED" = native ]]; then
+  NATIVE_OLLAMA_MANIFEST="${OLLAMA_MODELS:-${HOME}/.ollama/models}/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1"
+fi
 
 restore_source() {
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
@@ -273,8 +286,12 @@ docker run --rm -v "$SOURCE_PAPERLESS_EXPORT_VOLUME:/source:ro" -v "$ARTIFACT_DI
   alpine:3.22.1 tar -C /source -czf /backup/paperless-export.tgz .
 docker run --rm -v "$SOURCE_PAPERLESS_TRASH_VOLUME:/source:ro" -v "$ARTIFACT_DIR:/backup" \
   alpine:3.22.1 tar -C /source -czf /backup/paperless-trash.tgz .
-docker run --rm -v "$SOURCE_PAPERLESS_OLLAMA_VOLUME:/source:ro" -v "$ARTIFACT_DIR:/backup" \
-  alpine:3.22.1 tar -C /source -czf /backup/paperless-ollama-data.tgz .
+if [[ "$USL_OLLAMA_RUNTIME_SELECTED" = container ]]; then
+  docker run --rm -v "$SOURCE_PAPERLESS_OLLAMA_VOLUME:/source:ro" -v "$ARTIFACT_DIR:/backup" \
+    alpine:3.22.1 tar -C /source -czf /backup/paperless-ollama-data.tgz .
+else
+  shasum -a 256 "$NATIVE_OLLAMA_MANIFEST" > "$ARTIFACT_DIR/native-ollama-manifest.sha256"
+fi
 sha256sum "$ARTIFACT_DIR"/* > "$ARTIFACT_DIR/SHA256SUMS"
 restore_source
 "${SOURCE[@]}" --profile init run --rm -T \
@@ -315,7 +332,9 @@ docker volume create "$RESTORE_PAPERLESS_DATA_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_MEDIA_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_EXPORT_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_TRASH_VOLUME" >/dev/null
-docker volume create "$RESTORE_PAPERLESS_OLLAMA_VOLUME" >/dev/null
+if [[ "$USL_OLLAMA_RUNTIME_SELECTED" = container ]]; then
+  docker volume create "$RESTORE_PAPERLESS_OLLAMA_VOLUME" >/dev/null
+fi
 
 docker run --rm -v "$RESTORE_ODOO_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
   alpine:3.22.1 tar -C /target -xzf /backup/odoo-data.tgz
@@ -330,8 +349,12 @@ docker run --rm -v "$RESTORE_PAPERLESS_EXPORT_VOLUME:/target" -v "$ARTIFACT_DIR:
   alpine:3.22.1 tar -C /target -xzf /backup/paperless-export.tgz
 docker run --rm -v "$RESTORE_PAPERLESS_TRASH_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
   alpine:3.22.1 tar -C /target -xzf /backup/paperless-trash.tgz
-docker run --rm -v "$RESTORE_PAPERLESS_OLLAMA_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
-  alpine:3.22.1 tar -C /target -xzf /backup/paperless-ollama-data.tgz
+if [[ "$USL_OLLAMA_RUNTIME_SELECTED" = container ]]; then
+  docker run --rm -v "$RESTORE_PAPERLESS_OLLAMA_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
+    alpine:3.22.1 tar -C /target -xzf /backup/paperless-ollama-data.tgz
+else
+  shasum -a 256 -c "$ARTIFACT_DIR/native-ollama-manifest.sha256"
+fi
 
 "${RESTORE[@]}" exec -T db createdb -U odoo "$RESTORED_DATABASE"
 "${RESTORE[@]}" exec -T db pg_restore -U odoo -d "$RESTORED_DATABASE" \
