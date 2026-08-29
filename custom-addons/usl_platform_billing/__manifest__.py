@@ -1,7 +1,7 @@
 {
     "name": "USL Platform Billing",
     "summary": "Turn content-platform payouts into auditable invoices and bills",
-    "version": "saas~19.3.1.3.0",
+    "version": "saas~19.3.1.3.1",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -25,8 +25,17 @@
         "views/menu_views.xml",
     ],
     "assets": {
+        "web.assets_backend": [
+            "usl_platform_billing/static/src/bank_record_preview.js",
+            "usl_platform_billing/static/src/bank_record_preview.xml",
+        ],
         "web.assets_tests": [
             "usl_platform_billing/static/tests/tours/platform_billing_tours.js",
+        ],
+        "web.assets_unit_tests": [
+            "usl_platform_billing/static/src/bank_record_preview.js",
+            "usl_platform_billing/static/src/bank_record_preview.xml",
+            "usl_platform_billing/static/tests/bank_record_preview.test.js",
         ],
     },
     "application": True,

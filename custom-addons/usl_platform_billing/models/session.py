@@ -414,6 +414,11 @@ class UslPlatformBillingSession(models.Model):
             raise AccessError(
                 _("Only Platform Billing administrators can delete sessions."),
             )
+        # Delete children through their ORM lifecycle while their parent still
+        # exists.  Relying on the database cascade leaves cached payout records
+        # behind while stored dependencies are recomputed, which can surface as
+        # a misleading MissingError during cancelled-session deletion.
+        self.payout_ids.unlink()
         return super().unlink()
 
     def _check_operator(self):

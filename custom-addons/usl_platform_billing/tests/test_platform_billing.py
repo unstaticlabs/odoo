@@ -1,3 +1,4 @@
+from lxml import etree
 from psycopg2 import IntegrityError
 
 from odoo import Command, fields
@@ -240,6 +241,61 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
 
         self.assertEqual(safe_eval(action.context or "{}"), {})
         self.assertIn('name="open"', search_view.arch_db)
+
+    def test_bank_candidate_selection_is_local_and_keeps_required_relation(self):
+        view = self.env.ref(
+            "usl_platform_billing.view_platform_billing_bank_import_wizard_form",
+        )
+        arch = etree.fromstring(view.arch_db.encode())
+        candidate_list = arch.xpath("//field[@name='candidate_ids']/list")[0]
+
+        self.assertFalse(candidate_list.xpath(".//button[@name='action_select']"))
+        self.assertFalse(candidate_list.xpath(".//button[@name='action_unselect']"))
+        selected = candidate_list.xpath(".//field[@name='selected']")[0]
+        self.assertEqual(selected.get("widget"), "boolean_icon")
+        bank_line = candidate_list.xpath(
+            ".//field[@name='bank_statement_line_id']",
+        )[0]
+        self.assertEqual(bank_line.get("column_invisible"), "True")
+
+    def test_bank_transaction_preview_contains_the_linked_record(self):
+        session = self._session(name="Bank preview — July 2026")
+        payout = self._payout(session, reference="PREVIEW-001")
+        bank_line = self._bank_line(
+            80.0,
+            label="CreatorHub preview PREVIEW-001",
+        )
+        self._allocation(payout, bank_line)
+
+        preview = payout.bank_transaction_preview
+
+        self.assertEqual(len(preview), 1)
+        self.assertEqual(preview[0]["id"], bank_line.id)
+        self.assertEqual(preview[0]["display_name"], bank_line.display_name)
+        self.assertEqual(preview[0]["journal"], bank_line.journal_id.display_name)
+        self.assertEqual(preview[0]["label"], bank_line.payment_ref)
+        self.assertIn("80", preview[0]["amount"])
+        self.assertFalse(preview[0]["reconciled"])
+
+    def test_cancelled_session_deletes_children_before_parent_and_frees_bank_line(self):
+        session = self._session(name="Cancelled deletion — July 2026")
+        payout = self._payout(session, reference="DELETE-001")
+        bank_line = self._bank_line(
+            80.0,
+            label="CreatorHub deletion DELETE-001",
+        )
+        allocation = self._allocation(payout, bank_line)
+        session.action_cancel()
+
+        session.with_user(self.manager).unlink()
+
+        self.assertFalse(session.exists())
+        self.assertFalse(payout.exists())
+        self.assertFalse(allocation.exists())
+        self.assertTrue(bank_line.exists())
+        replacement = self._session(name="Replacement — July 2026")
+        wizard = self._bank_wizard(replacement, mode="create")
+        self.assertIn(bank_line, wizard.candidate_ids.bank_statement_line_id)
 
     def test_french_period_name_tracks_only_automatic_names(self):
         session_form = Form(
