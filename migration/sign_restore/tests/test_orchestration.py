@@ -62,6 +62,21 @@ class SignOrchestrationTest(unittest.TestCase):
         )
         self.assertIn('compose+=(--env-file "$canonical_env_file")', restore)
 
+    def test_validation_derives_composite_counts_from_the_frozen_source(self):
+        validation = (
+            ROOT / "migration/sign_restore/scripts/validate_restore.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("inactive_template_documents", validation)
+        self.assertIn('sha256(reader.binary(row))', validation)
+        self.assertIn(
+            'len(source["requests"]) + len(source["messages"]) + '
+            'len(source["logs"])',
+            validation,
+        )
+        self.assertNotIn("len(external_documents) == 41", validation)
+        self.assertNotIn('counts["mail.message"] == 86', validation)
+
 
 if __name__ == "__main__":
     unittest.main()
