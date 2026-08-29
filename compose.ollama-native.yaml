@@ -9,4 +9,3 @@ services:
   paperless-webserver:
     environment:
       PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: ${USL_NATIVE_OLLAMA_CONTAINER_URL:-http://host.docker.internal:11434}
-

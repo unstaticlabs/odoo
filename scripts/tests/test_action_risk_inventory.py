@@ -138,6 +138,14 @@ from odoo import models
 class Thing(models.Model):
     _name = "x.thing"
 
+    @property
+    def display_token(self):
+        return self.id
+
+    @classmethod
+    def implementation_kind(cls):
+        return "thing"
+
     def create(self, values):
         return super().create(values)
 
@@ -276,6 +284,8 @@ export class Action {
             "guard:test.guarded",
         }
         self.assertTrue(expected <= actions.keys())
+        self.assertNotIn("rpc:x.thing.display_token", actions)
+        self.assertNotIn("rpc:x.thing.implementation_kind", actions)
         self.assertTrue(any(key.startswith("client:app:") for key in actions))
         self.assertTrue(
             any(

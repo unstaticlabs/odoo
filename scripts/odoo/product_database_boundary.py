@@ -34,7 +34,6 @@ PRODUCT_MODULES = {
     "usl_tese_payroll",
 }
 EXCLUDED_AUTO_INSTALL_MODULES = {
-    "contacts",
     "gamification",
     "hr_gamification",
     "hr_skills_survey",

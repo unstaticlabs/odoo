@@ -85,6 +85,23 @@ PRODUCT_MODULES = frozenset(
         "usl_tese_payroll",
     },
 )
+# Optional applications deliberately removed after Odoo reaches its native
+# auto-install fixed point. Keep this set aligned with the final product
+# registry gate; dependencies such as Contacts remain represented normally.
+EXCLUDED_AUTO_INSTALL_MODULES = {
+    "gamification",
+    "hr_gamification",
+    "hr_skills_survey",
+    "html_builder",
+    "link_tracker",
+    "mail_plugin",
+    "mass_mailing",
+    "mass_mailing_sale",
+    "mass_mailing_themes",
+    "project_mail_plugin",
+    "social_media",
+    "survey",
+}
 ADDON_ROOTS = (
     ("custom", "custom-addons"),
     ("oca", "oca-addons"),
@@ -420,7 +437,11 @@ def installed_module_fixed_point(
     while True:
         additions: set[str] = set()
         for name, info in modules.items():
-            if name in installed or info.manifest.get("installable", True) is False:
+            if (
+                name in installed
+                or name in EXCLUDED_AUTO_INSTALL_MODULES
+                or info.manifest.get("installable", True) is False
+            ):
                 continue
             auto_install = info.manifest.get("auto_install", False)
             dependencies = info.manifest.get("depends", [])
@@ -553,8 +574,16 @@ def _is_controller_class(node: ast.ClassDef) -> bool:
 
 
 def _decorated_private(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Return whether a Python method is unavailable through Odoo RPC.
+
+    Odoo's RPC dispatcher exposes record methods. Python descriptors and class
+    helpers are implementation APIs, not record RPC endpoints; inventorying
+    them once per model creates a large, misleading policy surface.
+    """
+
     return any(
         _dotted_name(decorator).endswith(".private")
+        or _dotted_name(decorator) in {"classmethod", "property", "staticmethod"}
         for decorator in node.decorator_list
     )
 

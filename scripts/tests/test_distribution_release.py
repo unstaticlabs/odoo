@@ -220,6 +220,10 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
             ROOT / "scripts/odoo/product_database_boundary.py",
             "EXCLUDED_AUTO_INSTALL_MODULES",
         )
+        inventory_excluded = assigned_set(
+            ROOT / "scripts/action_risk_inventory.py",
+            "EXCLUDED_AUTO_INSTALL_MODULES",
+        )
         surface = json.loads(
             (
                 ROOT
@@ -229,7 +233,10 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         surface_modules = {module["name"] for module in surface["modules"]}
 
         self.assertEqual(excluded, boundary_excluded)
+        self.assertEqual(excluded, inventory_excluded)
         self.assertTrue(excluded)
+        self.assertNotIn("contacts", excluded)
+        self.assertIn("contacts", surface_modules)
         self.assertFalse(excluded & surface_modules)
 
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
