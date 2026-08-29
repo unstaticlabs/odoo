@@ -71,7 +71,8 @@ case "$command_name" in
 esac
 
 product_was_running=0
-if "${compose[@]}" ps --status running --services | grep -qx odoo; then
+if [[ "$command_name" != product-validate ]] \
+    && "${compose[@]}" ps --status running --services | grep -qx odoo; then
     product_was_running=1
     "${compose[@]}" stop odoo >/dev/null
 fi
@@ -116,11 +117,18 @@ install_module() {
 }
 
 validate_product_boundary() {
-    "${compose[@]}" --profile init run --rm -T \
-        -e ODOO_INIT_DB="$target_database" \
-        init-db odoo shell --config=/etc/odoo/odoo.conf \
-        --database="$target_database" --shell-interface=python \
-        < migration/b2c_restore/scripts/validate_product_boundary.py
+    if [[ -n "$("${compose[@]}" ps --status running -q odoo)" ]]; then
+        "${compose[@]}" exec -T odoo \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/b2c_restore/scripts/validate_product_boundary.py
+    else
+        "${compose[@]}" --profile init run --rm -T --no-deps \
+            -e ODOO_INIT_DB="$target_database" init-db \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/b2c_restore/scripts/validate_product_boundary.py
+    fi
 }
 
 cleanup_test_database() {

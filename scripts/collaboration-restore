@@ -95,10 +95,28 @@ idempotence() {
 }
 
 product_validate() {
-  docker compose -p "$compose_project" --profile init run --rm -T \
-    -e COLLABORATION_EVIDENCE_DIR="/mnt/migration-evidence/$evidence_rel" \
-    init-db odoo shell --config=/etc/odoo/odoo.conf --database="$target_database" \
-    --shell-interface=python < migration/collaboration_restore/scripts/validate_product_boundary.py
+  local container container_root container_evidence status=0
+  container="$(docker compose -p "$compose_project" ps --status running -q odoo)"
+  if [[ -z "$container" ]]; then
+    printf 'Collaboration product validation requires the exact running Odoo runtime.\n' >&2
+    return 2
+  fi
+  container_root="/tmp/usl-collaboration-product-validation"
+  container_evidence="$container_root/$evidence_rel"
+  docker exec "$container" rm -rf -- "$container_root"
+  docker exec "$container" mkdir -p "$container_evidence"
+  docker cp \
+    "$ROOT/artifacts/migration/private/$source_snapshot/attachment-disposition-ledger.json" \
+    "$container:$container_root/$source_snapshot/attachment-disposition-ledger.json"
+  docker cp "$evidence_host/." "$container:$container_evidence"
+  docker exec -u 0 "$container" chown -R odoo:odoo "$container_root"
+  docker exec -i -e COLLABORATION_EVIDENCE_DIR="$container_evidence" \
+    "$container" odoo shell --config=/etc/odoo/odoo.conf \
+    --database="$target_database" --shell-interface=python \
+    < migration/collaboration_restore/scripts/validate_product_boundary.py \
+    || status=$?
+  docker exec "$container" rm -rf -- "$container_root"
+  return "$status"
 }
 
 case "$command_name" in
