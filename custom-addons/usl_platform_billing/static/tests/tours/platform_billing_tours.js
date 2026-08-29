@@ -258,7 +258,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journe
         {
             content: "The matching transaction is available",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) [name='selected'] button",
             run: "click",
         },
         {
@@ -318,7 +318,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_rate_journey"
         {
             content: "Select the EUR 700 bank transaction",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser FX payout BROWSER-FX-1000')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser FX payout BROWSER-FX-1000')) [name='selected'] button",
             run: "click",
         },
         {
@@ -397,7 +397,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_pooled_link_journe
         {
             content: "Select the pooled receipt",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser pooled receipt 160')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser pooled receipt 160')) [name='selected'] button",
             run: "click",
         },
         {

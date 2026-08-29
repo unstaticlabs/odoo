@@ -1041,15 +1041,3 @@ class UslPlatformBillingBankImportWizardLine(models.TransientModel):
     def _compute_recommendation_marker(self):
         for candidate in self:
             candidate.recommendation_marker = "●" if candidate.recommended else False
-
-    def action_select(self):
-        self.ensure_one()
-        self.wizard_id.session_id._check_operator()
-        self.selected = True
-        return self.wizard_id._wizard_action()
-
-    def action_unselect(self):
-        self.ensure_one()
-        self.wizard_id.session_id._check_operator()
-        self.selected = False
-        return self.wizard_id._wizard_action()
