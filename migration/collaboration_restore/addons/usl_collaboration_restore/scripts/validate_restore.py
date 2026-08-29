@@ -7,19 +7,19 @@ run = env["usl.collaboration.restore.run"].sudo().search([], limit=1)
 if not run or run.status != "passed":
     raise RuntimeError("The latest Collaboration restoration did not pass")
 expected = {
-    "messages": 50005,
+    "messages": 51491,
     "aliases": 29,
-    "tracking": 36946,
-    "followers": 5862,
-    "activities": 895,
-    "notifications": 77,
-    "parent_links": 23093,
+    "tracking": 37579,
+    "followers": 6010,
+    "activities": 918,
+    "notifications": 78,
+    "parent_links": 24069,
     "mail_queue": 31,
-    "attachment_relations": 556,
+    "attachment_relations": 558,
     "cross_accounting_parent_links": 1643,
-    "visible_messages": 49186,
+    "visible_messages": 50588,
     "external_messages": 0,
-    "deliberately_not_copied_messages": 819,
+    "deliberately_not_copied_messages": 903,
 }
 actual = {name: run.statistics_json.get(name) for name in expected}
 if actual != expected:
@@ -29,7 +29,7 @@ if not evidence.is_file():
     raise RuntimeError("Collaboration disposition evidence is missing")
 if len(env["usl.collaboration.restore.mapping"].sudo().search([
     ("source_model", "=", "mail.message"),
-])) != 49186:
+])) != 50588:
     raise RuntimeError("Collaboration source bindings are incomplete")
 if env["mail.message.reaction"].sudo().search_count([]) < 2:
     raise RuntimeError("Source reactions were not restored")
@@ -38,8 +38,8 @@ if env["discuss.channel"].sudo().with_context(active_test=False).search_count([]
 payload = json.loads(evidence.read_text(encoding="utf-8"))
 dispositions = payload["dispositions"]
 for name, expected_count in (
-    ("messages", 50005), ("tracking", 36946),
-    ("followers", 5862), ("activities", 895),
+    ("messages", 51491), ("tracking", 37579),
+    ("followers", 6010), ("activities", 918),
 ):
     if len(dispositions[name]) != expected_count:
         raise RuntimeError(f"{name} do not have exact Collaboration dispositions")
@@ -48,7 +48,7 @@ dropped_messages = [
     for row in dispositions["messages"]
     if row["disposition"] == "deliberately_not_copied"
 ]
-if len(dropped_messages) != 819:
+if len(dropped_messages) != 903:
     raise RuntimeError("Approved Collaboration exclusions differ")
 roger_assignments = [
     row for row in dispositions["activities"]
@@ -65,8 +65,8 @@ open_project = [
     and row["source"]["res_model"] == "project.task"
     and row["source"]["active"]
 ]
-if len(open_project) != 194:
-    raise RuntimeError("The 194 open Project activities were not retained")
+if len(open_project) != 208:
+    raise RuntimeError("The 208 open Project activities were not retained")
 completed_sign = [
     row for row in dispositions["activities"]
     if row["source"]["res_model"] == "sign.request"
