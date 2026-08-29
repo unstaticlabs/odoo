@@ -301,14 +301,30 @@ def archived_message(request_record, name, values):
             and (message.email_from or False) == expected_email_from
         ),
     )
-    if len(candidates) > 1:
+    exact_candidates = candidates.filtered(
+        lambda message: str(message.body or "") == str(values["body"]),
+    )
+    if len(exact_candidates) > 1:
         fail(f"Ambiguous finalized history message {name}")
-    if candidates:
-        candidate = candidates[0]
-        if str(candidate.body or "") != str(values["body"]):
-            fail(f"Finalized history message {name} changed body")
+    if exact_candidates:
+        candidate = exact_candidates[0]
         bind(name, candidate)
         return candidate
+    if candidates:
+        bound_candidate_ids = set(
+            env["ir.model.data"]  # noqa: F821
+            .sudo()
+            .search(
+                [
+                    ("module", "=", "usl_sign_restore"),
+                    ("model", "=", "mail.message"),
+                    ("res_id", "in", candidates.ids),
+                ],
+            )
+            .mapped("res_id"),
+        )
+        if set(candidates.ids) - bound_candidate_ids:
+            fail(f"Finalized history message {name} changed body")
     message = env["mail.message"].sudo().create(  # noqa: F821
         {
             "model": request_record._name,

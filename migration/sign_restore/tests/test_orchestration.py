@@ -99,6 +99,19 @@ class SignOrchestrationTest(unittest.TestCase):
         self.assertIn(') == len(source["requests"])', validation)
         self.assertIn(') == len(source["signers"])', validation)
 
+    def test_history_matching_distinguishes_same_metadata_by_body(self):
+        restore = (
+            ROOT / "migration/sign_restore/scripts/run_restore.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("exact_candidates = candidates.filtered", restore)
+        self.assertIn(
+            'str(message.body or "") == str(values["body"])',
+            restore,
+        )
+        self.assertIn('(\"module\", \"=\", \"usl_sign_restore\")', restore)
+        self.assertIn("set(candidates.ids) - bound_candidate_ids", restore)
+
     def test_scoped_paperless_identity_is_removed_on_success_and_failure(self):
         restore = SIGN_RESTORE.read_text(encoding="utf-8")
 
