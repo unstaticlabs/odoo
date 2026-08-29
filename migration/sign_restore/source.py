@@ -237,7 +237,7 @@ class SourceReader:
         expected = {
             "requests": 8,
             "signers": 11,
-            "logs": 53,
+            "logs": 61,
             "messages": 25,
             "field_values": 87,
             "attachments": 16,

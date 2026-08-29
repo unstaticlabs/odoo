@@ -58,7 +58,7 @@ source request and every signer email. An export can satisfy only one request.
 Missing, extra, reused or changed files fail before target request creation.
 
 The source connection is transaction-read-only. The stage expects exactly 8
-requests, 11 signers, 53 audit events, 25 chatter messages, 87 field values and
+requests, 11 signers, 61 audit events, 25 chatter messages, 87 field values and
 50 Sign-related attachments. Any perimeter change requires a reviewed code and
 documentation update.
 
