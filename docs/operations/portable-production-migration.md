@@ -100,6 +100,34 @@ not resume Accounting or reuse a Documents checkpoint. The resulting run JSON
 must report `purpose=production`, `profile=full`, `outcome=passed`,
 `validation_level=production-source-wide`, and complete source/attachment gates.
 
+### Protected local working transition
+
+When the approved workflow includes a local Accounting hygiene period, retain
+the sealed Online-source candidate as deterministic migration evidence, but do
+not treat it as the later transfer payload. The fixed local project must use a
+`usl-odoo-transition-*` name and must be marked immediately after its fresh
+production-purpose reconstruction and finalization:
+
+```bash
+export COMPOSE_PROJECT_NAME=usl-odoo-transition-YYYYMMDD
+scripts/transition-live mark "$COMPOSE_PROJECT_NAME"
+```
+
+The ignored state is mode `0700`/`0600`, has no unmark operation, and makes
+canonical reconstruction, Accounting target reset, QA environment reset,
+QA-seed publication, synthetic bootstrap and test helpers fail closed for the
+project. Normal work and rehearsed module upgrades remain possible only through
+the checkpointed transition procedure. At final cutoff, quiesce all writers and
+make the guard read-only:
+
+```bash
+scripts/transition-live freeze "$COMPOSE_PROJECT_NAME"
+```
+
+Local macOS transition and QA stacks use the native Ollama endpoint when it is
+available. Linux production and independent Linux recovery use the sealed
+containerized Ollama/BGE volume and immutable runtime identity.
+
 ## 3. Build the candidate
 
 Use the exact immutable Odoo Distribution, Paperless overlay and Ollama runtime

@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=lib/ollama-runtime.sh
 source "$ROOT/scripts/lib/ollama-runtime.sh"
+# shellcheck source=lib/transition-live.sh
+source "$ROOT/scripts/lib/transition-live.sh"
 ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-qa.env}"
 SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-qa}"
 PROJECT="${USL_SIGN_POCKETID_PROJECT:-usl-sign-pocketid-qa}"
@@ -29,6 +31,12 @@ COMPOSE_FILES=(
   -f "$ROOT/compose.pocket-id.yaml"
   -f "$ROOT/compose.sign-pocketid.qa.yaml"
 )
+
+case "${1:-}" in
+  bootstrap|test|test-pocket|archive-acceptance|passkey-acceptance|strong-acceptance)
+    usl_refuse_protected_transition "$ROOT" "$PROJECT" "Sign QA helper ${1:-}"
+    ;;
+esac
 
 bootstrap_environment() {
   python3 - "$BIND_ADDRESS" <<'PY'

@@ -9,6 +9,8 @@ source "$ROOT/scripts/lib/compose-scope.sh"
 source "$ROOT/scripts/lib/cli-ui.sh"
 # shellcheck source=lib/ollama-runtime.sh
 source "$ROOT/scripts/lib/ollama-runtime.sh"
+# shellcheck source=lib/transition-live.sh
+source "$ROOT/scripts/lib/transition-live.sh"
 
 profile="${1:-${PROFILE:-full}}"
 case "$profile" in
@@ -54,6 +56,7 @@ requested_gevent_port="$ODOO_GEVENT_PORT"
 requested_pocket_port="$POCKET_ID_HTTP_PORT"
 requested_paperless_port="$PAPERLESS_HTTP_PORT"
 requested_odoo_image="$ODOO_IMAGE"
+usl_refuse_protected_transition "$ROOT" "$requested_project" "QA provisioning or reset"
 reuse_requested="${USL_QA_REUSE_EXISTING:-0}"
 case "$reuse_requested" in
   0|1) ;;
