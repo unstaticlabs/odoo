@@ -24,6 +24,7 @@ PRIMARY_ROOT_MENU_XMLIDS = (
 )
 
 TRAILING_ROOT_MENU_XMLIDS = (
+    "contacts.menu_contacts",
     "hr.menu_hr_root",
     "base.menu_administration",
 )

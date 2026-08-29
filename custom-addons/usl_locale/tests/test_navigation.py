@@ -17,9 +17,10 @@ class TestFocusedAppLauncher(TransactionCase):
         unspecified = "usl_tese_payroll.menu_tese_payroll_root"
         unordered = [
             *reversed(PRIMARY_ROOT_MENU_XMLIDS),
-            TRAILING_ROOT_MENU_XMLIDS[1],
+            TRAILING_ROOT_MENU_XMLIDS[2],
             unspecified,
             TRAILING_ROOT_MENU_XMLIDS[0],
+            TRAILING_ROOT_MENU_XMLIDS[1],
         ]
 
         self.assertEqual(
@@ -30,6 +31,14 @@ class TestFocusedAppLauncher(TransactionCase):
                 *TRAILING_ROOT_MENU_XMLIDS,
             ],
         )
+
+    def test_contacts_immediately_precede_employees(self):
+        contacts_position = TRAILING_ROOT_MENU_XMLIDS.index(
+            "contacts.menu_contacts"
+        )
+        employees_position = TRAILING_ROOT_MENU_XMLIDS.index("hr.menu_hr_root")
+
+        self.assertEqual(contacts_position + 1, employees_position)
 
     def test_distribution_deemphasizes_expected_root_menus(self):
         self.assertEqual(
