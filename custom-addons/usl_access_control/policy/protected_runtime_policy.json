@@ -1951,8 +1951,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "c7043317e6da7ed69f319ac699ea190a31869e216430e43ea0482f2bf68febae",
-  "runtime_policy_sha256": "ef73104b15619d9622927f00358c2149e5ba8117d23fa8c78b58732860dbb9c5",
+  "qualified_policy_digest": "fafcce62c18b1f8364672855138b73b02dd6c5e762e91f0d1df1ff944a40d83d",
+  "runtime_policy_sha256": "cf8109c318afae01d6663846e1c8cd139e319d21473544b83a3dfc6f998602e4",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2525,6 +2525,10 @@
     },
     {
       "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_document_download_grants_cleanup_ir_actions_server",
       "classification": "operational"
     },
     {
