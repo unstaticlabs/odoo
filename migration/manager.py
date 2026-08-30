@@ -646,6 +646,14 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             [str(INTERNAL / "transition-activate")],
             extra_environment={"USL_MIGRATION_PURPOSE": "transition"},
         )
+        # Activation quiesces and recreates Odoo. Refresh the exact ownership
+        # set before protecting the runtime so subsequent status/start/stop
+        # operations validate the new container identity.
+        runtime["resources"] = inspect_project(
+            runner,
+            runtime["compose"]["project"],
+            ROOT,
+        )
         runtime["status"] = "transition-live"
     elif args.action == "freeze":
         confirm(args, "FREEZE")

@@ -470,6 +470,7 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(runtime["resources"], {"containers": [], "volumes": [], "networks": []})
 
     def test_mark_live_applies_transition_policy_before_protection(self):
+        self.runner.project = "fixed-runtime"
         runtime = {
             "schema": "usl-migration-runtime-v1",
             "id": "transition-current",
@@ -511,6 +512,11 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(
             RuntimeStore(self.root).load("transition-current")["status"],
             "transition-live",
+        )
+        stored = RuntimeStore(self.root).load("transition-current")
+        self.assertEqual(
+            [item["id"] for item in stored["resources"]["containers"]],
+            ["container-1", "db-1"],
         )
 
     def test_transition_checkpoint_uses_private_runtime_and_records_identity(self):
