@@ -152372,13 +152372,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._is_live_now:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_denial:raw_sql_mutation:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_redemption:raw_sql_mutation:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1",
@@ -156929,6 +156929,12 @@
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -156942,12 +156948,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1": {
@@ -159502,13 +159502,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1": "850e7397aca0e1ac140976c7d6652b0ad02f7b4dc7c758a52a504bc41e897b1a",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:1": "d4ceff31945d45b24ac11cf8b9c8c341f13961e1382d068e573c02e1401b2fa3",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._cron_cleanup_download_grants:sudo:2": "838d84d1a86413dc1808a4c48f9e7b891e7b9e73f266eb3d9314945bf1b3d3d8",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1": "4aa12235971607ee63a55d2d564271ae948ca45ea4a23a28a0b287abb2cd31a8",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._is_live_now:sudo:1": "cba6f37877d103332922d57a45d8eaaaaeba18507977f0d71e80f859127ea9fa",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_denial:raw_sql_mutation:1": "660ec0d26bb8d234021a77daae38e8439d7f2ef64ee5e0c07a85d3803c019af2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_redemption:raw_sql_mutation:1": "217da4f0f01d15e05cbabf1f9827924c17a43c8055ee27867a1e721ba03a87a2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1": "df85bd0104f52bb13a47041608b30c9d43f6b7219d68f9ae2e57c9523acf8454",
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1": "c6c358ee6d36a7a25dde72ad756ef1e959919aa83079c6f6aeb88d2fc88fcea7",
-        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2": "81c8ae2b6490ce361f58eba17050b004e6ce6575ba24f63476e67830f64d791c",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1": "bca9e176962a51efdf4eac5b5de71b29bed7d4a405cdac81bd839d5195a878cd",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:orm_create:1": "d9738bd2eb6f55a92d681a3a6bd9dc521e7d200573a8e741563294f67d954962",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1": "c11b84fdbb572466fb15bf0c1457405731fdafacb48737955005e0c2b370ac66",
@@ -183204,6 +183204,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "3fee5127f61cf40441abfb8651c7d1dae2a240ef80c4041c6985ae3e3357cf8b",
+  "qualified_policy_digest": "c7043317e6da7ed69f319ac699ea190a31869e216430e43ea0482f2bf68febae",
   "schema": "usl-action-risk-policy-v1"
 }
