@@ -66,6 +66,7 @@ verify_candidate_and_environment() {
   local candidate project config commit expected_commit image label_commit
   local label_oca expected_oca label_action_risk expected_action_risk
   local runtime_label network sign_image_name sign_image
+  local mcp_image mcp_label_commit mcp_label_source mcp_expected_source
   candidate="$(cd "$candidate_argument" && pwd -P)"
   if [[ ! "$fingerprint" =~ ^[0-9a-f]{64}$ ]]; then
     printf 'Invalid candidate fingerprint.\n' >&2
@@ -121,6 +122,16 @@ PY
     sign_image="$(env_field "$env_file" "$candidate" "$sign_image_name")"
     docker image inspect "$sign_image" >/dev/null
   done
+  mcp_image="$(env_field "$env_file" "$candidate" ODOO_MCP_IMAGE)"
+  docker image inspect "$mcp_image" >/dev/null
+  mcp_label_commit="$(docker image inspect "$mcp_image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+  mcp_label_source="$(docker image inspect "$mcp_image" --format '{{index .Config.Labels "org.opencontainers.image.source"}}')"
+  mcp_expected_source="$(python3 -c 'import json; print(json.load(open("deploy/odoo-mcp/release.json"))["repository"])')"
+  if [[ "$mcp_label_commit" != "$(env_field "$env_file" "$candidate" ODOO_MCP_RELEASE_COMMIT)" \
+      || "$mcp_label_source" != "$mcp_expected_source" ]]; then
+    printf 'Odoo MCP image labels differ from the pinned external release.\n' >&2
+    return 2
+  fi
 
   for network in \
     "$(env_field "$env_file" "$candidate" USL_EXTERNAL_IDENTITY_NETWORK)" \
@@ -132,7 +143,7 @@ PY
   config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.json.XXXXXX")"
   TEMP_FILES+=("$config")
   chmod 600 "$config"
-  "${COMPOSE[@]}" --profile paperless --profile sign \
+  "${COMPOSE[@]}" --profile paperless --profile sign --profile mcp \
     --profile document-renderer config --format json > "$config"
   python3 migration/cutover.py env \
     --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
@@ -382,6 +393,10 @@ start_sign_services() {
     usl-document-renderer usl-sign-step-ca usl-sign-dss
 }
 
+start_mcp_service() {
+  "${COMPOSE[@]}" --profile mcp up -d --wait --pull never odoo-mcp
+}
+
 configure() {
   local env_file="${2:-}" candidate_argument="${3:-}" policy_file="${4:-}" fingerprint="${5:-}"
   local candidate project state database odoo_users paperless_policy
@@ -445,9 +460,10 @@ configure() {
     -e USL_PAPERLESS_FORCE_PERMISSION_SYNC=1
   unset token setup
 
-  printf '[4/4] Leave runtime staged on loopback with cron disabled\n'
+  printf '[4/4] Leave runtime and Odoo MCP staged on loopback with cron disabled\n'
   start_sign_services
   "${COMPOSE[@]}" up -d --wait odoo
+  start_mcp_service
   transition "$state" "$fingerprint" configure
   printf 'External identity/application policy configured. No Pocket ID mutation API was called.\n'
 }
@@ -464,6 +480,7 @@ gate() {
   start_sign_services
   "${COMPOSE[@]}" up -d --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  start_mcp_service
 
   printf '[1/5] Product/migration, action-risk and immutable release boundaries\n'
   scripts/check-product-migration-boundary
@@ -507,6 +524,8 @@ PY
     "http://127.0.0.1:$(env_field "$env_file" "$candidate" PAPERLESS_HTTP_PORT)/api/" \
     >/dev/null
   "${COMPOSE[@]}" exec -T odoo python /usr/local/bin/usl-sign-services-smoke
+  scripts/odoo-mcp smoke \
+    --origin "http://127.0.0.1:$(env_field "$env_file" "$candidate" ODOO_MCP_HTTP_PORT)"
 
   printf '[5/5] Revalidate regulatory and cron admission guards\n'
   if [[ "$(env_field "$env_file" "$candidate" ODOO_MAX_CRON_THREADS)" != 0 ]]; then
@@ -546,6 +565,7 @@ admit() {
   start_sign_services
   ODOO_MAX_CRON_THREADS="$cron" "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  start_mcp_service
   printf 'Candidate admitted; reset permanently disabled.\n'
   printf 'Ingress activation is still owned by infrastructure. Regulatory/outbound integrations remain disabled.\n'
 }

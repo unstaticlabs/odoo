@@ -89,6 +89,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
 
     def test_role_matrix_is_explicit_and_attributable(self):
         self.assertTrue(self.valentin.has_group("base.group_system"))
+        self.assertTrue(self.valentin.has_group("api_doc.group_allow_doc"))
         self.assertTrue(
             self.valentin.has_group(
                 "usl_access_control.group_irreversible_actions",
@@ -96,6 +97,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         self.assertFalse(self.roger.has_group("base.group_system"))
         self.assertTrue(self.roger.has_group("base.group_erp_manager"))
+        self.assertTrue(self.roger.has_group("api_doc.group_allow_doc"))
         self.assertTrue(self.roger.has_group("account.group_account_readonly"))
         self.assertFalse(self.roger.has_group("account.group_account_user"))
         self.assertTrue(self.roger.has_group("usl_b2c.group_b2c_operator"))
@@ -111,6 +113,8 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             ),
         )
         self.assertTrue(self.agent.has_group("usl_access_control.group_ai_agent"))
+        self.assertTrue(self.agent.has_group("api_doc.group_allow_doc"))
+        self.assertFalse(self.prosper.has_group("api_doc.group_allow_doc"))
 
     def test_runtime_policy_resolves_semantic_and_model_operation_guards(self):
         policy = self.env["base"]._usl_qualified_action_policy()

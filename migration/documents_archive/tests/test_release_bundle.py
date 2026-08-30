@@ -95,7 +95,7 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
 
     def test_missing_required_path_is_rejected(self):
         self.write_identity()
-        (self.root / "mcp/worker-artifact.tgz").unlink()
+        (self.root / "mcp/image-identity.json").unlink()
         with self.assertRaisesRegex(bundle.BundleError, "required cohort artifacts"):
             bundle.seal(self.root, self.identity)
 

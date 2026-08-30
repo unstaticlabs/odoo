@@ -11,10 +11,14 @@ import hashlib
 import importlib.util
 import json
 import subprocess
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from migration.mcp_release import McpReleaseError, resolve_release as resolve_mcp_release  # noqa: E402
 PRODUCT_MODULES = (
     "rebuild_account_migration",
     "usl_accounting",
@@ -110,15 +114,12 @@ def build(args: argparse.Namespace) -> dict:
     images = read_json(args.images)
     odoo_status = run(ROOT, "git", "status", "--porcelain=v1", "--untracked-files=all")
     mcp_repository = args.mcp_repository.resolve()
-    mcp_status = run(
-        mcp_repository,
-        "git",
-        "status",
-        "--porcelain=v1",
-        "--untracked-files=all",
-    )
     odoo_commit = run(ROOT, "git", "rev-parse", "HEAD")
-    mcp_commit = run(mcp_repository, "git", "rev-parse", "HEAD")
+    try:
+        mcp_release = resolve_mcp_release(ROOT, mcp_repository)
+    except McpReleaseError as error:
+        raise IdentityError(str(error)) from error
+    mcp_commit = mcp_release["commit"]
     if mcp.get("commit") != mcp_commit:
         raise IdentityError("MCP artifact identity does not match its checkout")
     counters = dict(inventory.get("qualification_counters") or {})
@@ -134,8 +135,6 @@ def build(args: argparse.Namespace) -> dict:
     blockers = list(inventory.get("blockers") or [])
     if odoo_status:
         blockers.append("Odoo checkout is dirty")
-    if mcp_status:
-        blockers.append("Odoo MCP checkout is dirty")
     if paperless.get("status") != "passed":
         blockers.append("Paperless finalization evidence did not pass")
     if vector.get("status") != "passed":
@@ -168,12 +167,7 @@ def build(args: argparse.Namespace) -> dict:
         "git": {
             "odoo_branch": run(ROOT, "git", "branch", "--show-current"),
             "odoo_commit": odoo_commit,
-            "odoo_mcp_branch": run(
-                mcp_repository,
-                "git",
-                "branch",
-                "--show-current",
-            ),
+            "odoo_mcp_branch": mcp_release["ref"],
             "odoo_mcp_commit": mcp_commit,
         },
         "product_module_versions": module_versions(),

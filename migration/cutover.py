@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -13,6 +14,8 @@ import stat
 import tempfile
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from migration.mcp_release import load_release
 
 STATE_SCHEMA = "usl-production-cutover-state-v1"
 POLICY_SCHEMA = "usl-external-identity-policy-v1"
@@ -31,6 +34,7 @@ VOLUME_KEYS = (
     "USL_PAPERLESS_EXPORT_VOLUME",
     "USL_PAPERLESS_CONSUME_VOLUME",
     "USL_PAPERLESS_TRASH_VOLUME",
+    "USL_ODOO_MCP_OAUTH_VOLUME",
 )
 SIGN_SECRET_DIRECTORIES = {
     "USL_DOCUMENT_RENDERER_CERT_DIR": (
@@ -76,6 +80,16 @@ REQUIRED = (
     "ODOO_GEVENT_PORT",
     "ODOO_HTTP_PORT",
     "ODOO_IMAGE",
+    "ODOO_MCP_BETTER_AUTH_SECRET_FILE",
+    "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE",
+    "ODOO_MCP_ALLOWED_HOSTS",
+    "ODOO_MCP_ALLOWED_ORIGINS",
+    "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO",
+    "ODOO_MCP_HTTP_PORT",
+    "ODOO_MCP_IMAGE",
+    "ODOO_MCP_OAUTH_TRUSTED_ORIGINS",
+    "ODOO_MCP_PUBLIC_ORIGIN",
+    "ODOO_MCP_RELEASE_COMMIT",
     "ODOO_PUBLIC_BASE_URL",
     "ODOO_WORKERS",
     "PAPERLESS_ALLOWED_HOSTS",
@@ -253,20 +267,72 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         if values[name] != candidate_identity.get(candidate_key):
             raise CutoverError(f"production {name} differs from the approved candidate")
     for name in (
+        "ODOO_MCP_IMAGE",
         "USL_DOCUMENT_RENDERER_IMAGE",
         "USL_SIGN_DSS_IMAGE",
         "USL_SIGN_STEP_CA_IMAGE",
     ):
         if not IMAGE.fullmatch(values[name]):
             raise CutoverError(f"production {name} is not immutable")
+    mcp_release = load_release(Path(__file__).resolve().parents[1])
+    if values["ODOO_MCP_RELEASE_COMMIT"] != mcp_release["commit"]:
+        raise CutoverError("production Odoo MCP revision differs from the pinned release")
+    if values["ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO"].lower() != "false":
+        raise CutoverError("production Odoo MCP must reject local HTTP Odoo targets")
+    mcp_better_auth = Path(values["ODOO_MCP_BETTER_AUTH_SECRET_FILE"])
+    mcp_encryption = Path(values["ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE"])
+    private_file(mcp_better_auth)
+    private_file(mcp_encryption)
+    if len(mcp_better_auth.read_text(encoding="utf-8").strip()) < 32:
+        raise CutoverError("Odoo MCP Better Auth secret is too short")
+    try:
+        decoded_mcp_key = base64.b64decode(
+            mcp_encryption.read_text(encoding="utf-8").strip(),
+            validate=True,
+        )
+    except ValueError as error:
+        raise CutoverError("Odoo MCP credential encryption key is invalid") from error
+    if len(decoded_mcp_key) != 32:
+        raise CutoverError("Odoo MCP credential encryption key must contain 32 bytes")
     for name, required_files in SIGN_SECRET_DIRECTORIES.items():
         private_directory(Path(values[name]), required_files)
     key_ring = Path(values["USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"])
     if not key_ring.is_absolute():
         raise CutoverError("production Personal AI key ring path must be absolute")
     private_file(key_ring)
-    for name in ("ODOO_PUBLIC_BASE_URL", "PAPERLESS_PUBLIC_URL", "POCKET_ID_APP_URL"):
+    for name in (
+        "ODOO_PUBLIC_BASE_URL",
+        "ODOO_MCP_PUBLIC_ORIGIN",
+        "PAPERLESS_PUBLIC_URL",
+        "POCKET_ID_APP_URL",
+    ):
         _production_url(name, values[name])
+    mcp_host = (urlsplit(values["ODOO_MCP_PUBLIC_ORIGIN"]).hostname or "").lower()
+    mcp_allowed_hosts = {
+        value.strip().lower()
+        for value in values["ODOO_MCP_ALLOWED_HOSTS"].split(",")
+        if value.strip()
+    }
+    mcp_allowed_origins = {
+        value.strip().lower()
+        for value in values["ODOO_MCP_ALLOWED_ORIGINS"].split(",")
+        if value.strip()
+    }
+    if mcp_host not in mcp_allowed_hosts or {
+        "localhost",
+        "127.0.0.1",
+        "::1",
+    }.intersection(mcp_allowed_hosts | mcp_allowed_origins):
+        raise CutoverError("production Odoo MCP host/origin allowlists are unsafe")
+    trusted_origins = {
+        value.strip()
+        for value in values["ODOO_MCP_OAUTH_TRUSTED_ORIGINS"].split(",")
+        if value.strip()
+    }
+    if not trusted_origins:
+        raise CutoverError("production Odoo MCP OAuth trusted origins are empty")
+    for origin in trusted_origins:
+        _production_url("ODOO_MCP_OAUTH_TRUSTED_ORIGINS", origin)
     if values.get("PAPERLESS_PUBLIC_BASE_URL") != values["PAPERLESS_PUBLIC_URL"]:
         raise CutoverError("Paperless callback base differs from its public URL")
     paperless_database = values["PAPERLESS_DB_NAME"]
@@ -277,7 +343,12 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
     ):
         raise CutoverError("unsafe or conflicting Paperless database identity")
     ports = {}
-    for name in ("ODOO_HTTP_PORT", "ODOO_GEVENT_PORT", "PAPERLESS_HTTP_PORT"):
+    for name in (
+        "ODOO_HTTP_PORT",
+        "ODOO_GEVENT_PORT",
+        "ODOO_MCP_HTTP_PORT",
+        "PAPERLESS_HTTP_PORT",
+    ):
         try:
             port = int(values[name])
         except ValueError as error:
@@ -358,6 +429,37 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
             service_networks,
         ):
             raise CutoverError(f"{name} is not joined to approved external networks")
+    mcp_service = services.get("odoo-mcp")
+    if not mcp_service:
+        raise CutoverError("Compose topology is missing odoo-mcp")
+    mcp_ports = mcp_service.get("ports") or []
+    if not mcp_ports or any(
+        not isinstance(port, dict) or port.get("host_ip") not in {"127.0.0.1", "::1"}
+        for port in mcp_ports
+    ):
+        raise CutoverError("odoo-mcp staging port is not loopback-only")
+    if not {"default", "external-ingress"}.issubset(
+        set((mcp_service.get("networks") or {}).keys()),
+    ):
+        raise CutoverError("odoo-mcp is not joined to the runtime and ingress networks")
+    mcp_mounts = mcp_service.get("volumes") or []
+    if not any(
+        isinstance(mount, dict)
+        and mount.get("type") == "volume"
+        and mount.get("target") == "/data"
+        and mount.get("source") == "odoo-mcp-oauth-data"
+        for mount in mcp_mounts
+    ):
+        raise CutoverError("odoo-mcp does not persist its OAuth state in /data")
+    mcp_secrets = {
+        item.get("source") if isinstance(item, dict) else item
+        for item in (mcp_service.get("secrets") or [])
+    }
+    if not {
+        "odoo_mcp_better_auth_secret",
+        "odoo_mcp_credential_encryption_key",
+    }.issubset(mcp_secrets):
+        raise CutoverError("odoo-mcp does not mount both required Docker secrets")
     required_odoo_secrets = {
         "/run/secrets/document-renderer": values["USL_DOCUMENT_RENDERER_CERT_DIR"],
         "/run/usl-sign": values["USL_SIGN_ODOO_SECRET_DIR"],
@@ -382,6 +484,8 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
                 )
     expected_images = {
         "odoo": values["ODOO_IMAGE"],
+        "odoo-mcp": values["ODOO_MCP_IMAGE"],
+        "odoo-mcp-oauth-init": values["ODOO_MCP_IMAGE"],
         "paperless-webserver": values["PAPERLESS_IMAGE"],
         "paperless-ollama": values["OLLAMA_IMAGE"],
         "usl-document-renderer": values["USL_DOCUMENT_RENDERER_IMAGE"],
@@ -483,6 +587,7 @@ def validate_journeys(path: Path, fingerprint: str) -> dict:
         "odoo_collaborator",
         "accounting_read_only",
         "multi_company_isolation",
+        "odoo_mcp_oauth",
         "paperless_documents",
     }
     journeys = evidence.get("journeys") or []

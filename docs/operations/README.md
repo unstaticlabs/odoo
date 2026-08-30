@@ -17,7 +17,7 @@ activation or domain-specific response:
 - [Document renderer](document-renderer-runbook.md)
 - [Paperless and Documents](paperless-documents-runbook.md)
 - [Sign](sign-runbook.md)
-- [Documents MCP](documents-mcp-runbook.md)
+- [Odoo MCP](odoo-mcp.md)
 - [Personal Gemini](personal-gemini-runbook.md)
 - [Shine bank export](shine-bank-export-runbook.md)
 - [Access controls](distribution-access-control-runbook.md)

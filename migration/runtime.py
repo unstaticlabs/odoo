@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
 import platform
 import re
+import secrets as secret_generator
 import shutil
 import stat
 import subprocess
@@ -17,6 +19,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
+from urllib.parse import urlparse
 
 from migration.digests import tree_digest
 
@@ -33,6 +36,8 @@ SECRET_KEYS = frozenset(
     {
         "ODOO_ADMIN_PASSWORD",
         "ODOO_DB_PASSWORD",
+        "ODOO_MCP_BETTER_AUTH_SECRET",
+        "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY",
         "PAPERLESS_DB_PASSWORD",
         "PAPERLESS_SECRET_KEY",
         "POCKET_ID_CLIENT_SECRET",
@@ -67,6 +72,16 @@ SCOPE_KEYS = frozenset(
         "ODOO_GEVENT_PORT",
         "ODOO_HTTP_PORT",
         "ODOO_IMAGE",
+        "ODOO_MCP_ALLOWED_HOSTS",
+        "ODOO_MCP_ALLOWED_ORIGINS",
+        "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO",
+        "ODOO_MCP_BETTER_AUTH_SECRET_FILE",
+        "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE",
+        "ODOO_MCP_HTTP_PORT",
+        "ODOO_MCP_IMAGE",
+        "ODOO_MCP_OAUTH_TRUSTED_ORIGINS",
+        "ODOO_MCP_PUBLIC_ORIGIN",
+        "ODOO_MCP_RELEASE_COMMIT",
         "ODOO_INIT_DB",
         "ODOO_PUBLIC_BASE_URL",
         "OLLAMA_IMAGE",
@@ -79,6 +94,8 @@ SCOPE_KEYS = frozenset(
         "POCKET_ID_IMAGE",
         "USL_NATIVE_OLLAMA_CONTAINER_URL",
         "USL_NATIVE_OLLAMA_HOST_URL",
+        "USL_DOCUMENTS_MCP_REPOSITORY",
+        "USL_ODOO_MCP_OAUTH_VOLUME",
         "USL_OLLAMA_RUNTIME",
         "USL_ONLINE_DUMP_DIR",
     }
@@ -191,6 +208,30 @@ def read_secrets(path: Path) -> dict[str, str]:
     return values
 
 
+def ensure_mcp_secrets(values: dict[str, str]) -> dict[str, str]:
+    """Resolve independent OAuth secrets once for a runtime."""
+    result = dict(values)
+    result.setdefault(
+        "ODOO_MCP_BETTER_AUTH_SECRET",
+        secret_generator.token_urlsafe(48),
+    )
+    result.setdefault(
+        "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY",
+        base64.b64encode(secret_generator.token_bytes(32)).decode("ascii"),
+    )
+    if len(result["ODOO_MCP_BETTER_AUTH_SECRET"]) < 32:
+        raise RuntimeError("Odoo MCP authentication secret must contain at least 32 characters")
+    try:
+        encryption_key = base64.b64decode(
+            result["ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY"], validate=True
+        )
+    except ValueError as error:
+        raise RuntimeError("Odoo MCP credential key must be valid base64") from error
+    if len(encryption_key) != 32:
+        raise RuntimeError("Odoo MCP credential key must encode exactly 32 bytes")
+    return result
+
+
 def write_private(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     path.parent.chmod(0o700)
@@ -223,6 +264,7 @@ class RuntimeStore:
         return self.root / runtime_id
 
     def create(self, value: dict[str, Any], secrets: dict[str, str]) -> dict[str, Any]:
+        secrets = ensure_mcp_secrets(secrets)
         directory = self.directory(value["id"])
         if directory.exists():
             raise RuntimeError(f"runtime already exists: {value['id']}")
@@ -234,6 +276,14 @@ class RuntimeStore:
         write_json(directory / "runtime.json", value)
         assignments = "".join(f"{key}={secrets[key]}\n" for key in sorted(secrets))
         write_private(directory / "secrets.env", assignments)
+        write_private(
+            directory / "odoo-mcp-better-auth.secret",
+            secrets["ODOO_MCP_BETTER_AUTH_SECRET"] + "\n",
+        )
+        write_private(
+            directory / "odoo-mcp-credential-encryption-key.secret",
+            secrets["ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY"] + "\n",
+        )
         return value
 
     def load(self, runtime_id: str) -> dict[str, Any]:
@@ -307,6 +357,7 @@ def inspect_project(runner: CommandRunner, project: str, workdir: Path) -> dict[
                 "health": (((item.get("State") or {}).get("Health") or {}).get("Status")),
                 "exit_code": ((item.get("State") or {}).get("ExitCode")),
                 "image": (item.get("Image") or (item.get("Config") or {}).get("Image")),
+                "configured_image": (item.get("Config") or {}).get("Image"),
                 "release_commit": labels.get("org.opencontainers.image.revision"),
                 "working_dir": owner,
             }
@@ -407,6 +458,14 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
     environment = {key: value for key, value in os.environ.items() if key in keep or key.startswith("LC_")}
     ports = runtime["ports"]
     urls = runtime["urls"]
+    mcp_host = urlparse(urls["mcp"]).hostname or ""
+    odoo_url = urlparse(urls["odoo"])
+    odoo_host = odoo_url.hostname or ""
+    allow_local_http_odoo = odoo_url.scheme == "http" and (
+        odoo_host in {"localhost", "127.0.0.1", "::1"}
+        or odoo_host.endswith(".localhost")
+    )
+    mcp_secret_directory = Path(runtime["private_directory"])
     environment.update(
         {
             "COMPOSE_PROJECT_NAME": runtime["compose"]["project"],
@@ -419,10 +478,35 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             "ODOO_GEVENT_PORT": str(ports["gevent"]),
             "PAPERLESS_HTTP_PORT": str(ports["paperless"]),
             "POCKET_ID_HTTP_PORT": str(ports["pocket_id"]),
+            "ODOO_MCP_HTTP_PORT": str(ports["mcp"]),
             "ODOO_PUBLIC_BASE_URL": urls["odoo"],
             "PAPERLESS_PUBLIC_URL": urls["paperless"],
             "PAPERLESS_PUBLIC_BASE_URL": urls["paperless"],
             "POCKET_ID_APP_URL": urls["pocket_id"],
+            "ODOO_MCP_PUBLIC_ORIGIN": urls["mcp"],
+            "ODOO_MCP_ALLOWED_HOSTS": ",".join(
+                dict.fromkeys((mcp_host, "localhost", "127.0.0.1"))
+            ),
+            "ODOO_MCP_ALLOWED_ORIGINS": ",".join(
+                dict.fromkeys(
+                    ("chatgpt.com", "claude.ai", mcp_host, "localhost", "127.0.0.1")
+                )
+            ),
+            "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO": (
+                "true" if allow_local_http_odoo else "false"
+            ),
+            "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": ",".join(
+                dict.fromkeys(("https://chatgpt.com", "https://claude.ai", urls["mcp"]))
+            ),
+            "ODOO_MCP_BETTER_AUTH_SECRET_FILE": str(
+                mcp_secret_directory / "odoo-mcp-better-auth.secret"
+            ),
+            "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": str(
+                mcp_secret_directory / "odoo-mcp-credential-encryption-key.secret"
+            ),
+            "ODOO_MCP_IMAGE": runtime["mcp"]["image"],
+            "ODOO_MCP_RELEASE_COMMIT": runtime["mcp"]["commit"],
+            "COMPOSE_PROFILES": ",".join(runtime["compose"].get("profiles", [])),
             "USL_ONLINE_DUMP_DIR": runtime["source"]["path"],
             "USL_MIGRATION_SOURCE_SHA256": runtime["source"]["dump_sha256"],
             "USL_EINVOICE_LIVE_ENABLED": "0",
@@ -440,6 +524,7 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             ),
             "USL_DOCUMENTS_RELEASE_SOURCE_PROJECT": runtime["compose"]["project"],
             "USL_DOCUMENTS_RELEASE_SOURCE_DATABASE": runtime["database"],
+            "USL_DOCUMENTS_MCP_REPOSITORY": runtime["mcp"]["checkout"],
             "USL_DOCUMENTS_RESTORE_DATABASE": runtime["database"],
             "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": runtime["personal_ai_key_file"],
             "DOCUMENTS_PAPERLESS_TASK_WORKERS": str(

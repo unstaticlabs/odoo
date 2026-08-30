@@ -1,5 +1,24 @@
 name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}
 
+x-odoo-mcp-environment: &odoo-mcp-environment
+  MCP_HOST: 0.0.0.0
+  MCP_PORT: 3000
+  MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://mcp.localhost:3000}
+  MCP_ALLOWED_HOSTS: ${ODOO_MCP_ALLOWED_HOSTS:-mcp.localhost,localhost,127.0.0.1}
+  MCP_ALLOWED_ORIGINS: ${ODOO_MCP_ALLOWED_ORIGINS:-chatgpt.com,claude.ai,mcp.localhost,localhost,127.0.0.1}
+  MCP_ALLOW_LOCAL_HTTP_ODOO: ${ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO:-true}
+  ODOO_PUBLIC_ORIGIN: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
+  ODOO_INTERNAL_ORIGIN: http://odoo:8069
+  ODOO_DATABASE: ${ODOO_DB_NAME:-odoo_dev}
+  MCP_TARGET_CONCURRENCY: ${ODOO_MCP_TARGET_CONCURRENCY:-8}
+  MCP_MAX_REQUEST_BYTES: ${ODOO_MCP_MAX_REQUEST_BYTES:-1048576}
+  MCP_MAX_RESPONSE_BYTES: ${ODOO_MCP_MAX_RESPONSE_BYTES:-1048576}
+  MCP_OAUTH_ENABLED: "true"
+  MCP_OAUTH_DATABASE: /data/oauth.sqlite
+  BETTER_AUTH_SECRET_FILE: /run/secrets/odoo_mcp_better_auth_secret
+  MCP_CREDENTIAL_ENCRYPTION_KEY_FILE: /run/secrets/odoo_mcp_credential_encryption_key
+  MCP_OAUTH_TRUSTED_ORIGINS: ${ODOO_MCP_OAUTH_TRUSTED_ORIGINS:-https://chatgpt.com,https://claude.ai,http://mcp.localhost:3000}
+
 services:
   db:
     image: ${POSTGRES_IMAGE:-postgres:16-bookworm}
@@ -71,6 +90,8 @@ services:
       POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
       POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.14.0@sha256:01540977dcf4c7b41b1159f34d68e4632f2658d62790e460ca65a42722b13c4a}
       ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
+      ODOO_MCP_IMAGE: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:359a4b3cf352}
+      ODOO_MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://mcp.localhost:3000}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
@@ -116,6 +137,7 @@ services:
           for image in \
             "$${POSTGRES_IMAGE}" \
             "$${ODOO_IMAGE}" \
+            "$${ODOO_MCP_IMAGE}" \
             "$${PAPERLESS_IMAGE}" \
             "$${PAPERLESS_POSTGRES_IMAGE}" \
             "$${PAPERLESS_BROKER_IMAGE}" \
@@ -141,6 +163,8 @@ services:
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE}" = "32" ] || { echo "Paperless embedding batch size is not qualified"; exit 1; }
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
           case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
+          case "$${ODOO_MCP_PUBLIC_ORIGIN}" in https://*) :;; *) echo "Production Odoo MCP URL must use HTTPS"; exit 1;; esac
+          case "$${ODOO_MCP_PUBLIC_ORIGIN}" in *127.0.0.1*|*localhost*) echo "Production-like Odoo MCP URL must not be local-only"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
           case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Production-like allowed hosts must not include local QA hosts"; exit 1;; esac
           case "$${PAPERLESS_EMPTY_TRASH_DELAY}" in
@@ -602,6 +626,65 @@ services:
       - default
       - document-renderer
 
+  odoo-mcp-oauth-init:
+    profiles: ["mcp"]
+    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:359a4b3cf352}
+    restart: "no"
+    environment: *odoo-mcp-environment
+    command: ["node", "dist/auth/cli.js", "migrate"]
+    secrets:
+      - odoo_mcp_better_auth_secret
+      - odoo_mcp_credential_encryption_key
+    volumes:
+      - odoo-mcp-oauth-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1700,uid=1000,gid=1000
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+
+  odoo-mcp:
+    profiles: ["mcp"]
+    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:359a4b3cf352}
+    restart: unless-stopped
+    depends_on:
+      odoo:
+        condition: service_healthy
+      odoo-mcp-oauth-init:
+        condition: service_completed_successfully
+    environment: *odoo-mcp-environment
+    secrets:
+      - odoo_mcp_better_auth_secret
+      - odoo_mcp_credential_encryption_key
+    volumes:
+      - odoo-mcp-oauth-data:/data
+    ports:
+      - "127.0.0.1:${ODOO_MCP_HTTP_PORT:-3000}:3000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1700,uid=1000,gid=1000
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3000/readyz').then(async response => {
+            const value = await response.json();
+            if (!response.ok || value.status !== 'ready') process.exit(1);
+          }).catch(() => process.exit(1))
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    labels:
+      org.opencontainers.image.source: https://github.com/unstaticlabs/odoo-mcp.git
+      org.opencontainers.image.revision: ${ODOO_MCP_RELEASE_COMMIT:-359a4b3cf352bee4c0d1409a79f37f7144a2a335}
+
   init-db:
     profiles: ["init"]
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
@@ -1023,6 +1106,7 @@ volumes:
   paperless-consume:
   paperless-trash:
   paperless-ollama-data:
+  odoo-mcp-oauth-data:
 
 networks:
   document-renderer:
@@ -1031,3 +1115,7 @@ networks:
 secrets:
   usl_personal_ai_master_keys:
     file: ${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-.documents-personal-ai-keys.json}
+  odoo_mcp_better_auth_secret:
+    file: ${ODOO_MCP_BETTER_AUTH_SECRET_FILE:-./private/odoo-mcp-better-auth.secret}
+  odoo_mcp_credential_encryption_key:
+    file: ${ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE:-./private/odoo-mcp-credential-encryption-key.secret}

@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import json
 import os
 import tempfile
@@ -25,6 +26,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.renderer_image = f"ghcr.io/usl/renderer@sha256:{'e' * 64}"
         self.step_ca_image = f"docker.io/smallstep/step-ca@sha256:{'f' * 64}"
         self.dss_image = f"ghcr.io/usl/sign-dss@sha256:{'1' * 64}"
+        self.mcp_image = f"ghcr.io/usl/odoo-mcp@sha256:{'2' * 64}"
         self.project = "usl-odoo-production-main"
         self.candidate = {
             "identity": {
@@ -36,6 +38,15 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.key_ring = self.root / "personal-ai-keys.json"
         self.key_ring.write_text("{}\n", encoding="utf-8")
         self.key_ring.chmod(0o600)
+        self.mcp_better_auth = self.root / "odoo-mcp-better-auth.secret"
+        self.mcp_better_auth.write_text("m" * 48 + "\n", encoding="utf-8")
+        self.mcp_better_auth.chmod(0o600)
+        self.mcp_encryption = self.root / "odoo-mcp-credential-encryption-key.secret"
+        self.mcp_encryption.write_text(
+            base64.b64encode(b"k" * 32).decode() + "\n",
+            encoding="utf-8",
+        )
+        self.mcp_encryption.chmod(0o600)
         self.sign_secret_directories = {}
         for key, required_files in cutover.SIGN_SECRET_DIRECTORIES.items():
             directory = self.root / key.lower()
@@ -58,6 +69,16 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_GEVENT_PORT": "18072",
             "ODOO_HTTP_PORT": "18069",
             "ODOO_IMAGE": self.image,
+            "ODOO_MCP_BETTER_AUTH_SECRET_FILE": str(self.mcp_better_auth),
+            "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": str(self.mcp_encryption),
+            "ODOO_MCP_ALLOWED_HOSTS": "mcp.usl.example",
+            "ODOO_MCP_ALLOWED_ORIGINS": "chatgpt.com,claude.ai",
+            "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO": "false",
+            "ODOO_MCP_HTTP_PORT": "18000",
+            "ODOO_MCP_IMAGE": self.mcp_image,
+            "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
+            "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
+            "ODOO_MCP_RELEASE_COMMIT": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
             "ODOO_LIST_DB": "False",
             "ODOO_LIMIT_MEMORY_HARD": "1342177280",
             "ODOO_LIMIT_MEMORY_SOFT": "1073741824",
@@ -219,6 +240,39 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         with self.assertRaisesRegex(cutover.CutoverError, "0600"):
             cutover.validate_environment(self.values, self.candidate)
 
+    def test_mcp_release_secrets_and_port_fail_closed(self):
+        cases = (
+            (
+                "ODOO_MCP_IMAGE",
+                "usl-odoo-mcp:latest",
+                "not immutable",
+            ),
+            (
+                "ODOO_MCP_RELEASE_COMMIT",
+                "0" * 40,
+                "pinned release",
+            ),
+            (
+                "ODOO_MCP_PUBLIC_ORIGIN",
+                "http://mcp.usl.example",
+                "HTTPS origin",
+            ),
+            (
+                "ODOO_MCP_HTTP_PORT",
+                self.values["ODOO_HTTP_PORT"],
+                "conflicts",
+            ),
+        )
+        for key, value, message in cases:
+            with self.subTest(key=key):
+                changed = dict(self.values, **{key: value})
+                with self.assertRaisesRegex(cutover.CutoverError, message):
+                    cutover.validate_environment(changed, self.candidate)
+
+        self.mcp_encryption.write_text("not-base64\n", encoding="utf-8")
+        with self.assertRaisesRegex(cutover.CutoverError, "encryption key"):
+            cutover.validate_environment(self.values, self.candidate)
+
     def test_sign_images_and_secret_directories_fail_closed(self):
         changed = dict(self.values, USL_SIGN_DSS_IMAGE="usl-sign-dss:latest")
         with self.assertRaisesRegex(cutover.CutoverError, "not immutable"):
@@ -281,6 +335,21 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                     "networks": {"external-identity": None, "external-ingress": None},
                 },
                 "paperless-ollama": {"image": self.ollama_image},
+                "odoo-mcp": {
+                    "image": self.mcp_image,
+                    "ports": [{"host_ip": "127.0.0.1"}],
+                    "networks": {"default": None, "external-ingress": None},
+                    "volumes": [{
+                        "type": "volume",
+                        "source": "odoo-mcp-oauth-data",
+                        "target": "/data",
+                    }],
+                    "secrets": [
+                        {"source": "odoo_mcp_better_auth_secret"},
+                        {"source": "odoo_mcp_credential_encryption_key"},
+                    ],
+                },
+                "odoo-mcp-oauth-init": {"image": self.mcp_image},
                 "usl-document-renderer": {"image": self.renderer_image},
                 "usl-sign-dss": {"image": self.dss_image},
                 "usl-sign-step-ca": {"image": self.step_ca_image},
@@ -309,6 +378,42 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         with self.assertRaisesRegex(cutover.CutoverError, "loopback"):
             cutover.validate_compose(config, self.values)
 
+    def test_compose_rejects_incomplete_mcp_topology(self):
+        secret_mounts = [
+            {
+                "type": "bind",
+                "source": self.values["USL_DOCUMENT_RENDERER_CERT_DIR"],
+                "target": "/run/secrets/document-renderer",
+                "read_only": True,
+            },
+            {
+                "type": "bind",
+                "source": self.values["USL_SIGN_ODOO_SECRET_DIR"],
+                "target": "/run/usl-sign",
+                "read_only": True,
+            },
+        ]
+        services = {
+            "odoo": {
+                "ports": [{"host_ip": "127.0.0.1"}],
+                "networks": {"external-identity": None, "external-ingress": None},
+                "volumes": secret_mounts,
+            },
+            "init-db": {"volumes": secret_mounts},
+            "paperless-webserver": {
+                "ports": [{"host_ip": "127.0.0.1"}],
+                "networks": {"external-identity": None, "external-ingress": None},
+            },
+            "odoo-mcp": {
+                "ports": [{"host_ip": "127.0.0.1"}],
+                "networks": {"default": None, "external-ingress": None},
+                "volumes": [],
+                "secrets": [],
+            },
+        }
+        with self.assertRaisesRegex(cutover.CutoverError, "OAuth state"):
+            cutover.validate_compose({"services": services}, self.values)
+
     def test_compose_rejects_missing_or_writable_odoo_runtime_secrets(self):
         secret_mounts = [
             {
@@ -334,6 +439,19 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "paperless-webserver": {
                 "ports": [{"host_ip": "127.0.0.1"}],
                 "networks": {"external-identity": None, "external-ingress": None},
+            },
+            "odoo-mcp": {
+                "ports": [{"host_ip": "127.0.0.1"}],
+                "networks": {"default": None, "external-ingress": None},
+                "volumes": [{
+                    "type": "volume",
+                    "source": "odoo-mcp-oauth-data",
+                    "target": "/data",
+                }],
+                "secrets": [
+                    {"source": "odoo_mcp_better_auth_secret"},
+                    {"source": "odoo_mcp_credential_encryption_key"},
+                ],
             },
         }
 
@@ -412,6 +530,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                     "odoo_collaborator",
                     "accounting_read_only",
                     "multi_company_isolation",
+                    "odoo_mcp_oauth",
                     "paperless_documents",
                 )
             ],

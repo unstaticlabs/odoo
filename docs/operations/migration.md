@@ -26,7 +26,7 @@ private/migration/runtimes/<runtime-id>/runtime.json
 
 The state fixes the Compose project, database, ports, URLs, source digests,
 images, Compose files, release commit, resource IDs, Paperless worker settings,
-and Ollama topology. Child stages cannot replace these values with ambient
+Odoo MCP source/image identity, and Ollama topology. Child stages cannot replace these values with ambient
 environment variables. Secrets are stored separately and accept only the
 documented allowlist; project names, ports, URLs, database names, and image
 identities are rejected in secret files.
@@ -62,6 +62,8 @@ migration/manage qa adopt \
   --gevent-port <port> \
   --pocket-id-port <port> \
   --paperless-port <port> \
+  --mcp-port <port> \
+  --mcp-repository /absolute/path/to/odoo-mcp \
   --release-commit <40-character-runtime-commit> \
   --ollama native
 ```
@@ -144,7 +146,8 @@ migration/manage transition reconstruct \
   --secrets-file /absolute/path/to/runtime-secrets.env \
   --personal-ai-key-file /absolute/path/to/personal-ai-keys.json \
   --odoo-port <port> --gevent-port <port> \
-  --pocket-id-port <port> --paperless-port <port> \
+  --pocket-id-port <port> --paperless-port <port> --mcp-port <port> \
+  --mcp-repository /absolute/path/to/odoo-mcp \
   --ollama native \
   --confirm RECONSTRUCT:<transition-id>
 ```

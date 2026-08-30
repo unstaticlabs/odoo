@@ -70,6 +70,24 @@ class FakeRunner(CommandRunner):
                             "State": {"Status": self.container_state},
                         },
                         {
+                            "Id": "mcp-1",
+                            "Name": "/runtime-odoo-mcp-1",
+                            "Image": "sha256:mcp-image",
+                            "Config": {
+                                "Image": "usl-odoo-mcp:359a4b3cf352",
+                                "Labels": {
+                                    "com.docker.compose.project": self.project,
+                                    "com.docker.compose.project.working_dir": owner,
+                                    "com.docker.compose.service": "odoo-mcp",
+                                    "org.opencontainers.image.revision": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
+                                },
+                            },
+                            "State": {
+                                "Status": self.container_state,
+                                "Health": {"Status": "healthy"},
+                            },
+                        },
+                        {
                             "Id": "db-1",
                             "Name": "/runtime-db-1",
                             "Image": "sha256:database",
@@ -163,10 +181,23 @@ class MigrationManageTests(unittest.TestCase):
         self.original_internal = manager.INTERNAL
         manager.ROOT = self.root
         manager.INTERNAL = self.root / "migration/internal"
+        self.mcp = {
+            "schema": "usl-odoo-mcp-release-v1",
+            "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
+            "ref": "codex/odoo-mcp-vps-refactor",
+            "commit": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
+            "image": "usl-odoo-mcp:359a4b3cf352",
+            "checkout": str(self.root / "odoo-mcp"),
+        }
+        self.mcp_release = patch.object(
+            manager, "resolve_mcp_release", return_value=self.mcp
+        )
+        self.mcp_release.start()
 
     def tearDown(self):
         manager.ROOT = self.original_root
         manager.INTERNAL = self.original_internal
+        self.mcp_release.stop()
         self.temporary.cleanup()
 
     def adopt_arguments(self):
@@ -184,9 +215,12 @@ class MigrationManageTests(unittest.TestCase):
             gevent_port=28670,
             pocket_id_port=28671,
             paperless_port=28672,
+            mcp_port=28673,
             odoo_url=None,
             pocket_id_url=None,
             paperless_url=None,
+            mcp_url=None,
+            mcp_repository=self.root / "odoo-mcp",
             ollama="container",
             ollama_models=None,
             image=[],
@@ -203,11 +237,22 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(directory.stat().st_mode), 0o700)
         self.assertEqual(stat.S_IMODE((directory / "runtime.json").stat().st_mode), 0o600)
         self.assertEqual(stat.S_IMODE((directory / "secrets.env").stat().st_mode), 0o600)
+        self.assertEqual(
+            stat.S_IMODE((directory / "odoo-mcp-better-auth.secret").stat().st_mode),
+            0o600,
+        )
+        self.assertEqual(
+            stat.S_IMODE(
+                (directory / "odoo-mcp-credential-encryption-key.secret").stat().st_mode
+            ),
+            0o600,
+        )
         self.assertEqual(runtime["compose"]["project"], self.runner.project)
         self.assertEqual(runtime["release_commit"], "b" * 40)
         self.assertFalse(status["checkout_matches"])
-        self.assertEqual(status["resources"], {"containers": 2, "volumes": 1, "networks": 1})
+        self.assertEqual(status["resources"], {"containers": 3, "volumes": 1, "networks": 1})
         self.assertTrue(status["documents"]["ready"])
+        self.assertTrue(status["mcp"]["ready"])
         self.assertTrue(status["healthy"])
 
     def test_runtime_status_fails_health_when_documents_are_queued(self):
@@ -242,7 +287,7 @@ class MigrationManageTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "exact resource set"):
             verify_recorded_resources(recorded, changed)
         manager.stop_runtime({"compose": {"project": self.runner.project}, "resources": recorded}, self.runner)
-        self.assertIn(("docker", "stop", "container-1", "db-1"), self.runner.calls)
+        self.assertIn(("docker", "stop", "container-1", "db-1", "mcp-1"), self.runner.calls)
         self.assertFalse(any(call[:3] == ("docker", "volume", "rm") for call in self.runner.calls))
 
     def test_transition_protection_does_not_depend_on_project_name(self):
@@ -270,18 +315,21 @@ class MigrationManageTests(unittest.TestCase):
             "id": "qa-current",
             "database": "odoo_dev",
             "private_directory": str(self.root / "private/runtime"),
-            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4, "mcp": 5},
             "urls": {
                 "odoo": "http://odoo",
                 "paperless": "http://paperless",
                 "pocket_id": "http://id",
+                "mcp": "http://mcp.localhost:5",
             },
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
             "ollama": {"mode": "container"},
+            "mcp": self.mcp,
             "compose": {
                 "project": "recorded-project",
                 "files": [str(self.root / "compose.yaml")],
+                "profiles": ["paperless", "mcp"],
             },
         }
         with patch.dict(os.environ, {"COMPOSE_PROJECT_NAME": "ambient-project", "USL_EINVOICE_LIVE_ENABLED": "1"}):
@@ -298,18 +346,24 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(environment["POCKET_ID_PROSPER_ODOO_EMAIL"], "")
         self.assertEqual(environment["USL_EINVOICE_LIVE_ENABLED"], "0")
         self.assertEqual(environment["USL_EREPORTING_LIVE_ENABLED"], "0")
+        self.assertEqual(environment["ODOO_MCP_HTTP_PORT"], "5")
+        self.assertEqual(environment["ODOO_MCP_IMAGE"], self.mcp["image"])
+        self.assertEqual(environment["ODOO_MCP_RELEASE_COMMIT"], self.mcp["commit"])
+        self.assertEqual(environment["ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO"], "false")
+        self.assertEqual(environment["COMPOSE_PROFILES"], "paperless,mcp")
 
     def test_runtime_environment_does_not_reuse_adopted_local_image_ids(self):
         runtime = {
             "id": "qa-current",
             "database": "odoo_dev",
             "private_directory": str(self.root / "private/runtime"),
-            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
-            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id"},
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4, "mcp": 5},
+            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id", "mcp": "http://mcp.localhost:5"},
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
             "ollama": {"mode": "container"},
-            "compose": {"project": "recorded-project", "files": [str(self.root / "compose.yaml")]},
+            "mcp": self.mcp,
+            "compose": {"project": "recorded-project", "files": [str(self.root / "compose.yaml")], "profiles": ["mcp"]},
             "images": {
                 "odoo": "sha256:" + "1" * 64,
                 "paperless-webserver": "sha256:" + "2" * 64,
@@ -333,11 +387,12 @@ class MigrationManageTests(unittest.TestCase):
         runtime = {
             "id": "transition-current",
             "database": "odoo_dev",
-            "ports": {"odoo": 28669, "gevent": 28670, "paperless": 28672, "pocket_id": 28671},
+            "ports": {"odoo": 28669, "gevent": 28670, "paperless": 28672, "pocket_id": 28671, "mcp": 28673},
             "urls": {
                 "odoo": "http://odoo.localhost:28669",
                 "paperless": "http://paperless.localhost:28672",
                 "pocket_id": "http://pocket-id.localhost:28671",
+                "mcp": "http://mcp.localhost:28673",
             },
             "source": {"path": str(self.source), "dump_sha256": "a" * 64},
             "private_directory": str(self.root / "private/migration/runtimes/transition-current"),
@@ -347,10 +402,12 @@ class MigrationManageTests(unittest.TestCase):
                 "model": "model",
                 "manifest_sha256": "b" * 64,
             },
+            "mcp": self.mcp,
             "compose": {
                 "project": "fixed-runtime",
                 "working_directory": str(self.root),
                 "files": [str(self.root / "compose.yaml"), str(self.root / "compose.production.yaml")],
+                "profiles": ["mcp"],
             },
         }
         environment = runtime_environment(runtime, {})
@@ -364,18 +421,21 @@ class MigrationManageTests(unittest.TestCase):
             "id": "qa-current",
             "database": "odoo_dev",
             "private_directory": str(self.root / "private/runtime"),
-            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4, "mcp": 5},
             "urls": {
                 "odoo": "http://odoo",
                 "paperless": "http://paperless",
                 "pocket_id": "http://id",
+                "mcp": "http://mcp.localhost:5",
             },
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
             "ollama": {"mode": "container"},
+            "mcp": self.mcp,
             "compose": {
                 "project": "recorded-project",
                 "files": [str(self.root / "compose.yaml")],
+                "profiles": ["mcp"],
             },
         }
 
@@ -404,7 +464,7 @@ class MigrationManageTests(unittest.TestCase):
         }
         store = Mock()
         manager.recover_failed_runtime_resources(runtime, store, self.runner)
-        self.assertEqual(len(runtime["resources"]["containers"]), 2)
+        self.assertEqual(len(runtime["resources"]["containers"]), 3)
         store.save.assert_called_once_with(runtime)
 
     def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
@@ -516,7 +576,7 @@ class MigrationManageTests(unittest.TestCase):
         stored = RuntimeStore(self.root).load("transition-current")
         self.assertEqual(
             [item["id"] for item in stored["resources"]["containers"]],
-            ["container-1", "db-1"],
+            ["container-1", "db-1", "mcp-1"],
         )
 
     def test_transition_checkpoint_uses_private_runtime_and_records_identity(self):
@@ -579,6 +639,7 @@ class MigrationManageTests(unittest.TestCase):
                 "containers": [
                     {"id": "container-1", "service": "odoo", "state": "running"},
                     {"id": "db-1", "service": "db", "state": "running"},
+                    {"id": "mcp-1", "service": "odoo-mcp", "state": "running"},
                 ],
                 "volumes": [{"name": "runtime-data"}],
                 "networks": [{"id": "network-1", "name": "runtime-default"}],
@@ -597,7 +658,7 @@ class MigrationManageTests(unittest.TestCase):
             Namespace(action="stop", runtime="transition-current"), self.runner
         )
         self.assertTrue(result["data_preserved"])
-        self.assertIn(("docker", "stop", "container-1", "db-1"), self.runner.calls)
+        self.assertIn(("docker", "stop", "container-1", "db-1", "mcp-1"), self.runner.calls)
 
     def test_candidate_arguments_are_ordered_by_the_public_interface(self):
         with patch.object(manager, "git", return_value="b" * 40):
@@ -638,6 +699,7 @@ class MigrationManageTests(unittest.TestCase):
                 "docker", "compose", "-p", "usl-render-native-test",
                 "-f", "compose.yaml", "-f", "compose.pocket-id.yaml",
                 "-f", "compose.ollama-native.yaml", "--profile", "paperless",
+                "--profile", "mcp",
                 "config", "--services",
             ),
             cwd=repository,
@@ -654,6 +716,8 @@ class MigrationManageTests(unittest.TestCase):
             "ODOO_PUBLIC_BASE_URL": "https://odoo.example.test",
             "PAPERLESS_PUBLIC_URL": "https://paperless.example.test",
             "POCKET_ID_APP_URL": "https://id.example.test",
+            "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.example.test",
+            "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO": "false",
             "POCKET_ID_CLIENT_ID": "odoo-client",
             "POCKET_ID_GROUP_NAME": "odoo-users",
             "POCKET_ID_PAPERLESS_CLIENT_ID": "paperless-client",
@@ -668,6 +732,7 @@ class MigrationManageTests(unittest.TestCase):
             "USL_PAPERLESS_DATA_VOLUME", "USL_PAPERLESS_MEDIA_VOLUME",
             "USL_PAPERLESS_EXPORT_VOLUME", "USL_PAPERLESS_CONSUME_VOLUME",
             "USL_PAPERLESS_TRASH_VOLUME",
+            "USL_ODOO_MCP_OAUTH_VOLUME",
         ):
             production_environment[name] = name.lower().replace("_", "-")
         linux = subprocess.run(
@@ -675,6 +740,7 @@ class MigrationManageTests(unittest.TestCase):
                 "docker", "compose", "-p", "usl-render-linux-test",
                 "-f", "compose.yaml", "-f", "compose.production.yaml",
                 "-f", "compose.external-pocket-id.yaml", "--profile", "paperless",
+                "--profile", "mcp",
                 "config", "--services",
             ),
             cwd=repository,
@@ -686,8 +752,11 @@ class MigrationManageTests(unittest.TestCase):
         self.assertNotIn("paperless-ollama", native)
         self.assertNotIn("paperless-model-init", native)
         self.assertIn("paperless-model-preflight", native)
+        self.assertIn("odoo-mcp", native)
+        self.assertIn("odoo-mcp-oauth-init", native)
         self.assertIn("paperless-ollama", linux)
         self.assertIn("paperless-model-init", linux)
+        self.assertIn("odoo-mcp", linux)
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ from migration.runtime import (
     verify_recorded_resources,
     write_private,
 )
+from migration.mcp_release import McpReleaseError, resolve_release as resolve_mcp_release
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,6 +97,10 @@ def create_runtime(
         reachable=getattr(args, "ollama_reachable", None),
     )
     source = source_identity(args.source, args.source_sha256)
+    try:
+        mcp = resolve_mcp_release(ROOT, args.mcp_repository)
+    except McpReleaseError as error:
+        raise RuntimeError(str(error)) from error
     private_file(args.personal_ai_key_file.expanduser().resolve())
     resources = inspect_project(runner, args.project, ROOT)
     if adopt and not resources["containers"]:
@@ -107,11 +112,13 @@ def create_runtime(
         "gevent": args.gevent_port,
         "pocket_id": args.pocket_id_port,
         "paperless": args.paperless_port,
+        "mcp": args.mcp_port,
     }
     urls = {
         "odoo": args.odoo_url or f"http://odoo.localhost:{ports['odoo']}",
         "pocket_id": args.pocket_id_url or f"http://id.localhost:{ports['pocket_id']}",
         "paperless": args.paperless_url or f"http://paperless.localhost:{ports['paperless']}",
+        "mcp": args.mcp_url or f"http://mcp.localhost:{ports['mcp']}",
     }
     if adopt:
         expected = {
@@ -146,6 +153,13 @@ def create_runtime(
         if not separator or not name or not reference:
             raise RuntimeError("--image must use SERVICE=IMMUTABLE_REFERENCE")
         images[name] = reference
+    if (
+        "odoo-mcp" in images
+        and images["odoo-mcp"] != mcp["image"]
+        and not images["odoo-mcp"].startswith("sha256:")
+    ):
+        raise RuntimeError("Odoo MCP image override differs from the pinned release")
+    images["odoo-mcp"] = mcp["image"]
     release_commits = {
         item["release_commit"]
         for item in resources["containers"]
@@ -177,6 +191,7 @@ def create_runtime(
         "ports": ports,
         "urls": urls,
         "ollama": ollama,
+        "mcp": mcp,
         "documents": {
             "paperless_task_workers": args.paperless_task_workers,
             "embedding_batch_size": args.embedding_batch_size,
@@ -186,7 +201,7 @@ def create_runtime(
             "project": args.project,
             "working_directory": str(ROOT),
             "files": compose_files(ROOT, kind, ollama["mode"]),
-            "profiles": ["paperless", "sign", "document-renderer"],
+            "profiles": ["paperless", "sign", "document-renderer", "mcp"],
         },
         "images": images,
         "resources": resources,
@@ -281,6 +296,36 @@ def documents_runtime_status(
     return value
 
 
+def mcp_runtime_status(
+    runtime: dict[str, Any], resources: dict[str, Any]
+) -> dict[str, Any]:
+    container = next(
+        (
+            item
+            for item in resources["containers"]
+            if item.get("service") == "odoo-mcp"
+        ),
+        None,
+    )
+    if not container:
+        return {"ready": False, "error": "runtime has no recorded Odoo MCP container"}
+    expected = runtime["mcp"]
+    checks = {
+        "running": container.get("state") == "running",
+        "healthy": container.get("health") == "healthy",
+        "release_commit": container.get("release_commit") == expected["commit"],
+        "image": container.get("configured_image") == expected["image"],
+    }
+    return {
+        "ready": all(checks.values()),
+        "checks": checks,
+        "commit": expected["commit"],
+        "image": expected["image"],
+        "ref": expected["ref"],
+        "url": runtime["urls"]["mcp"],
+    }
+
+
 def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, Any]:
     source = source_identity(
         Path(runtime["source"]["path"]), runtime["source"]["dump_sha256"]
@@ -305,7 +350,8 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
         for item in current["containers"]
     )
     documents = documents_runtime_status(runtime, current, runner)
-    healthy = healthy and documents["ready"]
+    mcp = mcp_runtime_status(runtime, current)
+    healthy = healthy and documents["ready"] and mcp["ready"]
     result = {
         "id": runtime["id"],
         "kind": runtime["kind"],
@@ -325,6 +371,7 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
         },
         "healthy": healthy,
         "documents": documents,
+        "mcp": mcp,
     }
     return result
 
@@ -358,6 +405,7 @@ def operational_containers(runtime: dict[str, Any], runner: CommandRunner) -> li
         "usl-document-renderer",
         "usl-sign-dss",
         "usl-sign-step-ca",
+        "odoo-mcp",
     }
     return [item for item in current["containers"] if item.get("service") in services]
 
@@ -367,6 +415,33 @@ def start_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> 
     stopped = [item["id"] for item in containers if item.get("state") != "running"]
     if stopped:
         runner.run(["docker", "start", *stopped])
+
+
+def start_mcp_runtime(
+    runtime: dict[str, Any], secrets: dict[str, str], runner: CommandRunner
+) -> None:
+    env_file, environment = combined_env_file(runtime, secrets)
+    environment["POCKET_ID_ENV_FILE"] = str(env_file)
+    runner.run(
+        [
+            "docker",
+            "compose",
+            "--env-file",
+            str(env_file),
+            "-p",
+            runtime["compose"]["project"],
+            "--profile",
+            "mcp",
+            "up",
+            "-d",
+            "--wait",
+            "--pull",
+            "never",
+            "odoo-mcp",
+        ],
+        cwd=ROOT,
+        env=environment,
+    )
 
 
 def stop_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
@@ -535,6 +610,7 @@ def command_qa(args: argparse.Namespace, runner: CommandRunner) -> dict[str, Any
             runtime["status"] = "failed"
             record(store, runtime, "qa.refresh", "failed")
             raise
+        start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
         runtime["resources"] = inspect_project(runner, runtime["compose"]["project"], ROOT)
         runtime["images"] = {
             item["service"]: item["image"]
@@ -563,6 +639,8 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             "gevent_port",
             "pocket_id_port",
             "paperless_port",
+            "mcp_port",
+            "mcp_repository",
         )
         missing = [name.replace("_", "-") for name in required if getattr(args, name, None) is None]
         if missing:
@@ -633,6 +711,7 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             runtime["status"] = "failed"
             record(store, runtime, "transition.reconstruct", "failed")
             raise
+        start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
         runtime["resources"] = inspect_project(runner, runtime["compose"]["project"], ROOT)
         runtime["status"] = "reconstructed"
     elif args.action == "mark-live":
@@ -849,9 +928,12 @@ def common_runtime_arguments(
     parser.add_argument("--gevent-port", required=required, type=int)
     parser.add_argument("--pocket-id-port", required=required, type=int)
     parser.add_argument("--paperless-port", required=required, type=int)
+    parser.add_argument("--mcp-port", required=required, type=int)
     parser.add_argument("--odoo-url")
     parser.add_argument("--pocket-id-url")
     parser.add_argument("--paperless-url")
+    parser.add_argument("--mcp-url")
+    parser.add_argument("--mcp-repository", required=required, type=Path)
     parser.add_argument("--ollama", choices=("auto", "native", "container"), default="auto")
     parser.add_argument("--ollama-models", type=Path)
     parser.add_argument("--image", action="append", default=[])

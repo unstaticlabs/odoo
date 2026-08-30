@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Verify, test, build, and smoke-test the pinned Odoo MCP release."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from migration.mcp_release import McpReleaseError, resolve_release  # noqa: E402
+
+
+def run(arguments: list[str], *, cwd: Path | None = None) -> str:
+    process = subprocess.run(
+        arguments,
+        cwd=cwd,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if process.returncode:
+        raise McpReleaseError(process.stderr.strip() or process.stdout.strip())
+    return process.stdout.strip()
+
+
+def export_source(source: Path, commit: str, destination: Path) -> None:
+    process = subprocess.Popen(
+        ("git", "-C", str(source), "archive", "--format=tar", commit),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    assert process.stdout is not None
+    with tarfile.open(fileobj=process.stdout, mode="r|") as archive:
+        for member in archive:
+            target = (destination / member.name).resolve()
+            if destination.resolve() not in target.parents and target != destination.resolve():
+                process.kill()
+                raise McpReleaseError("Odoo MCP archive contains an unsafe path")
+            archive.extract(member, destination, filter="data")
+    error = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
+    if process.wait():
+        raise McpReleaseError(error.strip() or "could not export the Odoo MCP source")
+
+
+def verify_image(release: dict[str, str]) -> dict[str, str]:
+    output = run(
+        [
+            "docker",
+            "image",
+            "inspect",
+            release["image"],
+            "--format",
+            "{{json .}}",
+        ]
+    )
+    value = json.loads(output)
+    labels = ((value.get("Config") or {}).get("Labels") or {})
+    if labels.get("org.opencontainers.image.revision") != release["commit"]:
+        raise McpReleaseError("Odoo MCP image revision label differs from the pinned commit")
+    if labels.get("org.opencontainers.image.source") != release["repository"]:
+        raise McpReleaseError("Odoo MCP image source label differs from the pinned repository")
+    return {
+        "image": release["image"],
+        "image_id": value["Id"],
+        "commit": release["commit"],
+        "repository": release["repository"],
+    }
+
+
+def build(release: dict[str, str]) -> dict[str, str]:
+    source = Path(release["checkout"])
+    with tempfile.TemporaryDirectory(prefix="usl-odoo-mcp-build-") as temporary:
+        context = Path(temporary)
+        export_source(source, release["commit"], context)
+        run(
+            [
+                "docker",
+                "build",
+                "--label",
+                f"org.opencontainers.image.source={release['repository']}",
+                "--label",
+                f"org.opencontainers.image.revision={release['commit']}",
+                "--tag",
+                release["image"],
+                ".",
+            ],
+            cwd=context,
+        )
+    return verify_image(release)
+
+
+def test(release: dict[str, str]) -> None:
+    source = Path(release["checkout"])
+    with tempfile.TemporaryDirectory(prefix="usl-odoo-mcp-test-") as temporary:
+        context = Path(temporary)
+        export_source(source, release["commit"], context)
+        run(["npm", "ci"], cwd=context)
+        run(["npm", "run", "check"], cwd=context)
+        run(["npm", "run", "eval:validate"], cwd=context)
+
+
+def request_json(url: str) -> tuple[int, dict]:
+    try:
+        with urllib.request.urlopen(url, timeout=10) as response:
+            return response.status, json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        return error.code, json.loads(error.read())
+
+
+def smoke(origin: str) -> dict:
+    origin = origin.rstrip("/")
+    health_status, health = request_json(f"{origin}/healthz")
+    ready_status, ready = request_json(f"{origin}/readyz")
+    request = urllib.request.Request(
+        f"{origin}/mcp",
+        data=b"{}",
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        urllib.request.urlopen(request, timeout=10)
+        unauthenticated_status = 200
+    except urllib.error.HTTPError as error:
+        unauthenticated_status = error.code
+    if health_status != 200 or health.get("status") != "ok":
+        raise McpReleaseError("Odoo MCP health check failed")
+    if ready_status != 200 or ready.get("status") != "ready":
+        raise McpReleaseError("Odoo MCP readiness check failed")
+    if unauthenticated_status != 401:
+        raise McpReleaseError("Odoo MCP unauthenticated boundary did not return 401")
+    return {
+        "schema": "usl-odoo-mcp-runtime-smoke-v1",
+        "status": "passed",
+        "health": health,
+        "ready": ready,
+        "unauthenticated_status": 401,
+    }
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(prog="scripts/odoo-mcp")
+    result.add_argument("command", choices=("verify", "test", "build", "verify-image", "smoke"))
+    result.add_argument("--repository", type=Path)
+    result.add_argument("--origin")
+    return result
+
+
+def main() -> int:
+    arguments = parser().parse_args()
+    try:
+        if arguments.command == "smoke":
+            if not arguments.origin:
+                raise McpReleaseError("smoke requires --origin")
+            value = smoke(arguments.origin)
+        else:
+            if not arguments.repository:
+                raise McpReleaseError(f"{arguments.command} requires --repository")
+            value = resolve_release(ROOT, arguments.repository)
+            if arguments.command == "test":
+                test(value)
+                value = {
+                    "schema": "usl-odoo-mcp-acceptance-v1",
+                    "status": "passed",
+                    "release": {
+                        key: item
+                        for key, item in value.items()
+                        if key != "checkout"
+                    },
+                    "checks": [
+                        "npm ci",
+                        "npm run check",
+                        "npm run eval:validate",
+                    ],
+                }
+            elif arguments.command == "build":
+                value = build(value)
+            elif arguments.command == "verify-image":
+                value = verify_image(value)
+        if isinstance(value, dict):
+            value = {key: item for key, item in value.items() if key != "checkout"}
+        print(json.dumps(value, indent=2, sort_keys=True))
+        return 0
+    except (McpReleaseError, OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"Odoo MCP operation refused: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
