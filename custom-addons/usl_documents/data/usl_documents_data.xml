@@ -36,6 +36,15 @@
         <field name="interval_type">hours</field>
         <field name="active" eval="True"/>
     </record>
+    <record id="ir_cron_usl_document_download_grants_cleanup" model="ir.cron">
+        <field name="name">Documents: clean expired download grants</field>
+        <field name="model_id" ref="model_usl_document_download_grant"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_cleanup_download_grants()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
 
     <record id="ir_filter_quick_my_uploads" model="ir.filters">
         <field name="name">My uploads</field>

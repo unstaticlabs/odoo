@@ -29,7 +29,7 @@ class McpReleaseTests(unittest.TestCase):
             check=True,
         ).stdout.strip()
         subprocess.run(
-            ("git", "branch", "codex/odoo-mcp-vps-refactor"),
+            ("git", "branch", "codex/secure-document-materialization"),
             cwd=self.checkout,
             check=True,
         )
@@ -52,7 +52,7 @@ class McpReleaseTests(unittest.TestCase):
                 {
                     "schema": "usl-odoo-mcp-release-v1",
                     "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
-                    "ref": "codex/odoo-mcp-vps-refactor",
+                    "ref": "codex/secure-document-materialization",
                     "commit": self.commit,
                     "image": f"usl-odoo-mcp:{self.commit[:12]}",
                 }
@@ -74,7 +74,7 @@ class McpReleaseTests(unittest.TestCase):
         subprocess.run(("git", "add", "package.json"), cwd=self.checkout, check=True)
         subprocess.run(("git", "commit", "-qm", "move ref"), cwd=self.checkout, check=True)
         subprocess.run(
-            ("git", "branch", "-f", "codex/odoo-mcp-vps-refactor", "HEAD"),
+            ("git", "branch", "-f", "codex/secure-document-materialization", "HEAD"),
             cwd=self.checkout,
             check=True,
         )

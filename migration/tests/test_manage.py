@@ -74,12 +74,12 @@ class FakeRunner(CommandRunner):
                             "Name": "/runtime-odoo-mcp-1",
                             "Image": "sha256:mcp-image",
                             "Config": {
-                                "Image": "usl-odoo-mcp:359a4b3cf352",
+                                "Image": "usl-odoo-mcp:9a0e681a1e3c",
                                 "Labels": {
                                     "com.docker.compose.project": self.project,
                                     "com.docker.compose.project.working_dir": owner,
                                     "com.docker.compose.service": "odoo-mcp",
-                                    "org.opencontainers.image.revision": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
+                                    "org.opencontainers.image.revision": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
                                 },
                             },
                             "State": {
@@ -184,9 +184,9 @@ class MigrationManageTests(unittest.TestCase):
         self.mcp = {
             "schema": "usl-odoo-mcp-release-v1",
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
-            "ref": "codex/odoo-mcp-vps-refactor",
-            "commit": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
-            "image": "usl-odoo-mcp:359a4b3cf352",
+            "ref": "codex/secure-document-materialization",
+            "commit": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
+            "image": "usl-odoo-mcp:9a0e681a1e3c",
             "checkout": str(self.root / "odoo-mcp"),
         }
         self.mcp_release = patch.object(

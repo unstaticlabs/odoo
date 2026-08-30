@@ -1,7 +1,7 @@
 {
   "schema": "usl-odoo-mcp-release-v1",
   "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
-  "ref": "codex/odoo-mcp-vps-refactor",
-  "commit": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
-  "image": "usl-odoo-mcp:359a4b3cf352"
+  "ref": "codex/secure-document-materialization",
+  "commit": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
+  "image": "usl-odoo-mcp:9a0e681a1e3c"
 }

@@ -23,3 +23,5 @@ activation or domain-specific response:
 - [Access controls](distribution-access-control-runbook.md)
 - [Product performance](product-performance.md)
 - [Action-risk inventory](action-risk-inventory.md)
+- [Secure agent document materialization](document-materialization.md)
+- [Document materialization differential review](document-materialization-security-review.md)

@@ -23,6 +23,9 @@
                         <setting string="Request timeout">
                             <field name="paperless_timeout"/>
                         </setting>
+                        <setting string="Streaming timeout" help="Maximum read time for one Paperless-backed download request.">
+                            <field name="paperless_stream_timeout"/>
+                        </setting>
                         <setting string="Health and compatibility">
                             <field name="paperless_health" readonly="1"/>
                             <button name="action_test_paperless" type="object" string="Test connection" class="btn-link"

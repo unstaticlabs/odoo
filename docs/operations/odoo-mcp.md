@@ -10,7 +10,7 @@ access rights, record rules, public methods, and transactions.
 
 The accepted external source is pinned in `deploy/odoo-mcp/release.json` by
 repository, ref, full commit, and image tag. The current local release uses the
-temporary `codex/odoo-mcp-vps-refactor` ref. After that work reaches the MCP
+temporary `codex/secure-document-materialization` ref. After that work reaches the MCP
 repository's `main` branch, update the ref and exact commit together; never
 retag an existing image.
 

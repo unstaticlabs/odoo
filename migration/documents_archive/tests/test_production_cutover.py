@@ -78,7 +78,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_MCP_IMAGE": self.mcp_image,
             "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
             "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
-            "ODOO_MCP_RELEASE_COMMIT": "359a4b3cf352bee4c0d1409a79f37f7144a2a335",
+            "ODOO_MCP_RELEASE_COMMIT": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
             "ODOO_LIST_DB": "False",
             "ODOO_LIMIT_MEMORY_HARD": "1342177280",
             "ODOO_LIMIT_MEMORY_SOFT": "1073741824",
