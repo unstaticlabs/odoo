@@ -899,6 +899,11 @@ export function makeActionManager(env, router = _router) {
                 // This is a hack to force the reactivity when a new displayName is set
                 controller.config.breadcrumbs.push(undefined);
                 controller.config.breadcrumbs.pop();
+                if (controller.isMounted) {
+                    // Dynamic titles can change after the initial action state was stored.
+                    // Persist the updated stack so a page reload restores its breadcrumb names.
+                    pushState(controllerStack, { sync: true });
+                }
             }
         };
         controller.config.setCurrentEmbeddedAction = (embeddedActionId) => {

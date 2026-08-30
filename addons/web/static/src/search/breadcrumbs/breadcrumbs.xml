@@ -3,8 +3,9 @@
 
     <t t-name="web.Breadcrumbs">
         <t t-set="currentBreadcrumbs" t-value="this.props.breadcrumbs.slice(-1)"/>
-        <t t-set="previousBreadcrumb" t-value="this.props.breadcrumbs.at(-2)"/>
-        <t t-set="collapsedBreadcrumbs" t-value="this.props.breadcrumbs.slice(0, -2).reverse()"/>
+        <t t-set="knownHistoryBreadcrumbs" t-value="this.props.breadcrumbs.slice(0, -1).filter((item) => item?.name)"/>
+        <t t-set="previousBreadcrumb" t-value="knownHistoryBreadcrumbs.at(-1)"/>
+        <t t-set="collapsedBreadcrumbs" t-value="knownHistoryBreadcrumbs.slice(0, -1).reverse()"/>
         <t t-set="breadcrumb" t-value="currentBreadcrumbs[0] || {}"/>
 
         <div t-if="collapsedBreadcrumbs.length || previousBreadcrumb" class="o_breadcrumb d-flex flex-row flex-md-column align-self-stretch justify-content-between min-w-0">
