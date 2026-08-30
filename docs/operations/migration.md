@@ -35,7 +35,7 @@ identities are rejected in secret files.
 
 ```text
 migration/manage qa adopt|status|stop|destroy|refresh|login-link
-migration/manage transition reconstruct|mark-live|freeze
+migration/manage transition reconstruct|mark-live|freeze|start|stop|checkpoint|retire|login-link
 migration/manage candidate build|verify|status
 migration/manage cohort capture|restore|verify|encrypt
 migration/manage cutover preflight|stage|configure|gate|admit|reset
@@ -182,6 +182,16 @@ sanitized production-transfer cohorts.
 
 `transition-live` and `frozen-read-only` states block reconstruction and test
 helpers independently of the Compose project name.
+
+When an explicitly superseded protected runtime must be removed, first create
+a verified checkpoint and then retire it. Retirement validates the checkpoint
+manifest and exact recorded Docker ownership before removing containers,
+volumes, and networks; it preserves the private checkpoint and runtime record:
+
+```bash
+migration/manage transition retire \
+  --runtime <transition-id> --confirm RETIRE:<transition-id>
+```
 
 Build and verify the immutable Online-source candidate from a clean checkout
 matching the runtime release commit:

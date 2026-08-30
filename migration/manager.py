@@ -459,6 +459,34 @@ def checkpoint_id(label: str | None) -> str:
     return f"{timestamp}-{label}" if label else timestamp
 
 
+def require_verified_checkpoint(runtime: dict[str, Any]) -> dict[str, Any]:
+    checkpoint = runtime.get("last_checkpoint") or {}
+    if checkpoint.get("status") != "verified" or not checkpoint.get("id"):
+        raise RuntimeError("transition retirement requires a verified checkpoint")
+    manifest_path = (
+        Path(runtime["private_directory"])
+        / "checkpoints"
+        / checkpoint["id"]
+        / "manifest.json"
+    )
+    private_file(manifest_path)
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError("transition checkpoint manifest is invalid") from error
+    expected = {
+        "schema": "usl-transition-checkpoint/v1",
+        "id": checkpoint["id"],
+        "runtime_id": runtime["id"],
+        "project": runtime["compose"]["project"],
+        "release_commit": checkpoint.get("release_commit"),
+        "status": "verified",
+    }
+    if any(manifest.get(name) != value for name, value in expected.items()):
+        raise RuntimeError("transition checkpoint manifest differs from runtime identity")
+    return manifest
+
+
 def destroy_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
     current = inspect_project(runner, runtime["compose"]["project"], ROOT)
     verify_recorded_resources(runtime["resources"], current)
@@ -690,6 +718,26 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         }
         record(store, runtime, "transition.checkpoint")
         return {"id": runtime["id"], "status": runtime["status"], "checkpoint": identifier}
+    if args.action == "retire":
+        confirm(args, "RETIRE")
+        if runtime["status"] not in {"transition-live", "frozen-read-only"}:
+            raise RuntimeError("only a protected transition runtime can be retired")
+        checkpoint = require_verified_checkpoint(runtime)
+        stop_transition_runtime(runtime, runner)
+        destroy_runtime(runtime, runner)
+        runtime["resources"] = {"containers": [], "volumes": [], "networks": []}
+        runtime["status"] = "retired"
+        runtime["retired_checkpoint"] = {
+            "id": checkpoint["id"],
+            "release_commit": checkpoint["release_commit"],
+            "status": checkpoint["status"],
+        }
+        record(store, runtime, "transition.retire")
+        return {
+            "id": runtime["id"],
+            "status": runtime["status"],
+            "checkpoint": checkpoint["id"],
+        }
     if args.action == "reconstruct":
         confirm(args, "RECONSTRUCT")
         if runtime["status"] in {"transition-live", "frozen-read-only"}:
@@ -965,7 +1013,7 @@ def parser() -> argparse.ArgumentParser:
 
     transition = domains.add_parser("transition")
     transition_actions = transition.add_subparsers(dest="action", required=True)
-    for action in ("reconstruct", "mark-live", "freeze"):
+    for action in ("reconstruct", "mark-live", "freeze", "retire"):
         item = transition_actions.add_parser(action)
         item.add_argument("--runtime", required=True)
         item.add_argument("--confirm", required=True)

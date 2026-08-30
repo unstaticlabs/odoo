@@ -540,6 +540,15 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(native["mode"], "native")
         self.assertEqual(linux["mode"], "container")
         self.assertIn("compose.ollama-native.yaml", compose_files(self.root, "qa", "native")[-1])
+        self.assertFalse(
+            any("compose.production.yaml" in item for item in compose_files(self.root, "qa", "native"))
+        )
+        self.assertTrue(
+            any(
+                "compose.production.yaml" in item
+                for item in compose_files(self.root, "transition", "native")
+            )
+        )
         self.assertFalse(any("ollama-native" in item for item in compose_files(self.root, "production", "container")))
 
     def test_installed_but_unreachable_native_ollama_fails_closed(self):
@@ -684,6 +693,70 @@ class MigrationManageTests(unittest.TestCase):
         )
         saved = RuntimeStore(self.root).load("transition-current")
         self.assertEqual(saved["last_checkpoint"]["status"], "verified")
+
+    def test_transition_retirement_requires_and_preserves_verified_checkpoint(self):
+        runtime_id = "transition-current"
+        release_commit = "b" * 40
+        runtime_directory = self.root / "private/migration/runtimes" / runtime_id
+        resources = inspect_project(self.runner, self.runner.project, self.root)
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": runtime_id,
+            "kind": "transition",
+            "status": "transition-live",
+            "release_commit": release_commit,
+            "private_directory": str(runtime_directory),
+            "compose": {
+                "project": self.runner.project,
+                "working_directory": str(self.root),
+            },
+            "resources": resources,
+        }
+        store = RuntimeStore(self.root)
+        store.create(runtime, {})
+        arguments = Namespace(
+            action="retire",
+            runtime=runtime_id,
+            confirm=f"RETIRE:{runtime_id}",
+        )
+        with self.assertRaisesRegex(RuntimeError, "requires a verified checkpoint"):
+            manager.command_transition(arguments, self.runner)
+
+        checkpoint_id = "20260830T091011Z-before-rebuild"
+        runtime["last_checkpoint"] = {
+            "id": checkpoint_id,
+            "release_commit": release_commit,
+            "status": "verified",
+        }
+        store.save(runtime)
+        checkpoint_directory = runtime_directory / "checkpoints" / checkpoint_id
+        checkpoint_directory.mkdir(parents=True)
+        manifest = checkpoint_directory / "manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "schema": "usl-transition-checkpoint/v1",
+                    "id": checkpoint_id,
+                    "runtime_id": runtime_id,
+                    "project": self.runner.project,
+                    "release_commit": release_commit,
+                    "status": "verified",
+                }
+            ),
+            encoding="utf-8",
+        )
+        manifest.chmod(0o600)
+
+        result = manager.command_transition(arguments, self.runner)
+
+        self.assertEqual(result["status"], "retired")
+        self.assertEqual(result["checkpoint"], checkpoint_id)
+        saved = store.load(runtime_id)
+        self.assertEqual(saved["resources"], {"containers": [], "volumes": [], "networks": []})
+        self.assertEqual(saved["retired_checkpoint"]["id"], checkpoint_id)
+        self.assertTrue(manifest.is_file())
+        self.assertIn(("docker", "rm", "--force", "container-1", "db-1", "mcp-1"), self.runner.calls)
+        self.assertIn(("docker", "volume", "rm", "runtime-data"), self.runner.calls)
 
     def test_transition_start_and_stop_touch_only_operational_services(self):
         runtime = {

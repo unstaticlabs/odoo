@@ -445,7 +445,10 @@ def resolve_ollama(
 
 def compose_files(repository: Path, kind: str, ollama_mode: str) -> list[str]:
     if kind in {"qa", "transition"}:
-        result = ["compose.yaml", "compose.pocket-id.yaml"]
+        result = ["compose.yaml"]
+        if kind == "transition":
+            result.append("compose.production.yaml")
+        result.append("compose.pocket-id.yaml")
         if ollama_mode == "native":
             result.append("compose.ollama-native.yaml")
         return [str((repository / item).resolve()) for item in result]
