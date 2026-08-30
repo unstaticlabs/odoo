@@ -36,11 +36,24 @@ manifest_path() {
   printf '%s/manifest.json\n' "$1"
 }
 
+is_evolved_artifact() {
+  [[ -f "$1/evidence/distribution-release.json" \
+     && -f "$1/evidence/release-identity.json" \
+     && -d "$1/documents" ]]
+}
+
 env_field() {
   local env_file="$1" candidate="$2" field="$3"
-  python3 migration/cutover.py env \
-    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
-    --field "$field"
+  if is_evolved_artifact "$candidate"; then
+    python3 migration/cutover.py env \
+      --env-file "$env_file" \
+      --distribution-release "$candidate/evidence/distribution-release.json" \
+      --field "$field" --field-only
+  else
+    python3 migration/cutover.py env \
+      --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+      --field "$field" --field-only
+  fi
 }
 
 state_path() {
@@ -65,27 +78,44 @@ verify_candidate_and_environment() {
   local env_file="$1" candidate_argument="$2" fingerprint="$3"
   local candidate project config commit expected_commit image label_commit
   local label_oca expected_oca label_action_risk expected_action_risk
-  local runtime_label network sign_image_name sign_image
+  local runtime_label network sign_image_name sign_image identity_file
   local mcp_image mcp_label_commit mcp_label_source mcp_expected_source
+  local validation_phase="${CUTOVER_VALIDATION_PHASE:-preflight}"
   candidate="$(cd "$candidate_argument" && pwd -P)"
   if [[ ! "$fingerprint" =~ ^[0-9a-f]{64}$ ]]; then
     printf 'Invalid candidate fingerprint.\n' >&2
     return 2
   fi
-  PYTHONPATH="$ROOT" python3 migration/candidate.py verify \
-    --root "$ROOT" --candidate-dir "$candidate" \
-    --expected-fingerprint "$fingerprint" >/dev/null
+  VERIFIED_EVOLVED=0
+  if is_evolved_artifact "$candidate"; then
+    actual_fingerprint="$(python3 migration/cohort_promotion/cohort.py accept "$candidate" \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)["cohort_fingerprint"])')"
+    [[ "$actual_fingerprint" == "$fingerprint" ]] || {
+      printf 'Accepted evolved cohort fingerprint differs from confirmation.\n' >&2
+      return 2
+    }
+    identity_file="$candidate/evidence/release-identity.json"
+    expected_commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["release_commit"])' "$identity_file")"
+    python3 scripts/distribution_release.py validate \
+      "$candidate/evidence/distribution-release.json" --commit "$expected_commit" >/dev/null
+    VERIFIED_EVOLVED=1
+  else
+    PYTHONPATH="$ROOT" python3 migration/candidate.py verify \
+      --root "$ROOT" --candidate-dir "$candidate" \
+      --expected-fingerprint "$fingerprint" >/dev/null
+    identity_file="$candidate/release-identity.json"
+    expected_commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["release_commit"])' "$(manifest_path "$candidate")")"
+  fi
   project="$(env_field "$env_file" "$candidate" COMPOSE_PROJECT_NAME)"
   compose_array "$env_file" "$project"
 
   commit="$(git rev-parse HEAD)"
-  expected_commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["release_commit"])' "$(manifest_path "$candidate")")"
   if [[ "$commit" != "$expected_commit" ]]; then
     printf 'Checked-out release commit differs from the candidate.\n' >&2
     return 2
   fi
   python3 scripts/action_risk_inventory.py check-source
-  PYTHONPATH="$ROOT" python3 - "$candidate/release-identity.json" <<'PY'
+  PYTHONPATH="$ROOT" python3 - "$identity_file" <<'PY'
 import json
 import sys
 from migration.release_identity import (
@@ -108,8 +138,8 @@ PY
   label_oca="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')"
   label_action_risk="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')"
   runtime_label="$(docker image inspect "$image" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')"
-  expected_oca="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["oca_bundle_sha256"])' "$(manifest_path "$candidate")")"
-  expected_action_risk="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["identity"]["action_risk_policy_sha256"])' "$(manifest_path "$candidate")")"
+  expected_oca="$(python3 -c 'import json,sys; v=json.load(open(sys.argv[1])); print((v.get("oca") or {}).get("bundle_sha256") or v.get("oca_bundle_sha256"))' "$identity_file")"
+  expected_action_risk="$(python3 -c 'import json,sys; v=json.load(open(sys.argv[1])); print(v.get("action_risk_policy_sha256"))' "$identity_file")"
   if [[ "$label_commit" != "$expected_commit" || "$label_oca" != "$expected_oca" \
       || "$label_action_risk" != "$expected_action_risk" \
       || "$runtime_label" != distribution ]]; then
@@ -145,9 +175,16 @@ PY
   chmod 600 "$config"
   "${COMPOSE[@]}" --profile paperless --profile sign --profile mcp \
     --profile document-renderer config --format json > "$config"
-  python3 migration/cutover.py env \
-    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
-    --compose-config "$config" >/dev/null
+  if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
+    python3 migration/cutover.py env \
+      --env-file "$env_file" \
+      --distribution-release "$candidate/evidence/distribution-release.json" \
+      --compose-config "$config" --phase "$validation_phase" >/dev/null
+  else
+    python3 migration/cutover.py env \
+      --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+      --compose-config "$config" >/dev/null
+  fi
   rm -f "$config"
   if "${COMPOSE[@]}" config --services | grep -Eiq '(^|[-_])pocket[-_]?id($|[-_])'; then
     printf 'Managed Pocket ID service detected in rendered topology.\n' >&2
@@ -217,9 +254,16 @@ PY
     fi
   done
   printf ']}\n' >> "$volumes_json"
-  python3 migration/cutover.py env \
-    --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
-    --volume-state "$volumes_json" >/dev/null
+  if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
+    python3 migration/cutover.py env \
+      --env-file "$env_file" \
+      --distribution-release "$candidate/evidence/distribution-release.json" \
+      --volume-state "$volumes_json" --phase preflight >/dev/null
+  else
+    python3 migration/cutover.py env \
+      --env-file "$env_file" --candidate-manifest "$(manifest_path "$candidate")" \
+      --volume-state "$volumes_json" >/dev/null
+  fi
   rm -f "$volumes_json"
 
   state="$(state_path "$project" "$fingerprint")"
@@ -240,6 +284,31 @@ stage() {
   require_state "$state" "$fingerprint" preflight
   database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
   image="$(env_field "$env_file" "$candidate" ODOO_IMAGE)"
+  if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
+    printf '[1/3] Restore the exact evolved Odoo, Paperless, Tantivy, vector and BGE cohort\n'
+    export USL_DOCUMENTS_RESTORE_ENV_FILE="$env_file"
+    export USL_DOCUMENTS_RESTORE_DATABASE="$database"
+    export USL_DOCUMENTS_RELEASE_SOURCE_DATABASE=odoo_dev
+    "$ROOT/migration/internal/documents-release" restore \
+      "$candidate/documents" --project "$project"
+
+    printf '[2/3] Restore coordinated Sign state into fresh production paths\n'
+    python3 migration/cohort_promotion/cohort.py restore-sign-runtime "$candidate" \
+      --step-ca "$(env_field "$env_file" "$candidate" USL_SIGN_STEP_CA_DIR)" \
+      --dss "$(env_field "$env_file" "$candidate" USL_SIGN_DSS_SECRET_DIR)" \
+      --evidence "$(env_field "$env_file" "$candidate" USL_SIGN_EVIDENCE_DIR)" \
+      --confirm "$fingerprint" >/dev/null
+
+    printf '[3/3] Validate restored secret topology and pause application writers\n'
+    python3 migration/cutover.py env --env-file "$env_file" \
+      --distribution-release "$candidate/evidence/distribution-release.json" \
+      --phase configured >/dev/null
+    "${COMPOSE[@]}" --profile paperless stop \
+      odoo paperless-webserver paperless-ollama >/dev/null 2>&1 || true
+    transition "$state" "$fingerprint" stage
+    printf 'Evolved cohort staged exactly; application and embedding writers remain paused.\n'
+    return
+  fi
   jobs="${USL_PRODUCTION_PG_RESTORE_JOBS:-4}"
   if [[ ! "$jobs" =~ ^[1-8]$ ]]; then
     printf 'USL_PRODUCTION_PG_RESTORE_JOBS must be between 1 and 8.\n' >&2
@@ -401,7 +470,8 @@ configure() {
   local env_file="${2:-}" candidate_argument="${3:-}" policy_file="${4:-}" fingerprint="${5:-}"
   local candidate project state database odoo_users paperless_policy
   local cron_allowlist plan_output plan paperless_output identities setup token service_user
-  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  CUTOVER_VALIDATION_PHASE=configured \
+    verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
   candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
   state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" staged
   database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"
@@ -471,7 +541,8 @@ configure() {
 gate() {
   local env_file="${2:-}" candidate_argument="${3:-}" journey_file="${4:-}" fingerprint="${5:-}"
   local candidate project state database identity_json accounting
-  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  CUTOVER_VALIDATION_PHASE=configured \
+    verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
   candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
   state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" configured
   python3 migration/cutover.py journeys --evidence "$journey_file" \
@@ -486,7 +557,11 @@ gate() {
   scripts/check-product-migration-boundary
   run_odoo_shell "$database" scripts/odoo/product_database_boundary.py \
     -e USL_PRODUCT_BOUNDARY_PREPROD=1
-  identity_json="$(tr -d '\n' < "$candidate/release-identity.json")"
+  if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
+    identity_json="$(tr -d '\n' < "$candidate/evidence/release-identity.json")"
+  else
+    identity_json="$(tr -d '\n' < "$candidate/release-identity.json")"
+  fi
   run_odoo_shell "$database" scripts/odoo/release_identity.py \
     -e USL_RELEASE_IDENTITY_JSON="$identity_json" \
     -e USL_RELEASE_IDENTITY_APPLY=0
@@ -504,10 +579,17 @@ gate() {
       'posted_debit',(SELECT COALESCE(sum(l.debit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted'),
       'posted_credit',(SELECT COALESCE(sum(l.credit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted')
     )::text")"
-  python3 - "$candidate/qualification.json" "$accounting" <<'PY'
+  if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
+    accounting_evidence="$candidate/evidence/current-controls.json"
+  else
+    accounting_evidence="$candidate/qualification.json"
+  fi
+  python3 - "$accounting_evidence" "$accounting" "$VERIFIED_EVOLVED" <<'PY'
 import json, sys
 q=json.load(open(sys.argv[1],encoding="utf-8"))
-if json.loads(sys.argv[2]) != q["accounting"]["controls"]:
+actual=json.loads(sys.argv[2])
+expected=q["accounting"] if sys.argv[3] == "1" else q["accounting"]["controls"]
+if any(str(actual.get(name)) != str(expected.get(name)) for name in actual):
     raise SystemExit("Accounting gate differs from the qualified candidate.")
 PY
 
@@ -548,7 +630,8 @@ admit() {
   local env_file="${2:-}" candidate_argument="${3:-}" fingerprint
   local candidate project state database cron
   fingerprint="$(confirmed_fingerprint "$@")"
-  verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
+  CUTOVER_VALIDATION_PHASE=configured \
+    verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
   candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
   state="$(state_path "$project" "$fingerprint")"; require_state "$state" "$fingerprint" gated
   database="$(env_field "$env_file" "$candidate" ODOO_DB_NAME)"

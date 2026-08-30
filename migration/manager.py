@@ -811,15 +811,29 @@ def run_internal(
     command: list[str],
     *,
     extra_environment: dict[str, str] | None = None,
+    resolve_native_ollama: bool = True,
+    exclusive_environment: bool = False,
 ) -> None:
-    if runtime["ollama"]["mode"] == "native":
+    if resolve_native_ollama and runtime["ollama"]["mode"] == "native":
         resolve_ollama(
             "native",
             models=Path(runtime["ollama"]["models_path"]),
             host_url=runtime["ollama"]["host_url"],
         )
-    env_file, environment = combined_env_file(runtime, secrets)
-    if extra_environment:
+    if exclusive_environment:
+        if not extra_environment:
+            raise RuntimeError("exclusive operation requires an explicit environment")
+        env_file = Path(runtime["private_directory"]) / "cutover" / "resolved.env"
+        env_file.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        env_file.parent.chmod(0o700)
+        write_private(
+            env_file,
+            "".join(f"{key}={extra_environment[key]}\n" for key in sorted(extra_environment)),
+        )
+        environment = {**os.environ, **extra_environment}
+    else:
+        env_file, environment = combined_env_file(runtime, secrets)
+    if extra_environment and not exclusive_environment:
         environment.update(extra_environment)
         env_file, environment = combined_env_file(runtime, {**secrets, **extra_environment})
     environment["POCKET_ID_ENV_FILE"] = str(env_file)
@@ -1125,10 +1139,16 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
     elif domain == "cohort":
         state = Path(runtime["private_directory"]) / "cohort-state.json"
         if action == "capture":
-            required = (args.step_ca, args.dss, args.evidence, args.release_identity)
+            required = (
+                args.step_ca,
+                args.dss,
+                args.evidence,
+                args.release_identity,
+                args.distribution_release,
+            )
             if not all(required):
                 raise RuntimeError(
-                    "cohort capture requires --step-ca, --dss, --evidence, and --release-identity"
+                    "cohort capture requires Sign state, release identity, and Distribution release"
                 )
             run_internal(
                 runtime,
@@ -1142,6 +1162,7 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
                     str(args.dss),
                     str(args.evidence),
                     str(args.release_identity),
+                    str(args.distribution_release),
                 ],
             )
             command = [str(INTERNAL / "cohort"), "seal", str(args.bundle)]
@@ -1230,6 +1251,9 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
         extra_environment["USL_CUTOVER_STATE_DIR"] = str(
             Path(runtime["private_directory"]) / "cutover"
         )
+        extra_environment["USL_MIGRATION_RUNTIME_STATE"] = str(
+            Path(runtime["private_directory"]) / "runtime.json"
+        )
         command = [
             str(INTERNAL / "cutover"),
             action,
@@ -1251,6 +1275,8 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
             runner,
             command,
             extra_environment=extra_environment,
+            resolve_native_ollama=False,
+            exclusive_environment=True,
         )
         record(store, runtime, f"{domain}.{action}")
         return {"id": runtime["id"], "action": f"{domain}.{action}", "status": "passed"}
@@ -1362,6 +1388,7 @@ def parser() -> argparse.ArgumentParser:
         item.add_argument("--step-ca", type=Path)
         item.add_argument("--dss", type=Path)
         item.add_argument("--release-identity", type=Path)
+        item.add_argument("--distribution-release", type=Path)
         item.add_argument("--recipient")
         if action == "restore":
             item.add_argument("--confirm", required=True)
@@ -1371,7 +1398,9 @@ def parser() -> argparse.ArgumentParser:
     for action in ("preflight", "stage", "configure", "gate", "admit", "reset"):
         item = cutover_actions.add_parser(action)
         item.add_argument("--runtime", required=True)
-        item.add_argument("--candidate", type=Path, required=True)
+        artifact = item.add_mutually_exclusive_group(required=True)
+        artifact.add_argument("--cohort", dest="candidate", type=Path)
+        artifact.add_argument("--candidate", dest="candidate", type=Path, help=argparse.SUPPRESS)
         item.add_argument("--fingerprint", required=True)
         item.add_argument("--evidence", type=Path)
         item.add_argument("--configuration", type=Path)

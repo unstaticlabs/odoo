@@ -2,6 +2,7 @@ import importlib.util
 import base64
 import json
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -26,10 +27,8 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.renderer_image = f"ghcr.io/usl/renderer@sha256:{'e' * 64}"
         self.step_ca_image = f"docker.io/smallstep/step-ca@sha256:{'f' * 64}"
         self.dss_image = f"ghcr.io/usl/sign-dss@sha256:{'1' * 64}"
-        self.mcp_image = (
-            "usl-odoo-mcp@sha256:"
-            "9ea7c1b2ed5a27b7762cc98e83e403757e7dfbd717ce64dfd775484b98fdfc7a"
-        )
+        self.mcp_release = cutover.load_release(ROOT)
+        self.mcp_image = self.mcp_release["image"]
         self.project = "usl-odoo-production-main"
         self.candidate = {
             "identity": {
@@ -59,6 +58,8 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
                 path.write_text("qualified\n", encoding="utf-8")
             self.sign_secret_directories[key] = str(directory)
+        self.sign_evidence = self.root / "sign-evidence"
+        self.sign_evidence.mkdir(mode=0o700)
         self.values = {
             "COMPOSE_PROJECT_NAME": self.project,
             "USL_DEPLOYMENT_ENV": "production",
@@ -81,7 +82,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_MCP_IMAGE": self.mcp_image,
             "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
             "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
-            "ODOO_MCP_RELEASE_COMMIT": "d6ef1e507af75f8ab4d295c52a0c3ce86821cabd",
+            "ODOO_MCP_RELEASE_COMMIT": self.mcp_release["commit"],
             "ODOO_LIST_DB": "False",
             "ODOO_LIMIT_MEMORY_HARD": "1342177280",
             "ODOO_LIMIT_MEMORY_SOFT": "1073741824",
@@ -113,6 +114,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "USL_POCKET_ID_BREAK_GLASS_PASSWORD": "g" * 32,
             "USL_PRODUCTION_CRON_THREADS": "1",
             "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": str(self.key_ring),
+            "USL_OLLAMA_RUNTIME": "container",
             "USL_DOCUMENT_RENDERER_CERT_DIR": self.sign_secret_directories[
                 "USL_DOCUMENT_RENDERER_CERT_DIR"
             ],
@@ -121,6 +123,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "USL_SIGN_DSS_SECRET_DIR": self.sign_secret_directories[
                 "USL_SIGN_DSS_SECRET_DIR"
             ],
+            "USL_SIGN_EVIDENCE_DIR": str(self.sign_evidence),
             "USL_SIGN_ODOO_SECRET_DIR": self.sign_secret_directories[
                 "USL_SIGN_ODOO_SECRET_DIR"
             ],
@@ -199,12 +202,92 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         path.chmod(0o600)
         return path
 
+    def _distribution_release(self):
+        commit = "a" * 40
+
+        def image(reference, digest_character, *, image_commit=commit):
+            name = reference.split("@", 1)[0]
+            digest = "sha256:" + digest_character * 64
+            return {
+                "name": name,
+                "tag": f"sha-{image_commit}",
+                "digest": digest,
+                "digest_reference": f"{name}@{digest}",
+            }
+
+        renderer_commit = "1" * 40
+        result = {
+            "schema": "usl-distribution-release/v4",
+            "source": {"repository": "unstaticlabs/odoo", "commit_sha": commit},
+            "image": image(self.image, "b"),
+            "backup_tool": image("ghcr.io/usl/backup", "2"),
+            "paperless": image(self.paperless_image, "c"),
+            "document_renderer": {
+                "repository": "https://github.com/unstaticlabs/renderer.git",
+                "commit": renderer_commit,
+                "image": image(self.renderer_image, "e", image_commit=renderer_commit),
+            },
+            "sign_dss": image(self.dss_image, "1"),
+            "mcp": {
+                "repository": self.mcp_release["repository"],
+                "ref": self.mcp_release["ref"],
+                "commit": self.mcp_release["commit"],
+                "image_digest": self.mcp_release["image"],
+                "compatibility_sha256": self.mcp_release["compatibility_sha256"],
+            },
+            "build": {
+                "workflow_run_id": 123,
+                "workflow_run_attempt": 1,
+                "workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/123",
+            },
+            "attestations": {
+                name: {
+                    "oci_sbom": "generated",
+                    "buildkit_provenance": "generated",
+                    "github_provenance": "generated",
+                }
+                for name in (
+                    "distribution",
+                    "backup_tool",
+                    "paperless",
+                    "document_renderer",
+                    "sign_dss",
+                )
+            },
+        }
+        return result
+
     def test_environment_is_strict_and_candidate_image_bound(self):
         cutover.validate_environment(self.values, self.candidate)
 
         self.values["ODOO_IMAGE"] = f"ghcr.io/usl/odoo@sha256:{'c' * 64}"
         with self.assertRaisesRegex(cutover.CutoverError, "approved candidate"):
             cutover.validate_environment(self.values, self.candidate)
+
+    def test_environment_is_bound_to_complete_distribution_release(self):
+        release = self._distribution_release()
+        cutover.validate_environment(self.values, distribution_release=release)
+
+        changed = dict(self.values, PAPERLESS_IMAGE=f"ghcr.io/usl/paperless@sha256:{'9' * 64}")
+        with self.assertRaisesRegex(cutover.CutoverError, "Distribution release"):
+            cutover.validate_environment(changed, distribution_release=release)
+
+    def test_evolved_preflight_requires_fresh_sign_restore_paths(self):
+        release = self._distribution_release()
+        for key in ("USL_SIGN_STEP_CA_DIR", "USL_SIGN_DSS_SECRET_DIR"):
+            shutil.rmtree(self.values[key])
+        self.sign_evidence.rmdir()
+        cutover.validate_environment(
+            self.values,
+            distribution_release=release,
+            phase="preflight",
+        )
+        with self.assertRaisesRegex(cutover.CutoverError, "private secret directory"):
+            cutover.validate_environment(
+                self.values,
+                distribution_release=release,
+                phase="configured",
+            )
 
     def test_unsafe_urls_database_manager_and_live_flags_are_rejected(self):
         for key, value, message in (

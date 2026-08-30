@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 from migration.cohort_promotion import cohort
+from scripts.tests.test_distribution_release import artifact as distribution_artifact
 
 
 FINGERPRINT = "1" * 64
@@ -64,12 +65,19 @@ class EvolvedCohortTest(unittest.TestCase):
         }
         release["identity_sha256"] = cohort.canonical_sha256(release)
         self.write_json(root, "evidence/release-identity.json", release)
+        distribution_path = self.write_json(
+            root,
+            "evidence/distribution-release.json",
+            distribution_artifact(),
+        )
+        distribution_sha256 = cohort.sha256_file(distribution_path)
         controls = {
             "schema": "usl-evolved-transition-controls-v1",
             "status": "passed",
             "source_candidate_fingerprint": FINGERPRINT,
             "source_candidate_manifest_sha256": cohort.sha256_file(candidate_path),
             "release_identity_sha256": release["identity_sha256"],
+            "distribution_release_sha256": distribution_sha256,
             "documents_manifest_sha256": DOCUMENTS_MANIFEST_SHA,
             "accounting": {
                 "balanced": True,
@@ -84,6 +92,7 @@ class EvolvedCohortTest(unittest.TestCase):
         bindings = {
             "source_candidate_fingerprint": FINGERPRINT,
             "release_identity_sha256": release["identity_sha256"],
+            "distribution_release_sha256": distribution_sha256,
             "documents_manifest_sha256": DOCUMENTS_MANIFEST_SHA,
             "current_controls_sha256": controls_sha256,
         }
@@ -108,6 +117,7 @@ class EvolvedCohortTest(unittest.TestCase):
                 "schema": "usl-evolved-cohort-security-gates-v1",
                 "status": "passed",
                 "release_identity_sha256": release["identity_sha256"],
+                "distribution_release_sha256": distribution_sha256,
                 "source_candidate_fingerprint": FINGERPRINT,
                 "documents_manifest_sha256": DOCUMENTS_MANIFEST_SHA,
                 "current_controls_sha256": controls_sha256,
@@ -143,6 +153,7 @@ class EvolvedCohortTest(unittest.TestCase):
             "candidate_fingerprint": FINGERPRINT,
             "source_candidate_manifest_sha256": cohort.sha256_file(candidate_path),
             "release_identity_sha256": release["identity_sha256"],
+            "distribution_release_sha256": distribution_sha256,
             "release_commit": RELEASE_COMMIT,
             "documents_manifest_sha256": DOCUMENTS_MANIFEST_SHA,
             "sign_manifest_sha256": cohort.sha256_file(sign_manifest),
@@ -381,6 +392,11 @@ class EvolvedCohortTest(unittest.TestCase):
             }
             release["identity_sha256"] = cohort.canonical_sha256(release)
             release_path = self.write_json(root, "release.json", release)
+            distribution_path = self.write_json(
+                root,
+                "distribution-release.json",
+                distribution_artifact(),
+            )
             sources = []
             for name in ("step-ca", "dss", "evidence"):
                 source = root / name
@@ -391,7 +407,14 @@ class EvolvedCohortTest(unittest.TestCase):
             for name in ("bundle-a", "bundle-b"):
                 bundle = root / name
                 bundle.mkdir(mode=0o700)
-                results.append(cohort.capture_sign(bundle, *sources, release_path))
+                results.append(
+                    cohort.capture_sign(
+                        bundle,
+                        *sources,
+                        release_path,
+                        distribution_path,
+                    )
+                )
                 self.assertEqual((bundle / "sign").stat().st_mode & 0o777, 0o700)
                 for path in (bundle / "sign").iterdir():
                     self.assertEqual(path.stat().st_mode & 0o777, 0o600)
@@ -438,6 +461,26 @@ class EvolvedCohortTest(unittest.TestCase):
                     self.assertEqual(stat.S_IMODE(path.stat().st_mode), expected)
                 with self.assertRaisesRegex(cohort.CohortError, "fresh"):
                     cohort.restore_sign(root, destination, FINGERPRINT)
+
+    def test_sign_runtime_restore_uses_exact_fresh_destinations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "bundle"
+            root.mkdir(mode=0o700)
+            self.fixture(root)
+            destinations = [Path(temporary) / name for name in ("step", "dss", "evidence")]
+            with mock.patch.object(
+                cohort,
+                "accept",
+                return_value={"cohort_fingerprint": FINGERPRINT},
+            ):
+                restored = cohort.restore_sign_runtime(
+                    root,
+                    *destinations,
+                    FINGERPRINT,
+                )
+            self.assertEqual(restored["status"], "passed")
+            self.assertTrue(all(path.is_dir() for path in destinations))
+            self.assertTrue(all((path / "state.json").is_file() for path in destinations))
 
     def test_preseal_component_rehearsal_uses_accepted_component_fingerprint(self):
         with tempfile.TemporaryDirectory() as temporary:

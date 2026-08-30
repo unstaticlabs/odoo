@@ -437,6 +437,32 @@ class MigrationManageTests(unittest.TestCase):
             environment["PAPERLESS_IMAGE"], runtime["images"]["paperless-webserver"]
         )
 
+    def test_cutover_environment_does_not_inherit_local_runtime_scope(self):
+        private_directory = self.root / "private/runtime"
+        private_directory.mkdir(parents=True, mode=0o700)
+        runtime = {
+            "private_directory": str(private_directory),
+            "ollama": {"mode": "native"},
+        }
+        manager.run_internal(
+            runtime,
+            {"LOCAL_ONLY_SECRET": "must-not-leak"},
+            self.runner,
+            ["cutover-command", "{RUNTIME_ENV_FILE}"],
+            extra_environment={
+                "COMPOSE_PROJECT_NAME": "production-project",
+                "USL_OLLAMA_RUNTIME": "container",
+            },
+            resolve_native_ollama=False,
+            exclusive_environment=True,
+        )
+        resolved = private_directory / "cutover/resolved.env"
+        self.assertEqual(
+            resolved.read_text(encoding="utf-8"),
+            "COMPOSE_PROJECT_NAME=production-project\nUSL_OLLAMA_RUNTIME=container\n",
+        )
+        self.assertEqual(stat.S_IMODE(resolved.stat().st_mode), 0o600)
+
     def test_runtime_environment_supports_checkpointing_a_pre_mcp_runtime(self):
         runtime = {
             "id": "transition-legacy",
@@ -1180,7 +1206,7 @@ class MigrationManageTests(unittest.TestCase):
             "USL_PAPERLESS_POSTGRES_VOLUME", "USL_PAPERLESS_BROKER_VOLUME",
             "USL_PAPERLESS_DATA_VOLUME", "USL_PAPERLESS_MEDIA_VOLUME",
             "USL_PAPERLESS_EXPORT_VOLUME", "USL_PAPERLESS_CONSUME_VOLUME",
-            "USL_PAPERLESS_TRASH_VOLUME",
+            "USL_PAPERLESS_TRASH_VOLUME", "USL_PAPERLESS_OLLAMA_VOLUME",
             "USL_ODOO_MCP_OAUTH_VOLUME",
         ):
             production_environment[name] = name.lower().replace("_", "-")

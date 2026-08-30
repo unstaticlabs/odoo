@@ -19,9 +19,11 @@ case "$command_name" in
     dss="${3:?Missing DSS state directory}"
     sign_evidence="${4:?Missing Sign evidence directory}"
     release_identity="${5:?Missing evolved release identity}"
+    distribution_release="${6:?Missing Distribution release artifact}"
     python3 "$ROOT/migration/cohort_promotion/cohort.py" capture-sign "$bundle" \
       --step-ca "$step_ca" --dss "$dss" --evidence "$sign_evidence" \
-      --release-identity "$release_identity"
+      --release-identity "$release_identity" \
+      --distribution-release "$distribution_release"
     ;;
   inspect-components)
     bundle="${1:?Usage: migration/internal/cohort inspect-components BUNDLE}"
@@ -41,6 +43,16 @@ case "$command_name" in
     "$ROOT/migration/internal/documents-release" restore "$bundle/documents" --project "$project"
     python3 "$ROOT/migration/cohort_promotion/cohort.py" restore-sign-components "$bundle" \
       --destination "$sign_root" --confirm "$component_fingerprint"
+    ;;
+  restore-sign-runtime)
+    bundle="${1:?Usage: migration/internal/cohort restore-sign-runtime BUNDLE STEP_CA DSS EVIDENCE FINGERPRINT}"
+    step_ca="${2:?Missing Step CA restore destination}"
+    dss="${3:?Missing DSS restore destination}"
+    sign_evidence="${4:?Missing Sign evidence restore destination}"
+    fingerprint="${5:?Missing accepted cohort fingerprint}"
+    python3 "$ROOT/migration/cohort_promotion/cohort.py" restore-sign-runtime "$bundle" \
+      --step-ca "$step_ca" --dss "$dss" --evidence "$sign_evidence" \
+      --confirm "$fingerprint"
     ;;
   preflight)
     bundle="${1:?Usage: migration/internal/cohort preflight BUNDLE STATE FINGERPRINT}"
@@ -100,9 +112,10 @@ case "$command_name" in
     printf '%s\n' \
       'Usage:' \
       '  migration/internal/cohort seal|verify|accept BUNDLE' \
-      '  migration/internal/cohort capture-sign BUNDLE STEP_CA DSS EVIDENCE RELEASE_IDENTITY' \
+      '  migration/internal/cohort capture-sign BUNDLE STEP_CA DSS EVIDENCE RELEASE_IDENTITY DISTRIBUTION_RELEASE' \
       '  migration/internal/cohort inspect-components BUNDLE' \
       '  migration/internal/cohort rehearse BUNDLE PROJECT SIGN_ROOT COMPONENT_FINGERPRINT' \
+      '  migration/internal/cohort restore-sign-runtime BUNDLE STEP_CA DSS EVIDENCE FINGERPRINT' \
       '  migration/internal/cohort preflight BUNDLE STATE FINGERPRINT' \
       '  migration/internal/cohort restore BUNDLE STATE PROJECT SIGN_ROOT FINGERPRINT' \
       '  migration/internal/cohort record-configured|record-gated|record-admitted STATE FINGERPRINT EVIDENCE' \

@@ -17,6 +17,8 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path, PurePosixPath
 
+from scripts.distribution_release import ReleaseArtifactError, validate as validate_distribution_release
+
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS_SPEC = importlib.util.spec_from_file_location(
@@ -50,6 +52,7 @@ REQUIRED_PATHS = frozenset(
         "sign/manifest.json",
         "evidence/source-candidate-manifest.json",
         "evidence/release-identity.json",
+        "evidence/distribution-release.json",
         "evidence/current-controls.json",
         "evidence/sanitation.json",
         "evidence/security-gates.json",
@@ -291,6 +294,16 @@ def component_identity(root: Path, *, accept_documents: bool) -> dict:
     if not isinstance(release_commit, str) or not GIT_COMMIT.fullmatch(release_commit):
         raise CohortError("evolved cohort release commit is invalid")
 
+    distribution_path = root / "evidence/distribution-release.json"
+    private_path(distribution_path, directory=False)
+    try:
+        distribution = validate_distribution_release(
+            read_json(distribution_path),
+            commit=release_commit,
+        )
+    except ReleaseArtifactError as error:
+        raise CohortError(f"Distribution release artifact was rejected: {error}") from error
+
     private_path(root / "documents", directory=True)
     try:
         documents = (
@@ -315,6 +328,7 @@ def component_identity(root: Path, *, accept_documents: bool) -> dict:
         "candidate_fingerprint": candidate_fingerprint,
         "source_candidate_manifest_sha256": sha256_file(candidate_path),
         "release_identity_sha256": release["identity_sha256"],
+        "distribution_release_sha256": sha256_file(distribution_path),
         "release_commit": release_commit,
         "documents_manifest_sha256": documents_manifest_sha256,
         "sign_manifest_sha256": sha256_file(root / "sign/manifest.json"),
@@ -328,6 +342,7 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
     candidate_fingerprint = components["candidate_fingerprint"]
     candidate_manifest_sha256 = components["source_candidate_manifest_sha256"]
     release_identity_sha256 = components["release_identity_sha256"]
+    distribution_release_sha256 = components["distribution_release_sha256"]
     documents_manifest_sha256 = components["documents_manifest_sha256"]
 
     controls = read_json(root / "evidence/current-controls.json")
@@ -341,6 +356,8 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
         raise CohortError("current controls refer to another Online-source candidate manifest")
     if controls.get("release_identity_sha256") != release_identity_sha256:
         raise CohortError("current controls refer to another evolved release")
+    if controls.get("distribution_release_sha256") != distribution_release_sha256:
+        raise CohortError("current controls refer to another Distribution release")
     if controls.get("documents_manifest_sha256") != documents_manifest_sha256:
         raise CohortError("current controls refer to another Documents cohort")
     accounting = controls.get("accounting") or {}
@@ -371,6 +388,7 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
         sanitation.get("transfer_configuration_contains_secrets") is False,
         sanitation.get("source_candidate_fingerprint") == candidate_fingerprint,
         sanitation.get("release_identity_sha256") == release_identity_sha256,
+        sanitation.get("distribution_release_sha256") == distribution_release_sha256,
         sanitation.get("documents_manifest_sha256") == documents_manifest_sha256,
         sanitation.get("current_controls_sha256") == current_controls_sha256,
     )
@@ -385,6 +403,8 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
         raise CohortError("evolved cohort security gates did not pass")
     if security.get("release_identity_sha256") != release_identity_sha256:
         raise CohortError("security gates refer to another evolved release")
+    if security.get("distribution_release_sha256") != distribution_release_sha256:
+        raise CohortError("security gates refer to another Distribution release")
     if (
         security.get("source_candidate_fingerprint") != candidate_fingerprint
         or security.get("documents_manifest_sha256") != documents_manifest_sha256
@@ -415,6 +435,7 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
         recovery.get("model_download") is False,
         recovery.get("source_candidate_fingerprint") == candidate_fingerprint,
         recovery.get("release_identity_sha256") == release_identity_sha256,
+        recovery.get("distribution_release_sha256") == distribution_release_sha256,
         recovery.get("documents_manifest_sha256") == documents_manifest_sha256,
         recovery.get("component_fingerprint") == components["component_fingerprint"],
         recovery.get("current_controls_sha256") == current_controls_sha256,
@@ -425,6 +446,7 @@ def validate_inputs(root: Path, *, accept_documents: bool) -> dict:
         "candidate_fingerprint": candidate_fingerprint,
         "source_candidate_manifest_sha256": candidate_manifest_sha256,
         "release_identity_sha256": release_identity_sha256,
+        "distribution_release_sha256": distribution_release_sha256,
         "release_commit": components["release_commit"],
         "documents_manifest_sha256": documents_manifest_sha256,
         "sign_manifest_sha256": components["sign_manifest_sha256"],
@@ -716,6 +738,7 @@ def capture_sign(
     dss: Path,
     evidence: Path,
     release_identity: Path,
+    distribution_release: Path,
 ) -> dict:
     bundle = bundle.expanduser().resolve()
     private_path(bundle, directory=True)
@@ -735,6 +758,22 @@ def capture_sign(
     release_commit = release.get("release_commit")
     if not isinstance(release_commit, str) or not GIT_COMMIT.fullmatch(release_commit):
         raise CohortError("Sign capture release commit is invalid")
+    distribution_release = distribution_release.expanduser().resolve()
+    private_path(distribution_release, directory=False)
+    try:
+        validate_distribution_release(
+            read_json(distribution_release),
+            commit=release_commit,
+        )
+    except ReleaseArtifactError as error:
+        raise CohortError(f"Distribution release artifact was rejected: {error}") from error
+    distribution_target = bundle / "evidence/distribution-release.json"
+    if distribution_target.exists() or distribution_target.is_symlink():
+        raise CohortError("Distribution release evidence already exists")
+    distribution_target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    distribution_target.parent.chmod(0o700)
+    distribution_target.write_bytes(distribution_release.read_bytes())
+    distribution_target.chmod(0o600)
     payload = {
         "schema": "usl-sign-transfer-state-v1",
         "status": "passed",
@@ -797,6 +836,30 @@ def restore_sign_components(
     }
 
 
+def restore_sign_runtime(
+    root: Path,
+    step_ca: Path,
+    dss: Path,
+    evidence: Path,
+    expected_fingerprint: str,
+) -> dict:
+    manifest = accept(root)
+    if manifest["cohort_fingerprint"] != expected_fingerprint:
+        raise CohortError("Sign runtime restore was not confirmed with the cohort fingerprint")
+    destinations = (
+        ("step-ca.tgz", step_ca),
+        ("dss.tgz", dss),
+        ("evidence.tgz", evidence),
+    )
+    for archive_name, destination in destinations:
+        safe_extract(root / "sign" / archive_name, destination.expanduser().resolve())
+    return {
+        "schema": "usl-sign-runtime-restore-v1",
+        "status": "passed",
+        "cohort_fingerprint": expected_fingerprint,
+    }
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser()
     subparsers = result.add_subparsers(dest="command", required=True)
@@ -826,12 +889,19 @@ def parser() -> argparse.ArgumentParser:
     rehearsal_parser.add_argument("bundle", type=Path)
     rehearsal_parser.add_argument("--destination", type=Path, required=True)
     rehearsal_parser.add_argument("--confirm", required=True)
+    runtime_restore_parser = subparsers.add_parser("restore-sign-runtime")
+    runtime_restore_parser.add_argument("bundle", type=Path)
+    runtime_restore_parser.add_argument("--step-ca", type=Path, required=True)
+    runtime_restore_parser.add_argument("--dss", type=Path, required=True)
+    runtime_restore_parser.add_argument("--evidence", type=Path, required=True)
+    runtime_restore_parser.add_argument("--confirm", required=True)
     capture_parser = subparsers.add_parser("capture-sign")
     capture_parser.add_argument("bundle", type=Path)
     capture_parser.add_argument("--step-ca", type=Path, required=True)
     capture_parser.add_argument("--dss", type=Path, required=True)
     capture_parser.add_argument("--evidence", type=Path, required=True)
     capture_parser.add_argument("--release-identity", type=Path, required=True)
+    capture_parser.add_argument("--distribution-release", type=Path, required=True)
     return result
 
 
@@ -857,9 +927,18 @@ def main() -> None:
                 args.dss,
                 args.evidence,
                 args.release_identity,
+                args.distribution_release,
             )
         elif args.command == "restore-sign-components":
             value = restore_sign_components(args.bundle, args.destination, args.confirm)
+        elif args.command == "restore-sign-runtime":
+            value = restore_sign_runtime(
+                args.bundle,
+                args.step_ca,
+                args.dss,
+                args.evidence,
+                args.confirm,
+            )
         else:
             value = restore_sign(args.bundle, args.destination, args.confirm)
     except (CohortError, OSError, tarfile.TarError) as error:

@@ -16,6 +16,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from migration.mcp_release import load_release
+from scripts.distribution_release import (
+    ReleaseArtifactError,
+    validate as validate_distribution_release,
+)
 
 STATE_SCHEMA = "usl-production-cutover-state-v1"
 POLICY_SCHEMA = "usl-external-identity-policy-v1"
@@ -118,10 +122,12 @@ REQUIRED = (
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_PRODUCTION_CRON_THREADS",
     "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
+    "USL_OLLAMA_RUNTIME",
     "USL_DOCUMENT_RENDERER_CERT_DIR",
     "USL_DOCUMENT_RENDERER_IMAGE",
     "USL_SIGN_DSS_IMAGE",
     "USL_SIGN_DSS_SECRET_DIR",
+    "USL_SIGN_EVIDENCE_DIR",
     "USL_SIGN_ODOO_SECRET_DIR",
     "USL_SIGN_STEP_CA_DIR",
     "USL_SIGN_STEP_CA_IMAGE",
@@ -230,12 +236,22 @@ def validate_odoo_resources(values: dict[str, str]) -> None:
         raise CutoverError("Odoo worker request recycling must be between 1024 and 32768")
 
 
-def validate_environment(values: dict[str, str], candidate: dict) -> None:
+def validate_environment(
+    values: dict[str, str],
+    candidate: dict | None = None,
+    *,
+    distribution_release: dict | None = None,
+    phase: str = "configured",
+) -> None:
+    if (candidate is None) == (distribution_release is None):
+        raise CutoverError("exactly one candidate or Distribution release is required")
     project = values["COMPOSE_PROJECT_NAME"]
     if not SAFE_PROJECT.fullmatch(project):
         raise CutoverError("unsafe production Compose project name")
     if values["USL_DEPLOYMENT_ENV"] != "production":
         raise CutoverError("USL_DEPLOYMENT_ENV must be production")
+    if values["USL_OLLAMA_RUNTIME"] != "container":
+        raise CutoverError("production must use the pinned container Ollama runtime")
     if values.get("USL_EINVOICE_LIVE_ENABLED", "") != "0" or values.get(
         "USL_EREPORTING_LIVE_ENABLED",
         "",
@@ -254,19 +270,11 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         or values["ODOO_DB_FILTER"] != f"^{database}$"
     ):
         raise CutoverError("unsafe or inconsistent production database name/filter")
-    if values["ODOO_IMAGE"] != (candidate.get("identity") or {}).get("image_digest"):
-        raise CutoverError("production image differs from the approved candidate")
     if not IMAGE.fullmatch(values["ODOO_IMAGE"]):
         raise CutoverError("production Odoo image is not immutable")
-    candidate_identity = candidate.get("identity") or {}
-    for name, candidate_key in (
-        ("PAPERLESS_IMAGE", "paperless_image_digest"),
-        ("OLLAMA_IMAGE", "ollama_image_digest"),
-    ):
+    for name in ("PAPERLESS_IMAGE", "OLLAMA_IMAGE"):
         if not IMAGE.fullmatch(values[name]):
             raise CutoverError(f"production {name} is not immutable")
-        if values[name] != candidate_identity.get(candidate_key):
-            raise CutoverError(f"production {name} differs from the approved candidate")
     for name in (
         "ODOO_MCP_IMAGE",
         "USL_DOCUMENT_RENDERER_IMAGE",
@@ -275,11 +283,51 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
     ):
         if not IMAGE.fullmatch(values[name]):
             raise CutoverError(f"production {name} is not immutable")
+
+    if distribution_release is not None:
+        try:
+            release = validate_distribution_release(distribution_release)
+        except ReleaseArtifactError as error:
+            raise CutoverError(f"Distribution release was rejected: {error}") from error
+        release_images = {
+            "ODOO_IMAGE": release["image"]["digest_reference"],
+            "PAPERLESS_IMAGE": release["paperless"]["digest_reference"],
+            "USL_DOCUMENT_RENDERER_IMAGE": release["document_renderer"]["image"][
+                "digest_reference"
+            ],
+            "USL_SIGN_DSS_IMAGE": release["sign_dss"]["digest_reference"],
+            "ODOO_MCP_IMAGE": release["mcp"]["image_digest"],
+        }
+        mismatches = [
+            name for name, expected in release_images.items() if values[name] != expected
+        ]
+        if mismatches:
+            raise CutoverError(
+                "production images differ from the Distribution release: "
+                + ", ".join(mismatches)
+            )
+    else:
+        candidate_identity = (candidate or {}).get("identity") or {}
+        if values["ODOO_IMAGE"] != candidate_identity.get("image_digest"):
+            raise CutoverError("production image differs from the approved candidate")
+        for name, candidate_key in (
+            ("PAPERLESS_IMAGE", "paperless_image_digest"),
+            ("OLLAMA_IMAGE", "ollama_image_digest"),
+        ):
+            if values[name] != candidate_identity.get(candidate_key):
+                raise CutoverError(f"production {name} differs from the approved candidate")
     mcp_release = load_release(Path(__file__).resolve().parents[1])
     if values["ODOO_MCP_RELEASE_COMMIT"] != mcp_release["commit"]:
         raise CutoverError("production Odoo MCP revision differs from the pinned release")
     if values["ODOO_MCP_IMAGE"] != mcp_release["image"]:
         raise CutoverError("production Odoo MCP image differs from the pinned release digest")
+    if distribution_release is not None:
+        release_mcp = distribution_release.get("mcp") or {}
+        if (
+            release_mcp.get("commit") != mcp_release["commit"]
+            or release_mcp.get("image_digest") != mcp_release["image"]
+        ):
+            raise CutoverError("Distribution release differs from the pinned Odoo MCP release")
     if values["ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO"].lower() != "false":
         raise CutoverError("production Odoo MCP must reject local HTTP Odoo targets")
     mcp_better_auth = Path(values["ODOO_MCP_BETTER_AUTH_SECRET_FILE"])
@@ -297,8 +345,33 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
         raise CutoverError("Odoo MCP credential encryption key is invalid") from error
     if len(decoded_mcp_key) != 32:
         raise CutoverError("Odoo MCP credential encryption key must contain 32 bytes")
+    if phase not in {"preflight", "configured"}:
+        raise CutoverError("unsupported cutover validation phase")
+    restored_sign_directories = {"USL_SIGN_STEP_CA_DIR", "USL_SIGN_DSS_SECRET_DIR"}
     for name, required_files in SIGN_SECRET_DIRECTORIES.items():
-        private_directory(Path(values[name]), required_files)
+        path = Path(values[name])
+        if phase == "preflight" and name in restored_sign_directories:
+            if not path.is_absolute() or path.exists():
+                raise CutoverError(f"production Sign restore destination must be fresh: {path}")
+            parent = path.parent
+            if not parent.is_dir() or parent.is_symlink() or stat.S_IMODE(parent.stat().st_mode) & 0o077:
+                raise CutoverError(f"production Sign restore parent is unsafe: {parent}")
+        else:
+            private_directory(path, required_files)
+    sign_evidence = Path(values["USL_SIGN_EVIDENCE_DIR"])
+    if not sign_evidence.is_absolute():
+        raise CutoverError("production Sign evidence path must be absolute")
+    if phase == "preflight":
+        if sign_evidence.exists():
+            raise CutoverError("production Sign evidence restore destination must be fresh")
+        if (
+            not sign_evidence.parent.is_dir()
+            or sign_evidence.parent.is_symlink()
+            or stat.S_IMODE(sign_evidence.parent.stat().st_mode) & 0o077
+        ):
+            raise CutoverError("production Sign evidence restore parent is unsafe")
+    elif not sign_evidence.is_dir() or sign_evidence.is_symlink():
+        raise CutoverError("production Sign evidence restore is missing")
     key_ring = Path(values["USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"])
     if not key_ring.is_absolute():
         raise CutoverError("production Personal AI key ring path must be absolute")
@@ -672,10 +745,14 @@ def parser() -> argparse.ArgumentParser:
     subparsers = result.add_subparsers(dest="command", required=True)
     env_parser = subparsers.add_parser("env")
     env_parser.add_argument("--env-file", type=Path, required=True)
-    env_parser.add_argument("--candidate-manifest", type=Path, required=True)
+    artifact_group = env_parser.add_mutually_exclusive_group(required=True)
+    artifact_group.add_argument("--candidate-manifest", type=Path)
+    artifact_group.add_argument("--distribution-release", type=Path)
     env_parser.add_argument("--compose-config", type=Path)
     env_parser.add_argument("--volume-state", type=Path)
     env_parser.add_argument("--field")
+    env_parser.add_argument("--field-only", action="store_true")
+    env_parser.add_argument("--phase", choices=("preflight", "configured"), default="configured")
     policy_parser = subparsers.add_parser("policy")
     policy_parser.add_argument("--policy", type=Path, required=True)
     policy_parser.add_argument("--fingerprint", required=True)
@@ -702,8 +779,21 @@ def main() -> None:
     try:
         if args.command == "env":
             values = parse_env(args.env_file.resolve())
-            candidate = read_json(args.candidate_manifest.resolve())
-            validate_environment(values, candidate)
+            if args.field_only:
+                if not args.field or args.field not in values:
+                    raise CutoverError("--field-only requires a known environment field")
+                print(values[args.field])
+                return
+            if args.distribution_release:
+                release = read_json(args.distribution_release.resolve())
+                validate_environment(
+                    values,
+                    distribution_release=release,
+                    phase=args.phase,
+                )
+            else:
+                candidate = read_json(args.candidate_manifest.resolve())
+                validate_environment(values, candidate, phase=args.phase)
             if args.compose_config:
                 validate_compose(read_json(args.compose_config.resolve()), values)
             if args.volume_state:
