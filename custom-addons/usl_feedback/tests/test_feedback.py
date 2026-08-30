@@ -967,3 +967,19 @@ class TestProductFeedback(TransactionCase):
             [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
         )
         self.assertEqual(queued.request_message_id.id, second_message.id)
+
+    def test_claimed_agent_run_is_not_processed_twice(self):
+        task, _payload = self._submit(message="Only one worker may process this turn.")
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id)], limit=1,
+        )
+        with (
+            patch.object(type(run), "_claim_for_processing", return_value=False),
+            patch(
+                "odoo.addons.usl_feedback.models.feedback_agent_run."
+                "GeminiClient.create_interaction",
+            ) as create_interaction,
+        ):
+            self.assertFalse(run._process_one())
+        create_interaction.assert_not_called()
+        self.assertEqual(run.state, "queued")

@@ -1,6 +1,7 @@
 import { expect, test } from "@odoo/hoot";
 import { setInputFiles } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
+import { Component, xml } from "@odoo/owl";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import {
     contains,
@@ -18,6 +19,53 @@ import {
 } from "../src/js/feedback_messaging_menu";
 
 defineMailModels();
+
+class TestChatter extends Component {
+    static template = xml`<div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'"/>`;
+    static props = ["threadModel", "threadId", "composer"];
+}
+
+function feedbackTask(values = {}) {
+    return {
+        id: 71,
+        name: "Clarify the reload status",
+        description_text: "After reload, the next action is unclear.",
+        category: "ux",
+        priority: "2",
+        stage: "Inbox",
+        agent_state: "waiting",
+        agent_error: false,
+        reporter_id: 4,
+        is_reporter: true,
+        can_manage: false,
+        screenshot_attachment_id: false,
+        screenshot_name: false,
+        related_feedback: [],
+        ...values,
+    };
+}
+
+function mockFeedbackStart(recent = []) {
+    onRpc("usl.feedback.submission", "feedback_start", () => ({
+        draft_id: 41,
+        company_name: "Unstatic Labs",
+        context_available: true,
+        recent,
+    }));
+}
+
+async function mountFeedbackPanel(props = {}) {
+    patchWithCleanup(FeedbackPanel.components, { Chatter: TestChatter });
+    return mountWithCleanup(FeedbackPanel, {
+        props: {
+            close() {},
+            pageContext: { action_id: 7, model: "project.task", res_id: 9 },
+            screenshot: false,
+            captureError: false,
+            ...props,
+        },
+    });
+}
 
 test("page context is typed and excludes browser location state", () => {
     patchWithCleanup(browser, {
@@ -199,4 +247,102 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
     await animationFrame();
     expect(".o-usl-FeedbackPanel").toHaveText(/reproduction.txt/);
     expect("#usl_feedback_files").not.toHaveAttribute("disabled");
+});
+
+test("first message creates the conversation and keeps page context opt-in", async () => {
+    mockFeedbackStart();
+    onRpc("usl.feedback.submission", "feedback_submit_initial", ({ args }) => {
+        expect(args.slice(1)).toEqual([
+            "The next action disappears after reload.",
+            false,
+        ]);
+        expect.step("created inbox task");
+        return feedbackTask({ agent_state: "queued" });
+    });
+    onRpc("project.task", "feedback_poll_agent", () =>
+        feedbackTask({ agent_state: "waiting" })
+    );
+    await mountFeedbackPanel();
+    await contains("#usl_feedback_message").edit(
+        "The next action disappears after reload."
+    );
+    await contains(".o-usl-FeedbackPanel button:contains('Start conversation')").click();
+    await animationFrame();
+    expect(".o-test-FeedbackChatter").toHaveCount(1);
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
+    expect.verifySteps(["created inbox task"]);
+});
+
+test("conversation renders processing, clarification, error, ready, and success states", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel();
+    Object.assign(component.state, {
+        phase: "conversation",
+        task: feedbackTask({ agent_state: "processing" }),
+    });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel").toHaveText(/reviewing your latest message/);
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+
+    component.state.task = feedbackTask({ agent_state: "waiting" });
+    await animationFrame();
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
+
+    component.state.task = feedbackTask({
+        agent_state: "error",
+        agent_error: "The assistant is temporarily unavailable. Your feedback is saved.",
+    });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel .alert-warning").toHaveText(/feedback is saved/);
+    expect(".o-usl-FeedbackPanel .alert-warning button").toHaveText("Retry");
+
+    component.state.task = feedbackTask({ agent_state: "ready" });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Brief ready for your confirmation/);
+    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Clarify the reload status/);
+    expect(".o-usl-FeedbackPanel-ready").toHaveText(/After reload/);
+    expect(".o-usl-FeedbackPanel-ready button").toHaveCount(2);
+
+    component.state.task = feedbackTask({ agent_state: "triaged", stage: "Triage" });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/now in Triage/);
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+});
+
+test("reporter confirmation is guarded by the ready card and updates to Triage", async () => {
+    mockFeedbackStart();
+    onRpc("project.task", "feedback_confirm_triage", ({ args }) => {
+        expect(args[0]).toEqual([71]);
+        expect.step("confirmed");
+        return feedbackTask({ agent_state: "triaged", stage: "Triage" });
+    });
+    const component = await mountFeedbackPanel();
+    Object.assign(component.state, {
+        phase: "conversation",
+        task: feedbackTask({ agent_state: "ready" }),
+    });
+    await animationFrame();
+    await contains(
+        ".o-usl-FeedbackPanel-ready button:contains('Confirm and send to Triage')"
+    ).click();
+    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/now in Triage/);
+    expect.verifySteps(["confirmed"]);
+});
+
+test("draft and provider errors preserve recovery actions and reporter input", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel();
+    await contains("#usl_feedback_message").edit("Keep this text while recovering.");
+    component.showError({ message: "The network request timed out." });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel .alert-danger").toHaveText(/timed out/);
+    expect("#usl_feedback_message").toHaveValue("Keep this text while recovering.");
+
+    Object.assign(component.state, {
+        phase: "start_error",
+        error: "Feedback could not load.",
+    });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel [role='alert']").toHaveText(/could not load/);
+    expect(".o-usl-FeedbackPanel [role='alert'] button").toHaveText("Try again");
 });

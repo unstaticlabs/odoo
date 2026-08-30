@@ -170934,16 +170934,16 @@
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:2": "ea371d67919af7f099ba242730ddecb160b4960412cb58f64c97c41110d88bad",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:3": "321cb9785e4e8b68f57e084b84c82d608b4f1ac22da920281852d2e1df68aa68",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": "83fde25d8c9891c12d1f5a00a98f387aa442bbe0a6707dde360d7f366b6ee294",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._build_payload:sudo:1": "ba8a5ba82ea813eadb0be120c868259948e3363cd7d94d56216f5e86e2a2967d",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1": "3e24bc162d51a3c73e80e7c2213d8c63c5643b690b8d17155ad37f9ee502402a",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2": "9a92a9dd53e718e32b7c95adf96e9af18b947427cd5d82bba8b80fee3e771b7a",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": "ad7f5eadd3fb34c174837bafd1955a64decf1643cce51705006edbd682da3fea",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._build_payload:sudo:1": "6fe6bac16e67823d3c3010773bf79cd3811fb4e2ea08a133898ae9351fc5a00f",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1": "7927ff76a3f877f8249a1c3a7b5ec3f38a52ce5fe549434e52384e218865e097",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2": "c34925a9707735e7a7f1de5df07832ae74e28bc97d6c79ae060b7515c865c780",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": "85cb20fbeb6df13e6a9cdaee6f5642984d7217d1a73b3ffc183d2ec2e384df20",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._configuration:sudo:1": "bf913c693ddd52f38f3b5f5377b2ec9d60ec0f69ffbb83efd9fab4eede5d8648",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1": "23fff4b18cd5eaf03fa2e45090443b2d8e0a18aedff18950b71b9d561bc270d6",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2": "85720ac6e0c682d1b63ec34f389c7b3584d163e4145e8a03aa8b2bc4132e52f6",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "26c23961289ae8e51c0770ab5ce43a11b7c7eebbd06d3ac936db351e544d3fcd",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "2dfcc2aa2a7840691fb2e05d9e48a33fda4127afd2558d6622f016fca7cddd98",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "659be14f9079bfe13aa87221f52033e07711be3adf750a0574cff887b0b99f24",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "ac83858f9677612f0fb5f6fb4f81430c93d81d263a2e4e0d7e88a4a469d38dfb",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "68bf02f0dce249528623b2428c3dd29a3d466ebfe54c6bdd806a13c820a7d16a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "cba9f16ec285bb56cbad3b62eca3d9fb4ba422e85772e55e6b6b5c53816b6d68",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:2": "cd0a0be19a4dc6038ae91919fe6a2792666a9c3afc25a28c118be0024914facd",
@@ -189588,6 +189588,7 @@
         "client:project:addons/project/static/src/views/components/project_task_template_dropdown.js:if:rpc:1",
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1",
         "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:openBoard:rpc:1",
+        "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:showRecent:rpc:1",
         "ui:project.action_server_convert_project_to_template",
         "ui:project.action_server_convert_to_subtask",
         "ui:project.action_server_convert_to_template",
@@ -189667,6 +189668,11 @@
         "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:openBoard:rpc:1": {
           "targets": [
             "rpc:project.project.feedback_open_board"
+          ]
+        },
+        "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:showRecent:rpc:1": {
+          "targets": [
+            "rpc:project.task.feedback_recent"
           ]
         },
         "ui:project.action_server_convert_project_to_template": {
@@ -189970,6 +189976,7 @@
         "client:project:addons/project/static/src/views/components/project_task_template_dropdown.js:if:rpc:1": "2d4bcc6b6ed86f3d0c6a93933676b4dcc51832ef6ece71209b4ea09bd5c2be7d",
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1": "194b76d20b9ea4278d81d92a97a8483123e5346fa77d5a1cb74edcd10a74ffeb",
         "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:openBoard:rpc:1": "2e507d4209d03d09de13a47cacf700c1926cb12b1364f125c510bbf9300ffee1",
+        "client:usl_feedback:custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js:showRecent:rpc:1": "08abd338e16074610b31b7692ddc3c3f7e6a38c724c4ce29d3d6b486be1ca452",
         "ui:project.action_server_convert_project_to_template": "a34e774003052bc633a49e0cffb084e6b1aefc7e55c64f60e7f24cbc1308cfe7",
         "ui:project.action_server_convert_to_subtask": "17ac49d589360275dd08edbe02fb862e2075d7aed6835d3e307217e92d968b77",
         "ui:project.action_server_convert_to_template": "28da51ea279fbf34de0fe5e440b0f70fe9b2d712a113d5df99cc6764ea443ce8",
@@ -192233,6 +192240,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "e087960a05ee7095b9cbe5e6397da9c8743b19d973a6bafdc12f3fa909156592",
+  "qualified_policy_digest": "eef0b40dac8484881d38037058852fdd44dfa044e43a466bbda11815805ff4ff",
   "schema": "usl-action-risk-policy-v1"
 }
