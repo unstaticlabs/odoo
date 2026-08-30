@@ -5,11 +5,28 @@ import unittest
 from migration.scripts.transition_runtime_policy import (
     APPROVED_CRON_XMLIDS,
     activation_plan,
+    cron_model,
     validate_active_ids,
 )
 
 
 class TransitionRuntimePolicyTests(unittest.TestCase):
+    def test_cron_inventory_includes_neutralized_jobs(self):
+        calls = []
+
+        class FakeCron:
+            def sudo(self):
+                calls.append("sudo")
+                return self
+
+            def with_context(self, **context):
+                calls.append(context)
+                return self
+
+        cron = FakeCron()
+        self.assertIs(cron_model({"ir.cron": cron}), cron)
+        self.assertEqual(calls, ["sudo", {"active_test": False}])
+
     def test_activation_plan_enables_only_approved_jobs(self):
         plan = activation_plan(range(1, 15), range(3, 11))
         self.assertEqual(

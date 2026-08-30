@@ -45,6 +45,12 @@ def validate_active_ids(active_cron_ids, approved_cron_ids):
         )
 
 
+def cron_model(odoo_env):
+    """Return the complete cron registry, including neutralized jobs."""
+
+    return odoo_env["ir.cron"].sudo().with_context(active_test=False)
+
+
 def apply_policy(odoo_env, *, mode):
     if os.environ.get("USL_MIGRATION_PURPOSE") != "transition":
         raise RuntimeError("transition job policy requires transition purpose")
@@ -55,7 +61,7 @@ def apply_policy(odoo_env, *, mode):
     if mode not in {"apply", "validate"}:
         raise RuntimeError(f"unsupported transition policy mode: {mode}")
 
-    Cron = odoo_env["ir.cron"].sudo()
+    Cron = cron_model(odoo_env)
     all_crons = Cron.search([])
     approved = Cron.browse()
     missing_xmlids = []
