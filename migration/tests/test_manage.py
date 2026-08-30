@@ -321,6 +321,42 @@ class MigrationManageTests(unittest.TestCase):
             environment["PAPERLESS_IMAGE"], runtime["images"]["paperless-webserver"]
         )
 
+    def test_resolved_compose_environment_has_one_stable_private_path(self):
+        runtime = {
+            "id": "qa-current",
+            "database": "odoo_dev",
+            "private_directory": str(self.root / "private/runtime"),
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "urls": {
+                "odoo": "http://odoo",
+                "paperless": "http://paperless",
+                "pocket_id": "http://id",
+            },
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "compose": {
+                "project": "recorded-project",
+                "files": [str(self.root / "compose.yaml")],
+            },
+        }
+
+        first_path, _environment = manager.combined_env_file(
+            runtime, {"POCKET_ID_CLIENT_SECRET": "first"}
+        )
+        second_path, _environment = manager.combined_env_file(
+            runtime, {"POCKET_ID_CLIENT_SECRET": "second"}
+        )
+
+        self.assertEqual(first_path, second_path)
+        self.assertEqual(first_path.name, "resolved-compose.env")
+        self.assertEqual(stat.S_IMODE(first_path.stat().st_mode), 0o600)
+        self.assertNotIn("first", first_path.read_text(encoding="utf-8"))
+        self.assertIn(
+            "POCKET_ID_CLIENT_SECRET=second\n",
+            first_path.read_text(encoding="utf-8"),
+        )
+
     def test_failed_refresh_recovers_exact_partial_resource_set(self):
         runtime = {
             "id": "qa-current",

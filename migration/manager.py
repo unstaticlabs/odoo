@@ -9,7 +9,6 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +28,7 @@ from migration.runtime import (
     sanitize_adopted_identity,
     source_identity,
     verify_recorded_resources,
+    write_private,
 )
 
 
@@ -389,20 +389,25 @@ def login_link(runtime: dict[str, Any], secrets: dict[str, str], user: str, ttl:
 
 def combined_env_file(runtime: dict[str, Any], secrets: dict[str, str]):
     values = runtime_environment(runtime, secrets)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", prefix="runtime-env-", dir=runtime["private_directory"], delete=False
+    path = Path(runtime["private_directory"]) / "resolved-compose.env"
+    excluded = {
+        "PATH",
+        "HOME",
+        "USER",
+        "TMPDIR",
+        "LANG",
+        "SHELL",
+        "TERM",
+        "DOCKER_HOST",
+        "DOCKER_CONTEXT",
+    }
+    content = "".join(
+        f"{key}={values[key]}\n"
+        for key in sorted(values)
+        if key not in excluded and not key.startswith("LC_")
     )
-    try:
-        os.fchmod(handle.fileno(), 0o600)
-        for key in sorted(values):
-            if key not in {"PATH", "HOME", "USER", "TMPDIR", "LANG", "SHELL", "TERM", "DOCKER_HOST", "DOCKER_CONTEXT"} and not key.startswith("LC_"):
-                handle.write(f"{key}={values[key]}\n")
-        handle.close()
-        return Path(handle.name), values
-    except Exception:
-        handle.close()
-        Path(handle.name).unlink(missing_ok=True)
-        raise
+    write_private(path, content)
+    return path, values
 
 
 def run_internal(
@@ -422,14 +427,13 @@ def run_internal(
     env_file, environment = combined_env_file(runtime, secrets)
     if extra_environment:
         environment.update(extra_environment)
-        env_file.unlink(missing_ok=True)
         env_file, environment = combined_env_file(runtime, {**secrets, **extra_environment})
     environment["POCKET_ID_ENV_FILE"] = str(env_file)
-    try:
-        resolved_command = [str(env_file) if value == "{RUNTIME_ENV_FILE}" else value for value in command]
-        runner.run(resolved_command, cwd=ROOT, env=environment)
-    finally:
-        env_file.unlink(missing_ok=True)
+    resolved_command = [
+        str(env_file) if value == "{RUNTIME_ENV_FILE}" else value
+        for value in command
+    ]
+    runner.run(resolved_command, cwd=ROOT, env=environment)
 
 
 def record(store: RuntimeStore, runtime: dict[str, Any], action: str, result: str = "passed") -> None:
