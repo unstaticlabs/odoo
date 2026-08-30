@@ -44,6 +44,7 @@ SECRET_KEYS = frozenset(
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
         # Stable identity values belong with the private identity material.
         "POCKET_ID_PROSPER_EMAIL",
+        "POCKET_ID_PROSPER_ODOO_EMAIL",
         "POCKET_ID_PROSPER_ID",
         "POCKET_ID_ROGER_ID",
         "POCKET_ID_VALENTIN_ID",
