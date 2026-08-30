@@ -89,6 +89,24 @@ class TestMultiCompanyAccountingOverview(TransactionCase):
             [self.company_b.id],
         )
 
+        bank_attention_action = overviews.action_open_bank_attention()
+        self.assertEqual(
+            bank_attention_action["domain"],
+            overviews._bank_attention_domain(),
+        )
+        self.assertIn(
+            ("company_id", "in", overviews.company_id.ids),
+            bank_attention_action["domain"],
+        )
+        self.assertIn(
+            ("is_reconciled", "=", False),
+            bank_attention_action["domain"],
+        )
+        self.assertIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_attention_action["domain"],
+        )
+
     def test_record_rules_and_crafted_company_context_fail_closed(self):
         restricted = new_test_user(
             self.env,

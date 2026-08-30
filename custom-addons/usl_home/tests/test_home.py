@@ -326,6 +326,35 @@ class TestUslHome(TransactionCase):
             {self.env.company.id, other_company.id},
         )
 
+        bank_action = combined_service.get_accounting_alert_action("bank")
+        self.assertEqual(bank_action["res_model"], "account.bank.statement.line")
+        self.assertIn(("is_reconciled", "=", False), bank_action["domain"])
+        self.assertIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_action["domain"],
+        )
+
+        vendor_evidence_action = combined_service.get_accounting_alert_action(
+            "vendor_evidence",
+        )
+        self.assertEqual(vendor_evidence_action["res_model"], "account.move")
+        self.assertIn(
+            ("message_main_attachment_id", "=", False),
+            vendor_evidence_action["domain"],
+        )
+        expense_evidence_action = combined_service.get_accounting_alert_action(
+            "expense_evidence",
+        )
+        self.assertEqual(expense_evidence_action["res_model"], "hr.expense")
+        self.assertIn(
+            ("message_main_attachment_id", "=", False),
+            expense_evidence_action["domain"],
+        )
+        self.assertNotIn(
+            "searchpanel_default_state",
+            expense_evidence_action["context"],
+        )
+
     def test_accounting_widget_hides_from_restricted_user(self):
         restricted_service = self.env["usl.home.service"].with_user(self.other_user)
         self.assertNotIn("accounting", restricted_service._available_widgets())

@@ -311,6 +311,34 @@ class RebuildAccountOverview(models.Model):
         }
         return action
 
+    def _bank_attention_domain(self):
+        if not self:
+            raise UserError(self.env._("No selected company is available."))
+        company_ids = self.company_id.ids
+        company_domain = (
+            ("company_id", "=", company_ids[0])
+            if len(company_ids) == 1
+            else ("company_id", "in", company_ids)
+        )
+        return [
+            company_domain,
+            "|",
+            ("is_reconciled", "=", False),
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+        ]
+
+    def action_open_bank_attention(self):
+        action = self._standard_company_action(
+            "account_statement_base.account_bank_statement_line_action",
+            self._bank_attention_domain()[1:],
+        )
+        action["name"] = self.env._("Bank Items to Review")
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {**context, "create": False}
+        return action
+
     def action_open_bank_matching(self):
         return self._standard_company_action(
             "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
@@ -360,28 +388,44 @@ class RebuildAccountOverview(models.Model):
         })
         return action
 
+    def _missing_vendor_attachments_domain(self):
+        return [
+            (
+                "move_type",
+                "in",
+                ["in_invoice", "in_refund", "in_receipt"],
+            ),
+            ("state", "!=", "cancel"),
+            ("message_main_attachment_id", "=", False),
+        ]
+
     def action_open_missing_vendor_attachments(self):
         return self._standard_company_action(
             "account.action_move_in_invoice_type",
-            [
-                (
-                    "move_type",
-                    "in",
-                    ["in_invoice", "in_refund", "in_receipt"],
-                ),
-                ("state", "!=", "cancel"),
-                ("message_main_attachment_id", "=", False),
-            ],
+            self._missing_vendor_attachments_domain(),
         )
 
+    def _missing_expense_attachments_domain(self):
+        return [
+            ("state", "!=", "refused"),
+            ("message_main_attachment_id", "=", False),
+        ]
+
     def action_open_missing_expense_attachments(self):
-        return self._standard_company_action(
+        action = self._standard_company_action(
             "hr_expense.hr_expense_actions_all",
-            [
-                ("state", "!=", "refused"),
-                ("message_main_attachment_id", "=", False),
-            ],
+            self._missing_expense_attachments_domain(),
         )
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        context.pop("searchpanel_default_state", None)
+        action.update({
+            "view_mode": "list,form",
+            "views": [(False, "list"), (False, "form")],
+            "context": {**context, "create": False},
+        })
+        return action
 
     def action_open_stale_draft_documents(self):
         cutoff = date_utils.subtract(fields.Date.context_today(self), days=30)

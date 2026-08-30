@@ -559,7 +559,8 @@ class UslHomeService(models.AbstractModel):
             "declarations": {},
             "reviews": {},
             "bank": {},
-            "evidence": {},
+            "vendor_evidence": {},
+            "expense_evidence": {},
             "hygiene": {},
         }
         for overview in overviews:
@@ -570,12 +571,22 @@ class UslHomeService(models.AbstractModel):
             values["closing"][company_id] = overview.latest_closing_blocking_count
             values["declarations"][company_id] = declaration_count
             values["reviews"][company_id] = overview.pending_review_decision_count
-            values["bank"][company_id] = (
-                overview.unmatched_bank_transaction_count + overview.bank_review_count
+            values["bank"][company_id] = self.env[
+                "account.bank.statement.line"
+            ].search_count(
+                overview._bank_attention_domain(),
             )
-            values["evidence"][company_id] = (
-                overview.missing_vendor_attachment_count
-                + overview.missing_expense_attachment_count
+            values["vendor_evidence"][company_id] = (
+                self.env["account.move"].search_count([
+                    ("company_id", "=", company_id),
+                    *overview._missing_vendor_attachments_domain(),
+                ])
+            )
+            values["expense_evidence"][company_id] = (
+                self.env["hr.expense"].search_count([
+                    ("company_id", "=", company_id),
+                    *overview._missing_expense_attachments_domain(),
+                ])
             )
             values["hygiene"][company_id] = overview.hygiene_issue_count
         candidates = [
@@ -583,8 +594,9 @@ class UslHomeService(models.AbstractModel):
             (1, "declarations", self.env._("Declarations requiring attention"), "deadline"),
             (2, "reviews", self.env._("Accounting reviews pending"), "review"),
             (3, "bank", self.env._("Bank items to review"), "review"),
-            (4, "evidence", self.env._("Supporting evidence missing"), "evidence"),
-            (5, "hygiene", self.env._("Accounting hygiene issues"), "review"),
+            (4, "vendor_evidence", self.env._("Supplier documents missing evidence"), "evidence"),
+            (5, "expense_evidence", self.env._("Expenses missing receipts"), "evidence"),
+            (6, "hygiene", self.env._("Accounting hygiene issues"), "review"),
         ]
         alerts = [
             {
@@ -604,7 +616,7 @@ class UslHomeService(models.AbstractModel):
             }
             for _rank, key, label, status in candidates
             if sum(values[key].values())
-        ][:5]
+        ]
         return {
             "scope": self._company_scope(),
             "company": (
@@ -628,7 +640,9 @@ class UslHomeService(models.AbstractModel):
             "closing": "action_open_latest_closing_controls",
             "declarations": "action_open_declarations",
             "reviews": "action_open_review_decisions",
-            "bank": "action_open_bank_review",
+            "bank": "action_open_bank_attention",
+            "vendor_evidence": "action_open_missing_vendor_attachments",
+            "expense_evidence": "action_open_missing_expense_attachments",
             "evidence": "action_open_hygiene_issues",
             "hygiene": "action_open_hygiene_issues",
         }

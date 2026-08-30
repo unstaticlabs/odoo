@@ -47,6 +47,8 @@ const ACCOUNTING_ICONS = {
     reviews: "fa-eye",
     bank: "fa-bank",
     evidence: "fa-paperclip",
+    vendor_evidence: "fa-file-text-o",
+    expense_evidence: "fa-camera",
     hygiene: "fa-shield",
 };
 
