@@ -26,6 +26,8 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Restore historical platform billing](platform-billing-migration.md)
 - [Pocket ID SSO runbook](pocket-id-sso-runbook.md)
 - [Documents production-candidate delivery](documents-production-candidate.md)
+- [Secure agent document materialization](document-materialization.md)
+- [Document materialization differential review](document-materialization-security-review.md)
 - [Distribution access control runbook](distribution-access-control-runbook.md)
 - [Agent-native development](agent-development.md)
 - [Historical agent prompt migration](historical-agent-prompt-mapping.md)
