@@ -47,7 +47,7 @@ publishes all of these outputs:
   `backup_tool_digest`, and `backup_tool_digest_reference`;
 - a GitHub step summary showing both digest references;
 - artifact `distribution-release-<git-sha>` containing
-  `distribution-release.json` with schema `usl-distribution-release/v2`.
+  `distribution-release.json` with schema `usl-distribution-release/v3`.
 
 The JSON artifact is the stable cross-workflow interface for the future
 production GitOps pipeline. That pipeline must select a successful

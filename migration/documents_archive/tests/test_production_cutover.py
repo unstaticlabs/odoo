@@ -26,7 +26,10 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.renderer_image = f"ghcr.io/usl/renderer@sha256:{'e' * 64}"
         self.step_ca_image = f"docker.io/smallstep/step-ca@sha256:{'f' * 64}"
         self.dss_image = f"ghcr.io/usl/sign-dss@sha256:{'1' * 64}"
-        self.mcp_image = f"ghcr.io/usl/odoo-mcp@sha256:{'2' * 64}"
+        self.mcp_image = (
+            "usl-odoo-mcp@sha256:"
+            "81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb"
+        )
         self.project = "usl-odoo-production-main"
         self.candidate = {
             "identity": {
@@ -78,7 +81,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_MCP_IMAGE": self.mcp_image,
             "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
             "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
-            "ODOO_MCP_RELEASE_COMMIT": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
+            "ODOO_MCP_RELEASE_COMMIT": "2da51e7c596824d5226957777bbc1c70965ce9d4",
             "ODOO_LIST_DB": "False",
             "ODOO_LIMIT_MEMORY_HARD": "1342177280",
             "ODOO_LIMIT_MEMORY_SOFT": "1073741824",

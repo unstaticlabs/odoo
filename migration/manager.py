@@ -79,6 +79,57 @@ def apply_image_assignments(
     return result
 
 
+def apply_runtime_image_assignments(
+    runtime: dict[str, Any], assignments: list[str]
+) -> dict[str, str]:
+    """Apply operator image pins without allowing MCP release drift."""
+    images = apply_image_assignments(runtime.get("images") or {}, assignments)
+    expected_mcp_image = (runtime.get("mcp") or {}).get("image")
+    if expected_mcp_image:
+        requested_mcp_image = images.get("odoo-mcp")
+        if requested_mcp_image and requested_mcp_image != expected_mcp_image:
+            raise RuntimeError("Odoo MCP image override differs from the pinned release")
+        images["odoo-mcp"] = expected_mcp_image
+    return images
+
+
+def rebind_mcp_release(
+    runtime: dict[str, Any], resources: dict[str, Any]
+) -> bool:
+    """Bind a stopped, not-yet-created MCP service to the current release cohort."""
+    previous = runtime.get("mcp") or {}
+    checkout = previous.get("checkout")
+    if not checkout:
+        raise RuntimeError("runtime has no recorded Odoo MCP checkout")
+    try:
+        current = resolve_mcp_release(ROOT, Path(checkout))
+    except McpReleaseError as error:
+        raise RuntimeError(str(error)) from error
+    if (
+        previous.get("commit") == current["commit"]
+        and previous.get("image") == current["image"]
+    ):
+        runtime["mcp"] = current
+        runtime.setdefault("images", {})["odoo-mcp"] = current["image"]
+        return False
+    existing = [
+        item for item in resources["containers"] if item.get("service") == "odoo-mcp"
+    ]
+    if existing:
+        raise RuntimeError(
+            "cannot rebind the Odoo MCP release while an earlier MCP container exists"
+        )
+    runtime["mcp"] = current
+    runtime.setdefault("images", {})["odoo-mcp"] = current["image"]
+    runtime["mcp_release_rebound"] = {
+        "at": now(),
+        "from_commit": previous.get("commit"),
+        "to_commit": current["commit"],
+        "to_image": current["image"],
+    }
+    return True
+
+
 def load_python(path: Path, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
     if not spec or not spec.loader:
@@ -786,9 +837,8 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         release_commit = ensure_clean_checkout()
         recover_failed_runtime_resources(runtime, store, runner)
         destroy_runtime(runtime, runner)
-        runtime["images"] = apply_image_assignments(
-            runtime.get("images") or {},
-            getattr(args, "image", None) or [],
+        runtime["images"] = apply_runtime_image_assignments(
+            runtime, getattr(args, "image", None) or []
         )
         runtime["status"] = "reconstructing"
         runtime["release_commit"] = release_commit
@@ -820,9 +870,9 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         current = inspect_project(runner, runtime["compose"]["project"], ROOT)
         verify_recorded_resources(runtime["resources"], current)
         evidence = require_failed_finalization_evidence(runtime)
-        runtime["images"] = apply_image_assignments(
-            runtime.get("images") or {},
-            getattr(args, "image", None) or [],
+        rebind_mcp_release(runtime, current)
+        runtime["images"] = apply_runtime_image_assignments(
+            runtime, getattr(args, "image", None) or []
         )
         runtime["release_commit"] = release_commit
         runtime["status"] = "finalizing"

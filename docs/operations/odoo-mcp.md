@@ -9,10 +9,10 @@ access rights, record rules, public methods, and transactions.
 ## Release identity
 
 The accepted external source is pinned in `deploy/odoo-mcp/release.json` by
-repository, ref, full commit, and image tag. The current local release uses the
-temporary `codex/secure-document-materialization` ref. After that work reaches the MCP
-repository's `main` branch, update the ref and exact commit together; never
-retag an existing image.
+repository, ref, full commit, build tag, immutable image digest, and
+compatibility-contract digest. The current local release uses the temporary
+`codex/odoo-mcp-vps-refactor` ref. After that work reaches the MCP repository's
+`main` branch, update every identity together; never retag an existing image.
 
 Verify, test, and build without switching or modifying the external checkout:
 
@@ -24,7 +24,13 @@ scripts/odoo-mcp build --repository /absolute/path/to/odoo-mcp
 
 The helper exports the pinned Git object into a temporary build context. Dirty
 or unrelated work in the external checkout cannot enter the image. The image
-must carry matching OCI source and revision labels.
+must carry matching OCI source and revision labels and resolve to the recorded
+digest.
+
+The compatibility gate compares the pinned MCP server version, required Odoo
+modules, and exact specialized RPC calls with the qualified Odoo action
+surface. It fails before deployment when either repository changes its shared
+contract without updating `deploy/odoo-mcp/compatibility.json`.
 
 ## Runtime and authentication
 
@@ -74,11 +80,13 @@ reviewed journey evidence separately proves a complete OAuth connection.
 
 ## Backup, transfer, and rollback
 
-Local transition checkpoints archive the OAuth volume with every other owned
-volume. The final sanitized production-transfer cohort does not carry local
-OAuth grants or local keys: production receives new MCP secrets and users
-reconnect once. Odoo business records remain in the Odoo database and are not
-duplicated in MCP state.
+Compose deploys Odoo and MCP as one release cohort. Local transition
+checkpoints archive the MCP OAuth volume with every other owned volume. The
+final sanitized production-transfer cohort keeps the pinned MCP commit, image
+digest, and compatibility digest, but does not carry local OAuth grants or
+keys: production receives new MCP secrets and users reconnect once. Odoo
+business records remain in the Odoo database and are not duplicated in MCP
+state.
 
 Runtime rollback is an image change. Keep the preceding immutable image and,
 when an OAuth schema changed, its coordinated SQLite backup and matching

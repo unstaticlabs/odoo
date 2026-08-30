@@ -10,6 +10,7 @@ Every production release binds:
 
 - the full Git commit on `19-usl`;
 - immutable Odoo distribution and backup-tool OCI digests;
+- the pinned Odoo MCP repository, ref, commit, image digest, and compatibility digest;
 - pinned OCA, action-risk policy, module, and source identities;
 - the accepted migration candidate or evolved cohort fingerprint;
 - database UUID, company controls, and required external configuration.
@@ -37,6 +38,8 @@ The coordinated recovery unit includes:
 - Tantivy and vector state;
 - Ollama and the pinned BGE model data;
 - Sign Step CA and evidence state where applicable.
+- the MCP OAuth vault in coordinated production backups, with its matching
+  external encryption and authentication secrets managed separately.
 
 Backups, upgrades, and recovery must preserve the cohort identity. An Odoo
 dump without its filestore is not a backup. An uploaded archive is not verified

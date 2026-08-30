@@ -53,13 +53,18 @@ def export_source(source: Path, commit: str, destination: Path) -> None:
         raise McpReleaseError(error.strip() or "could not export the Odoo MCP source")
 
 
-def verify_image(release: dict[str, str]) -> dict[str, str]:
+def verify_image(
+    release: dict[str, str],
+    *,
+    reference: str | None = None,
+) -> dict[str, str]:
+    inspected_reference = reference or release["image"]
     output = run(
         [
             "docker",
             "image",
             "inspect",
-            release["image"],
+            inspected_reference,
             "--format",
             "{{json .}}",
         ]
@@ -70,8 +75,12 @@ def verify_image(release: dict[str, str]) -> dict[str, str]:
         raise McpReleaseError("Odoo MCP image revision label differs from the pinned commit")
     if labels.get("org.opencontainers.image.source") != release["repository"]:
         raise McpReleaseError("Odoo MCP image source label differs from the pinned repository")
+    expected_id = "sha256:" + release["image"].rsplit("@sha256:", 1)[1]
+    if value.get("Id") != expected_id or release["image"] not in (value.get("RepoDigests") or []):
+        raise McpReleaseError("Odoo MCP image bytes differ from the pinned digest")
     return {
         "image": release["image"],
+        "image_tag": release["image_tag"],
         "image_id": value["Id"],
         "commit": release["commit"],
         "repository": release["repository"],
@@ -92,12 +101,12 @@ def build(release: dict[str, str]) -> dict[str, str]:
                 "--label",
                 f"org.opencontainers.image.revision={release['commit']}",
                 "--tag",
-                release["image"],
+                release["image_tag"],
                 ".",
             ],
             cwd=context,
         )
-    return verify_image(release)
+    return verify_image(release, reference=release["image_tag"])
 
 
 def test(release: dict[str, str]) -> None:

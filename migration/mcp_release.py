@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import subprocess
@@ -9,10 +10,22 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "usl-odoo-mcp-release-v1"
+SCHEMA = "usl-odoo-mcp-release-v2"
+COMPATIBILITY_SCHEMA = "usl-odoo-mcp-compatibility-v1"
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
-IMAGE = re.compile(r"[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_.-]+\Z")
-EXPECTED_KEYS = {"schema", "repository", "ref", "commit", "image"}
+IMAGE_TAG = re.compile(r"[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_.-]+\Z")
+IMAGE_DIGEST = re.compile(r"[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}\Z")
+SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+EXPECTED_KEYS = {
+    "schema",
+    "repository",
+    "ref",
+    "commit",
+    "image_tag",
+    "image_digest",
+    "compatibility",
+    "compatibility_sha256",
+}
 
 
 class McpReleaseError(ValueError):
@@ -39,7 +52,45 @@ def _normalized_repository(value: str) -> str:
     return normalized
 
 
-def load_release(repository_root: Path) -> dict[str, str]:
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _load_compatibility(repository_root: Path, release: dict[str, str]) -> dict[str, Any]:
+    relative = Path(release["compatibility"])
+    if relative.is_absolute() or ".." in relative.parts:
+        raise McpReleaseError("Odoo MCP compatibility path must stay inside the repository")
+    path = repository_root / relative
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise McpReleaseError(f"cannot read Odoo MCP compatibility contract: {path}") from error
+    if _sha256(path) != release["compatibility_sha256"]:
+        raise McpReleaseError("Odoo MCP compatibility contract digest differs from the release")
+    expected = {
+        "schema",
+        "odoo_series",
+        "mcp_server_version",
+        "required_modules",
+        "source_rpc_actions",
+        "dynamic_rpc_actions",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise McpReleaseError("Odoo MCP compatibility contract has unexpected fields")
+    if value.get("schema") != COMPATIBILITY_SCHEMA or value.get("odoo_series") != "19.0":
+        raise McpReleaseError("unsupported Odoo MCP compatibility contract")
+    for name in ("required_modules", "source_rpc_actions", "dynamic_rpc_actions"):
+        items = value.get(name)
+        if (
+            not isinstance(items, list)
+            or items != sorted(set(items))
+            or not all(isinstance(item, str) and item for item in items)
+        ):
+            raise McpReleaseError(f"Odoo MCP compatibility {name} must be sorted and unique")
+    return value
+
+
+def load_release(repository_root: Path) -> dict[str, Any]:
     path = repository_root / "deploy/odoo-mcp/release.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -53,11 +104,88 @@ def load_release(repository_root: Path) -> dict[str, str]:
         raise McpReleaseError("Odoo MCP release identity values must be non-empty strings")
     if not COMMIT.fullmatch(value["commit"]):
         raise McpReleaseError("Odoo MCP release commit must be a full lowercase Git SHA")
-    if not IMAGE.fullmatch(value["image"]):
-        raise McpReleaseError("Odoo MCP image must use an explicit immutable tag")
-    if not value["image"].endswith(value["commit"][:12]):
+    if not IMAGE_TAG.fullmatch(value["image_tag"]):
+        raise McpReleaseError("Odoo MCP build image must use an explicit commit tag")
+    if not value["image_tag"].endswith(value["commit"][:12]):
         raise McpReleaseError("Odoo MCP image tag must end with the release commit prefix")
-    return value
+    if not IMAGE_DIGEST.fullmatch(value["image_digest"]):
+        raise McpReleaseError("Odoo MCP runtime image must use an immutable digest")
+    if not SHA256.fullmatch(value["compatibility_sha256"]):
+        raise McpReleaseError("Odoo MCP compatibility digest is invalid")
+    compatibility = _load_compatibility(repository_root, value)
+    return {**value, "image": value["image_digest"], "contract": compatibility}
+
+
+def _source_contract(checkout: Path, commit: str) -> tuple[str, list[str], list[str]]:
+    version_source = _git(checkout, "show", f"{commit}:src/version.ts")
+    version_match = re.search(r'SERVER_VERSION\s*=\s*"([^"]+)"', version_source)
+    if not version_match:
+        raise McpReleaseError("Odoo MCP source has no public server version")
+    modules: set[str] = set()
+    actions: set[str] = set()
+    call_start = re.compile(r"client\.call")
+    exact_call = re.compile(
+        r'\(\s*context\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"',
+    )
+    source_paths = sorted(
+        path
+        for path in _git(checkout, "ls-tree", "-r", "--name-only", commit, "src").splitlines()
+        if path.endswith(".ts")
+    )
+    for path in source_paths:
+        source = _git(checkout, "show", f"{commit}:{path}")
+        for raw in re.findall(r"requiredModules:\s*\[([^\]]*)\]", source):
+            modules.update(re.findall(r'"([^"]+)"', raw))
+        offset = 0
+        while match := call_start.search(source, offset):
+            exact = exact_call.search(source, match.start(), match.start() + 5000)
+            offset = match.end()
+            if exact:
+                actions.add(f"rpc:{exact.group(1)}.{exact.group(2)}")
+                offset = exact.end()
+    return version_match.group(1), sorted(modules), sorted(actions)
+
+
+def verify_compatibility(
+    repository_root: Path,
+    checkout: Path,
+    commit: str,
+    contract: dict[str, Any],
+) -> dict[str, Any]:
+    version, modules, source_actions = _source_contract(checkout, commit)
+    if version != contract["mcp_server_version"]:
+        raise McpReleaseError("Odoo MCP server version differs from its compatibility contract")
+    if modules != contract["required_modules"]:
+        raise McpReleaseError("Odoo MCP module requirements differ from its compatibility contract")
+    if source_actions != contract["source_rpc_actions"]:
+        raise McpReleaseError("Odoo MCP source RPC surface differs from its compatibility contract")
+    surface_path = repository_root / "custom-addons/usl_access_control/policy/action_surface.json"
+    try:
+        surface = json.loads(surface_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise McpReleaseError("cannot read the qualified Odoo action surface") from error
+    installed = {item.get("name") for item in surface.get("modules", []) if isinstance(item, dict)}
+    missing_modules = sorted(set(contract["required_modules"]) - installed)
+    available_actions = {
+        item.get("key") for item in surface.get("actions", []) if isinstance(item, dict)
+    }
+    required_actions = set(contract["source_rpc_actions"]) | set(contract["dynamic_rpc_actions"])
+    missing_actions = sorted(required_actions - available_actions)
+    if missing_modules or missing_actions:
+        details = []
+        if missing_modules:
+            details.append("modules=" + ",".join(missing_modules))
+        if missing_actions:
+            details.append("actions=" + ",".join(missing_actions))
+        raise McpReleaseError("Odoo–MCP compatibility contract is not satisfied: " + "; ".join(details))
+    return {
+        "schema": COMPATIBILITY_SCHEMA,
+        "status": "passed",
+        "odoo_series": contract["odoo_series"],
+        "mcp_server_version": version,
+        "required_module_count": len(modules),
+        "required_rpc_action_count": len(required_actions),
+    }
 
 
 def resolve_release(repository_root: Path, source_checkout: Path) -> dict[str, Any]:
@@ -75,4 +203,10 @@ def resolve_release(repository_root: Path, source_checkout: Path) -> dict[str, A
     object_type = _git(checkout, "cat-file", "-t", release["commit"])
     if object_type != "commit":
         raise McpReleaseError("pinned Odoo MCP object is not a Git commit")
-    return {**release, "checkout": str(checkout)}
+    compatibility = verify_compatibility(
+        repository_root,
+        checkout,
+        release["commit"],
+        release["contract"],
+    )
+    return {**release, "checkout": str(checkout), "compatibility_result": compatibility}

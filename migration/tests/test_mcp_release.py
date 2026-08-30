@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import subprocess
 import tempfile
 import unittest
@@ -19,7 +20,17 @@ class McpReleaseTests(unittest.TestCase):
         subprocess.run(("git", "config", "user.name", "Test"), cwd=self.checkout, check=True)
         subprocess.run(("git", "config", "user.email", "test@example.test"), cwd=self.checkout, check=True)
         (self.checkout / "package.json").write_text("{}\n", encoding="utf-8")
-        subprocess.run(("git", "add", "package.json"), cwd=self.checkout, check=True)
+        source = self.checkout / "src/capabilities"
+        source.mkdir(parents=True)
+        (self.checkout / "src/version.ts").write_text(
+            'export const SERVER_VERSION = "1.0.0";\n',
+            encoding="utf-8",
+        )
+        (source / "example.ts").write_text(
+            'requiredModules: ["base"]\nclient.call(context, "res.users", "read", {})\n',
+            encoding="utf-8",
+        )
+        subprocess.run(("git", "add", "."), cwd=self.checkout, check=True)
         subprocess.run(("git", "commit", "-qm", "test"), cwd=self.checkout, check=True)
         self.commit = subprocess.run(
             ("git", "rev-parse", "HEAD"),
@@ -46,15 +57,48 @@ class McpReleaseTests(unittest.TestCase):
         )
         directory = self.root / "deploy/odoo-mcp"
         directory.mkdir(parents=True)
+        compatibility = directory / "compatibility.json"
+        compatibility.write_text(
+            json.dumps(
+                {
+                    "schema": "usl-odoo-mcp-compatibility-v1",
+                    "odoo_series": "19.0",
+                    "mcp_server_version": "1.0.0",
+                    "required_modules": ["base"],
+                    "source_rpc_actions": ["rpc:res.users.read"],
+                    "dynamic_rpc_actions": [],
+                },
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        policy = self.root / "custom-addons/usl_access_control/policy"
+        policy.mkdir(parents=True)
+        (policy / "action_surface.json").write_text(
+            json.dumps(
+                {
+                    "modules": [{"name": "base"}],
+                    "actions": [{"key": "rpc:res.users.read"}],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         self.release_path = directory / "release.json"
         self.release_path.write_text(
             json.dumps(
                 {
-                    "schema": "usl-odoo-mcp-release-v1",
+                    "schema": "usl-odoo-mcp-release-v2",
                     "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
                     "ref": "codex/secure-document-materialization",
                     "commit": self.commit,
-                    "image": f"usl-odoo-mcp:{self.commit[:12]}",
+                    "image_tag": f"usl-odoo-mcp:{self.commit[:12]}",
+                    "image_digest": f"usl-odoo-mcp@sha256:{'a' * 64}",
+                    "compatibility": "deploy/odoo-mcp/compatibility.json",
+                    "compatibility_sha256": hashlib.sha256(
+                        compatibility.read_bytes()
+                    ).hexdigest(),
                 }
             )
             + "\n",
@@ -83,10 +127,22 @@ class McpReleaseTests(unittest.TestCase):
 
     def test_rejects_an_image_tag_not_bound_to_the_commit(self):
         value = json.loads(self.release_path.read_text(encoding="utf-8"))
-        value["image"] = "usl-odoo-mcp:latest"
+        value["image_tag"] = "usl-odoo-mcp:latest"
         self.release_path.write_text(json.dumps(value) + "\n", encoding="utf-8")
         with self.assertRaisesRegex(McpReleaseError, "commit prefix"):
             load_release(self.root)
+
+    def test_rejects_a_mutated_compatibility_contract(self):
+        path = self.root / "deploy/odoo-mcp/compatibility.json"
+        path.write_text("{}\n", encoding="utf-8")
+        with self.assertRaisesRegex(McpReleaseError, "digest differs"):
+            load_release(self.root)
+
+    def test_rejects_an_odoo_surface_missing_a_required_rpc(self):
+        path = self.root / "custom-addons/usl_access_control/policy/action_surface.json"
+        path.write_text(json.dumps({"modules": [{"name": "base"}], "actions": []}) + "\n")
+        with self.assertRaisesRegex(McpReleaseError, "compatibility contract is not satisfied"):
+            resolve_release(self.root, self.checkout)
 
 
 if __name__ == "__main__":

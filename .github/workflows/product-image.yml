@@ -46,6 +46,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Checkout pinned Odoo MCP release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: unstaticlabs/odoo-mcp
+          ref: codex/odoo-mcp-vps-refactor
+          path: .release/odoo-mcp
+          persist-credentials: false
+
+      - name: Verify Odoo–MCP compatibility contract
+        run: scripts/odoo-mcp verify --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
+
       - name: Sync pinned OCA add-ons
         run: scripts/sync-oca-addons
 

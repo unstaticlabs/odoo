@@ -277,6 +277,8 @@ def validate_environment(values: dict[str, str], candidate: dict) -> None:
     mcp_release = load_release(Path(__file__).resolve().parents[1])
     if values["ODOO_MCP_RELEASE_COMMIT"] != mcp_release["commit"]:
         raise CutoverError("production Odoo MCP revision differs from the pinned release")
+    if values["ODOO_MCP_IMAGE"] != mcp_release["image"]:
+        raise CutoverError("production Odoo MCP image differs from the pinned release digest")
     if values["ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO"].lower() != "false":
         raise CutoverError("production Odoo MCP must reject local HTTP Odoo targets")
     mcp_better_auth = Path(values["ODOO_MCP_BETTER_AUTH_SECRET_FILE"])

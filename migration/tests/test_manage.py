@@ -74,12 +74,12 @@ class FakeRunner(CommandRunner):
                             "Name": "/runtime-odoo-mcp-1",
                             "Image": "sha256:mcp-image",
                             "Config": {
-                                "Image": "usl-odoo-mcp:9a0e681a1e3c",
+                                "Image": "usl-odoo-mcp@sha256:" + "a" * 64,
                                 "Labels": {
                                     "com.docker.compose.project": self.project,
                                     "com.docker.compose.project.working_dir": owner,
                                     "com.docker.compose.service": "odoo-mcp",
-                                    "org.opencontainers.image.revision": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
+                                    "org.opencontainers.image.revision": "2da51e7c596824d5226957777bbc1c70965ce9d4",
                                 },
                             },
                             "State": {
@@ -182,11 +182,11 @@ class MigrationManageTests(unittest.TestCase):
         manager.ROOT = self.root
         manager.INTERNAL = self.root / "migration/internal"
         self.mcp = {
-            "schema": "usl-odoo-mcp-release-v1",
+            "schema": "usl-odoo-mcp-release-v2",
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
-            "ref": "codex/secure-document-materialization",
-            "commit": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
-            "image": "usl-odoo-mcp:9a0e681a1e3c",
+            "ref": "codex/odoo-mcp-vps-refactor",
+            "commit": "2da51e7c596824d5226957777bbc1c70965ce9d4",
+            "image": "usl-odoo-mcp@sha256:" + "a" * 64,
             "checkout": str(self.root / "odoo-mcp"),
         }
         self.mcp_release = patch.object(
@@ -583,6 +583,7 @@ class MigrationManageTests(unittest.TestCase):
             },
             "resources": inspect_project(self.runner, self.runner.project, self.root),
             "images": {"odoo": "old-image"},
+            "mcp": self.mcp,
         }
         RuntimeStore(self.root).create(runtime, {})
         run_directory = self.root / "private/migration/runs"
@@ -626,7 +627,38 @@ class MigrationManageTests(unittest.TestCase):
         saved = RuntimeStore(self.root).load(runtime_id)
         self.assertEqual(saved["release_commit"], "c" * 40)
         self.assertEqual(saved["images"]["odoo"], "current-image")
+        self.assertEqual(saved["images"]["odoo-mcp"], self.mcp["image"])
         self.assertEqual(saved["finalization_resume_evidence"], str(report))
+
+    def test_finalization_rebinds_mcp_only_before_its_container_exists(self):
+        previous = dict(self.mcp)
+        previous.update(
+            {
+                "commit": "9a0e681a1e3ca82400e6c8033f251ccc318be44e",
+                "image": "usl-odoo-mcp@sha256:" + "b" * 64,
+            }
+        )
+        runtime = {"mcp": previous, "images": {"odoo-mcp": previous["image"]}}
+        resources = {"containers": [], "volumes": [], "networks": []}
+
+        self.assertTrue(manager.rebind_mcp_release(runtime, resources))
+        self.assertEqual(runtime["mcp"]["ref"], "codex/odoo-mcp-vps-refactor")
+        self.assertEqual(runtime["images"]["odoo-mcp"], self.mcp["image"])
+        self.assertEqual(
+            runtime["mcp_release_rebound"]["to_commit"], self.mcp["commit"]
+        )
+
+        runtime = {"mcp": previous, "images": {"odoo-mcp": previous["image"]}}
+        resources["containers"] = [{"service": "odoo-mcp", "state": "exited"}]
+        with self.assertRaisesRegex(RuntimeError, "earlier MCP container exists"):
+            manager.rebind_mcp_release(runtime, resources)
+
+    def test_runtime_image_assignments_reject_mcp_release_drift(self):
+        runtime = {"mcp": self.mcp, "images": {}}
+        with self.assertRaisesRegex(RuntimeError, "differs from the pinned release"):
+            manager.apply_runtime_image_assignments(
+                runtime, ["odoo-mcp=usl-odoo-mcp:unqualified"]
+            )
 
     def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
         models = self.root / "models"

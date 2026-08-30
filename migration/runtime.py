@@ -360,6 +360,20 @@ def inspect_project(runner: CommandRunner, project: str, workdir: Path) -> dict[
                 "configured_image": (item.get("Config") or {}).get("Image"),
                 "release_commit": labels.get("org.opencontainers.image.revision"),
                 "working_dir": owner,
+                "mounts": sorted(
+                    (
+                        {
+                            "type": mount.get("Type"),
+                            "source": mount.get("Name") or mount.get("Source"),
+                            "destination": mount.get("Destination"),
+                        }
+                        for mount in item.get("Mounts") or []
+                    ),
+                    key=lambda mount: (
+                        str(mount["destination"]),
+                        str(mount["source"]),
+                    ),
+                ),
             }
         )
     volume_names = runner.run(

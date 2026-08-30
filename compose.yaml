@@ -90,7 +90,7 @@ services:
       POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
       POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.14.0@sha256:01540977dcf4c7b41b1159f34d68e4632f2658d62790e460ca65a42722b13c4a}
       ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
-      ODOO_MCP_IMAGE: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:9a0e681a1e3c}
+      ODOO_MCP_IMAGE: ${ODOO_MCP_IMAGE:-usl-odoo-mcp@sha256:81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb}
       ODOO_MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://mcp.localhost:3000}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
@@ -628,7 +628,7 @@ services:
 
   odoo-mcp-oauth-init:
     profiles: ["mcp"]
-    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:9a0e681a1e3c}
+    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp@sha256:81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb}
     restart: "no"
     environment: *odoo-mcp-environment
     command: ["node", "dist/auth/cli.js", "migrate"]
@@ -646,7 +646,7 @@ services:
 
   odoo-mcp:
     profiles: ["mcp"]
-    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp:9a0e681a1e3c}
+    image: ${ODOO_MCP_IMAGE:-usl-odoo-mcp@sha256:81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb}
     restart: unless-stopped
     depends_on:
       odoo:
@@ -683,7 +683,7 @@ services:
       start_period: 20s
     labels:
       org.opencontainers.image.source: https://github.com/unstaticlabs/odoo-mcp.git
-      org.opencontainers.image.revision: ${ODOO_MCP_RELEASE_COMMIT:-9a0e681a1e3ca82400e6c8033f251ccc318be44e}
+      org.opencontainers.image.revision: ${ODOO_MCP_RELEASE_COMMIT:-2da51e7c596824d5226957777bbc1c70965ce9d4}
 
   init-db:
     profiles: ["init"]

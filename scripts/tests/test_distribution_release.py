@@ -19,6 +19,8 @@ COMMIT = "a" * 40
 DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
 BACKUP_TOOL_IMAGE = "ghcr.io/unstaticlabs/usl-odoo-backup"
+MCP_COMMIT = "d" * 40
+MCP_IMAGE = f"ghcr.io/unstaticlabs/odoo-mcp@sha256:{'e' * 64}"
 PRODUCT_MODULES = {
     "rebuild_account_migration",
     "usl_access_control",
@@ -42,7 +44,7 @@ PRODUCT_MODULES = {
 
 def artifact() -> dict:
     return {
-        "schema": "usl-distribution-release/v2",
+        "schema": "usl-distribution-release/v3",
         "source": {"repository": "unstaticlabs/odoo", "commit_sha": COMMIT},
         "image": {
             "name": IMAGE,
@@ -55,6 +57,13 @@ def artifact() -> dict:
             "tag": f"sha-{COMMIT}",
             "digest": "sha256:" + "c" * 64,
             "digest_reference": f"{BACKUP_TOOL_IMAGE}@sha256:{'c' * 64}",
+        },
+        "mcp": {
+            "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
+            "ref": "codex/odoo-mcp-vps-refactor",
+            "commit": MCP_COMMIT,
+            "image_digest": MCP_IMAGE,
+            "compatibility_sha256": "f" * 64,
         },
         "build": {
             "workflow_run_id": 123,
@@ -78,7 +87,7 @@ class DistributionReleaseContractTest(unittest.TestCase):
             distribution_release.validate(
                 artifact(), commit=COMMIT, image=IMAGE, backup_tool_image=BACKUP_TOOL_IMAGE
             )["schema"],
-            "usl-distribution-release/v2",
+            "usl-distribution-release/v3",
         )
 
     def test_rejects_mutable_or_mismatched_tag(self) -> None:
@@ -105,6 +114,16 @@ class DistributionReleaseContractTest(unittest.TestCase):
         with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.tag"):
             distribution_release.validate(value)
 
+    def test_rejects_a_mutable_or_mismatched_mcp_release(self) -> None:
+        value = copy.deepcopy(artifact())
+        value["mcp"]["image_digest"] = "ghcr.io/unstaticlabs/odoo-mcp:latest"
+        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "mcp.image_digest"):
+            distribution_release.validate(value)
+
+        value = artifact()
+        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "MCP commit"):
+            distribution_release.validate(value, mcp_commit="0" * 40)
+
 
 class DistributionWorkflowPolicyTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -121,6 +140,8 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("pull_request:", self.workflow)
         self.assertNotIn("merge_group:", self.workflow)
         self.assertNotIn("workflow_dispatch:", self.workflow)
+        self.assertIn("ref: codex/odoo-mcp-vps-refactor", self.workflow)
+        self.assertIn("scripts/odoo-mcp verify", self.workflow)
 
     def test_product_module_perimeters_are_identical(self) -> None:
         target_finalize = (ROOT / "migration/internal/finalize").read_text(encoding="utf-8")
@@ -274,6 +295,12 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("digest_reference=$BACKUP_TOOL_IMAGE@$digest", self.workflow)
         self.assertIn("backup_tool_digest_reference:", self.workflow)
         self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
+
+    def test_release_metadata_binds_the_external_mcp_cohort(self) -> None:
+        source = (ROOT / "scripts/distribution_release.py").read_text(encoding="utf-8")
+        self.assertIn('"mcp": {', source)
+        self.assertIn('"compatibility_sha256": mcp_release["compatibility_sha256"]', source)
+        self.assertIn('"image_digest": mcp_release["image"]', source)
 
     def test_both_release_images_receive_sbom_and_provenance(self) -> None:
         publish = self.workflow

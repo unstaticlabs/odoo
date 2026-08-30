@@ -251,6 +251,23 @@ def verify_database_restore(
         run(("docker", "exec", container, "dropdb", "-U", user, "--force", clone))
 
 
+def mcp_oauth_volume(
+    resources: dict[str, Any], running_by_service: dict[str, dict[str, Any]]
+) -> str:
+    container = running_by_service.get("odoo-mcp")
+    if not container:
+        raise RuntimeError("coordinated checkpoint requires the Odoo MCP service")
+    candidates = [
+        mount.get("source")
+        for mount in container.get("mounts") or []
+        if mount.get("type") == "volume" and mount.get("destination") == "/data"
+    ]
+    recorded = {item.get("name") for item in resources.get("volumes") or []}
+    if len(candidates) != 1 or candidates[0] not in recorded:
+        raise RuntimeError("Odoo MCP OAuth volume is not an owned runtime volume")
+    return str(candidates[0])
+
+
 def create_checkpoint(runtime_path: Path, checkpoint_id: str) -> Path:
     if not SAFE_CHECKPOINT.fullmatch(checkpoint_id):
         raise RuntimeError("checkpoint ID is invalid")
@@ -272,6 +289,7 @@ def create_checkpoint(runtime_path: Path, checkpoint_id: str) -> Path:
     by_service = {item.get("service"): item for item in running}
     if not DATABASE_SERVICES.issubset(by_service):
         raise RuntimeError("both Odoo and Paperless databases must be running")
+    oauth_volume = mcp_oauth_volume(current, by_service)
 
     checkpoint_root = runtime_path.parent / "checkpoints"
     checkpoint_root.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -295,6 +313,14 @@ def create_checkpoint(runtime_path: Path, checkpoint_id: str) -> Path:
         "release_commit": runtime["release_commit"],
         "reconstruction_commit": runtime.get("reconstruction_commit"),
         "source": runtime["source"],
+        "mcp": {
+            "repository": runtime["mcp"]["repository"],
+            "ref": runtime["mcp"]["ref"],
+            "commit": runtime["mcp"]["commit"],
+            "image": runtime["mcp"]["image"],
+            "compatibility_sha256": runtime["mcp"]["compatibility_sha256"],
+            "oauth_volume": oauth_volume,
+        },
         "running_services": sorted(item.get("service") or item["name"] for item in running),
         "databases": {},
         "volumes": {},
