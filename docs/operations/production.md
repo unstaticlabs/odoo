@@ -54,6 +54,17 @@ Before a release or module/schema upgrade:
 5. apply only the approved images and module upgrades;
 6. keep live external integrations disabled until the post-upgrade gates pass.
 
+For the protected local transition runtime, create that recovery point with:
+
+```bash
+migration/manage transition checkpoint \
+  --runtime <transition-id> --label before-upgrade
+```
+
+This exact private checkpoint includes local identities and secrets and must
+never be uploaded as the production-transfer artifact. Final cutoff instead
+uses the sanitized, fingerprinted evolved cohort described below.
+
 After startup, verify authentication, company context, ACLs, attachments,
 Accounting balance and report controls, Documents/Paperless links, Sign,
 queues, module identity, and the delivered product boundary. Stop on an

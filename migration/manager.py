@@ -35,6 +35,7 @@ from migration.runtime import (
 ROOT = Path(__file__).resolve().parents[1]
 INTERNAL = ROOT / "migration/internal"
 TTL = re.compile(r"([1-9][0-9]*)([mh])\Z")
+CHECKPOINT_LABEL = re.compile(r"[a-z0-9][a-z0-9-]{0,31}\Z")
 DOCUMENT_CRON_XMLIDS = (
     "ir_cron_usl_documents_attachment_queue",
     "ir_cron_usl_documents_classification",
@@ -342,6 +343,47 @@ def stop_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
         runner.run(["docker", "stop", *running])
 
 
+def operational_containers(runtime: dict[str, Any], runner: CommandRunner) -> list[dict[str, Any]]:
+    current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+    verify_recorded_resources(runtime["resources"], current)
+    services = {
+        "db",
+        "odoo",
+        "paperless-db",
+        "paperless-broker",
+        "paperless-gotenberg",
+        "paperless-tika",
+        "paperless-webserver",
+        "pocket-id",
+        "usl-document-renderer",
+        "usl-sign-dss",
+        "usl-sign-step-ca",
+    }
+    return [item for item in current["containers"] if item.get("service") in services]
+
+
+def start_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
+    containers = operational_containers(runtime, runner)
+    stopped = [item["id"] for item in containers if item.get("state") != "running"]
+    if stopped:
+        runner.run(["docker", "start", *stopped])
+
+
+def stop_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
+    containers = operational_containers(runtime, runner)
+    running = [item["id"] for item in containers if item.get("state") == "running"]
+    if running:
+        runner.run(["docker", "stop", *running])
+
+
+def checkpoint_id(label: str | None) -> str:
+    if label and not CHECKPOINT_LABEL.fullmatch(label):
+        raise RuntimeError("checkpoint label must use lowercase letters, digits, or hyphens")
+    digits = re.sub(r"\D", "", now())[:14]
+    timestamp = f"{digits[:8]}T{digits[8:]}Z"
+    return f"{timestamp}-{label}" if label else timestamp
+
+
 def destroy_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
     current = inspect_project(runner, runtime["compose"]["project"], ROOT)
     verify_recorded_resources(runtime["resources"], current)
@@ -535,6 +577,41 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         runtime = create_runtime(args, runner, kind="transition", adopt=False)
     if runtime["kind"] != "transition":
         raise RuntimeError("transition command requires a transition runtime")
+    if args.action == "status":
+        return check_runtime(runtime, runner)
+    if args.action == "login-link":
+        login_link(runtime, store.secrets(args.runtime), args.user, args.ttl)
+        return {"id": runtime["id"], "status": runtime["status"]}
+    if args.action == "start":
+        if runtime["status"] not in {"transition-live", "frozen-read-only"}:
+            raise RuntimeError("only a protected transition runtime can be started")
+        start_transition_runtime(runtime, runner)
+        record(store, runtime, "transition.start")
+        return {"id": runtime["id"], "status": runtime["status"]}
+    if args.action == "stop":
+        if runtime["status"] not in {"transition-live", "frozen-read-only"}:
+            raise RuntimeError("only a protected transition runtime can be stopped")
+        stop_transition_runtime(runtime, runner)
+        record(store, runtime, "transition.stop")
+        return {"id": runtime["id"], "status": runtime["status"], "data_preserved": True}
+    if args.action == "checkpoint":
+        if runtime["status"] not in {"reconstructed", "transition-live", "frozen-read-only"}:
+            raise RuntimeError("checkpoint requires a reconstructed transition runtime")
+        identifier = checkpoint_id(args.label)
+        run_internal(
+            runtime,
+            store.secrets(args.runtime),
+            runner,
+            [sys.executable, str(ROOT / "migration/transition_checkpoint.py"), "create", identifier],
+        )
+        runtime["last_checkpoint"] = {
+            "id": identifier,
+            "at": now(),
+            "release_commit": runtime["release_commit"],
+            "status": "verified",
+        }
+        record(store, runtime, "transition.checkpoint")
+        return {"id": runtime["id"], "status": runtime["status"], "checkpoint": identifier}
     if args.action == "reconstruct":
         confirm(args, "RECONSTRUCT")
         if runtime["status"] in {"transition-live", "frozen-read-only"}:
@@ -805,6 +882,16 @@ def parser() -> argparse.ArgumentParser:
         if action == "reconstruct":
             common_runtime_arguments(item, required=False, adoption=False)
             item.add_argument("--secrets-file", type=Path)
+    for action in ("status", "start", "stop"):
+        item = transition_actions.add_parser(action)
+        item.add_argument("--runtime", required=True)
+    link = transition_actions.add_parser("login-link")
+    link.add_argument("--runtime", required=True)
+    link.add_argument("--user", default="valentin")
+    link.add_argument("--ttl", default="8h")
+    checkpoint = transition_actions.add_parser("checkpoint")
+    checkpoint.add_argument("--runtime", required=True)
+    checkpoint.add_argument("--label")
 
     candidate = domains.add_parser("candidate")
     candidate_actions = candidate.add_subparsers(dest="action", required=True)

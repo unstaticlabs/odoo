@@ -158,6 +158,25 @@ migration/manage transition freeze \
   --runtime <transition-id> --confirm FREEZE:<transition-id>
 ```
 
+Once the transition is protected, routine local operations stay behind the
+same interface:
+
+```bash
+migration/manage transition status --runtime <transition-id>
+migration/manage transition start --runtime <transition-id>
+migration/manage transition stop --runtime <transition-id>
+migration/manage transition login-link --runtime <transition-id> --ttl 8h
+migration/manage transition checkpoint \
+  --runtime <transition-id> --label before-upgrade
+```
+
+`stop` preserves all data. A checkpoint briefly quiesces the exact recorded
+runtime, captures both databases, every owned persistent volume, local Sign
+and renderer state, and the qualified native Ollama model, then independently
+restores both database dumps and verifies every table count. Checkpoints are
+private mode-0700 runtime data; they are exact local recovery points, not
+sanitized production-transfer cohorts.
+
 `transition-live` and `frozen-read-only` states block reconstruction and test
 helpers independently of the Compose project name.
 

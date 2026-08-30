@@ -6,6 +6,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 from argparse import Namespace
@@ -481,6 +482,85 @@ class MigrationManageTests(unittest.TestCase):
             RuntimeStore(self.root).load("transition-current")["status"],
             "transition-live",
         )
+
+    def test_transition_checkpoint_uses_private_runtime_and_records_identity(self):
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": "transition-current",
+            "kind": "transition",
+            "status": "reconstructed",
+            "release_commit": "b" * 40,
+            "private_directory": str(
+                self.root / "private/migration/runtimes/transition-current"
+            ),
+            "compose": {"project": "fixed-runtime", "working_directory": str(self.root)},
+            "ollama": {"mode": "container"},
+        }
+        RuntimeStore(self.root).create(
+            runtime,
+            {
+                "POCKET_ID_CLIENT_SECRET": "client-secret",
+                "POCKET_ID_ENCRYPTION_KEY": "encryption-key",
+                "POCKET_ID_STATIC_API_KEY": "api-key",
+                "POCKET_ID_VALENTIN_ID": "valentin-id",
+            },
+        )
+        arguments = Namespace(
+            action="checkpoint",
+            runtime="transition-current",
+            label="pre-upgrade",
+        )
+        with (
+            patch.object(manager, "now", return_value="2026-08-30T09:10:11+00:00"),
+            patch.object(manager, "run_internal") as internal,
+        ):
+            result = manager.command_transition(arguments, self.runner)
+        self.assertEqual(result["checkpoint"], "20260830T091011Z-pre-upgrade")
+        self.assertEqual(
+            internal.call_args.args[3],
+            [
+                sys.executable,
+                str(self.root / "migration/transition_checkpoint.py"),
+                "create",
+                "20260830T091011Z-pre-upgrade",
+            ],
+        )
+        saved = RuntimeStore(self.root).load("transition-current")
+        self.assertEqual(saved["last_checkpoint"]["status"], "verified")
+
+    def test_transition_start_and_stop_touch_only_operational_services(self):
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": "transition-current",
+            "kind": "transition",
+            "status": "transition-live",
+            "private_directory": str(
+                self.root / "private/migration/runtimes/transition-current"
+            ),
+            "compose": {"project": self.runner.project, "working_directory": str(self.root)},
+            "resources": {
+                "containers": [
+                    {"id": "container-1", "service": "odoo", "state": "running"},
+                    {"id": "db-1", "service": "db", "state": "running"},
+                ],
+                "volumes": [{"name": "runtime-data"}],
+                "networks": [{"id": "network-1", "name": "runtime-default"}],
+            },
+        }
+        RuntimeStore(self.root).create(
+            runtime,
+            {
+                "POCKET_ID_CLIENT_SECRET": "client-secret",
+                "POCKET_ID_ENCRYPTION_KEY": "encryption-key",
+                "POCKET_ID_STATIC_API_KEY": "api-key",
+                "POCKET_ID_VALENTIN_ID": "valentin-id",
+            },
+        )
+        result = manager.command_transition(
+            Namespace(action="stop", runtime="transition-current"), self.runner
+        )
+        self.assertTrue(result["data_preserved"])
+        self.assertIn(("docker", "stop", "container-1", "db-1"), self.runner.calls)
 
     def test_candidate_arguments_are_ordered_by_the_public_interface(self):
         with patch.object(manager, "git", return_value="b" * 40):
