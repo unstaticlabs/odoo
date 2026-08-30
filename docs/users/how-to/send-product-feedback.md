@@ -18,7 +18,8 @@ leaving the page you are working on.
    the Feedback Assistant.
 7. Answer any short clarification questions in the native conversation. You
    can close the drawer or reload Odoo and continue the card from **Chats >
-   Feedback** later.
+   Feedback > Recent feedback** later. Use **New feedback** to begin a separate
+   card without replacing the saved conversation.
 8. Review the assistant's proposed summary and brief. Choose **Confirm and send
    to Triage** only when it accurately represents your feedback.
 

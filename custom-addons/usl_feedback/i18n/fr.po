@@ -690,12 +690,6 @@ msgid "Needs retry"
 msgstr "Nouvelle tentative requise"
 
 #. module: usl_feedback
-#. odoo-javascript
-#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "New"
-msgstr "Nouveau"
-
-#. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_gemini_api_key_input
 msgid "New Gemini API key"
 msgstr "Nouvelle clé API Gemini"
@@ -706,9 +700,21 @@ msgid "New Odoo API key"
 msgstr "Nouvelle clé API Odoo"
 
 #. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "New feedback"
+msgstr "Nouveau retour"
+
+#. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__next_poll_at
 msgid "Next Poll At"
 msgstr "Prochaine interrogation le"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "No recent feedback yet."
+msgstr "Aucun retour récent pour le moment."
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__not_tested
@@ -734,6 +740,12 @@ msgid ""
 msgstr ""
 "Désactivé par défaut. Partage uniquement l’action, le modèle et "
 "l’identifiant d’enregistrement accessibles,"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Open feedback board"
+msgstr "Ouvrir le tableau des retours"
 
 #. module: usl_feedback
 #. odoo-python
@@ -965,6 +977,12 @@ msgstr "Mis en attente le"
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
 msgid "Read-only Odoo API key"
 msgstr "Clé API Odoo en lecture seule"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Recent feedback"
+msgstr "Retours récents"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__ready

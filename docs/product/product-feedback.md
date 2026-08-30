@@ -13,7 +13,8 @@ provider call**. The in-drawer conversation then uses native task chatter while
 the Feedback Assistant asks up to three clarification questions and refines the
 same card. The reporter reviews the proposed brief and must explicitly choose
 **Confirm and send to Triage**. Only that confirmation moves the card out of
-Inbox.
+Inbox. **Recent feedback** restores the reporter's saved conversations after a
+reload or return to Odoo, while **New feedback** starts a separate Inbox card.
 
 The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
 data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,

@@ -47,7 +47,7 @@ const journey = (message) => [
     },
     {
         content: "Start another conversation without losing the saved card",
-        trigger: ".o-usl-FeedbackPanel header button:contains('New')",
+        trigger: ".o-usl-FeedbackPanel header button[aria-label='New feedback']",
         run: "click",
     },
     {
@@ -58,6 +58,15 @@ const journey = (message) => [
     {
         content: "The resumed conversation restores its native chatter",
         trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
+    },
+    {
+        content: "Recent feedback is an explicit conversation control",
+        trigger: ".o-usl-FeedbackPanel header button[aria-label='Recent feedback']",
+        run: "click",
+    },
+    {
+        content: "The recent list preserves the saved feedback card",
+        trigger: `.o-usl-FeedbackPanel button:contains('${message}')`,
     },
 ];
 

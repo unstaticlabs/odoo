@@ -244,7 +244,7 @@ class FeedbackAgentRun(models.Model):
                 self._complete(response)
             elif status == "expired":
                 return self._restart_without_stored_state()
-            elif status in {"failed", "cancelled"}:
+            elif status in {"failed", "cancelled", "incomplete", "requires_action"}:
                 self._raise_provider_status(status)
             else:
                 self.write({"next_poll_at": fields.Datetime.now() + timedelta(seconds=2)})
@@ -277,12 +277,12 @@ class FeedbackAgentRun(models.Model):
             f"Current shared feedback board summary:\n{board}\n\n"
             f"Conversation through message {self.cutoff_message_id}:\n{transcript}"
         )
-        content = [{"type": "input_text", "text": prompt}]
+        content = [{"type": "text", "text": prompt}]
         screenshot = task.usl_feedback_screenshot_attachment_id
         if screenshot and not self.previous_interaction_id:
             content.append(
                 {
-                    "type": "input_image",
+                    "type": "image",
                     "mime_type": screenshot.mimetype,
                     "data": base64.b64encode(screenshot.raw).decode(),
                 },
@@ -293,7 +293,7 @@ class FeedbackAgentRun(models.Model):
             "background": True,
             "store": True,
             "system_instruction": instructions,
-            "input": [{"role": "user", "content": content}],
+            "input": content,
             "tools": [
                 {"type": "url_context"},
                 {
@@ -392,16 +392,13 @@ class FeedbackAgentRun(models.Model):
 
     @staticmethod
     def _output_text(response):
-        if isinstance(response.get("output_text"), str):
-            return response["output_text"]
-        for output in response.get("outputs") or response.get("output") or []:
-            if isinstance(output, dict):
-                if isinstance(output.get("text"), str):
-                    return output["text"]
-                for content in output.get("content") or []:
-                    if isinstance(content, dict) and isinstance(content.get("text"), str):
-                        return content["text"]
-        raise GeminiError(ERROR_INVALID_RESPONSE, "Gemini did not return structured output.")
+        try:
+            return GeminiClient.response_text(response)
+        except GeminiError as error:
+            raise GeminiError(
+                ERROR_INVALID_RESPONSE,
+                "Gemini did not return structured output.",
+            ) from error
 
     @staticmethod
     def _interaction_id(response):
@@ -473,10 +470,16 @@ class FeedbackAgentRun(models.Model):
                 "next_poll_at": False,
                 "duration_ms": max(duration, 0),
                 "input_token_count": int(
-                    usage.get("input_tokens") or usage.get("prompt_token_count") or 0,
+                    usage.get("total_input_tokens")
+                    or usage.get("input_tokens")
+                    or usage.get("prompt_token_count")
+                    or 0,
                 ),
                 "output_token_count": int(
-                    usage.get("output_tokens") or usage.get("candidates_token_count") or 0,
+                    usage.get("total_output_tokens")
+                    or usage.get("output_tokens")
+                    or usage.get("candidates_token_count")
+                    or 0,
                 ),
                 "error_code": False,
                 "error_detail": False,

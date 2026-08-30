@@ -189,6 +189,10 @@ export class FeedbackPanel extends Component {
     }
 
     async toggleScreenshot() {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
         this.state.screenshotSelected = !this.state.screenshotSelected;
         try {
             if (this.state.screenshotSelected) {
@@ -204,6 +208,8 @@ export class FeedbackPanel extends Component {
         } catch (error) {
             this.state.screenshotSelected = !this.state.screenshotSelected;
             this.showError(error);
+        } finally {
+            this.state.busy = false;
         }
     }
 
@@ -286,7 +292,22 @@ export class FeedbackPanel extends Component {
         this.schedulePoll(0);
     }
 
+    async showRecent() {
+        browser.clearTimeout(this.pollTimer);
+        this.state.error = false;
+        this.state.busy = true;
+        try {
+            this.state.recent = await this.orm.call("project.task", "feedback_recent", []);
+            this.state.phase = "recent";
+        } catch (error) {
+            this.showError(error);
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
     async newConversation() {
+        browser.clearTimeout(this.pollTimer);
         this.state.phase = "loading";
         this.state.task = false;
         this.state.message = "";

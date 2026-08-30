@@ -109,6 +109,7 @@ class ProjectTask(models.Model):
 
     @api.constrains(
         "project_id",
+        "stage_id",
         "company_id",
         "usl_feedback_reporter_id",
         "usl_feedback_company_id",

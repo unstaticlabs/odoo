@@ -11,7 +11,7 @@
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Product feedback conversation">
             <header class="d-flex align-items-center gap-2 px-3 py-2 border-bottom flex-shrink-0">
-                <button class="btn btn-link p-0 text-body" type="button" t-on-click="props.close" title="Back to Chats" aria-label="Back to Chats">
+                <button class="o-usl-FeedbackPanel-headerAction btn btn-link p-0 text-body" type="button" t-on-click="props.close" title="Back to Chats" aria-label="Back to Chats">
                     <i class="oi oi-arrow-left"/>
                 </button>
                 <div class="flex-grow-1 min-w-0">
@@ -19,8 +19,15 @@
                     <div class="small text-muted text-truncate" t-if="state.task" t-out="state.task.name"/>
                     <div class="small text-muted" t-else="">Conversation with the Feedback Assistant</div>
                 </div>
-                <button class="btn btn-sm btn-link" type="button" t-on-click="openBoard">Board</button>
-                <button t-if="state.task" class="btn btn-sm btn-link" type="button" t-on-click="newConversation">New</button>
+                <button class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="openBoard" title="Open feedback board" aria-label="Open feedback board">
+                    <i class="fa fa-columns"/><span class="d-none d-sm-inline">Board</span>
+                </button>
+                <button t-if="state.task and state.phase !== 'recent'" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="showRecent" title="Recent feedback" aria-label="Recent feedback">
+                    <i class="fa fa-history"/><span class="d-none d-sm-inline">Recent feedback</span>
+                </button>
+                <button t-if="state.task" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="newConversation" title="New feedback" aria-label="New feedback">
+                    <i class="fa fa-plus"/><span class="d-none d-sm-inline">New feedback</span>
+                </button>
             </header>
 
             <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
@@ -32,6 +39,18 @@
                 <strong>Feedback could not be prepared</strong>
                 <p class="text-muted mt-2 mb-3" t-out="state.error"/>
                 <button class="btn btn-primary" type="button" t-on-click="retryStartDraft">Try again</button>
+            </div>
+
+            <div t-elif="state.phase === 'recent'" class="flex-grow-1 overflow-auto o-scrollbar-thin p-3">
+                <div class="small text-uppercase text-muted fw-semibold mb-2">Recent feedback</div>
+                <button t-foreach="state.recent" t-as="task" t-key="task.id" type="button" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 mb-2" t-on-click="() => this.resumeTask(task)">
+                    <span class="text-truncate flex-grow-1" t-out="task.name"/>
+                    <span class="badge text-bg-secondary" t-out="task.stage"/>
+                </button>
+                <div t-if="!state.recent.length" class="text-center text-muted py-5">
+                    <i class="fa fa-comments-o fs-3 d-block mb-2"/>
+                    No recent feedback yet.
+                </div>
             </div>
 
             <div t-elif="state.phase === 'draft'" class="o-usl-FeedbackPanel-draft flex-grow-1 d-flex flex-column overflow-hidden">
@@ -56,7 +75,7 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="usl_feedback_files">Other evidence <span class="fw-normal text-muted">(optional)</span></label>
-                    <input id="usl_feedback_files" class="form-control" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length &gt;= 10"/>
+                    <input id="usl_feedback_files" class="form-control" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (state.screenshotAttachmentId ? 1 : 0) &gt;= 10"/>
                     <div class="d-flex flex-wrap gap-1 mt-2" t-if="state.attachments.length">
                         <span class="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-1" t-foreach="state.attachments" t-as="attachment" t-key="attachment.id">
                             <i class="fa fa-paperclip"/><t t-out="attachment.name"/>
@@ -76,7 +95,7 @@
                 </div>
 
                 <div t-if="state.recent.length" class="mt-4 pt-3 border-top">
-                    <div class="small text-uppercase text-muted fw-semibold mb-2">Continue recent feedback</div>
+                    <div class="small text-uppercase text-muted fw-semibold mb-2">Recent feedback</div>
                     <button t-foreach="state.recent" t-as="task" t-key="task.id" type="button" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 mb-2" t-on-click="() => this.resumeTask(task)">
                         <span class="text-truncate flex-grow-1" t-out="task.name"/>
                         <span class="badge text-bg-secondary" t-out="task.stage"/>

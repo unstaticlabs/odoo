@@ -12,6 +12,23 @@ from odoo.tests import TransactionCase, new_test_user, tagged
 RELEASE_SHA = "a" * 40
 
 
+def interaction_response(interaction_id, result, *, input_tokens=0, output_tokens=0):
+    return {
+        "id": interaction_id,
+        "status": "completed",
+        "steps": [
+            {
+                "type": "model_output",
+                "content": [{"type": "text", "text": json.dumps(result)}],
+            },
+        ],
+        "usage": {
+            "total_input_tokens": input_tokens,
+            "total_output_tokens": output_tokens,
+        },
+    }
+
+
 @tagged("post_install", "-at_install", "usl_feedback")
 class TestProductFeedback(TransactionCase):
     @classmethod
@@ -33,6 +50,20 @@ class TestProductFeedback(TransactionCase):
             groups="base.group_user",
             company_id=cls.company_a.id,
             company_ids=companies,
+        )
+        cls.company_a_user = new_test_user(
+            cls.env,
+            login="feedback-company-a-only",
+            groups="base.group_user",
+            company_id=cls.company_a.id,
+            company_ids=[Command.set(cls.company_a.ids)],
+        )
+        cls.company_b_user = new_test_user(
+            cls.env,
+            login="feedback-company-b-only",
+            groups="base.group_user",
+            company_id=cls.company_b.id,
+            company_ids=[Command.set(cls.company_b.ids)],
         )
         cls.maintainer = new_test_user(
             cls.env,
@@ -181,6 +212,19 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.other).message_subscribe(partner_ids=[self.other.partner_id.id])
         with self.assertRaises(AccessError):
             task.with_user(self.other).message_subscribe(partner_ids=[self.maintainer.partner_id.id])
+        reporter_follower = task.message_follower_ids.filtered(
+            lambda follower: follower.partner_id == self.reporter.partner_id,
+        )
+        with self.assertRaises(AccessError):
+            reporter_follower.with_user(self.other).unlink()
+        with self.assertRaises(AccessError):
+            self.env["mail.followers"].with_user(self.other).create(
+                {
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                    "partner_id": self.maintainer.partner_id.id,
+                },
+            )
         with self.assertRaises(AccessError):
             reporter_message.attachment_ids.with_user(self.other).write({"name": "forged.txt"})
         with self.assertRaises(AccessError):
@@ -413,6 +457,25 @@ class TestProductFeedback(TransactionCase):
         self.assertEqual(task.usl_feedback_screenshot_attachment_id.res_model, "project.task")
         self.assertEqual(task.usl_feedback_screenshot_attachment_id.create_uid, self.reporter)
         self.assertEqual(len(task.message_ids.attachment_ids), 2)
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id)], limit=1,
+        )
+        interaction_payload, _input_hash = run._build_payload(
+            {
+                "model": "gemini-3.7-flash",
+                "mcp_key": "redacted-test-key",
+                "mcp_url": "http://localhost:3000/mcp/projects",
+            },
+        )
+        self.assertEqual(
+            [item["type"] for item in interaction_payload["input"]],
+            ["text", "image"],
+        )
+        self.assertEqual(interaction_payload["input"][1]["mime_type"], "image/jpeg")
+        self.assertEqual(
+            base64.b64decode(interaction_payload["input"][1]["data"]),
+            b"synthetic screenshot",
+        )
         other_attachment = self.env["ir.attachment"].with_user(self.other).sudo().create(
             {"name": "other.txt", "raw": b"other", "res_model": draft._name, "res_id": draft.id},
         )
@@ -447,7 +510,7 @@ class TestProductFeedback(TransactionCase):
             )
 
     def test_feedback_metadata_is_governed_even_for_generic_project_managers(self):
-        self._submit()
+        task, _payload = self._submit()
         stage = self.env.ref("usl_feedback.stage_feedback_new")
         tag = self.env.ref("usl_feedback.tag_feedback_bug")
         with self.assertRaises(AccessError):
@@ -466,6 +529,10 @@ class TestProductFeedback(TransactionCase):
                 [("name", "=", "Forged import"), ("project_id", "=", self.project.id)],
             ),
         )
+        with self.assertRaises(ValidationError):
+            task.with_user(self.maintainer).write(
+                {"stage_id": self.env.ref("usl_feedback.stage_feedback_triaged").id},
+            )
 
         stage.with_user(self.maintainer).write({"sequence": stage.sequence + 1})
         tag.with_user(self.maintainer).write({"color": tag.color + 1})
@@ -584,6 +651,39 @@ class TestProductFeedback(TransactionCase):
         self.assertEqual(task_a.usl_feedback_company_id, self.company_a)
         self.assertEqual(task_b.usl_feedback_company_id, self.company_b)
 
+        private_project = self.env["project.project"].sudo().create(
+            {
+                "name": "Company B private source",
+                "company_id": self.company_b.id,
+                "privacy_visibility": "followers",
+            },
+        )
+        private_task = self.env["project.task"].sudo().create(
+            {
+                "name": "Company B confidential record",
+                "project_id": private_project.id,
+                "company_id": self.company_b.id,
+                "user_ids": [Command.set(self.company_b_user.ids)],
+            },
+        )
+        feedback, _payload = self._submit(
+            user=self.company_b_user,
+            company=self.company_b,
+            message="Feedback from a protected Company B record",
+            model="project.task",
+            res_id=private_task.id,
+        )
+        shared_feedback = feedback.with_user(self.company_a_user).with_context(
+            allowed_company_ids=[self.company_a.id],
+        )
+        self.assertEqual(shared_feedback.read(["name"])[0]["name"], feedback.name)
+        self.assertEqual(shared_feedback.usl_feedback_company_id, self.company_b)
+        self.assertEqual(shared_feedback.usl_feedback_source_res_id, private_task.id)
+        with self.assertRaises(AccessError):
+            private_task.with_user(self.company_a_user).with_context(
+                allowed_company_ids=[self.company_a.id],
+            ).read(["name"])
+
     def test_stateful_agent_clarifies_updates_and_waits_for_human_confirmation(self):
         self.reporter.lang = "fr_FR"
         task, _payload = self._submit(message="The workflow is confusing.")
@@ -623,8 +723,8 @@ class TestProductFeedback(TransactionCase):
             "priority": 2,
         }
         responses = [
-            {"id": "interaction-one", "status": "completed", "output_text": json.dumps(clarification)},
-            {"id": "interaction-two", "status": "completed", "output_text": json.dumps(ready)},
+            interaction_response("interaction-one", clarification, input_tokens=120, output_tokens=42),
+            interaction_response("interaction-two", ready, input_tokens=80, output_tokens=31),
         ]
         with patch(
             "odoo.addons.usl_feedback.models.feedback_agent_run.GeminiClient.create_interaction",
@@ -640,6 +740,23 @@ class TestProductFeedback(TransactionCase):
             self.env["usl.feedback.agent.run"].sudo()._process_task(task)
         second_payload = create_interaction.call_args_list[1].args[0]
         self.assertEqual(second_payload["previous_interaction_id"], "interaction-one")
+        self.assertEqual(second_payload["input"][0]["type"], "text")
+        self.assertNotIn("role", second_payload["input"][0])
+        first_payload = create_interaction.call_args_list[0].args[0]
+        self.assertEqual([item["type"] for item in first_payload["input"]], ["text"])
+        completed_run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("external_interaction_id", "=", "interaction-two")], limit=1,
+        )
+        self.assertEqual(completed_run.input_token_count, 80)
+        self.assertEqual(completed_run.output_token_count, 31)
+        assistant_messages = task.message_ids.filtered(
+            lambda message: message.author_id
+            == self.env.ref("usl_feedback.partner_feedback_assistant"),
+        )
+        self.assertEqual(len(assistant_messages), 2)
+        self.assertFalse(self.env["res.users"].sudo().search(
+            [("partner_id", "=", assistant_messages[:1].author_id.id)],
+        ))
         self.assertEqual(task.usl_feedback_agent_state, "ready")
         self.assertEqual(task.name, "Clarify status after workflow reload")
         self.assertEqual(task.usl_feedback_category, "ux")
@@ -780,16 +897,13 @@ class TestProductFeedback(TransactionCase):
         fresh = self.env["res.config.settings"].create({})
         self.assertFalse(fresh.feedback_gemini_api_key_input)
         self.assertFalse(fresh.feedback_mcp_api_key_input)
-        response = {
-            "id": "connection-test",
-            "status": "completed",
-            "output_text": json.dumps(
-                {
-                    "project_name": "Odoo Product Feedback",
-                    "read_only_verified": True,
-                },
-            ),
-        }
+        response = interaction_response(
+            "connection-test",
+            {
+                "project_name": "Odoo Product Feedback",
+                "read_only_verified": True,
+            },
+        )
         with (
             patch(
                 "odoo.addons.usl_feedback.models.res_config_settings.requests.post",

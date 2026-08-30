@@ -139,7 +139,7 @@ class GeminiClient:
                 "Gemini did not complete the MCP connection diagnostic.",
             )
         try:
-            result = json.loads(self._response_text(response))
+            result = json.loads(self.response_text(response))
         except (TypeError, ValueError, json.JSONDecodeError) as error:
             raise GeminiError(
                 ERROR_CONNECTION_INVALID, "Gemini returned an invalid connection diagnostic.",
@@ -155,9 +155,22 @@ class GeminiClient:
         return result
 
     @staticmethod
-    def _response_text(response):
+    def response_text(response):
+        """Return the last model text from raw REST or SDK-compatible responses."""
         if isinstance(response.get("output_text"), str):
             return response["output_text"]
+        for step in reversed(response.get("steps") or []):
+            if not isinstance(step, dict) or step.get("type") != "model_output":
+                continue
+            for content in reversed(step.get("content") or []):
+                if (
+                    isinstance(content, dict)
+                    and content.get("type") == "text"
+                    and isinstance(content.get("text"), str)
+                ):
+                    return content["text"]
+        # Keep compatibility with the pre-May-2026 response shape while old
+        # recorded tests or a transitional provider proxy still return it.
         for output in response.get("outputs") or response.get("output") or []:
             if isinstance(output, dict):
                 if isinstance(output.get("text"), str):

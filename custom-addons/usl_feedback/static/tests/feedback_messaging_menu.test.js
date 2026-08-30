@@ -1,12 +1,23 @@
 import { expect, test } from "@odoo/hoot";
-import { patchWithCleanup } from "@web/../tests/web_test_helpers";
+import { setInputFiles } from "@odoo/hoot-dom";
+import { animationFrame } from "@odoo/hoot-mock";
+import { defineMailModels } from "@mail/../tests/mail_test_helpers";
+import {
+    contains,
+    mountWithCleanup,
+    onRpc,
+    patchWithCleanup,
+} from "@web/../tests/web_test_helpers";
 
 import { browser } from "@web/core/browser/browser";
 import {
     captureFeedbackScreenshot,
+    FeedbackPanel,
     feedbackPageContext,
     focusFeedbackComposer,
 } from "../src/js/feedback_messaging_menu";
+
+defineMailModels();
 
 test("page context is typed and excludes browser location state", () => {
     patchWithCleanup(browser, {
@@ -107,4 +118,85 @@ test("refining opens the native Chatter composer before focusing it", async () =
     expect(await focusFeedbackComposer(root)).toBe(true);
     expect(opened).toBe(true);
     expect(focused).toBe(true);
+});
+
+test("draft previews a default-selected screenshot and removes it explicitly", async () => {
+    onRpc("usl.feedback.submission", "feedback_start", () => {
+        expect.step("start");
+        return {
+            draft_id: 41,
+            company_name: "Unstatic Labs",
+            context_available: true,
+            recent: [],
+        };
+    });
+    onRpc("usl.feedback.submission", "feedback_add_attachment", ({ args }) => {
+        expect(args.slice(1)).toEqual([
+            "screen.jpg",
+            "image/jpeg",
+            "c2NyZWVuc2hvdA==",
+            true,
+        ]);
+        expect(args.at(-1)).toBe(true);
+        expect.step("upload screenshot");
+        return { id: 73, name: "screen.jpg", mimetype: "image/jpeg" };
+    });
+    onRpc("usl.feedback.submission", "feedback_remove_attachment", ({ args }) => {
+        expect(args[1]).toBe(73);
+        expect.step("remove screenshot");
+        return true;
+    });
+    await mountWithCleanup(FeedbackPanel, {
+        props: {
+            close() {},
+            pageContext: { action_id: 7, model: "project.task", res_id: 9 },
+            screenshot: {
+                name: "screen.jpg",
+                mimetype: "image/jpeg",
+                data: "c2NyZWVuc2hvdA==",
+                previewUrl: "data:image/jpeg;base64,c2NyZWVuc2hvdA==",
+                width: 1440,
+                height: 900,
+            },
+            captureError: false,
+        },
+    });
+    expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
+    expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
+    expect(".o-usl-FeedbackPanel").toHaveText(/visible to all internal employees/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/sent to Google Gemini/);
+    await contains(".o-usl-FeedbackPanel-screenshot input").click();
+    expect(".o-usl-FeedbackPanel-screenshot input").not.toBeChecked();
+    expect.verifySteps(["start", "upload screenshot", "remove screenshot"]);
+});
+
+test("capture fallback keeps context opt-in and manual attachments usable", async () => {
+    let attachmentId = 90;
+    onRpc("usl.feedback.submission", "feedback_start", () => ({
+        draft_id: 42,
+        company_name: "Unstatic Labs",
+        context_available: true,
+        recent: [],
+    }));
+    onRpc("usl.feedback.submission", "feedback_add_attachment", ({ args }) => {
+        expect(args.at(-1)).toBe(false);
+        return { id: attachmentId++, name: args[1], mimetype: args[2] };
+    });
+    await mountWithCleanup(FeedbackPanel, {
+        props: {
+            close() {},
+            pageContext: { action_id: 7, model: "project.task", res_id: 9 },
+            screenshot: false,
+            captureError: true,
+        },
+    });
+    expect(".o-usl-FeedbackPanel").toHaveText(/Screenshot capture was skipped/);
+    expect("#usl_feedback_context").not.toBeChecked();
+    await contains("#usl_feedback_files").click();
+    await setInputFiles(
+        new File(["reproduction"], "reproduction.txt", { type: "text/plain" })
+    );
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel").toHaveText(/reproduction.txt/);
+    expect("#usl_feedback_files").not.toHaveAttribute("disabled");
 });
