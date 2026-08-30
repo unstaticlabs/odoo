@@ -976,25 +976,29 @@ test("a business action opens its exact governed document version", async () => 
     ).toBe("certified-3");
 });
 
-test("top tag shortcuts compose with native search facets", async () => {
+test("top tag shortcuts search the complete accessible archive", async () => {
     const tags = [
         { id: 21, name: "Tax & reporting", color: "#31a354" },
         { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
     ];
     let lastDomain = [];
+    let lastWorkspace = null;
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
         expect(kwargs.shortcut_tag_ids).toEqual([]);
         lastDomain = kwargs.search_domain;
-        return { ...emptyWorkspace, tags };
+        lastWorkspace = kwargs.workspace;
+        return { ...emptyWorkspace, selected_workspace: kwargs.workspace, tags };
     });
     await mountWithCleanup(DocumentsWorkspace, {
-        props: { action: action() },
+        props: { action: action({ initial_workspace: "home" }) },
     });
 
+    expect(lastWorkspace).toBe("home");
     expect(".o_cp_searchview").toHaveCount(1);
     await contains(".o_usl_filter_shortcuts .o_usl_tag_chip", {
         text: "Tax & reporting",
     }).click();
+    expect(lastWorkspace).toBe("archive_search");
     expect(lastDomain).toEqual([["tag_ids", "in", [21]]]);
     expect(".o_searchview_facet").toHaveText(/Tag: Tax & reporting/);
     expect(".o_usl_filter_shortcuts .is-selected").toHaveText(/Tax & reporting/);

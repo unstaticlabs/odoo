@@ -2291,6 +2291,37 @@ class TestDocuments(TransactionCase):
             tag.ids,
         )
 
+    def test_tag_count_matches_archive_search_not_home_subset(self):
+        tag = self._tag(1310, "Payroll")
+        self._document(
+            1311,
+            intake_role="library",
+            original_created_at="2025-01-01 10:00:00",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        self._document(
+            1312,
+            intake_role="library",
+            original_created_at=fields.Datetime.now(),
+            tag_ids=[Command.set(tag.ids)],
+        )
+        user_tag = tag.with_user(self.user)
+
+        self.assertEqual(user_tag.accessible_document_count, 2)
+        archive = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="archive_search",
+            search_domain=[["tag_ids", "in", tag.ids]],
+            include_workspace_metadata=False,
+        )
+        home = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="home",
+            search_domain=[["tag_ids", "in", tag.ids]],
+            include_workspace_metadata=False,
+        )
+
+        self.assertEqual(archive["count"], user_tag.accessible_document_count)
+        self.assertEqual(home["count"], 1)
+
     def test_document_metadata_updates_paperless_then_refreshes_cache(self):
         tag = self._tag(305, "Reviewed")
         correspondent = self._correspondent(306, "Example Supplier")

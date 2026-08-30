@@ -2154,6 +2154,14 @@ export class DocumentsWorkspaceView extends Component {
         } else {
             selected.add(tag.id);
         }
+        if (this.state.workspace !== "archive_search") {
+            // Tag counts describe the complete archive visible to the current
+            // user. Apply their filters in the same scope instead of silently
+            // intersecting them with Home or another smart-view domain.
+            this.state.workspace = "archive_search";
+            this.state.page = 1;
+            this.state.selected = null;
+        }
         this.replaceTagSearchFilters([...selected]);
     }
 
