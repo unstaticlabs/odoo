@@ -15,18 +15,6 @@
                        colspan="2"
                        invisible="not usl_dependency_date_warning"/>
             </div>
-            <notebook position="before">
-                <section class="o_usl_task_stage_duration" invisible="not usl_stage_duration_history">
-                    <div class="o_usl_task_stage_duration_header">
-                        <div>
-                            <h3>Time spent by stage</h3>
-                            <p>Preserved totals include every current and historical project column.</p>
-                        </div>
-                        <i class="fa fa-clock-o" title="Stage duration history" aria-hidden="true"/>
-                    </div>
-                    <field name="usl_stage_duration_history" widget="html" readonly="1" nolabel="1"/>
-                </section>
-            </notebook>
         </field>
     </record>
 

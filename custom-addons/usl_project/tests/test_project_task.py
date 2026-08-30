@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 
-from psycopg2.extras import Json
-
-from odoo import Command, fields
+from odoo import Command
 from odoo.tests import TransactionCase, tagged
 
 
@@ -56,55 +54,15 @@ class TestProjectTask(TransactionCase):
         blocker.state = "1_done"
         self.assertFalse(task.usl_dependency_date_warning)
 
-    def test_task_form_exposes_preserved_current_and_historical_stage_time(self):
-        historical_stage, current_stage = self.env["project.task.type"].create([
-            {"name": "Online archive", "active": False, "sequence": 1},
-            {"name": "In progress", "sequence": 2},
-        ])
-        project = self.env["project.project"].create({
-            "name": "Preserved stage history",
-            "type_ids": [Command.set([current_stage.id])],
-        })
-        task = self.env["project.task"].create({
-            "name": "Historical task",
-            "project_id": project.id,
-            "stage_id": current_stage.id,
-        })
-        ledger = {
-            "d": fields.Datetime.to_string(
-                fields.Datetime.now() - timedelta(minutes=65),
-            ),
-            "s": current_stage.id,
-            str(historical_stage.id): 1_501,
-            str(current_stage.id): 30,
-        }
-        task.flush_recordset(["duration_tracking"])
-        self.env.cr.execute(
-            "UPDATE project_task SET duration_tracking = %s WHERE id = %s",
-            [Json(ledger), task.id],
-        )
-        task.invalidate_recordset([
-            "duration_tracking",
-            "usl_stage_duration_history",
-        ])
-
-        summary = str(task.usl_stage_duration_history)
-        self.assertIn("Online archive", summary)
-        self.assertIn("In progress", summary)
-        self.assertIn("1 d 1 h 1 min", summary)
-        self.assertIn("Historical stage", summary)
-        self.assertIn("Current stage", summary)
-
+    def test_task_form_uses_only_native_stage_duration_control(self):
         form_arch = self.env.ref("project.view_task_form2")._get_combined_arch()
-        history_sections = form_arch.xpath(
+        self.assertFalse(form_arch.xpath(
             "//section[contains(@class, 'o_usl_task_stage_duration')]",
+        ))
+        native_duration_controls = form_arch.xpath(
+            "//field[@name='stage_id'][@widget='rotting_statusbar_duration']",
         )
-        self.assertEqual(len(history_sections), 1)
-        self.assertTrue(
-            history_sections[0].xpath(
-                ".//field[@name='usl_stage_duration_history'][@readonly='1']",
-            ),
-        )
+        self.assertEqual(len(native_duration_controls), 1)
 
     def test_product_models_have_no_project_restore_provenance(self):
         forbidden_fields = {
