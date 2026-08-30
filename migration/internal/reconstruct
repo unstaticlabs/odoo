@@ -80,7 +80,7 @@ fi
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="$compose_project"
 export COMPOSE_IGNORE_ORPHANS=1
 export USL_QA_DATA_PROFILE=full
-export USL_MIGRATION_PURPOSE="$mode"
+export USL_MIGRATION_PURPOSE="$runtime_kind"
 evidence_purpose=qa
 if [[ "$runtime_kind" == transition ]]; then
   evidence_purpose=production
