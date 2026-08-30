@@ -152077,6 +152077,7 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2",
@@ -152367,6 +152368,22 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.unlink:orm_unlink:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.write:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._is_live_now:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_denial:raw_sql_mutation:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_redemption:raw_sql_mutation:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:2",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_write:1",
@@ -152425,7 +152442,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.metadata.mixin.write:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.tag.synchronize_catalog:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.tag.synchronize_catalog:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:external_call:1",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._open_download:external_call:1",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._request:external_call:1",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._request:external_call:2",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.update_version:external_call:1",
@@ -156025,6 +156044,9 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -156895,6 +156917,54 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.paperless.user.mapping.write"
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._is_live_now:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_denial:raw_sql_mutation:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_redemption:raw_sql_mutation:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
         },
@@ -157069,7 +157139,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.tag.synchronize_catalog:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.paperless.tag.synchronize_catalog"
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:external_call:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._open_download:external_call:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._request:external_call:1": {
@@ -159131,6 +159207,7 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": "bf6891576b7c69ddbb053176692631d7af0a83087993642fb6128dc24be2faaf",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1": "b68e0116a22344cc63d9bbf49f1fc850d5e10ee9e161fe68125002f1ce84767c",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2": "2ff21f953adae7018eae2d19bdde8025a5a7603c933eb5e9189b6423a743a2cd",
@@ -159421,6 +159498,22 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.unlink:orm_unlink:1": "69d7461d597c7b205d0245d4424cddbb989e1401d410118e2d9bc5419c5b946b",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.write:orm_write:1": "c2ceeed805d0d128aa1116f148ba3c4c9e18b5922335ef434d97aa32de38b810",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.paperless.user.mapping.write:orm_write:2": "ff9d7005c38b54b754b9fcd7f3ec11cc2dc998108f351517338d48c28942a1d5",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": "261582d4ba0b97b6771a23d36217c6b466cbd1084d41e364d4ffb29839236148",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._authorize_redemption:sudo:1": "850e7397aca0e1ac140976c7d6652b0ad02f7b4dc7c758a52a504bc41e897b1a",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._find_token:sudo:1": "4aa12235971607ee63a55d2d564271ae948ca45ea4a23a28a0b287abb2cd31a8",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._is_live_now:sudo:1": "cba6f37877d103332922d57a45d8eaaaaeba18507977f0d71e80f859127ea9fa",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_denial:raw_sql_mutation:1": "660ec0d26bb8d234021a77daae38e8439d7f2ef64ee5e0c07a85d3803c019af2",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._record_redemption:raw_sql_mutation:1": "217da4f0f01d15e05cbabf1f9827924c17a43c8055ee27867a1e721ba03a87a2",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.audit.unlink:orm_unlink:1": "df85bd0104f52bb13a47041608b30c9d43f6b7219d68f9ae2e57c9523acf8454",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:1": "c6c358ee6d36a7a25dde72ad756ef1e959919aa83079c6f6aeb88d2fc88fcea7",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.cron_cleanup_download_grants:sudo:2": "81c8ae2b6490ce361f58eba17050b004e6ce6575ba24f63476e67830f64d791c",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant.unlink:orm_unlink:1": "bca9e176962a51efdf4eac5b5de71b29bed7d4a405cdac81bd839d5195a878cd",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:orm_create:1": "d9738bd2eb6f55a92d681a3a6bd9dc521e7d200573a8e741563294f67d954962",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1": "c11b84fdbb572466fb15bf0c1457405731fdafacb48737955005e0c2b370ac66",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:orm_write:1": "d0156e017a9d81a752292d7ce0625d08161a5cea7ee7b2a6f90008032f49850e",
+        "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1": "40a2347f9f46b8d472eb46f620c6a3c16b0c1f7a3d95ff72747d43d446bfe191",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1": "80328b82e6a781f16968ae30298d812d4c83e261f2e21760562fd5c081409b65",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:2": "c2f8e791745a9faa94b988cef9c896ab350e12dd38ddf7575f89e38f031d0049",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_write:1": "aee681312bab1bb87c842a6342bcaceb579cc6b10fc572771169b6eb9b6a7855",
@@ -159479,7 +159572,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.metadata.mixin.write:sudo:1": "cc6ed8f125bce015b41be4b4062789804096c6f44d1a76ff22eabad9de7ee4df",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.tag.synchronize_catalog:orm_write:1": "c1f3e0bc2eb22553f99212ab74e6885e62a0cb1264a92a30b07bd64b8c1bd4e4",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.tag.synchronize_catalog:sudo:1": "c3c123bdf5084c0df6f8d9f9985d2b3ff91dd4396c1025c7a272c9cc0839e3fc",
-        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:sudo:1": "5723ed460f45789bbaf5c8d7dab1ab8fff7b76012c3d281dcf7a44ff6497d3a5",
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:external_call:1": "edaad411db61bb20a66f2899a1a24bc188930f84876cae33555e20bbe58caf12",
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.__init__:sudo:1": "5e2acc66f060f5e4887520878869c1f273eafafb1a5d3f718525f110d13392e3",
+        "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._open_download:external_call:1": "3e6a6d89c0a7bf860d5d8208e5e6322a4dec121eddc4f3300afc6bbb6a890832",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._request:external_call:1": "5d77f1558ebe96fa848f2654f88798e484230bbd7f2ef64e5b9fabf3e3afa191",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient._request:external_call:2": "8777a844de4d35da90cd5b2fbbedfd0653de13c85219d843a34d6145ee6dbbc6",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_client.py:PaperlessClient.update_version:external_call:1": "220f0d7fa0468c81335a489cba21336137ff2f7dea668a924a64d73d4d8ab38a",
@@ -183109,6 +183204,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "8b96b7f8db94d216f926c8d12d995725904bcd80d2c968ab16fdaae830d4cd3e",
+  "qualified_policy_digest": "3fee5127f61cf40441abfb8651c7d1dae2a240ef80c4041c6985ae3e3357cf8b",
   "schema": "usl-action-risk-policy-v1"
 }
