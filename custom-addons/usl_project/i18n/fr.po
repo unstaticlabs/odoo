@@ -42,6 +42,50 @@ msgid "Task"
 msgstr "Tâche"
 
 #. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_stage_duration_history
+msgid "Time Spent by Stage"
+msgstr "Temps passé par étape"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_planning
+msgid "Time spent by stage"
+msgstr "Temps passé par étape"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_planning
+msgid "Preserved totals include every current and historical project column."
+msgstr "Les totaux conservés incluent chaque colonne actuelle et historique du projet."
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_task.py:0
+msgid "Current stage"
+msgstr "Étape actuelle"
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_task.py:0
+msgid "Historical stage"
+msgstr "Étape historique"
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_task.py:0
+msgid "Historical stage %(stage_id)s"
+msgstr "Étape historique %(stage_id)s"
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_task.py:0
+msgid "Since %(date)s"
+msgstr "Depuis le %(date)s"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_planning
+msgid "Stage duration history"
+msgstr "Historique du temps par étape"
+
+#. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task__planned_date_begin
 msgid ""
 "The date and time when work is planned to start. Together with the deadline,"
