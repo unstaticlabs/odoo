@@ -35,6 +35,12 @@ from migration.runtime import (
 ROOT = Path(__file__).resolve().parents[1]
 INTERNAL = ROOT / "migration/internal"
 TTL = re.compile(r"([1-9][0-9]*)([mh])\Z")
+DOCUMENT_CRON_XMLIDS = (
+    "ir_cron_usl_documents_attachment_queue",
+    "ir_cron_usl_documents_classification",
+    "ir_cron_usl_documents_poll",
+    "ir_cron_usl_documents_sync",
+)
 
 
 def git(*arguments: str) -> str:
@@ -194,6 +200,86 @@ def create_runtime(
     return RuntimeStore(ROOT).create(value, secrets)
 
 
+def documents_runtime_status(
+    runtime: dict[str, Any],
+    resources: dict[str, Any],
+    runner: CommandRunner,
+) -> dict[str, Any]:
+    database_container = next(
+        (
+            item
+            for item in resources["containers"]
+            if item.get("service") == "db" and item.get("state") == "running"
+        ),
+        None,
+    )
+    if not database_container:
+        return {
+            "ready": False,
+            "error": "runtime has no running recorded Odoo database container",
+        }
+    cron_names = ", ".join(f"'{name}'" for name in DOCUMENT_CRON_XMLIDS)
+    query = f"""
+        SELECT json_build_object(
+            'active_operations', (
+                SELECT count(*) FROM usl_document_operation
+                WHERE state IN ('pending', 'uploading', 'processing')
+            ),
+            'unresolved_operations', (
+                SELECT count(*) FROM usl_document_operation
+                WHERE state IN ('failed', 'duplicate')
+                  AND NOT COALESCE(acknowledged, FALSE)
+            ),
+            'approved_jobs', (
+                SELECT count(*) FROM ir_model_data data
+                JOIN ir_cron cron ON cron.id = data.res_id
+                WHERE data.module = 'usl_documents'
+                  AND data.model = 'ir.cron'
+                  AND data.name IN ({cron_names})
+                  AND cron.active
+            ),
+            'configured_jobs', (
+                SELECT count(*) FROM ir_model_data data
+                WHERE data.module = 'usl_documents'
+                  AND data.model = 'ir.cron'
+                  AND data.name IN ({cron_names})
+            ),
+            'backfill_complete', COALESCE((
+                SELECT value = 'complete' FROM ir_config_parameter
+                WHERE key = 'usl_documents.attachment_backfill_state'
+            ), FALSE)
+        )
+    """
+    process = runner.run(
+        [
+            "docker",
+            "exec",
+            database_container["id"],
+            "psql",
+            "-U",
+            "odoo",
+            "-d",
+            runtime["database"],
+            "-A",
+            "-t",
+            "-c",
+            query,
+        ],
+    )
+    try:
+        value = json.loads(process.stdout.strip())
+    except (json.JSONDecodeError, TypeError) as error:
+        raise RuntimeError("Documents runtime status did not return valid JSON") from error
+    value["ready"] = (
+        value.get("active_operations") == 0
+        and value.get("unresolved_operations") == 0
+        and value.get("approved_jobs") == len(DOCUMENT_CRON_XMLIDS)
+        and value.get("configured_jobs") == len(DOCUMENT_CRON_XMLIDS)
+        and value.get("backfill_complete") is True
+    )
+    return value
+
+
 def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, Any]:
     source = source_identity(
         Path(runtime["source"]["path"]), runtime["source"]["dump_sha256"]
@@ -217,6 +303,8 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
         or (item.get("state") == "exited" and item.get("exit_code") == 0)
         for item in current["containers"]
     )
+    documents = documents_runtime_status(runtime, current, runner)
+    healthy = healthy and documents["ready"]
     result = {
         "id": runtime["id"],
         "kind": runtime["kind"],
@@ -235,6 +323,7 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
             "networks": len(current["networks"]),
         },
         "healthy": healthy,
+        "documents": documents,
     }
     return result
 

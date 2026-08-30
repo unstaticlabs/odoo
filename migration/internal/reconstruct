@@ -203,6 +203,19 @@ restore_platform_billing() {
   "$MIGRATION/platform-billing-restore" idempotence
 }
 
+finalize_documents_runtime() {
+  local finalizer_log finalizer_status
+  finalizer_log="${timing_tsv%.tsv}-documents-runtime-finalize.log"
+  finalizer_status=0
+  "$MIGRATION/documents-finalize" \
+    | tee "$finalizer_log" \
+    || finalizer_status=${PIPESTATUS[0]}
+  chmod 600 "$finalizer_log"
+  if ((finalizer_status)); then
+    return "$finalizer_status"
+  fi
+}
+
 finalize_migration_boundary() {
   "$MIGRATION/collaboration-restore" finalize
   PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1 \
@@ -280,10 +293,6 @@ run_stage "restore Platform Billing" restore_platform_billing
 stop_product
 run_stage "restore Collaboration history" "$MIGRATION/collaboration-restore" all
 stop_product
-run_stage "seal final Documents archive evidence" env DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_RESTORE_PROFILE=full DOCUMENTS_TARGET_DATABASE=odoo_dev \
-  "$MIGRATION/documents-restore" seal-evidence
-stop_product
 run_stage "verify empty outbound queues after source restoration" \
   "$MIGRATION/outbound-safety" post-source-restoration
 run_stage "finalize migration boundary" finalize_migration_boundary
@@ -294,6 +303,11 @@ run_stage "multi-company acceptance" docker compose -p "$compose_project" exec -
   -e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
   odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
   < scripts/odoo/multicompany_accounting_acceptance.py
+run_stage "finalize Documents runtime and drain attachment queue" \
+  finalize_documents_runtime
+run_stage "seal final Documents archive evidence" env DOCUMENTS_CANONICAL_TARGET=1 \
+  DOCUMENTS_RESTORE_PROFILE=full DOCUMENTS_TARGET_DATABASE=odoo_dev \
+  "$MIGRATION/documents-restore" seal-evidence
 run_stage "verify final empty outbound queues" "$MIGRATION/outbound-safety" final-reconstruction
 
 write_report passed

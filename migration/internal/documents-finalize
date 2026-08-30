@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+
+runtime_state="${USL_MIGRATION_RUNTIME_STATE:-}"
+compose_project="${COMPOSE_PROJECT_NAME:-}"
+target_database="${ODOO_DEV_DB:-}"
+if [[ -z "$runtime_state" || -z "$compose_project" || -z "$target_database" ]]; then
+  printf 'Documents finalization must be invoked through migration/manage.\n' >&2
+  exit 2
+fi
+if [[ "$target_database" == odoo_online_source_saas_19_3 ]]; then
+  printf 'Documents finalization refuses the frozen source database.\n' >&2
+  exit 2
+fi
+if [[ "${USL_EINVOICE_LIVE_ENABLED:-}" != 0 \
+   || "${USL_EREPORTING_LIVE_ENABLED:-}" != 0 ]]; then
+  printf 'Regulatory live integrations must remain disabled.\n' >&2
+  exit 2
+fi
+if [[ -z "$(docker compose -p "$compose_project" ps -q --status running db)" \
+   || -z "$(docker compose -p "$compose_project" ps -q --status running paperless-webserver)" ]]; then
+  printf 'Documents finalization requires the recorded Odoo and Paperless databases to be running.\n' >&2
+  exit 2
+fi
+
+# No long-lived Odoo scheduler may race the deterministic final sweep.  On any
+# failure the runtime stays stopped and therefore safe for inspection/retry.
+docker compose -p "$compose_project" stop odoo >/dev/null
+docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+  -e ODOO_INIT_DB="$target_database" \
+  -e PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000 \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  init-db odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < migration/documents_archive/scripts/finalize_runtime.py
+docker compose -p "$compose_project" up -d --wait odoo

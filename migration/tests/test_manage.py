@@ -38,12 +38,16 @@ class FakeRunner(CommandRunner):
         self.container_state = "running"
         self.foreign_workdir: str | None = None
         self.has_resources = True
+        self.documents_pending = 0
 
     def run(self, arguments, *, cwd=None, env=None, check=True):
         command = tuple(arguments)
         self.calls.append(command)
         if command[:3] == ("docker", "ps", "-aq"):
-            return Completed(0, "container-1\n" if self.has_resources else "")
+            return Completed(
+                0,
+                "container-1\ndb-1\n" if self.has_resources else "",
+            )
         if command[:2] == ("docker", "inspect"):
             owner = self.foreign_workdir or str(self.root)
             return Completed(
@@ -63,8 +67,34 @@ class FakeRunner(CommandRunner):
                                 }
                             },
                             "State": {"Status": self.container_state},
-                        }
+                        },
+                        {
+                            "Id": "db-1",
+                            "Name": "/runtime-db-1",
+                            "Image": "sha256:database",
+                            "Config": {
+                                "Labels": {
+                                    "com.docker.compose.project": self.project,
+                                    "com.docker.compose.project.working_dir": owner,
+                                    "com.docker.compose.service": "db",
+                                }
+                            },
+                            "State": {"Status": self.container_state},
+                        },
                     ]
+                ),
+            )
+        if command[:3] == ("docker", "exec", "db-1"):
+            return Completed(
+                0,
+                json.dumps(
+                    {
+                        "active_operations": self.documents_pending,
+                        "unresolved_operations": 0,
+                        "approved_jobs": 4,
+                        "configured_jobs": 4,
+                        "backfill_complete": True,
+                    }
                 ),
             )
         if command[:4] == ("docker", "volume", "ls", "-q"):
@@ -175,8 +205,22 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(runtime["compose"]["project"], self.runner.project)
         self.assertEqual(runtime["release_commit"], "b" * 40)
         self.assertFalse(status["checkout_matches"])
-        self.assertEqual(status["resources"], {"containers": 1, "volumes": 1, "networks": 1})
+        self.assertEqual(status["resources"], {"containers": 2, "volumes": 1, "networks": 1})
+        self.assertTrue(status["documents"]["ready"])
         self.assertTrue(status["healthy"])
+
+    def test_runtime_status_fails_health_when_documents_are_queued(self):
+        self.runner.documents_pending = 1
+        with patch.object(manager, "git", return_value="a" * 40):
+            runtime = manager.create_runtime(
+                self.adopt_arguments(),
+                self.runner,
+                kind="qa",
+            )
+            status = manager.check_runtime(runtime, self.runner)
+        self.assertEqual(status["documents"]["active_operations"], 1)
+        self.assertFalse(status["documents"]["ready"])
+        self.assertFalse(status["healthy"])
 
     def test_secret_file_rejects_scope_fields(self):
         path = self.root / "secrets.env"
@@ -197,7 +241,7 @@ class MigrationManageTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "exact resource set"):
             verify_recorded_resources(recorded, changed)
         manager.stop_runtime({"compose": {"project": self.runner.project}, "resources": recorded}, self.runner)
-        self.assertIn(("docker", "stop", "container-1"), self.runner.calls)
+        self.assertIn(("docker", "stop", "container-1", "db-1"), self.runner.calls)
         self.assertFalse(any(call[:3] == ("docker", "volume", "rm") for call in self.runner.calls))
 
     def test_transition_protection_does_not_depend_on_project_name(self):
