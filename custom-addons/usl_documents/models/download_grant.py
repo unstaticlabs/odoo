@@ -200,7 +200,8 @@ class UslDocumentDownloadGrant(models.Model):
         return not current.revoked_at and current.expires_at > fields.Datetime.now()
 
     @api.model
-    def cron_cleanup_download_grants(self):
+    def _cron_cleanup_download_grants(self):
+        """Expire retained grants through the scheduler-only entry point."""
         retention_days = self.env["ir.config_parameter"].sudo().get_int(
             "usl_documents.download_grant_audit_retention_days", 365,
         )

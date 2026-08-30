@@ -314,6 +314,27 @@ class TestDocumentDownloadGrants(TransactionCase):
         self.assertTrue(values["binary_available"])
         self.assertTrue(values["materialization_required"])
 
+    def test_cleanup_is_scheduler_only_and_preserves_current_audit(self):
+        document, _version = self._document(88012)
+        result = self._issue(document)
+        current_document, _current_version = self._document(88013)
+        current_result = self._issue(current_document)
+        grants = self.env["usl.document.download.grant"].sudo()
+        grant = grants.search([("public_id", "=", result["grant_id"])])
+        current_grant = grants.search(
+            [("public_id", "=", current_result["grant_id"])],
+        )
+        grant.write(
+            {
+                "expires_at": fields.Datetime.now() - timedelta(days=366),
+            },
+        )
+
+        self.assertFalse(hasattr(grants, "cron_cleanup_download_grants"))
+        grants._cron_cleanup_download_grants()
+        self.assertFalse(grant.exists())
+        self.assertTrue(current_grant.exists())
+
 
 @tagged("post_install", "-at_install", "usl_documents", "download_grants")
 class TestPaperlessDownloadStreaming(TransactionCase):
