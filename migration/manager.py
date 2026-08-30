@@ -562,6 +562,12 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         confirm(args, "MARK-LIVE")
         if runtime["status"] != "reconstructed":
             raise RuntimeError("transition must be reconstructed before it is marked live")
+        run_internal(
+            runtime,
+            store.secrets(args.runtime),
+            runner,
+            [str(INTERNAL / "transition-activate")],
+        )
         runtime["status"] = "transition-live"
     elif args.action == "freeze":
         confirm(args, "FREEZE")

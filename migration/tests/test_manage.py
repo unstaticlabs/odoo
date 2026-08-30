@@ -438,6 +438,46 @@ class MigrationManageTests(unittest.TestCase):
         self.assertFalse(runtime["adopted"])
         self.assertEqual(runtime["resources"], {"containers": [], "volumes": [], "networks": []})
 
+    def test_mark_live_applies_transition_policy_before_protection(self):
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": "transition-current",
+            "kind": "transition",
+            "status": "reconstructed",
+            "private_directory": str(
+                self.root / "private/migration/runtimes/transition-current"
+            ),
+            "compose": {
+                "project": "fixed-runtime",
+                "working_directory": str(self.root),
+            },
+        }
+        RuntimeStore(self.root).create(
+            runtime,
+            {
+                "POCKET_ID_CLIENT_SECRET": "client-secret",
+                "POCKET_ID_ENCRYPTION_KEY": "encryption-key",
+                "POCKET_ID_STATIC_API_KEY": "api-key",
+                "POCKET_ID_VALENTIN_ID": "valentin-id",
+            },
+        )
+        arguments = Namespace(
+            action="mark-live",
+            runtime="transition-current",
+            confirm="MARK-LIVE:transition-current",
+        )
+        with patch.object(manager, "run_internal") as internal:
+            result = manager.command_transition(arguments, self.runner)
+        self.assertEqual(result["status"], "transition-live")
+        self.assertEqual(
+            internal.call_args.args[3],
+            [str(self.root / "migration/internal/transition-activate")],
+        )
+        self.assertEqual(
+            RuntimeStore(self.root).load("transition-current")["status"],
+            "transition-live",
+        )
+
     def test_candidate_arguments_are_ordered_by_the_public_interface(self):
         with patch.object(manager, "git", return_value="b" * 40):
             runtime = manager.create_runtime(self.adopt_arguments(), self.runner, kind="qa")

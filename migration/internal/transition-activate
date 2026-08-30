@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+usl_verify_compose_scope "$compose_project" "$ROOT" "Transition activation"
+
+if [[ "${USL_MIGRATION_PURPOSE:-}" != transition || "$target_database" != odoo_dev ]]; then
+  printf 'Transition activation requires the recorded transition runtime.\n' >&2
+  exit 2
+fi
+
+docker compose -p "$compose_project" stop odoo
+docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+  -e ODOO_INIT_DB="$target_database" \
+  -e USL_MIGRATION_PURPOSE=transition \
+  -e USL_TRANSITION_POLICY_MODE=apply \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  init-db odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" --shell-interface=python \
+  < migration/scripts/transition_runtime_policy.py
+
+scripts/pocket-id-dev start-runtime
+docker compose -p "$compose_project" exec -T \
+  -e USL_MIGRATION_PURPOSE=transition \
+  -e USL_TRANSITION_POLICY_MODE=validate \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" --shell-interface=python \
+  < migration/scripts/transition_runtime_policy.py
+docker compose -p "$compose_project" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" --shell-interface=python \
+  < scripts/odoo/production_side_effect_boundary.py
+
+migration/internal/outbound-safety transition-live

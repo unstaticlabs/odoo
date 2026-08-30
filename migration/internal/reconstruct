@@ -308,6 +308,9 @@ run_stage "finalize Documents runtime and drain attachment queue" \
 run_stage "seal final Documents archive evidence" env DOCUMENTS_CANONICAL_TARGET=1 \
   DOCUMENTS_RESTORE_PROFILE=full DOCUMENTS_TARGET_DATABASE=odoo_dev \
   "$MIGRATION/documents-restore" seal-evidence
+if [[ "$mode" == transition ]]; then
+  run_stage "neutralize transition side effects" "$MIGRATION/transition-neutralize"
+fi
 run_stage "verify final empty outbound queues" "$MIGRATION/outbound-safety" final-reconstruction
 
 write_report passed
