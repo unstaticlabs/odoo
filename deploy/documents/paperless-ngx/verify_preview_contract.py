@@ -20,6 +20,13 @@ def verify(path: Path) -> tuple[bool, int]:
     accepts_request = any(
         argument.arg == "request" for argument in definitions[0].args.kwonlyargs
     )
+    if not accepts_request:
+        raise RuntimeError("Paperless ranged downloads require serve_file(request=...)")
+    if (
+        not isinstance(definitions[0].returns, ast.Name)
+        or definitions[0].returns.id != "HttpResponse"
+    ):
+        raise RuntimeError("Paperless ranged downloads require an HttpResponse contract")
     calls = [
         node
         for node in ast.walk(tree)
@@ -31,7 +38,7 @@ def verify(path: Path) -> tuple[bool, int]:
         raise RuntimeError("Paperless preview contract found too few serve_file call sites")
     for call in calls:
         passes_request = any(keyword.arg == "request" for keyword in call.keywords)
-        if passes_request != accepts_request:
+        if not passes_request:
             raise RuntimeError(
                 "Paperless serve_file request signature and call sites differ"
             )

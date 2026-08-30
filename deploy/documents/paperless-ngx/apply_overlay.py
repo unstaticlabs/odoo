@@ -553,6 +553,40 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 """,
         ),
         (
+            """            return serve_file(
+                doc=file_doc,
+                use_archive=not self.original_requested(request)
+                and file_doc.has_archive_version,
+                disposition="inline",
+            )
+""",
+            """            return serve_file(
+                request=request,
+                doc=file_doc,
+                use_archive=not self.original_requested(request)
+                and file_doc.has_archive_version,
+                disposition="inline",
+            )
+""",
+        ),
+        (
+            """            return serve_file(
+                doc=share_link.document,
+                use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
+                and share_link.document.has_archive_version,
+                disposition="inline",
+            )
+""",
+            """            return serve_file(
+                request=request,
+                doc=share_link.document,
+                use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
+                and share_link.document.has_archive_version,
+                disposition="inline",
+            )
+""",
+        ),
+        (
             """def serve_file(
     *,
     doc: Document,
@@ -561,6 +595,14 @@ from paperless_personal_ai.service import resolve_personal_llm_config
     *,
     request: Request,
     doc: Document,
+""",
+        ),
+        (
+            """    follow_formatting: bool = False,
+) -> FileResponse:
+""",
+            """    follow_formatting: bool = False,
+) -> HttpResponse:
 """,
         ),
         (
