@@ -118,7 +118,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "filing_status",
         ):
             nodes = form_arch.xpath(
-                f"//sheet//field[@name='{field_name}']",
+                f"//sheet//field[@name='{field_name}'][not(ancestor::list)]",
             )
             self.assertTrue(nodes, field_name)
             self.assertTrue(all(node.get("widget") == "badge" for node in nodes))
@@ -135,6 +135,22 @@ class TestDeclarationAndClosing(TransactionCase):
                 f"//sheet//field[@name='{field_name}']",
             )[0]
             self.assertEqual(node.get("widget"), "badges_selection")
+        basis_sections = form_arch.xpath(
+            "//section[contains(@class, 'o_usl_declaration_basis')]",
+        )
+        self.assertEqual(len(basis_sections), 1)
+        basis = basis_sections[0]
+        self.assertEqual(
+            len(
+                basis.xpath(
+                    ".//*[contains(concat(' ', normalize-space(@class), ' '), "
+                    "' o_usl_declaration_basis_card ')]",
+                ),
+            ),
+            2,
+        )
+        self.assertTrue(basis.xpath(".//field[@name='applicability_reason']"))
+        self.assertTrue(basis.xpath(".//field[@name='deadline_basis']"))
 
     def _declaration(self, company, rule_xmlid="declaration_rule_3517_2026"):
         rule = self.env.ref(f"rebuild_account_migration.{rule_xmlid}")

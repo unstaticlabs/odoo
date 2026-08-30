@@ -1,0 +1,123 @@
+.o_form_view .o_usl_declaration_basis {
+    margin: 1.5rem 0;
+    overflow: hidden;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    background: $o-view-background-color;
+
+    .o_usl_declaration_basis_header {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid $border-color;
+        background: $o-gray-100;
+    }
+
+    .o_usl_declaration_basis_heading {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.8rem;
+
+        h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 650;
+        }
+
+        p {
+            margin: 0.2rem 0 0;
+            color: $text-muted;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+    }
+
+    .o_usl_declaration_basis_icon {
+        flex: 0 0 auto;
+        color: $o-brand-primary;
+        font-size: 1.25rem;
+    }
+
+    .o_usl_declaration_basis_grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .o_usl_declaration_basis_card {
+        display: flex;
+        min-width: 0;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 1rem;
+        border: 1px solid $border-color;
+        border-radius: $border-radius;
+        background: $o-view-background-color;
+        box-shadow: 0 1px 2px rgba($black, 0.04);
+    }
+
+    .o_usl_declaration_basis_card_icon {
+        display: grid;
+        width: 2.25rem;
+        height: 2.25rem;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 50%;
+        background: rgba($o-brand-primary, 0.1);
+        color: $o-brand-primary;
+        font-size: 1rem;
+    }
+
+    .o_usl_declaration_basis_card_content {
+        min-width: 0;
+        flex: 1 1 auto;
+
+        h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 650;
+        }
+
+        > p {
+            margin: 0.2rem 0 0.75rem;
+            color: $text-muted;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+    }
+
+    .o_field_widget,
+    .o_field_text {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    textarea {
+        min-height: 6rem;
+        line-height: 1.5;
+        resize: vertical;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o_form_view .o_usl_declaration_basis {
+        .o_usl_declaration_basis_header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .o_usl_declaration_basis_grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}

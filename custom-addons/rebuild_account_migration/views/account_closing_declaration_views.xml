@@ -246,10 +246,6 @@
                             <field name="rule_id" options="{'no_create': True}"/>
                             <field name="form_code"/>
                             <field name="rule_version"/>
-                            <field name="applicability" widget="badge" readonly="1"
-                                decoration-success="applicability == 'applicable'"
-                                decoration-warning="applicability == 'conditional'"
-                                decoration-muted="applicability == 'not_applicable'"/>
                             <field name="preparation_status" widget="badge" readonly="1"
                                 decoration-success="preparation_status in ('ready_for_review', 'reviewed')"
                                 decoration-warning="preparation_status == 'missing_data' and applicability == 'conditional'"
@@ -280,10 +276,39 @@
                             <field name="is_overdue"/>
                         </group>
                     </group>
-                    <group string="Applicability and Deadline Basis">
-                        <field name="applicability_reason" nolabel="1"/>
-                        <field name="deadline_basis" nolabel="1"/>
-                    </group>
+                    <section class="o_usl_declaration_basis">
+                        <div class="o_usl_declaration_basis_header">
+                            <div class="o_usl_declaration_basis_heading">
+                                <span class="o_usl_declaration_basis_icon fa fa-balance-scale" title="Applicability and deadline" aria-hidden="true"/>
+                                <div>
+                                    <h2>Applicability and deadline</h2>
+                                    <p>See why this obligation applies and how its filing date is determined.</p>
+                                </div>
+                            </div>
+                            <field name="applicability" widget="badge" readonly="1" nolabel="1"
+                                decoration-success="applicability == 'applicable'"
+                                decoration-warning="applicability == 'conditional'"
+                                decoration-muted="applicability == 'not_applicable'"/>
+                        </div>
+                        <div class="o_usl_declaration_basis_grid">
+                            <article class="o_usl_declaration_basis_card">
+                                <div class="o_usl_declaration_basis_card_icon fa fa-check-circle-o" title="Why this applies" aria-hidden="true"/>
+                                <div class="o_usl_declaration_basis_card_content">
+                                    <h3>Why this applies</h3>
+                                    <p>Rules relevant to this company and declaration period.</p>
+                                    <field name="applicability_reason" nolabel="1"/>
+                                </div>
+                            </article>
+                            <article class="o_usl_declaration_basis_card">
+                                <div class="o_usl_declaration_basis_card_icon fa fa-calendar-check-o" title="How the deadline is calculated" aria-hidden="true"/>
+                                <div class="o_usl_declaration_basis_card_content">
+                                    <h3>How the deadline is calculated</h3>
+                                    <p>Statutory timing rule and any applicable filing window.</p>
+                                    <field name="deadline_basis" nolabel="1"/>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
                     <notebook>
                         <page string="Prefilled Fields">
                             <field name="field_line_ids" nolabel="1" readonly="1">

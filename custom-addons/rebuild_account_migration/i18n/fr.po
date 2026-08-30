@@ -1518,6 +1518,36 @@ msgid "Applicability and Deadline Basis"
 msgstr "Applicabilité et date limite"
 
 #. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Applicability and deadline"
+msgstr "Applicabilité et date limite"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "See why this obligation applies and how its filing date is determined."
+msgstr "Comprenez pourquoi cette obligation s’applique et comment sa date de dépôt est déterminée."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Why this applies"
+msgstr "Pourquoi cette obligation s’applique"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Rules relevant to this company and declaration period."
+msgstr "Règles applicables à cette société et à cette période déclarative."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "How the deadline is calculated"
+msgstr "Comment la date limite est calculée"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Statutory timing rule and any applicable filing window."
+msgstr "Règle de délai légale et éventuelle fenêtre de dépôt applicable."
+
+#. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_definition_form
 msgid "Applicability and Readiness"
 msgstr "Applicabilité et état de préparation"
