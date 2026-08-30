@@ -73,6 +73,7 @@ defineModels({
     BankCandidate,
 });
 
+test.tags("desktop");
 test("hovering a payout row previews its linked bank record", async () => {
     await mountView({
         type: "list",
