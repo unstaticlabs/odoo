@@ -458,7 +458,6 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
     environment = {key: value for key, value in os.environ.items() if key in keep or key.startswith("LC_")}
     ports = runtime["ports"]
     urls = runtime["urls"]
-    mcp_host = urlparse(urls["mcp"]).hostname or ""
     odoo_url = urlparse(urls["odoo"])
     odoo_host = odoo_url.hostname or ""
     allow_local_http_odoo = odoo_url.scheme == "http" and (
@@ -478,34 +477,13 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             "ODOO_GEVENT_PORT": str(ports["gevent"]),
             "PAPERLESS_HTTP_PORT": str(ports["paperless"]),
             "POCKET_ID_HTTP_PORT": str(ports["pocket_id"]),
-            "ODOO_MCP_HTTP_PORT": str(ports["mcp"]),
             "ODOO_PUBLIC_BASE_URL": urls["odoo"],
             "PAPERLESS_PUBLIC_URL": urls["paperless"],
             "PAPERLESS_PUBLIC_BASE_URL": urls["paperless"],
             "POCKET_ID_APP_URL": urls["pocket_id"],
-            "ODOO_MCP_PUBLIC_ORIGIN": urls["mcp"],
-            "ODOO_MCP_ALLOWED_HOSTS": ",".join(
-                dict.fromkeys((mcp_host, "localhost", "127.0.0.1"))
-            ),
-            "ODOO_MCP_ALLOWED_ORIGINS": ",".join(
-                dict.fromkeys(
-                    ("chatgpt.com", "claude.ai", mcp_host, "localhost", "127.0.0.1")
-                )
-            ),
             "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO": (
                 "true" if allow_local_http_odoo else "false"
             ),
-            "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": ",".join(
-                dict.fromkeys(("https://chatgpt.com", "https://claude.ai", urls["mcp"]))
-            ),
-            "ODOO_MCP_BETTER_AUTH_SECRET_FILE": str(
-                mcp_secret_directory / "odoo-mcp-better-auth.secret"
-            ),
-            "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": str(
-                mcp_secret_directory / "odoo-mcp-credential-encryption-key.secret"
-            ),
-            "ODOO_MCP_IMAGE": runtime["mcp"]["image"],
-            "ODOO_MCP_RELEASE_COMMIT": runtime["mcp"]["commit"],
             "COMPOSE_PROFILES": ",".join(runtime["compose"].get("profiles", [])),
             "USL_ONLINE_DUMP_DIR": runtime["source"]["path"],
             "USL_MIGRATION_SOURCE_SHA256": runtime["source"]["dump_sha256"],
@@ -524,7 +502,6 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             ),
             "USL_DOCUMENTS_RELEASE_SOURCE_PROJECT": runtime["compose"]["project"],
             "USL_DOCUMENTS_RELEASE_SOURCE_DATABASE": runtime["database"],
-            "USL_DOCUMENTS_MCP_REPOSITORY": runtime["mcp"]["checkout"],
             "USL_DOCUMENTS_RESTORE_DATABASE": runtime["database"],
             "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": runtime["personal_ai_key_file"],
             "DOCUMENTS_PAPERLESS_TASK_WORKERS": str(
@@ -542,6 +519,45 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             **IDENTITY_DEFAULTS,
         }
     )
+    mcp = runtime.get("mcp")
+    mcp_url = urls.get("mcp")
+    mcp_port = ports.get("mcp")
+    if any(value is not None for value in (mcp, mcp_url, mcp_port)):
+        if not mcp or not mcp_url or mcp_port is None:
+            raise RuntimeError("runtime has an incomplete Odoo MCP identity")
+        mcp_host = urlparse(mcp_url).hostname or ""
+        environment.update(
+            {
+                "ODOO_MCP_HTTP_PORT": str(mcp_port),
+                "ODOO_MCP_PUBLIC_ORIGIN": mcp_url,
+                "ODOO_MCP_ALLOWED_HOSTS": ",".join(
+                    dict.fromkeys((mcp_host, "localhost", "127.0.0.1"))
+                ),
+                "ODOO_MCP_ALLOWED_ORIGINS": ",".join(
+                    dict.fromkeys(
+                        (
+                            "chatgpt.com",
+                            "claude.ai",
+                            mcp_host,
+                            "localhost",
+                            "127.0.0.1",
+                        )
+                    )
+                ),
+                "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": ",".join(
+                    dict.fromkeys(("https://chatgpt.com", "https://claude.ai", mcp_url))
+                ),
+                "ODOO_MCP_BETTER_AUTH_SECRET_FILE": str(
+                    mcp_secret_directory / "odoo-mcp-better-auth.secret"
+                ),
+                "ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": str(
+                    mcp_secret_directory / "odoo-mcp-credential-encryption-key.secret"
+                ),
+                "ODOO_MCP_IMAGE": mcp["image"],
+                "ODOO_MCP_RELEASE_COMMIT": mcp["commit"],
+                "USL_DOCUMENTS_MCP_REPOSITORY": mcp["checkout"],
+            }
+        )
     if runtime["ollama"]["mode"] == "native":
         environment.update(
             {

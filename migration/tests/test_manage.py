@@ -383,6 +383,66 @@ class MigrationManageTests(unittest.TestCase):
             environment["PAPERLESS_IMAGE"], runtime["images"]["paperless-webserver"]
         )
 
+    def test_runtime_environment_supports_checkpointing_a_pre_mcp_runtime(self):
+        runtime = {
+            "id": "transition-legacy",
+            "database": "odoo_dev",
+            "private_directory": str(self.root / "private/runtime"),
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "urls": {
+                "odoo": "http://odoo.localhost:1",
+                "paperless": "http://paperless.localhost:3",
+                "pocket_id": "http://id.localhost:4",
+            },
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "compose": {
+                "project": "recorded-project",
+                "working_directory": str(self.root),
+                "files": [str(self.root / "compose.yaml")],
+                "profiles": ["paperless"],
+            },
+        }
+
+        environment = runtime_environment(runtime, {})
+
+        self.assertEqual(environment["ODOO_HTTP_PORT"], "1")
+        self.assertNotIn("ODOO_MCP_HTTP_PORT", environment)
+        self.assertNotIn("ODOO_MCP_IMAGE", environment)
+        self.assertNotIn("USL_DOCUMENTS_MCP_REPOSITORY", environment)
+
+    def test_runtime_environment_rejects_partial_mcp_identity(self):
+        runtime = {
+            "id": "transition-partial-mcp",
+            "database": "odoo_dev",
+            "private_directory": str(self.root / "private/runtime"),
+            "ports": {
+                "odoo": 1,
+                "gevent": 2,
+                "paperless": 3,
+                "pocket_id": 4,
+                "mcp": 5,
+            },
+            "urls": {
+                "odoo": "http://odoo.localhost:1",
+                "paperless": "http://paperless.localhost:3",
+                "pocket_id": "http://id.localhost:4",
+            },
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "compose": {
+                "project": "recorded-project",
+                "working_directory": str(self.root),
+                "files": [str(self.root / "compose.yaml")],
+                "profiles": ["paperless", "mcp"],
+            },
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "incomplete Odoo MCP identity"):
+            runtime_environment(runtime, {})
+
     def test_local_production_override_reaches_the_pocket_id_runtime(self):
         runtime = {
             "id": "transition-current",
