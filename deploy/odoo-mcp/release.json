@@ -2,9 +2,9 @@
   "schema": "usl-odoo-mcp-release-v2",
   "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
   "ref": "codex/odoo-mcp-vps-refactor",
-  "commit": "2da51e7c596824d5226957777bbc1c70965ce9d4",
-  "image_tag": "usl-odoo-mcp:2da51e7c5968",
-  "image_digest": "usl-odoo-mcp@sha256:81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb",
+  "commit": "d6ef1e507af75f8ab4d295c52a0c3ce86821cabd",
+  "image_tag": "usl-odoo-mcp:d6ef1e507af7",
+  "image_digest": "usl-odoo-mcp@sha256:9ea7c1b2ed5a27b7762cc98e83e403757e7dfbd717ce64dfd775484b98fdfc7a",
   "compatibility": "deploy/odoo-mcp/compatibility.json",
   "compatibility_sha256": "1c02b45290a79a3abaa08babf292c0f155bfdaf796ed34318194388f8d7b32b2"
 }

@@ -39,70 +39,80 @@ class FakeRunner(CommandRunner):
         self.container_state = "running"
         self.foreign_workdir: str | None = None
         self.has_resources = True
+        self.mcp_present = True
+        self.mcp_state = "running"
         self.documents_pending = 0
 
     def run(self, arguments, *, cwd=None, env=None, check=True):
         command = tuple(arguments)
         self.calls.append(command)
         if command[:3] == ("docker", "ps", "-aq"):
+            identifiers = ["container-1", "db-1"]
+            if self.mcp_present:
+                identifiers.append("mcp-1")
             return Completed(
                 0,
-                "container-1\ndb-1\n" if self.has_resources else "",
+                "\n".join(identifiers) + "\n" if self.has_resources else "",
             )
         if command[:2] == ("docker", "inspect"):
             owner = self.foreign_workdir or str(self.root)
+            containers = [
+                {
+                    "Id": "container-1",
+                    "Name": "/runtime-odoo-1",
+                    "Image": "sha256:image",
+                    "Config": {
+                        "Labels": {
+                            "com.docker.compose.project": self.project,
+                            "com.docker.compose.project.working_dir": owner,
+                            "com.docker.compose.service": "odoo",
+                            "org.opencontainers.image.revision": "b" * 40,
+                        }
+                    },
+                    "State": {"Status": self.container_state},
+                },
+                {
+                    "Id": "db-1",
+                    "Name": "/runtime-db-1",
+                    "Image": "sha256:database",
+                    "Config": {
+                        "Labels": {
+                            "com.docker.compose.project": self.project,
+                            "com.docker.compose.project.working_dir": owner,
+                            "com.docker.compose.service": "db",
+                        }
+                    },
+                    "State": {"Status": self.container_state},
+                },
+            ]
+            if self.mcp_present:
+                containers.append(
+                    {
+                        "Id": "mcp-1",
+                        "Name": "/runtime-odoo-mcp-1",
+                        "Image": "sha256:mcp-image",
+                        "Config": {
+                            "Image": "usl-odoo-mcp@sha256:" + "a" * 64,
+                            "Labels": {
+                                "com.docker.compose.project": self.project,
+                                "com.docker.compose.project.working_dir": owner,
+                                "com.docker.compose.service": "odoo-mcp",
+                                "org.opencontainers.image.revision": "d6ef1e507af75f8ab4d295c52a0c3ce86821cabd",
+                            },
+                        },
+                        "State": {
+                            "Status": self.mcp_state,
+                            "Health": {"Status": "healthy"},
+                        },
+                    }
+                )
             return Completed(
                 0,
-                json.dumps(
-                    [
-                        {
-                            "Id": "container-1",
-                            "Name": "/runtime-odoo-1",
-                            "Image": "sha256:image",
-                            "Config": {
-                                "Labels": {
-                                    "com.docker.compose.project": self.project,
-                                    "com.docker.compose.project.working_dir": owner,
-                                    "com.docker.compose.service": "odoo",
-                                    "org.opencontainers.image.revision": "b" * 40,
-                                }
-                            },
-                            "State": {"Status": self.container_state},
-                        },
-                        {
-                            "Id": "mcp-1",
-                            "Name": "/runtime-odoo-mcp-1",
-                            "Image": "sha256:mcp-image",
-                            "Config": {
-                                "Image": "usl-odoo-mcp@sha256:" + "a" * 64,
-                                "Labels": {
-                                    "com.docker.compose.project": self.project,
-                                    "com.docker.compose.project.working_dir": owner,
-                                    "com.docker.compose.service": "odoo-mcp",
-                                    "org.opencontainers.image.revision": "2da51e7c596824d5226957777bbc1c70965ce9d4",
-                                },
-                            },
-                            "State": {
-                                "Status": self.container_state,
-                                "Health": {"Status": "healthy"},
-                            },
-                        },
-                        {
-                            "Id": "db-1",
-                            "Name": "/runtime-db-1",
-                            "Image": "sha256:database",
-                            "Config": {
-                                "Labels": {
-                                    "com.docker.compose.project": self.project,
-                                    "com.docker.compose.project.working_dir": owner,
-                                    "com.docker.compose.service": "db",
-                                }
-                            },
-                            "State": {"Status": self.container_state},
-                        },
-                    ]
-                ),
+                json.dumps(containers),
             )
+        if command[:3] == ("docker", "rm", "--force") and "mcp-1" in command:
+            self.mcp_present = False
+            return Completed(0, "mcp-1\n")
         if command[:3] == ("docker", "exec", "db-1"):
             return Completed(
                 0,
@@ -185,7 +195,7 @@ class MigrationManageTests(unittest.TestCase):
             "schema": "usl-odoo-mcp-release-v2",
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
             "ref": "codex/odoo-mcp-vps-refactor",
-            "commit": "2da51e7c596824d5226957777bbc1c70965ce9d4",
+            "commit": "d6ef1e507af75f8ab4d295c52a0c3ce86821cabd",
             "image": "usl-odoo-mcp@sha256:" + "a" * 64,
             "checkout": str(self.root / "odoo-mcp"),
         }
@@ -628,6 +638,76 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(saved["release_commit"], "c" * 40)
         self.assertEqual(saved["images"]["odoo"], "current-image")
         self.assertEqual(saved["images"]["odoo-mcp"], self.mcp["image"])
+        self.assertEqual(saved["finalization_resume_evidence"], str(report))
+
+    def test_completed_finalization_retries_only_failed_mcp_start(self):
+        runtime_id = "transition-services"
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": runtime_id,
+            "kind": "transition",
+            "status": "finalizing",
+            "release_commit": "b" * 40,
+            "source": {"dump_sha256": "e" * 64},
+            "private_directory": str(
+                self.root / "private/migration/runtimes" / runtime_id
+            ),
+            "compose": {
+                "project": self.runner.project,
+                "working_directory": str(self.root),
+            },
+            "resources": inspect_project(self.runner, self.runner.project, self.root),
+            "images": {"odoo": "current-image", "odoo-mcp": self.mcp["image"]},
+            "mcp": self.mcp,
+        }
+        RuntimeStore(self.root).create(runtime, {})
+        run_directory = self.root / "private/migration/runs"
+        run_directory.mkdir(parents=True)
+        report = run_directory / f"{runtime_id}-20260830T160000Z.json"
+        stages = [
+            "apply target configuration",
+            "verify empty outbound queues after target configuration",
+            "multi-company acceptance",
+            "finalize Documents runtime and drain attachment queue",
+            "seal final Documents archive evidence",
+            "neutralize transition side effects",
+            "verify final empty outbound queues",
+        ]
+        report.write_text(
+            json.dumps(
+                {
+                    "schema": "usl-production-migration-run-v2",
+                    "outcome": "passed",
+                    "purpose": "production",
+                    "source_dump_sha256": "e" * 64,
+                    "compose_project": self.runner.project,
+                    "git_commit": "b" * 40,
+                    "stages": [{"name": name, "status": 0} for name in stages],
+                }
+            ),
+            encoding="utf-8",
+        )
+        report.chmod(0o600)
+        self.runner.mcp_state = "exited"
+        arguments = Namespace(
+            action="resume-finalization",
+            runtime=runtime_id,
+            confirm=f"RESUME-FINALIZATION:{runtime_id}",
+            image=["odoo=current-image"],
+        )
+        with (
+            patch.object(manager, "ensure_clean_checkout", return_value="c" * 40),
+            patch.object(manager, "run_internal") as internal,
+            patch.object(manager, "start_mcp_runtime") as start_mcp,
+        ):
+            result = manager.command_transition(arguments, self.runner)
+
+        self.assertEqual(result["status"], "reconstructed")
+        internal.assert_not_called()
+        start_mcp.assert_called_once()
+        self.assertIn(("docker", "rm", "--force", "mcp-1"), self.runner.calls)
+        saved = RuntimeStore(self.root).load(runtime_id)
+        self.assertEqual(saved["release_commit"], "c" * 40)
         self.assertEqual(saved["finalization_resume_evidence"], str(report))
 
     def test_finalization_rebinds_mcp_only_before_its_container_exists(self):

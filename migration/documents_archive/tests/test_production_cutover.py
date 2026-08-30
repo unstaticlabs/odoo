@@ -28,7 +28,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.dss_image = f"ghcr.io/usl/sign-dss@sha256:{'1' * 64}"
         self.mcp_image = (
             "usl-odoo-mcp@sha256:"
-            "81642ab9788cc4c5e40f55c5aefb7cc8041e6364960bb7cf139651d639cb0dcb"
+            "9ea7c1b2ed5a27b7762cc98e83e403757e7dfbd717ce64dfd775484b98fdfc7a"
         )
         self.project = "usl-odoo-production-main"
         self.candidate = {
@@ -81,7 +81,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_MCP_IMAGE": self.mcp_image,
             "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
             "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
-            "ODOO_MCP_RELEASE_COMMIT": "2da51e7c596824d5226957777bbc1c70965ce9d4",
+            "ODOO_MCP_RELEASE_COMMIT": "d6ef1e507af75f8ab4d295c52a0c3ce86821cabd",
             "ODOO_LIST_DB": "False",
             "ODOO_LIMIT_MEMORY_HARD": "1342177280",
             "ODOO_LIMIT_MEMORY_SOFT": "1073741824",

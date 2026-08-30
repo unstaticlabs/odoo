@@ -608,6 +608,62 @@ def require_failed_finalization_evidence(runtime: dict[str, Any]) -> Path:
     )
 
 
+def require_completed_finalization_evidence(runtime: dict[str, Any]) -> Path:
+    """Prove all database finalization gates passed before retrying services only."""
+    run_directory = ROOT / "private/migration/runs"
+    required_stages = {
+        "apply target configuration",
+        "verify empty outbound queues after target configuration",
+        "multi-company acceptance",
+        "finalize Documents runtime and drain attachment queue",
+        "seal final Documents archive evidence",
+        "neutralize transition side effects",
+        "verify final empty outbound queues",
+    }
+    for report_path in reversed(sorted(run_directory.glob(f"{runtime['id']}-*.json"))):
+        private_file(report_path)
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("completed finalization report is invalid") from error
+        stages = {
+            item.get("name"): item.get("status")
+            for item in report.get("stages", [])
+            if isinstance(item, dict)
+        }
+        if (
+            report.get("schema") == "usl-production-migration-run-v2"
+            and report.get("outcome") == "passed"
+            and report.get("purpose") == "production"
+            and report.get("source_dump_sha256") == runtime["source"]["dump_sha256"]
+            and report.get("compose_project") == runtime["compose"]["project"]
+            and report.get("git_commit") == runtime["release_commit"]
+            and all(stages.get(name) == 0 for name in required_stages)
+        ):
+            return report_path
+    raise RuntimeError("service resume requires exact completed finalization evidence")
+
+
+def remove_failed_mcp_containers(
+    runtime: dict[str, Any], resources: dict[str, Any], runner: CommandRunner
+) -> dict[str, Any]:
+    """Remove only stopped project-owned MCP containers; preserve their volume."""
+    recorded_volumes = {item["name"] for item in runtime["resources"].get("volumes", [])}
+    current_volumes = {item["name"] for item in resources.get("volumes", [])}
+    if not recorded_volumes.issubset(current_volumes):
+        raise RuntimeError("service resume is missing a recorded runtime volume")
+    containers = [
+        item
+        for item in resources["containers"]
+        if item.get("service") in {"odoo-mcp", "odoo-mcp-oauth-init"}
+    ]
+    if any(item.get("state") == "running" for item in containers):
+        raise RuntimeError("service resume refuses to replace a running Odoo MCP service")
+    if containers:
+        runner.run(["docker", "rm", "--force", *(item["id"] for item in containers)])
+    return inspect_project(runner, runtime["compose"]["project"], ROOT)
+
+
 def ttl_minutes(value: str) -> int:
     match = TTL.fullmatch(value)
     if not match:
@@ -863,13 +919,20 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         runtime["status"] = "reconstructed"
     elif args.action == "resume-finalization":
         confirm(args, "RESUME-FINALIZATION")
-        if runtime["status"] != "failed":
+        services_only = runtime["status"] == "finalizing"
+        if runtime["status"] not in {"failed", "finalizing"}:
             raise RuntimeError("only a failed transition reconstruction can resume finalization")
         release_commit = ensure_clean_checkout()
-        recover_failed_runtime_resources(runtime, store, runner)
         current = inspect_project(runner, runtime["compose"]["project"], ROOT)
-        verify_recorded_resources(runtime["resources"], current)
-        evidence = require_failed_finalization_evidence(runtime)
+        if services_only:
+            evidence = require_completed_finalization_evidence(runtime)
+            current = remove_failed_mcp_containers(runtime, current, runner)
+            runtime["resources"] = current
+        else:
+            recover_failed_runtime_resources(runtime, store, runner)
+            current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+            verify_recorded_resources(runtime["resources"], current)
+            evidence = require_failed_finalization_evidence(runtime)
         rebind_mcp_release(runtime, current)
         runtime["images"] = apply_runtime_image_assignments(
             runtime, getattr(args, "image", None) or []
@@ -878,21 +941,24 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         runtime["status"] = "finalizing"
         runtime["finalization_resume_evidence"] = str(evidence)
         record(store, runtime, "transition.resume-finalization.start")
+        finalization_passed = services_only
         try:
-            run_internal(
-                runtime,
-                store.secrets(args.runtime),
-                runner,
-                [str(INTERNAL / "reconstruct"), "transition-finalize"],
-            )
+            if not services_only:
+                run_internal(
+                    runtime,
+                    store.secrets(args.runtime),
+                    runner,
+                    [str(INTERNAL / "reconstruct"), "transition-finalize"],
+                )
+                finalization_passed = True
+            start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
         except RuntimeError:
             runtime["resources"] = inspect_project(
                 runner, runtime["compose"]["project"], ROOT
             )
-            runtime["status"] = "failed"
+            runtime["status"] = "finalizing" if finalization_passed else "failed"
             record(store, runtime, "transition.resume-finalization", "failed")
             raise
-        start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
         runtime["resources"] = inspect_project(runner, runtime["compose"]["project"], ROOT)
         runtime["status"] = "reconstructed"
     elif args.action == "mark-live":
