@@ -524,6 +524,39 @@ def recover_failed_runtime_resources(
     record(store, runtime, "runtime.recover-failed-resources")
 
 
+def require_failed_finalization_evidence(runtime: dict[str, Any]) -> Path:
+    """Allow a retry only after source restoration and boundary cleanup passed."""
+    run_directory = ROOT / "private/migration/runs"
+    candidates = sorted(run_directory.glob(f"{runtime['id']}-*.json"))
+    if not candidates:
+        raise RuntimeError("finalization resume requires a failed reconstruction report")
+    for report_path in reversed(candidates):
+        private_file(report_path)
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("failed reconstruction report is invalid") from error
+        stages = {
+            item.get("name"): item.get("status")
+            for item in report.get("stages", [])
+            if isinstance(item, dict)
+        }
+        if (
+            report.get("schema") == "usl-production-migration-run-v2"
+            and report.get("outcome") == "failed"
+            and report.get("purpose") == "production"
+            and report.get("source_dump_sha256") == runtime["source"]["dump_sha256"]
+            and report.get("compose_project") == runtime["compose"]["project"]
+            and stages.get("finalize migration boundary") == 0
+            and isinstance(stages.get("apply target configuration"), int)
+            and stages["apply target configuration"] != 0
+        ):
+            return report_path
+    raise RuntimeError(
+        "finalization resume requires exact evidence of a post-boundary configuration failure"
+    )
+
+
 def ttl_minutes(value: str) -> int:
     match = TTL.fullmatch(value)
     if not match:
@@ -774,6 +807,40 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             )
             runtime["status"] = "failed"
             record(store, runtime, "transition.reconstruct", "failed")
+            raise
+        start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
+        runtime["resources"] = inspect_project(runner, runtime["compose"]["project"], ROOT)
+        runtime["status"] = "reconstructed"
+    elif args.action == "resume-finalization":
+        confirm(args, "RESUME-FINALIZATION")
+        if runtime["status"] != "failed":
+            raise RuntimeError("only a failed transition reconstruction can resume finalization")
+        release_commit = ensure_clean_checkout()
+        recover_failed_runtime_resources(runtime, store, runner)
+        current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+        verify_recorded_resources(runtime["resources"], current)
+        evidence = require_failed_finalization_evidence(runtime)
+        runtime["images"] = apply_image_assignments(
+            runtime.get("images") or {},
+            getattr(args, "image", None) or [],
+        )
+        runtime["release_commit"] = release_commit
+        runtime["status"] = "finalizing"
+        runtime["finalization_resume_evidence"] = str(evidence)
+        record(store, runtime, "transition.resume-finalization.start")
+        try:
+            run_internal(
+                runtime,
+                store.secrets(args.runtime),
+                runner,
+                [str(INTERNAL / "reconstruct"), "transition-finalize"],
+            )
+        except RuntimeError:
+            runtime["resources"] = inspect_project(
+                runner, runtime["compose"]["project"], ROOT
+            )
+            runtime["status"] = "failed"
+            record(store, runtime, "transition.resume-finalization", "failed")
             raise
         start_mcp_runtime(runtime, store.secrets(args.runtime), runner)
         runtime["resources"] = inspect_project(runner, runtime["compose"]["project"], ROOT)
@@ -1029,12 +1096,19 @@ def parser() -> argparse.ArgumentParser:
 
     transition = domains.add_parser("transition")
     transition_actions = transition.add_subparsers(dest="action", required=True)
-    for action in ("reconstruct", "mark-live", "freeze", "retire"):
+    for action in (
+        "reconstruct",
+        "resume-finalization",
+        "mark-live",
+        "freeze",
+        "retire",
+    ):
         item = transition_actions.add_parser(action)
         item.add_argument("--runtime", required=True)
         item.add_argument("--confirm", required=True)
-        if action == "reconstruct":
+        if action in {"reconstruct", "resume-finalization"}:
             common_runtime_arguments(item, required=False, adoption=False)
+        if action == "reconstruct":
             item.add_argument("--secrets-file", type=Path)
     for action in ("status", "start", "stop"):
         item = transition_actions.add_parser(action)

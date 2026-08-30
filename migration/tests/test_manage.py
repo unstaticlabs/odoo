@@ -565,6 +565,69 @@ class MigrationManageTests(unittest.TestCase):
         self.assertIn(("docker", "rm", "--force", "container-1", "db-1", "mcp-1"), self.runner.calls)
         self.assertIn(("docker", "volume", "rm", "runtime-data"), self.runner.calls)
 
+    def test_failed_post_boundary_transition_resumes_only_finalization(self):
+        runtime_id = "transition-current"
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": runtime_id,
+            "kind": "transition",
+            "status": "failed",
+            "release_commit": "b" * 40,
+            "source": {"dump_sha256": "e" * 64},
+            "private_directory": str(
+                self.root / "private/migration/runtimes" / runtime_id
+            ),
+            "compose": {
+                "project": self.runner.project,
+                "working_directory": str(self.root),
+            },
+            "resources": inspect_project(self.runner, self.runner.project, self.root),
+            "images": {"odoo": "old-image"},
+        }
+        RuntimeStore(self.root).create(runtime, {})
+        run_directory = self.root / "private/migration/runs"
+        run_directory.mkdir(parents=True)
+        report = run_directory / f"{runtime_id}-20260830T150000Z.json"
+        report.write_text(
+            json.dumps(
+                {
+                    "schema": "usl-production-migration-run-v2",
+                    "outcome": "failed",
+                    "purpose": "production",
+                    "source_dump_sha256": "e" * 64,
+                    "compose_project": self.runner.project,
+                    "stages": [
+                        {"name": "finalize migration boundary", "status": 0},
+                        {"name": "apply target configuration", "status": 1},
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        report.chmod(0o600)
+        arguments = Namespace(
+            action="resume-finalization",
+            runtime=runtime_id,
+            confirm=f"RESUME-FINALIZATION:{runtime_id}",
+            image=["odoo=current-image"],
+        )
+        with (
+            patch.object(manager, "ensure_clean_checkout", return_value="c" * 40),
+            patch.object(manager, "run_internal") as internal,
+            patch.object(manager, "start_mcp_runtime"),
+        ):
+            result = manager.command_transition(arguments, self.runner)
+
+        self.assertEqual(result["status"], "reconstructed")
+        self.assertEqual(
+            internal.call_args.args[3],
+            [str(self.root / "migration/internal/reconstruct"), "transition-finalize"],
+        )
+        saved = RuntimeStore(self.root).load(runtime_id)
+        self.assertEqual(saved["release_commit"], "c" * 40)
+        self.assertEqual(saved["images"]["odoo"], "current-image")
+        self.assertEqual(saved["finalization_resume_evidence"], str(report))
+
     def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
         models = self.root / "models"
         manifest = models / "manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1"

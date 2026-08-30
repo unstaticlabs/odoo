@@ -7,9 +7,15 @@ cd "$ROOT"
 MIGRATION="$ROOT/migration/internal"
 
 mode="${1:-}"
+runtime_kind="$mode"
+finalize_only=0
 case "$mode" in
   qa|transition) ;;
-  *) printf 'Internal reconstruction mode must be qa or transition.\n' >&2; exit 2 ;;
+  transition-finalize)
+    runtime_kind=transition
+    finalize_only=1
+    ;;
+  *) printf 'Internal reconstruction mode must be qa, transition, or transition-finalize.\n' >&2; exit 2 ;;
 esac
 
 runtime_state="${USL_MIGRATION_RUNTIME_STATE:-}"
@@ -17,7 +23,7 @@ if [[ -z "$runtime_state" ]]; then
   printf 'Reconstruction must be invoked through migration/manage.\n' >&2
   exit 2
 fi
-python3 - "$runtime_state" "$mode" "$ROOT" <<'PY'
+python3 - "$runtime_state" "$runtime_kind" "$ROOT" <<'PY'
 import json
 import os
 import stat
@@ -76,7 +82,7 @@ export COMPOSE_IGNORE_ORPHANS=1
 export USL_QA_DATA_PROFILE=full
 export USL_MIGRATION_PURPOSE="$mode"
 evidence_purpose=qa
-if [[ "$mode" == transition ]]; then
+if [[ "$runtime_kind" == transition ]]; then
   evidence_purpose=production
 fi
 
@@ -232,70 +238,72 @@ finalize_migration_boundary() {
 run_stage "Docker resource preflight" "$MIGRATION/resource-preflight"
 run_stage "Personal AI key preflight" prepare_personal_ai_keyring
 run_stage "start target database" docker compose -p "$compose_project" up -d --wait db
-stop_product
-run_stage "restore source database" "$MIGRATION/accounting-compat" source-restore
-run_stage "source coverage gate" "$MIGRATION/source-truth" gate
-run_stage "attachment disposition gate" "$MIGRATION/attachment-ledger" gate
-run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
-run_stage "source accounting controls" "$MIGRATION/accounting-compat" source-controls
-run_stage "extract accounting source" "$MIGRATION/accounting-compat" extract
-run_stage "reset target database" "$MIGRATION/accounting-compat" dev-reset
-stop_product
-run_stage "import accounting" "$MIGRATION/accounting-compat" dev-import
-stop_product
-run_stage "validate accounting" "$MIGRATION/accounting-compat" dev-validate
-stop_product
-run_stage "verify empty outbound queues after Accounting" \
-  "$MIGRATION/outbound-safety" post-accounting
-run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" prepare-target
-stop_product
-run_stage "install identity restoration" "$MIGRATION/identity-restore" install
-run_stage "restore identities" "$MIGRATION/identity-restore" import
-run_stage "validate identities" "$MIGRATION/identity-restore" validate
-stop_product
-run_stage "install product restoration" "$MIGRATION/product-restore" install
-run_stage "restore product data" "$MIGRATION/product-restore" import
-run_stage "validate product data" "$MIGRATION/product-restore" validate
-stop_product
-run_stage "repair Expense Batch transition" "$MIGRATION/accounting-restore" expense-batch-transition
-stop_product
-run_stage "repair final Accounting attachment targets" "$MIGRATION/accounting-restore" attachment-targets
-stop_product
-run_stage "restore B2C commerce evidence" env B2C_REQUIRE_FINAL_RELATIONSHIPS=0 \
-  "$MIGRATION/b2c-restore" all
-stop_product
-run_stage "install HR restoration" "$MIGRATION/hr-restore" install
-run_stage "restore HR" "$MIGRATION/hr-restore" import
-run_stage "validate HR" "$MIGRATION/hr-restore" validate
-stop_product
-run_stage "restore Projects" restore_projects
-stop_product
-run_stage "finalize source-backed saved preferences" "$MIGRATION/identity-restore" preferences
-stop_product
-run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_CANONICAL_RESET=1 \
-  DOCUMENTS_RESTORE_PROFILE=full \
-  DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" all
-stop_product
-run_stage "finalize B2C relationships and Documents links" env \
-  B2C_REQUIRE_FINAL_RELATIONSHIPS=1 "$MIGRATION/b2c-restore" all
-stop_product
-run_stage "prepare Sign external archive" env SIGN_CANONICAL_TARGET=1 \
-  SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" prepare-target
-stop_product
-run_stage "restore Sign external archive" env SIGN_CANONICAL_TARGET=1 \
-  SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" all
-stop_product
-run_stage "restore Paie TESE" restore_tese
-stop_product
-run_stage "restore Platform Billing" restore_platform_billing
-stop_product
-run_stage "restore Collaboration history" "$MIGRATION/collaboration-restore" all
-stop_product
-run_stage "verify empty outbound queues after source restoration" \
-  "$MIGRATION/outbound-safety" post-source-restoration
-run_stage "finalize migration boundary" finalize_migration_boundary
+if (( ! finalize_only )); then
+  stop_product
+  run_stage "restore source database" "$MIGRATION/accounting-compat" source-restore
+  run_stage "source coverage gate" "$MIGRATION/source-truth" gate
+  run_stage "attachment disposition gate" "$MIGRATION/attachment-ledger" gate
+  run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
+  run_stage "source accounting controls" "$MIGRATION/accounting-compat" source-controls
+  run_stage "extract accounting source" "$MIGRATION/accounting-compat" extract
+  run_stage "reset target database" "$MIGRATION/accounting-compat" dev-reset
+  stop_product
+  run_stage "import accounting" "$MIGRATION/accounting-compat" dev-import
+  stop_product
+  run_stage "validate accounting" "$MIGRATION/accounting-compat" dev-validate
+  stop_product
+  run_stage "verify empty outbound queues after Accounting" \
+    "$MIGRATION/outbound-safety" post-accounting
+  run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" prepare-target
+  stop_product
+  run_stage "install identity restoration" "$MIGRATION/identity-restore" install
+  run_stage "restore identities" "$MIGRATION/identity-restore" import
+  run_stage "validate identities" "$MIGRATION/identity-restore" validate
+  stop_product
+  run_stage "install product restoration" "$MIGRATION/product-restore" install
+  run_stage "restore product data" "$MIGRATION/product-restore" import
+  run_stage "validate product data" "$MIGRATION/product-restore" validate
+  stop_product
+  run_stage "repair Expense Batch transition" "$MIGRATION/accounting-restore" expense-batch-transition
+  stop_product
+  run_stage "repair final Accounting attachment targets" "$MIGRATION/accounting-restore" attachment-targets
+  stop_product
+  run_stage "restore B2C commerce evidence" env B2C_REQUIRE_FINAL_RELATIONSHIPS=0 \
+    "$MIGRATION/b2c-restore" all
+  stop_product
+  run_stage "install HR restoration" "$MIGRATION/hr-restore" install
+  run_stage "restore HR" "$MIGRATION/hr-restore" import
+  run_stage "validate HR" "$MIGRATION/hr-restore" validate
+  stop_product
+  run_stage "restore Projects" restore_projects
+  stop_product
+  run_stage "finalize source-backed saved preferences" "$MIGRATION/identity-restore" preferences
+  stop_product
+  run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_CANONICAL_RESET=1 \
+    DOCUMENTS_RESTORE_PROFILE=full \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" all
+  stop_product
+  run_stage "finalize B2C relationships and Documents links" env \
+    B2C_REQUIRE_FINAL_RELATIONSHIPS=1 "$MIGRATION/b2c-restore" all
+  stop_product
+  run_stage "prepare Sign external archive" env SIGN_CANONICAL_TARGET=1 \
+    SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" prepare-target
+  stop_product
+  run_stage "restore Sign external archive" env SIGN_CANONICAL_TARGET=1 \
+    SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" all
+  stop_product
+  run_stage "restore Paie TESE" restore_tese
+  stop_product
+  run_stage "restore Platform Billing" restore_platform_billing
+  stop_product
+  run_stage "restore Collaboration history" "$MIGRATION/collaboration-restore" all
+  stop_product
+  run_stage "verify empty outbound queues after source restoration" \
+    "$MIGRATION/outbound-safety" post-source-restoration
+  run_stage "finalize migration boundary" finalize_migration_boundary
+fi
 run_stage "apply target configuration" "$MIGRATION/finalize"
 run_stage "verify empty outbound queues after target configuration" \
   "$MIGRATION/outbound-safety" post-target-configuration
@@ -308,7 +316,7 @@ run_stage "finalize Documents runtime and drain attachment queue" \
 run_stage "seal final Documents archive evidence" env DOCUMENTS_CANONICAL_TARGET=1 \
   DOCUMENTS_RESTORE_PROFILE=full DOCUMENTS_TARGET_DATABASE=odoo_dev \
   "$MIGRATION/documents-restore" seal-evidence
-if [[ "$mode" == transition ]]; then
+if [[ "$runtime_kind" == transition ]]; then
   run_stage "neutralize transition side effects" "$MIGRATION/transition-neutralize"
 fi
 run_stage "verify final empty outbound queues" "$MIGRATION/outbound-safety" final-reconstruction
