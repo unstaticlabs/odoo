@@ -239,6 +239,18 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("contacts", surface_modules)
         self.assertFalse(excluded & surface_modules)
 
+    def test_target_finalization_rechecks_scope_after_module_installation(self) -> None:
+        target_finalize = (ROOT / "migration/internal/finalize").read_text(
+            encoding="utf-8"
+        )
+        scope_gate = "< scripts/odoo/enforce_product_module_scope.py"
+
+        self.assertEqual(target_finalize.count(scope_gate), 2)
+        self.assertGreater(
+            target_finalize.rindex(scope_gate),
+            target_finalize.index('scripts/pocket-id-dev configure-odoo "$product_modules_csv"'),
+        )
+
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)
         self.assertIn("digest_reference=$DISTRIBUTION_IMAGE@$digest", self.workflow)
