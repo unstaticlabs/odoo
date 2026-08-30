@@ -154,6 +154,38 @@ test("multi-company mode labels combined widgets and accounting contributions", 
     );
 });
 
+test("all accounting alerts remain on one responsive row", async () => {
+    const labels = [
+        "Closing blockers",
+        "Declarations requiring attention",
+        "Accounting reviews pending",
+        "Bank items to review",
+        "Supplier documents missing evidence",
+        "Expenses missing receipts",
+        "Accounting hygiene issues",
+    ];
+    onRpc("usl.home.service", "get_accounting_alerts", () => ({
+        scope: configuration.company_scope,
+        company: { id: 1, name: "Unstatic Labs" },
+        alerts: labels.map((label, index) => ({
+            key: `alert_${index}`,
+            label,
+            count: index + 1,
+            status: "review",
+            companies: [{ id: 1, name: "Unstatic Labs", count: index + 1 }],
+        })),
+    }));
+
+    await mountWithCleanup(UslHome);
+    await animationFrame();
+
+    const rail = document.querySelector(".o_usl_home_accounting_alerts");
+    const alerts = [...rail.querySelectorAll("button")];
+    expect(alerts).toHaveLength(7);
+    expect(getComputedStyle(rail).gridAutoFlow).toBe("column");
+    expect(new Set(alerts.map((alert) => Math.round(alert.getBoundingClientRect().top))).size).toBe(1);
+});
+
 test("every task metric opens its exact filtered action", async () => {
     const requests = [];
     const actions = [];

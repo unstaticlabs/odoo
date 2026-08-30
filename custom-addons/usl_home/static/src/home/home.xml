@@ -173,7 +173,7 @@
 
                     <t t-if="widgetKey === 'accounting' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
                         <div t-if="widgetState(widgetKey).data.alerts.length" class="o_usl_home_accounting_alerts">
-                            <button t-foreach="widgetState(widgetKey).data.alerts" t-as="alert" t-key="alert.key" type="button" t-on-click="() => this.openAccountingAlert(alert.key)">
+                            <button t-foreach="widgetState(widgetKey).data.alerts" t-as="alert" t-key="alert.key" type="button" t-on-click="() => this.openAccountingAlert(alert.key)" t-att-title="alert.label">
                                 <span class="o_usl_home_alert_icon" t-att-data-status="alert.status"><i class="fa" t-att-class="this.accountingIcon(alert.key)" aria-hidden="true"/></span>
                                 <span>
                                     <strong class="o_usl_home_alert_count" t-esc="alert.count"/>

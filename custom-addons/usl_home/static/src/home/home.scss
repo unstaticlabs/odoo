@@ -400,9 +400,13 @@
 
 .o_usl_home_accounting_alerts {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(10.5rem, 1fr);
     gap: .75rem;
     padding: .25rem 1rem 1rem;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
 
     button {
         display: grid;
@@ -424,7 +428,14 @@
         > span:nth-child(2) {
             min-width: 0;
             strong, small { display: block; }
-            small { margin-top: .1rem; color: var(--usl-home-muted); line-height: 1.25; }
+            small {
+                margin-top: .1rem;
+                overflow: hidden;
+                color: var(--usl-home-muted);
+                line-height: 1.25;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
             .o_usl_home_alert_breakdown {
                 margin-top: .3rem;
             }
@@ -454,7 +465,6 @@
 @media (max-width: 991.98px) {
     .o_usl_home_widget,
     .o_usl_home_widget[data-widget] { grid-column: 1 / -1; min-height: auto; }
-    .o_usl_home_accounting_alerts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 767.98px) {
@@ -476,7 +486,6 @@
     .o_usl_home_task_signals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .o_usl_home_task_signals button:nth-child(2) { border-inline-end: 0; }
     .o_usl_home_task_signals button:nth-child(-n+2) { border-bottom: 1px solid var(--usl-home-border); }
-    .o_usl_home_accounting_alerts { grid-template-columns: 1fr; }
     .o_usl_home_favorite_controls .btn { padding-inline: .35rem; }
 }
 
