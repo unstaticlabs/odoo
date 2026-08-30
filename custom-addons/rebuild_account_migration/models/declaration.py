@@ -587,6 +587,7 @@ class RebuildAccountDeclaration(models.Model):
     applicability = fields.Selection(
         [("applicable", "Applicable"), ("conditional", "Conditional Review"), ("not_applicable", "Not Applicable")],
         required=True,
+        readonly=True,
         default="applicable",
         index=True,
     )
@@ -606,6 +607,7 @@ class RebuildAccountDeclaration(models.Model):
             ("not_applicable", "Not Applicable"),
         ],
         required=True,
+        readonly=True,
         default="to_prepare",
         index=True,
         tracking=True,
@@ -613,6 +615,7 @@ class RebuildAccountDeclaration(models.Model):
     validation_status = fields.Selection(
         [("not_run", "Not Run"), ("ready", "Ready"), ("warning", "Warning"), ("blocked", "Blocked")],
         required=True,
+        readonly=True,
         default="not_run",
         index=True,
         tracking=True,
@@ -625,6 +628,7 @@ class RebuildAccountDeclaration(models.Model):
             ("not_required", "Not Required"),
         ],
         required=True,
+        readonly=True,
         default="missing_data",
         index=True,
         tracking=True,
@@ -639,6 +643,7 @@ class RebuildAccountDeclaration(models.Model):
             ("rejected", "Rejected / Changes Required"),
         ],
         required=True,
+        readonly=True,
         default="not_started",
         tracking=True,
     )
@@ -651,6 +656,7 @@ class RebuildAccountDeclaration(models.Model):
             ("rejected", "Rejected Externally"),
         ],
         required=True,
+        readonly=True,
         default="not_open",
         tracking=True,
     )

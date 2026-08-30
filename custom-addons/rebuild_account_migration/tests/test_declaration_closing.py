@@ -6,6 +6,8 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
@@ -78,6 +80,61 @@ class TestDeclarationAndClosing(TransactionCase):
             "acceptance_status", "amount_due",
         ):
             self.assertTrue(Declaration._fields[field_name].tracking)
+
+    def test_declaration_views_distinguish_automatic_and_user_managed_statuses(self):
+        Declaration = self.env["rebuild.account.declaration"]
+        for field_name in (
+            "applicability",
+            "status",
+            "validation_status",
+            "preparation_status",
+            "review_status",
+            "filing_status",
+        ):
+            self.assertTrue(Declaration._fields[field_name].readonly)
+        self.assertFalse(Declaration._fields["acceptance_status"].readonly)
+        self.assertFalse(Declaration._fields["payment_status"].readonly)
+
+        list_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_account_declaration_list",
+            ).arch_db,
+        )
+        self.assertFalse(list_arch.xpath("//field[@name='preparation_status']"))
+        validation_nodes = list_arch.xpath("//field[@name='validation_status']")
+        self.assertEqual(len(validation_nodes), 1)
+        self.assertEqual(validation_nodes[0].get("column_invisible"), "True")
+
+        form_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_account_declaration_form",
+            ).arch_db,
+        )
+        for field_name in (
+            "applicability",
+            "preparation_status",
+            "validation_status",
+            "review_status",
+            "filing_status",
+        ):
+            nodes = form_arch.xpath(
+                f"//sheet//field[@name='{field_name}']",
+            )
+            self.assertTrue(nodes, field_name)
+            self.assertTrue(all(node.get("widget") == "badge" for node in nodes))
+            self.assertTrue(all(node.get("readonly") == "1" for node in nodes))
+            self.assertTrue(
+                all(
+                    any(key.startswith("decoration-") for key in node.attrib)
+                    for node in nodes
+                ),
+                field_name,
+            )
+        for field_name in ("acceptance_status", "payment_status"):
+            node = form_arch.xpath(
+                f"//sheet//field[@name='{field_name}']",
+            )[0]
+            self.assertEqual(node.get("widget"), "badges_selection")
 
     def _declaration(self, company, rule_xmlid="declaration_rule_3517_2026"):
         rule = self.env.ref(f"rebuild_account_migration.{rule_xmlid}")
