@@ -464,6 +464,15 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
                 "USL_NATIVE_OLLAMA_CONTAINER_URL": runtime["ollama"]["container_url"],
             }
         )
+    local_production_overrides = [
+        path
+        for path in runtime["compose"]["files"]
+        if Path(path).name == "compose.production.yaml"
+    ]
+    if len(local_production_overrides) > 1:
+        raise RuntimeError("runtime has multiple local production Compose overrides")
+    if local_production_overrides:
+        environment["USL_POCKET_ID_COMPOSE_EXTRA_FILE"] = local_production_overrides[0]
     images = runtime.get("images") or {}
     # Docker inspection reports local content IDs (``sha256:...``) for
     # adopted containers. They are useful evidence, but not stable Compose

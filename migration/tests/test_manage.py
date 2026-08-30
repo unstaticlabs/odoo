@@ -329,6 +329,36 @@ class MigrationManageTests(unittest.TestCase):
             environment["PAPERLESS_IMAGE"], runtime["images"]["paperless-webserver"]
         )
 
+    def test_local_production_override_reaches_the_pocket_id_runtime(self):
+        runtime = {
+            "id": "transition-current",
+            "database": "odoo_dev",
+            "ports": {"odoo": 28669, "gevent": 28670, "paperless": 28672, "pocket_id": 28671},
+            "urls": {
+                "odoo": "http://odoo.localhost:28669",
+                "paperless": "http://paperless.localhost:28672",
+                "pocket_id": "http://pocket-id.localhost:28671",
+            },
+            "source": {"path": str(self.source), "dump_sha256": "a" * 64},
+            "private_directory": str(self.root / "private/migration/runtimes/transition-current"),
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {
+                "mode": "container",
+                "model": "model",
+                "manifest_sha256": "b" * 64,
+            },
+            "compose": {
+                "project": "fixed-runtime",
+                "working_directory": str(self.root),
+                "files": [str(self.root / "compose.yaml"), str(self.root / "compose.production.yaml")],
+            },
+        }
+        environment = runtime_environment(runtime, {})
+        self.assertEqual(
+            environment["USL_POCKET_ID_COMPOSE_EXTRA_FILE"],
+            str(self.root / "compose.production.yaml"),
+        )
+
     def test_resolved_compose_environment_has_one_stable_private_path(self):
         runtime = {
             "id": "qa-current",
