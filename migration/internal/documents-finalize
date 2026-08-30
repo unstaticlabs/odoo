@@ -8,8 +8,13 @@ cd "$ROOT"
 runtime_state="${USL_MIGRATION_RUNTIME_STATE:-}"
 compose_project="${COMPOSE_PROJECT_NAME:-}"
 target_database="${ODOO_DEV_DB:-}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-}"
 if [[ -z "$runtime_state" || -z "$compose_project" || -z "$target_database" ]]; then
   printf 'Documents finalization must be invoked through migration/manage.\n' >&2
+  exit 2
+fi
+if [[ -z "$source_dump_dir" || ! -d "$source_dump_dir/filestore" ]]; then
+  printf 'Documents finalization requires the recorded frozen-source filestore.\n' >&2
   exit 2
 fi
 if [[ "$target_database" == odoo_online_source_saas_19_3 ]]; then
@@ -43,6 +48,7 @@ docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
 export DOCUMENTS_SOURCE_DB_PASSWORD="${POSTGRES_PASSWORD:-${ODOO_DB_PASSWORD:-odoo}}"
 docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
   -v "$ROOT/migration:/mnt/repository/migration:ro" \
+  -v "$source_dump_dir:/mnt/accounting-source:ro" \
   -e PYTHONPATH=/mnt/repository \
   -e ODOO_INIT_DB="$target_database" \
   -e PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000 \
