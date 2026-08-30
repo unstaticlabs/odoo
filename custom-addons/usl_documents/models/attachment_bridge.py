@@ -741,20 +741,36 @@ class IrAttachment(models.Model):
             return self.env["usl.document.operation"]
         queued = self.env["usl.document.operation"]
         for attachment in self:
+            # Capture source audit timestamps before policy resolution writes its
+            # archival ledger fields on the attachment.  Those internal writes
+            # must never become the document's historical modification date.
+            original_created_at = fields.Datetime.to_datetime(
+                self.env.context.get("usl_documents_original_created_at"),
+            ) or attachment.create_date
+            original_modified_at = fields.Datetime.to_datetime(
+                self.env.context.get("usl_documents_original_modified_at"),
+            ) or attachment.write_date or original_created_at
             eligible, _reason = attachment._usl_documents_archive_eligibility(
                 force_on_request=force_on_request,
                 origin=origin,
                 refresh=refresh,
             )
             if eligible:
-                queued |= self.env["usl.document.operation"]._queue_attachment(
-                    attachment,
-                    source=(
-                        "odoo_generated"
-                        if attachment.usl_documents_origin == "generated_final"
-                        else "odoo_attachment"
-                    ),
-                    force_on_request=force_on_request,
+                queued |= (
+                    self.env["usl.document.operation"]
+                    .with_context(
+                        usl_documents_original_created_at=original_created_at,
+                        usl_documents_original_modified_at=original_modified_at,
+                    )
+                    ._queue_attachment(
+                        attachment,
+                        source=(
+                            "odoo_generated"
+                            if attachment.usl_documents_origin == "generated_final"
+                            else "odoo_attachment"
+                        ),
+                        force_on_request=force_on_request,
+                    )
                 )
         return queued
 

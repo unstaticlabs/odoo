@@ -212,7 +212,9 @@ class TestDocuments(TransactionCase):
         )
         attachment.invalidate_recordset(["create_date", "write_date"])
 
-        operation = attachment._queue_usl_documents_archive()
+        operation = attachment.with_context(
+            usl_documents_skip_attachment_queue=False,
+        )._queue_usl_documents_archive()
 
         self.assertEqual(
             operation.original_created_at,
