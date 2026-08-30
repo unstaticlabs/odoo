@@ -520,7 +520,8 @@ class MigrationManageTests(unittest.TestCase):
             internal.call_args.args[3],
             [
                 sys.executable,
-                str(self.root / "migration/transition_checkpoint.py"),
+                "-m",
+                "migration.transition_checkpoint",
                 "create",
                 "20260830T091011Z-pre-upgrade",
             ],

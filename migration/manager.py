@@ -602,7 +602,7 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             runtime,
             store.secrets(args.runtime),
             runner,
-            [sys.executable, str(ROOT / "migration/transition_checkpoint.py"), "create", identifier],
+            [sys.executable, "-m", "migration.transition_checkpoint", "create", identifier],
         )
         runtime["last_checkpoint"] = {
             "id": identifier,
