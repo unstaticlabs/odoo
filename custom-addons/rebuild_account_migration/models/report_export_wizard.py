@@ -6848,6 +6848,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         code = str(account_code or "").strip()
         account_type = account_type or ""
 
+        # Odoo's French Bilan nets these prefixes on their statutory side
+        # instead of reclassifying an exceptional opposite-sign balance.
+        # A debit supplier balance therefore reduces supplier debt on the
+        # Passif, while a credit suspense balance reduces current assets.
+        if code.startswith(("400", "401", "402", "403", "408")):
+            return "bilan_passif"
+        if code.startswith(("471", "472", "474", "475")):
+            return "bilan_actif"
+
         # These prefixes are fixed to the Actif even with a credit balance:
         # classes 2/3 include depreciation provisions, while 49/59 are the
         # corresponding impairment accounts for receivables and treasury.

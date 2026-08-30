@@ -2198,8 +2198,8 @@ class TestMultiCompanyAccountingReports(TransactionCase):
                 "account_code": "512007",
                 "account_name": "Banque — soldes débiteurs",
                 "account_type": "asset_cash",
-                "balance": "126493.30",
-                "closing_balance": "126493.30",
+                "balance": "131376.84",
+                "closing_balance": "131376.84",
             },
             {
                 "account_code": "444000",
@@ -2216,11 +2216,25 @@ class TestMultiCompanyAccountingReports(TransactionCase):
                 "closing_balance": "-0.16",
             },
             {
+                "account_code": "401100",
+                "account_name": "Fournisseurs — solde débiteur",
+                "account_type": "liability_payable",
+                "balance": "16963.64",
+                "closing_balance": "16963.64",
+            },
+            {
+                "account_code": "471000",
+                "account_name": "Compte d’attente — solde créditeur",
+                "account_type": "asset_current",
+                "balance": "-4883.54",
+                "closing_balance": "-4883.54",
+            },
+            {
                 "account_code": "101000",
                 "account_name": "Capital social et autres passifs",
                 "account_type": "equity",
-                "balance": "-132163.14",
-                "closing_balance": "-132163.14",
+                "balance": "-149126.78",
+                "closing_balance": "-149126.78",
             },
         ]
         self.assertEqual(
@@ -2246,6 +2260,16 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         self.assertEqual(totals["ACTIF_TOTAL"], online_total)
         self.assertEqual(totals["PASSIF_TOTAL"], online_total)
         self.assertEqual(totals["ACTIF_TOTAL"], totals["PASSIF_TOTAL"])
+
+        accounts = {
+            row["account_code"]: row
+            for row in rows
+            if row.get("account_code") not in {"", "RESULT"}
+        }
+        self.assertEqual(accounts["401100"]["statement_key"], "bilan_passif")
+        self.assertEqual(accounts["401100"]["amount"], "-16963.64")
+        self.assertEqual(accounts["471000"]["statement_key"], "bilan_actif")
+        self.assertEqual(accounts["471000"]["amount"], "-4883.54")
 
     def test_asset_register_places_grand_total_after_account_subtotals(self):
         wizard = self._wizard(report_type="fixed_assets", export_format="pdf")
