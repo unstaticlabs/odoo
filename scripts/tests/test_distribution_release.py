@@ -293,6 +293,14 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("distribution-release.json", self.workflow)
         self.assertIn("actions/upload-artifact@", self.workflow)
 
+    def test_workflow_uses_the_current_release_identity_module(self) -> None:
+        self.assertIn("from migration.release_identity import oca_bundle_sha256", self.workflow)
+        self.assertIn(
+            "from migration.release_identity import action_risk_policy_sha256",
+            self.workflow,
+        )
+        self.assertNotIn("from scripts.release_identity import", self.workflow)
+
     def test_document_service_versions_match_deployment_examples(self) -> None:
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
         examples = (
