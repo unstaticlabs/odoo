@@ -28,6 +28,11 @@ The backup-tool image independently embeds the commit and pinned PostgreSQL 16
 and Restic runtimes. It receives the same SBOM, provenance, digest and
 attestation treatment.
 
+The same release publishes the repository-owned Paperless and Sign DSS images
+and the exact pinned document-renderer submodule. The separately maintained
+Odoo MCP repository publishes its own image; this workflow verifies that
+source commit, compatibility contract, OCI labels, and immutable GHCR digest.
+
 ## Workflow behavior and outputs
 
 Every pull request runs repository unit checks, the existing action-risk and
@@ -39,15 +44,15 @@ GHCR, and cannot access production credentials.
 
 A push to `19-usl` runs the same qualification and then the separately
 permissioned publish job. That job uses the built-in `GITHUB_TOKEN` only,
-builds and pushes both images once, verifies them by digest, attests each, and
+builds and pushes every repository-owned image once, verifies each digest, and
+attests each image. It also verifies the separately published MCP image and
 publishes all of these outputs:
 
-- job outputs `image`, `tag`, `digest`, `digest_reference`, and
-  `metadata_artifact`, plus `backup_tool_image`, `backup_tool_tag`,
-  `backup_tool_digest`, and `backup_tool_digest_reference`;
-- a GitHub step summary showing both digest references;
+- job outputs for the Odoo, backup-tool, Paperless, document-renderer, and Sign
+  DSS digest references, plus the metadata artifact;
+- a GitHub step summary showing every deployable digest reference;
 - artifact `distribution-release-<git-sha>` containing
-  `distribution-release.json` with schema `usl-distribution-release/v3`.
+  `distribution-release.json` with schema `usl-distribution-release/v4`.
 
 The JSON artifact is the stable cross-workflow interface for the future
 production GitOps pipeline. That pipeline must select a successful
@@ -59,7 +64,10 @@ python3 scripts/distribution_release.py validate \
   distribution-release.json \
   --commit <expected-40-character-sha> \
   --image ghcr.io/unstaticlabs/usl-odoo \
-  --backup-tool-image ghcr.io/unstaticlabs/usl-odoo-backup
+  --backup-tool-image ghcr.io/unstaticlabs/usl-odoo-backup \
+  --paperless-image ghcr.io/unstaticlabs/usl-paperless-ngx \
+  --document-renderer-image ghcr.io/unstaticlabs/usl-document-renderer \
+  --sign-dss-image ghcr.io/unstaticlabs/usl-sign-dss
 ```
 
 and deploy only `image.digest_reference` and

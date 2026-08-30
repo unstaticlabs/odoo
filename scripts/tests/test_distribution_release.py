@@ -19,6 +19,10 @@ COMMIT = "a" * 40
 DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
 BACKUP_TOOL_IMAGE = "ghcr.io/unstaticlabs/usl-odoo-backup"
+PAPERLESS_IMAGE = "ghcr.io/unstaticlabs/usl-paperless-ngx"
+DOCUMENT_RENDERER_IMAGE = "ghcr.io/unstaticlabs/usl-document-renderer"
+SIGN_DSS_IMAGE = "ghcr.io/unstaticlabs/usl-sign-dss"
+RENDERER_COMMIT = "1" * 40
 MCP_COMMIT = "d" * 40
 MCP_IMAGE = f"ghcr.io/unstaticlabs/odoo-mcp@sha256:{'e' * 64}"
 PRODUCT_MODULES = {
@@ -44,7 +48,7 @@ PRODUCT_MODULES = {
 
 def artifact() -> dict:
     return {
-        "schema": "usl-distribution-release/v3",
+        "schema": "usl-distribution-release/v4",
         "source": {"repository": "unstaticlabs/odoo", "commit_sha": COMMIT},
         "image": {
             "name": IMAGE,
@@ -57,6 +61,30 @@ def artifact() -> dict:
             "tag": f"sha-{COMMIT}",
             "digest": "sha256:" + "c" * 64,
             "digest_reference": f"{BACKUP_TOOL_IMAGE}@sha256:{'c' * 64}",
+        },
+        "paperless": {
+            "name": PAPERLESS_IMAGE,
+            "tag": f"sha-{COMMIT}",
+            "digest": "sha256:" + "2" * 64,
+            "digest_reference": f"{PAPERLESS_IMAGE}@sha256:{'2' * 64}",
+        },
+        "document_renderer": {
+            "repository": "https://github.com/unstaticlabs/unstatic_latex_templates.git",
+            "commit": RENDERER_COMMIT,
+            "image": {
+                "name": DOCUMENT_RENDERER_IMAGE,
+                "tag": f"sha-{RENDERER_COMMIT}",
+                "digest": "sha256:" + "3" * 64,
+                "digest_reference": (
+                    f"{DOCUMENT_RENDERER_IMAGE}@sha256:{'3' * 64}"
+                ),
+            },
+        },
+        "sign_dss": {
+            "name": SIGN_DSS_IMAGE,
+            "tag": f"sha-{COMMIT}",
+            "digest": "sha256:" + "4" * 64,
+            "digest_reference": f"{SIGN_DSS_IMAGE}@sha256:{'4' * 64}",
         },
         "mcp": {
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
@@ -76,7 +104,13 @@ def artifact() -> dict:
                 "buildkit_provenance": "generated",
                 "github_provenance": "generated",
             }
-            for name in ("distribution", "backup_tool")
+            for name in (
+                "distribution",
+                "backup_tool",
+                "paperless",
+                "document_renderer",
+                "sign_dss",
+            )
         },
     }
 
@@ -87,7 +121,7 @@ class DistributionReleaseContractTest(unittest.TestCase):
             distribution_release.validate(
                 artifact(), commit=COMMIT, image=IMAGE, backup_tool_image=BACKUP_TOOL_IMAGE
             )["schema"],
-            "usl-distribution-release/v3",
+            "usl-distribution-release/v4",
         )
 
     def test_rejects_mutable_or_mismatched_tag(self) -> None:
@@ -295,6 +329,31 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("digest_reference=$BACKUP_TOOL_IMAGE@$digest", self.workflow)
         self.assertIn("backup_tool_digest_reference:", self.workflow)
         self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
+
+    def test_release_cohort_publishes_every_custom_runtime_image(self) -> None:
+        self.assertIn("submodules: recursive", self.workflow)
+        self.assertIn(
+            "PAPERLESS_IMAGE: ghcr.io/unstaticlabs/usl-paperless-ngx",
+            self.workflow,
+        )
+        self.assertIn(
+            "DOCUMENT_RENDERER_IMAGE: ghcr.io/unstaticlabs/usl-document-renderer",
+            self.workflow,
+        )
+        self.assertIn(
+            "SIGN_DSS_IMAGE: ghcr.io/unstaticlabs/usl-sign-dss",
+            self.workflow,
+        )
+        self.assertIn("file: deploy/documents/paperless-ngx/Dockerfile", self.workflow)
+        self.assertIn("context: services/usl-document-renderer", self.workflow)
+        self.assertIn("file: services/usl-sign-dss/Dockerfile", self.workflow)
+        self.assertIn('--paperless-digest "$PAPERLESS_DIGEST"', self.workflow)
+        self.assertIn(
+            '--document-renderer-digest "$DOCUMENT_RENDERER_DIGEST"',
+            self.workflow,
+        )
+        self.assertIn('--sign-dss-digest "$SIGN_DSS_DIGEST"', self.workflow)
+        self.assertIn("scripts/odoo-mcp verify-image", self.workflow)
 
     def test_release_metadata_binds_the_external_mcp_cohort(self) -> None:
         source = (ROOT / "scripts/distribution_release.py").read_text(encoding="utf-8")

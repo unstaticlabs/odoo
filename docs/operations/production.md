@@ -9,7 +9,7 @@ approved VPS cohort is admitted and its first backup restore passes.
 Every production release binds:
 
 - the full Git commit on `19-usl`;
-- immutable Odoo distribution and backup-tool OCI digests;
+- immutable Odoo, backup-tool, Paperless, document-renderer, and Sign DSS OCI digests;
 - the pinned Odoo MCP repository, ref, commit, image digest, and compatibility digest;
 - pinned OCA, action-risk policy, module, and source identities;
 - the accepted evolving-data cohort fingerprint;
@@ -22,7 +22,10 @@ python3 scripts/distribution_release.py validate \
   distribution-release.json \
   --commit <40-character-commit> \
   --image ghcr.io/unstaticlabs/usl-odoo \
-  --backup-tool-image ghcr.io/unstaticlabs/usl-odoo-backup
+  --backup-tool-image ghcr.io/unstaticlabs/usl-odoo-backup \
+  --paperless-image ghcr.io/unstaticlabs/usl-paperless-ngx \
+  --document-renderer-image ghcr.io/unstaticlabs/usl-document-renderer \
+  --sign-dss-image ghcr.io/unstaticlabs/usl-sign-dss
 ```
 
 Deploy only digest references from the validated artifact. Never deploy

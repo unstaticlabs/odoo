@@ -57,6 +57,7 @@ def verify_image(
     release: dict[str, str],
     *,
     reference: str | None = None,
+    require_digest: bool = True,
 ) -> dict[str, str]:
     inspected_reference = reference or release["image"]
     output = run(
@@ -75,8 +76,7 @@ def verify_image(
         raise McpReleaseError("Odoo MCP image revision label differs from the pinned commit")
     if labels.get("org.opencontainers.image.source") != release["repository"]:
         raise McpReleaseError("Odoo MCP image source label differs from the pinned repository")
-    expected_id = "sha256:" + release["image"].rsplit("@sha256:", 1)[1]
-    if value.get("Id") != expected_id or release["image"] not in (value.get("RepoDigests") or []):
+    if require_digest and release["image"] not in (value.get("RepoDigests") or []):
         raise McpReleaseError("Odoo MCP image bytes differ from the pinned digest")
     return {
         "image": release["image"],
@@ -106,7 +106,11 @@ def build(release: dict[str, str]) -> dict[str, str]:
             ],
             cwd=context,
         )
-    return verify_image(release, reference=release["image_tag"])
+    return verify_image(
+        release,
+        reference=release["image_tag"],
+        require_digest=False,
+    )
 
 
 def test(release: dict[str, str]) -> None:

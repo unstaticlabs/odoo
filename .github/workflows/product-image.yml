@@ -18,6 +18,9 @@ concurrency:
 env:
   DISTRIBUTION_IMAGE: ghcr.io/unstaticlabs/usl-odoo
   BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup
+  PAPERLESS_IMAGE: ghcr.io/unstaticlabs/usl-paperless-ngx
+  DOCUMENT_RENDERER_IMAGE: ghcr.io/unstaticlabs/usl-document-renderer
+  SIGN_DSS_IMAGE: ghcr.io/unstaticlabs/usl-sign-dss
 
 jobs:
   publish:
@@ -40,11 +43,16 @@ jobs:
       backup_tool_tag: ${{ steps.backup-release.outputs.tag }}
       backup_tool_digest: ${{ steps.backup-release.outputs.digest }}
       backup_tool_digest_reference: ${{ steps.backup-release.outputs.digest_reference }}
+      paperless_digest_reference: ${{ steps.aux-release.outputs.paperless_digest_reference }}
+      document_renderer_digest_reference: ${{ steps.aux-release.outputs.renderer_digest_reference }}
+      sign_dss_digest_reference: ${{ steps.aux-release.outputs.sign_dss_digest_reference }}
     env:
       IMAGE_TAG: sha-${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
 
       - name: Checkout pinned Odoo MCP release
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,6 +75,7 @@ jobs:
           action_risk_digest="$(PYTHONPATH=. python3 -c 'from migration.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
           echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
           echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
+          echo "renderer_commit=$(git -C services/usl-document-renderer rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
@@ -77,6 +86,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify the separately published MCP image
+        run: |
+          mcp_image="$(jq -r .image_digest deploy/odoo-mcp/release.json)"
+          docker pull "$mcp_image"
+          scripts/odoo-mcp verify-image --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
 
       - name: Reuse only an identical existing commit image
         id: existing
@@ -238,11 +253,154 @@ jobs:
           docker run --rm --entrypoint pg_dump "$DIGEST_REFERENCE" --version | grep -Eq ' 16([.]|$)'
           docker run --rm --entrypoint restic "$DIGEST_REFERENCE" version | grep -Eq '^restic 0[.]19[.]1'
 
+      - name: Reuse only identical auxiliary images
+        id: existing-aux
+        env:
+          RENDERER_COMMIT: ${{ steps.identity.outputs.renderer_commit }}
+        run: |
+          inspect_component() {
+            key="$1"
+            image="$2"
+            tag="$3"
+            revision="$4"
+            source="$5"
+            reference="$image:$tag"
+            set +e
+            inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              if printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
+                echo "${key}_exists=false" >> "$GITHUB_OUTPUT"
+                return
+              fi
+              printf 'Unable to inspect %s:\n%s\n' "$reference" "$inspection" >&2
+              return "$status"
+            fi
+            docker pull "$reference"
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$revision"
+            test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.source"}}')" = "$source"
+            digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
+            digest="${digest_reference#*@}"
+            printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+            echo "${key}_exists=true" >> "$GITHUB_OUTPUT"
+            echo "${key}_digest=$digest" >> "$GITHUB_OUTPUT"
+          }
+          inspect_component paperless "$PAPERLESS_IMAGE" "$IMAGE_TAG" "$GITHUB_SHA" "https://github.com/$GITHUB_REPOSITORY"
+          inspect_component sign_dss "$SIGN_DSS_IMAGE" "$IMAGE_TAG" "$GITHUB_SHA" "https://github.com/$GITHUB_REPOSITORY"
+          inspect_component renderer "$DOCUMENT_RENDERER_IMAGE" "sha-$RENDERER_COMMIT" "$RENDERER_COMMIT" "https://github.com/unstaticlabs/unstatic_latex_templates.git"
+
+      - name: Build and push Paperless image once
+        id: paperless-build
+        if: steps.existing-aux.outputs.paperless_exists != 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: deploy/documents/paperless-ngx/Dockerfile
+          push: true
+          tags: ${{ env.PAPERLESS_IMAGE }}:${{ env.IMAGE_TAG }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=paperless
+          cache-to: type=gha,mode=max,scope=paperless
+
+      - name: Build and push document renderer once
+        id: renderer-build
+        if: steps.existing-aux.outputs.renderer_exists != 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: services/usl-document-renderer
+          push: true
+          tags: ${{ env.DOCUMENT_RENDERER_IMAGE }}:sha-${{ steps.identity.outputs.renderer_commit }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/unstaticlabs/unstatic_latex_templates.git
+            org.opencontainers.image.revision=${{ steps.identity.outputs.renderer_commit }}
+          build-args: |
+            USL_TEMPLATE_REVISION=${{ steps.identity.outputs.renderer_commit }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=document-renderer
+          cache-to: type=gha,mode=max,scope=document-renderer
+
+      - name: Build and push Sign DSS once
+        id: sign-dss-build
+        if: steps.existing-aux.outputs.sign_dss_exists != 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: services/usl-sign-dss/Dockerfile
+          push: true
+          tags: ${{ env.SIGN_DSS_IMAGE }}:${{ env.IMAGE_TAG }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=sign-dss
+          cache-to: type=gha,mode=max,scope=sign-dss
+
+      - name: Resolve and verify auxiliary image digests
+        id: aux-release
+        env:
+          EXISTING_PAPERLESS: ${{ steps.existing-aux.outputs.paperless_digest }}
+          BUILT_PAPERLESS: ${{ steps.paperless-build.outputs.digest }}
+          EXISTING_RENDERER: ${{ steps.existing-aux.outputs.renderer_digest }}
+          BUILT_RENDERER: ${{ steps.renderer-build.outputs.digest }}
+          EXISTING_SIGN_DSS: ${{ steps.existing-aux.outputs.sign_dss_digest }}
+          BUILT_SIGN_DSS: ${{ steps.sign-dss-build.outputs.digest }}
+          RENDERER_COMMIT: ${{ steps.identity.outputs.renderer_commit }}
+        run: |
+          paperless_digest="${EXISTING_PAPERLESS:-$BUILT_PAPERLESS}"
+          renderer_digest="${EXISTING_RENDERER:-$BUILT_RENDERER}"
+          sign_dss_digest="${EXISTING_SIGN_DSS:-$BUILT_SIGN_DSS}"
+          for digest in "$paperless_digest" "$renderer_digest" "$sign_dss_digest"; do
+            printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          done
+          paperless_reference="$PAPERLESS_IMAGE@$paperless_digest"
+          renderer_reference="$DOCUMENT_RENDERER_IMAGE@$renderer_digest"
+          sign_dss_reference="$SIGN_DSS_IMAGE@$sign_dss_digest"
+          docker pull "$paperless_reference"
+          docker pull "$renderer_reference"
+          docker pull "$sign_dss_reference"
+          test "$(docker image inspect "$paperless_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
+          test "$(docker image inspect "$renderer_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$RENDERER_COMMIT"
+          test "$(docker image inspect "$sign_dss_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
+          echo "paperless_digest=$paperless_digest" >> "$GITHUB_OUTPUT"
+          echo "paperless_digest_reference=$paperless_reference" >> "$GITHUB_OUTPUT"
+          echo "renderer_digest=$renderer_digest" >> "$GITHUB_OUTPUT"
+          echo "renderer_digest_reference=$renderer_reference" >> "$GITHUB_OUTPUT"
+          echo "sign_dss_digest=$sign_dss_digest" >> "$GITHUB_OUTPUT"
+          echo "sign_dss_digest_reference=$sign_dss_reference" >> "$GITHUB_OUTPUT"
+
       - name: Generate backup-tool build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ steps.backup-release.outputs.image }}
           subject-digest: ${{ steps.backup-release.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate Paperless build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ env.PAPERLESS_IMAGE }}
+          subject-digest: ${{ steps.aux-release.outputs.paperless_digest }}
+          push-to-registry: true
+
+      - name: Generate document-renderer build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ env.DOCUMENT_RENDERER_IMAGE }}
+          subject-digest: ${{ steps.aux-release.outputs.renderer_digest }}
+          push-to-registry: true
+
+      - name: Generate Sign DSS build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ env.SIGN_DSS_IMAGE }}
+          subject-digest: ${{ steps.aux-release.outputs.sign_dss_digest }}
           push-to-registry: true
 
       - name: Generate GitHub build provenance
@@ -257,6 +415,10 @@ jobs:
         env:
           IMAGE_DIGEST: ${{ steps.release.outputs.digest }}
           BACKUP_TOOL_DIGEST: ${{ steps.backup-release.outputs.digest }}
+          PAPERLESS_DIGEST: ${{ steps.aux-release.outputs.paperless_digest }}
+          DOCUMENT_RENDERER_DIGEST: ${{ steps.aux-release.outputs.renderer_digest }}
+          SIGN_DSS_DIGEST: ${{ steps.aux-release.outputs.sign_dss_digest }}
+          DOCUMENT_RENDERER_COMMIT: ${{ steps.identity.outputs.renderer_commit }}
         run: |
           artifact_name="distribution-release-$GITHUB_SHA"
           python3 scripts/distribution_release.py create \
@@ -267,6 +429,14 @@ jobs:
             --digest "$IMAGE_DIGEST" \
             --backup-tool-image "$BACKUP_TOOL_IMAGE" \
             --backup-tool-digest "$BACKUP_TOOL_DIGEST" \
+            --paperless-image "$PAPERLESS_IMAGE" \
+            --paperless-digest "$PAPERLESS_DIGEST" \
+            --document-renderer-repository "https://github.com/unstaticlabs/unstatic_latex_templates.git" \
+            --document-renderer-commit "$DOCUMENT_RENDERER_COMMIT" \
+            --document-renderer-image "$DOCUMENT_RENDERER_IMAGE" \
+            --document-renderer-digest "$DOCUMENT_RENDERER_DIGEST" \
+            --sign-dss-image "$SIGN_DSS_IMAGE" \
+            --sign-dss-digest "$SIGN_DSS_DIGEST" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
@@ -275,7 +445,10 @@ jobs:
             distribution-release.json \
             --commit "$GITHUB_SHA" \
             --image "$DISTRIBUTION_IMAGE" \
-            --backup-tool-image "$BACKUP_TOOL_IMAGE"
+            --backup-tool-image "$BACKUP_TOOL_IMAGE" \
+            --paperless-image "$PAPERLESS_IMAGE" \
+            --document-renderer-image "$DOCUMENT_RENDERER_IMAGE" \
+            --sign-dss-image "$SIGN_DSS_IMAGE"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload release metadata
@@ -290,6 +463,9 @@ jobs:
         env:
           DIGEST_REFERENCE: ${{ steps.release.outputs.digest_reference }}
           BACKUP_TOOL_DIGEST_REFERENCE: ${{ steps.backup-release.outputs.digest_reference }}
+          PAPERLESS_DIGEST_REFERENCE: ${{ steps.aux-release.outputs.paperless_digest_reference }}
+          DOCUMENT_RENDERER_DIGEST_REFERENCE: ${{ steps.aux-release.outputs.renderer_digest_reference }}
+          SIGN_DSS_DIGEST_REFERENCE: ${{ steps.aux-release.outputs.sign_dss_digest_reference }}
           METADATA_ARTIFACT: ${{ steps.metadata.outputs.artifact_name }}
         run: |
           {
@@ -298,6 +474,9 @@ jobs:
             printf -- '- Commit tag: `%s:%s`\n' "$DISTRIBUTION_IMAGE" "$IMAGE_TAG"
             printf -- '- Production identity: `%s`\n' "$DIGEST_REFERENCE"
             printf -- '- Backup-tool identity: `%s`\n' "$BACKUP_TOOL_DIGEST_REFERENCE"
+            printf -- '- Paperless identity: `%s`\n' "$PAPERLESS_DIGEST_REFERENCE"
+            printf -- '- Document-renderer identity: `%s`\n' "$DOCUMENT_RENDERER_DIGEST_REFERENCE"
+            printf -- '- Sign DSS identity: `%s`\n' "$SIGN_DSS_DIGEST_REFERENCE"
             printf -- '- Metadata artifact: `%s`\n' "$METADATA_ARTIFACT"
             printf -- '- OCI SBOM: attached by BuildKit\n'
             printf -- '- Build provenance: BuildKit plus GitHub artifact attestation\n'
