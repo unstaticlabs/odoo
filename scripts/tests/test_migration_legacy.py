@@ -173,6 +173,31 @@ class MigrationLegacyBoundaryTests(unittest.TestCase):
         wrapper = WRAPPER.read_text(encoding="utf-8")
         self.assertIn("export USL_MIGRATION_LEGACY_ACTIVE=1", wrapper)
 
+    def test_release_build_context_excludes_dormant_migration_tooling(self) -> None:
+        dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+        active_patterns = [
+            line.strip()
+            for line in dockerignore.splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+        self.assertEqual("*", active_patterns[0])
+        self.assertIn("scripts/*", active_patterns)
+        self.assertNotIn("!compose.migration-legacy.yaml", active_patterns)
+        self.assertNotIn("!scripts/migration-legacy", active_patterns)
+        self.assertFalse(
+            any(pattern.startswith("!migration/") for pattern in active_patterns),
+        )
+
+        dockerfiles = (
+            ROOT / "Dockerfile",
+            *(ROOT / "docker").glob("*.Dockerfile"),
+        )
+        for dockerfile in dockerfiles:
+            source = dockerfile.read_text(encoding="utf-8")
+            self.assertNotRegex(source, r"(?mi)^COPY .*compose\.migration-legacy")
+            self.assertNotRegex(source, r"(?mi)^COPY .*scripts/migration-legacy")
+            self.assertNotRegex(source, r"(?mi)^COPY .*migration/")
+
     def test_wrapper_renders_only_after_exact_source_and_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory)

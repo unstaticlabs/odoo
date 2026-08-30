@@ -83,6 +83,23 @@ def render_compose(*files, profiles=()):
     return json.loads(result.stdout)
 
 
+def dockerfile_instructions(path):
+    instructions = []
+    current = ""
+    for raw_line in path.read_text().splitlines():
+        stripped = raw_line.strip()
+        if current:
+            current = f"{current} {stripped}"
+        elif stripped.upper().startswith(("COPY ", "ADD ")):
+            current = stripped
+        if current and not stripped.endswith("\\"):
+            instructions.append(current)
+            current = ""
+    if current:
+        instructions.append(current)
+    return instructions
+
+
 errors = []
 
 # Active runtime and reconstruction paths must move together when the Odoo SaaS
@@ -191,6 +208,42 @@ if "accounting-source-postgres-data:" in compose:
     errors.append(
         "Normal compose.yaml still defines the legacy source database volume.",
     )
+
+dockerignore_lines = [
+    line.strip()
+    for line in (ROOT / ".dockerignore").read_text().splitlines()
+    if line.strip() and not line.lstrip().startswith("#")
+]
+if not dockerignore_lines or dockerignore_lines[0] != "*":
+    errors.append("The release build context is not deny-by-default.")
+if "!scripts/" in dockerignore_lines and "scripts/*" not in dockerignore_lines:
+    errors.append("The release build context exposes every repository script.")
+for forbidden_include in (
+    "!compose.migration-legacy.yaml",
+    "!scripts/migration-legacy",
+):
+    if forbidden_include in dockerignore_lines:
+        errors.append(
+            f"The release build context includes dormant path {forbidden_include[1:]}.",
+        )
+for line in dockerignore_lines:
+    if line.startswith("!migration/"):
+        errors.append(
+            f"The release build context includes one-shot migration path {line[1:]}.",
+        )
+
+for dockerfile in (ROOT / "Dockerfile", *(ROOT / "docker").glob("*.Dockerfile")):
+    for instruction in dockerfile_instructions(dockerfile):
+        for forbidden_path in (
+            "compose.migration-legacy",
+            "scripts/migration-legacy",
+            "migration/",
+        ):
+            if forbidden_path in instruction:
+                errors.append(
+                    f"Release Dockerfile {dockerfile.relative_to(ROOT)} copies "
+                    f"dormant path {forbidden_path}.",
+                )
 
 expected_addons_path = default_addons_path + "," + ",".join(MIGRATION_PATHS)
 try:
