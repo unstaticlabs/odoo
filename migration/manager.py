@@ -67,6 +67,18 @@ def ensure_clean_checkout() -> str:
     return git("rev-parse", "HEAD")
 
 
+def apply_image_assignments(
+    images: dict[str, str], assignments: list[str]
+) -> dict[str, str]:
+    result = dict(images)
+    for assignment in assignments:
+        name, separator, reference = assignment.partition("=")
+        if not separator or not name or not reference:
+            raise RuntimeError("--image must use SERVICE=IMMUTABLE_REFERENCE")
+        result[name] = reference
+    return result
+
+
 def load_python(path: Path, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
     if not spec or not spec.loader:
@@ -148,11 +160,7 @@ def create_runtime(
         for item in resources["containers"]
         if item.get("service") and item.get("image")
     }
-    for assignment in args.image:
-        name, separator, reference = assignment.partition("=")
-        if not separator or not name or not reference:
-            raise RuntimeError("--image must use SERVICE=IMMUTABLE_REFERENCE")
-        images[name] = reference
+    images = apply_image_assignments(images, args.image)
     if (
         "odoo-mcp" in images
         and images["odoo-mcp"] != mcp["image"]
@@ -745,6 +753,10 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         release_commit = ensure_clean_checkout()
         recover_failed_runtime_resources(runtime, store, runner)
         destroy_runtime(runtime, runner)
+        runtime["images"] = apply_image_assignments(
+            runtime.get("images") or {},
+            getattr(args, "image", None) or [],
+        )
         runtime["status"] = "reconstructing"
         runtime["release_commit"] = release_commit
         runtime["resources"] = {"containers": [], "volumes": [], "networks": []}

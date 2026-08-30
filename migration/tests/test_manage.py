@@ -548,6 +548,7 @@ class MigrationManageTests(unittest.TestCase):
             action="reconstruct",
             runtime="transition-current",
             confirm="RECONSTRUCT:transition-current",
+            image=["odoo=usl-odoo-transition:current"],
         )
         with (
             patch.object(manager, "ensure_clean_checkout", return_value="b" * 40),
@@ -557,6 +558,10 @@ class MigrationManageTests(unittest.TestCase):
             result = manager.command_transition(arguments, self.runner)
 
         self.assertEqual(result["status"], "reconstructed")
+        self.assertEqual(
+            RuntimeStore(self.root).load("transition-current")["images"]["odoo"],
+            "usl-odoo-transition:current",
+        )
         self.assertIn(("docker", "rm", "--force", "container-1", "db-1", "mcp-1"), self.runner.calls)
         self.assertIn(("docker", "volume", "rm", "runtime-data"), self.runner.calls)
 
