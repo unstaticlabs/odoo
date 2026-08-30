@@ -90,6 +90,7 @@ run_product_rate_lifecycle() {
         return 2
     }
     docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+        -v "$rate_manifest:$rate_container_manifest:ro" \
         -e ODOO_INIT_DB="$target_database" \
         -e USL_EINVOICE_LIVE_ENABLED=0 \
         -e USL_EREPORTING_LIVE_ENABLED=0 \
