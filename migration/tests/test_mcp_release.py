@@ -129,8 +129,15 @@ class McpReleaseTests(unittest.TestCase):
         value = json.loads(self.release_path.read_text(encoding="utf-8"))
         value["image_tag"] = "usl-odoo-mcp:latest"
         self.release_path.write_text(json.dumps(value) + "\n", encoding="utf-8")
-        with self.assertRaisesRegex(McpReleaseError, "commit prefix"):
+        with self.assertRaisesRegex(McpReleaseError, "release commit"):
             load_release(self.root)
+
+    def test_accepts_registry_commit_tag(self):
+        value = json.loads(self.release_path.read_text(encoding="utf-8"))
+        value["image_tag"] = f"ghcr.io/unstaticlabs/odoo-mcp:sha-{self.commit}"
+        self.release_path.write_text(json.dumps(value) + "\n", encoding="utf-8")
+
+        self.assertEqual(load_release(self.root)["image_tag"], value["image_tag"])
 
     def test_rejects_a_mutated_compatibility_contract(self):
         path = self.root / "deploy/odoo-mcp/compatibility.json"

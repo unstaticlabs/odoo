@@ -106,8 +106,9 @@ def load_release(repository_root: Path) -> dict[str, Any]:
         raise McpReleaseError("Odoo MCP release commit must be a full lowercase Git SHA")
     if not IMAGE_TAG.fullmatch(value["image_tag"]):
         raise McpReleaseError("Odoo MCP build image must use an explicit commit tag")
-    if not value["image_tag"].endswith(value["commit"][:12]):
-        raise McpReleaseError("Odoo MCP image tag must end with the release commit prefix")
+    tag = value["image_tag"].rsplit(":", 1)[1]
+    if tag not in {value["commit"][:12], f"sha-{value['commit']}"}:
+        raise McpReleaseError("Odoo MCP image tag must identify the release commit")
     if not IMAGE_DIGEST.fullmatch(value["image_digest"]):
         raise McpReleaseError("Odoo MCP runtime image must use an immutable digest")
     if not SHA256.fullmatch(value["compatibility_sha256"]):
