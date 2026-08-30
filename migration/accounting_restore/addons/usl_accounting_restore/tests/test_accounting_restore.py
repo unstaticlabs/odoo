@@ -7783,6 +7783,74 @@ class TestRebuildAccountMigration(TransactionCase):
             -bill.invoice_line_ids.price_total / historical_rate,
             places=9,
         )
+        expected_analysis_total = sum(analysis_rows.mapped("price_total"))
+
+        # Simulate the stored-field recomputation performed by a later module
+        # upgrade.  The final migration stage must restore the Online rate
+        # without changing the posted entry or its lines.
+        bill._compute_invoice_currency_rate()
+        bill.flush_recordset(["invoice_currency_rate"])
+        self.assertNotEqual(bill.invoice_currency_rate, historical_rate)
+        recomputed_ledger_signature = import_run._posted_ledger_signature()
+        self.env["account.invoice.report"].invalidate_model(["price_total"])
+        diverged_analysis_total = sum(
+            self.env["account.invoice.report"].search([
+                ("move_id", "=", bill.id),
+            ]).mapped("price_total"),
+        )
+        self.assertNotAlmostEqual(
+            diverged_analysis_total,
+            expected_analysis_total,
+            places=6,
+        )
+
+        self.env.add_to_compute(
+            bill._fields["invoice_currency_rate"],
+            bill,
+        )
+        restored = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.env.flush_all()
+        self.assertEqual(restored["changed_document_count"], 1)
+        self.assertTrue(restored["ledger_unchanged"])
+        self.assertEqual(
+            import_run._posted_ledger_signature(),
+            recomputed_ledger_signature,
+        )
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+        self.env["account.invoice.report"].invalidate_model(["price_total"])
+        self.assertAlmostEqual(
+            sum(
+                self.env["account.invoice.report"].search([
+                    ("move_id", "=", bill.id),
+                ]).mapped("price_total"),
+            ),
+            expected_analysis_total,
+            places=9,
+        )
+
+        # A repeated upgrade/restoration is deterministic and cannot reset
+        # the manual historical rate or drift the analysis aggregate.
+        bill._compute_invoice_currency_rate()
+        bill.flush_recordset(["invoice_currency_rate"])
+        repeated_ledger_signature = import_run._posted_ledger_signature()
+        repeated = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(repeated["changed_document_count"], 1)
+        idempotent = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(idempotent["changed_document_count"], 0)
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+        self.assertEqual(
+            import_run._posted_ledger_signature(),
+            repeated_ledger_signature,
+        )
 
         mismatched_source = {
             **source_row,

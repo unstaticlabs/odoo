@@ -11,6 +11,17 @@ command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
 target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
 migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
+runtime_id="${USL_MIGRATION_RUNTIME_ID:?migration/manage did not resolve USL_MIGRATION_RUNTIME_ID}"
+case "$runtime_id" in
+    ''|*[!a-z0-9-]*)
+        printf 'Unsafe migration runtime ID: %s\n' "$runtime_id" >&2
+        exit 2
+        ;;
+esac
+rate_evidence_dir="$ROOT/artifacts/migration/private/runtimes/$runtime_id"
+rate_manifest="$rate_evidence_dir/invoice-currency-rates.json"
+rate_container_manifest="/mnt/migration-evidence/runtimes/$runtime_id/invoice-currency-rates.json"
+rate_lifecycle_script="migration/accounting_restore/scripts/invoice_currency_rate_lifecycle.py"
 
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
@@ -18,13 +29,82 @@ usl_verify_compose_scope "$compose_project" "$ROOT" "Accounting restoration"
 
 run_migration_shell() {
     script_path="$1"
-    docker compose -p "$compose_project" --profile accounting-migration run --rm \
+    docker compose -p "$compose_project" --profile accounting-migration run --rm -T \
         -e ODOO_INIT_DB="$target_database" \
+        -e USL_MIGRATION_SOURCE_SHA256 \
+        -e USL_INVOICE_CURRENCY_RATE_MODE \
+        -e USL_INVOICE_CURRENCY_RATE_SOURCE_COMPANY_IDS \
         accounting-migration \
         odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" \
         --database="$target_database" \
-        --shell-interface=python < "$script_path"
+        --shell-interface=python --log-level=error < "$script_path"
+}
+
+validate_rate_manifest() {
+    python3 - "$1" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+value = json.loads(path.read_text(encoding="utf-8"))
+if value.get("schema") != "usl-invoice-currency-rate-manifest/v1":
+    raise SystemExit("Invoice currency-rate capture returned an invalid schema.")
+if value.get("record_count") != len(value.get("records") or []):
+    raise SystemExit("Invoice currency-rate capture returned an invalid count.")
+PY
+}
+
+capture_invoice_currency_rates() {
+    local temporary
+    mkdir -p "$rate_evidence_dir"
+    chmod 700 "$ROOT/artifacts/migration/private" \
+        "$ROOT/artifacts/migration/private/runtimes" \
+        "$rate_evidence_dir"
+    temporary="$(mktemp "$rate_evidence_dir/.invoice-currency-rates.XXXXXX")"
+    chmod 600 "$temporary"
+    export USL_INVOICE_CURRENCY_RATE_MODE=capture
+    export USL_INVOICE_CURRENCY_RATE_SOURCE_COMPANY_IDS=1,8
+    if ! run_migration_shell "$rate_lifecycle_script" > "$temporary"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    if ! validate_rate_manifest "$temporary"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    mv "$temporary" "$rate_manifest"
+    chmod 600 "$rate_manifest"
+}
+
+run_product_rate_lifecycle() {
+    local mode="$1"
+    [[ -f "$rate_manifest" ]] || {
+        printf 'Missing private invoice currency-rate manifest: %s\n' \
+            "$rate_manifest" >&2
+        return 2
+    }
+    [[ "$(python3 -c 'import os,stat,sys; print(oct(stat.S_IMODE(os.stat(sys.argv[1]).st_mode))[2:])' "$rate_manifest")" == 600 ]] || {
+        printf 'Invoice currency-rate manifest must be mode 0600.\n' >&2
+        return 2
+    }
+    docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+        -e ODOO_INIT_DB="$target_database" \
+        -e USL_EINVOICE_LIVE_ENABLED=0 \
+        -e USL_EREPORTING_LIVE_ENABLED=0 \
+        -e USL_MIGRATION_SOURCE_SHA256 \
+        -e USL_INVOICE_CURRENCY_RATE_MODE="$mode" \
+        -e USL_INVOICE_CURRENCY_RATE_MANIFEST="$rate_container_manifest" \
+        init-db odoo shell --config=/etc/odoo/odoo.conf \
+        --database="$target_database" --shell-interface=python \
+        --log-level=error < "$rate_lifecycle_script"
+}
+
+restore_invoice_currency_rates() {
+    docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
+    run_product_rate_lifecycle restore
+    docker compose -p "$compose_project" up -d --wait odoo
 }
 
 validate_product_boundary() {
@@ -62,10 +142,20 @@ case "$command_name" in
             migration/accounting_restore/addons/usl_accounting_restore/scripts/reapply_expense_batch_transition.py
         ;;
     finalize)
+        capture_invoice_currency_rates
         run_migration_shell \
             migration/accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py
         finalize_product_schema
         validate_product_boundary
+        ;;
+    capture-rates)
+        capture_invoice_currency_rates
+        ;;
+    restore-rates)
+        restore_invoice_currency_rates
+        ;;
+    verify-rates)
+        run_product_rate_lifecycle verify
         ;;
     schema-finalize)
         finalize_product_schema
@@ -77,13 +167,14 @@ case "$command_name" in
     all)
         migration/internal/accounting-compat dev-import
         migration/internal/accounting-compat dev-validate
+        capture_invoice_currency_rates
         run_migration_shell \
             migration/accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py
         finalize_product_schema
         validate_product_boundary
         ;;
     *)
-        echo "Usage: migration/internal/accounting-restore [attachment-targets|expense-batch-transition|finalize|schema-finalize|product-validate|all]"
+        echo "Usage: migration/internal/accounting-restore [attachment-targets|expense-batch-transition|capture-rates|restore-rates|verify-rates|finalize|schema-finalize|product-validate|all]"
         exit 2
         ;;
 esac

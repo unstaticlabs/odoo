@@ -166,6 +166,12 @@ docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
   --database="$target_database" \
   < scripts/odoo/compile_product_assets.py
 
+# Stored-field recomputation during the product upgrade may replace exceptional
+# Online invoice rates with the ordinary currency table. Restore the private,
+# source-bound rate manifest after every upgrade and prove that no journal item
+# changed and Invoice/Bills Analysis still matches Online.
+migration/internal/accounting-restore restore-rates
+
 # The product validators intentionally use the base Compose service and may
 # recreate Odoo without the Pocket ID environment overlay.  Always finish by
 # restoring the governed SSO runtime that operators will actually use.
@@ -176,6 +182,10 @@ elif [[ "$qa_profile" == no-documents ]]; then
 else
   scripts/pocket-id-dev start-runtime
 fi
+
+# A process restart must not drift the restored stored values. This read-only
+# pass compares every source document and the signed analysis aggregates again.
+migration/internal/accounting-restore verify-rates
 
 printf '\nCanonical target finalized: odoo_dev\n'
 if [[ "$qa_profile" != full ]]; then

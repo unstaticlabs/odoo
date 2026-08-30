@@ -576,6 +576,129 @@ class RebuildAccountImportRun(models.Model):
             "mismatch_examples": mismatches[:20],
         }
 
+    def _restore_invoice_currency_rates(self, source_rows, target_moves):
+        """Restore source document rates without recomputing posted entries.
+
+        ``invoice_currency_rate`` is a stored computed field.  Odoo may queue
+        it for recomputation after invoice creation, posting, or a module
+        upgrade.  The source value is nevertheless a business fact used by
+        Invoice/Bills Analysis.  Restore it with a narrow SQL update so no
+        journal item, tax, residual, or reconciliation is touched.
+        """
+        source_documents = [
+            row for row in source_rows
+            if row["move_type"] in INVOICE_MOVE_TYPES
+        ]
+        missing = [
+            {
+                "source_move_id": row["id"],
+                "source_move_name": row["name"],
+            }
+            for row in source_documents
+            if row["id"] not in target_moves
+        ]
+        if missing:
+            raise ValueError(
+                "Cannot restore invoice_currency_rate without an exact target "
+                "document: %s"
+                % json.dumps(missing[:20], ensure_ascii=False, sort_keys=True),
+            )
+
+        invalid = []
+        updates = []
+        changed = []
+        target_documents = self.env["account.move"]
+        for source_move in source_documents:
+            move = target_moves[source_move["id"]]
+            source_rate = self._amount(source_move["invoice_currency_rate"])
+            if move.currency_id != move.company_currency_id and source_rate <= 0:
+                invalid.append({
+                    "source_move_id": source_move["id"],
+                    "source_move_name": source_move["name"],
+                    "source_rate": source_rate,
+                })
+                continue
+            target_documents |= move
+            updates.append((source_rate, move.id))
+            if move.invoice_currency_rate != source_rate:
+                changed.append({
+                    "source_move_id": source_move["id"],
+                    "source_move_name": source_move["name"],
+                    "target_move_id": move.id,
+                    "previous_rate": move.invoice_currency_rate,
+                    "restored_rate": source_rate,
+                })
+        if invalid:
+            raise ValueError(
+                "Source foreign-currency documents contain invalid historical "
+                "rates: %s"
+                % json.dumps(invalid[:20], ensure_ascii=False, sort_keys=True),
+            )
+
+        ledger_before = self._posted_ledger_signature()
+        self.env.remove_to_compute(
+            target_documents._fields["invoice_currency_rate"],
+            target_documents,
+        )
+        self.env.cr.executemany(
+            """
+            UPDATE account_move
+               SET invoice_currency_rate = %s
+             WHERE id = %s
+               AND invoice_currency_rate IS DISTINCT FROM %s
+            """,
+            [(rate, move_id, rate) for rate, move_id in updates],
+        )
+        target_documents.invalidate_recordset(["invoice_currency_rate"])
+        parity = self._invoice_currency_rate_parity(
+            source_documents,
+            target_moves,
+        )
+        ledger_after = self._posted_ledger_signature()
+        if parity["mismatch_count"]:
+            raise ValueError(
+                "Historical document rates still differ after restoration: %s"
+                % json.dumps(
+                    parity["mismatch_examples"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    default=str,
+                ),
+            )
+        if ledger_after != ledger_before:
+            raise ValueError(
+                "Journal-item totals changed while restoring historical "
+                "invoice currency rates.",
+            )
+        return {
+            "source_document_count": len(source_documents),
+            "changed_document_count": len(changed),
+            "unchanged_document_count": len(source_documents) - len(changed),
+            "changed_examples": changed[:20],
+            "ledger_unchanged": True,
+            "parity": parity,
+        }
+
+    def _posted_ledger_signature(self):
+        self.env.cr.execute(
+            """
+            SELECT COUNT(line.id),
+                   COALESCE(SUM(line.debit), 0),
+                   COALESCE(SUM(line.credit), 0),
+                   COALESCE(SUM(line.balance), 0)
+              FROM account_move_line line
+              JOIN account_move move ON move.id = line.move_id
+             WHERE move.state = 'posted'
+            """,
+        )
+        count, debit, credit, balance = self.env.cr.fetchone()
+        return {
+            "line_count": count,
+            "debit": str(debit),
+            "credit": str(credit),
+            "balance": str(balance),
+        }
+
     @staticmethod
     def _sequence_chronology_profile(rows):
         missing_names = []
@@ -10659,6 +10782,20 @@ class RebuildAccountImportRun(models.Model):
                 [move_row["id"] for move_row in move_rows],
                 options,
             )
+            initial_invoice_currency_rate_restoration = (
+                self._restore_invoice_currency_rates(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "changed_document_count": 0,
+                    "unchanged_document_count": 0,
+                    "changed_examples": [],
+                    "ledger_unchanged": True,
+                }
+            )
             invoice_currency_rate_parity = (
                 self._invoice_currency_rate_parity(
                     move_rows,
@@ -11048,6 +11185,39 @@ class RebuildAccountImportRun(models.Model):
             cca_configuration_stats = (
                 self.env["res.company"]._rebuild_apply_cca_projection_defaults()
             )
+            final_invoice_currency_rate_restoration = (
+                self._restore_invoice_currency_rates(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "changed_document_count": 0,
+                    "unchanged_document_count": 0,
+                    "changed_examples": [],
+                    "ledger_unchanged": True,
+                }
+            )
+            invoice_currency_rate_parity = (
+                self._invoice_currency_rate_parity(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else invoice_currency_rate_parity
+            )
+            if invoice_currency_rate_parity["mismatch_count"]:
+                raise ValueError(
+                    "Final invoice_currency_rate differs from the Online "
+                    "document history: %s"
+                    % json.dumps(
+                        invoice_currency_rate_parity["mismatch_examples"],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
             record_stage(
                 "final accounting validation",
                 stage_started,
@@ -11077,6 +11247,12 @@ class RebuildAccountImportRun(models.Model):
                 "invoice_currency_rate_parity": (
                     invoice_currency_rate_parity
                 ),
+                "invoice_currency_rate_restoration": {
+                    "after_posting": initial_invoice_currency_rate_restoration,
+                    "after_final_accounting_stages": (
+                        final_invoice_currency_rate_restoration
+                    ),
+                },
                 "skipped_non_account_line_count": skipped_non_account_line_count,
                 "skipped_non_account_line_examples": skipped_non_account_line_examples,
                 "account_count": len(accounts),
