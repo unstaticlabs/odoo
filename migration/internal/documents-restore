@@ -686,7 +686,9 @@ case "$command_name" in
             exit 2
         fi
         validate_source
-        require_source_bindings
+        # Sealing reads only the frozen source identity and the completed
+        # Paperless archive. It intentionally runs after migration-only Odoo
+        # source bindings have been removed from the delivered database.
         start_archive
         seal_archive_evidence
         ;;

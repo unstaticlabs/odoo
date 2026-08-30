@@ -251,6 +251,16 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
             target_finalize.index('scripts/pocket-id-dev configure-odoo "$product_modules_csv"'),
         )
 
+    def test_documents_evidence_seals_after_migration_bindings_are_removed(self) -> None:
+        restore = (ROOT / "migration/internal/documents-restore").read_text(
+            encoding="utf-8"
+        )
+        seal_case = restore.split("    seal-evidence)", 1)[1].split("        ;;", 1)[0]
+
+        self.assertIn("validate_source", seal_case)
+        self.assertIn("seal_archive_evidence", seal_case)
+        self.assertNotIn("require_source_bindings", seal_case)
+
     def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
         self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)
         self.assertIn("digest_reference=$DISTRIBUTION_IMAGE@$digest", self.workflow)
