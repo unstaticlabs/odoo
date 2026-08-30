@@ -564,6 +564,20 @@ class IrAttachment(models.Model):
         index=True,
     )
 
+    def _store_attachment_fields(self, res, **kwargs):
+        """Tell the viewer whether it may persist a generated thumbnail.
+
+        A user may be allowed to update the business record while the attachment
+        itself is immutable.  Paid expenses deliberately use that distinction.
+        The standard viewer otherwise infers attachment write access from the
+        parent record and attempts a forbidden thumbnail write.
+        """
+        res.attr(
+            "uslCanUpdateThumbnail",
+            lambda attachment: attachment.sudo(False).has_access("write"),
+        )
+        return super()._store_attachment_fields(res, **kwargs)
+
     @api.model
     def _usl_documents_policy_fields(self):
         return {

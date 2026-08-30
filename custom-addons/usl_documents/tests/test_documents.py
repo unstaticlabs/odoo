@@ -1,4 +1,5 @@
 import base64
+import inspect
 import io
 import json
 import urllib.error
@@ -10,6 +11,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from ..controllers import documents as documents_controller_module
+from ..controllers import attachment as attachment_controller_module
+from ..controllers.attachment import DocumentsAttachmentController
 from ..controllers.documents import DocumentsController
 from ..models.document import UslDocument
 from ..models.paperless_client import (
@@ -20,6 +23,7 @@ from ..models.paperless_client import (
     PaperlessUnavailable,
 )
 from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.addons.mail.tools.discuss import Store
 from odoo.addons.usl_documents.models.attachment_bridge import ORIGIN_CAPTURE_TOKEN
 
 
@@ -77,6 +81,53 @@ class TestDocuments(TransactionCase):
                 raise_if_not_found=False,
             ),
         )
+
+    def test_attachment_store_exposes_real_thumbnail_write_access(self):
+        attachment = (
+            self.env["ir.attachment"]
+            .with_context(usl_documents_skip_attachment_queue=True)
+            .create(
+                {
+                    "name": "immutable-evidence.pdf",
+                    "raw": b"%PDF-1.4 immutable evidence",
+                    "mimetype": "application/pdf",
+                    "res_model": "res.company",
+                    "res_id": self.company_a.id,
+                },
+            )
+        )
+        readonly_attachment = attachment.with_user(self.user)
+        self.assertTrue(readonly_attachment.has_access("read"))
+        self.assertFalse(readonly_attachment.has_access("write"))
+
+        values = (
+            Store()
+            .add(readonly_attachment, "_store_attachment_fields")
+            ._build_result()["ir.attachment"][0]
+        )
+
+        self.assertFalse(values["uslCanUpdateThumbnail"])
+
+    def test_readonly_thumbnail_update_is_a_noop_for_existing_clients(self):
+        attachment = MagicMock()
+        attachment.has_access.side_effect = lambda operation: operation == "read"
+        attachment._has_attachments_ownership.return_value = False
+        attachment_model = MagicMock()
+        attachment_model.browse.return_value.exists.return_value = attachment
+        mock_request = SimpleNamespace(env={"ir.attachment": attachment_model})
+
+        with patch.object(attachment_controller_module, "request", mock_request):
+            route_method = inspect.unwrap(
+                DocumentsAttachmentController.mail_attachement_update_thumbnail,
+            )
+            result = route_method(
+                DocumentsAttachmentController(),
+                42,
+                thumbnail="ignored",
+            )
+
+        self.assertFalse(result)
+        attachment._has_attachments_ownership.assert_called_once_with([None])
 
     def test_french_navigation_and_matching_terms_are_contextual(self):
         smart_view = self.env.ref(

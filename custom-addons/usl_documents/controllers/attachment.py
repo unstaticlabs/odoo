@@ -28,3 +28,28 @@ class DocumentsAttachmentController(AttachmentController):
             is_pending,
             **kwargs,
         )
+
+    @mail_route()
+    def mail_attachement_update_thumbnail(
+        self,
+        attachment_id,
+        thumbnail=None,
+        access_token=None,
+    ):
+        attachment = request.env["ir.attachment"].browse(int(attachment_id)).exists()
+        if (
+            attachment
+            and attachment.has_access("read")
+            and not attachment.has_access("write")
+            and not attachment._has_attachments_ownership([access_token])
+        ):
+            # Existing browser sessions may still request a thumbnail before
+            # loading the attachment-level capability added by this module.
+            # Treat that immutable write as a no-op without granting access or
+            # changing the protected evidence.
+            return False
+        return super().mail_attachement_update_thumbnail(
+            attachment_id,
+            thumbnail=thumbnail,
+            access_token=access_token,
+        )

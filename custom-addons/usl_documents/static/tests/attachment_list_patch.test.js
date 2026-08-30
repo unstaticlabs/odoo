@@ -10,7 +10,36 @@ import { expect, test } from "@odoo/hoot";
 import { mockUserAgent } from "@odoo/hoot-mock";
 import { mockService, onRpc } from "@web/../tests/web_test_helpers";
 
+import { canPersistPdfThumbnail } from "@usl_documents/attachment_list_patch";
+
 defineMailModels();
+
+test("PDF thumbnail persistence follows attachment access, not parent access", () => {
+    expect(
+        canPersistPdfThumbnail({
+            ownership_token: undefined,
+            uslCanUpdateThumbnail: undefined,
+        })
+    ).toBe(false);
+    expect(
+        canPersistPdfThumbnail({
+            ownership_token: undefined,
+            uslCanUpdateThumbnail: false,
+        })
+    ).toBe(false);
+    expect(
+        canPersistPdfThumbnail({
+            ownership_token: undefined,
+            uslCanUpdateThumbnail: true,
+        })
+    ).toBe(true);
+    expect(
+        canPersistPdfThumbnail({
+            ownership_token: "scoped-upload-token",
+            uslCanUpdateThumbnail: false,
+        })
+    ).toBe(true);
+});
 
 async function openChatterAttachment({
     mobile = false,

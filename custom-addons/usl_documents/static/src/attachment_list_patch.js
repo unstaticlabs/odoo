@@ -1,10 +1,39 @@
 import { AttachmentList } from "@mail/core/common/attachment_list";
+import { Attachment } from "@mail/core/common/attachment_model";
+import { fields } from "@mail/model/export";
 
 import { onWillUnmount, useEffect, useState } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
+
+/**
+ * Newly uploaded attachments can use their scoped ownership token. Persisted
+ * attachments must expose actual write access instead of inheriting the parent
+ * record's broader write capability.
+ *
+ * @param {import("models").Attachment} attachment
+ */
+export function canPersistPdfThumbnail(attachment) {
+    return Boolean(
+        attachment.ownership_token || attachment.uslCanUpdateThumbnail
+    );
+}
+
+patch(Attachment.prototype, {
+    setup() {
+        super.setup(...arguments);
+        this.uslCanUpdateThumbnail = fields.Attr();
+    },
+
+    async setPdfThumbnail() {
+        if (!canPersistPdfThumbnail(this)) {
+            return;
+        }
+        return super.setPdfThumbnail(...arguments);
+    },
+});
 
 patch(AttachmentList.prototype, {
     setup() {
