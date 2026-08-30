@@ -11,7 +11,9 @@ the user into the complete native workflow.
   today, which precedes future work, without inventing a second priority model.
 - **My Tasks** uses the canonical My Tasks domain. It reports the largest open
   stage groups and counts overdue, seven-day, waiting and changes-requested
-  work without loading the task backlog.
+  work without loading the task backlog. Every count opens as a named search
+  facet whose domain matches that exact count and survives browser history or
+  refresh.
 - **Favorite Views** stores current-user destinations as native actions,
   structured view state, records or curated system destinations. Raw URLs and
   executable expressions are not stored.

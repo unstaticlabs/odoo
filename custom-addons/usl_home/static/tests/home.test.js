@@ -157,18 +157,25 @@ test("multi-company mode labels combined widgets and accounting contributions", 
 test("every task metric opens its exact filtered action", async () => {
     const requests = [];
     const actions = [];
+    const actionOptions = [];
     onRpc("usl.home.service", "get_my_tasks_action", ({ args }) => {
         requests.push(args);
         return {
             type: "ir.actions.act_window",
             name: `My Tasks — ${args[1]}`,
             res_model: "project.task",
-            domain: [[args[0], "=", args[1]]],
+            domain: [["user_ids", "in", 5]],
+            usl_home_filter: {
+                description: `${args[1]}`,
+                domain: [[args[0], "=", args[1]]],
+                is_default: true,
+            },
         };
     });
     mockService("action", {
-        doAction(action) {
+        doAction(action, options) {
             actions.push(action);
+            actionOptions.push(options);
         },
     });
 
@@ -190,8 +197,24 @@ test("every task metric opens its exact filtered action", async () => {
         ["stage", 1],
     ]);
     expect(actions).toHaveLength(2);
-    expect(actions[0].domain).toEqual([["signal", "=", "overdue"]]);
-    expect(actions[1].domain).toEqual([["stage", "=", 1]]);
+    expect(actions[0].domain).toEqual([["user_ids", "in", 5]]);
+    expect(actions[1].domain).toEqual([["user_ids", "in", 5]]);
+    expect(actions[0].usl_home_filter).toBe(undefined);
+    expect(actions[1].usl_home_filter).toBe(undefined);
+    expect(actionOptions[0].props.dynamicFilters).toEqual([
+        {
+            description: "overdue",
+            domain: [["signal", "=", "overdue"]],
+            is_default: true,
+        },
+    ]);
+    expect(actionOptions[1].props.dynamicFilters).toEqual([
+        {
+            description: "1",
+            domain: [["stage", "=", 1]],
+            is_default: true,
+        },
+    ]);
 });
 
 test("widget visibility is saved without affecting other cards", async () => {

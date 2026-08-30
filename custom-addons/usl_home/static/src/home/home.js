@@ -311,7 +311,9 @@ export class UslHome extends Component {
             "get_my_tasks_action",
             [filterType, filterValue]
         );
-        return this.action.doAction(action);
+        const dynamicFilters = [action.usl_home_filter];
+        delete action.usl_home_filter;
+        return this.action.doAction(action, { props: { dynamicFilters } });
     }
 
     async openAiPipelines() {

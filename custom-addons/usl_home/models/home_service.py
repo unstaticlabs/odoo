@@ -462,7 +462,11 @@ class UslHomeService(models.AbstractModel):
             "project.action_view_my_task"
         )
         action["name"] = self.env._("My Tasks — %s", label)
-        action["domain"] = [*open_domain, *metric_domain]
+        action["usl_home_filter"] = {
+            "description": label,
+            "domain": [*open_domain, *metric_domain],
+            "is_default": True,
+        }
         return action
 
     @api.model

@@ -131,12 +131,24 @@ class TestUslHome(TransactionCase):
             with self.subTest(signal=signal):
                 action = service.get_my_tasks_action("signal", signal)
                 self.assertEqual(action["res_model"], "project.task")
-                self.assertEqual(Task.search_count(action["domain"]), expected_count)
+                metric_filter = action["usl_home_filter"]
+                self.assertTrue(metric_filter["is_default"])
+                self.assertEqual(
+                    Task.search_count(metric_filter["domain"]),
+                    expected_count,
+                )
 
         stage = next(item for item in summary["stages"] if item["id"] == self.stage.id)
         action = service.get_my_tasks_action("stage", self.stage.id)
-        self.assertEqual(Task.search_count(action["domain"]), stage["count"])
+        self.assertEqual(
+            Task.search_count(action["usl_home_filter"]["domain"]),
+            stage["count"],
+        )
         self.assertIn(self.stage.display_name, action["name"])
+        self.assertEqual(
+            action["usl_home_filter"]["description"],
+            self.stage.display_name,
+        )
 
         for filter_type, filter_value in (
             ("signal", "unknown"),
