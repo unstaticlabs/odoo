@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1` has six bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1` has seven bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -50,6 +50,11 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    client batch size as `PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE`. The qualified
    value is 32: measured native-Metal throughput has already plateaued there,
    and release preflight rejects drift.
+7. The image build parses the final Paperless views module and proves that
+   every preview/download call matches the exact `serve_file` request
+   signature. The source-archive restore then validates a non-empty preview for
+   every restored document, so source or dependency drift fails before a QA or
+   production cohort can be accepted.
 
 `tests/test_semantic_api.py` is an upstream-style Django/DRF test module
 covering both bounded endpoints and permission-vector invariance: permission

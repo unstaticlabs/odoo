@@ -56,7 +56,7 @@ The integrated fixes are deliberately separate:
   failure restores the normal runtime and fails the migration. Ordinary user
   uploads are unchanged, and production admission rejects the deferral switch.
 
-Paperless `3.0.5-usl.7` contains the controlled bulk
+Paperless `3.0.5-usl.8` contains the controlled bulk
 index path. Its hash-guarded ARM64 image built successfully and its final 22
 focused Django tests passed. The optimized locked-source reconstruction reused
 646 exact governed roots without re-uploading bytes, archived 832 eligible
