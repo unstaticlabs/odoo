@@ -462,12 +462,21 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             }
         )
     images = runtime.get("images") or {}
-    if images.get("odoo"):
+    # Docker inspection reports local content IDs (``sha256:...``) for
+    # adopted containers. They are useful evidence, but not stable Compose
+    # image references: a rebuild can replace the untagged image before the
+    # new container is created. Only explicit named references may override
+    # the checkout's normal build tags.
+    if images.get("odoo") and not images["odoo"].startswith("sha256:"):
         environment["ODOO_IMAGE"] = images["odoo"]
         environment["USL_CANDIDATE_IMAGE"] = images["odoo"]
-    if images.get("paperless-webserver"):
+    if images.get("paperless-webserver") and not images[
+        "paperless-webserver"
+    ].startswith("sha256:"):
         environment["PAPERLESS_IMAGE"] = images["paperless-webserver"]
-    if images.get("paperless-ollama"):
+    if images.get("paperless-ollama") and not images["paperless-ollama"].startswith(
+        "sha256:"
+    ):
         environment["OLLAMA_IMAGE"] = images["paperless-ollama"]
     environment.update(secrets)
     return environment

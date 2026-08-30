@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from migration import manager
 from migration.guard_runtime import guard
@@ -270,17 +270,66 @@ class MigrationManageTests(unittest.TestCase):
             "database": "odoo_dev",
             "private_directory": str(self.root / "private/runtime"),
             "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
-            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id"},
+            "urls": {
+                "odoo": "http://odoo",
+                "paperless": "http://paperless",
+                "pocket_id": "http://id",
+            },
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
             "ollama": {"mode": "container"},
-            "compose": {"project": "recorded-project", "files": [str(self.root / "compose.yaml")]},
+            "compose": {
+                "project": "recorded-project",
+                "files": [str(self.root / "compose.yaml")],
+            },
         }
         with patch.dict(os.environ, {"COMPOSE_PROJECT_NAME": "ambient-project", "USL_EINVOICE_LIVE_ENABLED": "1"}):
             environment = runtime_environment(runtime, {})
         self.assertEqual(environment["COMPOSE_PROJECT_NAME"], "recorded-project")
         self.assertEqual(environment["USL_EINVOICE_LIVE_ENABLED"], "0")
         self.assertEqual(environment["USL_EREPORTING_LIVE_ENABLED"], "0")
+
+    def test_runtime_environment_does_not_reuse_adopted_local_image_ids(self):
+        runtime = {
+            "id": "qa-current",
+            "database": "odoo_dev",
+            "private_directory": str(self.root / "private/runtime"),
+            "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4},
+            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id"},
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "compose": {"project": "recorded-project", "files": [str(self.root / "compose.yaml")]},
+            "images": {
+                "odoo": "sha256:" + "1" * 64,
+                "paperless-webserver": "sha256:" + "2" * 64,
+            },
+        }
+        environment = runtime_environment(runtime, {})
+        self.assertNotIn("ODOO_IMAGE", environment)
+        self.assertNotIn("PAPERLESS_IMAGE", environment)
+
+        runtime["images"] = {
+            "odoo": "registry.example/odoo@sha256:" + "3" * 64,
+            "paperless-webserver": "registry.example/paperless@sha256:" + "4" * 64,
+        }
+        environment = runtime_environment(runtime, {})
+        self.assertEqual(environment["ODOO_IMAGE"], runtime["images"]["odoo"])
+        self.assertEqual(
+            environment["PAPERLESS_IMAGE"], runtime["images"]["paperless-webserver"]
+        )
+
+    def test_failed_refresh_recovers_exact_partial_resource_set(self):
+        runtime = {
+            "id": "qa-current",
+            "status": "failed",
+            "compose": {"project": self.runner.project},
+            "resources": {"containers": [], "volumes": [], "networks": []},
+        }
+        store = Mock()
+        manager.recover_failed_runtime_resources(runtime, store, self.runner)
+        self.assertEqual(len(runtime["resources"]["containers"]), 2)
+        store.save.assert_called_once_with(runtime)
 
     def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
         models = self.root / "models"

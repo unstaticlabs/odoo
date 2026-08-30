@@ -356,6 +356,21 @@ def destroy_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
         runner.run(["docker", "network", "rm", *network_ids])
 
 
+def recover_failed_runtime_resources(
+    runtime: dict[str, Any],
+    store: RuntimeStore,
+    runner: CommandRunner,
+) -> None:
+    """Record resources left by an interrupted reconstruction before retrying."""
+    if runtime["status"] != "failed" or any(runtime["resources"].values()):
+        return
+    current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+    if not any(current.values()):
+        return
+    runtime["resources"] = current
+    record(store, runtime, "qa.refresh.recover-resources")
+
+
 def ttl_minutes(value: str) -> int:
     match = TTL.fullmatch(value)
     if not match:
@@ -454,6 +469,7 @@ def command_qa(args: argparse.Namespace, runner: CommandRunner) -> dict[str, Any
         if runtime["status"] in {"transition-live", "frozen-read-only"}:
             raise RuntimeError("protected runtime cannot be refreshed")
         release_commit = ensure_clean_checkout()
+        recover_failed_runtime_resources(runtime, store, runner)
         destroy_runtime(runtime, runner)
         runtime["status"] = "reconstructing"
         runtime["release_commit"] = release_commit
@@ -467,6 +483,9 @@ def command_qa(args: argparse.Namespace, runner: CommandRunner) -> dict[str, Any
                 [str(INTERNAL / "reconstruct"), "qa"],
             )
         except RuntimeError:
+            runtime["resources"] = inspect_project(
+                runner, runtime["compose"]["project"], ROOT
+            )
             runtime["status"] = "failed"
             record(store, runtime, "qa.refresh", "failed")
             raise
