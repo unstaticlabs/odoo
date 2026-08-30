@@ -34,6 +34,9 @@ FROM ${PAPERLESS_BASE_IMAGE}
 COPY --chmod=0644 \
     deploy/documents/paperless-ngx/overlay/paperless_ai/semantic_api.py \
     /usr/src/paperless/src/paperless_ai/semantic_api.py
+COPY --chmod=0644 \
+    deploy/documents/paperless-ngx/overlay/paperless_usl_ranges.py \
+    /usr/src/paperless/src/paperless_usl_ranges.py
 COPY deploy/documents/paperless-ngx/overlay/paperless_personal_ai/ \
     /usr/src/paperless/src/paperless_personal_ai/
 COPY --chmod=0755 \
@@ -45,6 +48,7 @@ COPY --from=compile-frontend --chown=1000:1000 \
 
 RUN python /tmp/usl-apply-paperless-overlay.py \
     && python -m compileall -q \
+        /usr/src/paperless/src/paperless_usl_ranges.py \
         /usr/src/paperless/src/paperless_ai/semantic_api.py \
         /usr/src/paperless/src/paperless_personal_ai \
         /usr/src/paperless/src/documents/bulk_edit.py \
@@ -61,7 +65,7 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
     && rm /tmp/usl-apply-paperless-overlay.py
 
 LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
-      org.opencontainers.image.version="3.0.5-usl.6" \
+      org.opencontainers.image.version="3.0.5-usl.7" \
       org.opencontainers.image.revision="8fb73b2709e4c38180a7632edf32f32fe2315961" \
       com.unstaticlabs.paperless.base-digest="sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" \
-      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1"
+      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+byte-range-download-v1"

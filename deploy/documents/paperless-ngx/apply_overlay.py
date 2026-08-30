@@ -479,6 +479,7 @@ from paperless_ai.chat import stream_chat_with_documents
 from paperless_ai.exceptions import LLMTimeoutError
 """,
             """from paperless_ai.exceptions import LLMTimeoutError
+from paperless_usl_ranges import ranged_file_response
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
 from paperless_personal_ai.runtime import PersonalAIGenerationError
@@ -487,6 +488,57 @@ from paperless_personal_ai.service import PersonalAIDisabledError
 from paperless_personal_ai.service import PersonalAIEligibilityError
 from paperless_personal_ai.service import personal_ai_cache_identity
 from paperless_personal_ai.service import resolve_personal_llm_config
+""",
+        ),
+        (
+            """        return serve_file(
+            doc=file_doc,
+            use_archive=not self.original_requested(request)
+            and file_doc.has_archive_version,
+            disposition=disposition,
+            follow_formatting=request.query_params.get("follow_formatting", False),
+        )
+""",
+            """        return serve_file(
+            request=request,
+            doc=file_doc,
+            use_archive=not self.original_requested(request)
+            and file_doc.has_archive_version,
+            disposition=disposition,
+            follow_formatting=request.query_params.get("follow_formatting", False),
+        )
+""",
+        ),
+        (
+            """def serve_file(
+    *,
+    doc: Document,
+""",
+            """def serve_file(
+    *,
+    request: Request,
+    doc: Document,
+""",
+        ),
+        (
+            """    response = FileResponse(file_handle, content_type=mime_type)
+    # Firefox is not able to handle unicode characters in filename field
+""",
+            """    # Firefox is not able to handle unicode characters in filename field
+""",
+        ),
+        (
+            """    response["Content-Disposition"] = content_disposition
+    return response
+""",
+            """    checksum = doc.archive_checksum if use_archive else doc.checksum
+    return ranged_file_response(
+        request,
+        file_handle,
+        content_type=mime_type,
+        content_disposition=content_disposition,
+        etag=checksum,
+    )
 """,
         ),
         (
