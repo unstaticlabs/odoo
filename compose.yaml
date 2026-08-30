@@ -3,7 +3,7 @@ name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}
 x-odoo-mcp-environment: &odoo-mcp-environment
   MCP_HOST: 0.0.0.0
   MCP_PORT: 3000
-  MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://mcp.localhost:3000}
+  MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://localhost:3000}
   MCP_ALLOWED_HOSTS: ${ODOO_MCP_ALLOWED_HOSTS:-mcp.localhost,localhost,127.0.0.1}
   MCP_ALLOWED_ORIGINS: ${ODOO_MCP_ALLOWED_ORIGINS:-chatgpt.com,claude.ai,mcp.localhost,localhost,127.0.0.1}
   MCP_ALLOW_LOCAL_HTTP_ODOO: ${ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO:-true}
@@ -17,7 +17,7 @@ x-odoo-mcp-environment: &odoo-mcp-environment
   MCP_OAUTH_DATABASE: /data/oauth.sqlite
   BETTER_AUTH_SECRET_FILE: /run/secrets/odoo_mcp_better_auth_secret
   MCP_CREDENTIAL_ENCRYPTION_KEY_FILE: /run/secrets/odoo_mcp_credential_encryption_key
-  MCP_OAUTH_TRUSTED_ORIGINS: ${ODOO_MCP_OAUTH_TRUSTED_ORIGINS:-https://chatgpt.com,https://claude.ai,http://mcp.localhost:3000}
+  MCP_OAUTH_TRUSTED_ORIGINS: ${ODOO_MCP_OAUTH_TRUSTED_ORIGINS:-https://chatgpt.com,https://claude.ai,http://localhost:3000}
 
 services:
   db:

@@ -36,7 +36,7 @@ contract without updating `deploy/odoo-mcp/compatibility.json`.
 
 The migration runtime resolves the MCP port, public origin, Odoo target,
 database, image, source identity, and secret-file paths once. Local macOS uses
-`http://mcp.localhost:<port>` on loopback. Production uses an HTTPS origin
+`http://localhost:<port>` on loopback. Production uses an HTTPS origin
 through the existing ingress network; only the reverse proxy should reach the
 container port.
 
@@ -63,7 +63,7 @@ surface remains within its tool/schema budget, and the OAuth vault is ready.
 An unauthenticated `/mcp` request must return 401.
 
 ```bash
-scripts/odoo-mcp smoke --origin http://mcp.localhost:<port>
+scripts/odoo-mcp smoke --origin http://localhost:<port>
 ```
 
 Release acceptance additionally requires the MCP repository's complete check

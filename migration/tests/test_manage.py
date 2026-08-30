@@ -258,6 +258,7 @@ class MigrationManageTests(unittest.TestCase):
             0o600,
         )
         self.assertEqual(runtime["compose"]["project"], self.runner.project)
+        self.assertEqual(runtime["urls"]["mcp"], "http://localhost:28673")
         self.assertEqual(runtime["release_commit"], "b" * 40)
         self.assertFalse(status["checkout_matches"])
         self.assertEqual(status["resources"], {"containers": 3, "volumes": 1, "networks": 1})
@@ -330,7 +331,7 @@ class MigrationManageTests(unittest.TestCase):
                 "odoo": "http://odoo",
                 "paperless": "http://paperless",
                 "pocket_id": "http://id",
-                "mcp": "http://mcp.localhost:5",
+                "mcp": "http://localhost:5",
             },
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
@@ -362,13 +363,56 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(environment["ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO"], "false")
         self.assertEqual(environment["COMPOSE_PROFILES"], "paperless,mcp")
 
+    def test_mcp_start_uses_loopback_origin_and_never_starts_dependencies(self):
+        private_directory = self.root / "private/runtime"
+        private_directory.mkdir(parents=True)
+        runtime = {
+            "id": "transition-current",
+            "database": "odoo_dev",
+            "private_directory": str(private_directory),
+            "ports": {
+                "odoo": 28669,
+                "gevent": 28670,
+                "paperless": 28672,
+                "pocket_id": 28671,
+                "mcp": 28673,
+            },
+            "urls": {
+                "odoo": "http://odoo.localhost:28669",
+                "paperless": "http://paperless.localhost:28672",
+                "pocket_id": "http://pocket-id.localhost:28671",
+                "mcp": "http://mcp.localhost:28673",
+            },
+            "source": {"path": str(self.source), "dump_sha256": "e" * 64},
+            "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
+            "ollama": {"mode": "container"},
+            "mcp": self.mcp,
+            "compose": {
+                "project": "recorded-project",
+                "files": [str(self.root / "compose.yaml")],
+                "profiles": ["mcp"],
+            },
+        }
+
+        manager.start_mcp_runtime(runtime, {}, self.runner)
+
+        self.assertEqual(runtime["urls"]["mcp"], "http://localhost:28673")
+        compose_calls = [call for call in self.runner.calls if call[:2] == ("docker", "compose")]
+        self.assertEqual(len(compose_calls), 2)
+        self.assertIn("--no-deps", compose_calls[0])
+        self.assertIn("--no-deps", compose_calls[1])
+        self.assertEqual(compose_calls[0][-1], "odoo-mcp-oauth-init")
+        self.assertEqual(compose_calls[1][-1], "odoo-mcp")
+        self.assertNotIn("odoo", compose_calls[0])
+        self.assertNotIn("odoo", compose_calls[1])
+
     def test_runtime_environment_does_not_reuse_adopted_local_image_ids(self):
         runtime = {
             "id": "qa-current",
             "database": "odoo_dev",
             "private_directory": str(self.root / "private/runtime"),
             "ports": {"odoo": 1, "gevent": 2, "paperless": 3, "pocket_id": 4, "mcp": 5},
-            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id", "mcp": "http://mcp.localhost:5"},
+            "urls": {"odoo": "http://odoo", "paperless": "http://paperless", "pocket_id": "http://id", "mcp": "http://localhost:5"},
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),
             "ollama": {"mode": "container"},
@@ -462,7 +506,7 @@ class MigrationManageTests(unittest.TestCase):
                 "odoo": "http://odoo.localhost:28669",
                 "paperless": "http://paperless.localhost:28672",
                 "pocket_id": "http://pocket-id.localhost:28671",
-                "mcp": "http://mcp.localhost:28673",
+                "mcp": "http://localhost:28673",
             },
             "source": {"path": str(self.source), "dump_sha256": "a" * 64},
             "private_directory": str(self.root / "private/migration/runtimes/transition-current"),
@@ -496,7 +540,7 @@ class MigrationManageTests(unittest.TestCase):
                 "odoo": "http://odoo",
                 "paperless": "http://paperless",
                 "pocket_id": "http://id",
-                "mcp": "http://mcp.localhost:5",
+                "mcp": "http://localhost:5",
             },
             "source": {"path": str(self.source), "dump_sha256": "e" * 64},
             "personal_ai_key_file": str(self.root / "personal-ai-keys.json"),

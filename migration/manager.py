@@ -11,6 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from migration.runtime import (
     CommandRunner,
@@ -181,7 +182,7 @@ def create_runtime(
         "odoo": args.odoo_url or f"http://odoo.localhost:{ports['odoo']}",
         "pocket_id": args.pocket_id_url or f"http://id.localhost:{ports['pocket_id']}",
         "paperless": args.paperless_url or f"http://paperless.localhost:{ports['paperless']}",
-        "mcp": args.mcp_url or f"http://mcp.localhost:{ports['mcp']}",
+        "mcp": args.mcp_url or f"http://localhost:{ports['mcp']}",
     }
     if adopt:
         expected = {
@@ -479,8 +480,34 @@ def start_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> 
 def start_mcp_runtime(
     runtime: dict[str, Any], secrets: dict[str, str], runner: CommandRunner
 ) -> None:
+    mcp_url = urlparse(runtime["urls"]["mcp"])
+    if mcp_url.scheme == "http" and mcp_url.hostname and mcp_url.hostname.endswith(
+        ".localhost"
+    ):
+        port = f":{mcp_url.port}" if mcp_url.port else ""
+        runtime["urls"]["mcp"] = f"http://localhost{port}"
     env_file, environment = combined_env_file(runtime, secrets)
     environment["POCKET_ID_ENV_FILE"] = str(env_file)
+    runner.run(
+        [
+            "docker",
+            "compose",
+            "--env-file",
+            str(env_file),
+            "-p",
+            runtime["compose"]["project"],
+            "--profile",
+            "mcp",
+            "run",
+            "--rm",
+            "--no-deps",
+            "--pull",
+            "never",
+            "odoo-mcp-oauth-init",
+        ],
+        cwd=ROOT,
+        env=environment,
+    )
     runner.run(
         [
             "docker",
@@ -494,6 +521,7 @@ def start_mcp_runtime(
             "up",
             "-d",
             "--wait",
+            "--no-deps",
             "--pull",
             "never",
             "odoo-mcp",
