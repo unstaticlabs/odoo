@@ -1,23 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_feedback_task_reporter_list" model="ir.ui.view">
-        <field name="name">project.task.feedback.reporter.list</field>
+    <record id="view_feedback_task_kanban_collaborator" model="ir.ui.view">
+        <field name="name">project.task.feedback.collaborator.kanban</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
-            <list string="My Feedback" create="false" edit="false" delete="false">
+            <kanban string="Product Feedback" default_group_by="stage_id" create="false" edit="false" delete="false" records_draggable="false" group_create="false" group_edit="false" group_delete="false" class="o_kanban_small_column o_usl_feedback_board">
+                <field name="stage_id"/>
+                <field name="priority"/>
+                <field name="usl_feedback_reporter_id"/>
+                <field name="usl_feedback_category"/>
+                <field name="usl_feedback_agent_state"/>
+                <field name="tag_ids"/>
+                <templates>
+                    <t t-name="card">
+                        <main>
+                            <div class="d-flex gap-2 align-items-start">
+                                <field name="name" class="fw-semibold flex-grow-1"/>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" class="mt-2"/>
+                            <footer class="mt-2">
+                                <field name="usl_feedback_reporter_id" widget="many2one_avatar_user"/>
+                                <field name="usl_feedback_agent_state" widget="badge" class="ms-auto"/>
+                            </footer>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_feedback_task_kanban_maintainer" model="ir.ui.view">
+        <field name="name">project.task.feedback.maintainer.kanban</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="view_feedback_task_kanban_collaborator"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <kanban position="attributes">
+                <attribute name="create">true</attribute>
+                <attribute name="edit">true</attribute>
+                <attribute name="delete">true</attribute>
+                <attribute name="records_draggable">true</attribute>
+                <attribute name="group_create">true</attribute>
+                <attribute name="group_edit">true</attribute>
+                <attribute name="group_delete">true</attribute>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_feedback_task_list_collaborator" model="ir.ui.view">
+        <field name="name">project.task.feedback.collaborator.list</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <list string="Product Feedback" create="false" edit="false" delete="false">
                 <field name="name"/>
+                <field name="usl_feedback_reporter_id" widget="many2one_avatar_user"/>
                 <field name="usl_feedback_category" widget="badge"/>
                 <field name="priority" widget="priority"/>
                 <field name="stage_id"/>
-                <field name="create_date" optional="show"/>
+                <field name="usl_feedback_agent_state" widget="badge" optional="show"/>
+                <field name="usl_feedback_company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="create_date" optional="hide"/>
                 <field name="write_date" optional="show"/>
-                <field name="company_id" groups="base.group_multi_company" optional="show"/>
             </list>
         </field>
     </record>
 
-    <record id="view_feedback_task_reporter_form" model="ir.ui.view">
-        <field name="name">project.task.feedback.reporter.form</field>
+    <record id="view_feedback_task_list_maintainer" model="ir.ui.view">
+        <field name="name">project.task.feedback.maintainer.list</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="view_feedback_task_list_collaborator"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="edit">true</attribute>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_feedback_task_form_collaborator" model="ir.ui.view">
+        <field name="name">project.task.feedback.collaborator.form</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <form string="Product Feedback" create="false" edit="false" delete="false">
@@ -25,18 +87,27 @@
                     <field name="stage_id" widget="statusbar" readonly="1"/>
                 </header>
                 <sheet>
+                    <field name="project_id" invisible="1"/>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
                     <group col="4">
+                        <field name="usl_feedback_reporter_id" readonly="1"/>
                         <field name="usl_feedback_category" widget="badge" readonly="1"/>
                         <field name="priority" widget="priority" readonly="1"/>
-                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
-                        <field name="create_date" readonly="1"/>
+                        <field name="usl_feedback_agent_state" widget="badge" readonly="1"/>
+                        <field name="usl_feedback_company_id" groups="base.group_multi_company" readonly="1"/>
+                        <field name="tag_ids" widget="many2many_tags" readonly="1"/>
                     </group>
-                    <group string="Description">
+                    <group string="Confirmed brief" col="1">
                         <field name="description" nolabel="1" readonly="1"/>
                     </group>
+                    <group string="Evidence" invisible="not usl_feedback_screenshot_attachment_id">
+                        <field name="usl_feedback_screenshot_attachment_id" readonly="1"/>
+                    </group>
+                    <group string="Related feedback" invisible="not usl_feedback_related_task_ids">
+                        <field name="usl_feedback_related_task_ids" widget="many2many_tags" readonly="1" nolabel="1"/>
+                    </group>
                     <group string="Shared page context" invisible="not usl_feedback_context_included">
                         <field name="usl_feedback_source_action_id" readonly="1"/>
                         <field name="usl_feedback_source_model_id" readonly="1"/>
@@ -44,72 +115,39 @@
                         <field name="usl_feedback_viewport_width" readonly="1"/>
                         <field name="usl_feedback_viewport_height" readonly="1"/>
                     </group>
-                    <group string="Release">
+                    <group string="Release identity">
                         <field name="usl_feedback_release_sha" readonly="1" class="font-monospace"/>
                     </group>
                     <field name="usl_feedback_context_included" invisible="1"/>
-                    <field name="usl_feedback_reporter_id" invisible="1"/>
+                    <field name="usl_feedback_can_manage" invisible="1"/>
                 </sheet>
                 <chatter reload_on_follower="True"/>
             </form>
         </field>
     </record>
 
-    <record id="view_feedback_task_maintainer_list" model="ir.ui.view">
-        <field name="name">project.task.feedback.maintainer.list</field>
-        <field name="model">project.task</field>
-        <field name="arch" type="xml">
-            <list string="Product Feedback" create="false" delete="false">
-                <field name="name"/>
-                <field name="usl_feedback_reporter_id" widget="many2one_avatar_user"/>
-                <field name="usl_feedback_category" widget="badge"/>
-                <field name="priority" widget="priority"/>
-                <field name="stage_id"/>
-                <field name="company_id" groups="base.group_multi_company" optional="show"/>
-                <field name="create_date" optional="show"/>
-                <field name="write_date" optional="show"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_feedback_task_maintainer_form" model="ir.ui.view">
+    <record id="view_feedback_task_form_maintainer" model="ir.ui.view">
         <field name="name">project.task.feedback.maintainer.form</field>
         <field name="model">project.task</field>
+        <field name="inherit_id" ref="view_feedback_task_form_collaborator"/>
+        <field name="mode">primary</field>
         <field name="arch" type="xml">
-            <form string="Product Feedback" create="false" delete="false">
-                <header>
-                    <field name="stage_id" widget="statusbar" options="{'clickable': true}"/>
-                </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1><field name="name"/></h1>
-                    </div>
-                    <group col="4">
-                        <field name="usl_feedback_reporter_id" readonly="1"/>
-                        <field name="usl_feedback_category" readonly="1" widget="badge"/>
-                        <field name="priority" widget="priority"/>
-                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
-                        <field name="user_ids" widget="many2many_avatar_user"/>
-                        <field name="tag_ids" widget="many2many_tags"/>
-                    </group>
-                    <group string="Description">
-                        <field name="description" nolabel="1"/>
-                    </group>
-                    <group string="Shared page context" invisible="not usl_feedback_context_included">
-                        <field name="usl_feedback_source_action_id" readonly="1"/>
-                        <field name="usl_feedback_source_model_id" readonly="1"/>
-                        <field name="usl_feedback_source_res_id" readonly="1"/>
-                        <field name="usl_feedback_viewport_width" readonly="1"/>
-                        <field name="usl_feedback_viewport_height" readonly="1"/>
-                    </group>
-                    <group string="Release">
-                        <field name="usl_feedback_release_sha" readonly="1" class="font-monospace"/>
-                    </group>
-                    <field name="usl_feedback_context_included" invisible="1"/>
-                    <field name="project_id" invisible="1"/>
-                </sheet>
-                <chatter reload_on_follower="True"/>
+            <form position="attributes">
+                <attribute name="edit">true</attribute>
             </form>
+            <field name="stage_id" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="options">{'clickable': true}</attribute>
+            </field>
+            <field name="name" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="priority" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="description" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
         </field>
     </record>
 
@@ -122,49 +160,55 @@
                 <field name="usl_feedback_reporter_id"/>
                 <field name="usl_feedback_category"/>
                 <field name="stage_id"/>
+                <filter name="my_feedback" string="My feedback" domain="[('usl_feedback_reporter_id', '=', uid)]"/>
                 <group>
-                    <filter name="group_stage" string="Status" domain="[]" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_stage" string="Stage" domain="[]" context="{'group_by': 'stage_id'}"/>
                     <filter name="group_category" string="Category" domain="[]" context="{'group_by': 'usl_feedback_category'}"/>
-                    <filter name="group_company" string="Company" domain="[]" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    <filter name="group_company" string="Source company" domain="[]" context="{'group_by': 'usl_feedback_company_id'}" groups="base.group_multi_company"/>
                 </group>
             </search>
         </field>
     </record>
 
-    <record id="action_my_feedback" model="ir.actions.act_window">
-        <field name="name">My Feedback</field>
+    <record id="action_feedback_collaborator" model="ir.actions.act_window">
+        <field name="name">Product Feedback</field>
         <field name="res_model">project.task</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_feedback_task_search"/>
-        <field name="domain">[('usl_feedback_reporter_id', '=', uid)]</field>
+        <field name="domain">[('project_id.usl_feedback_project', '=', True)]</field>
+        <field name="context">{
+            'project_kanban': True,
+            'create': False,
+            'edit': False,
+            'delete': False,
+        }</field>
         <field name="view_ids" eval="[
             Command.clear(),
-            Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_reporter_list')}),
-            Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_reporter_form')})
+            Command.create({'view_mode': 'kanban', 'view_id': ref('view_feedback_task_kanban_collaborator')}),
+            Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_list_collaborator')}),
+            Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_form_collaborator')})
         ]"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">No feedback yet</p>
-            <p>Use <strong>Send feedback</strong> from your user menu whenever something in Odoo needs attention.</p>
-        </field>
     </record>
 
     <record id="action_feedback_maintainer" model="ir.actions.act_window">
         <field name="name">Product Feedback</field>
         <field name="res_model">project.task</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_feedback_task_search"/>
-        <field name="domain">[('usl_feedback_reporter_id', '!=', False)]</field>
+        <field name="domain">[('project_id.usl_feedback_project', '=', True)]</field>
+        <field name="context">{
+            'project_kanban': True,
+            'create': True,
+            'edit': True,
+            'delete': True,
+        }</field>
         <field name="view_ids" eval="[
             Command.clear(),
-            Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_maintainer_list')}),
-            Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_maintainer_form')})
+            Command.create({'view_mode': 'kanban', 'view_id': ref('view_feedback_task_kanban_maintainer')}),
+            Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_list_maintainer')}),
+            Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_form_maintainer')})
         ]"/>
     </record>
 
-    <menuitem id="menu_feedback_root"
-              name="Product Feedback"
-              action="action_feedback_maintainer"
-              groups="group_feedback_maintainer"
-              web_icon="project,static/description/icon.png"
-              sequence="71"/>
+    <menuitem id="menu_feedback_root" name="Product Feedback" action="action_feedback_maintainer" groups="group_feedback_maintainer" web_icon="project,static/description/icon.png" sequence="71"/>
 </odoo>

@@ -1,5 +1,15 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_feedback_submission_user,usl.feedback.submission user,model_usl_feedback_submission,base.group_user,1,1,1,1
+access_feedback_agent_run_maintainer,usl.feedback.agent.run maintainer,model_usl_feedback_agent_run,group_feedback_maintainer,1,0,0,0
+access_feedback_agent_run_system,usl.feedback.agent.run system,model_usl_feedback_agent_run,base.group_system,1,0,0,0
 access_feedback_project_maintainer,project.project feedback maintainer,project.model_project_project,group_feedback_maintainer,1,1,0,0
-access_feedback_task_maintainer,project.task feedback maintainer,project.model_project_task,group_feedback_maintainer,1,1,1,0
-
+access_feedback_task_maintainer,project.task feedback maintainer,project.model_project_task,group_feedback_maintainer,1,1,1,1
+access_feedback_stage_maintainer,project.task.type feedback maintainer,project.model_project_task_type,group_feedback_maintainer,1,1,1,1
+access_feedback_tag_maintainer,project.tags feedback maintainer,project.model_project_tags,group_feedback_maintainer,1,1,1,1
+access_feedback_project_agent,project.project feedback agent,project.model_project_project,group_feedback_agent,1,0,0,0
+access_feedback_task_agent,project.task feedback agent,project.model_project_task,group_feedback_agent,1,0,0,0
+access_feedback_stage_agent,project.task.type feedback agent,project.model_project_task_type,group_feedback_agent,1,0,0,0
+access_feedback_tag_agent,project.tags feedback agent,project.model_project_tags,group_feedback_agent,1,0,0,0
+access_feedback_message_agent,mail.message feedback agent,mail.model_mail_message,group_feedback_agent,1,0,0,0
+access_feedback_activity_agent,mail.activity feedback agent,mail.model_mail_activity,group_feedback_agent,1,0,0,0
+access_feedback_attachment_agent,ir.attachment feedback agent,base.model_ir_attachment,group_feedback_agent,1,0,0,0

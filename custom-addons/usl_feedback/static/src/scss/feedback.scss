@@ -1,25 +1,73 @@
-.o_usl_feedback_submission {
-    .oe_title h1 {
-        max-width: 100%;
+.o-usl-FeedbackButton {
+    white-space: nowrap;
+}
+
+.o-usl-FeedbackPanel {
+    min-height: 520px;
+    max-height: calc(100vh - 8rem);
+    background: var(--mail-MessagingMenu-bg, #{$o-view-background-color});
+
+    .min-w-0 {
+        min-width: 0;
     }
 
-    .o_field_html {
-        min-height: 8rem;
+    .min-h-0 {
+        min-height: 0;
     }
 
-    .o_usl_feedback_context .o_group_label {
-        margin-bottom: var(--o-horizontal-padding, 8px);
+    .text-pre-wrap {
+        white-space: pre-wrap;
+    }
+
+    .o-usl-FeedbackPanel-screenshot img {
+        max-height: 210px;
+        object-fit: cover;
+        object-position: top;
+    }
+
+    .o-usl-FeedbackPanel-ready {
+        background-color: rgba(var(--o-success-rgb, 25, 135, 84), 0.06);
+    }
+
+    .o-usl-FeedbackPanel-readyDescription {
+        max-height: 5rem;
+        overflow-y: auto;
+    }
+
+    .o-mail-Chatter {
+        min-height: 0;
     }
 }
 
+.o-mail-MessagingMenu.o-small .o-usl-FeedbackPanel {
+    min-height: 0;
+    height: 100%;
+
+    .o-usl-FeedbackPanel-draft {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+
+}
+
 @media (max-width: 575.98px) {
-    .o_usl_feedback_submission {
-        .o_form_sheet_bg > .o_form_sheet {
-            padding-inline: 1rem;
+    .o-usl-FeedbackButton {
+        margin-inline-start: 0 !important;
+    }
+
+    .o-usl-FeedbackPanel header {
+        padding-inline: 1rem !important;
+    }
+
+    .o-usl-FeedbackPanel-readyActions {
+        align-items: stretch !important;
+
+        .badge {
+            align-self: center;
         }
 
-        .o_field_html {
-            min-height: 6rem;
+        .btn {
+            flex: 1 1 100%;
+            margin-inline-start: 0 !important;
         }
     }
 }

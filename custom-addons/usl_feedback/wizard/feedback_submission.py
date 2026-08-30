@@ -1,40 +1,26 @@
+import base64
+import binascii
 import os
 import re
 
+from markupsafe import Markup, escape
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools.mail import is_html_empty
 
 RELEASE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 MAX_ATTACHMENTS = 10
+MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
+SCREENSHOT_MIMETYPES = {"image/jpeg", "image/png"}
 
 
 class FeedbackSubmission(models.TransientModel):
-    _name = "usl.feedback.submission"
-    _description = "Product Feedback Submission"
+    """Short-lived drawer draft; the canonical feedback record is always project.task."""
 
-    summary = fields.Char(string="Summary", required=True, size=160)
-    description = fields.Html(string="Description", required=True, sanitize=True)
-    category = fields.Selection(
-        [
-            ("bug", "Bug"),
-            ("improvement", "Improvement"),
-            ("question", "Question"),
-            ("ux", "UX"),
-        ],
-        required=True,
-        default="improvement",
-    )
-    priority = fields.Selection(
-        [
-            ("0", "Low priority"),
-            ("1", "Medium priority"),
-            ("2", "High priority"),
-            ("3", "Urgent"),
-        ],
-        required=True,
-        default="0",
-    )
+    _name = "usl.feedback.submission"
+    _description = "Product Feedback Conversation Draft"
+
     attachment_ids = fields.Many2many(
         "ir.attachment",
         "usl_feedback_submission_attachment_rel",
@@ -42,10 +28,10 @@ class FeedbackSubmission(models.TransientModel):
         "attachment_id",
         string="Attachments",
     )
-    include_page_context = fields.Boolean(
-        string="Share current page context",
-        default=True,
+    screenshot_attachment_id = fields.Many2one(
+        "ir.attachment", string="Screenshot", ondelete="set null",
     )
+    include_page_context = fields.Boolean(string="Share current page context", default=False)
     company_id = fields.Many2one(
         "res.company",
         string="Company",
@@ -59,18 +45,106 @@ class FeedbackSubmission(models.TransientModel):
     viewport_width = fields.Integer(readonly=True)
     viewport_height = fields.Integer(readonly=True)
 
-    @api.constrains("summary", "description")
-    def _check_required_content(self):
-        for submission in self:
-            if not (submission.summary or "").strip():
-                raise ValidationError(_("Give your feedback a short summary."))
-            if is_html_empty(submission.description):
-                raise ValidationError(_("Describe what happened or what would help."))
+    def _require_internal_user(self):
+        if not self.env.user._is_internal():
+            raise AccessError(_("Only authenticated internal users can send product feedback."))
+
+    @api.model
+    def feedback_start(self, page_context=None):
+        self._require_internal_user()
+        page_context = page_context if isinstance(page_context, dict) else {}
+        values = {
+            "company_id": self.env.company.id,
+            "source_action_id": self._safe_integer(page_context.get("action_id")) or False,
+            "source_model_name": str(page_context.get("model") or "")[:128],
+            "source_record_id": self._safe_integer(page_context.get("res_id")),
+            "viewport_width": self._safe_integer(page_context.get("viewport_width")),
+            "viewport_height": self._safe_integer(page_context.get("viewport_height")),
+            "include_page_context": False,
+        }
+        draft = self.create(values)
+        return {
+            "draft_id": draft.id,
+            "company_name": self.env.company.display_name,
+            "context_available": bool(
+                values["source_action_id"] or values["source_model_name"] or values["source_record_id"],
+            ),
+            "recent": self.env["project.task"].feedback_recent(),
+        }
+
+    @staticmethod
+    def _safe_integer(value):
+        try:
+            value = int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+        return value if value > 0 else 0
+
+    def feedback_add_attachment(self, name, mimetype, data, is_screenshot=False):
+        self.ensure_one()
+        self._require_internal_user()
+        self.check_access("write")
+        if len(self.attachment_ids) >= MAX_ATTACHMENTS:
+            raise ValidationError(_("Attach at most 10 files to one feedback item."))
+        name = os.path.basename(str(name or "attachment"))[:255]
+        mimetype = str(mimetype or "application/octet-stream")[:128]
+        if is_screenshot and mimetype not in SCREENSHOT_MIMETYPES:
+            raise ValidationError(_("Screenshots must be JPEG or PNG images."))
+        try:
+            raw = base64.b64decode(data or "", validate=True)
+        except (binascii.Error, ValueError, TypeError) as error:
+            raise ValidationError(_("The attachment data is invalid.")) from error
+        maximum = MAX_SCREENSHOT_BYTES if is_screenshot else MAX_ATTACHMENT_BYTES
+        if not raw or len(raw) > maximum:
+            raise ValidationError(
+                _("The screenshot must be 5 MB or smaller.")
+                if is_screenshot
+                else _("Each attachment must be 10 MB or smaller."),
+            )
+        attachment = (
+            self.env["ir.attachment"]
+            .with_user(self.env.user)
+            .sudo()
+            .create(
+                {
+                    "name": name,
+                    "mimetype": mimetype,
+                    "raw": raw,
+                    "res_model": self._name,
+                    "res_id": self.id,
+                },
+            )
+        )
+        values = {"attachment_ids": [Command.link(attachment.id)]}
+        if is_screenshot:
+            if self.screenshot_attachment_id:
+                values["attachment_ids"].insert(0, Command.unlink(self.screenshot_attachment_id.id))
+                self.screenshot_attachment_id.sudo().unlink()
+            values["screenshot_attachment_id"] = attachment.id
+        self.write(values)
+        return {"id": attachment.id, "name": attachment.name, "mimetype": attachment.mimetype}
+
+    def feedback_remove_attachment(self, attachment_id):
+        self.ensure_one()
+        self._require_internal_user()
+        attachment = self.attachment_ids.filtered(lambda item: item.id == int(attachment_id or 0))
+        if not attachment:
+            raise AccessError(_("This attachment does not belong to your feedback draft."))
+        self.write(
+            {
+                "attachment_ids": [Command.unlink(attachment.id)],
+                **(
+                    {"screenshot_attachment_id": False}
+                    if attachment == self.screenshot_attachment_id
+                    else {}
+                ),
+            },
+        )
+        attachment.sudo().unlink()
+        return True
 
     def _release_sha(self):
-        parameter_sha = self.env["ir.config_parameter"].sudo().get_str(
-            "usl.release.commit",
-        )
+        parameter_sha = self.env["ir.config_parameter"].sudo().get_str("usl.release.commit")
         environment_sha = os.environ.get("USL_RELEASE_COMMIT")
         valid_values = {
             value
@@ -79,19 +153,16 @@ class FeedbackSubmission(models.TransientModel):
         }
         if len(valid_values) > 1:
             raise UserError(
-                _("Feedback is temporarily unavailable because the running release identity is inconsistent."),
+                _("Feedback is unavailable because the running release identity is inconsistent."),
             )
         if not valid_values:
-            raise UserError(
-                _("Feedback is temporarily unavailable because this Odoo release has no verified commit identity."),
-            )
+            raise UserError(_("Feedback is unavailable because this release has no verified identity."))
         return valid_values.pop()
 
     def _validated_page_context(self):
         self.ensure_one()
         if not self.include_page_context:
             return {}, False
-
         values = {
             "usl_feedback_context_included": True,
             "usl_feedback_viewport_width": self.viewport_width or False,
@@ -100,123 +171,105 @@ class FeedbackSubmission(models.TransientModel):
         for dimension in (self.viewport_width, self.viewport_height):
             if dimension and not 1 <= dimension <= 16384:
                 raise ValidationError(_("Viewport dimensions must be between 1 and 16384 pixels."))
-
-        if self.source_action_id and self.source_action_id.exists():
-            if self.source_action_id.has_access("read"):
-                values["usl_feedback_source_action_id"] = self.source_action_id.id
-
+        if self.source_action_id.exists() and self.source_action_id.has_access("read"):
+            values["usl_feedback_source_action_id"] = self.source_action_id.id
         model_name = (self.source_model_name or "").strip()
         record_id = self.source_record_id
-        context_omitted = False
+        omitted = False
         if model_name:
             model = self.env.get(model_name)
             if model is None or model.is_transient() or not model.browse().has_access("read"):
-                context_omitted = True
+                omitted = True
             elif record_id:
                 record = model.browse(record_id).exists()
                 if not record or not record.has_access("read"):
-                    context_omitted = True
+                    omitted = True
                 else:
                     values.update(
                         {
-                            "usl_feedback_source_model_id": self.env["ir.model"]
-                            .sudo()
-                            ._get_id(model_name),
+                            "usl_feedback_source_model_id": self.env["ir.model"].sudo()._get_id(model_name),
                             "usl_feedback_source_res_id": record.id,
                         },
                     )
             else:
-                values["usl_feedback_source_model_id"] = (
-                    self.env["ir.model"].sudo()._get_id(model_name)
+                values["usl_feedback_source_model_id"] = self.env["ir.model"].sudo()._get_id(
+                    model_name,
                 )
         elif record_id:
-            context_omitted = True
-        return values, context_omitted
+            omitted = True
+        return values, omitted
 
     def _validated_attachments(self):
         self.ensure_one()
-        attachments = self.attachment_ids
-        if len(attachments) > MAX_ATTACHMENTS:
+        if len(self.attachment_ids) > MAX_ATTACHMENTS:
             raise ValidationError(_("Attach at most 10 files to one feedback item."))
-        for attachment in attachments.sudo():
+        for attachment in self.attachment_ids.sudo():
             if attachment.create_uid != self.env.user:
                 raise AccessError(_("You can submit only attachments that you uploaded."))
-            if attachment.res_model not in (False, self._name) or attachment.res_id not in (
-                False,
-                self.id,
-            ):
+            if attachment.res_model != self._name or attachment.res_id != self.id:
                 raise AccessError(_("An attachment is already linked to another record."))
-        return attachments
+        return self.attachment_ids
 
-    def action_submit(self):
+    def feedback_submit_initial(self, message, include_page_context=False):
         self.ensure_one()
-        if not self.env.user._is_internal():
-            raise AccessError(_("Only authenticated internal users can send product feedback."))
+        self._require_internal_user()
         self.check_access("read")
-        self._check_required_content()
+        message = str(message or "").strip()
+        if not message or len(message) > 8000:
+            raise ValidationError(_("Describe your feedback in 8,000 characters or fewer."))
         if self.company_id != self.env.company or self.company_id not in self.env.user.company_ids:
             raise AccessError(_("Submit feedback from the active company shown in Odoo."))
-
+        self.include_page_context = bool(include_page_context)
+        context_values, context_omitted = self._validated_page_context()
+        attachments = self._validated_attachments()
         project = self.env.ref("usl_feedback.project_product_feedback").sudo()
         stage = self.env.ref("usl_feedback.stage_feedback_new").sudo()
-        tag = self.env.ref(f"usl_feedback.tag_feedback_{self.category}").sudo()
-        release_sha = self._release_sha()
-        page_context, context_omitted = self._validated_page_context()
-        attachments = self._validated_attachments()
-
-        values = {
-            "name": self.summary.strip(),
-            "description": self.description,
-            "project_id": project.id,
-            "stage_id": stage.id,
-            "company_id": self.env.company.id,
-            "priority": self.priority,
-            "tag_ids": [Command.set(tag.ids)],
-            "usl_feedback_reporter_id": self.env.user.id,
-            "usl_feedback_category": self.category,
-            "usl_feedback_release_sha": release_sha,
-            "usl_feedback_context_included": False,
-            **page_context,
-        }
         task = (
             self.env["project.task"]
             .with_user(self.env.user)
             .sudo()
-            .with_context(usl_feedback_submission=True)
-            .create(values)
+            .create(
+                {
+                    "name": message.splitlines()[0][:120],
+                    "description": Markup("<p>%s</p>") % escape(message).replace(
+                        "\n", Markup("<br>"),
+                    ),
+                    "project_id": project.id,
+                    "stage_id": stage.id,
+                    "company_id": False,
+                    "priority": "0",
+                    "usl_feedback_reporter_id": self.env.user.id,
+                    "usl_feedback_company_id": self.env.company.id,
+                    "usl_feedback_release_sha": self._release_sha(),
+                    "usl_feedback_context_included": False,
+                    "usl_feedback_agent_state": "waiting",
+                    **context_values,
+                },
+            )
         )
         if attachments:
             attachments.sudo().write({"res_model": "project.task", "res_id": task.id})
-        task.with_user(self.env.user).sudo().message_post(
-            body=_("Feedback submitted from Odoo by %(reporter)s.", reporter=self.env.user.name),
-            subtype_xmlid="mail.mt_note",
-        )
-        self.unlink()
-
-        message = _("Feedback sent. You can follow its status and replies from My feedback.")
-        if context_omitted:
-            message = _(
-                "Feedback sent. The source record context was omitted because it is not readable anymore.",
+        if self.screenshot_attachment_id:
+            task.sudo().write(
+                {"usl_feedback_screenshot_attachment_id": self.screenshot_attachment_id.id},
             )
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Feedback sent"),
-                "message": message,
-                "type": "success",
-                "sticky": False,
-                "next": {"type": "ir.actions.act_window_close"},
-            },
-        }
+        task.with_user(self.env.user).message_subscribe(partner_ids=[self.env.user.partner_id.id])
+        task.with_user(self.env.user).message_post(
+            body=escape(message),
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+            attachment_ids=attachments.ids,
+        )
+        payload = task.with_user(self.env.user)._usl_feedback_state_payload()
+        payload["context_omitted"] = context_omitted
+        self.with_context(usl_feedback_keep_attachments=True).unlink()
+        return payload
 
     def unlink(self):
-        submission_ids = set(self.ids)
         pending = self.mapped("attachment_ids").sudo().filtered(
-            lambda attachment: attachment.res_model in (False, self._name)
-            and (not attachment.res_id or attachment.res_id in submission_ids),
+            lambda attachment: attachment.res_model == self._name and attachment.res_id in self.ids,
         )
         result = super().unlink()
-        if pending:
+        if pending and not self.env.context.get("usl_feedback_keep_attachments"):
             pending.unlink()
         return result

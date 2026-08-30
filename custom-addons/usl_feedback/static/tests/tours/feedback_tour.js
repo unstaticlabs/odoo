@@ -1,68 +1,70 @@
 import { registry } from "@web/core/registry";
 
-const fillAndSubmit = (summary) => [
+
+const journey = (message) => [
     {
-        content: "The focused feedback form opens",
-        trigger: ".o_dialog .o_usl_feedback_submission",
-    },
-    {
-        content: "A summary is required",
-        trigger: ".o_usl_feedback_submission .o_field_widget[name='summary'] input",
-        run: `edit ${summary}`,
-    },
-    {
-        content: "The description accepts useful detail",
-        trigger: ".o_usl_feedback_submission .odoo-editor-editable",
-        run: "editor The current status is hard to understand after a reload.",
-    },
-    {
-        content: "Page context is an explicit choice",
-        trigger: ".o_usl_feedback_submission .o_field_widget[name='include_page_context'] input:checked",
+        content: "Open the native notifications drawer",
+        trigger: ".o_menu_systray i[aria-label='Messages']",
         run: "click",
     },
     {
-        content: "Page context can be left out",
-        trigger: ".o_usl_feedback_submission .o_field_widget[name='include_page_context'] input:not(:checked)",
-    },
-    {
-        content: "Send the feedback",
-        trigger: ".o_dialog footer button[name='action_submit']",
+        content: "Choose Chats",
+        trigger: ".o-mail-MessagingMenu-headerFilter:contains('Chats'), .o-mail-MessagingMenu-navbar button:contains('Chats')",
         run: "click",
     },
     {
-        content: "The dialog closes and a calm confirmation is shown",
-        trigger: ".o_notification:contains('Feedback sent')",
+        content: "Feedback is available from Chats",
+        trigger: ".o-usl-FeedbackButton",
+        run() {
+            Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+                configurable: true,
+                value: () => Promise.reject(new Error("Screenshot capture skipped by the tour")),
+            });
+            this.anchor.click();
+        },
+    },
+    {
+        content: "The conversational feedback surface opens",
+        trigger: ".o-usl-FeedbackPanel textarea",
+    },
+    {
+        content: "Describe the issue",
+        trigger: ".o-usl-FeedbackPanel textarea",
+        run: `edit ${message}`,
+    },
+    {
+        content: "Page context remains off by default",
+        trigger: ".o-usl-FeedbackPanel input#usl_feedback_context:not(:checked), .o-usl-FeedbackPanel textarea",
+    },
+    {
+        content: "Start the saved conversation",
+        trigger: ".o-usl-FeedbackPanel button:contains('Start conversation'):not(:disabled)",
+        run: "click",
+    },
+    {
+        content: "The task chatter replaces the initial prompt",
+        trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
+    },
+    {
+        content: "Start another conversation without losing the saved card",
+        trigger: ".o-usl-FeedbackPanel header button:contains('New')",
+        run: "click",
+    },
+    {
+        content: "Resume the saved card after returning to the draft",
+        trigger: `.o-usl-FeedbackPanel button:contains('${message}')`,
+        run: "click",
+    },
+    {
+        content: "The resumed conversation restores its native chatter",
+        trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
     },
 ];
 
 registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
-    steps: () => [
-        {
-            content: "Feedback is available globally from the native user menu",
-            trigger: "button.o_user_menu",
-            run: "click",
-        },
-        {
-            content: "Send feedback is discoverable without another systray icon",
-            trigger: "[data-menu='usl_send_feedback']",
-            run: "click",
-        },
-        ...fillAndSubmit("Desktop feedback journey"),
-    ],
+    steps: () => journey("The desktop status is unclear after reload."),
 });
 
 registry.category("web_tour.tours").add("usl_feedback_mobile_journey", {
-    steps: () => [
-        {
-            content: "Open the native mobile menu",
-            trigger: ".o_mobile_menu_toggle",
-            run: "click",
-        },
-        {
-            content: "Feedback remains available on a narrow screen",
-            trigger: ".o_user_menu_mobile a:contains('Send feedback')",
-            run: "click",
-        },
-        ...fillAndSubmit("Mobile feedback journey"),
-    ],
+    steps: () => journey("The mobile status is unclear after reload."),
 });

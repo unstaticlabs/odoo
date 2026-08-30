@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_feedback" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.feedback</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Product Feedback" name="usl_feedback" groups="base.group_system">
+                    <block title="Conversational Feedback Assistant" name="feedback_assistant">
+                        <setting string="Enable the assistant" help="Creates the partial Inbox card first, then asks Gemini to clarify and shape the brief inside Odoo.">
+                            <field name="feedback_agent_enabled"/>
+                        </setting>
+                        <setting string="Provider data retention" help="Required production acknowledgement: stateful Gemini interactions use a paid tier and may be retained by Google for seven days.">
+                            <field name="feedback_paid_tier_confirmed"/>
+                        </setting>
+                        <setting string="Approved model">
+                            <field name="feedback_gemini_model"/>
+                        </setting>
+                        <setting string="Gemini API key" help="Company-wide server-side secret. The existing value is never returned to a browser.">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <field name="feedback_gemini_api_key_input" password="True" placeholder="Leave blank to keep the saved key"/>
+                                <span class="text-success" invisible="not feedback_has_gemini_api_key">Key saved</span>
+                                <span class="text-muted" invisible="feedback_has_gemini_api_key">No key saved</span>
+                                <button name="action_clear_feedback_gemini_key" type="object" string="Remove key" class="btn-link text-danger" invisible="not feedback_has_gemini_api_key" confirm="Remove the saved Gemini API key?"/>
+                            </div>
+                            <field name="feedback_has_gemini_api_key" invisible="1"/>
+                        </setting>
+                        <setting string="Projects MCP URL" help="Must point exactly to the remote /mcp/projects endpoint; HTTPS is required outside localhost.">
+                            <field name="feedback_mcp_url" placeholder="https://mcp.example.com/mcp/projects"/>
+                        </setting>
+                        <setting string="Read-only Odoo API key" help="Create this key on a dedicated non-human Feedback Agent identity. It is sent to Google only as the MCP authorization header.">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <field name="feedback_mcp_api_key_input" password="True" placeholder="Leave blank to keep the saved key"/>
+                                <span class="text-success" invisible="not feedback_has_mcp_api_key">Key saved</span>
+                                <span class="text-muted" invisible="feedback_has_mcp_api_key">No key saved</span>
+                                <button name="action_clear_feedback_mcp_key" type="object" string="Remove key" class="btn-link text-danger" invisible="not feedback_has_mcp_api_key" confirm="Remove the saved Odoo API key?"/>
+                            </div>
+                            <field name="feedback_has_mcp_api_key" invisible="1"/>
+                        </setting>
+                        <setting string="Connection check" help="Runs a Gemini interaction that reads the feedback Project through the configured read-only MCP identity, without creating feedback.">
+                            <button name="action_test_feedback_agent" type="object" string="Test connections" class="btn-link" title="Verify Gemini and the read-only Projects MCP connection without creating feedback."/>
+                            <div class="mt-2" invisible="feedback_connection_status == 'not_tested'">
+                                <field name="feedback_connection_status" widget="badge" class="me-2"/>
+                                <field name="feedback_connection_checked_at" class="text-muted"/>
+                                <div class="text-muted small" invisible="not feedback_connection_detail">
+                                    <field name="feedback_connection_detail" nolabel="1"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

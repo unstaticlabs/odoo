@@ -173,27 +173,46 @@ qualified policy digest.
 
 ## Product feedback actions
 
-`usl.feedback.submission.action_submit` is an operational action that creates
-one attributable native task in the fixed **Odoo Product Feedback** Project.
-Its only elevated region runs after summary, sanitized HTML, category, native
-priority, company, exact release identity, page context and attachment
-ownership have been validated. It has no external target and cannot reach
-GitHub or another network service. Recovery is to decline the retained task or,
-for a failed deployment, restore the consistent database and filestore backup.
+`usl.feedback.submission.feedback_submit_initial` is an operational action that
+creates one attributable native task in the fixed **Odoo Product Feedback**
+Project before any external request. Its elevated region runs only after the
+message, source company, exact release identity, opt-in page context and draft
+attachment ownership have been validated. Recovery is to retain or move the
+Inbox card, or restore the consistent database and filestore backup after a
+failed deployment.
 
-The user-menu client action delegates only to the fixed submission window
-action. Its context payload contains typed action/model/record/viewport values
-and never a URL or arbitrary browser state. Source records are checked with the
-reporter's own access before their model and identifier are stored.
+The Chats-drawer client collects typed action/model/record/viewport candidates
+and never a URL or arbitrary browser state. The server rechecks readable source
+records. Display capture requires an explicit browser choice, selects the
+resulting JPEG by default, stops every media track and allows the reporter to
+remove it before submission.
 
-Feedback task and Project rules are global so native Project-manager rules
-cannot union around them. Ordinary reporters have read/chatter access only to
-their own followed feedback task; cross-reporter search, grouping, chatter,
-activity and attachment paths are negative-tested. The explicit **Feedback
-Maintainer** group is the only non-superuser bypass and remains bounded by the
-native multi-company task rule. Approved service identities receive that group
-explicitly. When Distribution Access Control is installed, an identity also
-marked **AI Agent** retains that module's existing mutation audit.
+`usl.feedback.agent.run` is a system-internal, audited orchestration surface.
+The minute cron and reporter polling may submit or poll a background Gemini
+Interaction. The allowed external targets are Google's fixed Interactions and
+model endpoints, one validated HTTPS `/mcp/projects` endpoint, and a
+release-pinned public repository URL provided to Gemini URL context. The MCP
+credential belongs to a dedicated non-human **Feedback Agent (read-only
+service)** identity. It is denied Internal User and Feedback Maintainer group
+membership and has read ACLs/rules only for the governed Project surface.
+
+Provider output is untrusted structured data. A private sudo-only apply method
+validates state, lengths, category, priority and related-card membership before
+updating the same task and posting as the Feedback Assistant. Safe run evidence
+keeps hashes and operational metadata, not secrets, prompts, responses or
+reasoning. Retry is bounded; provider/configuration failures leave the card in
+Inbox and expose only a generic error.
+
+The shared board lets internal employees search, group, read and discuss every
+feedback card and attachment. Ordinary users are negative-tested against card
+field/stage mutations, activity mutations, follower changes for others,
+generic Project creation/deletion and unrelated source-company records. The
+explicit **Feedback Maintainer** group is the only non-superuser operator.
+Model-level guards also reject generic Project-manager mutation of the governed
+Project, its workflow stages and its explicitly marked category tags; this
+includes crafted RPC and import paths.
+Feedback tasks are company-neutral with a separately validated source-company
+field, avoiding company-switch disappearance without opening business data.
 
 ## Governed document actions
 

@@ -30,7 +30,7 @@ class TestFeedbackDesktopTour(FeedbackTourCommon):
             [("usl_feedback_reporter_id", "=", self.user.id)],
             limit=1,
         )
-        self.assertEqual(task.name, "Desktop feedback journey")
+        self.assertEqual(task.name, "The desktop status is unclear after reload.")
         self.assertFalse(task.usl_feedback_context_included)
 
 
@@ -44,5 +44,5 @@ class TestFeedbackMobileTour(FeedbackTourCommon):
             [("usl_feedback_reporter_id", "=", self.user.id)],
             limit=1,
         )
-        self.assertEqual(task.name, "Mobile feedback journey")
+        self.assertEqual(task.name, "The mobile status is unclear after reload.")
         self.assertFalse(task.usl_feedback_context_included)

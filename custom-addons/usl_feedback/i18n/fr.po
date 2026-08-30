@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-29 00:30+0000\n"
+"POT-Creation-Date: 2026-08-30 14:50+0000\n"
 "PO-Revision-Date: 2026-08-29 00:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
@@ -17,10 +17,74 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "(optional)"
+msgstr "(facultatif)"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+", viewport, and exact release SHA—never the URL, query, token, fragment, or "
+"browser state."
+msgstr ""
+", la taille de la fenêtre et le SHA exact de la version — jamais l’URL, la "
+"requête, le jeton, le fragment ni l’état du navigateur."
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"<span class=\"text-success\" invisible=\"not "
+"feedback_has_gemini_api_key\">Key saved</span>\n"
+"                                <span class=\"text-muted\" "
+"invisible=\"feedback_has_gemini_api_key\">No key saved</span>"
+msgstr ""
+"<span class=\"text-success\" invisible=\"not "
+"feedback_has_gemini_api_key\">Clé enregistrée</span>\n"
+"                                <span class=\"text-muted\" "
+"invisible=\"feedback_has_gemini_api_key\">Aucune clé enregistrée</span>"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"<span class=\"text-success\" invisible=\"not feedback_has_mcp_api_key\">Key "
+"saved</span>\n"
+"                                <span class=\"text-muted\" "
+"invisible=\"feedback_has_mcp_api_key\">No key saved</span>"
+msgstr ""
+"<span class=\"text-success\" invisible=\"not feedback_has_mcp_api_key\">Clé "
+"enregistrée</span>\n"
+"                                <span class=\"text-muted\" "
+"invisible=\"feedback_has_mcp_api_key\">Aucune clé enregistrée</span>"
+
+#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
-msgid "A feedback category is required."
-msgstr "Une catégorie de retour est requise."
+msgid "A feedback assistant state is required."
+msgstr "Un état de l’assistant de retours est requis."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "A feedback category is required outside the Inbox."
+msgstr "Une catégorie de retour est requise hors de la boîte de réception."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+"A partial Inbox card is saved before the assistant starts, so your report is "
+"not lost."
+msgstr ""
+"Une carte partielle est enregistrée dans la boîte de réception avant le "
+"démarrage de l’assistant afin de ne pas perdre votre signalement."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "A source company is required."
+msgstr "Une société source est requise."
 
 #. module: usl_feedback
 #. odoo-python
@@ -29,9 +93,15 @@ msgid "A source record requires a source model."
 msgstr "Un enregistrement source nécessite un modèle source."
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "Add up to 10 screenshots or files that help explain the feedback."
-msgstr "Ajoutez jusqu’à 10 captures d’écran ou fichiers utiles pour expliquer le retour."
+#: model:ir.model,name:usl_feedback.model_mail_activity
+msgid "Activity"
+msgstr "Activité"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Add a message before retrying."
+msgstr "Ajoutez un message avant de réessayer."
 
 #. module: usl_feedback
 #. odoo-python
@@ -40,104 +110,356 @@ msgid "An attachment is already linked to another record."
 msgstr "Une pièce jointe est déjà liée à un autre enregistrement."
 
 #. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Approved model"
+msgstr "Modèle approuvé"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
+msgid "Assistant runs are limited to the Product Feedback Project."
+msgstr ""
+"Les exécutions de l’assistant sont limitées au projet de retours produit."
+
+#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid "Attach at most 10 files to one feedback item."
 msgstr "Joignez au maximum 10 fichiers à un retour."
 
 #. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Attach this screenshot"
+msgstr "Joindre cette capture d’écran"
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_ir_attachment
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__attachment_ids
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
 msgid "Attachments"
 msgstr "Pièces jointes"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__attempts
+msgid "Attempts"
+msgstr "Tentatives"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Back to Chats"
+msgstr "Retour aux discussions"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Board"
+msgstr "Tableau"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Brief ready for your confirmation"
+msgstr "Synthèse prête pour votre confirmation"
+
+#. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__bug
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__category__bug
 #: model:project.tags,name:usl_feedback.tag_feedback_bug
 msgid "Bug"
 msgstr "Anomalie"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "Cancel"
-msgstr "Annuler"
+#: model:project.task.type,name:usl_feedback.stage_feedback_in_progress
+msgid "Build"
+msgstr "Réalisation"
 
 #. module: usl_feedback
-#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__category
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Capture this screen and start product feedback"
+msgstr "Capturer cet écran et démarrer un retour produit"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Captured current screen preview"
+msgstr "Aperçu de la capture de l’écran actuel"
+
+#. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
 msgid "Category"
 msgstr "Catégorie"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__company_id
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
 msgid "Company"
 msgstr "Société"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
 msgid ""
-"Create a private feedback task for the active company. This does not send "
-"anything outside Odoo."
-msgstr "Créer une tâche de retour privée pour la société active. Rien n’est envoyé hors d’Odoo."
+"Company-wide server-side secret. The existing value is never returned to a "
+"browser."
+msgstr ""
+"Secret commun à la société et conservé côté serveur. La valeur existante "
+"n’est jamais renvoyée au navigateur."
 
 #. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__completed
+msgid "Completed"
+msgstr "Terminé"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__completed_at
+msgid "Completed At"
+msgstr "Terminé le"
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Confirm and send to Triage"
+msgstr "Confirmer et envoyer au triage"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid ""
+"Confirm the paid Gemini tier and seven-day state retention before enabling "
+"the assistant."
+msgstr ""
+"Confirmez l’offre Gemini payante et la conservation de l’état pendant sept "
+"jours avant d’activer l’assistant."
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
+msgid "Confirmed brief"
+msgstr "Synthèse confirmée"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Confirmed. The card is now in Triage for the product team."
+msgstr ""
+"Confirmation enregistrée. La carte est maintenant au triage pour l’équipe "
+"produit."
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Connection check"
+msgstr "Vérification de la connexion"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Continue recent feedback"
+msgstr "Reprendre un retour récent"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Conversation with the Feedback Assistant"
+msgstr "Conversation avec l’assistant de retours"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Conversational Feedback Assistant"
+msgstr "Assistant conversationnel de retours"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"Create this key on a dedicated non-human Feedback Agent identity. It is sent "
+"to Google only as the MCP authorization header."
+msgstr ""
+"Créez cette clé pour une identité technique dédiée à l’agent de retours. "
+"Elle est transmise à Google uniquement dans l’en-tête d’autorisation MCP."
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__create_uid
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__create_date
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__create_date
 msgid "Created on"
 msgstr "Créé le"
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_declined
-msgid "Declined"
-msgstr "Refusé"
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"Creates the partial Inbox card first, then asks Gemini to clarify and shape "
+"the brief inside Odoo."
+msgstr ""
+"Crée d’abord une carte partielle dans la boîte de réception, puis demande à "
+"Gemini de clarifier et de structurer la synthèse dans Odoo."
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__cutoff_message_id
+msgid "Cutoff Message"
+msgstr "Message de référence"
+
+#. module: usl_feedback
+#: model:res.groups,comment:usl_feedback.group_feedback_agent
+msgid ""
+"Dedicated non-human identity used only by the Projects MCP. It must not be "
+"an Internal User or a Feedback Maintainer."
+msgstr ""
+"Identité technique dédiée, utilisée uniquement par le MCP Projets. Elle ne "
+"doit être ni un utilisateur interne ni un responsable des retours."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+"Describe what you were trying to do, what you saw, and what you expected."
+msgstr ""
+"Décrivez ce que vous tentiez de faire, ce que vous avez constaté et ce que "
+"vous attendiez."
 
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid "Describe what happened or what would help."
-msgstr "Décrivez ce qui s’est passé ou ce qui vous aiderait."
+msgid "Describe your feedback in 8,000 characters or fewer."
+msgstr "Décrivez votre retour en 8 000 caractères maximum."
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid ""
-"Describe what happened, what you expected, or what would make the workflow "
-"clearer."
-msgstr "Décrivez ce qui s’est passé, ce que vous attendiez ou ce qui rendrait le parcours plus clair."
-
-#. module: usl_feedback
-#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__description
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_maintainer_form
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_reporter_form
-msgid "Description"
-msgstr "Description"
-
-#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_ir_attachment__display_name
+#: model:ir.model.fields,field_description:usl_feedback.field_mail_activity__display_name
+#: model:ir.model.fields,field_description:usl_feedback.field_mail_message__display_name
 #: model:ir.model.fields,field_description:usl_feedback.field_project_project__display_name
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__display_name
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:usl_feedback.field_res_users__display_name
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__display_name
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_done
-msgid "Done"
-msgstr "Terminé"
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__duration_ms
+msgid "Duration Ms"
+msgstr "Durée (ms)"
 
 #. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "Each attachment must be 10 MB or smaller."
+msgstr "Chaque pièce jointe doit faire 10 Mo au maximum."
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_agent_enabled
+msgid "Enable the Feedback Assistant"
+msgstr "Activer l’assistant de retours"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Enable the assistant"
+msgstr "Activer l’assistant"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__error
+msgid "Error"
+msgstr "Erreur"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__error_code
+msgid "Error Code"
+msgstr "Code d’erreur"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__error_detail
+msgid "Error Detail"
+msgstr "Détail de l’erreur"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
+msgid "Evidence"
+msgstr "Éléments justificatifs"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__external_interaction_id
+msgid "External Interaction"
+msgstr "Interaction externe"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__error
+msgid "Failed"
+msgstr "Échec"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 #: model:project.project,label_tasks:usl_feedback.project_product_feedback
 msgid "Feedback"
 msgstr "Retours"
 
 #. module: usl_feedback
+#: model:res.groups,name:usl_feedback.group_feedback_agent
+msgid "Feedback Agent (read-only service)"
+msgstr "Agent de retours (service en lecture seule)"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_agent_error
+msgid "Feedback Assistant Error"
+msgstr "Erreur de l’assistant de retours"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_agent_state
+msgid "Feedback Assistant State"
+msgstr "État de l’assistant de retours"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Feedback Assistant connection failed"
+msgstr "La connexion de l’assistant de feedback a échoué"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Feedback Assistant is ready"
+msgstr "L’assistant de retours est prêt"
+
+#. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_category
 msgid "Feedback Category"
 msgstr "Catégorie du retour"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_connection_checked_at
+msgid "Feedback Connection Checked At"
+msgstr "Dernière vérification de la connexion du feedback"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_connection_detail
+msgid "Feedback Connection Detail"
+msgstr "Détail de la connexion du feedback"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_connection_status
+msgid "Feedback Connection Status"
+msgstr "État de la connexion du feedback"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_has_gemini_api_key
+msgid "Feedback Has Gemini Api Key"
+msgstr "Clé API Gemini enregistrée"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_has_mcp_api_key
+msgid "Feedback Has Mcp Api Key"
+msgstr "Clé API MCP enregistrée"
 
 #. module: usl_feedback
 #: model:res.groups,name:usl_feedback.group_feedback_maintainer
@@ -146,19 +468,60 @@ msgstr "Responsable des retours"
 
 #. module: usl_feedback
 #. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+#: code:addons/usl_feedback/models/project_task.py:0
 msgid ""
-"Feedback is temporarily unavailable because the running release identity is "
-"inconsistent."
-msgstr "Les retours sont temporairement indisponibles car l’identité de la version en cours est incohérente."
+"Feedback cards are maintained through the conversation and the feedback team."
+msgstr ""
+"Les cartes de retour sont mises à jour au fil de la conversation et par "
+"l’équipe de retours."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Feedback cards can only be deleted by feedback maintainers."
+msgstr ""
+"Seuls les responsables des retours peuvent supprimer les cartes de retour."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "Feedback confirmed and sent to Triage."
+msgstr "Retour confirmé et envoyé au triage."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Feedback could not be prepared"
+msgstr "Le retour n’a pas pu être préparé"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Try again"
+msgstr "Réessayer"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "Open the conversation to add more detail."
+msgstr "Ouvrez la conversation pour ajouter des précisions."
 
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid ""
-"Feedback is temporarily unavailable because this Odoo release has no "
-"verified commit identity."
-msgstr "Les retours sont temporairement indisponibles car cette version d’Odoo ne possède pas d’identifiant de commit vérifié."
+"Feedback is unavailable because the running release identity is inconsistent."
+msgstr ""
+"Les retours sont indisponibles, car l’identité de la version en cours est "
+"incohérente."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "Feedback is unavailable because this release has no verified identity."
+msgstr ""
+"Les retours sont indisponibles, car cette version ne possède pas d’identité "
+"vérifiée."
 
 #. module: usl_feedback
 #. odoo-python
@@ -168,29 +531,11 @@ msgstr "Le retour doit contenir le SHA exact de la version sur 40 caractères."
 
 #. module: usl_feedback
 #. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid "Feedback sent"
-msgstr "Retour envoyé"
-
-#. module: usl_feedback
-#. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid ""
-"Feedback sent. The source record context was omitted because it is not "
-"readable anymore."
-msgstr "Retour envoyé. Le contexte de l’enregistrement source a été omis car celui-ci n’est plus accessible."
-
-#. module: usl_feedback
-#. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid "Feedback sent. You can follow its status and replies from My feedback."
-msgstr "Retour envoyé. Vous pouvez suivre son statut et les réponses depuis Mes retours."
-
-#. module: usl_feedback
-#. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid "Feedback submitted from Odoo by %(reporter)s."
-msgstr "Retour envoyé depuis Odoo par %(reporter)s."
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Feedback tasks must remain company-neutral on the shared board."
+msgstr ""
+"Les tâches de retour doivent rester indépendantes de toute société sur le "
+"tableau partagé."
 
 #. module: usl_feedback
 #. odoo-python
@@ -198,69 +543,183 @@ msgstr "Retour envoyé depuis Odoo par %(reporter)s."
 msgid ""
 "Feedback tasks must stay in the governed feedback Project and have a "
 "reporter."
-msgstr "Les tâches de retour doivent rester dans le projet de retours gouverné et avoir un auteur."
+msgstr ""
+"Les tâches de retour doivent rester dans le projet de retours gouverné et "
+"avoir un auteur."
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_gemini_model__gemini-3_6-flash
+msgid "Gemini 3.6 Flash"
+msgstr "Gemini 3.6 Flash"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_gemini_model__gemini-3_7-flash
+msgid "Gemini 3.7 Flash"
+msgstr "Gemini 3.7 Flash"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Gemini API key"
+msgstr "Clé API Gemini"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_latest_interaction_id
+msgid "Gemini Interaction"
+msgstr "Interaction Gemini"
 
 #. module: usl_feedback
 #. odoo-python
-#: code:addons/usl_feedback/wizard/feedback_submission.py:0
-msgid "Give your feedback a short summary."
-msgstr "Donnez un résumé court à votre retour."
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Gemini key removed"
+msgstr "Clé Gemini supprimée"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_gemini_model
+msgid "Gemini model"
+msgstr "Modèle Gemini"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Gemini reached the read-only Projects MCP successfully."
+msgstr "Gemini a bien accédé au MCP Projets en lecture seule."
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_ir_attachment__id
+#: model:ir.model.fields,field_description:usl_feedback.field_mail_activity__id
+#: model:ir.model.fields,field_description:usl_feedback.field_mail_message__id
 #: model:ir.model.fields,field_description:usl_feedback.field_project_project__id
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__id
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__id
+#: model:ir.model.fields,field_description:usl_feedback.field_res_users__id
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__id
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__id
 msgid "ID"
 msgstr "ID"
 
 #. module: usl_feedback
+#: model:project.task.type,name:usl_feedback.stage_feedback_declined
+msgid "Icebox"
+msgstr "En réserve"
+
+#. module: usl_feedback
 #: model:ir.model.fields,help:usl_feedback.field_project_project__usl_feedback_project
-msgid "Identifies the governed Project used for private product feedback."
+msgid "Identifies the governed shared Project used for product feedback."
 msgstr "Identifie le projet gouverné utilisé pour les retours produit privés."
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__improvement
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__category__improvement
 #: model:project.tags,name:usl_feedback.tag_feedback_improvement
 msgid "Improvement"
 msgstr "Amélioration"
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_in_progress
-msgid "In Progress"
-msgstr "En cours"
+#: model:project.task.type,name:usl_feedback.stage_feedback_new
+msgid "Inbox"
+msgstr "Boîte de réception"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__input_sha256
+msgid "Input Sha256"
+msgstr "SHA-256 de l’entrée"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__input_token_count
+msgid "Input Token Count"
+msgstr "Nombre de jetons en entrée"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Keep refining"
+msgstr "Continuer à préciser"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__write_uid
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__write_date
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
 #. module: usl_feedback
-#: model:ir.actions.act_window,name:usl_feedback.action_my_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_reporter_list
-msgid "My Feedback"
-msgstr "Mes retours"
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Leave blank to keep the saved key"
+msgstr "Laisser vide pour conserver la clé enregistrée"
 
 #. module: usl_feedback
-#. odoo-javascript
-#: code:addons/usl_feedback/static/src/js/feedback_user_menu.js:0
+#: model:res.groups,comment:usl_feedback.group_feedback_maintainer
+msgid ""
+"Manage the shared Product Feedback Project and its canonical card fields."
+msgstr ""
+"Gérer le projet gouverné de retours produit. Accorder explicitement ce rôle "
+"aux responsables humains ou aux identités d’automatisation et de service "
+"approuvées."
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_mail_message
+msgid "Message"
+msgstr "Message"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__model
+msgid "Model"
+msgstr "Modèle"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"Must point exactly to the remote /mcp/projects endpoint; HTTPS is required "
+"outside localhost."
+msgstr ""
+"Doit pointer exactement vers le point de terminaison distant /mcp/projects ; "
+"HTTPS est requis hors de localhost."
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
 msgid "My feedback"
 msgstr "Mes retours"
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_new
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__error
+msgid "Needs retry"
+msgstr "Nouvelle tentative requise"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "New"
 msgstr "Nouveau"
 
 #. module: usl_feedback
-#: model_terms:ir.actions.act_window,help:usl_feedback.action_my_feedback
-msgid "No feedback yet"
-msgstr "Aucun retour pour le moment"
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_gemini_api_key_input
+msgid "New Gemini API key"
+msgstr "Nouvelle clé API Gemini"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_mcp_api_key_input
+msgid "New Odoo API key"
+msgstr "Nouvelle clé API Odoo"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__next_poll_at
+msgid "Next Poll At"
+msgstr "Prochaine interrogation le"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__not_tested
+msgid "Not tested"
+msgstr "Non testée"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Odoo API key removed"
+msgstr "Clé API Odoo supprimée"
 
 #. module: usl_feedback
 #: model:project.project,name:usl_feedback.project_product_feedback
@@ -268,17 +727,95 @@ msgid "Odoo Product Feedback"
 msgstr "Retours produit Odoo"
 
 #. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+"Off by default. Shares only the action, readable model and record identifier,"
+msgstr ""
+"Désactivé par défaut. Partage uniquement l’action, le modèle et "
+"l’identifiant d’enregistrement accessibles,"
+
+#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid "Only authenticated internal users can send product feedback."
-msgstr "Seuls les utilisateurs internes authentifiés peuvent envoyer un retour produit."
+msgstr ""
+"Seuls les utilisateurs internes authentifiés peuvent envoyer un retour "
+"produit."
 
 #. module: usl_feedback
-#: model:res.groups,comment:usl_feedback.group_feedback_maintainer
-msgid ""
-"Operate the governed Product Feedback Project. Grant explicitly to human "
-"maintainers or approved automation/service identities."
-msgstr "Gérer le projet gouverné de retours produit. Accorder explicitement ce rôle aux responsables humains ou aux identités d’automatisation et de service approuvées."
+#. odoo-python
+#: code:addons/usl_feedback/models/mail_activity.py:0
+msgid "Only feedback maintainers can manage activities on feedback cards."
+msgstr ""
+"Seuls les responsables des retours peuvent gérer les activités des cartes de "
+"retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/mail_activity.py:0
+msgid "Only feedback maintainers can move activities onto feedback cards."
+msgstr ""
+"Seuls les responsables des retours peuvent déplacer des activités vers les "
+"cartes de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/mail_activity.py:0
+msgid "Only feedback maintainers can schedule feedback activities."
+msgstr ""
+"Seuls les responsables des retours peuvent planifier des activités de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Only the feedback service can apply an assistant result."
+msgstr "Seul le service de retours peut appliquer un résultat de l’assistant."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
+msgid "Only the feedback service can process assistant work."
+msgstr "Seul le service de retours peut traiter le travail de l’assistant."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
+msgid "Only the feedback service can queue assistant work."
+msgstr ""
+"Seul le service de retours peut mettre en file d’attente le travail de "
+"l’assistant."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Only the reporter can confirm this feedback brief."
+msgstr "Seul l’auteur peut confirmer cette synthèse de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Only the reporter can retry this feedback conversation."
+msgstr "Seul l’auteur peut relancer cette conversation de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Only the reporter or a feedback maintainer can poll this conversation."
+msgstr ""
+"Seuls l’auteur ou un responsable des retours peuvent interroger cette "
+"conversation."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Other evidence"
+msgstr "Autres éléments"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__output_token_count
+msgid "Output Token Count"
+msgstr "Nombre de jetons en sortie"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_context_included
@@ -286,56 +823,65 @@ msgid "Page Context Shared"
 msgstr "Contexte de page partagé"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "Page context"
-msgstr "Contexte de la page"
-
-#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
 msgid "Page context cannot be retained after the reporter opts out."
-msgstr "Le contexte de la page ne peut pas être conservé lorsque l’auteur refuse de le partager."
+msgstr ""
+"Le contexte de la page ne peut pas être conservé lorsque l’auteur refuse de "
+"le partager."
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_planned
-msgid "Planned"
-msgstr "Planifié"
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_paid_tier_confirmed
+msgid "Paid tier and seven-day retention confirmed"
+msgstr "Offre payante et conservation de sept jours confirmées"
 
 #. module: usl_feedback
-#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__priority
-msgid "Priority"
-msgstr "Priorité"
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_pending_message_id
+msgid "Pending Reporter Message"
+msgstr "Message de l’auteur en attente"
 
 #. module: usl_feedback
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__priority__0
-msgid "Low priority"
-msgstr "Priorité faible"
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Preparing feedback…"
+msgstr "Préparation du retour…"
 
 #. module: usl_feedback
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__priority__1
-msgid "Medium priority"
-msgstr "Priorité moyenne"
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__previous_interaction_id
+msgid "Previous Interaction"
+msgstr "Interaction précédente"
 
 #. module: usl_feedback
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__priority__2
-msgid "High priority"
-msgstr "Priorité élevée"
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__processing
+msgid "Processing"
+msgstr "Traitement en cours"
 
 #. module: usl_feedback
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__priority__3
-msgid "Urgent"
-msgstr "Urgent"
-
-#. module: usl_feedback
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_feedback/models/project_project.py:0
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+#: model:ir.actions.act_window,name:usl_feedback.action_feedback_collaborator
 #: model:ir.actions.act_window,name:usl_feedback.action_feedback_maintainer
 #: model:ir.ui.menu,name:usl_feedback.menu_feedback_root
 #: model:res.groups.privilege,name:usl_feedback.privilege_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_maintainer_form
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_maintainer_list
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_reporter_form
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_kanban_collaborator
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_list_collaborator
 #: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
 msgid "Product Feedback"
 msgstr "Retours produit"
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_usl_feedback_agent_run
+msgid "Product Feedback Assistant Run"
+msgstr "Exécution de l’assistant de retours produit"
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_usl_feedback_submission
+msgid "Product Feedback Conversation Draft"
+msgstr "Envoi d’un retour produit"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_project__usl_feedback_project
@@ -343,9 +889,44 @@ msgid "Product Feedback Project"
 msgstr "Projet de retours produit"
 
 #. module: usl_feedback
-#: model:ir.model,name:usl_feedback.model_usl_feedback_submission
-msgid "Product Feedback Submission"
-msgstr "Envoi d’un retour produit"
+#: model:ir.model.fields,field_description:usl_feedback.field_project_tags__usl_feedback_tag
+msgid "Product Feedback Tag"
+msgstr "Étiquette de retour produit"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_project.py:0
+msgid "Only Feedback Maintainers can change the feedback Project."
+msgstr "Seuls les responsables des retours peuvent modifier le projet de retours."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_metadata.py:0
+msgid "Only Feedback Maintainers can change feedback stages."
+msgstr "Seuls les responsables des retours peuvent modifier les étapes des retours."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_metadata.py:0
+msgid "Only Feedback Maintainers can change feedback tags."
+msgstr "Seuls les responsables des retours peuvent modifier les étiquettes des retours."
+
+#. module: usl_feedback
+#: model:ir.actions.server,name:usl_feedback.ir_cron_feedback_agent_ir_actions_server
+msgid "Product Feedback: process assistant conversations"
+msgstr "Retours produit : traiter les conversations de l’assistant"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Product feedback"
+msgstr "Retour produit"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Product feedback conversation"
+msgstr "Conversation de retour produit"
 
 #. module: usl_feedback
 #: model:ir.model,name:usl_feedback.model_project_project
@@ -353,22 +934,67 @@ msgid "Project"
 msgstr "Projet"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_mcp_url
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Projects MCP URL"
+msgstr "URL du MCP Projets"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Provider data retention"
+msgstr "Conservation des données par le fournisseur"
+
+#. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__question
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__category__question
 #: model:project.tags,name:usl_feedback.tag_feedback_question
 msgid "Question"
 msgstr "Question"
 
 #. module: usl_feedback
-#: model:project.task.type,name:usl_feedback.stage_feedback_ready_to_verify
-msgid "Ready to Verify"
-msgstr "Prêt à vérifier"
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__queued
+#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__queued
+msgid "Queued"
+msgstr "En attente"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_maintainer_form
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_reporter_form
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__queued_at
+msgid "Queued At"
+msgstr "Mis en attente le"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Read-only Odoo API key"
+msgstr "Clé API Odoo en lecture seule"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__ready
+msgid "Ready"
+msgstr "Prête"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__ready
+msgid "Ready for confirmation"
+msgstr "Prêt pour confirmation"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__reconstructed_from_expiry
+msgid "Reconstructed From Expiry"
+msgstr "Reconstruit après expiration"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_related_task_ids
+msgid "Related Feedback"
+msgstr "Retours associés"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
+msgid "Related feedback"
+msgstr "Retours associés"
+
+#. module: usl_feedback
+#: model:project.task.type,name:usl_feedback.stage_feedback_done
 msgid "Release"
-msgstr "Version"
+msgstr "Livraison"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_release_sha
@@ -376,22 +1002,100 @@ msgid "Release SHA"
 msgstr "SHA de la version"
 
 #. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
+msgid "Release identity"
+msgstr "Identité de la version"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Remove key"
+msgstr "Supprimer la clé"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Remove the saved Gemini API key?"
+msgstr "Supprimer la clé API Gemini enregistrée ?"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Remove the saved Odoo API key?"
+msgstr "Supprimer la clé API Odoo enregistrée ?"
+
+#. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_reporter_id
 msgid "Reporter"
 msgstr "Auteur"
 
 #. module: usl_feedback
-#: model:ir.actions.act_window,name:usl_feedback.action_feedback_submission
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "Send Feedback"
-msgstr "Envoyer un retour"
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__request_message_id
+msgid "Request Message"
+msgstr "Message de la requête"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"Required production acknowledgement: stateful Gemini interactions use a paid "
+"tier and may be retained by Google for seven days."
+msgstr ""
+"Confirmation requise en production : les interactions Gemini avec état "
+"utilisent une offre payante et peuvent être conservées par Google pendant "
+"sept jours."
 
 #. module: usl_feedback
 #. odoo-javascript
-#: code:addons/usl_feedback/static/src/js/feedback_user_menu.js:0
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "Send feedback"
-msgstr "Envoyer un retour"
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Retry"
+msgstr "Réessayer"
+
+#. module: usl_feedback
+#: model:project.task.type,name:usl_feedback.stage_feedback_ready_to_verify
+msgid "Review"
+msgstr "Vérifier"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid ""
+"Runs a Gemini interaction that reads the feedback Project through the "
+"configured read-only MCP identity, without creating feedback."
+msgstr ""
+"Lance une interaction Gemini qui consulte le projet de feedback avec "
+"l’identité MCP configurée en lecture seule, sans créer de feedback."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Save both keys, the MCP URL, and an approved model first."
+msgstr "Enregistrez d’abord les deux clés, l’URL MCP et un modèle approuvé."
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_screenshot_attachment_id
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__screenshot_attachment_id
+msgid "Screenshot"
+msgstr "Capture d’écran"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Screenshot capture was skipped. You can still add files below."
+msgstr ""
+"La capture d’écran a été ignorée. Vous pouvez toujours ajouter des fichiers "
+"ci-dessous."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "Screenshots must be JPEG or PNG images."
+msgstr "Les captures d’écran doivent être des images JPEG ou PNG."
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__triaged
+msgid "Sent to triage"
+msgstr "Envoyé au triage"
+
+#. module: usl_feedback
+#: model:project.task.type,name:usl_feedback.stage_feedback_planned
+msgid "Shaping"
+msgstr "Cadrage"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__include_page_context
@@ -399,16 +1103,32 @@ msgid "Share current page context"
 msgstr "Partager le contexte de la page actuelle"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_maintainer_form
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_reporter_form
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Share sanitized page context"
+msgstr "Partager le contexte de page nettoyé"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_form_collaborator
 msgid "Shared page context"
 msgstr "Contexte de page partagé"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "Something went wrong."
+msgstr "Une erreur est survenue."
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_source_action_id
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__source_action_id
 msgid "Source Action"
 msgstr "Action source"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_company_id
+msgid "Source Company"
+msgstr "Société source"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_source_model_id
@@ -432,8 +1152,29 @@ msgstr "ID de l’enregistrement source"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
-msgid "Status"
-msgstr "Statut"
+msgid "Source company"
+msgstr "Société source"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
+msgid "Stage"
+msgstr "Étape"
+
+#. module: usl_feedback
+#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__stale
+msgid "Stale"
+msgstr "Obsolète"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Start conversation"
+msgstr "Démarrer la conversation"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__state
+msgid "State"
+msgstr "État"
 
 #. module: usl_feedback
 #. odoo-python
@@ -442,58 +1183,194 @@ msgid "Submit feedback from the active company shown in Odoo."
 msgstr "Envoyez le retour depuis la société active affichée dans Odoo."
 
 #. module: usl_feedback
-#. odoo-python
-#: code:addons/usl_feedback/models/project_task.py:0
-msgid "Submitted feedback cannot be deleted by its reporter."
-msgstr "Un retour envoyé ne peut pas être supprimé par son auteur."
+#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__submitted
+msgid "Submitted"
+msgstr "Envoyé"
 
 #. module: usl_feedback
-#. odoo-python
-#: code:addons/usl_feedback/models/project_task.py:0
-msgid ""
-"Submitted feedback is read-only. Add details in the conversation instead."
-msgstr "Un retour envoyé est en lecture seule. Ajoutez plutôt les précisions dans la conversation."
-
-#. module: usl_feedback
-#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_submission__summary
-msgid "Summary"
-msgstr "Résumé"
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__submitted_at
+msgid "Submitted At"
+msgstr "Envoyé le"
 
 #. module: usl_feedback
 #: model:ir.model,name:usl_feedback.model_project_task
+#: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__task_id
 msgid "Task"
 msgstr "Tâche"
 
 #. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Test connections"
+msgstr "Tester les connexions"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Verify Gemini and the read-only Projects MCP connection without creating feedback."
+msgstr "Vérifier Gemini et la connexion MCP Projets en lecture seule sans créer de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_users.py:0
+msgid "The Feedback Agent cannot also be a feedback maintainer."
+msgstr "L’agent de retours ne peut pas être également responsable des retours."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_users.py:0
+msgid "The Feedback Agent must be a non-human external identity."
+msgstr "L’agent de retours doit être une identité technique externe."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid ""
+"The Feedback Assistant cannot inspect the shared board until a new key is "
+"saved."
+msgstr ""
+"L’assistant de retours ne peut pas consulter le tableau partagé tant qu’une "
+"nouvelle clé n’est pas enregistrée."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "The Feedback Assistant connection test failed: %(reason)s"
+msgstr "Le test de connexion de l’assistant de retours a échoué : %(reason)s"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "The Feedback Assistant is disabled until a new key is saved."
+msgstr ""
+"L’assistant de retours est désactivé jusqu’à l’enregistrement d’une nouvelle "
+"clé."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "The assistant is reviewing your latest message…"
+msgstr "L’assistant analyse votre dernier message…"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
+msgid "The feedback assistant could not complete this turn. Your feedback is saved."
+msgstr "L’assistant de retours n’a pas pu terminer cette étape. Votre retour est enregistré."
+
+#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
-msgid "The feedback company must be available to the reporter."
-msgstr "La société du retour doit être accessible à son auteur."
+msgid "The assistant response is missing or too long."
+msgstr "La réponse de l’assistant est absente ou trop longue."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The assistant returned an incomplete feedback brief."
+msgstr "L’assistant a renvoyé une synthèse de retour incomplète."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The assistant returned an invalid status."
+msgstr "L’assistant a renvoyé un état non valide."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The assistant returned invalid clarification questions."
+msgstr "L’assistant a renvoyé des questions de clarification non valides."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "The attachment data is invalid."
+msgstr "Les données de la pièce jointe ne sont pas valides."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The feedback brief is not ready for confirmation."
+msgstr "La synthèse du retour n’est pas prête à être confirmée."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+"The feedback card, conversation, screenshot, and attachments are visible to "
+"all internal employees. The selected screenshot, conversation, and opted-in "
+"page context are sent to Google Gemini; other attachments stay in Odoo."
+msgstr ""
+"La carte de feedback, la conversation, la capture d’écran et les pièces "
+"jointes sont visibles par tous les employés internes. La capture sélectionnée, "
+"la conversation et le contexte de page activé sont envoyés à Google Gemini ; "
+"les autres pièces jointes restent dans Odoo."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The reporter confirmed this brief. It is ready for triage."
+msgstr "L’auteur a confirmé cette synthèse. Elle est prête pour le triage."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "The screenshot could not be reduced below 5 MB."
+msgstr "La capture d’écran n’a pas pu être réduite à moins de 5 Mo."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "The screenshot must be 5 MB or smaller."
+msgstr "La capture d’écran doit faire 5 Mo au maximum."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "The source company must be available to the reporter."
+msgstr "La société source doit être accessible à l’auteur."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "The source record was not shared because you can no longer read it."
+msgstr ""
+"L’enregistrement source n’a pas été partagé, car vous ne pouvez plus le "
+"consulter."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/wizard/feedback_submission.py:0
+msgid "This attachment does not belong to your feedback draft."
+msgstr "Cette pièce jointe n’appartient pas à votre brouillon de retour."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "This feedback conversation does not need a retry."
+msgstr "Cette conversation de retour ne nécessite pas de nouvelle tentative."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "This is not a feedback card."
+msgstr "Ceci n’est pas une carte de retour."
 
 #. module: usl_feedback
 #: model:project.task.type,name:usl_feedback.stage_feedback_triaged
-msgid "Triaged"
-msgstr "Qualifié"
+msgid "Triage"
+msgstr "Triage"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__ux
-#: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_submission__category__ux
 #: model:project.tags,name:usl_feedback.tag_feedback_ux
 msgid "UX"
 msgstr "UX"
 
 #. module: usl_feedback
-#: model_terms:ir.actions.act_window,help:usl_feedback.action_my_feedback
-msgid ""
-"Use <strong>Send feedback</strong> from your user menu whenever something in"
-" Odoo needs attention."
-msgstr "Utilisez <strong>Envoyer un retour</strong> dans votre menu utilisateur dès qu’un élément d’Odoo mérite votre attention."
-
-#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
-msgid "Use Send feedback to create product feedback."
-msgstr "Utilisez Envoyer un retour pour créer un retour produit."
+msgid "Use the feedback conversation to create product feedback."
+msgstr "Utilisez la conversation de retour pour créer un retour produit."
 
 #. module: usl_feedback
 #: model:ir.model.fields,help:usl_feedback.field_project_task__display_name
@@ -506,7 +1383,8 @@ msgid ""
 "            !! Set the task a high priority\n"
 "            !!! Set the task a urgent priority\n"
 "\n"
-"            Make sure to use the right format and order e.g. Improve the configuration screen #feature #v16 @Mitchell !"
+"            Make sure to use the right format and order e.g. Improve the "
+"configuration screen #feature #v16 @Mitchell !"
 msgstr ""
 "Utilisez ces mots-clés dans le titre pour créer de nouvelles tâches :\n"
 "\n"
@@ -517,7 +1395,18 @@ msgstr ""
 "    !! Définir la tâche comme priorité élevée  \n"
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
-"    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+"    Veillez à utiliser le bon format et l’ordre correct, par exemple : "
+"Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+
+#. module: usl_feedback
+#: model:ir.model,name:usl_feedback.model_res_users
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_can_manage
+msgid "Usl Feedback Can Manage"
+msgstr "Peut gérer les retours USL"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_viewport_height
@@ -536,23 +1425,230 @@ msgstr "Largeur de la fenêtre"
 #: code:addons/usl_feedback/models/project_task.py:0
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid "Viewport dimensions must be between 1 and 16384 pixels."
-msgstr "Les dimensions de la fenêtre doivent être comprises entre 1 et 16 384 pixels."
+msgstr ""
+"Les dimensions de la fenêtre doivent être comprises entre 1 et 16 384 pixels."
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid "What should we know?"
-msgstr "Que devons-nous savoir ?"
+#: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_agent_state__waiting
+msgid "Waiting for details"
+msgstr "En attente de précisions"
 
 #. module: usl_feedback
-#: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_submission_form
-msgid ""
-"When enabled, Odoo shares only the current action, readable record identifier,\n"
-"                            company, viewport size, and exact release. URLs, query strings, tokens,\n"
-"                            fragments, and arbitrary browser state are never collected."
-msgstr "Lorsque cette option est activée, Odoo partage uniquement l’action actuelle, l’identifiant de l’enregistrement accessible, la société, la taille de la fenêtre et la version exacte. Les URL, paramètres de requête, jetons, fragments et autres états arbitraires du navigateur ne sont jamais collectés."
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "What happened, or what would help?"
+msgstr "Que s’est-il passé, ou qu’est-ce qui vous aiderait ?"
 
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid "You can submit only attachments that you uploaded."
-msgstr "Vous ne pouvez envoyer que les pièces jointes que vous avez vous-même déposées."
+msgstr ""
+"Vous ne pouvez envoyer que les pièces jointes que vous avez vous-même "
+"déposées."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "You may only follow feedback for yourself."
+msgstr "Vous ne pouvez suivre que vos propres retours."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "You may only unfollow feedback for yourself."
+msgstr "Vous ne pouvez cesser de suivre que vos propres retours."
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "https://mcp.example.com/mcp/projects"
+msgstr "https://mcp.example.com/mcp/projects"
+
+#~ msgid "Gemini and the read-only Projects MCP both answered successfully."
+#~ msgstr "Gemini et le MCP Projets en lecture seule ont répondu correctement."
+
+#~ msgid ""
+#~ "Tests model access and a read-only MCP initialization without creating "
+#~ "feedback."
+#~ msgstr ""
+#~ "Teste l’accès au modèle et l’initialisation du MCP en lecture seule sans "
+#~ "créer de retour."
+
+#~ msgid ""
+#~ "The feedback card, conversation, screenshot, and attachments are visible "
+#~ "to all internal employees. The selected screenshot and conversation are "
+#~ "sent to Google Gemini; other attachments stay in Odoo."
+#~ msgstr ""
+#~ "La carte de retour, la conversation, la capture d’écran et les pièces "
+#~ "jointes sont visibles par tous les employés internes. La capture "
+#~ "sélectionnée et la conversation sont envoyées à Google Gemini ; les "
+#~ "autres pièces jointes restent dans Odoo."
+
+#~ msgid "A feedback category is required."
+#~ msgstr "Une catégorie de retour est requise."
+
+#~ msgid "Add up to 10 screenshots or files that help explain the feedback."
+#~ msgstr ""
+#~ "Ajoutez jusqu’à 10 captures d’écran ou fichiers utiles pour expliquer le "
+#~ "retour."
+
+#~ msgid "Cancel"
+#~ msgstr "Annuler"
+
+#~ msgid ""
+#~ "Create a private feedback task for the active company. This does not send "
+#~ "anything outside Odoo."
+#~ msgstr ""
+#~ "Créer une tâche de retour privée pour la société active. Rien n’est "
+#~ "envoyé hors d’Odoo."
+
+#~ msgid "Declined"
+#~ msgstr "Refusé"
+
+#~ msgid "Describe what happened or what would help."
+#~ msgstr "Décrivez ce qui s’est passé ou ce qui vous aiderait."
+
+#~ msgid ""
+#~ "Describe what happened, what you expected, or what would make the "
+#~ "workflow clearer."
+#~ msgstr ""
+#~ "Décrivez ce qui s’est passé, ce que vous attendiez ou ce qui rendrait le "
+#~ "parcours plus clair."
+
+#~ msgid "Description"
+#~ msgstr "Description"
+
+#~ msgid "Done"
+#~ msgstr "Terminé"
+
+#~ msgid ""
+#~ "Feedback is temporarily unavailable because the running release identity "
+#~ "is inconsistent."
+#~ msgstr ""
+#~ "Les retours sont temporairement indisponibles car l’identité de la "
+#~ "version en cours est incohérente."
+
+#~ msgid ""
+#~ "Feedback is temporarily unavailable because this Odoo release has no "
+#~ "verified commit identity."
+#~ msgstr ""
+#~ "Les retours sont temporairement indisponibles car cette version d’Odoo ne "
+#~ "possède pas d’identifiant de commit vérifié."
+
+#~ msgid "Feedback sent"
+#~ msgstr "Retour envoyé"
+
+#~ msgid ""
+#~ "Feedback sent. The source record context was omitted because it is not "
+#~ "readable anymore."
+#~ msgstr ""
+#~ "Retour envoyé. Le contexte de l’enregistrement source a été omis car "
+#~ "celui-ci n’est plus accessible."
+
+#~ msgid ""
+#~ "Feedback sent. You can follow its status and replies from My feedback."
+#~ msgstr ""
+#~ "Retour envoyé. Vous pouvez suivre son statut et les réponses depuis Mes "
+#~ "retours."
+
+#~ msgid "Feedback submitted from Odoo by %(reporter)s."
+#~ msgstr "Retour envoyé depuis Odoo par %(reporter)s."
+
+#~ msgid "Give your feedback a short summary."
+#~ msgstr "Donnez un résumé court à votre retour."
+
+#~ msgid "Identifies the governed Project used for private product feedback."
+#~ msgstr ""
+#~ "Identifie le projet gouverné utilisé pour les retours produit privés."
+
+#~ msgid "In Progress"
+#~ msgstr "En cours"
+
+#~ msgid ""
+#~ "Operate the governed Product Feedback Project. Grant explicitly to human "
+#~ "maintainers or approved automation/service identities."
+#~ msgstr ""
+#~ "Gérer le projet gouverné de retours produit. Accorder explicitement ce "
+#~ "rôle aux responsables humains ou aux identités d’automatisation et de "
+#~ "service approuvées."
+
+#~ msgid "Page context"
+#~ msgstr "Contexte de la page"
+
+#~ msgid "Planned"
+#~ msgstr "Planifié"
+
+#~ msgid "Priority"
+#~ msgstr "Priorité"
+
+#~ msgid "Low priority"
+#~ msgstr "Priorité faible"
+
+#~ msgid "Medium priority"
+#~ msgstr "Priorité moyenne"
+
+#~ msgid "High priority"
+#~ msgstr "Priorité élevée"
+
+#~ msgid "Urgent"
+#~ msgstr "Urgent"
+
+#~ msgid "Product Feedback Submission"
+#~ msgstr "Envoi d’un retour produit"
+
+#~ msgid "Ready to Verify"
+#~ msgstr "Prêt à vérifier"
+
+#~ msgid "Send Feedback"
+#~ msgstr "Envoyer un retour"
+
+#~ msgid "Send feedback"
+#~ msgstr "Envoyer un retour"
+
+#~ msgid "Status"
+#~ msgstr "Statut"
+
+#~ msgid "Submitted feedback cannot be deleted by its reporter."
+#~ msgstr "Un retour envoyé ne peut pas être supprimé par son auteur."
+
+#~ msgid ""
+#~ "Submitted feedback is read-only. Add details in the conversation instead."
+#~ msgstr ""
+#~ "Un retour envoyé est en lecture seule. Ajoutez plutôt les précisions dans "
+#~ "la conversation."
+
+#~ msgid "Summary"
+#~ msgstr "Résumé"
+
+#~ msgid "The feedback company must be available to the reporter."
+#~ msgstr "La société du retour doit être accessible à son auteur."
+
+#~ msgid "Triaged"
+#~ msgstr "Qualifié"
+
+#~ msgid ""
+#~ "Use <strong>Send feedback</strong> from your user menu whenever something "
+#~ "in Odoo needs attention."
+#~ msgstr ""
+#~ "Utilisez <strong>Envoyer un retour</strong> dans votre menu utilisateur "
+#~ "dès qu’un élément d’Odoo mérite votre attention."
+
+#~ msgid "Use Send feedback to create product feedback."
+#~ msgstr "Utilisez Envoyer un retour pour créer un retour produit."
+
+#~ msgid "What should we know?"
+#~ msgstr "Que devons-nous savoir ?"
+
+#~ msgid ""
+#~ "When enabled, Odoo shares only the current action, readable record "
+#~ "identifier,\n"
+#~ "                            company, viewport size, and exact release. "
+#~ "URLs, query strings, tokens,\n"
+#~ "                            fragments, and arbitrary browser state are "
+#~ "never collected."
+#~ msgstr ""
+#~ "Lorsque cette option est activée, Odoo partage uniquement l’action "
+#~ "actuelle, l’identifiant de l’enregistrement accessible, la société, la "
+#~ "taille de la fenêtre et la version exacte. Les URL, paramètres de "
+#~ "requête, jetons, fragments et autres états arbitraires du navigateur ne "
+#~ "sont jamais collectés."

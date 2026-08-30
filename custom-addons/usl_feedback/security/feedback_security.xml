@@ -8,36 +8,77 @@
 
     <record id="group_feedback_maintainer" model="res.groups">
         <field name="name">Feedback Maintainer</field>
-        <field name="comment">Operate the governed Product Feedback Project. Grant explicitly to human maintainers or approved automation/service identities.</field>
+        <field name="comment">Manage the shared Product Feedback Project and its canonical card fields.</field>
         <field name="privilege_id" ref="privilege_feedback"/>
         <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
     </record>
 
+    <record id="group_feedback_agent" model="res.groups">
+        <field name="name">Feedback Agent (read-only service)</field>
+        <field name="comment">Dedicated non-human identity used only by the Projects MCP. It must not be an Internal User or a Feedback Maintainer.</field>
+    </record>
+
     <data noupdate="1">
-        <record id="rule_feedback_project_boundary" model="ir.rule">
-            <field name="name">Product Feedback Project: maintainers only</field>
-            <field name="model_id" ref="project.model_project_project"/>
-            <field name="domain_force">[(1, '=', 1)] if user.has_group('usl_feedback.group_feedback_maintainer') else [('usl_feedback_project', '=', False)]</field>
-        </record>
-
-        <record id="rule_feedback_task_boundary" model="ir.rule">
-            <field name="name">Product Feedback Task: reporter or maintainer</field>
-            <field name="model_id" ref="project.model_project_task"/>
-            <field name="domain_force">[(1, '=', 1)] if user.has_group('usl_feedback.group_feedback_maintainer') else ['|', ('usl_feedback_reporter_id', '=', False), ('usl_feedback_reporter_id', '=', user.id)]</field>
-        </record>
-
         <record id="rule_feedback_project_maintainer" model="ir.rule">
             <field name="name">Product Feedback Project: maintainer operations</field>
             <field name="model_id" ref="project.model_project_project"/>
             <field name="groups" eval="[Command.link(ref('group_feedback_maintainer'))]"/>
             <field name="domain_force">[('usl_feedback_project', '=', True)]</field>
         </record>
-
         <record id="rule_feedback_task_maintainer" model="ir.rule">
             <field name="name">Product Feedback Task: maintainer operations</field>
             <field name="model_id" ref="project.model_project_task"/>
             <field name="groups" eval="[Command.link(ref('group_feedback_maintainer'))]"/>
-            <field name="domain_force">[('usl_feedback_reporter_id', '!=', False)]</field>
+            <field name="domain_force">[('project_id.usl_feedback_project', '=', True)]</field>
+        </record>
+        <record id="rule_feedback_stage_maintainer" model="ir.rule">
+            <field name="name">Product Feedback Stage: maintainer operations</field>
+            <field name="model_id" ref="project.model_project_task_type"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_maintainer'))]"/>
+            <field name="domain_force">[('project_ids.usl_feedback_project', '=', True)]</field>
+        </record>
+        <record id="rule_feedback_tag_maintainer" model="ir.rule">
+            <field name="name">Product Feedback Tag: maintainer operations</field>
+            <field name="model_id" ref="project.model_project_tags"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_maintainer'))]"/>
+            <field name="domain_force">[('usl_feedback_tag', '=', True)]</field>
+        </record>
+
+        <record id="rule_feedback_project_agent" model="ir.rule">
+            <field name="name">Feedback Agent: shared feedback project only</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_agent'))]"/>
+            <field name="domain_force">[('usl_feedback_project', '=', True)]</field>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="rule_feedback_task_agent" model="ir.rule">
+            <field name="name">Feedback Agent: shared feedback cards only</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_agent'))]"/>
+            <field name="domain_force">[('project_id.usl_feedback_project', '=', True)]</field>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="rule_feedback_stage_agent" model="ir.rule">
+            <field name="name">Feedback Agent: feedback stages only</field>
+            <field name="model_id" ref="project.model_project_task_type"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_agent'))]"/>
+            <field name="domain_force">[('project_ids.usl_feedback_project', '=', True)]</field>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="rule_feedback_tag_agent" model="ir.rule">
+            <field name="name">Feedback Agent: governed feedback tags only</field>
+            <field name="model_id" ref="project.model_project_tags"/>
+            <field name="groups" eval="[Command.link(ref('group_feedback_agent'))]"/>
+            <field name="domain_force">[('usl_feedback_tag', '=', True)]</field>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
         </record>
     </data>
 </odoo>

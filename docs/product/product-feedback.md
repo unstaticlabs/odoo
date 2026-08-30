@@ -1,103 +1,129 @@
-# Authenticated product feedback
+# Conversational product feedback
 
 ## Product contract
 
-Every authenticated internal user can send product feedback from the native
-Odoo user menu without leaving the workflow they are performing. The focused
-form captures a summary, description, category, native task priority and up to
-ten optional attachments. A successful submission remains visible in **My
-feedback**, where the reporter can follow status changes and discuss the item
-in native chatter.
+Every authenticated internal user can open **Feedback** from the **Chats** tab
+of Odoo's top-right messaging drawer. Odoo first offers a freshly captured
+image of the current screen, selected by default, then asks the reporter to
+describe the issue or opportunity. The reporter may remove the capture, add up
+to ten supporting files and opt in to sanitized page context.
 
-The canonical record is a `project.task` in the XML-owned **Odoo Product
-Feedback** Project. The workflow uses native tags **Bug**, **Improvement**,
-**Question** and **UX**, and native stages **New**, **Triaged**, **Planned**,
-**In Progress**, **Ready to Verify**, **Done** and **Declined**. This keeps the
-Project available to separately governed downstream orchestration without an
-Odoo-to-GitHub API bridge or credentials.
+The first message creates a partial `project.task` in **Inbox before any
+provider call**. The in-drawer conversation then uses native task chatter while
+the Feedback Assistant asks up to three clarification questions and refines the
+same card. The reporter reviews the proposed brief and must explicitly choose
+**Confirm and send to Triage**. Only that confirmation moves the card out of
+Inbox.
 
-## Context and privacy boundary
+The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
+data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,
+**Review**, **Release** and **Icebox**; its native tags are **Bug**,
+**Improvement**, **Question** and **UX**. This matches the team's established
+product-delivery board and lets separately governed AI Pipelines use standard
+Project models without an Odoo-to-GitHub write bridge.
 
-Page context is opt-in. The browser sends only typed candidates for the current
-action, model, record identifier and viewport. It never sends the URL, query
-string, fragment, tokens, local storage, form values or arbitrary browser
-state. Before privileged creation, the server verifies the action, model and
-record against the reporter's own read access. An unreadable or removed source
-record is omitted and the feedback is still accepted with an explicit
-confirmation.
+## Collaboration and access model
 
-The active company is recorded on the task and remains subject to Odoo's native
-multi-company rule. The exact running release SHA is resolved from the sealed
-database release identity or `USL_RELEASE_COMMIT`; submission fails clearly if
-no exact 40-character identity is available or if the two trusted sources
-disagree. Company and release identity are required routing and audit metadata,
-not arbitrary page state.
+Product feedback is a shared internal board: internal employees can read and
+discuss all cards, chatter and attachments, while the original reporter is
+recorded on every card. Ordinary employees cannot edit canonical card fields,
+move stages, schedule or mutate activities, delete cards, change followers for
+another person, or create a feedback task through generic Project RPCs.
+The governed Project, workflow stages and category tags carry explicit markers
+and model-level guards, so generic Project-manager RPCs and imports cannot
+rewrite them without the Feedback Maintainer capability.
 
-## Access model
+Members of the explicit **Feedback Maintainer** capability can operate the
+whole board. The separate **Feedback Agent (read-only service)** capability is
+for one dedicated non-human external identity used by the remote Projects MCP.
+It can read only the governed feedback Project, cards, stages, tags,
+attachments and activities. It has no create, write, delete or chatter rights,
+cannot inspect unrelated Projects, and cannot simultaneously be an Internal
+User or Feedback Maintainer. Gemini receives that identity's Odoo API key only
+as the remote MCP authorization header.
 
-The feedback Project itself is hidden from ordinary employees, including
-Project users and Project administrators who are not Feedback Maintainers. A
-global `project.task` rule intersects all native Project rules:
+Feedback tasks are deliberately company-neutral so the shared product board is
+consistent across company switching. Typed `usl_feedback_company_id` records
+the source company after verifying it belongs to the reporter. No source
+company business record becomes readable through the task, and negative tests
+cover users with disjoint company access.
 
-- a reporter can read only feedback whose `usl_feedback_reporter_id` is their
-  own user, and native task access still requires their task followership;
-- another employee cannot retrieve the task through search, `read_group`, a
-  guessed identifier, a generic Project view, chatter, activities or
-  attachments;
-- a reporter cannot edit, move or delete the submitted task; followership,
-  chatter replies and chatter attachments remain available through native mail
-  access on the readable task;
-- members of the explicit **Feedback Maintainer** capability can read and
-  operate every feedback task available in their active companies;
-- an approved automation/service user may receive the same capability. When
-  the Distribution Access Control module is installed and it is also marked
-  **AI Agent**, that module's existing mutation audit records its writes.
+## Context, evidence and provider boundary
 
-Submission uses one narrow elevated region after every user-controlled value,
-attachment and source record has been validated. The elevated environment
-keeps the reporter UID, so `create_uid`, followership and the submission note
-remain attributable to the human. No general Project ACL or Project role is
-granted to reporters or maintainers.
+Page context is off by default. The browser constructs only typed candidates
+for the action, model, record identifier and viewport. The server retains the
+model and identifier only when the reporter can still read that record. The
+company and exact 40-character release SHA are resolved server-side. URLs,
+queries, fragments, tokens, local storage, form contents and arbitrary browser
+state are never collected.
+
+When selected, the capture is resized to at most 1920 pixels and encoded as
+JPEG; every display-capture track is stopped immediately after the frame is
+taken. Screenshots are limited to 5 MiB and other files to 10 MiB each. Draft
+attachments are owned by a transient record and either move to the created task
+or are deleted with the abandoned draft.
+
+The company-wide assistant uses Google's Gemini Interactions API in background,
+stored, stateful mode. Production enablement requires an administrator to
+acknowledge the paid tier and Google's seven-day state retention, save a
+server-side Gemini API key, select an approved Flash model, and save a second
+API key for the dedicated read-only Odoo service identity. Saved secrets are
+never returned to the browser.
+
+Each turn contains the bounded task conversation, a bounded summary of open
+feedback, the selected screenshot on the first turn, and a release-pinned
+public source link of the form
+`https://github.com/unstaticlabs/odoo/tree/<release-sha>`. Gemini may use URL
+context and the configured HTTPS endpoint ending exactly in `/mcp/projects`.
+Prompt and tool content are treated as untrusted. Structured output is
+validated before a narrow privileged update changes the same task. Audit runs
+retain identifiers, timestamps, model, hashes, token counts and safe error
+codes—not prompts, keys, screenshots, provider reasoning or raw responses.
+
+Failures leave the partial card in Inbox. Transient provider failures retry
+with a bounded delay; permanent failures show a safe in-Odoo retry state. No
+provider error may disclose credentials or response bodies. Task notifications
+remain inside Odoo: feedback chatter suppresses outgoing email delivery.
 
 ## Architecture decision
 
-The selected path uses Odoo's native `user_menuitems` registry and a transient
-form dialog. The same entry appears in the desktop user systray and mobile
-burger menu, the dialog preserves the current action stack, and pending uploads
-have an owned transient record before task creation.
+The selected path patches Odoo's native `MessagingMenu` and embeds native
+`Chatter` against the canonical task. It is available where users already look
+for conversations, preserves the current action behind the drawer, works on
+desktop and mobile, and avoids a second ticket/conversation model.
 
-Two alternatives were rejected:
-
-1. Opening the native task form directly would require exposing the governed
-   Project before submission, would allow unsafe default/context injection and
-   would leave no clean ownership boundary for pre-create attachments.
-2. A custom feedback model or OCA helpdesk-style ticket would duplicate task
-   stages, tags, chatter and downstream Project interoperability. No maintained
-   OCA add-on in the pinned runtime provides this private global capture
-   boundary without introducing another canonical ticket model.
+The native Odoo alternative was a standalone Project form or user-menu wizard.
+It remains useful for maintainers, but it exposes implementation fields too
+early and cannot sustain clarification without leaving the reporting context.
+The OCA/helpdesk alternative introduces a second canonical record and stage
+system. Neither fits as well as the native Chats drawer plus `project.task`.
 
 ## Installation, upgrade and recovery
 
-Install `usl_feedback` after its declared `project` and `web` dependencies. It
-does not pull the broader Distribution Access Control dependency graph merely
-to define its narrow maintainer capability. A normal module update is:
+Install `usl_feedback` after its declared `base_setup`, `project`, `mail` and
+`web` dependencies. A normal update is:
 
 ```text
 -u usl_feedback
 ```
 
-The module adds fields and indexes to `project.project` and `project.task`, one
-transient submission table and relation, XML-owned security records, the
-Project, stages, tags, actions and views. There is no one-shot migration and no
-external side effect. Clean installation, an update, and an identical repeated
-update must all pass. The XML-owned workflow data is `noupdate` so an update
-does not move live feedback or overwrite deliberate operational stage changes.
+Version `saas~19.3.2.0.0` adds typed task metadata, the transient draft and
+assistant-run tables, a minute cron, settings, security records and frontend
+assets. Its idempotent post-migration keeps existing XML identifiers while
+renaming the former stages to the new workflow, makes the feedback Project and
+tasks company-neutral, backfills source company metadata, removes obsolete
+private-boundary rules and removes the old standalone submission action. It
+does not move existing cards between workflow positions.
 
 Before production upgrade, take a consistent database and filestore backup.
-Verify the module is installed, the Project has exactly the governed stages,
-reporter isolation still denies cross-user and cross-company reads, and a
-synthetic submission carries the deployed SHA. On failure, stop the upgraded
-workers and restore the matched database and filestore backup with the prior
-image. Removing only the code is not a rollback after its stored fields and
-tasks exist. No operation in the feature is intentionally irreversible and no
-source dump or migration project participates in recovery.
+Afterward verify the seven governed stages, company-neutral cards with retained
+source company, inactive legacy rules, secret-status indicators, read-only
+service denial, one synthetic conversation and a repeated identical update.
+Keep both regulatory live flags at `0` during qualification.
+
+For provider trouble, disable the assistant or remove either key; saved Inbox
+cards remain available and no schema rollback is required. For a failed module
+upgrade, stop the new workers and restore the matched database and filestore
+backup with the prior image. Removing code alone is not a rollback once stored
+fields, tasks or attachments exist. No migration source dump or production
+provider activation participates in recovery.
