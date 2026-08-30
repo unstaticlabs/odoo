@@ -198,6 +198,24 @@ class MigrationLegacyBoundaryTests(unittest.TestCase):
             self.assertNotRegex(source, r"(?mi)^COPY .*scripts/migration-legacy")
             self.assertNotRegex(source, r"(?mi)^COPY .*migration/")
 
+    def test_every_nonlegacy_compose_file_excludes_dormant_markers(self) -> None:
+        compose_paths = sorted(ROOT.glob("compose*.y*ml")) + sorted(
+            (ROOT / "deploy").rglob("compose*.y*ml"),
+        )
+        forbidden_markers = (
+            *MIGRATION_TARGET_MARKERS,
+            "USL_ONLINE_DUMP_DIR",
+            "artifacts/migration/private",
+            "accounting-source-postgres-data:",
+            *(f"  {service}:" for service in LEGACY_SERVICES),
+        )
+        for compose_path in compose_paths:
+            if compose_path.name == "compose.migration-legacy.yaml":
+                continue
+            source = compose_path.read_text(encoding="utf-8")
+            for marker in forbidden_markers:
+                self.assertNotIn(marker, source, (compose_path, marker))
+
     def test_wrapper_renders_only_after_exact_source_and_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory)

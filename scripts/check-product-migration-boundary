@@ -209,6 +209,29 @@ if "accounting-source-postgres-data:" in compose:
         "Normal compose.yaml still defines the legacy source database volume.",
     )
 
+compose_paths = sorted(ROOT.glob("compose*.y*ml")) + sorted(
+    (ROOT / "deploy").rglob("compose*.y*ml"),
+)
+for compose_path in compose_paths:
+    if compose_path == LEGACY_COMPOSE:
+        continue
+    compose_source = compose_path.read_text()
+    forbidden_markers = (
+        *MIGRATION_PATHS,
+        "/mnt/accounting-source",
+        "USL_ONLINE_DUMP_DIR",
+        "artifacts/migration/private",
+        "accounting-source-postgres-data:",
+        *(f"  {service_name}:" for service_name in MIGRATION_SERVICES),
+        "  accounting-source-db:",
+    )
+    for marker in forbidden_markers:
+        if marker in compose_source:
+            errors.append(
+                f"Non-legacy Compose file {compose_path.relative_to(ROOT)} "
+                f"exposes dormant marker {marker!r}.",
+            )
+
 dockerignore_lines = [
     line.strip()
     for line in (ROOT / ".dockerignore").read_text().splitlines()
