@@ -16,6 +16,7 @@ class TestProjectRestore(TransactionCase):
         cls.source_user_id = 9003
         cls.source_stage_id = 9004
         cls.source_historical_stage_id = 8999
+        cls.source_project_stage_id = 8998
         cls.source_project_id = 9005
         cls.source_blocker_id = 9006
         cls.source_task_id = 9007
@@ -57,7 +58,22 @@ class TestProjectRestore(TransactionCase):
                     "project_group_xmlids": ["project.group_project_user"],
                 },
             ],
-            "project_stages": [],
+            "project_stages": [
+                {
+                    "id": self.source_project_stage_id,
+                    "sequence": 10,
+                    "company_id": None,
+                    "color": 0,
+                    "name": {"en_US": "Restored Project Stage"},
+                    "active": True,
+                    "fold": False,
+                    "rotting_threshold_days": 0,
+                    "create_uid": self.source_user_id,
+                    "write_uid": self.source_user_id,
+                    "create_date": start,
+                    "write_date": start,
+                },
+            ],
             "task_stages": [
                 {
                     "id": self.source_stage_id,
@@ -86,7 +102,7 @@ class TestProjectRestore(TransactionCase):
                     "company_id": self.source_company_id,
                     "color": 3,
                     "user_id": self.source_user_id,
-                    "stage_id": None,
+                    "stage_id": self.source_project_stage_id,
                     "last_update_id": self.source_update_id,
                     "access_token": "restored-project-token",
                     "privacy_visibility": "followers",
@@ -103,6 +119,10 @@ class TestProjectRestore(TransactionCase):
                     "allow_recurring_tasks": False,
                     "is_template": False,
                     "date_last_stage_update": start,
+                    "duration_tracking": {
+                        "d": "2026-08-10 09:00:00",
+                        "s": self.source_project_stage_id,
+                    },
                     "create_uid": self.source_user_id,
                     "write_uid": self.source_user_id,
                     "create_date": start,
@@ -513,6 +533,13 @@ class TestProjectRestore(TransactionCase):
             planned.project_id.alias_id.alias_name,
             "restore-private",
         )
+        restored_project_stage = self.env["project.project.stage"].browse(
+            self.source_project_stage_id,
+        )
+        self.assertTrue(restored_project_stage.exists())
+        self.assertEqual(restored_project_stage.id, self.source_project_stage_id)
+        project_duration = payload["projects"][0]["duration_tracking"]
+        self.assertEqual(projects.duration_tracking, project_duration)
         self.assertFalse(planned.date_end)
         source_duration = payload["tasks"][1]["duration_tracking"]
         self.assertEqual(planned.duration_tracking, source_duration)
@@ -540,6 +567,27 @@ class TestProjectRestore(TransactionCase):
             },
         )
         self.assertEqual(planned.state, "1_done")
+        continuation_project_stage = self.env["project.project.stage"].create(
+            {"name": "Post-restore project stage"},
+        )
+        self.assertGreater(
+            continuation_project_stage.id,
+            self.source_project_stage_id,
+        )
+        projects.write({"stage_id": continuation_project_stage.id})
+        transitioned_project_duration = deepcopy(projects.duration_tracking)
+        self.assertEqual(
+            transitioned_project_duration["s"],
+            continuation_project_stage.id,
+        )
+        self.assertGreaterEqual(
+            transitioned_project_duration[str(self.source_project_stage_id)],
+            0,
+        )
+        self.assertNotEqual(
+            transitioned_project_duration["d"],
+            project_duration["d"],
+        )
 
         message_domain = [
             ("rebuild_source_model", "=", "mail.message"),
@@ -584,6 +632,9 @@ class TestProjectRestore(TransactionCase):
 
         second = self._run(deepcopy(payload))
         self.assertEqual(second.status, "passed")
+        projects.invalidate_recordset()
+        self.assertEqual(projects.stage_id, continuation_project_stage)
+        self.assertEqual(projects.duration_tracking, transitioned_project_duration)
         planned.invalidate_recordset()
         self.assertEqual(planned.state, "1_done")
         self.assertTrue(planned.date_end)
@@ -740,6 +791,40 @@ class TestProjectRestore(TransactionCase):
         self.assertEqual(
             restored_historical.rebuild_source_model,
             "project.task.type.history",
+        )
+
+    def test_project_stage_ids_adopt_compatible_native_fixtures(self):
+        fixture = self.env.ref(
+            "project.project_project_stage_0",
+            raise_if_not_found=False,
+        )
+        self.assertTrue(fixture)
+        payload = self._payload()
+        payload["project_stages"][0].update(
+            {
+                "id": fixture.id,
+                "name": {"en_US": fixture.name},
+                "sequence": fixture.sequence,
+                "color": fixture.color,
+                "active": fixture.active,
+                "fold": fixture.fold,
+                "rotting_threshold_days": fixture.rotting_threshold_days,
+            },
+        )
+        payload["projects"][0]["stage_id"] = fixture.id
+        payload["projects"][0]["duration_tracking"]["s"] = fixture.id
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        fixture.invalidate_recordset()
+        self.assertTrue(fixture.exists())
+        self.assertEqual(fixture.rebuild_source_id, fixture.id)
+        self.assertEqual(
+            self.env["project.project.stage"].with_context(
+                active_test=False,
+            ).search_count([("id", "=", fixture.id)]),
+            1,
         )
 
     def test_referenced_target_stage_collision_fails_closed(self):

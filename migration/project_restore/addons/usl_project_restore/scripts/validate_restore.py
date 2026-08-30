@@ -297,6 +297,10 @@ assert all(
     task_stage_map[row["id"]].id == row["id"]
     for row in source["task_stages"]
 ), "Task-stage IDs differ from their Online IDs."
+assert all(
+    project_stage_map[row["id"]].id == row["id"]
+    for row in source["project_stages"]
+), "Project-stage IDs differ from their Online IDs."
 assert set(historical_task_stage_map) == set(
     source["historical_task_stage_ids"],
 ), "Deleted historical task-stage identities are not reserved exactly."
@@ -309,6 +313,7 @@ assert not env["project.task"].with_context(active_test=False).sudo().search_cou
 ), "A current task points to a deleted historical task stage."
 for table, rows in (
     ("project_project", source["projects"]),
+    ("project_project_stage", source["project_stages"]),
     ("project_task", source["tasks"]),
     (
         "project_task_type",
@@ -363,6 +368,7 @@ for row in source["projects"]:
                 "recurrences": row["allow_recurring_tasks"],
                 "template": row["is_template"],
                 "last_stage_update": row["date_last_stage_update"],
+                "duration_tracking": row["duration_tracking"],
                 "task_stages": sorted(expected_project_stages[row["id"]]),
                 "tags": sorted(expected_project_tags[row["id"]]),
                 "favorites": sorted(expected_project_favorites[row["id"]]),
@@ -401,6 +407,7 @@ for row in source["projects"]:
                 "recurrences": project.allow_recurring_tasks,
                 "template": project.is_template,
                 "last_stage_update": project.date_last_stage_update,
+                "duration_tracking": project.duration_tracking,
                 "task_stages": sorted(
                     source_id(stage)
                     for stage in project.type_ids
@@ -518,6 +525,19 @@ source_duration_bucket_count = sum(
     len(set((row["duration_tracking"] or {})) - {"d", "s"})
     for row in source["tasks"]
 )
+for row in source["projects"]:
+    source_duration = row["duration_tracking"] or {}
+    target_duration = project_map[row["id"]].duration_tracking or {}
+    assert normalized(target_duration) == normalized(source_duration), (
+        f"Project {row['id']} duration ledger differs from Online."
+    )
+    if source_duration:
+        assert target_duration.get("s") == (row["stage_id"] or 0), (
+            f"Project {row['id']} duration ledger has the wrong current stage."
+        )
+        assert target_duration.get("d") == source_duration.get("d"), (
+            f"Project {row['id']} duration clock start differs from Online."
+        )
 target_duration_bucket_count = sum(
     len(set((task_map[row["id"]].duration_tracking or {})) - {"d", "s"})
     for row in source["tasks"]
