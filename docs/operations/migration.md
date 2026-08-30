@@ -215,7 +215,11 @@ it into fresh runtime-owned storage without OCR, re-ingestion, vector rebuild,
 or model download, then encrypt it for transfer:
 
 ```bash
-migration/manage cohort capture --runtime <runtime-id> --bundle <bundle> ...
+migration/manage cohort capture \
+  --runtime <runtime-id> --bundle <bundle> \
+  --step-ca <step-ca-state> --dss <dss-state> --evidence <sign-evidence> \
+  --release-identity <release-identity.json> \
+  --distribution-release <distribution-release.json>
 migration/manage cohort verify --runtime <runtime-id> --bundle <bundle>
 migration/manage cohort restore \
   --runtime <fresh-runtime-id> --bundle <bundle> \
@@ -229,21 +233,42 @@ migration/manage cohort encrypt \
 
 ## Cutover
 
-Cutover consumes an immutable candidate or accepted evolved cohort, a recorded
-fingerprint, a non-secret JSON configuration, and a separate allowlisted
-secret file. `preflight` resolves and stores configuration once; later stages
-cannot change it.
+Cutover consumes only the accepted evolved cohort after local work. The nested
+Online-source candidate remains deterministic-migration evidence; it is not
+the data restored to production. The evolved cohort binds the exact CI
+Distribution release, current controls, independent restore evidence, Sign
+state, and its own fingerprint.
+
+Use a non-secret JSON configuration and a separate allowlisted secret file.
+`preflight` resolves and stores configuration once; later stages cannot change
+it. Linux production uses container Ollama and explicit named volumes,
+including the BGE model volume.
 
 Run the state machine in order:
 
 ```bash
-migration/manage cutover preflight ...
-migration/manage cutover stage ...
-migration/manage cutover configure ...
-migration/manage cutover gate ...
-migration/manage cutover admit ... --confirm ADMIT:<runtime-id>
+migration/manage cutover preflight \
+  --runtime <transition-id> --cohort <accepted-cohort> \
+  --fingerprint <cohort-fingerprint> \
+  --configuration <production-non-secret.json> \
+  --secrets-file <production-secrets.env>
+migration/manage cutover stage \
+  --runtime <transition-id> --cohort <accepted-cohort> \
+  --fingerprint <cohort-fingerprint> --confirm STAGE:<transition-id>
+migration/manage cutover configure \
+  --runtime <transition-id> --cohort <accepted-cohort> \
+  --fingerprint <cohort-fingerprint> --evidence <identity-policy.json>
+migration/manage cutover gate \
+  --runtime <transition-id> --cohort <accepted-cohort> \
+  --fingerprint <cohort-fingerprint> --evidence <browser-journeys.json>
+migration/manage cutover admit \
+  --runtime <transition-id> --cohort <accepted-cohort> \
+  --fingerprint <cohort-fingerprint> --confirm ADMIT:<transition-id>
 ```
 
+`stage` restores exact Odoo, Paperless, Tantivy, vector, BGE, broker, and Sign
+state into fresh explicit volumes. It does not import Paperless content, run
+OCR, rebuild vectors, or download a model. Application writers remain paused.
 `reset` is available only before admission, against exact runtime-owned
 resources, with `--confirm RESET:<runtime-id>`. Production becomes canonical
 only after admission and the first verified coordinated backup restore.

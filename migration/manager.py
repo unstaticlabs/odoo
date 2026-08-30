@@ -1264,6 +1264,9 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
             if not args.evidence:
                 raise RuntimeError(f"cutover {action} requires --evidence")
             command.extend([str(args.evidence), args.fingerprint])
+        elif action == "stage":
+            confirm(args, "STAGE")
+            command.append(args.fingerprint)
         elif action in {"admit", "reset"}:
             confirm(args, action.upper())
             command.extend(["--confirm", args.fingerprint])
@@ -1405,7 +1408,7 @@ def parser() -> argparse.ArgumentParser:
         item.add_argument("--evidence", type=Path)
         item.add_argument("--configuration", type=Path)
         item.add_argument("--secrets-file", type=Path)
-        if action in {"admit", "reset"}:
+        if action in {"stage", "admit", "reset"}:
             item.add_argument("--confirm", required=True)
     return result
 

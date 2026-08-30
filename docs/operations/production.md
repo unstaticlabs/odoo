@@ -80,6 +80,37 @@ French electronic-invoice reception and e-reporting are separate activations.
 Follow the dedicated activation procedure; never infer production eligibility
 from offline tests.
 
+## Final local tour and VPS promotion
+
+Keep the protected local runtime writable during the final user tour. Never
+reconstruct it from Online. Before the tour, create a coordinated checkpoint
+and confirm `transition status` is healthy. Tooling-only commits do not require
+an Odoo image or database upgrade; the running application must still match
+the last product commit.
+
+After Valentin declares the final cutoff:
+
+1. stop local writers and create a final coordinated checkpoint;
+2. merge the reviewed branch into `19-usl` and wait for the v4 Distribution
+   release artifact and every immutable image digest;
+3. update the frozen local database only if merged product modules changed,
+   using the exact merged source and a checkpoint first;
+4. capture the sanitized evolved cohort with the CI release artifact;
+5. independently restore it into fresh volumes and accept its fingerprint;
+6. encrypt and checksum it for transfer;
+7. run cutover `preflight`, `stage`, `configure`, and `gate` against the VPS
+   while ingress and external side effects remain disabled;
+8. inspect the staged VPS, then run `admit` with explicit human approval;
+9. create and independently restore the first coordinated production backup;
+10. only then declare the VPS canonical. Retire the frozen local source later
+    through a separate approved operation.
+
+Production uses HTTPS origins, external Pocket ID and ingress networks, fresh
+explicit volumes, container Ollama, and digest-pinned Odoo, Paperless,
+renderer, Sign, MCP, and supporting images. Keep e-invoicing, e-reporting,
+outbound mail, bank-email ingestion, and unapproved jobs disabled until their
+separate activation gates pass.
+
 ## Odoo backup primitive
 
 The maintained backup tooling separates preparation, upload, isolated restore,
