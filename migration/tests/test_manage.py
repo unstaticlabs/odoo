@@ -286,6 +286,8 @@ class MigrationManageTests(unittest.TestCase):
         with patch.dict(os.environ, {"COMPOSE_PROJECT_NAME": "ambient-project", "USL_EINVOICE_LIVE_ENABLED": "1"}):
             environment = runtime_environment(runtime, {})
         self.assertEqual(environment["COMPOSE_PROJECT_NAME"], "recorded-project")
+        self.assertEqual(environment["ODOO_DB_NAME"], "odoo_dev")
+        self.assertEqual(environment["ODOO_DB_FILTER"], "^odoo_dev$")
         self.assertEqual(environment["USL_EINVOICE_LIVE_ENABLED"], "0")
         self.assertEqual(environment["USL_EREPORTING_LIVE_ENABLED"], "0")
 

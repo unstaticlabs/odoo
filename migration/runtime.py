@@ -61,6 +61,7 @@ SCOPE_KEYS = frozenset(
     {
         "COMPOSE_PROJECT_NAME",
         "ODOO_DB_NAME",
+        "ODOO_DB_FILTER",
         "ODOO_DEV_DB",
         "ODOO_GEVENT_PORT",
         "ODOO_HTTP_PORT",
@@ -411,6 +412,7 @@ def runtime_environment(runtime: dict[str, Any], secrets: dict[str, str]) -> dic
             "COMPOSE_FILE": os.pathsep.join(runtime["compose"]["files"]),
             "ODOO_DEV_DB": runtime["database"],
             "ODOO_DB_NAME": runtime["database"],
+            "ODOO_DB_FILTER": f"^{re.escape(runtime['database'])}$",
             "ODOO_INIT_DB": runtime["database"],
             "ODOO_HTTP_PORT": str(ports["odoo"]),
             "ODOO_GEVENT_PORT": str(ports["gevent"]),
