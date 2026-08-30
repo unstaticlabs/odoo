@@ -527,6 +527,39 @@ class MigrationManageTests(unittest.TestCase):
         self.assertEqual(len(runtime["resources"]["containers"]), 3)
         store.save.assert_called_once_with(runtime)
 
+    def test_failed_transition_retry_recovers_resources_before_destroy(self):
+        runtime = {
+            "schema": "usl-migration-runtime-v1",
+            "id": "transition-current",
+            "kind": "transition",
+            "status": "failed",
+            "release_commit": "b" * 40,
+            "private_directory": str(
+                self.root / "private/migration/runtimes/transition-current"
+            ),
+            "compose": {
+                "project": self.runner.project,
+                "working_directory": str(self.root),
+            },
+            "resources": {"containers": [], "volumes": [], "networks": []},
+        }
+        RuntimeStore(self.root).create(runtime, {})
+        arguments = Namespace(
+            action="reconstruct",
+            runtime="transition-current",
+            confirm="RECONSTRUCT:transition-current",
+        )
+        with (
+            patch.object(manager, "ensure_clean_checkout", return_value="b" * 40),
+            patch.object(manager, "run_internal"),
+            patch.object(manager, "start_mcp_runtime"),
+        ):
+            result = manager.command_transition(arguments, self.runner)
+
+        self.assertEqual(result["status"], "reconstructed")
+        self.assertIn(("docker", "rm", "--force", "container-1", "db-1", "mcp-1"), self.runner.calls)
+        self.assertIn(("docker", "volume", "rm", "runtime-data"), self.runner.calls)
+
     def test_native_macos_ollama_is_preferred_and_linux_uses_container(self):
         models = self.root / "models"
         manifest = models / "manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1"

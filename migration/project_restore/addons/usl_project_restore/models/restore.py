@@ -2117,6 +2117,10 @@ class UslProjectRestoreRun(models.Model):
                 "tasks": len(tasks),
                 "project_stages": len(project_stages),
                 "task_stages": len(task_stages),
+                "projects_with_duration_tracking": sum(
+                    project.duration_tracking is not False
+                    for project in projects.values()
+                ),
                 "historical_task_stages": len(historical_stage_keys),
                 "tasks_with_duration_history": sum(
                     bool(set(ledger) - {"d", "s"})

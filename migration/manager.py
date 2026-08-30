@@ -513,7 +513,7 @@ def recover_failed_runtime_resources(
     if not any(current.values()):
         return
     runtime["resources"] = current
-    record(store, runtime, "qa.refresh.recover-resources")
+    record(store, runtime, "runtime.recover-failed-resources")
 
 
 def ttl_minutes(value: str) -> int:
@@ -743,6 +743,7 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
         if runtime["status"] in {"transition-live", "frozen-read-only"}:
             raise RuntimeError("protected transition runtime cannot be reconstructed")
         release_commit = ensure_clean_checkout()
+        recover_failed_runtime_resources(runtime, store, runner)
         destroy_runtime(runtime, runner)
         runtime["status"] = "reconstructing"
         runtime["release_commit"] = release_commit
@@ -756,6 +757,9 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
                 [str(INTERNAL / "reconstruct"), "transition"],
             )
         except RuntimeError:
+            runtime["resources"] = inspect_project(
+                runner, runtime["compose"]["project"], ROOT
+            )
             runtime["status"] = "failed"
             record(store, runtime, "transition.reconstruct", "failed")
             raise

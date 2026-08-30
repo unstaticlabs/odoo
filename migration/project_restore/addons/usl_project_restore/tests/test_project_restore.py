@@ -368,6 +368,7 @@ class TestProjectRestore(TransactionCase):
                 "project_aliases": 1,
                 "project_alias_names": 1,
                 "project_analytic_links": 0,
+                "projects_with_duration_tracking": 1,
                 "linked_expenses": 0,
                 "message_parent_links": 0,
             },
@@ -631,7 +632,11 @@ class TestProjectRestore(TransactionCase):
         )
 
         second = self._run(deepcopy(payload))
-        self.assertEqual(second.status, "passed")
+        self.assertEqual(
+            second.status,
+            "passed",
+            second.issue_ids.mapped("description"),
+        )
         projects.invalidate_recordset()
         self.assertEqual(projects.stage_id, continuation_project_stage)
         self.assertEqual(projects.duration_tracking, transitioned_project_duration)
