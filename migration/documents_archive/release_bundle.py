@@ -18,6 +18,7 @@ REQUIRED_PATHS = (
     "odoo/odoo.dump",
     "odoo/odoo-filestore.tgz",
     "paperless/paperless.dump",
+    "paperless/paperless-broker.tgz",
     "paperless/paperless-media.tgz",
     "paperless/paperless-data.tgz",
     "paperless/paperless-trash.tgz",

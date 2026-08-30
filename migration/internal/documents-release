@@ -85,6 +85,10 @@ restore_volume() {
     tar -C /target -xzf "/backup/$(basename "$input")"
 }
 
+compose_volume() {
+  python3 "$ROOT/migration/compose_volumes.py" "$1" "$2" "$3"
+}
+
 build_bundle() {
   local source_dir="${1:-}" project database env_file release_id output_root bundle
   local mcp_repository target_platform allow_partial temporary export_name
@@ -92,6 +96,8 @@ build_bundle() {
   local paperless_clone odoo_clone model_digest model_archive_sha
   local model_archive_size paperless_image paperless_base_image
   local ollama_runtime native_models_root
+  local odoo_volume paperless_broker_volume paperless_data_volume
+  local paperless_media_volume paperless_trash_volume paperless_ollama_volume
   local -a ollama_services=()
   [[ -n "$source_dir" ]] || usage
   source_dir="$(cd "$source_dir" && pwd -P)"
@@ -187,6 +193,14 @@ build_bundle() {
 
   "${COMPOSE[@]}" config --format json > "$temporary/compose.json"
   compose_json="$temporary/compose.json"
+  odoo_volume="$(compose_volume "$compose_json" odoo /var/lib/odoo)"
+  paperless_broker_volume="$(compose_volume "$compose_json" paperless-broker /data)"
+  paperless_data_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/data)"
+  paperless_media_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/media)"
+  paperless_trash_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/trash)"
+  if [[ "$ollama_runtime" == container ]]; then
+    paperless_ollama_volume="$(compose_volume "$compose_json" paperless-ollama /root/.ollama)"
+  fi
   python3 -c '
 import json,sys
 environment=json.load(open(sys.argv[1]))["services"]["odoo"]["environment"]
@@ -292,7 +306,8 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$bundle/paperless/paperless-export.tgz" .
   chmod 600 "$bundle/paperless/paperless-export.tgz"
 
-  "${COMPOSE[@]}" stop odoo paperless-webserver "${ollama_services[@]}"
+  "${COMPOSE[@]}" exec -T paperless-broker valkey-cli SAVE >/dev/null
+  "${COMPOSE[@]}" stop odoo paperless-webserver paperless-broker "${ollama_services[@]}"
   CAPTURE_SOURCE_STOPPED=1
   "${COMPOSE[@]}" exec -T db pg_dump -U odoo -Fc "$database" \
     > "$temporary/odoo.raw.dump"
@@ -333,14 +348,16 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$paperless_clone" > "$bundle/paperless/paperless.dump"
 
   docker run --rm \
-    -v "${project}_odoo-data:/source:ro" -v "$bundle/odoo:/backup" \
+    -v "$odoo_volume:/source:ro" -v "$bundle/odoo:/backup" \
     alpine:3.22.1 tar -C /source/filestore -czf \
     /backup/odoo-filestore.tgz "$database"
-  archive_volume "${project}_paperless-data" \
+  archive_volume "$paperless_data_volume" \
     "$bundle/paperless/paperless-data.tgz"
-  archive_volume "${project}_paperless-media" \
+  archive_volume "$paperless_broker_volume" \
+    "$bundle/paperless/paperless-broker.tgz"
+  archive_volume "$paperless_media_volume" \
     "$bundle/paperless/paperless-media.tgz"
-  archive_volume "${project}_paperless-trash" \
+  archive_volume "$paperless_trash_volume" \
     "$bundle/paperless/paperless-trash.tgz"
   if [[ "$ollama_runtime" == native ]]; then
     python3 migration/documents_archive/ollama_model_archive.py create \
@@ -349,7 +366,7 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
       --output "$bundle/embeddings/ollama-data.tgz" \
       > "$temporary/native-ollama-archive.json"
   else
-    archive_volume "${project}_paperless-ollama-data" \
+    archive_volume "$paperless_ollama_volume" \
       "$bundle/embeddings/ollama-data.tgz"
   fi
   chmod 600 "$bundle/odoo/odoo-filestore.tgz" "$bundle"/*/*.dump
@@ -441,7 +458,9 @@ restore_bundle() {
   local bundle="${1:-}" option="${2:-}" restore_project="${3:-}"
   local env_file restore_database source_database evidence_file odoo_uid odoo_gid
   local restored_odoo_output restored_paperless_output restored_bge_digest
-  local ollama_runtime native_models_root
+  local ollama_runtime native_models_root compose_json odoo_volume
+  local paperless_broker_volume paperless_data_volume paperless_media_volume
+  local paperless_trash_volume paperless_export_volume paperless_ollama_volume
   local -a ollama_services=()
   [[ -d "$bundle" && "$option" = --project && -n "$restore_project" ]] || usage
   bundle="$(cd "$bundle" && pwd -P)"
@@ -464,24 +483,42 @@ restore_bundle() {
   else
     ollama_services=(paperless-ollama)
   fi
-  COMPOSE=(
-    docker compose --env-file "$env_file" -p "$restore_project"
-    --profile paperless
-  )
+  COMPOSE=(docker compose --env-file "$env_file" -p "$restore_project")
+  if [[ "${USL_DEPLOYMENT_ENV:-}" == production ]]; then
+    COMPOSE+=(
+      -f "$ROOT/compose.yaml"
+      -f "$ROOT/compose.production.yaml"
+      -f "$ROOT/compose.external-pocket-id.yaml"
+    )
+  fi
+  COMPOSE+=(--profile paperless)
   usl_verify_compose_scope "$restore_project" "$ROOT" "Documents cohort restore"
   if [[ -n "$(docker ps -aq --filter "label=com.docker.compose.project=$restore_project")" ]]; then
     printf 'Restore project already exists: %s\n' "$restore_project" >&2
     exit 2
+  fi
+  compose_json="$(mktemp "$runtime_dir/restore-compose.XXXXXX.json")"
+  chmod 600 "$compose_json"
+  trap 'rm -f -- "$compose_json"' EXIT
+  "${COMPOSE[@]}" config --format json > "$compose_json"
+  odoo_volume="$(compose_volume "$compose_json" odoo /var/lib/odoo)"
+  paperless_broker_volume="$(compose_volume "$compose_json" paperless-broker /data)"
+  paperless_data_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/data)"
+  paperless_media_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/media)"
+  paperless_trash_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/trash)"
+  paperless_export_volume="$(compose_volume "$compose_json" paperless-webserver /usr/src/paperless/export)"
+  if [[ "$ollama_runtime" == container ]]; then
+    paperless_ollama_volume="$(compose_volume "$compose_json" paperless-ollama /root/.ollama)"
   fi
   export ODOO_DB_NAME="$restore_database"
   export ODOO_DB_FILTER="^${restore_database}$"
   export ODOO_INIT_DB="$restore_database"
   export USL_EINVOICE_LIVE_ENABLED=0
   export USL_EREPORTING_LIVE_ENABLED=0
-  "${COMPOSE[@]}" up -d --wait --pull never db paperless-db paperless-broker
-  ensure_runtime_volume "${restore_project}_odoo-data"
+  "${COMPOSE[@]}" up -d --wait --pull never db paperless-db
+  ensure_runtime_volume "$odoo_volume"
   docker run --rm \
-    -v "${restore_project}_odoo-data:/target" \
+    -v "$odoo_volume:/target" \
     -v "$bundle/odoo:/backup:ro" \
     alpine:3.22.1 sh -ec \
     'mkdir -p /target/filestore && tar -C /target/filestore -xzf /backup/odoo-filestore.tgz'
@@ -491,7 +528,7 @@ restore_bundle() {
     printf 'Could not resolve the Odoo image runtime ownership.\n' >&2
     exit 1
   }
-  docker run --rm -v "${restore_project}_odoo-data:/target" alpine:3.22.1 \
+  docker run --rm -v "$odoo_volume:/target" alpine:3.22.1 \
     sh -ec '
 uid="$1"
 gid="$2"
@@ -501,19 +538,21 @@ chmod 755 /target /target/filestore
 chmod 700 /target/sessions
 ' sh "$odoo_uid" "$odoo_gid"
   if [[ "$source_database" != "$restore_database" ]]; then
-    docker run --rm -v "${restore_project}_odoo-data:/target" alpine:3.22.1 \
+    docker run --rm -v "$odoo_volume:/target" alpine:3.22.1 \
       cp -a "/target/filestore/$source_database" "/target/filestore/$restore_database"
   fi
-  restore_volume "${restore_project}_paperless-data" \
+  restore_volume "$paperless_broker_volume" \
+    "$bundle/paperless/paperless-broker.tgz"
+  restore_volume "$paperless_data_volume" \
     "$bundle/paperless/paperless-data.tgz"
-  restore_volume "${restore_project}_paperless-media" \
+  restore_volume "$paperless_media_volume" \
     "$bundle/paperless/paperless-media.tgz"
-  restore_volume "${restore_project}_paperless-trash" \
+  restore_volume "$paperless_trash_volume" \
     "$bundle/paperless/paperless-trash.tgz"
-  restore_volume "${restore_project}_paperless-export" \
+  restore_volume "$paperless_export_volume" \
     "$bundle/paperless/paperless-export.tgz"
   if [[ "$ollama_runtime" == container ]]; then
-    restore_volume "${restore_project}_paperless-ollama-data" \
+    restore_volume "$paperless_ollama_volume" \
       "$bundle/embeddings/ollama-data.tgz"
   fi
   "${COMPOSE[@]}" exec -T db createdb -U odoo "$restore_database"
@@ -522,8 +561,8 @@ chmod 700 /target/sessions
   "${COMPOSE[@]}" exec -T paperless-db pg_restore -U paperless -d paperless \
     --clean --if-exists --no-owner --no-privileges \
     < "$bundle/paperless/paperless.dump"
-  "${COMPOSE[@]}" up -d --wait --pull never "${ollama_services[@]}" \
-    paperless-gotenberg paperless-tika paperless-webserver
+  "${COMPOSE[@]}" up -d --wait --pull never paperless-broker \
+    "${ollama_services[@]}" paperless-gotenberg paperless-tika paperless-webserver
   "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_index reindex --if-needed --no-progress-bar \
     > "/private/tmp/${restore_project}-tantivy-noop.txt"
@@ -582,6 +621,8 @@ chmod 700 /target/sessions
   printf 'Documents cohort restored without OCR/rebuild/model download: %s\n' \
     "$restore_project"
   printf 'Recovery evidence: %s\n' "$evidence_file"
+  rm -f -- "$compose_json"
+  trap - EXIT
 }
 
 case "$command_name" in

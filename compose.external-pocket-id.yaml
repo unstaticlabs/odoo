@@ -119,6 +119,9 @@ volumes:
   paperless-trash:
     name: ${USL_PAPERLESS_TRASH_VOLUME:?Dedicated Paperless trash volume is required}
     labels: *candidate_volume_labels
+  paperless-ollama-data:
+    name: ${USL_PAPERLESS_OLLAMA_VOLUME:?Dedicated Paperless Ollama volume is required}
+    labels: *candidate_volume_labels
   odoo-mcp-oauth-data:
     name: ${USL_ODOO_MCP_OAUTH_VOLUME:?Dedicated Odoo MCP OAuth volume is required}
     labels: *candidate_volume_labels
