@@ -2271,6 +2271,22 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         self.assertEqual(accounts["471000"]["statement_key"], "bilan_actif")
         self.assertEqual(accounts["471000"]["amount"], "-4883.54")
 
+        with patch.object(
+            type(wizard),
+            "_trial_balance_rows",
+            return_value=trial_balance,
+        ):
+            interactive_rows = wizard._french_annual_rows(
+                statement_keys={"bilan_actif", "bilan_passif"},
+            )
+        interactive_totals = {
+            row.get("line_code"): row.get("amount")
+            for row in interactive_rows
+            if row.get("line_code") in {"ACTIF_TOTAL", "PASSIF_TOTAL"}
+        }
+        self.assertEqual(interactive_totals["ACTIF_TOTAL"], online_total)
+        self.assertEqual(interactive_totals["PASSIF_TOTAL"], online_total)
+
     def test_asset_register_places_grand_total_after_account_subtotals(self):
         wizard = self._wizard(report_type="fixed_assets", export_format="pdf")
         rows = [
