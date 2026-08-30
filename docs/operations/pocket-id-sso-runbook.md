@@ -10,7 +10,8 @@ not assign companies, roles, or record access.
   and recovery credentials outside Git and screenshots.
 - Keep a protected break-glass Odoo administrator, but do not use it for
   ordinary work.
-- Apply company and role policy only after migration parity and finalization.
+- Apply company and role policy only after the target database passes access,
+  company and release validation.
 - Never import Online passwords, sessions, or authentication tokens.
 - Keep e-invoice reception and e-reporting disabled while configuring identity.
 - Back up the database and filestore before changing a persistent environment.
@@ -47,7 +48,7 @@ make repair-pocket-id
 This reapplies environment-owned provider configuration; it does not grant
 roles or companies.
 
-## Migration QA
+## Historical reconstruction runtimes
 
 Migration runtimes store resolved identity separately from secrets. Adopt or
 create them only through `migration/manage`; secret files may not contain
@@ -97,9 +98,9 @@ Before admission, verify:
 - company isolation and break-glass recovery;
 - no local HTTP or one-time-link exception in production configuration.
 
-Production identity and secrets are not part of a transferred migration
-cohort. Configure them after restore, then run the current access, security,
-multi-company, and application gates before admission.
+Production identity and secrets are not part of a transferred data cohort.
+Configure them after restore, then run the current access, security,
+multi-company and application gates before admission.
 
 ## Incident response
 

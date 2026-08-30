@@ -205,5 +205,3 @@ then twice daily as a recovery safety net. It applies the more specific
 duplicate. The payroll form reports processing until that relationship is
 actually present; it no longer treats a shared accounting attachment as proof
 that Documents linking finished.
-
-See [TESE restoration from Odoo Online](../operations/tese-restoration.md).

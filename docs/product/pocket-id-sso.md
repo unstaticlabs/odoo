@@ -127,7 +127,7 @@ The external-accountant profile deliberately reuses
 the existing company-scoped, tested read-only accounting surface. It does not
 receive Accounting administrator or ordinary Accounting write access.
 
-## Source identity classification
+## Historical identity decisions
 
 The read-only Odoo Online source inspection on 2026-07-29 found:
 
@@ -140,10 +140,8 @@ The read-only Odoo Online source inspection on 2026-07-29 found:
 | Public user and Portal User Template | Framework accounts | Protected framework records; never SSO-linked |
 | OdooBot | Technical system account | Protected framework record; never SSO-linked |
 
-Pocket ID target configuration is downstream of reconstruction. The local
-helper applies named-user policy to canonical `odoo_dev` only after imported
-users, companies and business data pass source-parity controls. SSO is an
-explicit target enrichment and never weakens or mutates source evidence to
+Pocket ID policy applies only after users, companies and business data pass
+access and release controls. SSO never weakens or mutates business records to
 make authentication tests pass.
 
 ## Lifecycle and session policy
@@ -192,18 +190,11 @@ credentials.
 
 ## Activation state
 
-The repository now supplies an isolated, digest-pinned Pocket ID tenant,
-generated uncommitted credentials, stable local immutable subjects, a
-restricted OIDC client and an idempotent policy over canonical `odoo_dev`.
-That database is the disposable production-shaped target: the Online dump
-supplies business truth, then target finalization adds SSO without weakening
-source parity. The named users and cross-application journeys have been
-validated with administrator one-time Pocket ID links;
-passkey-ceremony validation is intentionally outside the Odoo integration
-acceptance scope.
-
-This unblocks local preproduction. A future non-local deployment still needs
-owner-confirmed production issuer and subjects, an owner-confirmed Prosper
-email, HTTPS routing, approved secret storage, passkey enrollment and the
-production activation runbook. Local synthetic identifiers and
+The local runtime uses a digest-pinned Pocket ID tenant, uncommitted
+credentials, stable immutable subjects, a restricted OIDC client and an
+idempotent named-user policy. The local working database is authoritative and
+must not be reset by identity tooling. Cross-application journeys have been
+validated with administrator one-time links; production still requires the
+approved HTTPS issuer, subjects, secret storage, passkey enrollment and
+callback configuration. Local synthetic identifiers and
 `preproduction.invalid` addresses must not be promoted.

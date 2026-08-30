@@ -1,4 +1,4 @@
-# Milestone 13 Accounting Configuration Capability Matrix
+# Accounting configuration capability matrix
 
 Last updated: 2026-07-25
 

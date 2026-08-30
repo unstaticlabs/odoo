@@ -1,19 +1,19 @@
 # Accounting development workflow
 
 Use focused product fixtures and module tests for ordinary Accounting work.
-Use `migration/manage` only when validating source reconstruction or a stored
-data transformation.
+Rehearse stored-data transformations on an isolated clone of the current
+production database.
 
 ## Safety rules
 
 - Keep the Online source database and filestore read-only.
 - Never open the source database with target Odoo code.
-- Do not run tests, demo loaders, bootstrap helpers, destructive retries, or
-  speculative SQL against a transition-live or frozen runtime.
+- Do not run tests, demo loaders, bootstrap helpers, destructive retries or
+  speculative SQL against a production or frozen runtime.
 - Preserve posted ledger meaning, reconciliation, currencies, taxes,
   analytics, lock dates, attachments, and audit chronology.
-- Keep e-invoice reception, e-reporting, mail, bank polling, and external
-  providers disabled in development and migration runtimes.
+- Keep e-invoice reception, e-reporting, mail, bank polling and external
+  providers disabled in development runtimes.
 - Reproduce defects on a disposable database or clone before changing stored
   data.
 
@@ -27,18 +27,14 @@ semantics:
 3. run the relevant Accounting, access, and multi-company control;
 4. use browser QA only for changed user journeys.
 
-For stored-model, migration, or reconstruction changes:
+For stored-model or data-upgrade changes:
 
 1. test the transformation on an isolated disposable clone;
-2. run the affected importer and parity tests;
+2. run the affected transformation and integrity tests;
 3. verify idempotence and failure behavior;
 4. run `make product-migration-boundary`;
-5. run a fresh-source QA reconstruction only when the change affects source
-   interpretation, stored output, migration ordering, or runtime identity.
-
-Shared Online-derived QA seeds, reconstruction caches, and resume checkpoints
-are not supported. A migration QA or transition reconstruction is always
-fresh-source. See [Migration operations](migration.md).
+5. verify the upgrade against the current database shape and an identical
+   repeated module upgrade.
 
 ## Accounting acceptance
 
@@ -50,16 +46,16 @@ The relevant perimeter includes:
 - analytic accounts, plans, distributions, and analytic lines;
 - assets, deferrals, expenses, bank statements, FEC, and French reports;
 - company controls and active multi-company isolation;
-- source and target attachment integrity;
+- attachment and archive-link integrity;
 - identical repeated module upgrade;
-- clean product registry after migration finalization.
+- clean delivered product registry.
 
 Do not weaken a gate or adjust ledger data merely to make a report match.
 Document every deliberate source exception and its financial effect.
 
 ## Persistent changes
 
-Before applying a module or schema upgrade to an evolving local transition:
+Before applying a module or schema upgrade to the local production dataset:
 
 1. pause writers and queue submissions;
 2. take a coordinated Odoo/Paperless/Ollama checkpoint;
@@ -81,5 +77,5 @@ make product-migration-boundary
 ```
 
 Use module-specific test tags and the ordinary `scripts/odoo-dev` workflow for
-narrow validation. Use `migration/manage qa status` to inspect an adopted QA
-runtime without restarting it.
+narrow validation. Inspect production read-only unless an approved upgrade or
+repair is being applied.

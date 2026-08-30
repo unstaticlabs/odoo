@@ -14963,11 +14963,12 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         },
         "public_docs": [
             "docs/accounting/accounting-compat-harness.md",
-            "docs/accounting/milestone-13-final-candidate.md",
-            "docs/accounting/milestone-13-screenshot-parity-matrix.md",
-            "docs/accounting/milestone-13-repository-assessment.md",
+            "docs/accounting/accounting-invariants.md",
+            "docs/accounting/accounting-configuration-capability.md",
+            "docs/accounting/declarations-and-closing.md",
+            "docs/accounting/reporting-and-closing-ux.md",
         ],
-        "completion_note": "This evidence index is technical evidence only. It is not accountant acceptance and does not authorize production migration.",
+        "completion_note": "This evidence index is technical evidence only. It is not accountant acceptance and does not authorize production admission.",
     }
     write_json(PRIVATE_ARTIFACTS / "evidence-index.json", index)
     return index

@@ -1,8 +1,13 @@
-# Migration operations
+# Historical reconstruction and cohort promotion
 
-`migration/manage` is the only public interface for reconstruction, migration
-QA, transition, portable candidates, evolved cohorts, and production cutover.
-Do not call files under `migration/internal/` directly.
+This is the technical reference for the completed Online reconstruction path
+and the remaining transfer of the evolving local dataset. It is retained for
+audit and exceptional recovery; ordinary product development and production
+operations use the main README and production runbook.
+
+`migration/manage` remains the only public interface for reconstruction,
+disposable QA, protected local runtimes, evolved cohorts and initial VPS
+admission. Do not call files under `migration/internal/` directly.
 
 ## Safety boundary
 

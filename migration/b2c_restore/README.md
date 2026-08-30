@@ -1,10 +1,9 @@
 # B2C restore stage
 
 This directory contains the temporary, one-shot B2C reconstruction add-on. It
-is not on the delivered add-ons path. See
-[`docs/operations/b2c-migration.md`](../../docs/operations/b2c-migration.md) for
-the runbook and [`source-field-matrix.md`](source-field-matrix.md) for the
-archive contract.
+is not on the delivered add-ons path. Use the repository-level
+[`migration/manage`](../manage) interface and see
+[`source-field-matrix.md`](source-field-matrix.md) for the archive contract.
 
 The stage accepts the locked source dump/attachment manifest as primary truth
 and one explicitly declared post-dump Medusa sold-items export. The supplemental

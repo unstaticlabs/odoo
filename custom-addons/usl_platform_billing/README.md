@@ -54,7 +54,6 @@ See:
 - `docs/product/platform-billing.md`
 - `docs/accounting/platform-billing.md`
 - `docs/users/how-to/process-platform-payouts.md`
-- `docs/operations/platform-billing-migration.md`
 
 This application accounts for content-platform payouts. It does not connect to
 French electronic-invoice platforms and does not make provider calls.

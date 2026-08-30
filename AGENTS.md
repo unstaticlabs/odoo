@@ -7,14 +7,16 @@ and its upgrade cost is documented.
 ## Repository boundaries
 
 - `custom-addons/` contains delivered product behavior.
-- `migration/` contains Online-to-Community reconstruction code. Migration
+- `migration/` contains historical Online-to-Community reconstruction and
+  cohort-promotion code. It is not the ordinary product workflow. Migration
   modules and source bindings must not enter the normal Odoo add-ons path or a
   finalized database.
 - Keep the frozen Odoo Online source read-only. Never start target Odoo against
   the source database and never use the source export as a production rollback.
-- Preserve business history, accounting meaning, attachments, company
-  ownership, access controls, and audit evidence through migrations and module
-  upgrades.
+- The current production dataset is authoritative. Never reset it from the
+  Online export. Preserve business history, Accounting meaning, attachments,
+  company ownership, access controls and audit evidence through upgrades and
+  repairs.
 - Keep `USL_EINVOICE_LIVE_ENABLED=0` and
   `USL_EREPORTING_LIVE_ENABLED=0` outside an approved production activation.
   Use offline fixtures for external-provider tests.
@@ -28,7 +30,7 @@ and its upgrade cost is documented.
 - Treat Accounting, access control, multi-company behavior, persistent data,
   destructive actions, secrets, and external side effects as high risk.
 - Use focused tests. Exercise module upgrades or representative restore paths
-  when stored data, manifests, or migration code changes.
+  when stored data, manifests, release or recovery code changes.
 - Run `make product-migration-boundary` when product or migration add-on paths,
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
@@ -39,7 +41,7 @@ and its upgrade cost is documented.
 
 - Feature and module map: `docs/product/fork-overview.md`
 - French terminology: `docs/product/french-localization.md`
-- Product and migration boundary: `docs/operations/product-migration-boundary.md`
+- Product and reconstruction boundary: `docs/operations/product-migration-boundary.md`
 - Runtime and recovery procedures: `docs/operations/`
 
 Use the repository `writing-clearly-and-concisely` skill for user-facing copy,

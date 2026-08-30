@@ -39,4 +39,5 @@ The target must safely replace the Odoo Online capabilities USL actually uses wh
 - Sensitive actions require authority defined by policy.
 - Failed automation leaves visible, actionable state.
 - Work is not complete until the required real-world state exists.
-- Production migration requires demonstrated parity and explicit approval.
+- Production changes require demonstrated integrity, recoverability and
+  explicit admission.

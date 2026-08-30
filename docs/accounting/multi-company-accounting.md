@@ -7,18 +7,12 @@ records. An authorized user can select several allowed companies for combined
 reading, but creates and changes Accounting records in one active company at a
 time.
 
-The one-off Online migration restores both in-scope legal companies with their
-complete charts of accounts, journals, taxes and fiscal settings, including
-inactive configuration required to understand history. Every imported move,
-payment, reconciliation, control result and declaration remains company
-scoped.
-
-The canonical Online dump currently contains two EUR companies. The verified
-reconstruction restores **Unstatic Labs** with its source expense journal and
-creates an idempotent native expense journal for **USL MEDIA**, whose source
-has none. All payment-method lines used by source payments and expenses map to
-native Community methods. Unused Enterprise-only batch, ISO 20022 and SEPA
-methods are classified and not imitated by inert custom configuration.
+The working database contains two EUR legal companies, **Unstatic Labs** and
+**USL MEDIA**, with company-scoped charts, journals, taxes, fiscal settings and
+operational records. Historical configuration needed to understand posted
+records remains available even when inactive. Payment methods used by real
+payments and expenses map to native Community behavior; unsupported, unused
+Enterprise transports are not imitated with inert custom configuration.
 
 ## Reports
 
@@ -136,23 +130,15 @@ historical move or sharing accounting records between legal entities.
 
 ## Regression evidence
 
-Automated coverage protects company-scoped SQL report models, reviewer record
-rules, same-currency aggregation and ECB synchronization, company-specific
-expense profiles, contribution evidence, multi-company drill-down,
-different-currency rejection, complete source configuration replay and
-repeated migration idempotence.
+Automated coverage protects company-scoped report models, reviewer record
+rules, same-currency aggregation, currency synchronization, company-specific
+expense profiles, contribution evidence, multi-company drill-down and
+different-currency rejection. Acceptance exercises invoices, credit notes,
+bills, refunds, entries, payments, bank transactions and employee expenses in
+each company on an isolated clone. It also proves that a scoped reviewer cannot
+read an unauthorized company's Accounting or operational records.
 
-The 24 August 2026 full-dump proof reconstructed 5,425 moves and 12,991 lines,
-including 5,258 posted moves, with no unbalanced posted move, source identity
-gap or configuration mismatch. Per-company acceptance also
-posts invoices, credit notes, bills, refunds, a general entry, a payment, a
-bank transaction and an employee expense for USL MEDIA, then deliberately
-rolls those temporary records back. It verifies that the scoped reviewer
-cannot read the second company's Accounting or custom operational records. It
-also requires each opted-in EUR company to expose the same 1,949 provider-owned
-ECB rows while preserving manual exceptions. Target finalization performs this
-alignment from existing imported rates only; it makes no network request.
-Run it against a reconstructed disposable target with:
+Run it against an isolated current-release database with:
 
 ```bash
 make accounting-multicompany-acceptance COMPOSE_PROJECT=<project>

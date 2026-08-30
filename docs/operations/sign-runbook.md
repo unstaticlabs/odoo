@@ -1,15 +1,14 @@
 # Sign operations
 
 USL Sign is part of the unified Odoo/Paperless/Pocket ID runtime. It has no
-standalone QA stack. Use `migration/manage` for reconstructed runtime identity
-and lifecycle operations.
+standalone production or QA stack.
 
 ## Runtime checks
 
 Before reviewing or operating Sign:
 
 ```bash
-migration/manage qa status --runtime <runtime-id>
+migration/manage transition status --runtime <runtime-id>
 ```
 
 Confirm that Odoo, Pocket ID, Paperless, the Sign services, and the document
@@ -43,11 +42,11 @@ chatter, and sanitized audit history remain preserved evidence. See
 
 ## Production
 
-Sign PostgreSQL and evidence, Step CA material, Odoo records, Paperless state,
+Sign PostgreSQL and evidence, Step CA material, Odoo records, Paperless state
 and release identity form one coordinated cohort. Capture and independently
-restore them through `migration/manage cohort`; do not copy or reset a Sign
-component independently.
+restore them through the coordinated backup or cohort procedure; do not copy
+or reset a Sign component independently.
 
 Keep production identity, ingress, and private key material in the deployment
-secret store. Do not place them in migration configuration, Git, screenshots,
+secret store. Do not place them in runtime configuration, Git, screenshots,
 or evidence bundles. See [Production operations](production.md).

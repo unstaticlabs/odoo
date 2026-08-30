@@ -1,4 +1,4 @@
-# Milestone 13 declaration and closing workflow
+# Declarations and closing
 
 Status: implemented product workflow. External electronic filing and professional sign-off remain optional external activities, not engineering completion gates.
 
@@ -17,7 +17,8 @@ The custom models never replace Odoo journal entries, taxes, reconciliation or l
 
 ## Confirmed company profile
 
-The exact-target importer keys profiles by SIREN and records the confirmed profile for Unstatic Labs and USL MEDIA:
+Company profiles are keyed by SIREN. The confirmed profiles for Unstatic Labs
+and USL MEDIA are:
 
 - French SASU;
 - corporate income tax (`IS`);
@@ -92,15 +93,14 @@ The CA12 workbench records the confirmed facts once:
 - later reimbursed credit: €942;
 - remaining VAT credit: €0.
 
-The current Online source already records the later €942 DGFiP receipt on
-account 445670 and reconciles it natively with the VAT-credit balance. The
-statement line has zero residual, the relevant 445670 lines share the source
-full reconciliation, and no 471 suspense position or target-only correction is
+The working ledger records the later €942 DGFiP receipt on account 445670 and
+reconciles it natively with the VAT-credit balance. The
+statement line has zero residual, the relevant 445670 lines share the same
+full reconciliation, and no 471 suspense position or local correction is
 required.
 
-The exact-target import preserves those source entries and reconciliation links
-unchanged. The exact-ledger proof compares their residual and reconciliation
-state directly, without a normalization or approved transformation. CA12
+Release validation compares those entries, residuals and reconciliation links
+directly without normalizing them. CA12
 displays the refund facts; 3514 instalment tasks display only opening credit and
 zero instalments and are marked no-payment-due.
 
@@ -173,16 +173,16 @@ docker compose exec -T devcontainer odoo \
   --stop-after-init
 ```
 
-Because the confirmed profile and VAT controls run during the exact-target
-import, changes to that integration require the documented target reset/full
-import stages before final rehearsal. They do not require re-restoring or
-re-extracting an unchanged source snapshot.
+Changes to company profiles, VAT periods or generated obligations must be
+rehearsed on a disposable clone of the current production database. Apply them
+through a versioned, idempotent module upgrade after taking a coordinated
+checkpoint. Never reset the working database from the Online export.
 
 ## Residual professional assumptions
 
 Final declaration values, actual filing, an external professional opinion and the legal decision to lock a production period remain human responsibilities. The product makes their source, evidence and status explicit. Their absence does not block engineering completion or internal preparation, and generated evidence must never be presented as a person’s acceptance.
 
-## Migration definition of done
+## Company schedule acceptance
 
 - USL has 2571, 2572, one 2065/2033 result dossier, 3514 through July 2027, CA12-E through 30 September 2027, and quarterly CA3 from 1 October 2027.
 - USL MEDIA has no 2571 through its first close; its first 2065/2033 and 2572 are due 15 January 2028; its long first VAT period is split; 1447-C is due 31 December 2026; its first annual CFE balance is represented in 2027.

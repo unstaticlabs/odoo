@@ -17,10 +17,10 @@ classification context.
 
 ## Runtime checks
 
-Inspect an adopted QA runtime without restarting it:
+Inspect a protected local runtime without restarting it:
 
 ```bash
-migration/manage qa status --runtime <runtime-id>
+migration/manage transition status --runtime <runtime-id>
 ```
 
 Confirm:
@@ -50,11 +50,7 @@ For an access incident:
 5. repair the governing Odoo relationship or synchronization behavior;
 6. confirm that another company cannot read the record.
 
-## Migration and recovery
-
-QA and transition reconstruction are fresh-source operations. Do not reuse
-Paperless checkpoints, OCR output, vector archives, or reconstruction seeds.
-Use [Migration operations](migration.md) for lifecycle commands.
+## Recovery
 
 The production recovery unit includes Paperless PostgreSQL, broker state,
 media, data/search, Trash, export, Tantivy, vectors, and the matching Odoo and

@@ -1,9 +1,9 @@
 # Unstatic Labs Odoo Distribution
 
-This repository packages the Unstatic Labs Odoo Community distribution on
-Odoo `saas~19.3`. Product extensions live in `custom-addons/`; pinned OCA
-modules live in `oca-addons/`. Upstream Odoo core stays unchanged except for
-documented, distribution-level patches.
+This repository packages the continuously developed Unstatic Labs Odoo
+Community distribution on Odoo `saas~19.3`. Product extensions live in
+`custom-addons/`; pinned OCA modules live in `oca-addons/`. Upstream Odoo core
+stays unchanged except for documented, distribution-level patches.
 
 The product includes multi-company Accounting, Projects, Expenses, Platform
 Billing, TESE payroll evidence, Documents backed by Paperless-ngx, Sign,
@@ -71,21 +71,28 @@ make user-docs-build
 Run `make help` for the complete routine development surface. Migration is
 intentionally absent from the Makefile.
 
-## Migration and production
+## Production and releases
 
-[`migration/manage`](migration/manage) is the only public migration command.
-It resolves runtime identity once, records it under `private/migration/`, and
-passes that exact state to every child stage. Start with the
-[migration runbook](docs/operations/migration.md).
+Production consumes immutable OCI digests built by CI. Odoo, Paperless,
+Ollama/BGE, Sign, the document renderer and the separately built MCP image are
+released and recovered as one coordinated cohort. Use the
+[production runbook](docs/operations/production.md) for upgrades, coordinated
+backups, deployment, admission and recovery.
 
-Production consumes immutable OCI digests built by CI. Operators must use the
-[production runbook](docs/operations/production.md) for release validation,
-coordinated backup, cutover, admission, and recovery. Production deployment is
-CI-owned; local development and migration commands never deploy production.
+The current local production dataset evolves independently from the frozen
+Online export. Never reset it from that export. Take a coordinated checkpoint
+before risky upgrades or data repairs, and prove releases through an isolated
+restore before production admission.
+
+The historical Online reconstruction implementation remains isolated under
+`migration/`. [`migration/manage`](migration/manage) is its only public
+interface and is retained for audit, exceptional recovery and final cohort
+promotion; it is not the ordinary development workflow.
 
 ## Product documentation
 
 - [Distribution and module map](docs/product/fork-overview.md)
+- [Product roadmap](ROADMAP.md)
 - [Accounting architecture](docs/accounting/custom-addon-architecture.md)
 - [Multi-company Accounting](docs/accounting/multi-company-accounting.md)
 - [Product and migration boundary](docs/operations/product-migration-boundary.md)
@@ -96,9 +103,9 @@ CI-owned; local development and migration commands never deploy production.
 
 ## Release identity
 
-The canonical branch is `19-usl`. CI publishes the distribution and backup
-images after merge and records their commit, OCI digest, OCA bundle, and policy
-identity. Tags are discovery aids only; production must deploy digest
+The canonical release line is `19-usl`. CI publishes the distribution and
+backup images after merge and records their commit, OCI digest, OCA bundle and
+policy identity. Tags are discovery aids only; production must deploy digest
 references from the validated release artifact.
 
 The source dump, filestore, runtime state, credentials, and generated evidence

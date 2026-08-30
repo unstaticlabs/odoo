@@ -1,11 +1,13 @@
 # Operations
 
-Start with these two operator entry points:
+Start with the production entry point:
 
-- [Migration operations](migration.md) for Online reconstruction, QA,
-  transition, candidate, cohort, and cutover through `migration/manage`.
 - [Production operations](production.md) for immutable releases, coordinated
-  backup, deployment, admission, and recovery.
+  backup, deployment, admission, upgrades and recovery.
+
+The [historical reconstruction interface](migration.md) is retained for audit,
+exceptional recovery and transfer of the evolved data cohort. It is not a
+routine product-development or production-operations guide.
 
 Specialized product procedures remain separate when they require a deliberate
 activation or domain-specific response:

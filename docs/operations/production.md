@@ -1,8 +1,8 @@
 # Production operations
 
 Production runs immutable CI-built images and coordinated persistent data.
-Migration tooling prepares and verifies artifacts; it does not deploy
-production.
+The current local runtime is the authoritative working dataset until the
+approved VPS cohort is admitted and its first backup restore passes.
 
 ## Release contract
 
@@ -12,7 +12,7 @@ Every production release binds:
 - immutable Odoo distribution and backup-tool OCI digests;
 - the pinned Odoo MCP repository, ref, commit, image digest, and compatibility digest;
 - pinned OCA, action-risk policy, module, and source identities;
-- the accepted migration candidate or evolved cohort fingerprint;
+- the accepted evolving-data cohort fingerprint;
 - database UUID, company controls, and required external configuration.
 
 Validate the CI release artifact before promotion:
@@ -139,8 +139,9 @@ run can replace its local state.
 7. Resume external side effects only after admission checks pass.
 8. Record the incident, accepted data gap, and corrective work.
 
-The historical Online source and pre-admission candidate are not production
-rollback sources after admission.
+The historical Online source is not a production rollback source. Before VPS
+admission, the protected local runtime and its verified coordinated checkpoint
+are the recovery authority. After admission, use verified production backups.
 
 ## Admission checklist
 
@@ -158,13 +159,13 @@ Production is canonical only when:
   verified;
 - rollback and incident instructions are available to the operator.
 
-Keep the frozen local transition environment read-only until this recovery
-proof passes.
+Keep the local source runtime protected and read-only after final cutoff until
+this recovery proof passes.
 
 ## References
 
 - [Production image CI contract](production-image-ci.md)
-- [Migration and cutover interface](migration.md)
+- [Historical reconstruction and cohort interface](migration.md)
 - [Product and migration boundary](product-migration-boundary.md)
 - [Pocket ID operations](pocket-id-sso-runbook.md)
 - [Electronic-invoice activation](activate-french-electronic-invoicing.md)

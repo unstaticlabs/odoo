@@ -34,8 +34,8 @@ contract without updating `deploy/odoo-mcp/compatibility.json`.
 
 ## Runtime and authentication
 
-The migration runtime resolves the MCP port, public origin, Odoo target,
-database, image, source identity, and secret-file paths once. Local macOS uses
+The release runtime resolves the MCP port, public origin, Odoo target,
+database, image, source identity and secret-file paths once. Local macOS uses
 `http://localhost:<port>` on loopback. Production uses an HTTPS origin
 through the existing ingress network; only the reverse proxy should reach the
 container port.
@@ -80,9 +80,9 @@ reviewed journey evidence separately proves a complete OAuth connection.
 
 ## Backup, transfer, and rollback
 
-Compose deploys Odoo and MCP as one release cohort. Local transition
+Compose deploys Odoo and MCP as one release cohort. Local production
 checkpoints archive the MCP OAuth volume with every other owned volume. The
-final sanitized production-transfer cohort keeps the pinned MCP commit, image
+sanitized production-transfer cohort keeps the pinned MCP commit, image
 digest, and compatibility digest, but does not carry local OAuth grants or
 keys: production receives new MCP secrets and users reconnect once. Odoo
 business records remain in the Odoo database and are not duplicated in MCP

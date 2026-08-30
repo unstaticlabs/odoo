@@ -1,10 +1,12 @@
-# Milestone 13 reporting and closing UX target
+# Reporting and closing experience
 
 Last updated: 2026-07-28
 
 Audience: product owner, accountant, finance operator, and implementation agents.
 
-This document records the desired end-user reporting and year-end closing experience for Unstatic Labs. It is based on the supplied reference report samples and on the current Milestone 13 feedback.
+This document records the end-user reporting and year-end closing experience
+for Unstatic Labs. It is based on the supplied reference reports and verified
+operating requirements.
 
 It defines the durable product target and records the implemented interaction
 model. It does not authorize hard-coding benchmark values.
@@ -90,9 +92,9 @@ Primary paths should be two clicks away:
 - Accounting -> Declarations
 - Accounting -> Accounting -> FEC
 
-The Community top-level app label `Invoicing` was not sufficient for Milestone
-13. The implemented `Accounting` entry now opens the operational Overview directly,
-while retaining native journal cards and direct journal access.
+The Community top-level app label `Invoicing` does not describe the complete
+Distribution workflow. The `Accounting` entry opens the operational Overview
+directly while retaining native journal cards and direct journal access.
 
 ## Reconcile and review target
 
@@ -131,7 +133,8 @@ account, post, reconcile or change an amount.
 
 ## Customer, vendor and expense scope
 
-Milestone 13 should now include customer and vendor business objects in addition to posted ledger replay, where the source dump contains usable processed objects.
+The product includes customer and vendor business objects in addition to the
+posted ledger.
 
 Target coverage:
 
@@ -257,7 +260,8 @@ The system must not fabricate accountant attestation text or imply accountant ap
 
 ## French declarations guidance target
 
-The product should help prepare official declarations, not submit them automatically during this milestone.
+The product helps prepare official declarations. Electronic submission is a
+separate, explicitly activated integration.
 
 The user needs guided views for what to enter in official portals:
 
@@ -383,7 +387,7 @@ Priority 3:
 - deferred expense/revenue reports where actual records require it
 - bank synchronization readiness after historical accounting is trustworthy
 
-Out of Milestone 13 scope:
+Outside the current product scope:
 
 - payment-provider product support
 - automatic filing
