@@ -1050,6 +1050,65 @@ class MigrationManageTests(unittest.TestCase):
         self.assertTrue(result["data_preserved"])
         self.assertIn(("docker", "stop", "container-1", "db-1", "mcp-1"), self.runner.calls)
 
+    def test_transition_start_materializes_only_missing_declared_services(self):
+        resources = {
+            "containers": [
+                {"id": "container-1", "service": "odoo", "state": "running"},
+                {"id": "db-1", "service": "db", "state": "running"},
+                {"id": "mcp-1", "service": "odoo-mcp", "state": "running"},
+            ],
+            "volumes": [{"name": "runtime-data"}],
+            "networks": [{"id": "network-1", "name": "runtime-default"}],
+        }
+        runtime = {
+            "id": "transition-current",
+            "private_directory": str(self.root / "private/runtime"),
+            "compose": {
+                "project": self.runner.project,
+                "profiles": ["paperless", "sign", "document-renderer", "mcp"],
+            },
+            "resources": resources,
+        }
+        env_file = self.root / "resolved-compose.env"
+        with (
+            patch.object(manager, "inspect_project", return_value=resources),
+            patch.object(manager, "combined_env_file", return_value=(env_file, {})),
+        ):
+            manager.start_transition_runtime(runtime, {}, self.runner)
+
+        compose = next(
+            call for call in self.runner.calls if call[:2] == ("docker", "compose")
+        )
+        self.assertIn("--no-deps", compose)
+        self.assertIn("--pull", compose)
+        self.assertIn("never", compose)
+        self.assertIn("--no-build", compose)
+        self.assertNotIn("odoo", compose[compose.index("--no-build") + 1 :])
+        self.assertNotIn("db", compose[compose.index("--no-build") + 1 :])
+        self.assertNotIn("odoo-mcp", compose[compose.index("--no-build") + 1 :])
+        self.assertIn("usl-document-renderer", compose)
+        self.assertIn("usl-sign-step-ca", compose)
+        self.assertIn("usl-sign-dss", compose)
+        self.assertIn("paperless-webserver", compose)
+
+    def test_live_transition_health_requires_every_operational_service(self):
+        runtime = {"kind": "transition", "status": "transition-live"}
+        incomplete = {
+            "containers": [
+                {"service": "odoo", "state": "running", "health": "healthy"},
+            ]
+        }
+        self.assertFalse(
+            manager.transition_service_status(runtime, incomplete)["ready"]
+        )
+        complete = {
+            "containers": [
+                {"service": service, "state": "running", "health": "healthy"}
+                for service in manager.REQUIRED_TRANSITION_SERVICES
+            ]
+        }
+        self.assertTrue(manager.transition_service_status(runtime, complete)["ready"])
+
     def test_candidate_arguments_are_ordered_by_the_public_interface(self):
         with patch.object(manager, "git", return_value="b" * 40):
             runtime = manager.create_runtime(self.adopt_arguments(), self.runner, kind="qa")

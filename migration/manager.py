@@ -44,6 +44,22 @@ DOCUMENT_CRON_XMLIDS = (
     "ir_cron_usl_documents_poll",
     "ir_cron_usl_documents_sync",
 )
+REQUIRED_TRANSITION_SERVICES = frozenset(
+    {
+        "db",
+        "odoo",
+        "paperless-db",
+        "paperless-broker",
+        "paperless-gotenberg",
+        "paperless-tika",
+        "paperless-webserver",
+        "pocket-id",
+        "usl-document-renderer",
+        "usl-sign-dss",
+        "usl-sign-step-ca",
+        "odoo-mcp",
+    }
+)
 
 
 def git(*arguments: str) -> str:
@@ -386,6 +402,30 @@ def mcp_runtime_status(
     }
 
 
+def transition_service_status(
+    runtime: dict[str, Any], resources: dict[str, Any]
+) -> dict[str, Any]:
+    if runtime.get("kind") != "transition" or runtime.get("status") not in {
+        "transition-live",
+        "frozen-read-only",
+    }:
+        return {"required": False, "ready": True, "services": {}}
+    by_service = {
+        item.get("service"): item
+        for item in resources["containers"]
+        if item.get("service") in REQUIRED_TRANSITION_SERVICES
+    }
+    checks = {
+        service: bool(
+            (container := by_service.get(service))
+            and container.get("state") == "running"
+            and container.get("health") in {None, "healthy"}
+        )
+        for service in sorted(REQUIRED_TRANSITION_SERVICES)
+    }
+    return {"required": True, "ready": all(checks.values()), "services": checks}
+
+
 def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, Any]:
     source = source_identity(
         Path(runtime["source"]["path"]), runtime["source"]["dump_sha256"]
@@ -411,7 +451,8 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
     )
     documents = documents_runtime_status(runtime, current, runner)
     mcp = mcp_runtime_status(runtime, current)
-    healthy = healthy and documents["ready"] and mcp["ready"]
+    services = transition_service_status(runtime, current)
+    healthy = healthy and documents["ready"] and mcp["ready"] and services["ready"]
     result = {
         "id": runtime["id"],
         "kind": runtime["kind"],
@@ -432,6 +473,7 @@ def check_runtime(runtime: dict[str, Any], runner: CommandRunner) -> dict[str, A
         "healthy": healthy,
         "documents": documents,
         "mcp": mcp,
+        "services": services,
     }
     return result
 
@@ -453,25 +495,56 @@ def stop_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
 def operational_containers(runtime: dict[str, Any], runner: CommandRunner) -> list[dict[str, Any]]:
     current = inspect_project(runner, runtime["compose"]["project"], ROOT)
     verify_recorded_resources(runtime["resources"], current)
-    services = {
-        "db",
-        "odoo",
-        "paperless-db",
-        "paperless-broker",
-        "paperless-gotenberg",
-        "paperless-tika",
-        "paperless-webserver",
-        "pocket-id",
-        "usl-document-renderer",
-        "usl-sign-dss",
-        "usl-sign-step-ca",
-        "odoo-mcp",
+    return [
+        item
+        for item in current["containers"]
+        if item.get("service") in REQUIRED_TRANSITION_SERVICES
+    ]
+
+
+def start_transition_runtime(
+    runtime: dict[str, Any], secrets: dict[str, str], runner: CommandRunner
+) -> None:
+    current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+    verify_recorded_resources(runtime["resources"], current)
+    by_service = {
+        item.get("service"): item
+        for item in current["containers"]
+        if item.get("service") in REQUIRED_TRANSITION_SERVICES
     }
-    return [item for item in current["containers"] if item.get("service") in services]
-
-
-def start_transition_runtime(runtime: dict[str, Any], runner: CommandRunner) -> None:
-    containers = operational_containers(runtime, runner)
+    missing = sorted(REQUIRED_TRANSITION_SERVICES - set(by_service))
+    if missing:
+        env_file, environment = combined_env_file(runtime, secrets)
+        command = [
+            "docker",
+            "compose",
+            "--env-file",
+            str(env_file),
+            "-p",
+            runtime["compose"]["project"],
+        ]
+        for profile in runtime["compose"].get("profiles", []):
+            command.extend(("--profile", profile))
+        command.extend(
+            (
+                "up",
+                "-d",
+                "--wait",
+                "--no-deps",
+                "--pull",
+                "never",
+                "--no-build",
+                *missing,
+            )
+        )
+        runner.run(command, cwd=ROOT, env=environment)
+        current = inspect_project(runner, runtime["compose"]["project"], ROOT)
+        by_service = {
+            item.get("service"): item
+            for item in current["containers"]
+            if item.get("service") in REQUIRED_TRANSITION_SERVICES
+        }
+    containers = list(by_service.values())
     stopped = [item["id"] for item in containers if item.get("state") != "running"]
     if stopped:
         runner.run(["docker", "start", *stopped])
@@ -867,7 +940,10 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
     if args.action == "start":
         if runtime["status"] not in {"transition-live", "frozen-read-only"}:
             raise RuntimeError("only a protected transition runtime can be started")
-        start_transition_runtime(runtime, runner)
+        start_transition_runtime(runtime, store.secrets(args.runtime), runner)
+        runtime["resources"] = inspect_project(
+            runner, runtime["compose"]["project"], ROOT
+        )
         record(store, runtime, "transition.start")
         return {"id": runtime["id"], "status": runtime["status"]}
     if args.action == "stop":
