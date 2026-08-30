@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from psycopg2 import IntegrityError
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools import BinaryBytes, file_open, mute_logger
@@ -119,7 +119,95 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
         statement = ingestion.statement_ids
         self.assertEqual(len(statement), 1)
+        self._complete_documents_archive(statement)
         return ingestion, statement
+
+    def _complete_documents_archive(self, statement):
+        """Model the external Documents worker when that integration is installed."""
+        evidence = statement.accepted_evidence_id
+        if not evidence or "paperless_archive_state" not in evidence._fields:
+            return
+
+        banking_view = self.env.ref("usl_documents.smart_view_banking")
+        banking_tags = banking_view.tag_ids
+        if not banking_tags:
+            banking_tags = (
+                self.env["usl.paperless.tag"]
+                .sudo()
+                .with_context(usl_documents_cache_write=True)
+                .create({
+                    "name": "Banking",
+                    "paperless_id": 970_000_000 + evidence.id,
+                    "matching_algorithm": "6",
+                    "active": True,
+                })
+            )
+            banking_view.sudo().with_context(
+                usl_documents_archive_view_sync=True,
+            ).write({"tag_ids": [Command.set(banking_tags.ids)]})
+
+        Link = self.env["usl.document.link"].sudo()
+        link = Link.search([
+            ("res_model", "=", statement._name),
+            ("res_id", "=", statement.id),
+            ("active", "=", True),
+        ], limit=1)
+        document = link.document_id
+        if not document:
+            document = self.env["usl.document"].sudo().create({
+                "name": f"Archived bank statement {statement.display_name}",
+                "paperless_id": 980_000_000 + evidence.id,
+                "company_id": evidence.company_id.id,
+                "confidentiality": "accounting",
+                "accounting_evidence": True,
+                "retention_hold": True,
+                "review_state": "reviewed",
+                "availability_state": "available",
+                "permission_sync_state": "synchronized",
+                "checksum": evidence.sha256,
+                "tag_ids": [Command.set(banking_tags.ids)],
+            })
+        else:
+            document.version_ids.sudo().write({"is_current": False})
+            document.sudo().with_context(
+                usl_documents_cache_write=True,
+            ).write({
+                "checksum": evidence.sha256,
+                "permission_sync_state": "synchronized",
+                "tag_ids": [Command.set(banking_tags.ids)],
+            })
+            document.sudo().write({"review_state": "reviewed"})
+
+        version_id = f"bank-evidence-{evidence.id}"
+        self.env["usl.document.version"].sudo().create({
+            "document_id": document.id,
+            "paperless_version_id": version_id,
+            "label": "Received original",
+            "checksum": evidence.sha256,
+            "is_current": True,
+            "is_received_original": True,
+            "source": "odoo_attachment",
+        })
+        if link:
+            link.write({"version_id": version_id})
+        else:
+            Link.create({
+                "document_id": document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": evidence.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": version_id,
+            })
+        evidence.sudo().write({
+            "paperless_archive_state": "archived",
+            "paperless_document_id": document.id,
+            "paperless_version": version_id,
+            "paperless_archive_error": False,
+            "paperless_archived_at": fields.Datetime.now(),
+        })
+        statement.invalidate_recordset()
 
     def _confirm_and_certify(self, statement, balance_start, balance_end):
         self.env["account.bank.statement.confirm"].create(
@@ -533,6 +621,7 @@ class TestBankStatementIngestion(TransactionCase):
         ingestion.action_process_now()
 
         statement = ingestion.statement_ids
+        self._complete_documents_archive(statement)
         self.assertEqual(ingestion.state, "attention")
         self.assertTrue(
             statement.exception_ids.filtered(lambda item: item.kind == "unsupported"),
@@ -799,6 +888,7 @@ class TestBankStatementIngestion(TransactionCase):
         )
         august.action_process_now()
         statement = august.statement_ids
+        self._complete_documents_archive(statement)
 
         self.env["account.bank.statement.confirm"].create(
             {
@@ -847,6 +937,7 @@ class TestBankStatementIngestion(TransactionCase):
             },
         ).action_reopen()
         replacement.action_accept_evidence()
+        self._complete_documents_archive(statement)
         self.assertEqual(original.evidence_status, "superseded")
         self.assertEqual(statement.accepted_evidence_id, replacement)
         self.assertEqual(

@@ -69,6 +69,7 @@ class TestFrenchTaxReport(TransactionCase):
         )
 
     def test_report_keeps_complete_statutory_hierarchy(self):
+        unit_label = self.wizard._display_unit_metadata()["short_label"]
         codes = set(self.report.line_ids.mapped("code"))
         self.assertGreaterEqual(len(self.report.line_ids), 130)
         self.assertTrue({
@@ -83,10 +84,14 @@ class TestFrenchTaxReport(TransactionCase):
         self.assertEqual(
             self.wizard._report_client_columns(),
             [
-                {"key": "balance", "label": "Solde (€)", "type": "currency"},
+                {
+                    "key": "balance",
+                    "label": f"Solde ({unit_label})",
+                    "type": "currency",
+                },
                 {
                     "key": "adjustment",
-                    "label": "Ajustement (€)",
+                    "label": f"Ajustement ({unit_label})",
                     "type": "currency",
                 },
             ],
