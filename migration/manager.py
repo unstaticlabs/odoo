@@ -567,6 +567,7 @@ def command_transition(args: argparse.Namespace, runner: CommandRunner) -> dict[
             store.secrets(args.runtime),
             runner,
             [str(INTERNAL / "transition-activate")],
+            extra_environment={"USL_MIGRATION_PURPOSE": "transition"},
         )
         runtime["status"] = "transition-live"
     elif args.action == "freeze":

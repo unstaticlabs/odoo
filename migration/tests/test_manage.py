@@ -474,6 +474,10 @@ class MigrationManageTests(unittest.TestCase):
             [str(self.root / "migration/internal/transition-activate")],
         )
         self.assertEqual(
+            internal.call_args.kwargs["extra_environment"],
+            {"USL_MIGRATION_PURPOSE": "transition"},
+        )
+        self.assertEqual(
             RuntimeStore(self.root).load("transition-current")["status"],
             "transition-live",
         )
