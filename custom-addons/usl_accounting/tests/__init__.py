@@ -1,5 +1,6 @@
 from . import (
     test_account_direction_guard,
+    test_account_resequence_access,
     test_analytic_reporting,
     test_bank_statement_ingestion,
     test_expense_bank_matching,
