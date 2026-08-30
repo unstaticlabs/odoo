@@ -298,13 +298,17 @@ configure_documents_runtime() {
 
 import_french_catalogues() {
   local modules_csv="$1"
-  local module
+  local module catalogue_root
   local -a catalogues=()
   local -a modules=()
+  catalogue_root=/mnt/custom-addons
+  if [[ "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" == */compose.production.yaml ]]; then
+    catalogue_root=/opt/odoo/custom-addons
+  fi
   IFS=',' read -r -a modules <<< "$modules_csv"
   for module in "${modules[@]}"; do
     if [[ -f "$ROOT/custom-addons/$module/i18n/fr.po" ]]; then
-      catalogues+=("/mnt/custom-addons/$module/i18n/fr.po")
+      catalogues+=("$catalogue_root/$module/i18n/fr.po")
     fi
   done
   if ((${#catalogues[@]} == 0)); then
