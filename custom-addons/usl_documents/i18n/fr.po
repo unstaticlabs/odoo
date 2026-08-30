@@ -5559,13 +5559,11 @@ msgstr "Historique de communication du site web"
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__archive_added_at
 msgid ""
-"When the enterprise first received the document. Odoo submissions use their "
-"attributed submission time; Paperless-native documents use the archive "
-"ingestion time."
+"Original creation time supplied with imported documents. New uploads use "
+"their submission time."
 msgstr ""
-"Date de première réception du document par l’entreprise. Les dépôts Odoo "
-"utilisent leur date d’envoi attribuée ; les documents créés dans Paperless "
-"utilisent leur date d’entrée dans l’archive."
+"Date de création d’origine fournie avec les documents importés. Les nouveaux "
+"dépôts utilisent leur date d’envoi."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -5942,3 +5940,38 @@ msgstr "Historique des fichiers"
 #. module: usl_documents
 msgid "Earlier files are kept only when this archived document was deliberately replaced or restored. The row marked Current is the file opened from the Document tab."
 msgstr "Les fichiers antérieurs ne sont conservés que lorsque ce document archivé a été remplacé ou restauré volontairement. La ligne marquée Actuel correspond au fichier ouvert depuis l’onglet Document."
+
+#. module: usl_documents
+msgid "Original creation"
+msgstr "Création d’origine"
+
+#. module: usl_documents
+msgid "Original modification"
+msgstr "Dernière modification d’origine"
+
+#. module: usl_documents
+msgid "Archive synchronization"
+msgstr "Synchronisation de l’archive"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Original metadata"
+msgstr "Métadonnées d’origine"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Created"
+msgstr "Créé"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Last modified"
+msgstr "Dernière modification"
+
+#. module: usl_documents
+msgid "Creation timestamp recorded by the system that supplied the document."
+msgstr "Date de création enregistrée par le système d’origine du document."
+
+#. module: usl_documents
+msgid "Last modification timestamp recorded by the system that supplied the document."
+msgstr "Date de dernière modification enregistrée par le système d’origine du document."

@@ -1412,6 +1412,12 @@ for item in completed:
     provenance_values = {
         "submitted_by_id": submitted_user.id,
         "submitted_at": fields.Datetime.to_string(classification["added_at"]),
+        "original_created_at": fields.Datetime.to_string(
+            classification["added_at"],
+        ),
+        "original_modified_at": fields.Datetime.to_string(
+            classification["modified_at"],
+        ),
     }
     document.sudo().with_context(usl_documents_cache_write=True).write(
         provenance_values,
@@ -1562,6 +1568,17 @@ for item in completed:
     )
     if document.submitted_at != expected_submitted_at:
         fail(f"source added date differs for Paperless document {document.paperless_id}")
+    expected_modified_at = fields.Datetime.to_datetime(
+        fields.Datetime.to_string(classification["modified_at"]),
+    )
+    if (
+        document.original_created_at != expected_submitted_at
+        or document.original_modified_at != expected_modified_at
+    ):
+        fail(
+            f"source metadata timestamps differ for Paperless document "
+            f"{document.paperless_id}",
+        )
     if not document.version_ids.filtered(
         lambda version: version.checksum == item["paperless_original_sha256"],
     ):
@@ -1602,6 +1619,7 @@ for item in completed:
         "superseded_inactive_company_ids"
     ]
     item["source_added_at"] = classification["added_at"]
+    item["source_modified_at"] = classification["modified_at"]
     quarantine = env["ir.attachment"].sudo().search(
         [
             ("rebuild_source_model", "=", "ir.attachment"),
@@ -2039,6 +2057,7 @@ result = {
     "classification_type_counts": classification_type_counts,
     "classification_reconciliation": classification_reconciliation,
     "source_added_dates_preserved": len(completed),
+    "source_modified_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,
 }

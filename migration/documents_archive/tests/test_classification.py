@@ -159,16 +159,19 @@ class DocumentsClassificationTest(unittest.TestCase):
             document_id=2,
             attachment_id=2,
             create_date=datetime(2025, 1, 2, 9, 0),
+            write_date=datetime(2025, 1, 3, 10, 0),
             folder_path="Finance / Bank / Shine / Relevés",
         )
         second = self.item(
             document_id=3,
             attachment_id=3,
             create_date=datetime(2025, 1, 1, 8, 0),
+            write_date=datetime(2025, 1, 1, 9, 0),
             folder_path="Legal / Contracts",
         )
         result = classify_group([first, second])
         self.assertEqual(result["added_at"], datetime(2025, 1, 1, 8, 0))
+        self.assertEqual(result["modified_at"], datetime(2025, 1, 3, 10, 0))
         self.assertIn("Banking", result["tags"])
         self.assertIn("Contracts & legal", result["tags"])
         self.assertEqual(result["document_type"], "Contract")

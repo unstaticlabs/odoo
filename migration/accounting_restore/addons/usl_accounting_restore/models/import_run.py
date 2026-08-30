@@ -4499,6 +4499,8 @@ class RebuildAccountImportRun(models.Model):
                        ia.mimetype,
                        ia.description,
                        ia.public,
+                       ia.create_date,
+                       ia.write_date,
                        (
                            ia.res_model = 'account.move'
                            AND ia.id = move.message_main_attachment_id
@@ -4563,6 +4565,8 @@ class RebuildAccountImportRun(models.Model):
                        ia.mimetype,
                        ia.description,
                        ia.public,
+                       ia.create_date,
+                       ia.write_date,
                        FALSE AS is_main,
                        message.id AS source_message_id,
                        message.date AS source_message_date,
@@ -4769,6 +4773,7 @@ class RebuildAccountImportRun(models.Model):
             image_no_postprocess=True,
             tracking_disable=True,
             mail_create_nolog=True,
+            usl_documents_skip_attachment_queue=True,
         )
         existing_attachments = self._source_trace_record_map(
             "ir.attachment",
@@ -4892,6 +4897,22 @@ class RebuildAccountImportRun(models.Model):
                 attachment.write(vals)
             else:
                 attachment = Attachment.create(vals)
+            if row.get("create_date"):
+                self.env.cr.execute(
+                    """
+                    UPDATE ir_attachment
+                       SET create_date = %s,
+                           write_date = COALESCE(%s, %s)
+                     WHERE id = %s
+                    """,
+                    [
+                        row["create_date"],
+                        row.get("write_date"),
+                        row["create_date"],
+                        attachment.id,
+                    ],
+                )
+                attachment.invalidate_recordset(["create_date", "write_date"])
             if (
                 row["type"] == "binary"
                 and (

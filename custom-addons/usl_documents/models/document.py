@@ -93,15 +93,26 @@ class UslDocument(models.Model):
     )
     paperless_created = fields.Datetime(readonly=True)
     paperless_modified = fields.Datetime(readonly=True)
+    original_created_at = fields.Datetime(
+        string="Original creation",
+        readonly=True,
+        index=True,
+        help="Creation timestamp recorded by the system that supplied the document.",
+    )
+    original_modified_at = fields.Datetime(
+        string="Original modification",
+        readonly=True,
+        index=True,
+        help="Last modification timestamp recorded by the system that supplied the document.",
+    )
     archive_added_at = fields.Datetime(
         string="Added",
         compute="_compute_archive_added_at",
         store=True,
         index=True,
         help=(
-            "When the enterprise first received the document. Odoo submissions "
-            "use their attributed submission time; Paperless-native documents use "
-            "the archive ingestion time."
+            "Original creation time supplied with imported documents. New uploads "
+            "use their submission time."
         ),
     )
     document_date = fields.Date(index=True, readonly=True, tracking=True)
@@ -355,12 +366,40 @@ class UslDocument(models.Model):
                 and document.archive_checksum != document.checksum,
             )
 
-    @api.depends("submitted_at", "paperless_created")
+    @api.depends("original_created_at", "submitted_at", "paperless_created")
     def _compute_archive_added_at(self):
         for document in self:
             document.archive_added_at = (
-                document.submitted_at or document.paperless_created
+                document.original_created_at
+                or document.submitted_at
+                or document.paperless_created
             )
+
+    def _merge_original_timestamps(self, created_at=None, modified_at=None):
+        """Preserve the earliest creation and latest source modification."""
+        incoming_created = fields.Datetime.to_datetime(created_at)
+        incoming_modified = fields.Datetime.to_datetime(modified_at) or incoming_created
+        for document in self:
+            values = {}
+            if incoming_created and (
+                not document.original_created_at
+                or incoming_created < document.original_created_at
+            ):
+                values["original_created_at"] = incoming_created
+            if incoming_modified and (
+                not document.original_modified_at
+                or incoming_modified > document.original_modified_at
+            ):
+                values["original_modified_at"] = incoming_modified
+            if incoming_created and (
+                not document.submitted_at or incoming_created < document.submitted_at
+            ):
+                values["submitted_at"] = incoming_created
+            if values:
+                document.sudo().with_context(
+                    usl_documents_cache_write=True,
+                ).write(values)
+        return True
 
     _paperless_id_unique = models.Constraint(
         "UNIQUE(paperless_id)", "A Paperless document may only be mirrored once.",
@@ -1142,6 +1181,8 @@ class UslDocument(models.Model):
             "paperless_id",
             "paperless_created",
             "paperless_modified",
+            "original_created_at",
+            "original_modified_at",
             "document_date",
             "availability_state",
             "original_filename",
@@ -1832,6 +1873,11 @@ class UslDocument(models.Model):
                     else:
                         document = self.sudo().create(values)
                         documents_by_paperless_id[paperless_id] = document
+                    if document.source == "paperless":
+                        document._merge_original_timestamps(
+                            document.paperless_created,
+                            document.paperless_modified,
+                        )
                     document._synchronize_versions(item.get("versions") or [])
                     touched |= document
                 pages_processed += 1
@@ -1916,6 +1962,11 @@ class UslDocument(models.Model):
                         document.with_context(
                             usl_documents_cache_write=True,
                         ).write({"availability_state": "trashed"})
+                    if document.source == "paperless":
+                        document._merge_original_timestamps(
+                            document.paperless_created,
+                            document.paperless_modified,
+                        )
                     document._synchronize_versions(item.get("versions") or [])
                     touched |= document
 
@@ -2950,6 +3001,8 @@ class UslDocument(models.Model):
                 "submitted_at": document.submitted_at,
                 "paperless_created": document.paperless_created,
                 "paperless_modified": document.paperless_modified,
+                "original_created_at": document.original_created_at,
+                "original_modified_at": document.original_modified_at,
                 "permission_checked_at": document.permission_checked_at,
                 "permission_sync_error": (
                     document.permission_sync_error
@@ -3440,6 +3493,8 @@ class UslDocument(models.Model):
         document_date=None,
         document_type_id=None,
         tag_ids=None,
+        original_created_at=None,
+        original_modified_at=None,
     ):
         if not filename or not content_base64:
             raise ValidationError(_("Choose a non-empty file."))
@@ -3566,6 +3621,22 @@ class UslDocument(models.Model):
                     ),
                 },
             )
+        original_created_at = fields.Datetime.to_datetime(
+            original_created_at or archive_context.get("original_created_at"),
+        ) or fields.Datetime.now()
+        original_modified_at = fields.Datetime.to_datetime(
+            original_modified_at or archive_context.get("original_modified_at"),
+        ) or original_created_at
+        archive_context.update(
+            {
+                "original_created_at": fields.Datetime.to_string(
+                    original_created_at,
+                ),
+                "original_modified_at": fields.Datetime.to_string(
+                    original_modified_at,
+                ),
+            },
+        )
         checksum = hashlib.sha256(content).hexdigest()
         metadata_hash = (
             operation.metadata_hash
@@ -3760,6 +3831,8 @@ class UslDocument(models.Model):
                     or "generic_documents_upload"
                 ),
                 "context_json": archive_context,
+                "original_created_at": original_created_at,
+                "original_modified_at": original_modified_at,
                 "error_message": _(
                     "Identical content exists outside your authorized Odoo archive "
                     "view, but its classification fingerprint cannot be verified. "
@@ -3803,6 +3876,8 @@ class UslDocument(models.Model):
                 archive_context.get("policy_reason") or "generic_documents_upload"
             ),
             "context_json": archive_context,
+            "original_created_at": original_created_at,
+            "original_modified_at": original_modified_at,
             "retry_of_id": retry_operation.id,
             "retry_count": (retry_operation.retry_count + 1)
             if retry_operation
@@ -4397,6 +4472,8 @@ class UslDocumentVersion(models.Model):
         ],
         readonly=True,
     )
+    original_created_at = fields.Datetime(readonly=True)
+    original_modified_at = fields.Datetime(readonly=True)
     has_distinct_archive_file = fields.Boolean(
         compute="_compute_has_distinct_archive_file",
     )
@@ -4823,6 +4900,8 @@ class UslDocumentOperation(models.Model):
         ],
         readonly=True,
     )
+    original_created_at = fields.Datetime(readonly=True)
+    original_modified_at = fields.Datetime(readonly=True)
     error_message = fields.Text(readonly=True)
     retry_count = fields.Integer(readonly=True)
     acknowledged = fields.Boolean(readonly=True)
@@ -5020,6 +5099,12 @@ class UslDocumentOperation(models.Model):
                     values["metadata_hash"] = operation.metadata_hash
                     document.with_context(usl_documents_cache_write=True).write(values)
                 else:
+                    original_created_at = (
+                        operation.original_created_at or operation.create_date
+                    )
+                    original_modified_at = (
+                        operation.original_modified_at or original_created_at
+                    )
                     values.update(
                         {
                             "company_id": operation.company_id.id,
@@ -5037,19 +5122,39 @@ class UslDocumentOperation(models.Model):
                             ),
                             "review_state": "classified",
                             "submitted_by_id": operation.user_id.id,
-                            "submitted_at": operation.create_date,
+                            "submitted_at": original_created_at,
+                            "original_created_at": original_created_at,
+                            "original_modified_at": original_modified_at,
                             "checksum": operation.checksum,
                             "metadata_hash": operation.metadata_hash,
                         },
                     )
                     document = document_cache.create(values)
+                document._merge_original_timestamps(
+                    operation.original_created_at or operation.create_date,
+                    operation.original_modified_at
+                    or operation.original_created_at
+                    or operation.create_date,
+                )
                 document._synchronize_versions(payload.get("versions") or [])
                 current_version = document.version_ids.filtered("is_current")
                 if current_version:
                     current_version.sudo().write(
                         {
                             "submitted_by_id": operation.user_id.id,
-                            "submitted_at": operation.create_date,
+                            "submitted_at": (
+                                operation.original_created_at
+                                or operation.create_date
+                            ),
+                            "original_created_at": (
+                                operation.original_created_at
+                                or operation.create_date
+                            ),
+                            "original_modified_at": (
+                                operation.original_modified_at
+                                or operation.original_created_at
+                                or operation.create_date
+                            ),
                             "source": operation.source,
                             "metadata_hash": operation.metadata_hash,
                         },

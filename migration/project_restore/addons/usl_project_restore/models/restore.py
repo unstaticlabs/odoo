@@ -1519,9 +1519,16 @@ class UslProjectRestoreRun(models.Model):
                 if not self._is_current_revision(attachment, snapshot):
                     immutable = dict(values)
                     immutable.pop("raw")
-                    attachment.sudo().write(immutable)
+                    attachment.sudo().with_context(
+                        usl_documents_skip_attachment_queue=True,
+                    ).write(immutable)
             else:
-                attachment = self.env["ir.attachment"].sudo().create(values)
+                attachment = (
+                    self.env["ir.attachment"]
+                    .sudo()
+                    .with_context(usl_documents_skip_attachment_queue=True)
+                    .create(values)
+                )
                 attachments[row["id"]] = attachment
             self._stamp_audit("ir.attachment", attachment, row, users)
         return attachments

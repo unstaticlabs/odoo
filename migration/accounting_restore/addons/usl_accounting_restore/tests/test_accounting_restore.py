@@ -5643,6 +5643,12 @@ class TestRebuildAccountMigration(TransactionCase):
                     "mimetype": "application/pdf",
                     "description": "Source invoice evidence",
                     "public": False,
+                    "create_date": fields.Datetime.from_string(
+                        "2025-11-03 08:15:00",
+                    ),
+                    "write_date": fields.Datetime.from_string(
+                        "2026-02-04 17:30:00",
+                    ),
                     "is_main": True,
                     "source_attachment_res_model": "account.move",
                     "source_attachment_res_id": source_move_id,
@@ -5669,6 +5675,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bytes(attachment.raw), raw)
         self.assertEqual(attachment.res_model, "account.move")
         self.assertEqual(attachment.res_id, move.id)
+        self.assertEqual(
+            attachment.create_date,
+            fields.Datetime.from_string("2025-11-03 08:15:00"),
+        )
+        self.assertEqual(
+            attachment.write_date,
+            fields.Datetime.from_string("2026-02-04 17:30:00"),
+        )
         self.assertEqual(move.message_main_attachment_id, attachment)
         restored_message = self.env["mail.message"].search([
             ("model", "=", "account.move"),

@@ -270,6 +270,10 @@ class UslDocument(models.Model):
         access_user=None,
     ):
         for document in self:
+            document._merge_original_timestamps(
+                context.get("original_created_at"),
+                context.get("original_modified_at"),
+            )
             actor = submitted_by or self.env.user
             access_actor = access_user or actor
             access_company_id = int(
@@ -451,6 +455,10 @@ class UslDocument(models.Model):
     ):
         """Keep source Trash intent while retaining the Odoo business links."""
         for document in self:
+            document._merge_original_timestamps(
+                context.get("original_created_at"),
+                context.get("original_modified_at"),
+            )
             actor = submitted_by or self.env.user
             access_actor = access_user or actor
             access_company_id = int(
@@ -1128,12 +1136,20 @@ class UslDocumentOperation(models.Model):
         if not eligible:
             return self.browse()
         record = self.env[attachment.res_model].browse(attachment.res_id).exists()
+        original_created_at = fields.Datetime.to_datetime(
+            self.env.context.get("usl_documents_original_created_at"),
+        ) or attachment.create_date
+        original_modified_at = fields.Datetime.to_datetime(
+            self.env.context.get("usl_documents_original_modified_at"),
+        ) or attachment.write_date or original_created_at
         context = {
             **record._document_archive_context(attachment),
             "archive_mode": attachment.usl_documents_archive_mode,
             "document_role": attachment.usl_documents_document_role,
             "attachment_origin": attachment.usl_documents_origin,
             "policy_reason": attachment.usl_documents_policy_reason,
+            "original_created_at": fields.Datetime.to_string(original_created_at),
+            "original_modified_at": fields.Datetime.to_string(original_modified_at),
         }
         metadata_hash = self.env["usl.document"]._archive_metadata_hash(context)
         existing = self.sudo().search(
@@ -1144,6 +1160,13 @@ class UslDocumentOperation(models.Model):
             limit=1,
         )
         if existing:
+            provenance_values = {}
+            if not existing.original_created_at:
+                provenance_values["original_created_at"] = original_created_at
+            if not existing.original_modified_at:
+                provenance_values["original_modified_at"] = original_modified_at
+            if provenance_values:
+                existing.sudo().write(provenance_values)
             if existing.policy_reason == "legacy_operation_backfill_pending":
                 existing.sudo().write(
                     {
@@ -1172,6 +1195,11 @@ class UslDocumentOperation(models.Model):
                 existing._sync_source_attachment_ledger()
             else:
                 existing._sync_source_attachment_ledger()
+            if existing.state == "archived" and existing.document_id:
+                existing.document_id._merge_original_timestamps(
+                    existing.original_created_at,
+                    existing.original_modified_at,
+                )
             return existing
         previous = self.sudo().search(
             [
@@ -1203,6 +1231,8 @@ class UslDocumentOperation(models.Model):
                 "policy_reason": attachment.usl_documents_policy_reason,
                 "metadata_hash": metadata_hash,
                 "context_json": context,
+                "original_created_at": original_created_at,
+                "original_modified_at": original_modified_at,
                 "target_document_id": previous.document_id.id or False,
                 "user_id": attachment.create_uid.id or self.env.user.id,
             },

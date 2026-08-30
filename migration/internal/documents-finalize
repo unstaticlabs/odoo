@@ -22,8 +22,9 @@ if [[ "${USL_EINVOICE_LIVE_ENABLED:-}" != 0 \
   exit 2
 fi
 if [[ -z "$(docker compose -p "$compose_project" ps -q --status running db)" \
+   || -z "$(docker compose -p "$compose_project" ps -q --status running accounting-source-db)" \
    || -z "$(docker compose -p "$compose_project" ps -q --status running paperless-webserver)" ]]; then
-  printf 'Documents finalization requires the recorded Odoo and Paperless databases to be running.\n' >&2
+  printf 'Documents finalization requires the target, frozen source, and Paperless databases.\n' >&2
   exit 2
 fi
 
@@ -32,7 +33,23 @@ fi
 docker compose -p "$compose_project" stop odoo >/dev/null
 docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
   -e ODOO_INIT_DB="$target_database" \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  init-db odoo --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  --update=usl_documents \
+  --load-language=fr --i18n-overwrite \
+  --without-demo=true --stop-after-init --log-level=warn
+export DOCUMENTS_SOURCE_DB_PASSWORD="${POSTGRES_PASSWORD:-${ODOO_DB_PASSWORD:-odoo}}"
+docker compose -p "$compose_project" --profile init run --rm -T --no-deps \
+  -v "$ROOT/migration:/mnt/repository/migration:ro" \
+  -e PYTHONPATH=/mnt/repository \
+  -e ODOO_INIT_DB="$target_database" \
   -e PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000 \
+  -e DOCUMENTS_SOURCE_DB_HOST=accounting-source-db \
+  -e DOCUMENTS_SOURCE_DB_PASSWORD \
+  -e DOCUMENTS_SOURCE_DATABASE=odoo_online_source_saas_19_3 \
+  -e DOCUMENTS_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
   -e USL_EINVOICE_LIVE_ENABLED=0 \
   -e USL_EREPORTING_LIVE_ENABLED=0 \
   init-db odoo shell --config=/etc/odoo/odoo.conf \

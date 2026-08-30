@@ -901,6 +901,17 @@
                                 No tags assigned.
                             </div>
                         </div>
+                        <div class="mt-3">
+                            <label class="form-label small fw-semibold mb-2">
+                                Original metadata
+                            </label>
+                            <dl class="row small mb-0">
+                                <dt class="col-5">Created</dt>
+                                <dd class="col-7" t-esc="state.selected.original_created_at || 'Not reported'"/>
+                                <dt class="col-5">Last modified</dt>
+                                <dd class="col-7" t-esc="state.selected.original_modified_at || 'Not reported'"/>
+                            </dl>
+                        </div>
                         <div t-if="state.selected.custom_fields?.length"
                              class="mt-3">
                             <label class="form-label small fw-semibold mb-2">

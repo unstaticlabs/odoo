@@ -193,6 +193,40 @@ class TestDocuments(TransactionCase):
         self.assertEqual(attachment.usl_documents_ledger_state, "pending")
         request.assert_not_called()
 
+    def test_backfill_captures_attachment_audit_timestamps_before_queue_writes(self):
+        task = self.env["project.task"].create({"name": "Historical evidence"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            {
+                "name": "historical.pdf",
+                "raw": b"historical timestamps",
+                "mimetype": "application/pdf",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        self.env.cr.execute(
+            "UPDATE ir_attachment SET create_date=%s, write_date=%s WHERE id=%s",
+            ["2025-04-03 09:15:00", "2025-07-08 17:45:00", attachment.id],
+        )
+        attachment.invalidate_recordset(["create_date", "write_date"])
+
+        operation = attachment._queue_usl_documents_archive()
+
+        self.assertEqual(
+            operation.original_created_at,
+            fields.Datetime.to_datetime("2025-04-03 09:15:00"),
+        )
+        self.assertEqual(
+            operation.original_modified_at,
+            fields.Datetime.to_datetime("2025-07-08 17:45:00"),
+        )
+        self.assertEqual(
+            operation.context_json["original_created_at"],
+            "2025-04-03 09:15:00",
+        )
+
     def test_project_chatter_attachment_waits_for_keep_in_documents(self):
         project = self.env["project.project"].create({"name": "Chatter policy"})
         task = self.env["project.task"].create(
@@ -1059,13 +1093,14 @@ class TestDocuments(TransactionCase):
             100,
             paperless_created="2026-08-04 12:00:00",
             submitted_at="2025-12-06 13:05:28",
+            original_created_at="2025-11-04 09:30:00",
         )
         self.assertEqual(
             document.archive_added_at,
-            fields.Datetime.to_datetime("2025-12-06 13:05:28"),
+            fields.Datetime.to_datetime("2025-11-04 09:30:00"),
         )
         document.sudo().with_context(usl_documents_cache_write=True).write(
-            {"submitted_at": False},
+            {"original_created_at": False, "submitted_at": False},
         )
         self.assertEqual(
             document.archive_added_at,
@@ -3681,6 +3716,8 @@ class TestDocuments(TransactionCase):
             "res_id": self.partner_a.id,
             "source": "odoo_upload",
             "user_id": self.user.id,
+            "original_created_at": "2025-02-03 09:15:00",
+            "original_modified_at": "2025-06-07 18:30:00",
         })
         payload = {
             "id": 109,
@@ -3713,6 +3750,14 @@ class TestDocuments(TransactionCase):
         self.assertEqual(operation.document_id.confidentiality, "accounting")
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
+        self.assertEqual(
+            operation.document_id.original_created_at,
+            fields.Datetime.to_datetime("2025-02-03 09:15:00"),
+        )
+        self.assertEqual(
+            operation.document_id.original_modified_at,
+            fields.Datetime.to_datetime("2025-06-07 18:30:00"),
+        )
 
     def test_async_success_with_inaccessible_document_needs_review(self):
         operation = self.env["usl.document.operation"].sudo().create(

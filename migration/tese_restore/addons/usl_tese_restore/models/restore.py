@@ -706,9 +706,32 @@ class UslTeseRestoreRun(models.Model):
                 if not binary:
                     continue
                 values["raw"] = binary
-                attachment = self.env["ir.attachment"].sudo().create(values)
+                attachment = (
+                    self.env["ir.attachment"]
+                    .sudo()
+                    .with_context(usl_documents_skip_attachment_queue=True)
+                    .create(values)
+                )
             else:
-                attachment.sudo().write(values)
+                attachment.sudo().with_context(
+                    usl_documents_skip_attachment_queue=True,
+                ).write(values)
+            if row.get("create_date"):
+                self.env.cr.execute(
+                    """
+                    UPDATE ir_attachment
+                       SET create_date = %s,
+                           write_date = COALESCE(%s, %s)
+                     WHERE id = %s
+                    """,
+                    [
+                        row["create_date"],
+                        row.get("write_date"),
+                        row["create_date"],
+                        attachment.id,
+                    ],
+                )
+                attachment.invalidate_recordset(["create_date", "write_date"])
             self._bind(
                 "ir.attachment",
                 row["id"],

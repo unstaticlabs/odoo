@@ -223,7 +223,18 @@ def await_upload(result):
     return operation.document_id
 
 
-def archive_file(admin, *, filename, content, company, document_date, tags, document_type):
+def archive_file(
+    admin,
+    *,
+    filename,
+    content,
+    company,
+    document_date,
+    tags,
+    document_type,
+    original_created_at,
+    original_modified_at,
+):
     tag_records = env["usl.paperless.tag"].browse()  # noqa: F821
     for tag_name in tags:
         tag_records |= metadata_record(
@@ -252,6 +263,8 @@ def archive_file(admin, *, filename, content, company, document_date, tags, docu
             document_date=document_date,
             document_type_id=type_record.id,
             tag_ids=tag_records.ids,
+            original_created_at=original_created_at,
+            original_modified_at=original_modified_at,
         )
     )
     reused = result["state"] == "duplicate"
@@ -434,6 +447,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signed document"],
         document_type="Signed agreement",
+        original_created_at=request_row["create_date"],
+        original_modified_at=request_row["write_date"] or completion_at,
     )
     exported_certificate = archive_file(
         admin,
@@ -443,6 +458,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signing certificate"],
         document_type="Signing certificate",
+        original_created_at=completion_at,
+        original_modified_at=request_row["write_date"] or completion_at,
     )
     original_content = reader.binary(
         {
@@ -468,6 +485,8 @@ for request_row in source["requests"]:
             ),
         ],
         document_type="Signing source document",
+        original_created_at=request_row["original_create_date"],
+        original_modified_at=request_row["original_write_date"],
     )
     source_certificate_row = next(
         row for row in request_attachments[source_id] if row["kind"] == "source_certificate"
@@ -481,6 +500,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Source completion certificate"],
         document_type="Signing certificate",
+        original_created_at=source_certificate_row["create_date"],
+        original_modified_at=source_certificate_row["write_date"],
     )
     history_content = canonical_json(history_payload(source, source_id))
     history_document = archive_file(
@@ -491,6 +512,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signing history"],
         document_type="Signing history",
+        original_created_at=request_row["create_date"],
+        original_modified_at=request_row["write_date"],
     )
 
     creator = source_identity(
@@ -719,6 +742,8 @@ for attachment in inactive_template_attachments:
         document_date=fields.Date.context_today(env["usl.document"]),  # noqa: F821
         tags=["Odoo Online (External)", "Inactive Odoo Online template"],
         document_type="Signing source document",
+        original_created_at=attachment["create_date"],
+        original_modified_at=attachment["write_date"],
     )
     document.with_env(admin.env).link_to_record("res.company", company.id)
     document.with_env(admin.env).action_sync_permissions()
