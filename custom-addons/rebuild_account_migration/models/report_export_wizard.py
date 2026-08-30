@@ -68,6 +68,7 @@ MONETARY_REPORT_FIELDS = {
     "amount_residual_currency",
     "taxable_amount",
     "tax_amount",
+    "adjustment",
     "expense_amount",
     "accumulated_depreciation",
     "accumulated_depreciation_amount",
