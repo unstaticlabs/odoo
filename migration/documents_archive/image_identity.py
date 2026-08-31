@@ -16,10 +16,11 @@ REQUIRED_SERVICES = (
     "paperless-db",
     "paperless-webserver",
     "paperless-broker",
-    "paperless-ollama",
     "paperless-gotenberg",
     "paperless-tika",
 )
+
+OPTIONAL_SERVICES = ("paperless-ollama",)
 
 
 class ImageIdentityError(ValueError):
@@ -55,7 +56,9 @@ def build(config: dict, *, target_platform: str) -> dict:
     if missing:
         raise ImageIdentityError("Compose services are missing: " + ", ".join(missing))
     images = {}
-    for name in REQUIRED_SERVICES:
+    for name in (*REQUIRED_SERVICES, *OPTIONAL_SERVICES):
+        if name not in services:
+            continue
         reference = services[name].get("image")
         if not reference:
             raise ImageIdentityError(f"Compose service has no image: {name}")
