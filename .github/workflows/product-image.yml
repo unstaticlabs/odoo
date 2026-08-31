@@ -54,7 +54,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
+          # The renderer is a separately published immutable image. The Odoo
+          # repository token must not acquire cross-repository source access.
+          submodules: false
 
       - name: Checkout pinned Odoo MCP release
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -77,7 +79,7 @@ jobs:
           action_risk_digest="$(PYTHONPATH=. python3 -c 'from migration.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
           echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
           echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
-          echo "renderer_commit=$(git -C services/usl-document-renderer rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "renderer_commit=$(git rev-parse HEAD:services/usl-document-renderer)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
