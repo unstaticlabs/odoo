@@ -499,10 +499,12 @@ restore_bundle() {
   python3 migration/documents_archive/release_bundle.py verify "$bundle"
   usl_prepare_ollama_runtime "$ROOT"
   ollama_runtime="$USL_OLLAMA_RUNTIME_SELECTED"
-  if [[ "$ollama_runtime" == native && -f "$bundle/embeddings/ollama-data.tgz" ]]; then
+  if [[ "$ollama_runtime" == native ]]; then
     native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
-    python3 migration/documents_archive/ollama_model_archive.py inspect \
-      --archive "$bundle/embeddings/ollama-data.tgz" >/dev/null
+    if [[ -f "$bundle/embeddings/ollama-data.tgz" ]]; then
+      python3 migration/documents_archive/ollama_model_archive.py inspect \
+        --archive "$bundle/embeddings/ollama-data.tgz" >/dev/null
+    fi
   elif [[ "$ollama_runtime" == container ]]; then
     ollama_services=(paperless-ollama)
   elif [[ "$ollama_runtime" != external ]]; then
@@ -510,6 +512,7 @@ restore_bundle() {
     exit 2
   fi
   COMPOSE=(docker compose --env-file "$env_file" -p "$restore_project")
+  export COMPOSE_PROJECT_NAME="$restore_project"
   if [[ "${USL_DEPLOYMENT_ENV:-}" == production ]]; then
     COMPOSE+=(
       -f "$ROOT/compose.yaml"
@@ -523,9 +526,9 @@ restore_bundle() {
     printf 'Restore project already exists: %s\n' "$restore_project" >&2
     exit 2
   fi
-  compose_json="$(mktemp "$runtime_dir/restore-compose.XXXXXX.json")"
+  compose_json="$(mktemp "$runtime_dir/restore-compose.XXXXXX")"
   chmod 600 "$compose_json"
-  trap 'rm -f -- "$compose_json"' EXIT
+  trap 'if [[ -n "${compose_json:-}" ]]; then rm -f -- "$compose_json"; fi' EXIT
   "${COMPOSE[@]}" config --format json > "$compose_json"
   odoo_volume="$(compose_volume "$compose_json" odoo /var/lib/odoo)"
   paperless_broker_volume="$(compose_volume "$compose_json" paperless-broker /data)"
