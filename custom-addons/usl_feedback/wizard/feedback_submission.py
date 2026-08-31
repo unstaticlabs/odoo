@@ -31,7 +31,7 @@ class FeedbackSubmission(models.TransientModel):
     screenshot_attachment_id = fields.Many2one(
         "ir.attachment", string="Screenshot", ondelete="set null",
     )
-    include_page_context = fields.Boolean(string="Share current page context", default=False)
+    include_page_context = fields.Boolean(string="Share page details", default=False)
     company_id = fields.Many2one(
         "res.company",
         string="Company",
@@ -65,7 +65,6 @@ class FeedbackSubmission(models.TransientModel):
         draft = self.create(values)
         return {
             "draft_id": draft.id,
-            "company_name": self.env.company.display_name,
             "context_available": bool(
                 values["source_action_id"] or values["source_model_name"] or values["source_record_id"],
             ),

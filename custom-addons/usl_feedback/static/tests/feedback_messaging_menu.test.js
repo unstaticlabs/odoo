@@ -1,5 +1,5 @@
 import { expect, test } from "@odoo/hoot";
-import { setInputFiles } from "@odoo/hoot-dom";
+import { setInputFiles, waitFor } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 import { Component, xml } from "@odoo/owl";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
@@ -31,7 +31,7 @@ function feedbackTask(values = {}) {
         id: 71,
         name: "Clarify the reload status",
         description_text: "After reload, the next action is unclear.",
-        category: "ux",
+        category: "UX",
         priority: "2",
         stage: "Inbox",
         agent_state: "waiting",
@@ -49,7 +49,6 @@ function feedbackTask(values = {}) {
 function mockFeedbackStart(recent = []) {
     onRpc("usl.feedback.submission", "feedback_start", () => ({
         draft_id: 41,
-        company_name: "Unstatic Labs",
         context_available: true,
         recent,
     }));
@@ -216,7 +215,6 @@ test("draft previews a default-selected screenshot and removes it explicitly", a
         expect.step("start");
         return {
             draft_id: 41,
-            company_name: "Unstatic Labs",
             context_available: true,
             recent: [],
         };
@@ -254,8 +252,8 @@ test("draft previews a default-selected screenshot and removes it explicitly", a
     });
     expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
     expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
-    expect(".o-usl-FeedbackPanel").toHaveText(/visible to all internal employees/);
-    expect(".o-usl-FeedbackPanel").toHaveText(/sent to Google Gemini/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/All internal employees can read/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/Gemini receives your message/);
     await contains(".o-usl-FeedbackPanel-screenshot input").click();
     expect(".o-usl-FeedbackPanel-screenshot input").not.toBeChecked();
     expect.verifySteps(["start", "upload screenshot", "remove screenshot"]);
@@ -265,7 +263,6 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
     let attachmentId = 90;
     onRpc("usl.feedback.submission", "feedback_start", () => ({
         draft_id: 42,
-        company_name: "Unstatic Labs",
         context_available: true,
         recent: [],
     }));
@@ -281,13 +278,13 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
             captureError: true,
         },
     });
-    expect(".o-usl-FeedbackPanel").toHaveText(/Screenshot capture was skipped/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/No screenshot was captured/);
     expect("#usl_feedback_context").not.toBeChecked();
     await contains("#usl_feedback_files").click();
     await setInputFiles(
         new File(["reproduction"], "reproduction.txt", { type: "text/plain" })
     );
-    await animationFrame();
+    await waitFor(".o-usl-FeedbackPanel .badge:contains('reproduction.txt')");
     expect(".o-usl-FeedbackPanel").toHaveText(/reproduction.txt/);
     expect("#usl_feedback_files").not.toHaveAttribute("disabled");
 });
@@ -309,7 +306,7 @@ test("first message creates the conversation and keeps page context opt-in", asy
     await contains("#usl_feedback_message").edit(
         "The next action disappears after reload."
     );
-    await contains(".o-usl-FeedbackPanel button:contains('Start conversation')").click();
+    await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();
     await animationFrame();
     expect(".o-test-FeedbackChatter").toHaveCount(1);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
@@ -324,7 +321,7 @@ test("conversation renders processing, clarification, error, ready, and success 
         task: feedbackTask({ agent_state: "processing" }),
     });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel").toHaveText(/reviewing your latest message/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/Reviewing your feedback/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
 
     component.state.task = feedbackTask({ agent_state: "waiting" });
@@ -333,22 +330,22 @@ test("conversation renders processing, clarification, error, ready, and success 
 
     component.state.task = feedbackTask({
         agent_state: "error",
-        agent_error: "The assistant is temporarily unavailable. Your feedback is saved.",
+        agent_error: "The assistant couldn’t reply. Your feedback is saved.",
     });
     await animationFrame();
     expect(".o-usl-FeedbackPanel .alert-warning").toHaveText(/feedback is saved/);
-    expect(".o-usl-FeedbackPanel .alert-warning button").toHaveText("Retry");
+    expect(".o-usl-FeedbackPanel .alert-warning button").toHaveText("Try again");
 
     component.state.task = feedbackTask({ agent_state: "ready" });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Brief ready for your confirmation/);
+    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Review your feedback/);
     expect(".o-usl-FeedbackPanel-ready").toHaveText(/Clarify the reload status/);
     expect(".o-usl-FeedbackPanel-ready").toHaveText(/After reload/);
     expect(".o-usl-FeedbackPanel-ready button").toHaveCount(2);
 
     component.state.task = feedbackTask({ agent_state: "triaged", stage: "Triage" });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/now in Triage/);
+    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/Sent to the product team/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
 });
 
@@ -366,9 +363,9 @@ test("reporter confirmation is guarded by the ready card and updates to Triage",
     });
     await animationFrame();
     await contains(
-        ".o-usl-FeedbackPanel-ready button:contains('Confirm and send to Triage')"
+        ".o-usl-FeedbackPanel-ready button:contains('Send to product team')"
     ).click();
-    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/now in Triage/);
+    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/Sent to the product team/);
     expect.verifySteps(["confirmed"]);
 });
 

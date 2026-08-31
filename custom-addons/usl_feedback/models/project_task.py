@@ -14,12 +14,12 @@ FEEDBACK_CATEGORIES = [
     ("ux", "UX"),
 ]
 AGENT_STATES = [
-    ("waiting", "Waiting for details"),
+    ("waiting", "Needs details"),
     ("queued", "Queued"),
-    ("processing", "Processing"),
-    ("ready", "Ready for confirmation"),
+    ("processing", "Reviewing"),
+    ("ready", "Ready to send"),
     ("error", "Needs retry"),
-    ("triaged", "Sent to triage"),
+    ("triaged", "Sent to product team"),
 ]
 
 
@@ -30,28 +30,28 @@ class ProjectTask(models.Model):
         "res.users", string="Reporter", readonly=True, copy=False, index=True, ondelete="restrict",
     )
     usl_feedback_company_id = fields.Many2one(
-        "res.company", string="Source Company", readonly=True, copy=False, index=True, ondelete="restrict",
+        "res.company", string="Source company", readonly=True, copy=False, index=True, ondelete="restrict",
     )
     usl_feedback_category = fields.Selection(
-        FEEDBACK_CATEGORIES, string="Feedback Category", readonly=True, copy=False, index=True,
+        FEEDBACK_CATEGORIES, string="Category", readonly=True, copy=False, index=True,
     )
     usl_feedback_context_included = fields.Boolean(
-        string="Page Context Shared", readonly=True, copy=False,
+        string="Page details shared", readonly=True, copy=False,
     )
     usl_feedback_source_action_id = fields.Many2one(
-        "ir.actions.actions", string="Source Action", readonly=True, copy=False, ondelete="set null",
+        "ir.actions.actions", string="Source action", readonly=True, copy=False, ondelete="set null",
     )
     usl_feedback_source_model_id = fields.Many2one(
-        "ir.model", string="Source Model", readonly=True, copy=False, ondelete="set null",
+        "ir.model", string="Source model", readonly=True, copy=False, ondelete="set null",
     )
     usl_feedback_source_res_id = fields.Integer(
-        string="Source Record ID", readonly=True, copy=False,
+        string="Source record ID", readonly=True, copy=False,
     )
     usl_feedback_viewport_width = fields.Integer(
-        string="Viewport Width", readonly=True, copy=False,
+        string="Viewport width", readonly=True, copy=False,
     )
     usl_feedback_viewport_height = fields.Integer(
-        string="Viewport Height", readonly=True, copy=False,
+        string="Viewport height", readonly=True, copy=False,
     )
     usl_feedback_release_sha = fields.Char(
         string="Release SHA", readonly=True, copy=False, size=40, index=True,
@@ -64,19 +64,19 @@ class ProjectTask(models.Model):
         "usl_feedback_related_task_rel",
         "task_id",
         "related_task_id",
-        string="Related Feedback",
+        string="Related feedback",
         readonly=True,
         copy=False,
     )
     usl_feedback_agent_state = fields.Selection(
         AGENT_STATES,
-        string="Feedback Assistant State",
+        string="Assistant status",
         readonly=True,
         copy=False,
         index=True,
     )
     usl_feedback_agent_error = fields.Char(
-        string="Feedback Assistant Error", readonly=True, copy=False,
+        string="Assistant error", readonly=True, copy=False,
     )
     usl_feedback_latest_interaction_id = fields.Char(
         string="Gemini Interaction",
@@ -180,7 +180,7 @@ class ProjectTask(models.Model):
                 "usl_feedback_reporter_id",
             ):
                 raise AccessError(
-                    _("Feedback cards are maintained through the conversation and the feedback team."),
+                    _("Use the conversation to add details. The product team manages task fields."),
                 )
             project_id = values.get("project_id")
             if project_id and self.env["project.project"].sudo().browse(project_id).usl_feedback_project:
@@ -246,7 +246,11 @@ class ProjectTask(models.Model):
             "name": self.name,
             "description": self.description or "",
             "description_text": html2plaintext(self.description or "").strip(),
-            "category": self.usl_feedback_category or False,
+            "category": (
+                self.env._(dict(FEEDBACK_CATEGORIES)[self.usl_feedback_category])
+                if self.usl_feedback_category
+                else False
+            ),
             "priority": self.priority,
             "stage": self.stage_id.name,
             "agent_state": self.usl_feedback_agent_state,
@@ -314,9 +318,9 @@ class ProjectTask(models.Model):
     def feedback_confirm_triage(self):
         self.ensure_one()
         if self.usl_feedback_reporter_id != self.env.user:
-            raise AccessError(_("Only the reporter can confirm this feedback brief."))
+            raise AccessError(_("Only the reporter can send this feedback to the product team."))
         if self.usl_feedback_agent_state != "ready":
-            raise UserError(_("The feedback brief is not ready for confirmation."))
+            raise UserError(_("This feedback is not ready to send."))
         triage = self.env.ref("usl_feedback.stage_feedback_triaged")
         self.sudo().write(
             {
@@ -326,7 +330,7 @@ class ProjectTask(models.Model):
             },
         )
         self.with_context(usl_feedback_skip_agent=True).message_post(
-            body=_("The reporter confirmed this brief. It is ready for triage."),
+            body=_("The reporter sent this feedback to the product team."),
             message_type="comment",
             subtype_xmlid="mail.mt_note",
         )

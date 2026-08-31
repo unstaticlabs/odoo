@@ -7,39 +7,39 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app string="Product Feedback" name="usl_feedback" groups="base.group_system">
-                    <block title="Conversational Feedback Assistant" name="feedback_assistant">
-                        <setting string="Enable the assistant" help="Creates the partial Inbox card first, then asks Gemini to clarify and shape the brief inside Odoo.">
+                    <block title="Feedback assistant" name="feedback_assistant">
+                        <setting string="Enable the assistant" help="Saves the first message in Inbox, then uses Gemini to clarify and draft the feedback.">
                             <field name="feedback_agent_enabled"/>
                         </setting>
-                        <setting string="Provider data retention" help="Required production acknowledgement: stateful Gemini interactions use a paid tier and may be retained by Google for seven days.">
+                        <setting string="Provider data retention" help="Required before activation. Gemini uses a paid tier and may retain stateful interactions for seven days.">
                             <field name="feedback_paid_tier_confirmed"/>
                         </setting>
-                        <setting string="Approved model">
+                        <setting string="Gemini model">
                             <field name="feedback_gemini_model"/>
                         </setting>
-                        <setting string="Gemini API key" help="Company-wide server-side secret. The existing value is never returned to a browser.">
+                        <setting string="Gemini API key" help="Stored on the server for all companies. Odoo never sends the saved value to a browser.">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <field name="feedback_gemini_api_key_input" password="True" placeholder="Leave blank to keep the saved key"/>
+                                <field name="feedback_gemini_api_key_input" password="True" placeholder="Leave blank to keep the current key"/>
                                 <span class="text-success" invisible="not feedback_has_gemini_api_key">Key saved</span>
                                 <span class="text-muted" invisible="feedback_has_gemini_api_key">No key saved</span>
                                 <button name="action_clear_feedback_gemini_key" type="object" string="Remove key" class="btn-link text-danger" invisible="not feedback_has_gemini_api_key" confirm="Remove the saved Gemini API key?"/>
                             </div>
                             <field name="feedback_has_gemini_api_key" invisible="1"/>
                         </setting>
-                        <setting string="Projects MCP URL" help="Must point exactly to the remote /mcp/projects endpoint; HTTPS is required outside localhost.">
+                        <setting string="Projects MCP URL" help="Enter the exact /mcp/projects endpoint. Use HTTPS outside localhost.">
                             <field name="feedback_mcp_url" placeholder="https://mcp.example.com/mcp/projects"/>
                         </setting>
-                        <setting string="Read-only Odoo API key" help="Create this key on a dedicated non-human Feedback Agent identity. It is sent to Google only as the MCP authorization header.">
+                        <setting string="Read-only Odoo API key" help="Use a dedicated Feedback Agent service account. Gemini sends this key only to the read-only Projects MCP.">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <field name="feedback_mcp_api_key_input" password="True" placeholder="Leave blank to keep the saved key"/>
+                                <field name="feedback_mcp_api_key_input" password="True" placeholder="Leave blank to keep the current key"/>
                                 <span class="text-success" invisible="not feedback_has_mcp_api_key">Key saved</span>
                                 <span class="text-muted" invisible="feedback_has_mcp_api_key">No key saved</span>
                                 <button name="action_clear_feedback_mcp_key" type="object" string="Remove key" class="btn-link text-danger" invisible="not feedback_has_mcp_api_key" confirm="Remove the saved Odoo API key?"/>
                             </div>
                             <field name="feedback_has_mcp_api_key" invisible="1"/>
                         </setting>
-                        <setting string="Connection check" help="Runs a Gemini interaction that reads the feedback Project through the configured read-only MCP identity, without creating feedback.">
-                            <button name="action_test_feedback_agent" type="object" string="Test connections" class="btn-link" title="Verify Gemini and the read-only Projects MCP connection without creating feedback."/>
+                        <setting string="Connection check" help="Checks Gemini and read-only project access. It does not create feedback.">
+                            <button name="action_test_feedback_agent" type="object" string="Test connection" class="btn-link" title="Check Gemini and the read-only Projects MCP without creating feedback."/>
                             <div class="mt-2" invisible="feedback_connection_status == 'not_tested'">
                                 <field name="feedback_connection_status" widget="badge" class="me-2"/>
                                 <field name="feedback_connection_checked_at" class="text-muted"/>

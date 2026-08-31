@@ -36,12 +36,12 @@ const journey = (message, { foldWindow = false } = {}) => [
         ? [
               {
                   content: "Fold the feedback conversation into the ChatHub",
-                  trigger: ".o-usl-FeedbackChatWindow button[aria-label='Fold product feedback']",
+                  trigger: ".o-usl-FeedbackChatWindow button[aria-label='Fold feedback']",
                   run: "click",
               },
               {
                   content: "The folded feedback conversation uses a native chat bubble",
-                  trigger: ".o-usl-FeedbackChatBubble button[aria-label='Open product feedback']",
+                  trigger: ".o-usl-FeedbackChatBubble button[aria-label='Open feedback']",
                   run: "click",
               },
               {
@@ -60,8 +60,8 @@ const journey = (message, { foldWindow = false } = {}) => [
         trigger: ".o-usl-FeedbackPanel input#usl_feedback_context:not(:checked), .o-usl-FeedbackPanel textarea",
     },
     {
-        content: "Start the saved conversation",
-        trigger: ".o-usl-FeedbackPanel button:contains('Start conversation'):not(:disabled)",
+        content: "Send the saved feedback",
+        trigger: ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)",
         run: "click",
     },
     {
@@ -83,8 +83,8 @@ const journey = (message, { foldWindow = false } = {}) => [
         trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
     },
     {
-        content: "Recent feedback is an explicit conversation control",
-        trigger: ".o-usl-FeedbackPanel-toolbar button[aria-label='Recent feedback']",
+        content: "Saved feedback is an explicit conversation control",
+        trigger: ".o-usl-FeedbackPanel-toolbar button[aria-label='Your feedback']",
         run: "click",
     },
     {

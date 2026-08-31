@@ -6,18 +6,19 @@ Every authenticated internal user can open **Feedback** from the **Chats** tab
 of Odoo's top-right messaging drawer. After capture, the drawer closes and a
 native-style floating conversation opens in Odoo's ChatHub. Odoo first offers
 a freshly captured image of the current screen, selected by default, then asks
-the reporter to describe the issue or opportunity. The reporter may remove the
-capture, add up to ten supporting files and opt in to sanitized page context.
+what the reporter wants to improve. The reporter may clear **Include this
+screenshot**, add up to ten supporting files and opt in to **Share page
+details**.
 
-The first message creates a partial `project.task` in **Inbox before any
+**Send feedback** creates a partial `project.task` in **Inbox before any
 provider call**. The floating conversation then uses native task chatter while
-the Feedback Assistant asks up to three clarification questions and refines the
-same card. It folds into the ChatHub like an ordinary chat, becomes fullscreen
-on narrow screens and closes with the standard Escape/back behavior. The
-reporter reviews the proposed brief and must explicitly choose
-**Confirm and send to Triage**. Only that confirmation moves the card out of
-Inbox. **Recent feedback** restores the reporter's saved conversations after a
-reload or return to Odoo, while **New feedback** starts a separate Inbox card.
+the Feedback Assistant asks one focused question per turn and updates the same
+card. It folds into the ChatHub like an ordinary chat, becomes fullscreen on
+narrow screens and closes with the standard Escape/back behavior. The reporter
+reviews the result, chooses **Add details** when needed, then selects **Send to
+product team**. Only that action moves the card to Triage. **Your feedback**
+restores saved conversations after a reload or return to Odoo, while **New
+feedback** starts a separate Inbox card.
 
 The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
 data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,
@@ -85,9 +86,10 @@ retain identifiers, timestamps, model, hashes, token counts and safe error
 codes—not prompts, keys, screenshots, provider reasoning or raw responses.
 
 Failures leave the partial card in Inbox. Transient provider failures retry
-with a bounded delay; permanent failures show a safe in-Odoo retry state. No
-provider error may disclose credentials or response bodies. Task notifications
-remain inside Odoo: feedback chatter suppresses outgoing email delivery.
+with a bounded delay; permanent failures state that the feedback is saved and
+offer **Try again**. No provider error may disclose credentials or response
+bodies. Task notifications remain inside Odoo: feedback chatter suppresses
+outgoing email delivery.
 
 ## Architecture decision
 

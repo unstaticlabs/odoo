@@ -78,7 +78,7 @@ export async function captureFeedbackScreenshot(mediaDevices = browser.navigator
                 quality = 0.8;
             }
         }
-        throw new Error(_t("The screenshot could not be reduced below 5 MB."));
+        throw new Error(_t("The screenshot is too large. Continue without it or capture a smaller area."));
     } finally {
         for (const track of stream?.getTracks() || []) {
             track.stop();
@@ -123,7 +123,6 @@ export class FeedbackPanel extends Component {
         this.state = useState({
             phase: "loading",
             draftId: false,
-            companyName: "",
             contextAvailable: false,
             includeContext: false,
             message: "",
@@ -151,7 +150,6 @@ export class FeedbackPanel extends Component {
             Object.assign(this.state, {
                 phase: "draft",
                 draftId: result.draft_id,
-                companyName: result.company_name,
                 contextAvailable: result.context_available,
                 recent: result.recent,
             });
@@ -275,7 +273,7 @@ export class FeedbackPanel extends Component {
             this.schedulePoll(0);
             if (task.context_omitted) {
                 this.notification.add(
-                    _t("The source record was not shared because you can no longer read it."),
+                    _t("Page details were left out because you no longer have access to this record."),
                     { type: "warning" }
                 );
             }
@@ -365,9 +363,6 @@ export class FeedbackPanel extends Component {
                 "feedback_confirm_triage",
                 [[this.state.task.id]]
             );
-            this.notification.add(_t("Feedback confirmed and sent to Triage."), {
-                type: "success",
-            });
         } catch (error) {
             this.showError(error);
         } finally {
@@ -377,7 +372,7 @@ export class FeedbackPanel extends Component {
 
     async keepRefining() {
         if (!(await focusFeedbackComposer(this.rootRef.el))) {
-            this.notification.add(_t("Open the conversation to add more detail."), {
+            this.notification.add(_t("Open the conversation to add details."), {
                 type: "warning",
             });
         }
@@ -385,14 +380,17 @@ export class FeedbackPanel extends Component {
 
     async openBoard() {
         const action = await this.orm.call("project.project", "feedback_open_board", []);
-        action.name = _t("Product Feedback");
+        action.name = _t("Feedback");
         action.display_name = action.name;
         this.props.close();
         await this.action.doAction(action);
     }
 
     showError(error, persistent = true) {
-        const message = error?.data?.message || error?.message || _t("Something went wrong.");
+        const message =
+            error?.data?.message ||
+            error?.message ||
+            _t("We couldn’t complete that action. Try again.");
         if (persistent) {
             this.state.error = message;
         } else {

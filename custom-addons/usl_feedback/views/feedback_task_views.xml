@@ -99,23 +99,23 @@
                         <field name="usl_feedback_company_id" groups="base.group_multi_company" readonly="1"/>
                         <field name="tag_ids" widget="many2many_tags" readonly="1"/>
                     </group>
-                    <group string="Confirmed brief" col="1">
+                    <group string="Feedback details" col="1">
                         <field name="description" nolabel="1" readonly="1"/>
                     </group>
-                    <group string="Evidence" invisible="not usl_feedback_screenshot_attachment_id">
+                    <group string="Screenshot" invisible="not usl_feedback_screenshot_attachment_id">
                         <field name="usl_feedback_screenshot_attachment_id" readonly="1"/>
                     </group>
                     <group string="Related feedback" invisible="not usl_feedback_related_task_ids">
                         <field name="usl_feedback_related_task_ids" widget="many2many_tags" readonly="1" nolabel="1"/>
                     </group>
-                    <group string="Shared page context" invisible="not usl_feedback_context_included">
+                    <group string="Shared page details" invisible="not usl_feedback_context_included">
                         <field name="usl_feedback_source_action_id" readonly="1"/>
                         <field name="usl_feedback_source_model_id" readonly="1"/>
                         <field name="usl_feedback_source_res_id" readonly="1"/>
                         <field name="usl_feedback_viewport_width" readonly="1"/>
                         <field name="usl_feedback_viewport_height" readonly="1"/>
                     </group>
-                    <group string="Release identity">
+                    <group string="Release">
                         <field name="usl_feedback_release_sha" readonly="1" class="font-monospace"/>
                     </group>
                     <field name="usl_feedback_context_included" invisible="1"/>

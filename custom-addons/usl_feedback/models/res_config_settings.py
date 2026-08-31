@@ -15,7 +15,7 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     feedback_agent_enabled = fields.Boolean(
-        string="Enable the Feedback Assistant",
+        string="Enable the feedback assistant",
         config_parameter="usl_feedback.gemini_enabled",
     )
     feedback_paid_tier_confirmed = fields.Boolean(
@@ -82,7 +82,7 @@ class ResConfigSettings(models.TransientModel):
                 raise ValidationError(str(error)) from error
         if self.feedback_agent_enabled and not self.feedback_paid_tier_confirmed:
             raise ValidationError(
-                _("Confirm the paid Gemini tier and seven-day state retention before enabling the assistant."),
+                _("Confirm the paid Gemini tier and seven-day retention before you enable the assistant."),
             )
         super().set_values()
         params = self.env["ir.config_parameter"].sudo()
@@ -106,7 +106,11 @@ class ResConfigSettings(models.TransientModel):
         params.set_str("usl_feedback.gemini_api_key", None)
         params.set_bool("usl_feedback.gemini_enabled", False)
         self._set_feedback_connection_status("not_tested", False)
-        return self._feedback_notification(_("Gemini key removed"), _("The Feedback Assistant is disabled until a new key is saved."), "warning")
+        return self._feedback_notification(
+            _("Gemini API key removed"),
+            _("The assistant is off until you save a new key."),
+            "warning",
+        )
 
     def action_clear_feedback_mcp_key(self):
         self.ensure_one()
@@ -114,7 +118,11 @@ class ResConfigSettings(models.TransientModel):
         params.set_str("usl_feedback.mcp_api_key", None)
         params.set_bool("usl_feedback.gemini_enabled", False)
         self._set_feedback_connection_status("not_tested", False)
-        return self._feedback_notification(_("Odoo API key removed"), _("The Feedback Assistant cannot inspect the shared board until a new key is saved."), "warning")
+        return self._feedback_notification(
+            _("Odoo API key removed"),
+            _("The assistant is off until you save a new key."),
+            "warning",
+        )
 
     def action_test_feedback_agent(self):
         self.ensure_one()
@@ -126,11 +134,11 @@ class ResConfigSettings(models.TransientModel):
         mcp_url = self.feedback_mcp_url or params.get_str("usl_feedback.mcp_url")
         if not all((api_key, mcp_key, mcp_url, self.feedback_gemini_model)):
             self._set_feedback_connection_status(
-                "error", _("Save both keys, the MCP URL, and an approved model first."),
+                "error", _("Save both API keys, the Projects MCP URL, and a Gemini model first."),
             )
             return self._feedback_notification(
-                _("Feedback Assistant connection failed"),
-                _("Save both keys, the MCP URL, and an approved model first."),
+                _("Connection test failed"),
+                _("Save both API keys, the Projects MCP URL, and a Gemini model first."),
                 "danger",
             )
         try:
@@ -171,19 +179,19 @@ class ResConfigSettings(models.TransientModel):
             )
         except (GeminiError, ValueError, requests.RequestException) as error:
             detail = _(
-                "The Feedback Assistant connection test failed: %(reason)s",
+                "Connection test failed: %(reason)s",
                 reason=str(error),
             )
             self._set_feedback_connection_status("error", detail)
             return self._feedback_notification(
-                _("Feedback Assistant connection failed"), detail, "danger",
+                _("Connection test failed"), detail, "danger",
             )
         self._set_feedback_connection_status(
-            "ready", _("Gemini reached the read-only Projects MCP successfully."),
+            "ready", _("Gemini can read the feedback project through the read-only connection."),
         )
         return self._feedback_notification(
-            _("Feedback Assistant is ready"),
-            _("Gemini reached the read-only Projects MCP successfully."),
+            _("Feedback assistant is ready"),
+            _("Gemini can read the feedback project through the read-only connection."),
             "success",
         )
 

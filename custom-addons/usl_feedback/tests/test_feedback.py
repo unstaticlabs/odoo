@@ -705,7 +705,7 @@ class TestProductFeedback(TransactionCase):
             params.set_str(key, value)
         clarification = {
             "status": "needs_clarification",
-            "assistant_message": "Which workflow step was unclear?",
+            "assistant_message": "One detail is missing.",
             "questions": ["What did you expect to happen?"],
             "summary": "Clarify the workflow status",
             "description": "The reporter finds a workflow status unclear.",
@@ -716,7 +716,7 @@ class TestProductFeedback(TransactionCase):
         ready = {
             **clarification,
             "status": "ready_for_confirmation",
-            "assistant_message": "I have prepared the feedback brief for confirmation.",
+            "assistant_message": "Your feedback is ready to review.",
             "questions": [],
             "summary": "Clarify status after workflow reload",
             "description": "After a reload, the status does not explain the next available action.",
@@ -744,6 +744,9 @@ class TestProductFeedback(TransactionCase):
         self.assertNotIn("role", second_payload["input"][0])
         first_payload = create_interaction.call_args_list[0].args[0]
         self.assertEqual([item["type"] for item in first_payload["input"]], ["text"])
+        self.assertIn("Ask one question per turn.", first_payload["system_instruction"])
+        self.assertIn("Do not greet, praise, apologize, add filler", first_payload["system_instruction"])
+        self.assertNotIn("Ask at most three", first_payload["system_instruction"])
         completed_run = self.env["usl.feedback.agent.run"].sudo().search(
             [("external_interaction_id", "=", "interaction-two")], limit=1,
         )
@@ -790,8 +793,7 @@ class TestProductFeedback(TransactionCase):
         self.assertNotIn("key", (task.usl_feedback_agent_error or "").lower())
         self.assertEqual(
             task.usl_feedback_agent_error,
-            "L’assistant de retours n’a pas pu terminer cette étape. "
-            "Votre retour est enregistré.",
+            "L’assistant n’a pas pu répondre. Votre retour est enregistré.",
         )
         task.with_user(self.reporter).feedback_retry_agent()
         self.assertEqual(task.usl_feedback_agent_state, "queued")

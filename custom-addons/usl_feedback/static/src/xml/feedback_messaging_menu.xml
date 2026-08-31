@@ -2,22 +2,22 @@
 <templates xml:space="preserve">
     <t t-name="usl_feedback.FeedbackPanel">
         <!--
-        THESIS: A native Odoo conversation turns incomplete observations into confirmed, actionable feedback.
+        THESIS: A native Odoo conversation turns an observation into clear, actionable feedback.
         OWN-WORLD: MessagingMenu, native Chatter, Project tasks, restrained feedback states, and familiar Odoo controls.
-        STORY: Preserve evidence first; describe; clarify with the assistant; inspect the brief; confirm Triage.
-        FIRST VIEWPORT: One prompt, the captured screenshot choice, the disclosure, and one clear send action.
+        STORY: Preserve evidence; describe; clarify; review; send to the product team.
+        FIRST VIEWPORT: One question, the captured screenshot choice, a clear disclosure, and one send action.
         FORM: Established Operate extension of Odoo ChatHub; the confirmed product brief governs this implementation.
         FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
         -->
-        <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Product feedback conversation">
+        <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
             <div class="o-usl-FeedbackPanel-toolbar d-flex align-items-center gap-1 px-2 py-1 border-bottom flex-shrink-0">
                 <div class="small text-muted text-truncate flex-grow-1 px-1" t-if="state.task" t-out="state.task.name"/>
-                <div class="small text-muted flex-grow-1 px-1" t-else="">Conversation with the Feedback Assistant</div>
+                <div class="small text-muted flex-grow-1 px-1" t-else="">Tell us what happened</div>
                 <button class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="openBoard" title="Open feedback board" aria-label="Open feedback board">
                     <i class="fa fa-columns"/><span class="d-none d-sm-inline">Board</span>
                 </button>
-                <button t-if="state.task and state.phase !== 'recent'" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="showRecent" title="Recent feedback" aria-label="Recent feedback">
-                    <i class="fa fa-history"/><span class="d-none d-sm-inline">Recent feedback</span>
+                <button t-if="state.task and state.phase !== 'recent'" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="showRecent" title="Your feedback" aria-label="Your feedback">
+                    <i class="fa fa-history"/><span class="d-none d-sm-inline">Your feedback</span>
                 </button>
                 <button t-if="state.task" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="newConversation" title="New feedback" aria-label="New feedback">
                     <i class="fa fa-plus"/><span class="d-none d-sm-inline">New feedback</span>
@@ -25,71 +25,71 @@
             </div>
 
             <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
-                <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing feedback…</span>
+                <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Opening feedback…</span>
             </div>
 
             <div t-elif="state.phase === 'start_error'" class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center" role="alert" aria-live="assertive">
                 <i class="fa fa-exclamation-circle text-warning fs-3 mb-3"/>
-                <strong>Feedback could not be prepared</strong>
+                <strong>Feedback is unavailable</strong>
                 <p class="text-muted mt-2 mb-3" t-out="state.error"/>
                 <button class="btn btn-primary" type="button" t-on-click="retryStartDraft">Try again</button>
             </div>
 
             <div t-elif="state.phase === 'recent'" class="flex-grow-1 overflow-auto o-scrollbar-thin p-3">
-                <div class="small text-uppercase text-muted fw-semibold mb-2">Recent feedback</div>
+                <div class="small text-muted fw-semibold mb-2">Your feedback</div>
                 <button t-foreach="state.recent" t-as="task" t-key="task.id" type="button" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 mb-2" t-on-click="() => this.resumeTask(task)">
                     <span class="text-truncate flex-grow-1" t-out="task.name"/>
                     <span class="badge text-bg-secondary" t-out="task.stage"/>
                 </button>
                 <div t-if="!state.recent.length" class="text-center text-muted py-5">
                     <i class="fa fa-comments-o fs-3 d-block mb-2"/>
-                    No recent feedback yet.
+                    You haven’t sent feedback yet.
                 </div>
             </div>
 
             <div t-elif="state.phase === 'draft'" class="o-usl-FeedbackPanel-draft flex-grow-1 d-flex flex-column overflow-hidden">
                 <div class="o-usl-FeedbackPanel-draftBody flex-grow-1 overflow-auto o-scrollbar-thin p-3">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" for="usl_feedback_message">What happened, or what would help?</label>
-                    <textarea id="usl_feedback_message" class="form-control" rows="5" maxlength="8000" autofocus="autofocus" placeholder="Describe what you were trying to do, what you saw, and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value"/>
-                    <div class="form-text">A partial Inbox card is saved before the assistant starts, so your report is not lost.</div>
+                    <label class="form-label fw-semibold" for="usl_feedback_message">What would you like to improve?</label>
+                    <textarea id="usl_feedback_message" class="form-control" rows="5" maxlength="8000" autofocus="autofocus" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value"/>
+                    <div class="form-text">We save your message before the assistant reviews it.</div>
                 </div>
 
                 <div t-if="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3">
-                    <img t-att-src="props.screenshot.previewUrl" alt="Captured current screen preview" class="w-100 rounded border"/>
+                    <img t-att-src="props.screenshot.previewUrl" alt="Screenshot of the page you were viewing" class="w-100 rounded border"/>
                     <label class="d-flex align-items-center gap-2 mt-2 mb-0">
                         <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
-                        <span>Attach this screenshot</span>
+                        <span>Include this screenshot</span>
                         <span class="small text-muted ms-auto"><t t-out="props.screenshot.width"/> × <t t-out="props.screenshot.height"/></span>
                     </label>
                 </div>
                 <div t-elif="props.captureError" class="alert alert-light border mb-3" role="status">
-                    Screenshot capture was skipped. You can still add files below.
+                    No screenshot was captured. You can still add a file.
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" for="usl_feedback_files">Other evidence <span class="fw-normal text-muted">(optional)</span></label>
+                    <label class="form-label fw-semibold" for="usl_feedback_files">Add supporting files <span class="fw-normal text-muted">(optional)</span></label>
                     <input id="usl_feedback_files" class="form-control" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (state.screenshotAttachmentId ? 1 : 0) &gt;= 10"/>
                     <div class="d-flex flex-wrap gap-1 mt-2" t-if="state.attachments.length">
                         <span class="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-1" t-foreach="state.attachments" t-as="attachment" t-key="attachment.id">
                             <i class="fa fa-paperclip"/><t t-out="attachment.name"/>
-                            <button class="btn btn-link text-muted p-0 lh-1" type="button" t-on-click="() => this.removeAttachment(attachment)" t-att-aria-label="`Remove ${attachment.name}`"><i class="oi oi-close"/></button>
+                            <button class="btn btn-link text-muted p-0 lh-1" type="button" t-on-click="() => this.removeAttachment(attachment)" title="Remove file" aria-label="Remove file"><i class="oi oi-close"/></button>
                         </span>
                     </div>
                 </div>
 
                 <div class="form-check mb-3" t-if="state.contextAvailable">
                     <input id="usl_feedback_context" type="checkbox" class="form-check-input" t-att-checked="state.includeContext" t-on-change="() => state.includeContext = !state.includeContext"/>
-                    <label class="form-check-label" for="usl_feedback_context">Share sanitized page context</label>
-                    <div class="form-text">Off by default. Shares only the action, readable model and record identifier, <t t-out="state.companyName"/>, viewport, and exact release SHA—never the URL, query, token, fragment, or browser state.</div>
+                    <label class="form-check-label" for="usl_feedback_context">Share page details</label>
+                    <div class="form-text">Shares the current action, readable record, company, screen size, and release. URLs and browser data are never shared.</div>
                 </div>
 
                 <div class="alert alert-info py-2 px-3 small" role="note">
-                    The feedback card, conversation, screenshot, and attachments are visible to all internal employees. The selected screenshot, conversation, and opted-in page context are sent to Google Gemini; other attachments stay in Odoo.
+                    All internal employees can read this feedback and its files. Gemini receives your message, selected screenshot, and any page details you share. Other files stay in Odoo.
                 </div>
 
                 <div t-if="state.recent.length" class="mt-4 pt-3 border-top">
-                    <div class="small text-uppercase text-muted fw-semibold mb-2">Recent feedback</div>
+                    <div class="small text-muted fw-semibold mb-2">Your feedback</div>
                     <button t-foreach="state.recent" t-as="task" t-key="task.id" type="button" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 mb-2" t-on-click="() => this.resumeTask(task)">
                         <span class="text-truncate flex-grow-1" t-out="task.name"/>
                         <span class="badge text-bg-secondary" t-out="task.stage"/>
@@ -100,34 +100,34 @@
                     <div t-if="state.error" class="alert alert-danger py-2 px-3 mb-2" role="alert" aria-live="assertive" t-out="state.error"/>
                     <button class="btn btn-primary w-100" type="button" t-att-disabled="!state.message.trim() or state.busy" t-on-click="submitInitial">
                         <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
-                        Start conversation
+                        Send feedback
                     </button>
                 </footer>
             </div>
 
             <div t-else="" class="o-usl-FeedbackPanel-conversation flex-grow-1 d-flex flex-column overflow-hidden">
                 <div t-if="['queued', 'processing'].includes(state.task.agent_state)" class="small text-muted border-bottom px-3 py-2" aria-live="polite">
-                    <i class="fa fa-circle-o-notch fa-spin me-1"/>The assistant is reviewing your latest message…
+                    <i class="fa fa-circle-o-notch fa-spin me-1"/>Reviewing your feedback…
                 </div>
                 <div t-if="state.task.agent_state === 'error'" class="alert alert-warning rounded-0 border-0 border-bottom mb-0 d-flex align-items-center gap-2" role="alert">
                     <span class="flex-grow-1" t-out="state.task.agent_error"/>
-                    <button class="btn btn-sm btn-outline-dark" type="button" t-on-click="retry" t-att-disabled="state.busy">Retry</button>
+                    <button class="btn btn-sm btn-outline-dark" type="button" t-on-click="retry" t-att-disabled="state.busy">Try again</button>
                 </div>
                 <div t-if="state.task.agent_state === 'ready'" class="o-usl-FeedbackPanel-ready border-bottom p-3" role="status" aria-live="polite">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="fa fa-check-circle text-success"/>
-                        <strong>Brief ready for your confirmation</strong>
+                        <strong>Review your feedback</strong>
                     </div>
                     <div class="fw-semibold" t-out="state.task.name"/>
                     <div class="o-usl-FeedbackPanel-readyDescription small text-muted mt-1 text-pre-wrap o-scrollbar-thin" t-out="state.task.description_text"/>
                     <div class="o-usl-FeedbackPanel-readyActions d-flex align-items-center flex-wrap gap-2 mt-3">
                         <span class="badge text-bg-light border" t-out="state.task.category"/>
-                        <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" t-on-click="keepRefining">Keep refining</button>
-                        <button class="btn btn-primary btn-sm" type="button" t-on-click="confirmTriage" t-att-disabled="state.busy">Confirm and send to Triage</button>
+                        <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" t-on-click="keepRefining">Add details</button>
+                        <button class="btn btn-primary btn-sm" type="button" t-on-click="confirmTriage" t-att-disabled="state.busy">Send to product team</button>
                     </div>
                 </div>
                 <div t-if="state.task.agent_state === 'triaged'" class="alert alert-success rounded-0 border-0 border-bottom mb-0 py-2 px-3" role="status">
-                    Confirmed. The card is now in Triage for the product team.
+                    Sent to the product team.
                 </div>
                 <div class="flex-grow-1 min-h-0">
                     <Chatter threadModel="'project.task'" threadId="state.task.id" composer="!['queued', 'processing', 'triaged'].includes(state.task.agent_state)" t-key="state.task.id"/>
@@ -144,21 +144,21 @@
             t-on-keydown="this.onKeydown"
             tabindex="-1"
             role="dialog"
-            aria-label="Product feedback conversation"
+            aria-label="Feedback conversation"
         >
             <div class="o-mail-ChatWindow-header d-flex align-items-center flex-shrink-0 bg-100 z-1 border-bottom border-dark o-border-opacity-15"
                 t-att-class="{ 'cursor-pointer': !this.ui.isSmall }"
                 t-on-click="this.onClickHeader"
-                title="Fold product feedback"
+                title="Fold feedback"
             >
                 <span class="o-usl-FeedbackChatWindow-avatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white small my-2 ms-3 me-2" aria-hidden="true">
                     <i class="fa fa-commenting-o"/>
                 </span>
-                <div class="text-truncate fw-bold fs-5 flex-grow-1">Product feedback</div>
-                <button t-if="!this.ui.isSmall" class="btn btn-link text-body px-2" type="button" t-on-click.stop="() => this.feedbackChatWindow.fold()" title="Fold product feedback" aria-label="Fold product feedback">
+                <div class="text-truncate fw-bold fs-5 flex-grow-1">Feedback</div>
+                <button t-if="!this.ui.isSmall" class="btn btn-link text-body px-2" type="button" t-on-click.stop="() => this.feedbackChatWindow.fold()" title="Fold feedback" aria-label="Fold feedback">
                     <i class="fa fa-minus"/>
                 </button>
-                <button class="btn btn-link text-body px-2 me-1" type="button" t-on-click.stop="this.close" title="Close product feedback" aria-label="Close product feedback">
+                <button class="btn btn-link text-body px-2 me-1" type="button" t-on-click.stop="this.close" title="Close feedback" aria-label="Close feedback">
                     <i class="oi oi-close"/>
                 </button>
             </div>
@@ -170,10 +170,10 @@
 
     <t t-name="usl_feedback.FeedbackChatBubble">
         <div class="o-mail-ChatBubble o-usl-FeedbackChatBubble position-relative" name="Product feedback">
-            <button class="o-mail-ChatBubble-close position-absolute shadow rounded-circle fw-bold bg-view" type="button" title="Close product feedback" aria-label="Close product feedback" t-on-click.stop="() => this.feedbackChatWindow.close()">
+            <button class="o-mail-ChatBubble-close position-absolute shadow rounded-circle fw-bold bg-view" type="button" title="Close feedback" aria-label="Close feedback" t-on-click.stop="() => this.feedbackChatWindow.close()">
                 <i class="oi oi-close"/>
             </button>
-            <button class="o-mail-ChatHub-bubbleBtn o-usl-FeedbackChatBubble-button btn shadow d-flex align-items-center justify-content-center bg-primary text-white" type="button" title="Open product feedback" aria-label="Open product feedback" t-on-click="() => this.feedbackChatWindow.open()">
+            <button class="o-mail-ChatHub-bubbleBtn o-usl-FeedbackChatBubble-button btn shadow d-flex align-items-center justify-content-center bg-primary text-white" type="button" title="Open feedback" aria-label="Open feedback" t-on-click="() => this.feedbackChatWindow.open()">
                 <i class="fa fa-commenting-o fs-4"/>
             </button>
         </div>
@@ -193,7 +193,7 @@
 
     <t t-inherit="mail.MessagingMenu.content" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('o-mail-MessagingMenu-header')]" position="inside">
-            <button t-if="this.store.discuss.activeTab === 'chat'" class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Capture this screen and start product feedback">
+            <button t-if="this.store.discuss.activeTab === 'chat'" class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Capture this screen and send feedback">
                 <i class="fa fa-commenting-o me-1"/>Feedback
             </button>
         </xpath>
