@@ -186,7 +186,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("pull_request:", self.workflow)
         self.assertNotIn("merge_group:", self.workflow)
         self.assertNotIn("workflow_dispatch:", self.workflow)
-        self.assertIn("ref: 78515eaf6b03441e1b67f27979246247ac270d71", self.workflow)
+        self.assertIn("ref: main", self.workflow)
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
 
     def test_product_module_perimeters_are_identical(self) -> None:

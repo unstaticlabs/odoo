@@ -63,7 +63,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: unstaticlabs/odoo-mcp
-          ref: 78515eaf6b03441e1b67f27979246247ac270d71
+          # The compatibility contract resolves the declared `main` ref and
+          # separately requires its commit to equal release.json exactly.
+          ref: main
           path: .release/odoo-mcp
           persist-credentials: false
 
