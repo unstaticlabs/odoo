@@ -11,6 +11,8 @@ odoo_secret_dir="$sign_dir/odoo"
 dss_secret_dir="$sign_dir/dss"
 step_image=${USL_SIGN_STEP_CA_IMAGE:-smallstep/step-ca:0.30.2@sha256:a2b17872915c193259b75a5474c398326f41bd199f0842093e52cf4182bc8270}
 java_image=${USL_SIGN_JAVA_IMAGE:-eclipse-temurin:21-jre-alpine@sha256:3f08b13888f595cc49edabea7250ba69499ba25602b267da591720769400e08c}
+dss_image=${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}
+odoo_image=${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
 
 if [ -e "$step_dir/config/ca.json" ] || [ -e "$odoo_secret_dir/provisioner.jwk" ]; then
     echo "USL Sign secrets already exist. This bootstrap never overwrites a CA." >&2
@@ -26,6 +28,13 @@ openssl rand -base64 36 > "$sign_dir/bootstrap-provisioner-password"
 openssl rand -base64 36 > "$sign_dir/jwk-password-unused"
 openssl rand -base64 36 > "$sign_dir/dss-keystore-password"
 openssl rand -base64 36 > "$sign_dir/manifest-keystore-password"
+
+# Linux bind mounts preserve host ownership. Ensure the non-root Step CA image
+# can read its password and initialize its mounted state directory.
+step_uid="$(docker run --rm --entrypoint id "$step_image" -u)"
+step_gid="$(docker run --rm --entrypoint id "$step_image" -g)"
+chown -R "$step_uid:$step_gid" "$step_dir"
+chown "$step_uid:$step_gid" "$sign_dir/bootstrap-provisioner-password"
 
 docker run --rm \
     -v "$step_dir:/home/step" \
@@ -44,6 +53,7 @@ mv "$step_dir/secrets/root_ca_key" "$offline_root_dir/root_ca_key"
 cp "$step_dir/certs/root_ca.crt" "$offline_root_dir/root_ca.crt"
 cp "$repo_root/services/usl-sign-step-ca/personal-certificate.tpl" \
     "$step_dir/templates/personal-certificate.tpl"
+chown "$step_uid:$step_gid" "$step_dir/templates/personal-certificate.tpl"
 
 docker run --rm \
     -v "$step_dir:/home/step" \
@@ -203,6 +213,12 @@ rm "$sign_dir/chain.pem" "$dss_password_file" "$manifest_password_file"
 chmod 600 "$odoo_secret_dir"/* "$dss_secret_dir"/* "$sign_dir"/*.env
 chmod 600 "$step_dir/password" "$step_dir/secrets/intermediate_ca_key"
 chmod 644 "$step_dir/certs"/*.crt "$odoo_secret_dir"/*.crt
+dss_uid="$(docker run --rm --entrypoint id "$dss_image" -u)"
+dss_gid="$(docker run --rm --entrypoint id "$dss_image" -g)"
+odoo_uid="$(docker run --rm --entrypoint id "$odoo_image" -u)"
+odoo_gid="$(docker run --rm --entrypoint id "$odoo_image" -g)"
+chown -R "$dss_uid:$dss_gid" "$dss_secret_dir"
+chown -R "$odoo_uid:$odoo_gid" "$odoo_secret_dir"
 
 echo "USL Sign CA, DSS mTLS, separate platform/manifest keys, and Odoo client material initialized."
 echo "The root private key is offline at $offline_root_dir and is not mounted by Compose."
