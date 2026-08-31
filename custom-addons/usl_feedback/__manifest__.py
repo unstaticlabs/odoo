@@ -18,6 +18,7 @@
     "assets": {
         "web.assets_backend": [
             "usl_feedback/static/src/js/feedback_messaging_menu.js",
+            "usl_feedback/static/src/js/feedback_chat_window.js",
             "usl_feedback/static/src/xml/feedback_messaging_menu.xml",
             "usl_feedback/static/src/scss/feedback.scss",
         ],

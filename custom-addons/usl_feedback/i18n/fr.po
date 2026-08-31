@@ -151,12 +151,6 @@ msgstr "Tentatives"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Back to Chats"
-msgstr "Retour aux discussions"
-
-#. module: usl_feedback
-#. odoo-javascript
-#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Board"
 msgstr "Tableau"
 
@@ -251,6 +245,12 @@ msgid "Confirmed. The card is now in Triage for the product team."
 msgstr ""
 "Confirmation enregistrée. La carte est maintenant au triage pour l’équipe "
 "produit."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Close product feedback"
+msgstr "Fermer le retour produit"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
@@ -487,6 +487,12 @@ msgstr ""
 #: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Feedback confirmed and sent to Triage."
 msgstr "Retour confirmé et envoyé au triage."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Fold product feedback"
+msgstr "Réduire le retour produit"
 
 #. module: usl_feedback
 #. odoo-javascript
@@ -746,6 +752,12 @@ msgstr ""
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Open feedback board"
 msgstr "Ouvrir le tableau des retours"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Open product feedback"
+msgstr "Ouvrir le retour produit"
 
 #. module: usl_feedback
 #. odoo-python

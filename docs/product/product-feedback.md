@@ -3,15 +3,18 @@
 ## Product contract
 
 Every authenticated internal user can open **Feedback** from the **Chats** tab
-of Odoo's top-right messaging drawer. Odoo first offers a freshly captured
-image of the current screen, selected by default, then asks the reporter to
-describe the issue or opportunity. The reporter may remove the capture, add up
-to ten supporting files and opt in to sanitized page context.
+of Odoo's top-right messaging drawer. After capture, the drawer closes and a
+native-style floating conversation opens in Odoo's ChatHub. Odoo first offers
+a freshly captured image of the current screen, selected by default, then asks
+the reporter to describe the issue or opportunity. The reporter may remove the
+capture, add up to ten supporting files and opt in to sanitized page context.
 
 The first message creates a partial `project.task` in **Inbox before any
-provider call**. The in-drawer conversation then uses native task chatter while
+provider call**. The floating conversation then uses native task chatter while
 the Feedback Assistant asks up to three clarification questions and refines the
-same card. The reporter reviews the proposed brief and must explicitly choose
+same card. It folds into the ChatHub like an ordinary chat, becomes fullscreen
+on narrow screens and closes with the standard Escape/back behavior. The
+reporter reviews the proposed brief and must explicitly choose
 **Confirm and send to Triage**. Only that confirmation moves the card out of
 Inbox. **Recent feedback** restores the reporter's saved conversations after a
 reload or return to Odoo, while **New feedback** starts a separate Inbox card.
@@ -88,16 +91,20 @@ remain inside Odoo: feedback chatter suppresses outgoing email delivery.
 
 ## Architecture decision
 
-The selected path patches Odoo's native `MessagingMenu` and embeds native
-`Chatter` against the canonical task. It is available where users already look
-for conversations, preserves the current action behind the drawer, works on
-desktop and mobile, and avoids a second ticket/conversation model.
+The selected path patches Odoo's native `MessagingMenu` only to add the
+launcher, then extends `ChatHub` with a module-owned floating window that embeds
+native `Chatter` against the canonical task. It follows Odoo's normal chat
+launch, fold, close, focus, desktop positioning and mobile fullscreen patterns,
+preserves the current action behind the conversation, and avoids a second
+ticket/conversation model.
 
-The native Odoo alternative was a standalone Project form or user-menu wizard.
-It remains useful for maintainers, but it exposes implementation fields too
-early and cannot sustain clarification without leaving the reporting context.
-The OCA/helpdesk alternative introduces a second canonical record and stage
-system. Neither fits as well as the native Chats drawer plus `project.task`.
+Stock `mail.ChatWindow` was also evaluated. It is hard-wired to a
+`discuss.channel`, so using it directly would create a duplicate conversation
+beside the task chatter. A standalone Project form or user-menu wizard exposes
+implementation fields too early and cannot sustain clarification without
+leaving the reporting context. The OCA/helpdesk alternative introduces a
+second canonical record and stage system. The ChatHub extension preserves the
+native interaction while keeping `project.task` and its chatter canonical.
 
 ## Installation, upgrade and recovery
 

@@ -17,6 +17,7 @@ import {
     feedbackPageContext,
     focusFeedbackComposer,
 } from "../src/js/feedback_messaging_menu";
+import { FeedbackChatWindowService } from "../src/js/feedback_chat_window";
 
 defineMailModels();
 
@@ -146,6 +147,48 @@ test("cancelled screenshot capture remains a safe fallback", async () => {
             getDisplayMedia: () => Promise.reject(new Error("capture cancelled")),
         })
     ).rejects.toThrow("capture cancelled");
+});
+
+test("feedback chat window preserves its draft while folding and clears evidence on close", () => {
+    let folded = false;
+    const opened = [];
+    const nativeWindow = {
+        fold() {
+            folded = true;
+            opened.pop();
+        },
+    };
+    opened.push(nativeWindow);
+    const store = {
+        chatHub: {
+            opened,
+            maxOpened: 1,
+        },
+    };
+    const service = new FeedbackChatWindowService(
+        { bus: { trigger() {} } },
+        { "mail.store": store }
+    );
+    const payload = {
+        pageContext: { action_id: 7 },
+        screenshot: { name: "screen.jpg" },
+        captureError: false,
+    };
+
+    service.open(payload);
+    expect(folded).toBe(true);
+    expect(service.mode).toBe("open");
+    expect(service.screenshot.name).toBe("screen.jpg");
+
+    service.fold();
+    service.open();
+    expect(service.mode).toBe("open");
+    expect(service.pageContext.action_id).toBe(7);
+
+    service.close();
+    expect(service.mode).toBe("closed");
+    expect(service.pageContext).toBe(false);
+    expect(service.screenshot).toBe(false);
 });
 
 test("refining opens the native Chatter composer before focusing it", async () => {

@@ -6,19 +6,13 @@
         OWN-WORLD: MessagingMenu, native Chatter, Project tasks, restrained feedback states, and familiar Odoo controls.
         STORY: Preserve evidence first; describe; clarify with the assistant; inspect the brief; confirm Triage.
         FIRST VIEWPORT: One prompt, the captured screenshot choice, the disclosure, and one clear send action.
-        FORM: Established Operate extension of Odoo Chats; the confirmed product brief governs this implementation.
+        FORM: Established Operate extension of Odoo ChatHub; the confirmed product brief governs this implementation.
         FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Product feedback conversation">
-            <header class="d-flex align-items-center gap-2 px-3 py-2 border-bottom flex-shrink-0">
-                <button class="o-usl-FeedbackPanel-headerAction btn btn-link p-0 text-body" type="button" t-on-click="props.close" title="Back to Chats" aria-label="Back to Chats">
-                    <i class="oi oi-arrow-left"/>
-                </button>
-                <div class="flex-grow-1 min-w-0">
-                    <div class="fw-semibold text-truncate">Product feedback</div>
-                    <div class="small text-muted text-truncate" t-if="state.task" t-out="state.task.name"/>
-                    <div class="small text-muted" t-else="">Conversation with the Feedback Assistant</div>
-                </div>
+            <div class="o-usl-FeedbackPanel-toolbar d-flex align-items-center gap-1 px-2 py-1 border-bottom flex-shrink-0">
+                <div class="small text-muted text-truncate flex-grow-1 px-1" t-if="state.task" t-out="state.task.name"/>
+                <div class="small text-muted flex-grow-1 px-1" t-else="">Conversation with the Feedback Assistant</div>
                 <button class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="openBoard" title="Open feedback board" aria-label="Open feedback board">
                     <i class="fa fa-columns"/><span class="d-none d-sm-inline">Board</span>
                 </button>
@@ -28,7 +22,7 @@
                 <button t-if="state.task" class="o-usl-FeedbackPanel-headerAction btn btn-sm btn-link d-inline-flex align-items-center justify-content-center gap-1" type="button" t-on-click="newConversation" title="New feedback" aria-label="New feedback">
                     <i class="fa fa-plus"/><span class="d-none d-sm-inline">New feedback</span>
                 </button>
-            </header>
+            </div>
 
             <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
                 <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing feedback…</span>
@@ -142,15 +136,66 @@
         </section>
     </t>
 
+    <t t-name="usl_feedback.FeedbackChatWindow">
+        <div class="o-mail-ChatWindow o-usl-FeedbackChatWindow fixed-bottom overflow-hidden d-flex flex-column shadow bg-100"
+            t-ref="root"
+            t-att-style="this.style"
+            t-att-class="this.attClass"
+            t-on-keydown="this.onKeydown"
+            tabindex="-1"
+            role="dialog"
+            aria-label="Product feedback conversation"
+        >
+            <div class="o-mail-ChatWindow-header d-flex align-items-center flex-shrink-0 bg-100 z-1 border-bottom border-dark o-border-opacity-15"
+                t-att-class="{ 'cursor-pointer': !this.ui.isSmall }"
+                t-on-click="this.onClickHeader"
+                title="Fold product feedback"
+            >
+                <span class="o-usl-FeedbackChatWindow-avatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white small my-2 ms-3 me-2" aria-hidden="true">
+                    <i class="fa fa-commenting-o"/>
+                </span>
+                <div class="text-truncate fw-bold fs-5 flex-grow-1">Product feedback</div>
+                <button t-if="!this.ui.isSmall" class="btn btn-link text-body px-2" type="button" t-on-click.stop="() => this.feedbackChatWindow.fold()" title="Fold product feedback" aria-label="Fold product feedback">
+                    <i class="fa fa-minus"/>
+                </button>
+                <button class="btn btn-link text-body px-2 me-1" type="button" t-on-click.stop="this.close" title="Close product feedback" aria-label="Close product feedback">
+                    <i class="oi oi-close"/>
+                </button>
+            </div>
+            <div class="d-flex flex-column h-100 min-h-0 overflow-hidden position-relative bg-inherit">
+                <FeedbackPanel close.bind="this.close" pageContext="this.feedbackChatWindow.pageContext" screenshot="this.feedbackChatWindow.screenshot" captureError="this.feedbackChatWindow.captureError"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="usl_feedback.FeedbackChatBubble">
+        <div class="o-mail-ChatBubble o-usl-FeedbackChatBubble position-relative" name="Product feedback">
+            <button class="o-mail-ChatBubble-close position-absolute shadow rounded-circle fw-bold bg-view" type="button" title="Close product feedback" aria-label="Close product feedback" t-on-click.stop="() => this.feedbackChatWindow.close()">
+                <i class="oi oi-close"/>
+            </button>
+            <button class="o-mail-ChatHub-bubbleBtn o-usl-FeedbackChatBubble-button btn shadow d-flex align-items-center justify-content-center bg-primary text-white" type="button" title="Open product feedback" aria-label="Open product feedback" t-on-click="() => this.feedbackChatWindow.open()">
+                <i class="fa fa-commenting-o fs-4"/>
+            </button>
+        </div>
+    </t>
+
+    <t t-inherit="mail.ChatHub" t-inherit-mode="extension">
+        <xpath expr="//ChatWindow" position="attributes">
+            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1 + (this.feedbackChatWindow.mode === 'open' ? 1 : 0)) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-ChatHub-bubbles')]" position="before">
+            <FeedbackChatWindow t-if="this.feedbackChatWindow.mode !== 'closed'" hidden="this.feedbackChatWindow.mode === 'folded'" right="this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER * 2)"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-gap-1_5')]" position="inside">
+            <FeedbackChatBubble t-if="this.feedbackChatWindow.mode === 'folded'"/>
+        </xpath>
+    </t>
+
     <t t-inherit="mail.MessagingMenu.content" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('o-mail-MessagingMenu-header')]" position="inside">
-            <button t-if="this.store.discuss.activeTab === 'chat' and !this.state.feedbackOpen" class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Capture this screen and start product feedback">
+            <button t-if="this.store.discuss.activeTab === 'chat'" class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Capture this screen and start product feedback">
                 <i class="fa fa-commenting-o me-1"/>Feedback
             </button>
-        </xpath>
-        <xpath expr="//DiscussContent" position="replace">
-            <FeedbackPanel t-if="this.state.feedbackOpen" close.bind="this.closeFeedback" pageContext="this.state.feedbackPageContext" screenshot="this.state.feedbackScreenshot" captureError="this.state.feedbackCaptureError"/>
-            <DiscussContent t-elif="['inbox', 'bookmark'].includes(this.store.discuss.activeTab) and this.ui.isSmall"/>
         </xpath>
     </t>
 </templates>

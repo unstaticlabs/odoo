@@ -401,36 +401,28 @@ export class FeedbackPanel extends Component {
     }
 }
 
-Object.assign(MessagingMenu.components, { FeedbackPanel });
-
 patch(MessagingMenu.prototype, {
     setup() {
-        super.setup();
-        Object.assign(this.state, {
-            feedbackOpen: false,
-            feedbackScreenshot: false,
-            feedbackPageContext: false,
-            feedbackCaptureError: false,
-        });
+        super.setup(...arguments);
+        this.feedbackChatWindow = useService("usl_feedback.chat_window");
     },
 
     async onClickFeedback() {
-        this.state.feedbackPageContext = feedbackPageContext(
-            this.env.services.action.currentController
-        );
-        this.state.feedbackCaptureError = false;
-        try {
-            this.state.feedbackScreenshot = await captureFeedbackScreenshot();
-            this.state.feedbackCaptureError = !this.state.feedbackScreenshot;
-        } catch {
-            this.state.feedbackScreenshot = false;
-            this.state.feedbackCaptureError = true;
+        if (!this.feedbackChatWindow.isClosed) {
+            this.feedbackChatWindow.open();
+            this.dropdown.close();
+            return;
         }
-        this.state.feedbackOpen = true;
-    },
-
-    closeFeedback() {
-        this.state.feedbackOpen = false;
-        this.state.feedbackScreenshot = false;
+        const pageContext = feedbackPageContext(this.env.services.action.currentController);
+        let screenshot = false;
+        let captureError = false;
+        try {
+            screenshot = await captureFeedbackScreenshot();
+            captureError = !screenshot;
+        } catch {
+            captureError = true;
+        }
+        this.feedbackChatWindow.open({ pageContext, screenshot, captureError });
+        this.dropdown.close();
     },
 });

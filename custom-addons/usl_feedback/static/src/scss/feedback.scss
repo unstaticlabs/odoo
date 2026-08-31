@@ -3,9 +3,9 @@
 }
 
 .o-usl-FeedbackPanel {
-    min-height: 520px;
-    max-height: calc(100vh - 8rem);
-    background: var(--mail-MessagingMenu-bg, #{$o-view-background-color});
+    min-height: 0;
+    height: 100%;
+    background: $o-view-background-color;
 
     .min-w-0 {
         min-width: 0;
@@ -39,23 +39,37 @@
     }
 }
 
-.o-mail-MessagingMenu.o-small .o-usl-FeedbackPanel {
-    min-height: 0;
-    height: 100%;
-
-    .o-usl-FeedbackPanel-draft {
-        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+.o-usl-FeedbackChatWindow {
+    .o-usl-FeedbackChatWindow-avatar {
+        width: 24px;
+        height: 24px;
     }
 
+    .o-mail-ChatWindow-header {
+        min-height: 42px;
+    }
+}
+
+.o-usl-FeedbackChatBubble-button {
+    width: $o-mail-ChatBubble-sizeBig;
+    height: $o-mail-ChatBubble-sizeBig;
+}
+
+.o-usl-FeedbackChatBubble:hover .o-mail-ChatBubble-close {
+    display: inline-flex;
+}
+
+.o-usl-FeedbackChatWindow.o-mobile .o-usl-FeedbackPanel {
+    padding-bottom: env(safe-area-inset-bottom);
+
+    .o-usl-FeedbackPanel-draft {
+        min-height: 0;
+    }
 }
 
 @media (max-width: 575.98px) {
     .o-usl-FeedbackButton {
         margin-inline-start: 0 !important;
-    }
-
-    .o-usl-FeedbackPanel header {
-        padding-inline: 1rem !important;
     }
 
     .o-usl-FeedbackPanel-headerAction {

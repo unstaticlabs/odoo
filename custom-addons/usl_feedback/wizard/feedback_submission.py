@@ -16,7 +16,7 @@ SCREENSHOT_MIMETYPES = {"image/jpeg", "image/png"}
 
 
 class FeedbackSubmission(models.TransientModel):
-    """Short-lived drawer draft; the canonical feedback record is always project.task."""
+    """Short-lived chat draft; the canonical feedback record is always project.task."""
 
     _name = "usl.feedback.submission"
     _description = "Product Feedback Conversation Draft"
