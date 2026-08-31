@@ -684,7 +684,7 @@ confirmed_fingerprint() {
 
 admit() {
   local env_file="${2:-}" candidate_argument="${3:-}" fingerprint
-  local candidate project state database cron
+  local candidate project state database cron cron_policy cron_gates
   fingerprint="$(confirmed_fingerprint "$@")"
   CUTOVER_VALIDATION_PHASE=configured \
     verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
@@ -696,17 +696,28 @@ admit() {
     printf 'USL_PRODUCTION_CRON_THREADS must be an approved value from 1 to 4.\n' >&2
     exit 2
   fi
-  # Disable reset before enabling workers. A failed worker start remains
-  # recoverable from normal coordinated backups, never candidate reset.
-  transition "$state" "$fingerprint" admit
+  cron_policy="$(cat deploy/production.cron-policy.json)"
+  cron_gates="$(env_field "$env_file" "$candidate" USL_PRODUCTION_CRON_GATES_JSON)"
+  run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
+    -e USL_PRODUCTION_CRON_POLICY_JSON="$cron_policy" \
+    -e USL_PRODUCTION_CRON_GATES_JSON="$cron_gates" \
+    -e USL_PRODUCTION_ADMISSION_APPLY=0 \
+    -e USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED=1
+  run_odoo_shell "$database" scripts/odoo/production_activate.py \
+    -e USL_PRODUCTION_ACTIVATION_CONFIRM="$fingerprint"
   run_odoo_shell "$database" scripts/odoo/production_record_admission.py \
     -e USL_ADMITTED_CANDIDATE_FINGERPRINT="$fingerprint"
+  # Disable reset before enabling workers. A failed worker start remains
+  # recoverable from the coordinated pre-admission backup, never candidate reset.
+  transition "$state" "$fingerprint" admit
   start_sign_services
   ODOO_MAX_CRON_THREADS="$cron" "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
   start_mcp_service
+  run_odoo_shell "$database" scripts/odoo/production_side_effect_boundary.py \
+    -e USL_PRODUCTION_SIDE_EFFECT_MODE=admitted
   printf 'Candidate admitted; reset permanently disabled.\n'
-  printf 'Ingress activation is still owned by infrastructure. Regulatory/outbound integrations remain disabled.\n'
+  printf 'Ingress activation is still owned by infrastructure. Regulatory integrations remain disabled.\n'
 }
 
 reset_candidate() {

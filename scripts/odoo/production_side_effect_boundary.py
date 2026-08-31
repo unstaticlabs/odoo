@@ -24,6 +24,8 @@ parameters = env["ir.config_parameter"].sudo()  # noqa: F821
 neutralized = parameters.get_bool("database.is_neutralized")
 if mode == "staged" and not neutralized:
     errors.append("Odoo staging neutralization marker is absent")
+if mode == "admitted" and neutralized:
+    errors.append("Odoo production remains neutralized")
 
 mail_servers = env["ir.mail_server"].sudo().search([])  # noqa: F821
 if mail_servers:

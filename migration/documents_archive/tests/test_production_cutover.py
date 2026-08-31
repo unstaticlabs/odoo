@@ -213,6 +213,9 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.assertIn("start_sign_services()", release_script)
         self.assertIn("python /usr/local/bin/usl-sign-services-smoke", release_script)
         self.assertIn("--profile document-renderer config", release_script)
+        self.assertIn("scripts/odoo/production_activate.py", release_script)
+        self.assertIn("USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED=1", release_script)
+        self.assertIn("USL_PRODUCTION_SIDE_EFFECT_MODE=admitted", release_script)
 
     def test_compose_passes_worker_budget_to_odoo(self):
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
