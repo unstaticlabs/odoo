@@ -14,7 +14,14 @@ ALIAS = "usl-bge-m3:documents-20260824-rc1"
 EXPECTED_DIGEST = "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab"
 
 
-def build(show: str, digest: str, *, archive_sha256: str, archive_size: int) -> dict:
+def build(
+    show: str,
+    digest: str,
+    *,
+    archive_sha256: str | None,
+    archive_size: int | None,
+    delivery_mode: str = "archive",
+) -> dict:
     normalized = " ".join(show.split())
     required = {
         "architecture": r"architecture bert",
@@ -30,8 +37,16 @@ def build(show: str, digest: str, *, archive_sha256: str, archive_size: int) -> 
         "passed"
         if not missing
         and digest == EXPECTED_DIGEST
-        and re.fullmatch(r"[0-9a-f]{64}", archive_sha256)
-        and archive_size > 0
+        and (
+            delivery_mode == "external-reference"
+            or (
+                delivery_mode == "archive"
+                and archive_sha256 is not None
+                and re.fullmatch(r"[0-9a-f]{64}", archive_sha256)
+                and archive_size is not None
+                and archive_size > 0
+            )
+        )
         else "partial"
     )
     return {
@@ -46,6 +61,7 @@ def build(show: str, digest: str, *, archive_sha256: str, archive_size: int) -> 
         "parameters": "566.70M",
         "quantization": "F16",
         "license": "MIT",
+        "delivery_mode": delivery_mode,
         "model_archive_sha256": archive_sha256,
         "model_archive_size": archive_size,
         "missing_qualified_fields": missing,
@@ -56,8 +72,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--show", type=Path, required=True)
     parser.add_argument("--digest", required=True)
-    parser.add_argument("--archive-sha256", required=True)
-    parser.add_argument("--archive-size", type=int, required=True)
+    parser.add_argument("--archive-sha256")
+    parser.add_argument("--archive-size", type=int)
+    parser.add_argument("--external-reference", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
@@ -66,6 +83,9 @@ def main() -> None:
             args.digest,
             archive_sha256=args.archive_sha256,
             archive_size=args.archive_size,
+            delivery_mode=(
+                "external-reference" if args.external_reference else "archive"
+            ),
         )
     except OSError as error:
         raise SystemExit(f"BGE-M3 manifest rejected: {error}") from error

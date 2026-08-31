@@ -29,6 +29,20 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
                     encoding="utf-8",
                 )
             path.chmod(0o600)
+        external = self.root / "embeddings/external-ollama.json"
+        external.write_text(
+            json.dumps(
+                {
+                    "schema": "usl-external-ollama-reference-v1",
+                    "status": "passed",
+                    "model": "bge-m3:latest",
+                    "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+                    "dimension": 1024,
+                },
+            ),
+            encoding="utf-8",
+        )
+        external.chmod(0o600)
         self.identity = Path(self.temporary.name) / "identity.json"
 
     def tearDown(self):
@@ -97,6 +111,23 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
         self.write_identity()
         (self.root / "mcp/image-identity.json").unlink()
         with self.assertRaisesRegex(bundle.BundleError, "required cohort artifacts"):
+            bundle.seal(self.root, self.identity)
+
+    def test_model_archive_and_external_reference_are_mutually_exclusive(self):
+        self.write_identity()
+        archive = self.root / "embeddings/ollama-data.tgz"
+        archive.write_text("model", encoding="utf-8")
+        archive.chmod(0o600)
+
+        with self.assertRaisesRegex(bundle.BundleError, "exactly one"):
+            bundle.seal(self.root, self.identity)
+
+    def test_invalid_external_reference_is_rejected(self):
+        self.write_identity()
+        external = self.root / "embeddings/external-ollama.json"
+        external.write_text('{"status":"passed"}', encoding="utf-8")
+
+        with self.assertRaisesRegex(bundle.BundleError, "not the qualified"):
             bundle.seal(self.root, self.identity)
 
     def test_symlinks_and_secret_shaped_names_are_rejected(self):

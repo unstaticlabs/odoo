@@ -23,7 +23,6 @@ REQUIRED_PATHS = (
     "paperless/paperless-data.tgz",
     "paperless/paperless-trash.tgz",
     "paperless/paperless-export.tgz",
-    "embeddings/ollama-data.tgz",
     "embeddings/bge-model-manifest.json",
     "embeddings/vector-index-manifest.json",
     "mcp/source-identity.json",
@@ -51,6 +50,9 @@ REQUIRED_PATHS = (
     "configuration/required-secret-names.json",
     "configuration/restore-instructions.md",
     "configuration/rollback-instructions.md",
+)
+MODEL_PAYLOAD_PATHS = frozenset(
+    {"embeddings/ollama-data.tgz", "embeddings/external-ollama.json"},
 )
 CONTROL_PATHS = frozenset({"manifest.json", "SHA256SUMS"})
 FORBIDDEN_NAME_PARTS = frozenset(
@@ -156,6 +158,22 @@ def artifact_manifest(root: Path) -> dict[str, dict[str, int | str]]:
     missing = sorted(set(REQUIRED_PATHS) - set(result))
     if missing:
         raise BundleError("required cohort artifacts are missing: " + ", ".join(missing))
+    model_payloads = MODEL_PAYLOAD_PATHS & set(result)
+    if len(model_payloads) != 1:
+        raise BundleError(
+            "cohort must contain exactly one bundled or external Ollama identity",
+        )
+    if "embeddings/external-ollama.json" in model_payloads:
+        external = read_json(root / "embeddings/external-ollama.json")
+        if (
+            external.get("schema") != "usl-external-ollama-reference-v1"
+            or external.get("status") != "passed"
+            or external.get("model") != "bge-m3:latest"
+            or external.get("manifest_sha256")
+            != "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab"
+            or external.get("dimension") != 1024
+        ):
+            raise BundleError("external Ollama identity is not the qualified BGE-M3 release")
     return result
 
 

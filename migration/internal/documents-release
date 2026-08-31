@@ -95,7 +95,7 @@ build_bundle() {
   local inventory_output paperless_output mcp_artifacts compose_json
   local paperless_clone odoo_clone model_digest model_archive_sha
   local model_archive_size paperless_image paperless_base_image
-  local ollama_runtime native_models_root
+  local ollama_runtime native_models_root model_delivery
   local odoo_volume paperless_broker_volume paperless_data_volume
   local paperless_media_volume paperless_trash_volume paperless_ollama_volume
   local -a ollama_services=()
@@ -112,6 +112,7 @@ build_bundle() {
   release_id="${USL_DOCUMENTS_RELEASE_ID:-documents-$(date -u +%Y%m%dT%H%M%SZ)}"
   output_root="${USL_DOCUMENTS_RELEASE_OUTPUT_ROOT:-$runtime_dir/cohorts}"
   target_platform="${USL_DOCUMENTS_TARGET_PLATFORM:-linux/amd64}"
+  model_delivery="${USL_DOCUMENTS_MODEL_DELIVERY:-archive}"
   allow_partial="${USL_DOCUMENTS_RELEASE_ALLOW_PARTIAL:-0}"
   require_safe_name "Compose project" "$project"
   require_safe_name "database" "$database"
@@ -126,6 +127,10 @@ build_bundle() {
   }
   [[ "$allow_partial" =~ ^[01]$ ]] || {
     printf 'USL_DOCUMENTS_RELEASE_ALLOW_PARTIAL must be 0 or 1.\n' >&2
+    exit 2
+  }
+  [[ "$model_delivery" =~ ^(archive|external-reference)$ ]] || {
+    printf 'USL_DOCUMENTS_MODEL_DELIVERY must be archive or external-reference.\n' >&2
     exit 2
   }
   output_root="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).expanduser().resolve())' "$output_root")"
@@ -366,7 +371,12 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$bundle/paperless/paperless-media.tgz"
   archive_volume "$paperless_trash_volume" \
     "$bundle/paperless/paperless-trash.tgz"
-  if [[ "$ollama_runtime" == native ]]; then
+  if [[ "$model_delivery" == external-reference ]]; then
+    python3 -c 'import json,sys; value={"schema":"usl-external-ollama-reference-v1","status":"passed","owner":"shared-vps-ollama","image":"ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131","model":"bge-m3:latest","manifest_sha256":sys.argv[1],"dimension":1024,"batch_size":32,"included_in_cohort":False}; open(sys.argv[2],"w").write(json.dumps(value,indent=2,sort_keys=True)+"\n")' \
+      "$model_digest" "$bundle/embeddings/external-ollama.json"
+    model_archive_sha=""
+    model_archive_size=""
+  elif [[ "$ollama_runtime" == native ]]; then
     python3 migration/documents_archive/ollama_model_archive.py create \
       --models-root "$native_models_root" \
       --expected-manifest-sha256 "$USL_OLLAMA_RELEASE_MANIFEST_SHA256" \
@@ -378,12 +388,18 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
   fi
   chmod 600 "$bundle/odoo/odoo-filestore.tgz" "$bundle"/*/*.dump
 
-  model_archive_sha="$(shasum -a 256 "$bundle/embeddings/ollama-data.tgz" | awk '{print $1}')"
-  model_archive_size="$(stat -f '%z' "$bundle/embeddings/ollama-data.tgz")"
-  python3 migration/documents_archive/bge_manifest.py \
-    --show "$temporary/bge-show.txt" --digest "$model_digest" \
-    --archive-sha256 "$model_archive_sha" --archive-size "$model_archive_size" \
-    --output "$temporary/bge-model-manifest.json"
+  if [[ "$model_delivery" == external-reference ]]; then
+    python3 migration/documents_archive/bge_manifest.py \
+      --show "$temporary/bge-show.txt" --digest "$model_digest" \
+      --external-reference --output "$temporary/bge-model-manifest.json"
+  else
+    model_archive_sha="$(shasum -a 256 "$bundle/embeddings/ollama-data.tgz" | awk '{print $1}')"
+    model_archive_size="$(stat -f '%z' "$bundle/embeddings/ollama-data.tgz")"
+    python3 migration/documents_archive/bge_manifest.py \
+      --show "$temporary/bge-show.txt" --digest "$model_digest" \
+      --archive-sha256 "$model_archive_sha" --archive-size "$model_archive_size" \
+      --output "$temporary/bge-model-manifest.json"
+  fi
   install -m 0600 "$temporary/bge-model-manifest.json" \
     "$bundle/embeddings/bge-model-manifest.json"
   install -m 0600 "$temporary/vector-index-manifest.json" \
@@ -483,7 +499,7 @@ restore_bundle() {
   python3 migration/documents_archive/release_bundle.py verify "$bundle"
   usl_prepare_ollama_runtime "$ROOT"
   ollama_runtime="$USL_OLLAMA_RUNTIME_SELECTED"
-  if [[ "$ollama_runtime" == native ]]; then
+  if [[ "$ollama_runtime" == native && -f "$bundle/embeddings/ollama-data.tgz" ]]; then
     native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
     python3 migration/documents_archive/ollama_model_archive.py inspect \
       --archive "$bundle/embeddings/ollama-data.tgz" >/dev/null
@@ -562,6 +578,10 @@ chmod 700 /target/sessions
   restore_volume "$paperless_export_volume" \
     "$bundle/paperless/paperless-export.tgz"
   if [[ "$ollama_runtime" == container ]]; then
+    [[ -f "$bundle/embeddings/ollama-data.tgz" ]] || {
+      printf 'Container Ollama restore requires a bundled model archive.\n' >&2
+      exit 2
+    }
     restore_volume "$paperless_ollama_volume" \
       "$bundle/embeddings/ollama-data.tgz"
   fi
