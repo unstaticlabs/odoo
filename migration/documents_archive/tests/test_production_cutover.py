@@ -23,7 +23,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.fingerprint = "a" * 64
         self.image = f"ghcr.io/usl/odoo@sha256:{'b' * 64}"
         self.paperless_image = f"ghcr.io/usl/paperless@sha256:{'c' * 64}"
-        self.ollama_image = f"docker.io/ollama/ollama@sha256:{'d' * 64}"
+        self.ollama_image = "ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131"
         self.renderer_image = f"ghcr.io/usl/renderer@sha256:{'e' * 64}"
         self.step_ca_image = f"docker.io/smallstep/step-ca@sha256:{'f' * 64}"
         self.dss_image = f"ghcr.io/usl/sign-dss@sha256:{'1' * 64}"
@@ -79,6 +79,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_MCP_ALLOWED_ORIGINS": "chatgpt.com,claude.ai",
             "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO": "false",
             "ODOO_MCP_HTTP_PORT": "18000",
+            "ODOO_MCP_HEALTHCHECK_HOST": "mcp.usl.example",
             "ODOO_MCP_IMAGE": self.mcp_image,
             "ODOO_MCP_OAUTH_TRUSTED_ORIGINS": "https://chatgpt.com,https://claude.ai",
             "ODOO_MCP_PUBLIC_ORIGIN": "https://mcp.usl.example",
@@ -89,6 +90,13 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "ODOO_LIMIT_REQUEST": "8192",
             "ODOO_MAX_CRON_THREADS": "0",
             "ODOO_PUBLIC_BASE_URL": "https://odoo.usl.example",
+            "ODOO_SMTP_SERVER": "smtp.resend.com",
+            "ODOO_SMTP_PORT": "587",
+            "ODOO_SMTP_SSL": "True",
+            "ODOO_SMTP_USER": "resend",
+            "ODOO_SMTP_PASSWORD": "r" * 32,
+            "ODOO_EMAIL_FROM": "odoo@unstaticlabs.com",
+            "ODOO_FROM_FILTER": "unstaticlabs.com",
             "ODOO_WORKERS": "4",
             "PAPERLESS_ALLOWED_HOSTS": "documents.usl.example,paperless-webserver",
             "PAPERLESS_DB_NAME": "paperless",
@@ -99,6 +107,9 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "PAPERLESS_SECRET_KEY": "s" * 64,
             "PAPERLESS_PUBLIC_URL": "https://documents.usl.example",
             "PAPERLESS_PUBLIC_BASE_URL": "https://documents.usl.example",
+            "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+            "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+            "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
             "PAPERLESS_SSO_BASE_GROUP": "USL Odoo document users",
             "OLLAMA_IMAGE": self.ollama_image,
             "POCKET_ID_APP_URL": "https://identity.usl.example",
@@ -111,10 +122,26 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "USL_EREPORTING_LIVE_ENABLED": "0",
             "USL_EXTERNAL_IDENTITY_NETWORK": "identity-production",
             "USL_EXTERNAL_INGRESS_NETWORK": "ingress-production",
+            "USL_EXTERNAL_OLLAMA_NETWORK": "ollama",
+            "USL_EXTERNAL_OLLAMA_CONTAINER": "ollama",
             "USL_POCKET_ID_BREAK_GLASS_PASSWORD": "g" * 32,
             "USL_PRODUCTION_CRON_THREADS": "1",
+            "USL_PRODUCTION_CRON_GATES_JSON": json.dumps({
+                "always": True,
+                "digest": False,
+                "ots": False,
+                "pdp": False,
+                "project_ratings": False,
+                "purchase_reminders": False,
+                "sales_automation": False,
+                "smtp": True,
+                "stock": False,
+                "vies": False,
+            }),
             "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH": str(self.key_ring),
-            "USL_OLLAMA_RUNTIME": "container",
+            "USL_OLLAMA_RUNTIME": "external",
+            "USL_OLLAMA_MANIFEST_SHA256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+            "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
             "USL_DOCUMENT_RENDERER_CERT_DIR": self.sign_secret_directories[
                 "USL_DOCUMENT_RENDERER_CERT_DIR"
             ],
@@ -309,7 +336,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 f"ghcr.io/usl/paperless@sha256:{'e' * 64}",
                 "approved candidate",
             ),
-            ("OLLAMA_IMAGE", "ollama/ollama:latest", "not immutable"),
+            ("OLLAMA_IMAGE", "ollama/ollama:latest", "qualified runtime"),
             (
                 "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
                 "relative-key-ring.json",
@@ -418,9 +445,12 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 "paperless-webserver": {
                     "image": self.paperless_image,
                     "ports": [{"host_ip": "127.0.0.1"}],
-                    "networks": {"external-identity": None, "external-ingress": None},
+                    "networks": {"external-identity": None, "external-ingress": None, "external-ollama": None},
                 },
-                "paperless-ollama": {"image": self.ollama_image},
+                "paperless-model-preflight": {
+                    "image": self.paperless_image,
+                    "networks": {"external-ollama": None},
+                },
                 "odoo-mcp": {
                     "image": self.mcp_image,
                     "ports": [{"host_ip": "127.0.0.1"}],
@@ -443,6 +473,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "networks": {
                 "identity": {"name": "identity-production", "external": True},
                 "ingress": {"name": "ingress-production", "external": True},
+                "ollama": {"name": "ollama", "external": True},
             },
             "volumes": {
                 str(index): {

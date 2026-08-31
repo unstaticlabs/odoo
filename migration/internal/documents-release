@@ -151,11 +151,18 @@ build_bundle() {
 
   usl_prepare_ollama_runtime "$ROOT"
   ollama_runtime="$USL_OLLAMA_RUNTIME_SELECTED"
-  if [[ "$ollama_runtime" == native ]]; then
-    native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
-  else
-    ollama_services=(paperless-ollama)
-  fi
+  case "$ollama_runtime" in
+    native)
+      native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
+      ;;
+    container)
+      ollama_services=(paperless-ollama)
+      ;;
+    *)
+      printf 'Release capture requires the recorded native or owned container model.\n' >&2
+      exit 2
+      ;;
+  esac
 
   COMPOSE=(
     docker compose --env-file "$env_file" -p "$project"
@@ -480,8 +487,11 @@ restore_bundle() {
     native_models_root="${OLLAMA_MODELS:-${HOME}/.ollama/models}"
     python3 migration/documents_archive/ollama_model_archive.py inspect \
       --archive "$bundle/embeddings/ollama-data.tgz" >/dev/null
-  else
+  elif [[ "$ollama_runtime" == container ]]; then
     ollama_services=(paperless-ollama)
+  elif [[ "$ollama_runtime" != external ]]; then
+    printf 'Unsupported Ollama restore runtime: %s\n' "$ollama_runtime" >&2
+    exit 2
   fi
   COMPOSE=(docker compose --env-file "$env_file" -p "$restore_project")
   if [[ "${USL_DEPLOYMENT_ENV:-}" == production ]]; then
@@ -598,11 +608,24 @@ chmod 700 /target/sessions
     restored_bge_digest="$(shasum -a 256 \
       "$native_models_root/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1" \
       | awk '{print $1}')"
-  else
+  elif [[ "$ollama_runtime" == container ]]; then
     restored_bge_digest="$(
       "${COMPOSE[@]}" exec -T paperless-ollama sha256sum \
         /root/.ollama/models/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1 \
         | awk '{print $1}'
+    )"
+  else
+    restored_bge_digest="$(
+      "${COMPOSE[@]}" exec -T paperless-webserver python -c '
+import json, os, urllib.request
+endpoint = os.environ["PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT"].rstrip("/")
+model = os.environ["PAPERLESS_AI_LLM_EMBEDDING_MODEL"]
+models = json.load(urllib.request.urlopen(endpoint + "/api/tags", timeout=10)).get("models", [])
+matches = [item for item in models if item.get("name") == model]
+if len(matches) != 1:
+    raise SystemExit("shared Ollama model identity is ambiguous")
+print(matches[0].get("digest", ""))
+'
     )"
   fi
   python3 migration/documents_archive/release_recovery.py \

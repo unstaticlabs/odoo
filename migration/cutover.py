@@ -38,7 +38,6 @@ VOLUME_KEYS = (
     "USL_PAPERLESS_EXPORT_VOLUME",
     "USL_PAPERLESS_CONSUME_VOLUME",
     "USL_PAPERLESS_TRASH_VOLUME",
-    "USL_PAPERLESS_OLLAMA_VOLUME",
     "USL_ODOO_MCP_OAUTH_VOLUME",
 )
 SIGN_SECRET_DIRECTORIES = {
@@ -91,11 +90,19 @@ REQUIRED = (
     "ODOO_MCP_ALLOWED_ORIGINS",
     "ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO",
     "ODOO_MCP_HTTP_PORT",
+    "ODOO_MCP_HEALTHCHECK_HOST",
     "ODOO_MCP_IMAGE",
     "ODOO_MCP_OAUTH_TRUSTED_ORIGINS",
     "ODOO_MCP_PUBLIC_ORIGIN",
     "ODOO_MCP_RELEASE_COMMIT",
     "ODOO_PUBLIC_BASE_URL",
+    "ODOO_SMTP_SERVER",
+    "ODOO_SMTP_PORT",
+    "ODOO_SMTP_SSL",
+    "ODOO_SMTP_USER",
+    "ODOO_SMTP_PASSWORD",
+    "ODOO_EMAIL_FROM",
+    "ODOO_FROM_FILTER",
     "ODOO_WORKERS",
     "PAPERLESS_ALLOWED_HOSTS",
     "PAPERLESS_DB_NAME",
@@ -118,11 +125,19 @@ REQUIRED = (
     "USL_DEPLOYMENT_ENV",
     "USL_EXTERNAL_IDENTITY_NETWORK",
     "USL_EXTERNAL_INGRESS_NETWORK",
+    "USL_EXTERNAL_OLLAMA_NETWORK",
+    "USL_EXTERNAL_OLLAMA_CONTAINER",
     "USL_EINVOICE_LIVE_ENABLED",
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_PRODUCTION_CRON_THREADS",
+    "USL_PRODUCTION_CRON_GATES_JSON",
     "USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH",
     "USL_OLLAMA_RUNTIME",
+    "USL_OLLAMA_MANIFEST_SHA256",
+    "USL_OLLAMA_EMBEDDING_DIMENSION",
+    "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT",
+    "PAPERLESS_AI_LLM_EMBEDDING_MODEL",
+    "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE",
     "USL_DOCUMENT_RENDERER_CERT_DIR",
     "USL_DOCUMENT_RENDERER_IMAGE",
     "USL_SIGN_DSS_IMAGE",
@@ -250,8 +265,25 @@ def validate_environment(
         raise CutoverError("unsafe production Compose project name")
     if values["USL_DEPLOYMENT_ENV"] != "production":
         raise CutoverError("USL_DEPLOYMENT_ENV must be production")
-    if values["USL_OLLAMA_RUNTIME"] != "container":
-        raise CutoverError("production must use the pinned container Ollama runtime")
+    if values["USL_OLLAMA_RUNTIME"] != "external":
+        raise CutoverError("production must use the protected external Ollama runtime")
+    expected_ollama = {
+        "OLLAMA_IMAGE": "ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131",
+        "USL_EXTERNAL_OLLAMA_CONTAINER": "ollama",
+        "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+        "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+        "USL_OLLAMA_MANIFEST_SHA256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
+        "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
+    }
+    mismatched_ollama = [
+        name for name, expected in expected_ollama.items() if values.get(name) != expected
+    ]
+    if mismatched_ollama:
+        raise CutoverError(
+            "shared Ollama configuration differs from the qualified runtime: "
+            + ", ".join(mismatched_ollama)
+        )
     if values.get("USL_EINVOICE_LIVE_ENABLED", "") != "0" or values.get(
         "USL_EREPORTING_LIVE_ENABLED",
         "",
@@ -261,6 +293,39 @@ def validate_environment(
         raise CutoverError("public Odoo database manager must be disabled")
     if values.get("ODOO_MAX_CRON_THREADS") != "0":
         raise CutoverError("staging Odoo cron must be paused")
+    cron_policy = read_json(
+        Path(__file__).resolve().parents[1] / "deploy/production.cron-policy.json"
+    )
+    try:
+        cron_gates = json.loads(values["USL_PRODUCTION_CRON_GATES_JSON"])
+    except json.JSONDecodeError as error:
+        raise CutoverError("production cron gate decisions are invalid JSON") from error
+    if (
+        cron_policy.get("schema") != "usl-production-cron-policy-v1"
+        or not isinstance(cron_gates, dict)
+        or set(cron_gates) != set(cron_policy.get("gates") or [])
+        or any(type(value) is not bool for value in cron_gates.values())
+        or cron_gates.get("always") is not True
+        or cron_gates.get("smtp") is not True
+        or cron_gates.get("pdp") is not False
+    ):
+        raise CutoverError("production cron gate decisions are incomplete or unsafe")
+    expected_smtp = {
+        "ODOO_SMTP_SERVER": "smtp.resend.com",
+        "ODOO_SMTP_PORT": "587",
+        "ODOO_SMTP_SSL": "True",
+        "ODOO_SMTP_USER": "resend",
+        "ODOO_EMAIL_FROM": "odoo@unstaticlabs.com",
+        "ODOO_FROM_FILTER": "unstaticlabs.com",
+    }
+    mismatched_smtp = [
+        name for name, expected in expected_smtp.items() if values.get(name) != expected
+    ]
+    if mismatched_smtp or len(values.get("ODOO_SMTP_PASSWORD", "")) < 24:
+        raise CutoverError(
+            "host-level Resend configuration is missing or unsafe: "
+            + ", ".join(mismatched_smtp or ["ODOO_SMTP_PASSWORD"])
+        )
     validate_odoo_resources(values)
     database = values["ODOO_DB_NAME"]
     if (
@@ -400,6 +465,8 @@ def validate_environment(
         "::1",
     }.intersection(mcp_allowed_hosts | mcp_allowed_origins):
         raise CutoverError("production Odoo MCP host/origin allowlists are unsafe")
+    if values["ODOO_MCP_HEALTHCHECK_HOST"].lower() not in mcp_allowed_hosts:
+        raise CutoverError("Odoo MCP health-check host is not in the allowed-host policy")
     trusted_origins = {
         value.strip()
         for value in values["ODOO_MCP_OAUTH_TRUSTED_ORIGINS"].split(",")
@@ -447,9 +514,19 @@ def validate_environment(
         raise CutoverError("Odoo and Paperless require separate Pocket ID clients")
     if values["USL_EXTERNAL_IDENTITY_NETWORK"] == values["USL_EXTERNAL_INGRESS_NETWORK"]:
         raise CutoverError("identity and ingress networks must be explicit and distinct")
+    if len({
+        values["USL_EXTERNAL_IDENTITY_NETWORK"],
+        values["USL_EXTERNAL_INGRESS_NETWORK"],
+        values["USL_EXTERNAL_OLLAMA_NETWORK"],
+    }) != 3:
+        raise CutoverError("identity, ingress and shared Ollama networks must be distinct")
     if any(
         not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]+", values[name])
-        for name in ("USL_EXTERNAL_IDENTITY_NETWORK", "USL_EXTERNAL_INGRESS_NETWORK")
+        for name in (
+            "USL_EXTERNAL_IDENTITY_NETWORK",
+            "USL_EXTERNAL_INGRESS_NETWORK",
+            "USL_EXTERNAL_OLLAMA_NETWORK",
+        )
     ):
         raise CutoverError("external network name is unsafe")
     defaults = {"odoo", "admin", "password", "paperless-change-me-dev-only"}
@@ -563,11 +640,15 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
         "odoo-mcp": values["ODOO_MCP_IMAGE"],
         "odoo-mcp-oauth-init": values["ODOO_MCP_IMAGE"],
         "paperless-webserver": values["PAPERLESS_IMAGE"],
-        "paperless-ollama": values["OLLAMA_IMAGE"],
         "usl-document-renderer": values["USL_DOCUMENT_RENDERER_IMAGE"],
         "usl-sign-dss": values["USL_SIGN_DSS_IMAGE"],
         "usl-sign-step-ca": values["USL_SIGN_STEP_CA_IMAGE"],
     }
+    if "paperless-ollama" in services or "paperless-model-init" in services:
+        raise CutoverError("production topology must not own an Ollama service")
+    model_preflight = services.get("paperless-model-preflight") or {}
+    if "external-ollama" not in set((model_preflight.get("networks") or {}).keys()):
+        raise CutoverError("Ollama model preflight is not joined to the shared network")
     for service_name, expected_image in expected_images.items():
         if (services.get(service_name) or {}).get("image") != expected_image:
             raise CutoverError(
@@ -577,6 +658,7 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
     expected_networks = {
         values["USL_EXTERNAL_IDENTITY_NETWORK"],
         values["USL_EXTERNAL_INGRESS_NETWORK"],
+        values["USL_EXTERNAL_OLLAMA_NETWORK"],
     }
     actual_external = {
         item.get("name")

@@ -1200,13 +1200,20 @@ class MigrationManageTests(unittest.TestCase):
             "PAPERLESS_SSO_BASE_GROUP": "documents-users",
             "USL_EXTERNAL_IDENTITY_NETWORK": "identity-net",
             "USL_EXTERNAL_INGRESS_NETWORK": "ingress-net",
+            "USL_EXTERNAL_OLLAMA_NETWORK": "ollama",
+            "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+            "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+            "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
+            "USL_OLLAMA_MANIFEST_SHA256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+            "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
+            "PAPERLESS_IMAGE": "ghcr.io/unstaticlabs/usl-paperless-ngx@sha256:" + "1" * 64,
         }
         for name in (
             "USL_ODOO_POSTGRES_VOLUME", "USL_ODOO_DATA_VOLUME",
             "USL_PAPERLESS_POSTGRES_VOLUME", "USL_PAPERLESS_BROKER_VOLUME",
             "USL_PAPERLESS_DATA_VOLUME", "USL_PAPERLESS_MEDIA_VOLUME",
             "USL_PAPERLESS_EXPORT_VOLUME", "USL_PAPERLESS_CONSUME_VOLUME",
-            "USL_PAPERLESS_TRASH_VOLUME", "USL_PAPERLESS_OLLAMA_VOLUME",
+            "USL_PAPERLESS_TRASH_VOLUME",
             "USL_ODOO_MCP_OAUTH_VOLUME",
         ):
             production_environment[name] = name.lower().replace("_", "-")
@@ -1229,8 +1236,9 @@ class MigrationManageTests(unittest.TestCase):
         self.assertIn("paperless-model-preflight", native)
         self.assertIn("odoo-mcp", native)
         self.assertIn("odoo-mcp-oauth-init", native)
-        self.assertIn("paperless-ollama", linux)
-        self.assertIn("paperless-model-init", linux)
+        self.assertNotIn("paperless-ollama", linux)
+        self.assertNotIn("paperless-model-init", linux)
+        self.assertIn("paperless-model-preflight", linux)
         self.assertIn("odoo-mcp", linux)
 
 

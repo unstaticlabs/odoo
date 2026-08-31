@@ -72,6 +72,7 @@ services:
       - default
       - external-identity
       - external-ingress
+      - external-ollama
     ports: !override
       - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
 
@@ -119,9 +120,6 @@ volumes:
   paperless-trash:
     name: ${USL_PAPERLESS_TRASH_VOLUME:?Dedicated Paperless trash volume is required}
     labels: *candidate_volume_labels
-  paperless-ollama-data:
-    name: ${USL_PAPERLESS_OLLAMA_VOLUME:?Dedicated Paperless Ollama volume is required}
-    labels: *candidate_volume_labels
   odoo-mcp-oauth-data:
     name: ${USL_ODOO_MCP_OAUTH_VOLUME:?Dedicated Odoo MCP OAuth volume is required}
     labels: *candidate_volume_labels
@@ -133,3 +131,6 @@ networks:
   external-ingress:
     external: true
     name: ${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}
+  external-ollama:
+    external: true
+    name: ${USL_EXTERNAL_OLLAMA_NETWORK:?Existing shared Ollama network is required}

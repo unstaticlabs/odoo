@@ -1248,6 +1248,9 @@ def command_release_domain(args: argparse.Namespace, runner: CommandRunner) -> d
             raise RuntimeError("cutover preflight requires a resolved --configuration and --secrets-file")
         cutover_secrets = store.named_secrets(runtime["id"], "cutover-secrets")
         extra_environment = {**configuration, **cutover_secrets}
+        extra_environment["USL_OLLAMA_RUNTIME_SELECTED"] = configuration[
+            "USL_OLLAMA_RUNTIME"
+        ]
         extra_environment["USL_CUTOVER_STATE_DIR"] = str(
             Path(runtime["private_directory"]) / "cutover"
         )

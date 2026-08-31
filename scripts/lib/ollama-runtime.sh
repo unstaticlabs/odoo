@@ -17,6 +17,9 @@ usl_prepare_ollama_runtime() {
       container)
         export USL_OLLAMA_COMPOSE_OVERRIDE=""
         ;;
+      external)
+        export USL_OLLAMA_COMPOSE_OVERRIDE=""
+        ;;
       *)
         printf 'migration/manage did not resolve the Ollama runtime.\n' >&2
         return 2
@@ -30,12 +33,18 @@ usl_prepare_ollama_runtime() {
   fi
 
   case "$requested" in
-    auto|native|container) ;;
+    auto|native|container|external) ;;
     *)
-      printf 'USL_OLLAMA_RUNTIME must be auto, native, or container.\n' >&2
+      printf 'USL_OLLAMA_RUNTIME must be auto, native, container, or external.\n' >&2
       return 2
       ;;
   esac
+
+  if [[ "$requested" == external ]]; then
+    export USL_OLLAMA_RUNTIME_SELECTED=external
+    export USL_OLLAMA_COMPOSE_OVERRIDE=""
+    return
+  fi
 
   export USL_OLLAMA_RUNTIME_SELECTED=container
   USL_OLLAMA_COMPOSE_OVERRIDE=""

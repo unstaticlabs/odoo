@@ -74,6 +74,57 @@ compose_array() {
   )
 }
 
+verify_external_ollama() {
+  local env_file="$1" candidate="$2" container network expected_image
+  local expected_id actual_id owner model digest dimension endpoint paperless_image
+  container="$(env_field "$env_file" "$candidate" USL_EXTERNAL_OLLAMA_CONTAINER)"
+  network="$(env_field "$env_file" "$candidate" USL_EXTERNAL_OLLAMA_NETWORK)"
+  expected_image="$(env_field "$env_file" "$candidate" OLLAMA_IMAGE)"
+  model="$(env_field "$env_file" "$candidate" PAPERLESS_AI_LLM_EMBEDDING_MODEL)"
+  digest="$(env_field "$env_file" "$candidate" USL_OLLAMA_MANIFEST_SHA256)"
+  dimension="$(env_field "$env_file" "$candidate" USL_OLLAMA_EMBEDDING_DIMENSION)"
+  endpoint="$(env_field "$env_file" "$candidate" PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT)"
+  paperless_image="$(env_field "$env_file" "$candidate" PAPERLESS_IMAGE)"
+  docker container inspect "$container" >/dev/null
+  [[ "$(docker inspect "$container" --format '{{.State.Running}}')" == true ]] || {
+    printf 'Protected shared Ollama container is not running.\n' >&2; return 1;
+  }
+  owner="$(docker inspect "$container" --format '{{index .Config.Labels "com.docker.compose.project"}}')"
+  [[ "$owner" == ollama ]] || {
+    printf 'Shared Ollama container ownership differs from the protected project.\n' >&2; return 1;
+  }
+  expected_id="$(docker image inspect "$expected_image" --format '{{.Id}}')"
+  actual_id="$(docker inspect "$container" --format '{{.Image}}')"
+  [[ "$actual_id" == "$expected_id" ]] || {
+    printf 'Shared Ollama container image differs from the qualified digest.\n' >&2; return 1;
+  }
+  docker network inspect "$network" --format '{{json .Containers}}' \
+    | grep -Fq "$(docker inspect "$container" --format '{{.Id}}')" || {
+      printf 'Shared Ollama container is not attached to its protected network.\n' >&2; return 1;
+    }
+  docker run --rm --network "$network" \
+    -e OLLAMA_ENDPOINT="$endpoint" -e OLLAMA_MODEL="$model" \
+    -e OLLAMA_DIGEST="$digest" -e OLLAMA_DIMENSION="$dimension" \
+    --entrypoint python "$paperless_image" -c '
+import json, os, urllib.request
+endpoint = os.environ["OLLAMA_ENDPOINT"].rstrip("/")
+model = os.environ["OLLAMA_MODEL"]
+tags = json.load(urllib.request.urlopen(endpoint + "/api/tags", timeout=10))
+matches = [item for item in tags.get("models", []) if item.get("name") == model]
+if len(matches) != 1 or matches[0].get("digest") != os.environ["OLLAMA_DIGEST"]:
+    raise SystemExit("qualified shared model is absent or changed")
+request = urllib.request.Request(
+    endpoint + "/api/embed",
+    data=json.dumps({"model": model, "input": ["USL production preflight"]}).encode(),
+    headers={"Content-Type": "application/json"},
+)
+result = json.load(urllib.request.urlopen(request, timeout=60))
+values = result.get("embeddings") or []
+if len(values) != 1 or len(values[0]) != int(os.environ["OLLAMA_DIMENSION"]):
+    raise SystemExit("qualified embedding dimension changed")
+'
+}
+
 verify_candidate_and_environment() {
   local env_file="$1" candidate_argument="$2" fingerprint="$3"
   local candidate project config commit expected_commit image label_commit
@@ -165,10 +216,12 @@ PY
 
   for network in \
     "$(env_field "$env_file" "$candidate" USL_EXTERNAL_IDENTITY_NETWORK)" \
-    "$(env_field "$env_file" "$candidate" USL_EXTERNAL_INGRESS_NETWORK)"
+    "$(env_field "$env_file" "$candidate" USL_EXTERNAL_INGRESS_NETWORK)" \
+    "$(env_field "$env_file" "$candidate" USL_EXTERNAL_OLLAMA_NETWORK)"
   do
     docker network inspect "$network" >/dev/null
   done
+  verify_external_ollama "$env_file" "$candidate"
 
   config="$(mktemp "${TMPDIR:-/tmp}/usl-production-compose.json.XXXXXX")"
   TEMP_FILES+=("$config")
@@ -304,7 +357,7 @@ stage() {
       --distribution-release "$candidate/evidence/distribution-release.json" \
       --phase configured >/dev/null
     "${COMPOSE[@]}" --profile paperless stop \
-      odoo paperless-webserver paperless-ollama >/dev/null 2>&1 || true
+      odoo paperless-webserver >/dev/null 2>&1 || true
     transition "$state" "$fingerprint" stage
     printf 'Evolved cohort staged exactly; application and embedding writers remain paused.\n'
     return
@@ -469,7 +522,7 @@ start_mcp_service() {
 configure() {
   local env_file="${2:-}" candidate_argument="${3:-}" policy_file="${4:-}" fingerprint="${5:-}"
   local candidate project state database odoo_users paperless_policy
-  local cron_allowlist plan_output plan paperless_output identities setup token service_user
+  local cron_policy cron_gates plan_output plan paperless_output identities setup token service_user
   CUTOVER_VALIDATION_PHASE=configured \
     verify_candidate_and_environment "$env_file" "$candidate_argument" "$fingerprint"
   candidate="$VERIFIED_CANDIDATE"; project="$VERIFIED_PROJECT"
@@ -481,8 +534,8 @@ configure() {
     --fingerprint "$fingerprint" --field odoo_users)"
   paperless_policy="$(python3 migration/cutover.py policy --policy "$policy_file" \
     --fingerprint "$fingerprint" --field paperless_identities)"
-  cron_allowlist="$(python3 migration/cutover.py policy --policy "$policy_file" \
-    --fingerprint "$fingerprint" --field approved_cron_xmlids)"
+  cron_policy="$(cat deploy/production.cron-policy.json)"
+  cron_gates="$(env_field "$env_file" "$candidate" USL_PRODUCTION_CRON_GATES_JSON)"
 
   printf '[1/4] Odoo external Pocket policy dry-run/apply/dry-run\n'
   run_odoo_shell "$database" scripts/odoo/pocket_id_configure.py \
@@ -494,13 +547,16 @@ configure() {
 
   printf '[2/4] Initial cron/outbound policy dry-run/apply/dry-run\n'
   run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
-    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_CRON_POLICY_JSON="$cron_policy" \
+    -e USL_PRODUCTION_CRON_GATES_JSON="$cron_gates" \
     -e USL_PRODUCTION_ADMISSION_APPLY=0
   run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
-    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_CRON_POLICY_JSON="$cron_policy" \
+    -e USL_PRODUCTION_CRON_GATES_JSON="$cron_gates" \
     -e USL_PRODUCTION_ADMISSION_APPLY=1
   run_odoo_shell "$database" scripts/odoo/production_admission_policy.py \
-    -e USL_PRODUCTION_CRON_ALLOWLIST_JSON="$cron_allowlist" \
+    -e USL_PRODUCTION_CRON_POLICY_JSON="$cron_policy" \
+    -e USL_PRODUCTION_CRON_GATES_JSON="$cron_gates" \
     -e USL_PRODUCTION_ADMISSION_APPLY=0 \
     -e USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED=1
 

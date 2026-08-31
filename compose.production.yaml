@@ -1,8 +1,18 @@
+x-production-logging: &production-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
+  db:
+    logging: *production-logging
+
   odoo:
     # A qualified release is built explicitly as Dockerfile's distribution
     # stage. Runtime startup must never rebuild or bind-mount another checkout.
     build: !reset null
+    logging: *production-logging
     environment:
       ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons
       USL_USER_DOCS_PATH: /opt/odoo/docs/users
@@ -15,6 +25,7 @@ services:
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   init-db:
+    logging: *production-logging
     environment:
       ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons
       USL_USER_DOCS_PATH: /opt/odoo/docs/users
@@ -27,12 +38,94 @@ services:
     # Production admission consumes only the explicitly digest-pinned
     # renderer image; it must never rebuild from the checkout.
     build: !reset null
+    logging: *production-logging
 
   usl-sign-dss:
     # DSS is qualified and published independently from the Odoo image.
     build: !reset null
+    logging: *production-logging
+
+  paperless-db:
+    logging: *production-logging
+
+  paperless-broker:
+    logging: *production-logging
+
+  paperless-preflight:
+    logging: *production-logging
+
+  paperless-ollama: !reset null
+
+  paperless-model-init: !reset null
+
+  paperless-model-preflight:
+    image: ${PAPERLESS_IMAGE:?Qualified Paperless image is required}
+    build: !reset null
+    restart: "no"
+    depends_on: !override []
+    environment:
+      OLLAMA_ENDPOINT: ${PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT:?External Ollama endpoint is required}
+      OLLAMA_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:?Qualified BGE model is required}
+      OLLAMA_MANIFEST_SHA256: ${USL_OLLAMA_MANIFEST_SHA256:?Qualified BGE manifest is required}
+      OLLAMA_EMBEDDING_DIMENSION: ${USL_OLLAMA_EMBEDDING_DIMENSION:?Embedding dimension is required}
+    entrypoint: ["python", "-c"]
+    command:
+      - |
+        import json, os, urllib.request
+        endpoint = os.environ["OLLAMA_ENDPOINT"].rstrip("/")
+        model = os.environ["OLLAMA_MODEL"]
+        expected = os.environ["OLLAMA_MANIFEST_SHA256"]
+        dimension = int(os.environ["OLLAMA_EMBEDDING_DIMENSION"])
+        tags = json.load(urllib.request.urlopen(endpoint + "/api/tags", timeout=10))
+        matches = [item for item in tags.get("models", []) if item.get("name") == model]
+        if len(matches) != 1 or matches[0].get("digest") != expected:
+            raise SystemExit("Shared Ollama model identity differs from the qualified release")
+        request = urllib.request.Request(
+            endpoint + "/api/embed",
+            data=json.dumps({"model": model, "input": ["USL production embedding preflight"]}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        result = json.load(urllib.request.urlopen(request, timeout=60))
+        embeddings = result.get("embeddings") or []
+        if len(embeddings) != 1 or len(embeddings[0]) != dimension:
+            raise SystemExit("Shared Ollama embedding dimension differs from the qualified release")
+    networks:
+      - external-ollama
+    logging: *production-logging
 
   paperless-webserver:
     build: !reset null
+    environment:
+      PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: ${PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT:?External Ollama endpoint is required}
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:?Qualified BGE model is required}
+      PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:?Qualified batch size is required}
+    networks:
+      - default
+      - external-ollama
+    logging: *production-logging
     ports: !override
       - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
+
+  paperless-gotenberg:
+    logging: *production-logging
+
+  paperless-tika:
+    logging: *production-logging
+
+  paperless-trash-init:
+    logging: *production-logging
+
+  paperless-access-init:
+    logging: *production-logging
+
+  paperless-identity-init:
+    logging: *production-logging
+
+  odoo-mcp-oauth-init:
+    logging: *production-logging
+
+  odoo-mcp:
+    logging: *production-logging
+
+volumes:
+  paperless-ollama-data: !reset null

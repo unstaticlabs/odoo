@@ -5,6 +5,7 @@ x-odoo-mcp-environment: &odoo-mcp-environment
   MCP_PORT: 3000
   MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://localhost:3000}
   MCP_ALLOWED_HOSTS: ${ODOO_MCP_ALLOWED_HOSTS:-mcp.localhost,localhost,127.0.0.1}
+  MCP_HEALTHCHECK_HOST: ${ODOO_MCP_HEALTHCHECK_HOST:-mcp.localhost}
   MCP_ALLOWED_ORIGINS: ${ODOO_MCP_ALLOWED_ORIGINS:-chatgpt.com,claude.ai,mcp.localhost,localhost,127.0.0.1}
   MCP_ALLOW_LOCAL_HTTP_ODOO: ${ODOO_MCP_ALLOW_LOCAL_HTTP_ODOO:-true}
   ODOO_PUBLIC_ORIGIN: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
@@ -63,6 +64,7 @@ services:
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.9}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.32.15@sha256:57d60e686821ea81a7748a3ec8141308c8b8f95b27105713954abf7a6529e700}
+      USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
       PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
       PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
@@ -158,7 +160,10 @@ services:
           [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
           [ "$${PAPERLESS_USL_DEFER_SEMANTIC_INDEX}" = "false" ] || { echo "Deferred semantic indexing is migration-only"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BACKEND}" = "ollama" ] || { echo "Paperless embeddings must use Ollama"; exit 1; }
-          [ "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" = "usl-bge-m3:documents-20260824-rc1" ] || { echo "Paperless BGE-M3 alias is not qualified"; exit 1; }
+          case "$${USL_OLLAMA_RUNTIME:-container}:$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" in
+            external:bge-m3:latest|container:usl-bge-m3:documents-20260824-rc1) :;;
+            *) echo "Paperless BGE-M3 model is not qualified for the selected runtime"; exit 1;;
+          esac
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE}" = "32" ] || { echo "Paperless embedding batch size is not qualified"; exit 1; }
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
@@ -581,6 +586,13 @@ services:
       ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_WORKERS: ${ODOO_WORKERS:-0}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
+      ODOO_SMTP_SERVER: ${ODOO_SMTP_SERVER:-localhost}
+      ODOO_SMTP_PORT: ${ODOO_SMTP_PORT:-25}
+      ODOO_SMTP_SSL: ${ODOO_SMTP_SSL:-False}
+      ODOO_SMTP_USER: ${ODOO_SMTP_USER:-}
+      ODOO_SMTP_PASSWORD: ${ODOO_SMTP_PASSWORD:-}
+      ODOO_EMAIL_FROM: ${ODOO_EMAIL_FROM:-}
+      ODOO_FROM_FILTER: ${ODOO_FROM_FILTER:-}
       ODOO_DB_MAXCONN: ${ODOO_DB_MAXCONN:-32}
       ODOO_LIMIT_MEMORY_SOFT: ${ODOO_LIMIT_MEMORY_SOFT:-1073741824}
       ODOO_LIMIT_MEMORY_HARD: ${ODOO_LIMIT_MEMORY_HARD:-1342177280}
@@ -673,10 +685,14 @@ services:
         - node
         - -e
         - >-
-          fetch('http://127.0.0.1:3000/readyz').then(async response => {
-            const value = await response.json();
-            if (!response.ok || value.status !== 'ready') process.exit(1);
-          }).catch(() => process.exit(1))
+          require('http').get({hostname: '127.0.0.1', port: 3000, path: '/readyz',
+          headers: {host: process.env.MCP_HEALTHCHECK_HOST}}, response => {
+            let body = ''; response.on('data', chunk => body += chunk);
+            response.on('end', () => {
+              try { if (response.statusCode !== 200 || JSON.parse(body).status !== 'ready') process.exit(1); }
+              catch (_) { process.exit(1); }
+            });
+          }).on('error', () => process.exit(1))
       interval: 15s
       timeout: 5s
       retries: 12
@@ -706,6 +722,13 @@ services:
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: 0
+      ODOO_SMTP_SERVER: ${ODOO_SMTP_SERVER:-localhost}
+      ODOO_SMTP_PORT: ${ODOO_SMTP_PORT:-25}
+      ODOO_SMTP_SSL: ${ODOO_SMTP_SSL:-False}
+      ODOO_SMTP_USER: ${ODOO_SMTP_USER:-}
+      ODOO_SMTP_PASSWORD: ${ODOO_SMTP_PASSWORD:-}
+      ODOO_EMAIL_FROM: ${ODOO_EMAIL_FROM:-}
+      ODOO_FROM_FILTER: ${ODOO_FROM_FILTER:-}
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}

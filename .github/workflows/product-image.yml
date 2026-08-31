@@ -1,12 +1,14 @@
 # Publish the production Distribution image exactly once after a commit lands
-# on 19-usl. Pull requests are qualified before merge; GitHub does not rebuild
-# the product for candidate branches.
+# on 19-usl. A production-migration tag may publish the explicitly approved
+# one-off migration release without changing the release branch.
 name: Distribution image
 
 on:
   push:
     branches:
       - 19-usl
+    tags:
+      - production-migration-*
 
 permissions:
   contents: read
@@ -58,7 +60,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: unstaticlabs/odoo-mcp
-          ref: codex/odoo-mcp-vps-refactor
+          ref: 78515eaf6b03441e1b67f27979246247ac270d71
           path: .release/odoo-mcp
           persist-credentials: false
 
