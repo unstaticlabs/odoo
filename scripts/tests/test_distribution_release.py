@@ -373,6 +373,10 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn('"mcp": {', source)
         self.assertIn('"compatibility_sha256": mcp_release["compatibility_sha256"]', source)
         self.assertIn('"image_digest": mcp_release["image"]', source)
+        self.assertIn(
+            "!startsWith(github.ref, 'refs/tags/production-migration-')",
+            self.workflow,
+        )
 
     def test_both_release_images_receive_sbom_and_provenance(self) -> None:
         publish = self.workflow

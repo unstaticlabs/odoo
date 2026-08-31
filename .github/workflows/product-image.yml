@@ -114,6 +114,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify the separately published MCP image
+        # The one-off migration reuses this exact digest from the already
+        # verified VPS image because the Odoo workflow token cannot read the
+        # private cross-repository package. Ordinary releases still pull and
+        # inspect it here.
+        if: ${{ !startsWith(github.ref, 'refs/tags/production-migration-') }}
         run: |
           mcp_image="$(jq -r .image_digest deploy/odoo-mcp/release.json)"
           docker pull "$mcp_image"
