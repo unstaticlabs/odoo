@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -64,8 +65,18 @@ def build(config: dict, *, target_platform: str) -> dict:
             raise ImageIdentityError(f"Compose service has no image: {name}")
         images[name] = inspect(reference)
     target_arch = target_platform.rsplit("/", 1)[-1]
+    def immutable(image: dict) -> bool:
+        if image["repo_digests"]:
+            return True
+        reference = image["reference"]
+        image_id = image["id"] or ""
+        return bool(
+            re.fullmatch(r"sha256:[0-9a-f]{64}", reference)
+            and reference == image_id
+        )
+
     target_ready = all(
-        image["architecture"] == target_arch and image["repo_digests"]
+        image["architecture"] == target_arch and immutable(image)
         for image in images.values()
     )
     return {

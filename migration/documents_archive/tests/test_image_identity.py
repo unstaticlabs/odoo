@@ -50,6 +50,29 @@ class ImageIdentityTest(unittest.TestCase):
 
         self.assertIn("paperless-ollama", result["images"])
 
+    @patch.object(image_identity, "inspect")
+    def test_airgapped_image_id_is_an_immutable_identity(self, inspect) -> None:
+        image_id = "sha256:" + "5" * 64
+        inspect.return_value = {
+            **self.inspection,
+            "reference": image_id,
+            "id": image_id,
+            "repo_digests": [],
+        }
+        self.config["services"]["paperless-webserver"]["image"] = image_id
+
+        result = image_identity.build(self.config, target_platform="linux/amd64")
+
+        self.assertEqual(result["target_platform_status"], "passed")
+
+    @patch.object(image_identity, "inspect")
+    def test_mutable_airgapped_tag_without_digest_is_partial(self, inspect) -> None:
+        inspect.return_value = {**self.inspection, "repo_digests": []}
+
+        result = image_identity.build(self.config, target_platform="linux/amd64")
+
+        self.assertEqual(result["target_platform_status"], "partial")
+
 
 if __name__ == "__main__":
     unittest.main()
