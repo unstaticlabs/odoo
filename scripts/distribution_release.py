@@ -172,10 +172,13 @@ def validate(
             {"oci_sbom", "buildkit_provenance", "github_provenance"},
             f"attestations.{artifact_name}",
         )
+        allowed_statuses = {"generated"}
+        if artifact_name == "document_renderer":
+            allowed_statuses.add("external-qualified-oci")
         for key in ("oci_sbom", "buildkit_provenance", "github_provenance"):
-            if artifact_attestations[key] != "generated":
+            if artifact_attestations[key] not in allowed_statuses:
                 raise ReleaseArtifactError(
-                    f"attestations.{artifact_name}.{key} must be 'generated'"
+                    f"attestations.{artifact_name}.{key} has an unsupported status"
                 )
 
     if commit is not None and source["commit_sha"] != commit:
@@ -256,9 +259,21 @@ def create(arguments: argparse.Namespace) -> int:
         },
         "attestations": {
             name: {
-                "oci_sbom": "generated",
-                "buildkit_provenance": "generated",
-                "github_provenance": "generated",
+                "oci_sbom": (
+                    arguments.document_renderer_attestation_status
+                    if name == "document_renderer"
+                    else "generated"
+                ),
+                "buildkit_provenance": (
+                    arguments.document_renderer_attestation_status
+                    if name == "document_renderer"
+                    else "generated"
+                ),
+                "github_provenance": (
+                    arguments.document_renderer_attestation_status
+                    if name == "document_renderer"
+                    else "generated"
+                ),
             }
             for name in (
                 "distribution",
@@ -329,6 +344,11 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--document-renderer-commit", required=True)
     create_command.add_argument("--document-renderer-image", required=True)
     create_command.add_argument("--document-renderer-digest", required=True)
+    create_command.add_argument(
+        "--document-renderer-attestation-status",
+        choices=("generated", "external-qualified-oci"),
+        default="generated",
+    )
     create_command.add_argument("--sign-dss-image", required=True)
     create_command.add_argument("--sign-dss-digest", required=True)
     create_command.add_argument("--workflow-run-id", required=True, type=int)

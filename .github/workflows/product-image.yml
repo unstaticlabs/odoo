@@ -22,6 +22,7 @@ env:
   BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup
   PAPERLESS_IMAGE: ghcr.io/unstaticlabs/usl-paperless-ngx
   DOCUMENT_RENDERER_IMAGE: ghcr.io/unstaticlabs/usl-document-renderer
+  DOCUMENT_RENDERER_EXTERNAL_RELEASE: deploy/document-renderer/production-migration-release.json
   SIGN_DSS_IMAGE: ghcr.io/unstaticlabs/usl-sign-dss
 
 jobs:
@@ -80,6 +81,25 @@ jobs:
           echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
           echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
           echo "renderer_commit=$(git rev-parse HEAD:services/usl-document-renderer)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve one-off external renderer OCI
+        id: renderer-external
+        run: |
+          if [[ "$GITHUB_REF" != refs/tags/production-migration-* ]]; then
+            echo "external=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          jq -e '
+            .schema == "usl-external-oci-image/v1"
+            and .platform == "linux/amd64"
+            and .transport == "encrypted-production-cohort"
+            and (.digest | test("^sha256:[0-9a-f]{64}$"))
+            and (.archive_sha256 | test("^[0-9a-f]{64}$"))
+          ' "$DOCUMENT_RENDERER_EXTERNAL_RELEASE" >/dev/null
+          test "$(jq -r .commit "$DOCUMENT_RENDERER_EXTERNAL_RELEASE")" = "${{ steps.identity.outputs.renderer_commit }}"
+          test "$(jq -r .image "$DOCUMENT_RENDERER_EXTERNAL_RELEASE")" = "$DOCUMENT_RENDERER_IMAGE"
+          echo "external=true" >> "$GITHUB_OUTPUT"
+          echo "digest=$(jq -r .digest "$DOCUMENT_RENDERER_EXTERNAL_RELEASE")" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
@@ -261,6 +281,8 @@ jobs:
         id: existing-aux
         env:
           RENDERER_COMMIT: ${{ steps.identity.outputs.renderer_commit }}
+          EXTERNAL_RENDERER: ${{ steps.renderer-external.outputs.external }}
+          EXTERNAL_RENDERER_DIGEST: ${{ steps.renderer-external.outputs.digest }}
         run: |
           inspect_component() {
             key="$1"
@@ -292,7 +314,12 @@ jobs:
           }
           inspect_component paperless "$PAPERLESS_IMAGE" "$IMAGE_TAG" "$GITHUB_SHA" "https://github.com/$GITHUB_REPOSITORY"
           inspect_component sign_dss "$SIGN_DSS_IMAGE" "$IMAGE_TAG" "$GITHUB_SHA" "https://github.com/$GITHUB_REPOSITORY"
-          inspect_component renderer "$DOCUMENT_RENDERER_IMAGE" "sha-$RENDERER_COMMIT" "$RENDERER_COMMIT" "https://github.com/unstaticlabs/unstatic_latex_templates.git"
+          if [ "$EXTERNAL_RENDERER" = true ]; then
+            echo "renderer_exists=true" >> "$GITHUB_OUTPUT"
+            echo "renderer_digest=$EXTERNAL_RENDERER_DIGEST" >> "$GITHUB_OUTPUT"
+          else
+            inspect_component renderer "$DOCUMENT_RENDERER_IMAGE" "sha-$RENDERER_COMMIT" "$RENDERER_COMMIT" "https://github.com/unstaticlabs/unstatic_latex_templates.git"
+          fi
 
       - name: Build and push Paperless image once
         id: paperless-build
@@ -356,6 +383,7 @@ jobs:
           EXISTING_SIGN_DSS: ${{ steps.existing-aux.outputs.sign_dss_digest }}
           BUILT_SIGN_DSS: ${{ steps.sign-dss-build.outputs.digest }}
           RENDERER_COMMIT: ${{ steps.identity.outputs.renderer_commit }}
+          EXTERNAL_RENDERER: ${{ steps.renderer-external.outputs.external }}
         run: |
           paperless_digest="${EXISTING_PAPERLESS:-$BUILT_PAPERLESS}"
           renderer_digest="${EXISTING_RENDERER:-$BUILT_RENDERER}"
@@ -367,10 +395,14 @@ jobs:
           renderer_reference="$DOCUMENT_RENDERER_IMAGE@$renderer_digest"
           sign_dss_reference="$SIGN_DSS_IMAGE@$sign_dss_digest"
           docker pull "$paperless_reference"
-          docker pull "$renderer_reference"
+          if [ "$EXTERNAL_RENDERER" != true ]; then
+            docker pull "$renderer_reference"
+          fi
           docker pull "$sign_dss_reference"
           test "$(docker image inspect "$paperless_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
-          test "$(docker image inspect "$renderer_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$RENDERER_COMMIT"
+          if [ "$EXTERNAL_RENDERER" != true ]; then
+            test "$(docker image inspect "$renderer_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$RENDERER_COMMIT"
+          fi
           test "$(docker image inspect "$sign_dss_reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
           echo "paperless_digest=$paperless_digest" >> "$GITHUB_OUTPUT"
           echo "paperless_digest_reference=$paperless_reference" >> "$GITHUB_OUTPUT"
@@ -394,6 +426,7 @@ jobs:
           push-to-registry: true
 
       - name: Generate document-renderer build provenance
+        if: steps.renderer-external.outputs.external != 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ env.DOCUMENT_RENDERER_IMAGE }}
@@ -439,6 +472,7 @@ jobs:
             --document-renderer-commit "$DOCUMENT_RENDERER_COMMIT" \
             --document-renderer-image "$DOCUMENT_RENDERER_IMAGE" \
             --document-renderer-digest "$DOCUMENT_RENDERER_DIGEST" \
+            --document-renderer-attestation-status "${{ steps.renderer-external.outputs.external == 'true' && 'external-qualified-oci' || 'generated' }}" \
             --sign-dss-image "$SIGN_DSS_IMAGE" \
             --sign-dss-digest "$SIGN_DSS_DIGEST" \
             --workflow-run-id "$GITHUB_RUN_ID" \

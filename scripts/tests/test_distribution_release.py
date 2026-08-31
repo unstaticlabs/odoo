@@ -139,8 +139,20 @@ class DistributionReleaseContractTest(unittest.TestCase):
     def test_rejects_unverified_attestation(self) -> None:
         value = copy.deepcopy(artifact())
         value["attestations"]["backup_tool"]["github_provenance"] = "not-run"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.github_provenance"):
+        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "unsupported status"):
             distribution_release.validate(value)
+
+    def test_accepts_explicit_external_renderer_oci_status(self) -> None:
+        value = artifact()
+        value["attestations"]["document_renderer"] = {
+            "oci_sbom": "external-qualified-oci",
+            "buildkit_provenance": "external-qualified-oci",
+            "github_provenance": "external-qualified-oci",
+        }
+        self.assertEqual(
+            distribution_release.validate(value)["document_renderer"]["commit"],
+            RENDERER_COMMIT,
+        )
 
     def test_rejects_mutable_backup_tool_tag(self) -> None:
         value = copy.deepcopy(artifact())
@@ -174,7 +186,7 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertNotIn("pull_request:", self.workflow)
         self.assertNotIn("merge_group:", self.workflow)
         self.assertNotIn("workflow_dispatch:", self.workflow)
-        self.assertIn("ref: codex/odoo-mcp-vps-refactor", self.workflow)
+        self.assertIn("ref: 78515eaf6b03441e1b67f27979246247ac270d71", self.workflow)
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
 
     def test_product_module_perimeters_are_identical(self) -> None:
@@ -331,7 +343,8 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
 
     def test_release_cohort_publishes_every_custom_runtime_image(self) -> None:
-        self.assertIn("submodules: recursive", self.workflow)
+        self.assertIn("submodules: false", self.workflow)
+        self.assertIn("usl-external-oci-image/v1", self.workflow)
         self.assertIn(
             "PAPERLESS_IMAGE: ghcr.io/unstaticlabs/usl-paperless-ngx",
             self.workflow,
