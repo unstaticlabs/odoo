@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -30,8 +31,9 @@ class ImageIdentityTest(unittest.TestCase):
             "labels": {},
         }
 
+    @patch.object(image_identity, "supports_platform", return_value=True)
     @patch.object(image_identity, "inspect")
-    def test_external_ollama_topology_does_not_require_a_service(self, inspect) -> None:
+    def test_external_ollama_topology_does_not_require_a_service(self, inspect, _supports) -> None:
         inspect.return_value = self.inspection
 
         result = image_identity.build(self.config, target_platform="linux/amd64")
@@ -39,8 +41,9 @@ class ImageIdentityTest(unittest.TestCase):
         self.assertEqual(result["target_platform_status"], "passed")
         self.assertNotIn("paperless-ollama", result["images"])
 
+    @patch.object(image_identity, "supports_platform", return_value=True)
     @patch.object(image_identity, "inspect")
-    def test_owned_ollama_service_is_recorded_when_present(self, inspect) -> None:
+    def test_owned_ollama_service_is_recorded_when_present(self, inspect, _supports) -> None:
         inspect.return_value = self.inspection
         self.config["services"]["paperless-ollama"] = {
             "image": "example.invalid/ollama@sha256:" + "4" * 64,
@@ -50,8 +53,9 @@ class ImageIdentityTest(unittest.TestCase):
 
         self.assertIn("paperless-ollama", result["images"])
 
+    @patch.object(image_identity, "supports_platform", return_value=True)
     @patch.object(image_identity, "inspect")
-    def test_airgapped_image_id_is_an_immutable_identity(self, inspect) -> None:
+    def test_airgapped_image_id_is_an_immutable_identity(self, inspect, _supports) -> None:
         image_id = "sha256:" + "5" * 64
         inspect.return_value = {
             **self.inspection,
@@ -65,13 +69,35 @@ class ImageIdentityTest(unittest.TestCase):
 
         self.assertEqual(result["target_platform_status"], "passed")
 
+    @patch.object(image_identity, "supports_platform", return_value=True)
     @patch.object(image_identity, "inspect")
-    def test_mutable_airgapped_tag_without_digest_is_partial(self, inspect) -> None:
+    def test_mutable_airgapped_tag_without_digest_is_partial(self, inspect, _supports) -> None:
         inspect.return_value = {**self.inspection, "repo_digests": []}
 
         result = image_identity.build(self.config, target_platform="linux/amd64")
 
         self.assertEqual(result["target_platform_status"], "partial")
+
+    @patch.object(image_identity.subprocess, "run")
+    def test_multiarch_manifest_proves_target_platform(self, run) -> None:
+        run.return_value.returncode = 0
+        run.return_value.stdout = json.dumps(
+            {
+                "manifests": [
+                    {"platform": {"os": "linux", "architecture": "amd64"}},
+                    {"platform": {"os": "linux", "architecture": "arm64"}},
+                ],
+            },
+        )
+
+        self.assertTrue(
+            image_identity.supports_platform(
+                "example.invalid/image@sha256:" + "6" * 64,
+                {**self.inspection, "architecture": "arm64"},
+                target_os="linux",
+                target_arch="amd64",
+            ),
+        )
 
 
 if __name__ == "__main__":

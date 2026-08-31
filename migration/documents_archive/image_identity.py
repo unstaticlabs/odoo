@@ -51,6 +51,30 @@ def inspect(reference: str) -> dict:
     }
 
 
+def supports_platform(reference: str, image: dict, *, target_os: str, target_arch: str) -> bool:
+    if image["os"] == target_os and image["architecture"] == target_arch:
+        return True
+    if not image["repo_digests"]:
+        return False
+    completed = subprocess.run(
+        ["docker", "buildx", "imagetools", "inspect", "--raw", reference],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode:
+        return False
+    try:
+        manifest = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return False
+    return any(
+        (item.get("platform") or {}).get("os") == target_os
+        and (item.get("platform") or {}).get("architecture") == target_arch
+        for item in manifest.get("manifests") or []
+    )
+
+
 def build(config: dict, *, target_platform: str) -> dict:
     services = config.get("services") or {}
     missing = [name for name in REQUIRED_SERVICES if name not in services]
@@ -64,7 +88,7 @@ def build(config: dict, *, target_platform: str) -> dict:
         if not reference:
             raise ImageIdentityError(f"Compose service has no image: {name}")
         images[name] = inspect(reference)
-    target_arch = target_platform.rsplit("/", 1)[-1]
+    target_os, target_arch = target_platform.split("/", 1)
     def immutable(image: dict) -> bool:
         if image["repo_digests"]:
             return True
@@ -76,7 +100,13 @@ def build(config: dict, *, target_platform: str) -> dict:
         )
 
     target_ready = all(
-        image["architecture"] == target_arch and immutable(image)
+        immutable(image)
+        and supports_platform(
+            image["reference"],
+            image,
+            target_os=target_os,
+            target_arch=target_arch,
+        )
         for image in images.values()
     )
     return {
