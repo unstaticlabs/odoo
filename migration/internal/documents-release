@@ -453,9 +453,9 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "$target_platform" "$bundle/configuration/non-secret-runtime.json"
   python3 -c 'import json,sys; value={"schema":"usl-documents-required-secret-names-v1","required":["ODOO_ADMIN_PASSWORD","POSTGRES_PASSWORD","PAPERLESS_DB_PASSWORD","PAPERLESS_SECRET_KEY","PAPERLESS_INTEGRATION_TOKEN","POCKET_ID_ODOO_CLIENT_SECRET","POCKET_ID_PAPERLESS_CLIENT_SECRET","ODOO_MCP_BETTER_AUTH_SECRET_FILE","ODOO_MCP_CREDENTIAL_ENCRYPTION_KEY_FILE","USL_PERSONAL_AI_MASTER_KEYS"]}; open(sys.argv[1],"w").write(json.dumps(value,indent=2,sort_keys=True)+"\n")' \
     "$bundle/configuration/required-secret-names.json"
-  install -m 0600 docs/operations/backup-and-recovery-runbook.md \
+  install -m 0600 docs/operations/production.md \
     "$bundle/configuration/restore-instructions.md"
-  install -m 0600 docs/operations/backup-and-recovery-runbook.md \
+  install -m 0600 docs/operations/production.md \
     "$bundle/configuration/rollback-instructions.md"
   find "$bundle" -type f -exec chmod 600 {} +
 
