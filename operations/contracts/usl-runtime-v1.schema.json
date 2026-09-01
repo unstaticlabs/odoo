@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/schemas/operations/usl-runtime-v1.schema.json",
+  "title": "USL runtime target v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "name", "environment", "protected", "transport", "compose",
+    "services", "databases", "volumes", "paths", "external_networks", "endpoints",
+    "ollama", "secrets", "state_directory"
+  ],
+  "properties": {
+    "schema": {"const": "usl-runtime/v1"},
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$"},
+    "environment": {"enum": ["production", "staging", "local"]},
+    "protected": {"type": "boolean"},
+    "transport": {"type": "object"},
+    "compose": {"type": "object"},
+    "services": {"type": "object"},
+    "databases": {"type": "object"},
+    "volumes": {"type": "object"},
+    "paths": {"type": "object"},
+    "external_networks": {"type": "object"},
+    "endpoints": {"type": "object"},
+    "ollama": {"type": "object"},
+    "secrets": {"type": "object"},
+    "state_directory": {"type": "string"}
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "usl-runtime/v1",
+  "name": "production",
+  "environment": "production",
+  "protected": true,
+  "transport": {"type": "ssh", "host": "odoo"},
+  "compose": {
+    "project": "usl-odoo-production-main",
+    "anchor_service": "odoo",
+    "profiles": ["sign"]
+  },
+  "services": {
+    "odoo": "odoo",
+    "odoo_db": "db",
+    "paperless": "paperless-webserver",
+    "paperless_db": "paperless-db",
+    "mcp": "odoo-mcp",
+    "sign": "usl-sign-dss"
+  },
+  "databases": {
+    "odoo": {
+      "service": "db",
+      "name": "odoo_production",
+      "user": "odoo",
+      "password_key": "ODOO_DB_PASSWORD"
+    },
+    "paperless": {
+      "service": "paperless-db",
+      "name": "paperless",
+      "user": "paperless",
+      "password_key": "PAPERLESS_DB_PASSWORD"
+    }
+  },
+  "volumes": {
+    "odoo_postgres": {"name": "usl-odoo-production-main-postgres", "class": "transient"},
+    "odoo_filestore": {"name": "usl-odoo-production-main-odoo-data", "class": "durable"},
+    "paperless_postgres": {"name": "usl-odoo-production-main-paperless-postgres", "class": "transient"},
+    "paperless_broker": {"name": "usl-odoo-production-main-paperless-broker", "class": "transient"},
+    "paperless_media": {"name": "usl-odoo-production-main-paperless-media", "class": "durable"},
+    "paperless_data": {"name": "usl-odoo-production-main-paperless-data", "class": "cache"},
+    "paperless_trash": {"name": "usl-odoo-production-main-paperless-trash", "class": "durable"},
+    "paperless_consume": {"name": "usl-odoo-production-main-paperless-consume", "class": "durable"},
+    "mcp_oauth": {"name": "usl-odoo-production-main-odoo-mcp-oauth", "class": "durable"}
+  },
+  "paths": {
+    "sign_ca": {"path": "/opt/usl-odoo/secrets/sign/step-ca", "class": "durable"},
+    "sign_evidence": {"path": "/opt/usl-odoo/sign/evidence", "class": "durable"}
+  },
+  "external_networks": {
+    "identity": "usl-identity",
+    "ingress": "cloudflare",
+    "ollama": "ollama"
+  },
+  "endpoints": {
+    "odoo": "https://odoo.unstaticlabs.com",
+    "paperless": "https://papers.unstaticlabs.com",
+    "mcp": "https://odoo-mcp.unstaticlabs.com"
+  },
+  "ollama": {
+    "mode": "external",
+    "container": "ollama",
+    "network": "ollama",
+    "url": "http://ollama:11434",
+    "model": "bge-m3:latest",
+    "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "dimension": 1024
+  },
+  "secrets": {
+    "env_file": "/opt/usl-odoo/secrets/operations.env",
+    "allowed_keys": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "ODOO_DB_PASSWORD",
+      "PAPERLESS_DB_PASSWORD",
+      "RESTIC_PASSWORD",
+      "USL_BACKUP_CACHE_PASSWORD"
+    ]
+  },
+  "state_directory": "/var/lib/usl-odoo/runtime/production"
+}
