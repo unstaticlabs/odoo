@@ -189,6 +189,22 @@ class DistributionWorkflowPolicyTest(unittest.TestCase):
         self.assertIn("ref: main", self.workflow)
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
 
+    def test_external_identity_overlay_preserves_regulatory_runtime_flags(self) -> None:
+        overlay = (ROOT / "compose.external-pocket-id.yaml").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn(
+            "USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}",
+            overlay,
+        )
+        self.assertIn(
+            "USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}",
+            overlay,
+        )
+        self.assertNotIn('USL_EINVOICE_LIVE_ENABLED: "0"', overlay)
+        self.assertNotIn('USL_EREPORTING_LIVE_ENABLED: "0"', overlay)
+
     def test_product_module_perimeters_are_identical(self) -> None:
         target_finalize = (ROOT / "migration/internal/finalize").read_text(encoding="utf-8")
         target_match = re.search(r"product_modules=\(\n(?P<body>.*?)\n\)", target_finalize, re.DOTALL)

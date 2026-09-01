@@ -6,8 +6,8 @@ services:
     environment: &odoo_external_identity
       ODOO_LIST_DB: "False"
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-0}
-      USL_EINVOICE_LIVE_ENABLED: "0"
-      USL_EREPORTING_LIVE_ENABLED: "0"
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:?External Pocket ID issuer is required}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:?External Odoo client ID is required}
