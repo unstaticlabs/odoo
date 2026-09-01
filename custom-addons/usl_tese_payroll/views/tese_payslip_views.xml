@@ -353,7 +353,6 @@
                                    readonly="state != 'draft'"/>
                             <field name="attachment_id"
                                    string="Official TESE PDF"
-                                   domain="[('mimetype', '=', 'application/pdf')]"
                                    readonly="state in ('to_reconcile', 'paid')"/>
                             <field name="document_status"
                                    widget="badge"

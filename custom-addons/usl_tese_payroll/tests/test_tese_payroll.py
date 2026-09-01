@@ -202,6 +202,60 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(len(candidate), 1)
         return candidate
 
+    def test_pdf_picker_is_limited_to_the_payslip_company(self):
+        payslip = self._new_payslip()
+        own_pdf = self.env["ir.attachment"].sudo().create({
+            "name": "same-company-payroll.pdf",
+            "type": "binary",
+            "mimetype": "application/pdf",
+            "raw": b"%PDF-1.4 same company",
+            "res_model": payslip._name,
+            "res_id": payslip.id,
+            "company_id": self.company.id,
+        })
+        other_company = self.env.ref("base.main_company")
+        self.assertNotEqual(other_company, self.company)
+        other_employee = self.env["hr.employee"].sudo().create({
+            "name": "Other company employee",
+            "company_id": other_company.id,
+        })
+        foreign_pdf = self.env["ir.attachment"].sudo().create({
+            "name": "other-company-payroll.pdf",
+            "type": "binary",
+            "mimetype": "application/pdf",
+            "raw": b"%PDF-1.4 other company",
+            "res_model": other_employee._name,
+            "res_id": other_employee.id,
+            "company_id": other_company.id,
+        })
+
+        field = self.env["usl.tese.payslip"]._fields["attachment_id"]
+        domain = safe_eval(field.domain, {"company_id": self.company.id})
+        results = (
+            self.env["ir.attachment"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .web_name_search(
+                "",
+                {
+                    "display_name": {},
+                    "name": {},
+                    "res_name": {},
+                    "res_model": {},
+                    "res_id": {},
+                    "mimetype": {},
+                    "company_id": {},
+                },
+                domain=domain,
+                limit=100,
+            )
+        )
+
+        self.assertIn(own_pdf.id, {result["id"] for result in results})
+        self.assertNotIn(foreign_pdf.id, {result["id"] for result in results})
+        with self.assertRaises(UserError), self.cr.savepoint():
+            payslip.sudo().attachment_id = foreign_pdf
+
     def _posted_payslip(self):
         payslip = self._new_payslip()
         payslip.action_prepare()
