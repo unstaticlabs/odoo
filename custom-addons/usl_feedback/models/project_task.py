@@ -239,6 +239,7 @@ class ProjectTask(models.Model):
             if (
                 task.usl_feedback_reporter_id == self.env.user
                 and task.usl_feedback_agent_state != "triaged"
+                and task.state != "1_canceled"
                 and task.stage_id == self.env.ref("usl_feedback.stage_feedback_new")
                 and kwargs.get("message_type", "notification") == "comment"
             ):
@@ -280,6 +281,10 @@ class ProjectTask(models.Model):
             "reporter_id": self.usl_feedback_reporter_id.id,
             "is_reporter": self.usl_feedback_reporter_id == self.env.user,
             "can_manage": self.usl_feedback_can_manage,
+            "withdrawn": self.state == "1_canceled",
+            "can_withdraw": (
+                self.usl_feedback_reporter_id == self.env.user and self.state != "1_canceled"
+            ),
             "screenshot_attachment_id": screenshot.id or False,
             "screenshot_name": screenshot.name or False,
             "related_feedback": [
@@ -312,6 +317,8 @@ class ProjectTask(models.Model):
             raise UserError(_("This is not a feedback card."))
         if self.usl_feedback_reporter_id != self.env.user and not self.usl_feedback_can_manage:
             raise AccessError(_("Only the reporter or a feedback maintainer can poll this conversation."))
+        if self.state == "1_canceled":
+            return self._usl_feedback_state_payload()
         self.env["usl.feedback.agent.run"].sudo()._process_task(self.sudo())
         self.invalidate_recordset()
         return self._usl_feedback_state_payload()
@@ -320,6 +327,8 @@ class ProjectTask(models.Model):
         self.ensure_one()
         if self.usl_feedback_reporter_id != self.env.user:
             raise AccessError(_("Only the reporter can retry this feedback conversation."))
+        if self.state == "1_canceled":
+            raise UserError(_("Withdrawn feedback cannot be retried."))
         if self.usl_feedback_agent_state != "error":
             raise UserError(_("This feedback conversation does not need a retry."))
         last_message = self.env["mail.message"].search(
@@ -341,6 +350,8 @@ class ProjectTask(models.Model):
         self.ensure_one()
         if self.usl_feedback_reporter_id != self.env.user:
             raise AccessError(_("Only the reporter can send this feedback to the product team."))
+        if self.state == "1_canceled":
+            raise UserError(_("Withdrawn feedback cannot be sent to the product team."))
         if self.usl_feedback_agent_state != "ready":
             raise UserError(_("This feedback is not ready to send."))
         triage = self.env.ref("usl_feedback.stage_feedback_triaged")
@@ -360,11 +371,50 @@ class ProjectTask(models.Model):
         )
         return self._usl_feedback_state_payload()
 
+    def feedback_withdraw(self):
+        self.ensure_one()
+        if not self._usl_feedback_is_task():
+            raise UserError(_("This is not a feedback card."))
+        if self.usl_feedback_reporter_id != self.env.user:
+            raise AccessError(_("Only the reporter can withdraw this feedback."))
+        self.env.cr.execute("SELECT id FROM project_task WHERE id = %s FOR UPDATE", [self.id])
+        self.invalidate_recordset()
+        if self.state == "1_canceled":
+            return self._usl_feedback_state_payload()
+        runs = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", self.id), ("state", "in", ("queued", "submitted"))],
+        )
+        runs.write(
+            {
+                "state": "stale",
+                "completed_at": fields.Datetime.now(),
+                "next_poll_at": False,
+                "error_code": "withdrawn",
+                "error_detail": False,
+            },
+        )
+        self.sudo().with_context(tracking_disable=True).write(
+            {
+                "state": "1_canceled",
+                "usl_feedback_pending_message_id": False,
+                "usl_feedback_agent_error": False,
+            },
+        )
+        self._track_discard()
+        self.with_context(usl_feedback_skip_agent=True).message_post(
+            body=_("Feedback withdrawn."),
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+        return self._usl_feedback_state_payload()
+
     def _usl_feedback_apply_agent_result(self, result, interaction_id):
         """Validate and apply one provider result. This private method is not RPC-callable."""
         self.ensure_one()
         if not self.env.su or not self._usl_feedback_is_task():
             raise AccessError(_("Only the feedback service can apply an assistant result."))
+        if self.state == "1_canceled":
+            return False
         status = str(result.get("status") or "").strip().lower()
         status = {
             "ready": "ready_for_confirmation",
@@ -451,3 +501,4 @@ class ProjectTask(models.Model):
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
         )
+        return True

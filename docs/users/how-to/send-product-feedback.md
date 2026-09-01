@@ -9,10 +9,10 @@ leaving your work.
    Messages, chats, alerts and password fields stay out of the image.
 3. Describe what happened and what you expected. Add supporting files when
    they help explain the problem.
-4. Leave **Share page details** off unless the current page matters. When
-   enabled, Odoo shares the current action, any record you can read, the
-   company, screen size, and release. It never shares the URL, tokens, form
-   values, or browser data.
+4. **Page details** is selected when the current page has useful context. Clear
+   it if the page does not matter. Odoo shares the current action, any record
+   you can read, the company, screen size, and release. It never shares the
+   URL, tokens, form values, or browser data.
 5. Select **Send feedback**. Odoo saves your message before the agent starts.
    The preview stays on your device until this step.
 6. Follow the agent's progress in the chat. Reply if it asks for one more
@@ -20,9 +20,12 @@ leaving your work.
 7. When **Draft ready** appears, open the task if you want to check it, then
    select **Send to product team**.
 
-Use **Chat** to return to the open conversation, **My feedback** to see each
-card's status and next step, and **New** to start another report. **Open board**
-shows the shared Project board without closing the floating chat.
+Use the **Feedback #…** tab to return to the open conversation, **My feedback**
+to see each card's status and next step, and **New** to start another report.
+The feedback tab's actions menu opens the task or withdraws the feedback after
+confirmation. Withdrawal stops the assistant and product workflow but keeps
+the conversation and files. **Open board** shows the shared Project board
+without closing the floating chat.
 
 Everyone in the workspace can read and discuss feedback and its files. Only
 feedback maintainers can change task fields or workflow stages. A shared

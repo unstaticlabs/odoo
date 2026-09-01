@@ -163,6 +163,7 @@ class TestProductFeedback(TransactionCase):
                 "viewport_height": 844,
             },
         )
+        self.assertTrue(draft.include_page_context)
         payload = draft.feedback_submit_initial("Mobile context should remain private.", False)
         task = self.env["project.task"].sudo().browse(payload["id"])
         self.assertFalse(task.usl_feedback_context_included)
@@ -835,6 +836,35 @@ class TestProductFeedback(TransactionCase):
         )
         task.with_user(self.reporter).feedback_retry_agent()
         self.assertEqual(task.usl_feedback_agent_state, "queued")
+
+    def test_reporter_can_withdraw_feedback_but_other_users_cannot(self):
+        task, _payload = self._submit(message="Withdraw this feedback safely.")
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "in", ("queued", "submitted"))],
+            limit=1,
+        )
+        self.assertTrue(run)
+
+        with self.assertRaises(AccessError):
+            task.with_user(self.other).feedback_withdraw()
+
+        payload = task.with_user(self.reporter).feedback_withdraw()
+        self.assertTrue(payload["withdrawn"])
+        self.assertFalse(payload["can_withdraw"])
+        self.assertEqual(task.state, "1_canceled")
+        self.assertEqual(run.state, "stale")
+        self.assertEqual(run.error_code, "withdrawn")
+        self.assertFalse(task.usl_feedback_pending_message_id)
+        self.assertIn(
+            "Feedback withdrawn.",
+            [html2plaintext(message.body or "").strip() for message in task.message_ids],
+        )
+        self.assertTrue(task.with_user(self.reporter).feedback_withdraw()["withdrawn"])
+        with self.assertRaises(UserError):
+            task.with_user(self.reporter).feedback_retry_agent()
+        task.usl_feedback_agent_state = "ready"
+        with self.assertRaises(UserError):
+            task.with_user(self.reporter).feedback_confirm_triage()
 
     def test_gemini_runs_without_projects_mcp(self):
         task, _payload = self._submit(message="The assistant should work without MCP.")

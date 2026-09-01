@@ -176,7 +176,7 @@ qualified policy digest.
 `usl.feedback.submission.feedback_submit_initial` is an operational action that
 creates one attributable native task in the fixed **Odoo Product Feedback**
 Project before any external request. Its elevated region runs only after the
-message, source company, exact release identity, opt-in page context and draft
+message, source company, exact release identity, sanitized page details and draft
 attachment ownership have been validated. Recovery is to retain or move the
 Inbox card, or restore the consistent database and filestore backup after a
 failed deployment.
@@ -188,6 +188,12 @@ tab, excluding messaging surfaces, alerts, password fields, private-marked
 elements, external media and inaccessible frames. It never uses display
 capture or serializes HTML to the server. The selected JPEG remains on the
 device until Send and can be removed before submission.
+
+`project.task.feedback_withdraw` is a recoverable reporter action on the
+reporter's own feedback only. It locks the task, makes active assistant runs
+stale, uses Odoo's native cancelled task state and posts an attributable chatter
+event. It does not delete the task, files or conversation. Feedback maintainers
+can restore the native task state when recovery is warranted.
 
 `usl.feedback.agent.run` is a system-internal, audited orchestration surface.
 The minute cron and reporter polling may submit or poll a background Gemini

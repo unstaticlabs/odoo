@@ -130,6 +130,8 @@ class FeedbackAgentRun(models.Model):
         message.ensure_one()
         if not self.env.su or not task.project_id.usl_feedback_project:
             raise ValidationError(_("Only the feedback service can queue assistant work."))
+        if task.state == "1_canceled":
+            return False
         self.env.cr.execute("SELECT id FROM project_task WHERE id = %s FOR UPDATE", [task.id])
         active = self.search(
             [("task_id", "=", task.id), ("state", "in", ACTIVE_STATES)], limit=1,
@@ -163,6 +165,11 @@ class FeedbackAgentRun(models.Model):
     def _process_task(self, task):
         if not self.env.su:
             raise ValidationError(_("Only the feedback service can process assistant work."))
+        if task.state == "1_canceled":
+            self.search(
+                [("task_id", "=", task.id), ("state", "in", ACTIVE_STATES)],
+            )._mark_withdrawn()
+            return False
         run = self.search(
             [("task_id", "=", task.id), ("state", "in", ACTIVE_STATES)],
             order="id",
@@ -199,6 +206,9 @@ class FeedbackAgentRun(models.Model):
     def _process_one(self):
         self.ensure_one()
         if not self._claim_for_processing():
+            return False
+        if self.task_id.state == "1_canceled":
+            self._mark_withdrawn()
             return False
         self.invalidate_recordset(["state", "next_poll_at"], flush=False)
         if self.state == "queued":
@@ -485,6 +495,9 @@ class FeedbackAgentRun(models.Model):
     def _complete(self, response):
         self.ensure_one()
         task = self._task_for_reporter()
+        if task.state == "1_canceled":
+            self._mark_withdrawn()
+            return False
         response_id = str(response.get("id") or self.external_interaction_id)
         inbox = self.env.ref("usl_feedback.stage_feedback_new")
         if (
@@ -570,6 +583,9 @@ class FeedbackAgentRun(models.Model):
 
     def _restart_without_stored_state(self):
         self.ensure_one()
+        if self.task_id.state == "1_canceled":
+            self._mark_withdrawn()
+            return False
         if self.reconstructed_from_expiry:
             self._handle_error(
                 GeminiError(ERROR_STATE_EXPIRED, "Gemini stored state expired more than once."),
@@ -605,6 +621,9 @@ class FeedbackAgentRun(models.Model):
 
     def _handle_error(self, error):
         self.ensure_one()
+        if self.task_id.state == "1_canceled":
+            self._mark_withdrawn()
+            return False
         retry = error.retryable and self.attempts < 3
         if retry:
             delay = 2 ** max(self.attempts, 1) * 15
@@ -646,6 +665,20 @@ class FeedbackAgentRun(models.Model):
             },
         )
         return False
+
+    def _mark_withdrawn(self):
+        if not self:
+            return False
+        self.write(
+            {
+                "state": "stale",
+                "completed_at": fields.Datetime.now(),
+                "next_poll_at": False,
+                "error_code": "withdrawn",
+                "error_detail": False,
+            },
+        )
+        return True
 
     def _complete_with_fallback(self):
         self.ensure_one()

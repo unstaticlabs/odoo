@@ -439,6 +439,7 @@
         "rpc:project.task.feedback_confirm_triage",
         "rpc:project.task.feedback_poll_agent",
         "rpc:project.task.feedback_retry_agent",
+        "rpc:project.task.feedback_withdraw",
         "rpc:usl.feedback.agent.run.copy",
         "rpc:usl.feedback.agent.run.copy_data",
         "rpc:usl.feedback.agent.run.create",
@@ -501,9 +502,10 @@
       "id": "operational.projects.actions",
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
-        "rpc:project.task.feedback_confirm_triage": "bde9eab2374fe0745383b946423d02ce4c2aa9d9307c71cbb2fde94b3d1c2174",
-        "rpc:project.task.feedback_poll_agent": "8c49b608f090402d76afef6b21e1cb9a181ec7db8e5f08f88d7303a003c41906",
-        "rpc:project.task.feedback_retry_agent": "7c5eb81b83083018e168e1f0612add392f439ab3dab5eb678a2ace37d6b1726b",
+        "rpc:project.task.feedback_confirm_triage": "6ab2e9e639bd85cf892cd46d4140082b8b1a981df17dc0e30392df686a5a740d",
+        "rpc:project.task.feedback_poll_agent": "86e7bca0487621e2d21be3ece0767ff35951a384ac4e1129de5580bf5eb482ac",
+        "rpc:project.task.feedback_retry_agent": "e81735921e1444c5ea32cafa9de5a434335362e71366bc6b5bbae4ffeb2231c0",
+        "rpc:project.task.feedback_withdraw": "f5a3783bf830510433590319aa3403b2de50c8fcc33af9da42b45bf097dc9bcb",
         "rpc:usl.feedback.agent.run.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.feedback.agent.run.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:usl.feedback.agent.run.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
@@ -530,7 +532,7 @@
         "rpc:usl.feedback.submission.create": "5150d73bf516ba543f37f9d5352f1fde79788660ed28fda66ac2600023e08014",
         "rpc:usl.feedback.submission.feedback_add_attachment": "70c63f1460576e0851b47a285926c2134727fa71f57ad5ee2fba81fc3accfa8b",
         "rpc:usl.feedback.submission.feedback_remove_attachment": "2df942de8aaa9a60ad7a6a3919f8b8d056d95551a25e7b1f4c520d56b35ccd21",
-        "rpc:usl.feedback.submission.feedback_start": "1a3732dde3a61873df1d6f5218371c6e5bd07a356f8d82bade894072c57dae09",
+        "rpc:usl.feedback.submission.feedback_start": "30cd828388b531104ae2f098f5e5af2e9414e42543ac568a038968ac25a4b7d5",
         "rpc:usl.feedback.submission.feedback_submit_initial": "850ada86e86c8a3201ddd803936f8ce6c196719c9872bdc31673ec389fd7ce90",
         "rpc:usl.feedback.submission.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
         "rpc:usl.feedback.submission.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -38340,8 +38342,8 @@
         "ui:project_todo.project_task_action_todo": "97aadd36ca9864efc83f989ffff40d053f94846875bab4a120569957e9adb08c",
         "ui:sale_margin.action_order_report_projected_margins": "61a0169ec71957b15aff797238fd58e2e401486bab491a184cee2ac5d07f3ed7",
         "ui:sale_project.action_analytic_reporting_inherit_sale_project": "05f2a51cba88dfa059bc33f1f3f0aac08e5912e5934000d59ba791904ae19664",
-        "ui:usl_feedback.action_feedback_collaborator": "bc7a80c83f8f8c0c32b6facbd2ad58680d692c6a582a990c80fd4a0780524799",
-        "ui:usl_feedback.action_feedback_maintainer": "27201bfb20feb3a734ea70787dc462c059b850eea2c665b456df058fb2d93278"
+        "ui:usl_feedback.action_feedback_collaborator": "d4e00d36e406de5187971ed54ef528f9146f6b9feef386a747721705a6cc9d5a",
+        "ui:usl_feedback.action_feedback_maintainer": "ba3d2ac5a7da35f7a8a883def90fc2caf305704c368167adc9c967198464ca26"
       }
     },
     {
@@ -169479,6 +169481,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._mark_withdrawn:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1",
@@ -169520,6 +169523,11 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:3",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:message_send:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:2",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:message_send:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:2",
@@ -170406,6 +170414,9 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._mark_withdrawn:orm_write:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
@@ -170527,6 +170538,21 @@
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:3": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:message_send:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:2": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:2": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:message_send:1": {
@@ -170943,24 +170969,25 @@
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:3": "321cb9785e4e8b68f57e084b84c82d608b4f1ac22da920281852d2e1df68aa68",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": "83fde25d8c9891c12d1f5a00a98f387aa442bbe0a6707dde360d7f366b6ee294",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._build_payload:sudo:1": "974b6efc405cf9d9adcc3209b2066b9c26ab4154fc07d4c8310edd3cb62e793c",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1": "38ddd303f2cd350a4e0164c9bc5fa5e71ea52a035f3dec25b47eda042f713757",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2": "9d64b286ce13ef5053b8f5e29d3d2d82ecb5fa774db355c53e2da8278eae6a10",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": "53081f3b68106d43cf1da03551d1e2f327271ba940dfbe377c640b17a8da1616",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1": "3e07a842387e3fa3336688beed735c904ea0126e6f15e3c3a2f57cffdfe906f2",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2": "83d417926fd4e2dd0edcc9c46013e1432545ad0bb47f79682908e90a80bebfcf",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": "01dd3e9fe5b4951e8eed6eccb651e0b1673e22a5e75fcada49904086e1bc0e10",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:1": "d154ff3110477a5172cd6d3593035fc8e6919fd542aaa0be9a6df6b4fabd7505",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:2": "a520ea1ca1f3a11adf6989d50cdbe28b91c30816c5d88bb8cb675f3335327cb1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._configuration:sudo:1": "3c43d77e8446be899eb6eba48d96042f41779d428e1ba3680378cc6809a3f100",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1": "d5646f00b6fc378bed64224b620a4ec92f80f0a06e987ffbdb118baa89f92bbd",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2": "d6b22d9421bee9f708e210e4aea19664a608e4d55f40a8dddae13ce393721d9c",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "01879ccabe59e897c22bbb819637bd2a93d4c4a9a42dd99f761ba8c308552e4d",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "d8583b3999b1f2a041f1d1182253ce59e7e1d707db5690eca10d2ed25a5c75c5",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1": "3e49af45e3657db2784bb3f9213c50e93e3dfa0561f0cf677af1c436afc6dafd",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2": "79865d8179c6edb3d28ff7a3daedaf71fa864ba94564d5dde058b50b23704345",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "3777b0e028bd215b15980e2bba2427ed3c0552dddddf2271f46e9063729b84e9",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "eaaae8e34286564bdee22d7966efb257b35aa7db1dcf1b8f2657fe5c7667ab76",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._mark_withdrawn:orm_write:1": "f402b6e082810c7ffb8dee272b6b60c09c8738a71aa959ec558433aea039602d",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "ac83858f9677612f0fb5f6fb4f81430c93d81d263a2e4e0d7e88a4a469d38dfb",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "68bf02f0dce249528623b2428c3dd29a3d466ebfe54c6bdd806a13c820a7d16a",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "cba9f16ec285bb56cbad3b62eca3d9fb4ba422e85772e55e6b6b5c53816b6d68",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:2": "cd0a0be19a4dc6038ae91919fe6a2792666a9c3afc25a28c118be0024914facd",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:sudo:1": "e9ffa439d81709036483d556f55eb32eea97ce73a6ce3eec6cf9e6c0d434aa0d",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_create:1": "de59ed9e79e65510cef55fc8b07b195ea9e3a321babbcb0fa260b3a9de86ccc1",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:1": "723313b66f81b32d7eac0eed701e82543e97e795f7c98fbe204e358550368f9f",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:2": "fb801bc070cad4c3543a7031ea80fdbcaaa65faa6951250d20a430bf65266282",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "f2a9e13d50d857af3e4b55613a21b734d796ee47b44ecc6616ba89df24818518",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "c1dd77e4818f7dc8aa4ecfa6e2108f7606c74fabe5770f2e352320374ca0ef11",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:2": "71f7ae010f1ad4aff0e425cc634b7a0318e4ae1cbcba5c5e9b7ea84132f7ad88",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:sudo:1": "c75f061c6f1f0ad5224222232fb64a32a5a05c62eb22550e679827cd859fea92",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_create:1": "f4b59f89d2d1a93451c7f2fc7138f8a9a7d97863687284c38b5aa4f9b8b33094",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:1": "28c1bf6a429c0c444d8374cf1b54c16f9a295c82fb7f5189fb6195387e405851",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:2": "205f20d9d964bf56b8c6c0c9b8eb99cb714ad4fb7ca495be648a9cbde05df7ba",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": "b132db0cdce4882af36b068902f784408d16c4fac30e32196357b5345e2f6534",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": "9011850e35312d516d78678f9b8b92c4450d17b4c455ca782ec57f382b654d72",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_related_security.py:_feedback_task_relation_domain:sudo:1": "176175ad2bc76d86d3a215c31b560b8e2e942d22bc0166fe5e0fd0a1cf976726",
@@ -170982,22 +171009,27 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_project.py:project.project.create:orm_create:1": "563612a364cb48e378b7767998af9e90e9bd4b3b031476d7645fdb38ba6d79a7",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_project.py:project.project.unlink:orm_unlink:1": "efada9f82f42849daf2e1079a99015051eb1b0aa70d4766fd3cb4ab76af11f1f",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_project.py:project.project.write:orm_write:1": "1732c99b7db2af2ee5a9bb9d22937ee2a76f385fb4f53b672c2a2d39550ce773",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:message_send:1": "f108ca54d6c4d59eb2357b66e24faf178ca15b9f3a9fcaa36b84cf8219536206",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:orm_write:1": "edf6c4c87a6ebbcedf7264fc397abc34ff5dcfa36291a71cd1bc0ff865de3dc4",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:message_send:1": "48f9ad50f291598c498feb2161a883764404403eaa759cde2c7ef2c39811ab99",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:orm_write:1": "a88f6a1040f666b7793325ba7b213d4027eb331ff19f42ca37ddbacc066d7e6a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:orm_create:1": "ec157a52afc5fe3e633976294834f02b1f2a6ec88b5e7139d1b8e503b165dbbd",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.create:sudo:1": "f4185ce2010e3aa417e0ec4e89f438d67aeb24f40f5fe301de30d67dfcff81db",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:message_send:1": "5e2e3cdad7f68b7ed7a24a7b01be9b33b96e93c494687e47bc2ed344443cb0b8",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:orm_write:1": "777e68dfba338942b04fc41882feb429c813059ca273de9545f0345468da6762",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:sudo:1": "a8288761c3620c918c89a0fde170412b2566249fc0875c6a7fdc94f1781d2b48",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_poll_agent:sudo:1": "d39a45f2ea49633741eb44bcfb106a0bdf462656433f74023c8c1b84233664e3",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_poll_agent:sudo:2": "1d3d1595fff82cf6d58c81ea63c712b5aeb205e48d89da3758541e0dfd25fd0d",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:1": "366ab127facfc635668c0a025e635d048a801eb0e8e9424ddc62cd69a6636896",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:2": "3babc0ad6a3ee93369cb103917b4dadf7863e210375f0ccd13603aced24fa46b",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:3": "ac40080363dc01ac937262710b689fc8be9e0eda40f12e1ec130d880bb78aec5",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:message_send:1": "ad66b4eca11891ea3cff18d3051a26ecf1b6f7c79c8fb811449dc575ef008e95",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:1": "6b97926d8ed068db88852d516fc363a586a78b3bb7be09223423f86edbda4151",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:2": "61229b8e317d2da48f41d6f47bb0046af11e35a5432fff270b063474b7c55f9d",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:3": "b9e00eb5e52718ac81b019a977a9d9ddcb3820cc59b10bd9e9f2eb3e53c142c9",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:message_send:1": "1c0e0202dc9d1fa3d8d5179f6f4c28299498205e6b757da62729bdcf7a570c4e",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:orm_write:1": "1c5edb2c72241becf1b507f37d6ae3345710d0fe4639274069ada9069a41cf94",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_confirm_triage:sudo:1": "4185b7a4089bcf271c703c87bdcb86b11b76f0abcf9b45d0830661def6274887",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_poll_agent:sudo:1": "737d42bd4664e164e803fdaa38f9c1f9e024eecc43a2d40ecfde8332c0fd5af7",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_poll_agent:sudo:2": "638b211fb26546a1e940e90aa72fc56d60cc574aa9df88f3594fbaa0c25d7f63",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:1": "e4f5ee7544dde088b72b2d9c5e0912444d2b8eac3584a7f2dfe2356f8c00adfb",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:2": "903c0d95631928dc51fc4c5e64817bd430b31490cef59df184a17da2f786d3e8",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_retry_agent:sudo:3": "55b81db75222245f59c71bf8e3d07be2eff07a73923c99144d8e0d4c746c3798",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:message_send:1": "68ac96135bc361be138b9c605f87b3e1597d185d05f03b931654144947aec1ba",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:1": "608a132773be4b7d3bb0431601339609b63b78fd59cfdfa8437bd9be017f7116",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:orm_write:2": "f0fa3d94e8b3b64fa23996501facaced155c96c3a8a9bad17b5e7ed47ad806ab",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:1": "9414b6fe9d3454076be7693fe20898bb360460d70b74eab09953148704b59981",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.feedback_withdraw:sudo:2": "e8407a6f1c176ccaa7a84f408b2df8b99453a8055a95181a2839f64fce9169d7",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:message_send:1": "4a3c401a8b889d59ae58772864edf416a82089705a740bb1cea664d194f3b284",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:1": "3ca84ad3520ad352c21d3cd32181789fa9872fe00f7e636237998e9954bc941c",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:2": "b4046dffc0ec5488c78435bc0a76a70548cb8332b8e84f37287c35335a711756",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.message_post:sudo:3": "2a156815c53882912add661add5af051562a1a0891f12649ae75fe2816d4b1cd",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:orm_unlink:1": "128eabd3f1dfffe5ddaf8baf8c7c37c58ad3d51d0d8cb4a380fe661dfd007552",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.unlink:sudo:1": "3d7907ef233bc36454220f50159f2145dcd38a7556b2987191b115f7660be7cc",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task.write:orm_write:1": "fd07773cf98ba1c28628110a460126e9d8f773ad8778a41eb93594109c8b9630",
@@ -171030,7 +171062,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:2": "508d0808a9ebf80a5248690cc6468b5e23669f53b6b59aae4310f4dc227a7e2b",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:orm_write:1": "e8eb469231b9410390c4d1d506fe6f62342710634a3c874b21b3987902abc7be",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:sudo:1": "4fd527c04f4fd88b3989d68e55383ee51b91006c68bbe1a07deb71fa260dcc2e",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "fdf7c7f676fe233a8447eb5f8ecf44064a0bc36ad1e1808a5bb3ce54266620e0",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "26189be7aed8b77fbe1372d17e2ae818407b340c0c6ab9454938e97d7be35c0e",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": "e3f67513e8fddcf0e26aef30b471125200129d8e8956f0fd563bd65333664ea1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_create:1": "39c271fc553cd5f7d3b0d757ed964d733a148ec8b70b91dab15b9b5ebb422d5b",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:1": "530b25c30a6c4eb2bb644622ff81c654e14f9c38da566f50b5bf50232f7a089c",
@@ -190318,7 +190350,7 @@
         "ui:auth_totp_mail.view_users_form:button:object:action_totp_invite:1": "a2eef34a2f8321f7f17353d8b929d5e026a72790838d2c63c4bb73223e5abd15",
         "ui:usl_feedback.res_config_settings_view_form_feedback:button:object:action_clear_feedback_gemini_key:1": "8d1e297465c37310a62f9cf70bc108b8afb48c4ca52cf62ce3a226848f671a15",
         "ui:usl_feedback.res_config_settings_view_form_feedback:button:object:action_clear_feedback_mcp_key:1": "89a3a2e0595bea6d272bea25aa99d4f26b21f63e5e57877a1e09bbbb574ad161",
-        "ui:usl_feedback.res_config_settings_view_form_feedback:button:object:action_test_feedback_agent:1": "4d3099bd40abf12b5fc9cf1d874dc411d1ed532628c518db3ecaf2b89cde744d"
+        "ui:usl_feedback.res_config_settings_view_form_feedback:button:object:action_test_feedback_agent:1": "6399513c84ce143559b746d8cf69ca9fd9607e0e65c9c321bd4f2a1d197d7bbd"
       }
     },
     {
@@ -192250,6 +192282,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "2c66a78407985d31d15791881bb29a83009c0d45c43829b78c7c021724a957a2",
+  "qualified_policy_digest": "d25ea0b91656c256a8bd2fdbd2c6f47f2199288a80e30604fbff4dddc3abe26d",
   "schema": "usl-action-risk-policy-v1"
 }

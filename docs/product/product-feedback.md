@@ -5,10 +5,10 @@
 Every authenticated internal user can open **Feedback** beside **New Message**
 from every tab of Odoo's top-right messaging drawer. The drawer closes and a
 native-style floating conversation opens immediately in Odoo's ChatHub. Odoo
-prepares a local preview of the visible Odoo tab, selected by default, while
-asking what the reporter wants to improve. The reporter may clear **Include
-this page preview**, add up to ten supporting files and opt in to **Share page
-details**.
+prepares a local preview of the visible Odoo tab while asking what the reporter
+wants to improve. The preview and sanitized **Page details** are selected by
+default. The reporter may clear either choice and add up to ten supporting
+files.
 
 **Send feedback** creates a partial `project.task` in **Inbox before any
 provider call**. The floating window then becomes a native task conversation.
@@ -18,9 +18,12 @@ turn when details are missing. The reporter replies through Odoo's compact
 message composer. A short **Draft ready** bar links to the task and offers
 **Send to product team**; only that action moves the card to Triage.
 
-The window has three stable destinations: **Chat**, **My feedback** and **New**.
-**My feedback** shows each card's full title, identifier, stage, current status
-and next step; **Open board** is a secondary route to the shared Project board.
+The window has three stable destinations: the active **Feedback #…**
+conversation, **My feedback** and **New**. The active tab carries the feedback
+identifier, stage and status without a second banner. Its actions menu opens
+the native task or withdraws the feedback after confirmation. **My feedback**
+shows each card's full title, identifier, stage, current status and next step;
+**Open board** is a secondary route to the shared Project board.
 Opening either a card or the board keeps the floating conversation alive. The
 window folds into the ChatHub like an ordinary chat, becomes fullscreen on
 narrow screens and restores saved conversations after reload or return.
@@ -60,7 +63,8 @@ cover users with disjoint company access.
 
 ## Context, evidence and provider boundary
 
-Page context is off by default. The browser constructs only typed candidates
+Page context is selected by default when the current Odoo page has useful
+details. The browser constructs only typed candidates
 for the action, model, record identifier and viewport. The server retains the
 model and identifier only when the reporter can still read that record. The
 company and exact 40-character release SHA are resolved server-side. URLs,
@@ -185,6 +189,13 @@ field diffs from the conversation, and turns incomplete provider briefs into a
 clarification turn. It adds no schema or stored-task migration. Recovery is to
 restore the previous module code and upgrade `usl_feedback`; existing tasks,
 chatter, attachments and provider runs remain valid.
+
+Version `saas~19.3.2.0.6` selects sanitized page details by default, merges the
+active feedback identity and status into its conversation tab, and lets the
+reporter withdraw feedback through Odoo's native cancelled task state. Active
+assistant work becomes stale, while the task, chatter and files remain intact.
+It adds no schema or data migration. Recovery is to restore the previous module
+code and upgrade `usl_feedback`; existing feedback records remain valid.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained

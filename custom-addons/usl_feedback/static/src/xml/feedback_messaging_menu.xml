@@ -11,9 +11,22 @@
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
             <nav class="o-usl-FeedbackPanel-nav nav nav-tabs nav-fill flex-shrink-0" aria-label="Feedback navigation">
-                <button t-if="state.task" class="nav-link d-inline-flex align-items-center justify-content-center gap-1" t-att-class="{ active: state.phase === 'conversation' }" type="button" t-on-click="showConversation">
-                    <i class="fa fa-comment-o"/><span>Chat</span>
-                </button>
+                <div t-if="state.task" class="o-usl-FeedbackPanel-currentTab nav-item d-flex align-items-stretch" t-att-class="{ active: state.phase === 'conversation' }">
+                    <button class="nav-link flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2" t-att-class="{ active: state.phase === 'conversation' }" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)">
+                        <i class="fa fa-comment-o"/>
+                        <span class="min-w-0 text-start">
+                            <span class="d-block text-truncate">Feedback #<t t-out="state.task.id"/></span>
+                            <span class="d-block small text-muted text-truncate"><t t-out="state.task.stage"/> · <t t-out="this.feedbackStatus(state.task)[0]"/></span>
+                        </span>
+                    </button>
+                    <Dropdown menuClass="o-usl-FeedbackPanel-taskMenu">
+                        <button class="btn btn-link text-body px-2 h-100" type="button" title="Feedback actions" aria-label="Feedback actions"><i class="fa fa-ellipsis-v"/></button>
+                        <t t-set-slot="content">
+                            <DropdownItem onSelected="() => this.openTask(state.task)">Open feedback</DropdownItem>
+                            <DropdownItem t-if="state.task.can_withdraw" class="'text-danger'" onSelected.bind="confirmWithdraw">Withdraw feedback</DropdownItem>
+                        </t>
+                    </Dropdown>
+                </div>
                 <button class="nav-link d-inline-flex align-items-center justify-content-center gap-1" t-att-class="{ active: state.phase === 'recent' }" type="button" t-on-click="showRecent">
                     <i class="fa fa-list-ul"/><span>My feedback</span>
                 </button>
@@ -123,18 +136,12 @@
             </div>
 
             <div t-else="" class="o-usl-FeedbackPanel-conversation flex-grow-1 d-flex flex-column overflow-hidden">
-                <t t-set="status" t-value="this.feedbackStatus(state.task)"/>
-                <div class="o-usl-FeedbackPanel-taskBar d-flex align-items-center gap-2 border-bottom px-3 py-2 flex-shrink-0">
-                    <button class="btn btn-link btn-sm p-0 text-start text-truncate" type="button" t-on-click="() => this.openTask(state.task)">Feedback #<t t-out="state.task.id"/></button>
-                    <span class="small text-muted">· <t t-out="state.task.stage"/></span>
-                    <span class="badge ms-auto" t-att-class="status[2]" t-out="status[0]"/>
-                </div>
                 <div class="flex-grow-1 min-h-0">
                     <FeedbackChatter
                         agentActivity="this.agentActivity"
                         agentState="state.task.agent_state"
                         busy="state.busy"
-                        composer="!['queued', 'processing', 'triaged'].includes(state.task.agent_state)"
+                        composer="!state.task.withdrawn and !['queued', 'processing', 'triaged'].includes(state.task.agent_state)"
                         onConfirm.bind="confirmTriage"
                         onOpenTask.bind="openTask"
                         onRetry.bind="retry"
@@ -167,7 +174,7 @@
                     <button class="btn btn-link btn-sm px-0 pt-2 pb-0" type="button" t-on-click="this.props.onRetry" t-att-disabled="this.props.busy">Try again</button>
                 </div>
             </div>
-            <div t-if="this.props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar border-top px-3 py-2" role="status" aria-live="polite">
+            <div t-if="!this.props.task.withdrawn and this.props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar border-top px-3 py-2" role="status" aria-live="polite">
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <div class="min-w-0 flex-grow-1">
                         <div class="small fw-semibold"><i class="fa fa-check-circle text-success me-1"/>Draft ready <span t-if="this.props.task.category" class="badge text-bg-light border ms-1" t-out="this.props.task.category"/></div>
@@ -177,8 +184,12 @@
                     <button class="btn btn-sm btn-primary" type="button" t-on-click="this.props.onConfirm" t-att-disabled="this.props.busy">Send to product team</button>
                 </div>
             </div>
-            <div t-if="this.props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
+            <div t-if="!this.props.task.withdrawn and this.props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
                 <i class="fa fa-check-circle text-success"/><span class="small fw-semibold flex-grow-1">With the product team</span>
+                <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open feedback</button>
+            </div>
+            <div t-if="this.props.task.withdrawn" class="o-usl-FeedbackPanel-withdrawnBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
+                <i class="fa fa-ban text-muted"/><span class="small fw-semibold flex-grow-1">Feedback withdrawn</span>
                 <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open feedback</button>
             </div>
             <Composer t-if="this.props.composer" composer="this.state.thread.composer" autofocus="true" mode="'compact'" onPostCallback.bind="this.onPostCallback" dropzoneRef="this.rootRef" type="'message'" disabled="false"/>

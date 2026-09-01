@@ -1717,6 +1717,71 @@ msgstr "Transmis à l’équipe produit"
 msgid "With the product team"
 msgstr "Transmis à l’équipe produit"
 
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback #%(id)s chat"
+msgstr "Discussion du retour nº %(id)s"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback actions"
+msgstr "Actions du retour"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "No further action"
+msgstr "Aucune action requise"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "This stops the feedback process. The conversation and files will stay available."
+msgstr "Cette action arrête le traitement du retour. La conversation et les fichiers resteront disponibles."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Withdraw"
+msgstr "Retirer"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Withdraw feedback"
+msgstr "Retirer le retour"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Withdraw feedback?"
+msgstr "Retirer ce retour ?"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Withdrawn"
+msgstr "Retiré"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback withdrawn"
+msgstr "Retour retiré"
+
+#. module: usl_feedback
+#. odoo-python
+msgid "Feedback withdrawn."
+msgstr "Retour retiré."
+
+#. module: usl_feedback
+#. odoo-python
+msgid "Only the reporter can withdraw this feedback."
+msgstr "Seul l’auteur peut retirer ce retour."
+
+#. module: usl_feedback
+#. odoo-python
+msgid "Withdrawn feedback cannot be retried."
+msgstr "Un retour retiré ne peut pas être relancé."
+
+#. module: usl_feedback
+#. odoo-python
+msgid "Withdrawn feedback cannot be sent to the product team."
+msgstr "Un retour retiré ne peut pas être envoyé à l’équipe produit."
+
 #~ msgid "Approved model"
 #~ msgstr "Modèle approuvé"
 

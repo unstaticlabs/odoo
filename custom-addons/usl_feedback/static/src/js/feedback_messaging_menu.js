@@ -5,6 +5,9 @@ import { Composer } from "@mail/core/common/composer";
 import { MessagingMenu } from "@mail/core/public_web/messaging_menu";
 import { Thread } from "@mail/core/common/thread";
 import { browser } from "@web/core/browser/browser";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { Dropdown } from "@web/core/dropdown/dropdown";
+import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
@@ -66,13 +69,14 @@ export class FeedbackChatter extends Chatter {
 
 export class FeedbackPanel extends Component {
     static template = "usl_feedback.FeedbackPanel";
-    static components = { FeedbackChatter };
+    static components = { Dropdown, DropdownItem, FeedbackChatter };
     static props = ["captureState?", "clearScreenshot?", "close", "pageContext", "screenshot?"];
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this.state = useState({
             phase: "loading",
             draftId: false,
@@ -116,6 +120,7 @@ export class FeedbackPanel extends Component {
                 phase: "draft",
                 draftId: result.draft_id,
                 contextAvailable: result.context_available,
+                includeContext: result.include_page_context,
                 recent: result.recent,
             });
         } catch (error) {
@@ -366,6 +371,9 @@ export class FeedbackPanel extends Component {
     }
 
     feedbackStatus(task) {
+        if (task.withdrawn) {
+            return [_t("Withdrawn"), _t("No further action"), "text-bg-secondary"];
+        }
         const statuses = {
             queued: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
             processing: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
@@ -375,6 +383,10 @@ export class FeedbackPanel extends Component {
             triaged: [_t("With product team"), task.stage, "text-bg-primary"],
         };
         return statuses[task.agent_state] || [task.stage, _t("Open feedback"), "text-bg-secondary"];
+    }
+
+    feedbackChatLabel(task) {
+        return _t("Feedback #%(id)s chat", { id: task.id });
     }
 
     async retry() {
@@ -405,6 +417,38 @@ export class FeedbackPanel extends Component {
             this.stopAgentProgress();
         } catch (error) {
             this.showError(error);
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    confirmWithdraw() {
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Withdraw feedback?"),
+            body: _t("This stops the feedback process. The conversation and files will stay available."),
+            confirmLabel: _t("Withdraw"),
+            confirmClass: "btn-danger",
+            confirm: () => this.withdrawFeedback(),
+        });
+    }
+
+    async withdrawFeedback() {
+        if (!this.state.task?.can_withdraw || this.state.busy) {
+            return false;
+        }
+        this.state.busy = true;
+        try {
+            this.state.task = await this.orm.call(
+                "project.task",
+                "feedback_withdraw",
+                [[this.state.task.id]]
+            );
+            this.stopAgentProgress();
+            browser.clearTimeout(this.pollTimer);
+            return true;
+        } catch (error) {
+            this.showError(error);
+            return false;
         } finally {
             this.state.busy = false;
         }

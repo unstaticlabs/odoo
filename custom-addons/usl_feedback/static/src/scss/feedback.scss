@@ -35,6 +35,19 @@
             color: $o-main-text-color;
             font-size: $o-font-size-base-smaller;
         }
+
+        .o-usl-FeedbackPanel-currentTab {
+            flex: 1 1 0;
+            min-width: 0;
+
+            &.active {
+                border-bottom: var(--bs-nav-tabs-border-width) solid $o-brand-primary;
+            }
+
+            .nav-link.active {
+                border-bottom: 0;
+            }
+        }
     }
 
     .o-usl-FeedbackPanel-agentAvatar {
@@ -61,6 +74,10 @@
 
     .o-usl-FeedbackPanel-sentBar {
         background-color: rgba(var(--o-success-rgb, 25, 135, 84), 0.05);
+    }
+
+    .o-usl-FeedbackPanel-withdrawnBar {
+        background-color: $o-gray-100;
     }
 
     .o-usl-FeedbackPanel-typing {

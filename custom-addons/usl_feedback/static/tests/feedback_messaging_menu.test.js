@@ -36,8 +36,9 @@ class TestChatter extends Component {
         <div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'">
             <span t-if="['queued', 'processing'].includes(props.agentState)" class="o-test-AgentActivity" t-out="props.agentActivity"/>
             <div t-if="props.agentState === 'error'" class="o-test-AgentError">Your feedback is saved.<button t-on-click="props.onRetry">Try again</button></div>
-            <div t-if="props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar"><button t-on-click="() => props.onOpenTask()">Open draft</button><button t-on-click="props.onConfirm">Send to product team</button></div>
-            <div t-if="props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar">With the product team</div>
+            <div t-if="!props.task.withdrawn and props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar"><button t-on-click="() => props.onOpenTask()">Open draft</button><button t-on-click="props.onConfirm">Send to product team</button></div>
+            <div t-if="!props.task.withdrawn and props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar">With the product team</div>
+            <div t-if="props.task.withdrawn" class="o-usl-FeedbackPanel-withdrawnBar">Feedback withdrawn</div>
         </div>`;
     static props = [
         "agentActivity",
@@ -66,6 +67,8 @@ function feedbackTask(values = {}) {
         reporter_id: 4,
         is_reporter: true,
         can_manage: false,
+        withdrawn: false,
+        can_withdraw: true,
         screenshot_attachment_id: false,
         screenshot_name: false,
         related_feedback: [],
@@ -77,6 +80,7 @@ function mockFeedbackStart(recent = []) {
     onRpc("usl.feedback.submission", "feedback_start", () => ({
         draft_id: 41,
         context_available: true,
+        include_page_context: true,
         recent,
     }));
 }
@@ -290,6 +294,7 @@ test("draft keeps its default-selected page preview local until send", async () 
         return {
             draft_id: 41,
             context_available: true,
+            include_page_context: true,
             recent: [],
         };
     });
@@ -352,11 +357,12 @@ test("deselecting a local page preview releases it without uploading", async () 
     expect.verifySteps(["release local preview"]);
 });
 
-test("capture fallback keeps context opt-in and manual attachments usable", async () => {
+test("capture fallback keeps default page details and manual attachments usable", async () => {
     let attachmentId = 90;
     onRpc("usl.feedback.submission", "feedback_start", () => ({
         draft_id: 42,
         context_available: true,
+        include_page_context: true,
         recent: [],
     }));
     onRpc("usl.feedback.submission", "feedback_add_attachment", ({ args }) => {
@@ -372,7 +378,7 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
         },
     });
     expect(".o-usl-FeedbackPanel").toHaveText(/Page preview unavailable/);
-    expect("#usl_feedback_context").not.toBeChecked();
+    expect("#usl_feedback_context").toBeChecked();
     await contains("#usl_feedback_files").click();
     await setInputFiles(
         new File(["reproduction"], "reproduction.txt", { type: "text/plain" })
@@ -382,12 +388,12 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
     expect("#usl_feedback_files").not.toHaveAttribute("disabled");
 });
 
-test("first message creates the conversation and keeps page context opt-in", async () => {
+test("first message creates the conversation with page details selected by default", async () => {
     mockFeedbackStart();
     onRpc("usl.feedback.submission", "feedback_submit_initial", ({ args }) => {
         expect(args.slice(1)).toEqual([
             "The next action disappears after reload.",
-            false,
+            true,
         ]);
         expect.step("created inbox task");
         return feedbackTask({ agent_state: "queued" });
@@ -436,6 +442,10 @@ test("conversation renders processing, clarification, error, ready, and success 
 
     component.state.task = feedbackTask({ agent_state: "waiting" });
     await animationFrame();
+    expect(".o-usl-FeedbackPanel-taskBar").toHaveCount(0);
+    expect(".o-usl-FeedbackPanel-currentTab").toHaveText(
+        /Feedback #71.*Inbox.*Needs your reply/s
+    );
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
 
     component.state.task = feedbackTask({
@@ -466,6 +476,32 @@ test("conversation renders processing, clarification, error, ready, and success 
     await animationFrame();
     expect(".o-usl-FeedbackPanel-sentBar").toHaveText(/With the product team/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+});
+
+test("reporter can withdraw feedback from its tab and the conversation becomes read-only", async () => {
+    mockFeedbackStart();
+    onRpc("project.task", "feedback_withdraw", ({ args }) => {
+        expect(args[0]).toEqual([71]);
+        expect.step("withdrawn");
+        return feedbackTask({ withdrawn: true, can_withdraw: false });
+    });
+    const component = await mountFeedbackPanel();
+    Object.assign(component.state, {
+        phase: "conversation",
+        task: feedbackTask(),
+    });
+    await animationFrame();
+
+    await contains("button[aria-label='Feedback actions']").click();
+    await contains(".dropdown-item:contains('Withdraw feedback')").click();
+    expect(".modal-title").toHaveText("Withdraw feedback?");
+    await contains(".modal-footer .btn-danger:contains('Withdraw')").click();
+    await animationFrame();
+
+    expect(".o-usl-FeedbackPanel-currentTab").toHaveText(/Withdrawn/);
+    expect(".o-usl-FeedbackPanel-withdrawnBar").toHaveText(/Feedback withdrawn/);
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+    expect.verifySteps(["withdrawn"]);
 });
 
 test("reporter confirmation is guarded by the ready card and updates to Triage", async () => {
