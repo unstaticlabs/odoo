@@ -220,7 +220,12 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.assertIn("usl-sign-dss:\n", overlay)
         self.assertGreaterEqual(overlay.count("build: !reset null"), 4)
         self.assertIn("start_sign_services()", release_script)
-        self.assertIn("python /usr/local/bin/usl-sign-services-smoke", release_script)
+        self.assertIn(
+            "USL_SIGN_ADDONS_PATH=/opt/odoo/custom-addons",
+            release_script,
+        )
+        self.assertIn("odoo /tmp/usl-sign-services-smoke.py", release_script)
+        self.assertIn("ODOO_MCP_BETTER_AUTH_SECRET_FILE", release_script)
         self.assertIn("--profile document-renderer config", release_script)
         self.assertIn("scripts/odoo/production_activate.py", release_script)
         self.assertIn("USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED=1", release_script)

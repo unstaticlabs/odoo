@@ -124,8 +124,12 @@ def test(release: dict[str, str]) -> None:
 
 
 def request_json(url: str) -> tuple[int, dict]:
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "USL-Odoo-MCP-Smoke/1.0"},
+    )
     try:
-        with urllib.request.urlopen(url, timeout=10) as response:
+        with urllib.request.urlopen(request, timeout=10) as response:
             return response.status, json.loads(response.read())
     except urllib.error.HTTPError as error:
         return error.code, json.loads(error.read())
@@ -138,7 +142,10 @@ def smoke(origin: str) -> dict:
     request = urllib.request.Request(
         f"{origin}/mcp",
         data=b"{}",
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "USL-Odoo-MCP-Smoke/1.0",
+        },
         method="POST",
     )
     try:
