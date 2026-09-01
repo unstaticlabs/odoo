@@ -15,10 +15,20 @@ if mode not in {"staged", "admitted"}:
 errors = []
 live_einvoice = os.environ.get("USL_EINVOICE_LIVE_ENABLED") == "1"
 live_ereporting = os.environ.get("USL_EREPORTING_LIVE_ENABLED") == "1"
-if live_einvoice != live_ereporting:
-    errors.append("e-invoicing and e-reporting live guards disagree")
+try:
+    cron_gates = json.loads(os.environ["USL_PRODUCTION_CRON_GATES_JSON"])
+except (KeyError, json.JSONDecodeError):
+    cron_gates = {}
+    errors.append("production cron gates are missing or invalid")
+if live_ereporting and not live_einvoice:
+    errors.append("e-reporting is enabled before invoice exchange")
 if mode == "staged" and (live_einvoice or live_ereporting):
     errors.append("regulatory live access is enabled during staging")
+if mode == "admitted" and (
+    cron_gates.get("pdp_reception") is not live_einvoice
+    or cron_gates.get("pdp_ereporting") is not live_ereporting
+):
+    errors.append("regulatory live flags and production cron gates disagree")
 
 parameters = env["ir.config_parameter"].sudo()  # noqa: F821
 neutralized = parameters.get_bool("database.is_neutralized")
@@ -48,10 +58,14 @@ pending_mail = env["mail.mail"].sudo().search_count([  # noqa: F821
 ])
 if pending_mail:
     errors.append(f"pre-cutoff Odoo mail remains pending: {pending_mail}")
-if "fetchmail.server" in env.registry:  # noqa: F821
-    active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
-    if active_fetchmail:
-        errors.append(f"incoming mail servers remain active: {active_fetchmail.ids}")
+active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
+if active_fetchmail and not (
+    mode == "admitted" and cron_gates.get("inbound_mail") is True
+):
+    errors.append(f"incoming mail servers remain active: {active_fetchmail.ids}")
+if mode == "admitted" and cron_gates.get("inbound_mail") is True:
+    if len(active_fetchmail) != 1 or active_fetchmail.state != "done":
+        errors.append("the admitted incoming mail server is not confirmed")
 
 if mode == "staged" and "payment.provider" in env.registry:  # noqa: F821
     enabled_payment = env["payment.provider"].sudo().search([("state", "!=", "disabled")])  # noqa: F821
@@ -75,7 +89,11 @@ print(json.dumps({
     "database_neutralized": neutralized,
     "mode": mode,
     "pending_mail": 0,
-    "regulatory_live": live_einvoice,
+    "inbound_mail_live": bool(active_fetchmail),
+    "regulatory_live": {
+        "invoice_exchange": live_einvoice,
+        "ereporting": live_ereporting,
+    },
     "smtp_transport": "resend-host-config",
     "status": "passed",
 }, indent=2, sort_keys=True))

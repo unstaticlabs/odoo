@@ -3,6 +3,7 @@
   "gates": [
     "always",
     "digest",
+    "inbound_mail",
     "ots",
     "pdp_ereporting",
     "pdp_reception",
@@ -39,7 +40,7 @@
     "mail.ir_cron_delete_notification": {"gate": "always", "reason": "Remove expired internal notification rows."},
     "mail.ir_cron_discuss_channel_member_unmute": {"gate": "always", "reason": "Maintain internal Discuss mute schedules."},
     "mail.ir_cron_mail_end_polls": {"gate": "always", "reason": "Close expired internal polls."},
-    "mail.ir_cron_mail_gateway_action": {"gate": null, "reason": "Google IMAP has not yet been configured by an administrator."},
+    "mail.ir_cron_mail_gateway_action": {"gate": "inbound_mail", "reason": "Poll the admitted IMAP mailbox after its recipient aliases and connection have been validated."},
     "mail.ir_cron_mail_scheduler_action": {"gate": "smtp", "reason": "Process the clean Odoo mail queue through Resend."},
     "mail.ir_cron_module_update_notification": {"gate": null, "reason": "Publisher telemetry and update checks are not approved."},
     "mail.ir_cron_post_scheduled_message": {"gate": "always", "reason": "Post scheduled internal Chatter messages."},

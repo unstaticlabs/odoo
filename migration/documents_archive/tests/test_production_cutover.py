@@ -129,6 +129,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             "USL_PRODUCTION_CRON_GATES_JSON": json.dumps({
                 "always": True,
                 "digest": False,
+                "inbound_mail": False,
                 "ots": False,
                 "pdp_ereporting": False,
                 "pdp_reception": False,

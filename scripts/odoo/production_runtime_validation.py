@@ -106,6 +106,47 @@ queue_counts = {
         ("state", "in", ["draft", "pending", "authorized", "error"]),
     ]),
 }
+
+inbound_mail = {"active_server_count": 0, "status": "disabled"}
+active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
+inbound_mail_blockers = []
+if gates["inbound_mail"]:
+    if len(active_fetchmail) != 1:
+        inbound_mail_blockers.append(
+            f"expected one active server, found {len(active_fetchmail)}"
+        )
+    else:
+        incoming = active_fetchmail.ensure_one()
+        expected = {
+            "server_type": "imap",
+            "state": "done",
+            "server": "imap.gmail.com",
+            "port": 993,
+            "is_ssl": True,
+            "object_id": False,
+        }
+        mismatched = [
+            field_name
+            for field_name, expected_value in expected.items()
+            if incoming[field_name] != expected_value
+        ]
+        if mismatched:
+            inbound_mail_blockers.append(
+                "server fields differ: " + ", ".join(sorted(mismatched))
+            )
+        if incoming.error_message:
+            inbound_mail_blockers.append("server has an unresolved error")
+        if not incoming.date or incoming.date < now - timedelta(minutes=15):
+            inbound_mail_blockers.append("server has not polled successfully within 15 minutes")
+        inbound_mail = {
+            "active_server_count": 1,
+            "last_success": fields.Datetime.to_string(incoming.date) if incoming.date else None,
+            "status": "failed" if inbound_mail_blockers else "passed",
+        }
+elif active_fetchmail:
+    inbound_mail_blockers.append(
+        f"gate is disabled but active servers remain: {active_fetchmail.ids}"
+    )
 if "usl.document.operation" in env.registry:  # noqa: F821
     queue_counts["documents_unsettled"] = env["usl.document.operation"].sudo().search_count([  # noqa: F821
         ("state", "in", ["pending", "uploading", "processing", "failed", "duplicate"]),
@@ -143,6 +184,8 @@ if any(queue_counts.values()):
     blockers["queues"] = queue_counts
 if stale_progress:
     blockers["stale_cron_progress"] = stale_progress
+if inbound_mail_blockers:
+    blockers["inbound_mail"] = inbound_mail_blockers
 
 result = {
     "schema": "usl-production-runtime-validation-v1",
@@ -151,6 +194,7 @@ result = {
     "disabled_cron_xmlids": sorted(set(rules) - active),
     "cron_failure_count": sum(failures.values()),
     "cron_lag_count": len(lag),
+    "inbound_mail": inbound_mail,
     "queue_counts": queue_counts,
     "stale_cron_progress": stale_progress,
     "blockers": blockers,

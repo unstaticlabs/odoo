@@ -80,6 +80,26 @@ French electronic-invoice reception and e-reporting are separate activations.
 Follow the dedicated activation procedure; never infer production eligibility
 from offline tests.
 
+## Inbound mail
+
+Production uses one confirmed Gmail IMAP server and routes messages by their
+original recipient. Leave the server's **Create a New Record** field empty.
+Odoo must resolve these aliases before enabling the `inbound_mail` gate:
+
+- `expense@unstaticlabs.com` to employee expenses;
+- `purchases@unstaticlabs.com` to the USL vendor-bill journal;
+- `purchases-usl-media@unstaticlabs.com` to the USL Media vendor-bill journal.
+
+Google Workspace may deliver all aliases to one mailbox, but it must preserve
+the alias in `Delivered-To`, `To`, `Cc`, or `Resent-To`. The alias-domain
+settings remain `catchall`, `bounce`, and `odoo` for replies, bounces, and the
+default sender. Those addresses do not replace functional record aliases.
+
+Set `inbound_mail=true` only after Odoo confirms the IMAP login, every required
+alias resolves to the intended model and company, and the mailbox has no stale
+unread backlog. Admission then enables `mail.ir_cron_mail_gateway_action` and
+runtime validation requires a successful poll within 15 minutes.
+
 ## Final local tour and VPS promotion
 
 Keep the protected local runtime writable during the final user tour. Never
@@ -106,9 +126,9 @@ After Valentin declares the final cutoff:
     through a separate approved operation.
 
 Production uses HTTPS origins, external Pocket ID and ingress networks, fresh
-explicit volumes, container Ollama, and digest-pinned Odoo, Paperless,
+explicit volumes, the admitted shared Ollama service, and digest-pinned Odoo, Paperless,
 renderer, Sign, MCP, and supporting images. Keep e-invoicing, e-reporting,
-outbound mail, bank-email ingestion, and unapproved jobs disabled until their
+outbound mail, inbound mail, bank-email ingestion, and unapproved jobs disabled until their
 separate activation gates pass.
 
 ## Odoo backup primitive

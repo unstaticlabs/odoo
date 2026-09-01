@@ -20,6 +20,7 @@ EREPORTING_CRONS = {
     "l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows",
     "l10n_fr_pdp.ir_cron_pdp_send_lifecycles",
 }
+INBOUND_MAIL_CRONS = {"mail.ir_cron_mail_gateway_action"}
 
 
 def load_script_function(name):
@@ -59,6 +60,34 @@ class ProductionCronPolicyTest(unittest.TestCase):
                 "USL_EREPORTING_LIVE_ENABLED": "0",
             }),
             {"pdp_reception": True, "pdp_ereporting": False},
+        )
+
+    def test_inbound_mail_has_an_independent_production_gate(self):
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+
+        self.assertIn("inbound_mail", policy["gates"])
+        self.assertEqual(
+            {
+                xmlid
+                for xmlid, rule in policy["crons"].items()
+                if rule["gate"] == "inbound_mail"
+            },
+            INBOUND_MAIL_CRONS,
+        )
+
+    def test_admitted_inbound_server_contract_is_explicit(self):
+        expected = load_script_function("expected_inbound_server")()
+
+        self.assertEqual(
+            expected,
+            {
+                "server_type": "imap",
+                "state": "done",
+                "server": "imap.gmail.com",
+                "port": 993,
+                "is_ssl": True,
+                "object_id": False,
+            },
         )
 
     def test_ereporting_cannot_precede_invoice_exchange(self):
