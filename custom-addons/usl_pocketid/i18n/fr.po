@@ -1309,3 +1309,103 @@ msgstr "optional_if_missing doit valoir true ou false."
 #: code:addons/usl_pocketid/models/res_users.py:0
 msgid "optional_if_missing is only supported for inactive historical or decision profiles."
 msgstr "optional_if_missing est réservé aux profils historiques ou de décision inactifs."
+
+#. module: usl_pocketid
+msgid "Email Addresses"
+msgstr "Adresses e-mail"
+
+#. module: usl_pocketid
+msgid "Personal Sender Address"
+msgstr "Adresse d’envoi personnelle"
+
+#. module: usl_pocketid
+msgid "Personal Sender Addresses"
+msgstr "Adresses d’envoi personnelles"
+
+#. module: usl_pocketid
+msgid "Pending verification"
+msgstr "Vérification en attente"
+
+#. module: usl_pocketid
+msgid "Verified"
+msgstr "Vérifiée"
+
+#. module: usl_pocketid
+msgid "Send verification"
+msgstr "Envoyer la vérification"
+
+#. module: usl_pocketid
+msgid "Verification email sent"
+msgstr "E-mail de vérification envoyé"
+
+#. module: usl_pocketid
+msgid "Verify your personal email address"
+msgstr "Vérifiez votre adresse e-mail personnelle"
+
+#. module: usl_pocketid
+msgid "Email address verified"
+msgstr "Adresse e-mail vérifiée"
+
+#. module: usl_pocketid
+msgid "Verification link unavailable"
+msgstr "Lien de vérification indisponible"
+
+#. module: usl_pocketid
+msgid "Open Odoo"
+msgstr "Ouvrir Odoo"
+
+#. module: usl_pocketid
+msgid "Add personal addresses you use to email Odoo. Odoo recognizes an address only after you verify it."
+msgstr "Ajoutez les adresses personnelles utilisées pour écrire à Odoo. Odoo ne reconnaît une adresse qu’après sa vérification."
+
+#. module: usl_pocketid
+msgid "Verified addresses identify this user when messages enter Odoo."
+msgstr "Les adresses vérifiées identifient cet utilisateur à la réception des messages."
+
+#. module: usl_pocketid
+msgid "Verified personal addresses resolve to this employee's work contact."
+msgstr "Les adresses personnelles vérifiées sont rattachées au contact professionnel de cet employé."
+
+#. module: usl_pocketid
+msgid "Verified personal addresses resolve incoming messages to this contact."
+msgstr "Les adresses personnelles vérifiées rattachent les messages entrants à ce contact."
+
+#. module: usl_pocketid
+msgid "Odoo will now recognize messages sent from"
+msgstr "Odoo reconnaîtra désormais les messages envoyés depuis"
+
+#. module: usl_pocketid
+msgid "This link is invalid, expired, or already used. Request a new verification email from your Odoo preferences."
+msgstr "Ce lien est invalide, expiré ou déjà utilisé. Demandez un nouvel e-mail de vérification dans vos préférences Odoo."
+
+#. module: usl_pocketid
+msgid "This personal email address is already registered."
+msgstr "Cette adresse e-mail personnelle est déjà enregistrée."
+
+#. module: usl_pocketid
+msgid "Enter a valid email address."
+msgstr "Saisissez une adresse e-mail valide."
+
+#. module: usl_pocketid
+msgid "This is already the contact's primary email address."
+msgstr "Il s’agit déjà de l’adresse e-mail principale du contact."
+
+#. module: usl_pocketid
+msgid "An Odoo destination alias cannot be a personal sender address."
+msgstr "Un alias de destination Odoo ne peut pas servir d’adresse d’envoi personnelle."
+
+#. module: usl_pocketid
+msgid "This address belongs to another Odoo user or employee."
+msgstr "Cette adresse appartient à un autre utilisateur ou employé Odoo."
+
+#. module: usl_pocketid
+msgid "You can manage only your own personal email addresses."
+msgstr "Vous pouvez gérer uniquement vos propres adresses e-mail personnelles."
+
+#. module: usl_pocketid
+msgid "Verification state is managed by Odoo."
+msgstr "L’état de vérification est géré par Odoo."
+
+#. module: usl_pocketid
+msgid "The public Odoo URL is not configured safely."
+msgstr "L’URL publique d’Odoo n’est pas configurée de manière sûre."

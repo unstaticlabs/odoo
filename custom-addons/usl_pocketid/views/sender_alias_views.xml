@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_mail_sender_alias_list" model="ir.ui.view">
+        <field name="name">usl.mail.sender.alias.list</field>
+        <field name="model">usl.mail.sender.alias</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="email" widget="email"/>
+                <field name="state" widget="badge" decoration-success="state == 'verified'" decoration-warning="state == 'pending'"/>
+                <field name="verified_at" optional="show"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+                <button name="action_send_verification" type="object" string="Send verification" icon="fa-paper-plane" invisible="not id or state == 'verified'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_mail_sender_alias_form" model="ir.ui.view">
+        <field name="name">usl.mail.sender.alias.form</field>
+        <field name="model">usl.mail.sender.alias</field>
+        <field name="arch" type="xml">
+            <form string="Personal Sender Address">
+                <header>
+                    <button name="action_send_verification" type="object" string="Send verification" class="btn-primary" invisible="not id or state == 'verified'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,verified"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="email" widget="email"/>
+                        <field name="verified_at" invisible="state != 'verified'"/>
+                        <field name="verification_sent_at" invisible="not verification_sent_at"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_users_preferences_sender_aliases" model="ir.ui.view">
+        <field name="name">res.users.preferences.sender.aliases</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="hr.res_users_view_form_preferences"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="personal_sender_addresses" string="Email Addresses">
+                    <div class="alert alert-info" role="alert">
+                        Add personal addresses you use to email Odoo. Odoo recognizes an address only after you verify it.
+                    </div>
+                    <field name="usl_sender_alias_ids" context="{'default_partner_id': partner_id}" mode="list,form"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_sender_aliases" model="ir.ui.view">
+        <field name="name">res.users.form.sender.aliases</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="personal_sender_addresses" string="Email Addresses">
+                    <p class="text-muted">Verified addresses identify this user when messages enter Odoo.</p>
+                    <field name="usl_sender_alias_ids" context="{'default_partner_id': partner_id}" mode="list,form"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_sender_aliases" model="ir.ui.view">
+        <field name="name">hr.employee.form.sender.aliases</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="personal_sender_addresses" string="Email Addresses" groups="hr.group_hr_user">
+                    <p class="text-muted">Verified personal addresses resolve to this employee's work contact.</p>
+                    <field name="usl_sender_alias_ids" context="{'default_partner_id': work_contact_id}" mode="list,form"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_form_sender_aliases" model="ir.ui.view">
+        <field name="name">res.partner.form.sender.aliases</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="personal_sender_addresses" string="Email Addresses" groups="hr.group_hr_user">
+                    <p class="text-muted">Verified personal addresses resolve incoming messages to this contact.</p>
+                    <field name="usl_sender_alias_ids" context="{'default_partner_id': id}" mode="list,form"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

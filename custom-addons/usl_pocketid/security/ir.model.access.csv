@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_usl_oidc_identity_system,usl.oidc.identity system,model_usl_oidc_identity,base.group_system,1,1,1,0
 access_usl_oidc_audit_event_system,usl.oidc.audit.event system,model_usl_oidc_audit_event,base.group_system,1,0,0,0
+access_usl_mail_sender_alias_user,usl.mail.sender.alias user,model_usl_mail_sender_alias,base.group_user,1,1,1,1

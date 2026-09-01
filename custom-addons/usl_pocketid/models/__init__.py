@@ -4,4 +4,5 @@ from . import (
     oidc_identity,
     portal_wizard,
     res_users,
+    sender_alias,
 )
