@@ -1,7 +1,7 @@
 {
     "name": "USL Pocket ID SSO",
     "summary": "Hardened Pocket ID OIDC login and governed identity linking",
-    "version": "saas~19.3.1.3.1",
+    "version": "saas~19.3.1.3.2",
     "category": "Tools",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -33,6 +33,10 @@
             "usl_pocketid/static/src/js/check_identity.js",
             "usl_pocketid/static/src/js/identity_check_form.js",
             "usl_pocketid/static/src/xml/check_identity.xml",
+            "usl_pocketid/static/src/js/sender_alias_preferences.js",
+        ],
+        "web.assets_unit_tests": [
+            "usl_pocketid/static/tests/sender_alias_preferences.test.js",
         ],
     },
     "application": False,

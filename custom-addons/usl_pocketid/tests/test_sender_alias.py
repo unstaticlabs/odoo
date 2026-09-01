@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
@@ -32,11 +33,16 @@ class TestPersonalSenderAliases(TransactionCase):
         )
 
     def _new_alias(self, email="personal.sender@example.invalid"):
-        return self.env["usl.mail.sender.alias"].with_user(self.user).create(
-            {
-                "partner_id": self.user.partner_id.id,
-                "email": email,
-            },
+        return (
+            self.env["usl.mail.sender.alias"]
+            .with_user(self.user)
+            .with_context(usl_sender_alias_skip_automatic_verification=True)
+            .create(
+                {
+                    "partner_id": self.user.partner_id.id,
+                    "email": email,
+                },
+            )
         )
 
     def _verify(self, alias):
@@ -53,18 +59,31 @@ class TestPersonalSenderAliases(TransactionCase):
         self.assertEqual(alias.state, "pending")
 
     def test_user_preferences_can_register_own_address(self):
-        self.user.with_user(self.user).write(
-            {
-                "usl_sender_alias_ids": [
-                    Command.create({"email": "Preferences <prefs@example.invalid>"}),
-                ],
-            },
-        )
+        with patch.object(
+            type(self.env["mail.mail"]),
+            "send",
+            autospec=True,
+            return_value=True,
+        ) as send:
+            self.user.with_user(self.user).write(
+                {
+                    "usl_sender_alias_ids": [
+                        Command.create(
+                            {"email": "Preferences <prefs@example.invalid>"},
+                        ),
+                    ],
+                },
+            )
 
         self.assertEqual(
             self.user.usl_sender_alias_ids.email,
             "prefs@example.invalid",
         )
+        self.assertEqual(send.call_count, 1)
+        self.assertEqual(self.user.usl_sender_alias_ids.state, "pending")
+        self.assertTrue(self.user.usl_sender_alias_ids.verification_sent_at)
+        self.assertTrue(self.user.usl_sender_alias_ids.verification_token_digest)
+        self.assertTrue(self.user.usl_sender_alias_ids.verification_expires_at)
 
     def test_verified_address_resolves_contact_user_and_employee(self):
         alias = self._verify(self._new_alias())
@@ -100,6 +119,10 @@ class TestPersonalSenderAliases(TransactionCase):
         self.assertNotEqual(partner, external)
 
     def test_todo_from_verified_personal_address_assigns_sender(self):
+        if not self.env["ir.module.module"].search_count(
+            [("name", "=", "usl_project"), ("state", "=", "installed")],
+        ):
+            self.skipTest("The To-Do assignment behavior belongs to usl_project.")
         alias_domain = self.env["mail.alias.domain"].create(
             {"name": "sender-alias.example.invalid"},
         )
@@ -163,12 +186,23 @@ class TestPersonalSenderAliases(TransactionCase):
         self.assertFalse(expired._verify_token(expired_token))
 
     def test_changing_address_requires_fresh_verification(self):
-        alias = self._verify(self._new_alias())
+        alias = self._verify(self._new_alias()).with_context(
+            usl_sender_alias_skip_automatic_verification=False,
+        )
 
-        alias.write({"email": "changed.sender@example.invalid"})
+        with patch.object(
+            type(self.env["mail.mail"]),
+            "send",
+            autospec=True,
+            return_value=True,
+        ) as send:
+            alias.write({"email": "changed.sender@example.invalid"})
 
         self.assertEqual(alias.state, "pending")
         self.assertFalse(alias.verified_at)
+        self.assertEqual(send.call_count, 1)
+        self.assertTrue(alias.sudo().verification_sent_at)
+        self.assertTrue(alias.sudo().verification_token_digest)
         self.assertFalse(
             self.env["res.partner"]._usl_verified_sender_partner(alias.email),
         )

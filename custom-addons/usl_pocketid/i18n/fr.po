@@ -1355,6 +1355,11 @@ msgid "Verification email sent"
 msgstr "E-mail de vérification envoyé"
 
 #. module: usl_pocketid
+#. odoo-javascript
+msgid "We sent a verification link to each new or changed address. Check your inbox within 24 hours."
+msgstr "Nous avons envoyé un lien de vérification à chaque adresse nouvelle ou modifiée. Consultez votre boîte de réception dans les 24 heures."
+
+#. module: usl_pocketid
 msgid "Verify your personal email address"
 msgstr "Vérifiez votre adresse e-mail personnelle"
 

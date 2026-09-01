@@ -127,7 +127,10 @@ class UslMailSenderAlias(models.Model):
             self._check_actor_can_manage(partner)
             for field_name in protected:
                 values.pop(field_name, None)
-        return super().create(values_list)
+        aliases = super().create(values_list)
+        if not self.env.context.get("usl_sender_alias_skip_automatic_verification"):
+            aliases._send_verification_for_pending_addresses()
+        return aliases
 
     def write(self, values):
         values = dict(values)
@@ -167,6 +170,10 @@ class UslMailSenderAlias(models.Model):
                     "verification_expires_at": False,
                 },
             )
+            if not self.env.context.get(
+                "usl_sender_alias_skip_automatic_verification",
+            ):
+                self._send_verification_for_pending_addresses()
         return result
 
     def unlink(self):
@@ -182,6 +189,10 @@ class UslMailSenderAlias(models.Model):
                 _("The public Odoo URL is not configured safely."),
             )
         return base_url.rstrip("/")
+
+    def _send_verification_for_pending_addresses(self):
+        for alias in self.filtered(lambda item: item.active and item.state == "pending"):
+            alias._issue_verification()
 
     def _issue_verification(self, *, send=True):
         self.ensure_one()
