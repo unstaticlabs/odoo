@@ -100,6 +100,52 @@ alias resolves to the intended model and company, and the mailbox has no stale
 unread backlog. Admission then enables `mail.ir_cron_mail_gateway_action` and
 runtime validation requires a successful poll within 15 minutes.
 
+### Dynamic aliases and Google Workspace routing
+
+Use a dedicated Gmail mailbox for Odoo ingestion. Do not connect Odoo to a
+personal catch-all inbox: the mail gateway polls the inbox, not an arbitrary
+subset of recipients.
+
+Static routes such as `expense`, `purchases`, and `purchases-uslmedia` should
+remain explicit Google Workspace aliases. For optional dynamic Project and bank
+routes, use this naming convention:
+
+```text
+project-<slug>@unstaticlabs.com
+bank-<company>-<journal>@unstaticlabs.com
+```
+
+In Google Admin, add an inbound Routing rule for unrecognized recipients whose
+envelope recipient matches:
+
+```text
+(?i)^(project|bank)-[a-z0-9][a-z0-9._+-]*@unstaticlabs\.com$
+```
+
+Replace the envelope recipient with the dedicated Odoo Gmail mailbox. Enable
+Internal receiving too when Workspace users send to these routes. Limit the
+rule to the Unrecognized/Catch-all account type; do not apply it to provisioned
+Users or Groups. Configure the separate personal catch-all rule with the inverse
+recipient condition so the two rules are mutually exclusive. Do not rely on
+rule ordering.
+
+This Google routing rule is distinct from Odoo's
+`catchall@unstaticlabs.com`, which routes replies to existing Odoo threads.
+Google documents recipient patterns under the optional envelope filter in its
+[catch-all routing procedure](https://support.google.com/a/answer/12943537).
+
+Odoo binds each Project alias to an exact project and each bank-ingestion alias
+to an exact company, journal, source account, and sender policy. An alias outside
+the naming convention requires an explicit Google alias or a deliberate update
+to the routing pattern.
+
+The native Expense alias is different: it is global and selects the company
+from the sender's employee profile. A user with employee profiles in several
+companies cannot select the company from the recipient address. Until a
+company-specific Expense routing extension is introduced, use the email route
+only for the user's default company and create expenses for another company in
+the Odoo interface.
+
 ## Final local tour and VPS promotion
 
 Keep the protected local runtime writable during the final user tour. Never
