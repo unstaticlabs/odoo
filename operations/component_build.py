@@ -42,7 +42,7 @@ COMPONENTS = {
             "Dockerfile",
             "distribution",
             (
-                ".dockerignore",
+                "Dockerfile.dockerignore",
                 "Dockerfile",
                 "MANIFEST.in",
                 "requirements.txt",
@@ -69,6 +69,7 @@ COMPONENTS = {
             None,
             (
                 "docker/backup.Dockerfile",
+                "docker/backup.Dockerfile.dockerignore",
                 "operations/**",
                 "operations/contracts/**",
                 "scripts/cohort-runtime",

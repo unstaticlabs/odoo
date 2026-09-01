@@ -1,0 +1,10 @@
+*
+!docker/
+docker/*
+!docker/backup.Dockerfile
+!docker/backup.Dockerfile.dockerignore
+!operations/
+!operations/**
+!scripts/
+scripts/*
+!scripts/cohort-runtime
