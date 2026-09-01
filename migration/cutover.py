@@ -668,9 +668,12 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
     }
     if "paperless-ollama" in services or "paperless-model-init" in services:
         raise CutoverError("production topology must not own an Ollama service")
-    model_preflight = services.get("paperless-model-preflight") or {}
-    if "external-ollama" not in set((model_preflight.get("networks") or {}).keys()):
-        raise CutoverError("Ollama model preflight is not joined to the shared network")
+    for service_name in ("odoo", "paperless-webserver", "paperless-model-preflight"):
+        service = services.get(service_name) or {}
+        if "external-ollama" not in set((service.get("networks") or {}).keys()):
+            raise CutoverError(
+                f"{service_name} is not joined to the shared Ollama network",
+            )
     for service_name, expected_image in expected_images.items():
         if (services.get(service_name) or {}).get("image") != expected_image:
             raise CutoverError(

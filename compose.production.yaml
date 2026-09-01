@@ -25,6 +25,10 @@ services:
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+    networks:
+      - default
+      - document-renderer
+      - external-ollama
 
   init-db:
     logging: *production-logging
@@ -37,6 +41,10 @@ services:
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+    networks:
+      - default
+      - document-renderer
+      - external-ollama
 
   usl-document-renderer:
     # Production admission consumes only the explicitly digest-pinned
@@ -137,3 +145,8 @@ services:
 
 volumes:
   paperless-ollama-data: !reset null
+
+networks:
+  external-ollama:
+    external: true
+    name: ${USL_EXTERNAL_OLLAMA_NETWORK:?Existing shared Ollama network is required}

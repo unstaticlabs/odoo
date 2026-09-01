@@ -482,7 +482,11 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 "odoo": {
                     "image": self.image,
                     "ports": [{"host_ip": "127.0.0.1"}],
-                    "networks": {"external-identity": None, "external-ingress": None},
+                    "networks": {
+                        "external-identity": None,
+                        "external-ingress": None,
+                        "external-ollama": None,
+                    },
                     "volumes": secret_mounts,
                 },
                 "init-db": {"volumes": secret_mounts},
@@ -535,6 +539,11 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             },
         }
         cutover.validate_compose(config, self.values)
+
+        del config["services"]["odoo"]["networks"]["external-ollama"]
+        with self.assertRaisesRegex(cutover.CutoverError, "odoo is not joined"):
+            cutover.validate_compose(config, self.values)
+        config["services"]["odoo"]["networks"]["external-ollama"] = None
 
         config["services"]["pocket-id"] = {"image": "pocket-id"}
         with self.assertRaisesRegex(cutover.CutoverError, "managed Pocket"):
