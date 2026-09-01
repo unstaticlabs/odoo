@@ -1217,20 +1217,21 @@ class MigrationManageTests(unittest.TestCase):
             "USL_ODOO_MCP_OAUTH_VOLUME",
         ):
             production_environment[name] = name.lower().replace("_", "-")
-        linux = subprocess.run(
+        linux_config = json.loads(subprocess.run(
             (
                 "docker", "compose", "-p", "usl-render-linux-test",
                 "-f", "compose.yaml", "-f", "compose.production.yaml",
                 "-f", "compose.external-pocket-id.yaml", "--profile", "paperless",
                 "--profile", "mcp",
-                "config", "--services",
+                "config", "--format", "json",
             ),
             cwd=repository,
             env=production_environment,
             text=True,
             capture_output=True,
             check=True,
-        ).stdout.splitlines()
+        ).stdout)
+        linux = linux_config["services"]
         self.assertNotIn("paperless-ollama", native)
         self.assertNotIn("paperless-model-init", native)
         self.assertIn("paperless-model-preflight", native)
@@ -1240,6 +1241,12 @@ class MigrationManageTests(unittest.TestCase):
         self.assertNotIn("paperless-model-init", linux)
         self.assertIn("paperless-model-preflight", linux)
         self.assertIn("odoo-mcp", linux)
+        self.assertEqual(
+            linux_config["services"]["paperless-webserver"]["environment"][
+                "PAPERLESS_APPS"
+            ],
+            "allauth.socialaccount.providers.openid_connect,paperless_personal_ai",
+        )
 
 
 if __name__ == "__main__":
