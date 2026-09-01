@@ -378,7 +378,7 @@ services:
       - paperless-trash:/usr/src/paperless/trash
 
   paperless-access-init:
-    profiles: ["paperless"]
+    profiles: ["paperless-admin"]
     image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.9}
     restart: "no"
     depends_on:
@@ -399,7 +399,7 @@ services:
       - ./deploy/documents/paperless_access_init.py:/opt/usl/paperless_access_init.py:ro
 
   paperless-identity-init:
-    profiles: ["paperless"]
+    profiles: ["paperless-admin"]
     image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.9}
     restart: "no"
     depends_on:

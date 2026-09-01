@@ -250,6 +250,13 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
 
         self.assertIn("aliases:\n          - paperless", overlay)
 
+    def test_routine_paperless_profile_excludes_operator_identity_jobs(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        for service in ("paperless-access-init", "paperless-identity-init"):
+            block = compose.split(f"\n  {service}:\n", 1)[1].split("\n  ", 1)[0]
+            self.assertIn('profiles: ["paperless-admin"]', block)
+            self.assertNotIn('profiles: ["paperless"]', block)
+
     def test_production_admission_owns_sign_services(self):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         release_script = (ROOT / "migration/internal/cutover").read_text(
