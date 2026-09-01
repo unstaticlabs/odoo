@@ -166,6 +166,29 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def _renderer_mounts(self, filenames):
+        directory = Path(self.values["USL_DOCUMENT_RENDERER_CERT_DIR"])
+        return [
+            {
+                "type": "bind",
+                "source": str(directory / filename),
+                "target": f"/run/secrets/document-renderer/{filename}",
+                "read_only": True,
+            }
+            for filename in filenames
+        ]
+
+    def _odoo_secret_mounts(self):
+        return [
+            *self._renderer_mounts(("ca.crt", "odoo.crt", "odoo.key")),
+            {
+                "type": "bind",
+                "source": self.values["USL_SIGN_ODOO_SECRET_DIR"],
+                "target": "/run/usl-sign",
+                "read_only": True,
+            },
+        ]
+
     def test_production_cron_inventory_includes_inactive_jobs(self):
         for relative in (
             "scripts/odoo/production_admission_policy.py",
@@ -193,10 +216,11 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         self.assertIn("COPY --link --chown=1000:1000 docs/users ./docs/users", dockerfile)
 
     def test_distribution_overlays_retain_odoo_runtime_secret_mounts(self):
-        renderer_mount = (
-            "${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:"
-            "/run/secrets/document-renderer:ro"
-        )
+        renderer_mounts = [
+            "${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/"
+            f"{filename}:/run/secrets/document-renderer/{filename}:ro"
+            for filename in ("ca.crt", "odoo.crt", "odoo.key")
+        ]
         sign_mount = (
             "${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:"
             "/run/usl-sign:ro"
@@ -207,7 +231,16 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
         ):
             with self.subTest(overlay=relative):
                 overlay = (ROOT / relative).read_text(encoding="utf-8")
-                self.assertEqual(overlay.count(renderer_mount), 2)
+                for renderer_mount in renderer_mounts:
+                    expected = (
+                        3
+                        if relative == "compose.production.yaml"
+                        and renderer_mount.endswith(
+                            "ca.crt:/run/secrets/document-renderer/ca.crt:ro",
+                        )
+                        else 2
+                    )
+                    self.assertEqual(overlay.count(renderer_mount), expected)
                 self.assertEqual(overlay.count(sign_mount), 2)
 
     def test_external_ingress_retains_paperless_tunnel_alias(self):
@@ -443,20 +476,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             cutover.validate_environment(changed, self.candidate)
 
     def test_compose_rejects_managed_pocket_and_public_staging_ports(self):
-        secret_mounts = [
-            {
-                "type": "bind",
-                "source": self.values["USL_DOCUMENT_RENDERER_CERT_DIR"],
-                "target": "/run/secrets/document-renderer",
-                "read_only": True,
-            },
-            {
-                "type": "bind",
-                "source": self.values["USL_SIGN_ODOO_SECRET_DIR"],
-                "target": "/run/usl-sign",
-                "read_only": True,
-            },
-        ]
+        secret_mounts = self._odoo_secret_mounts()
         config = {
             "services": {
                 "odoo": {
@@ -490,7 +510,12 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                     ],
                 },
                 "odoo-mcp-oauth-init": {"image": self.mcp_image},
-                "usl-document-renderer": {"image": self.renderer_image},
+                "usl-document-renderer": {
+                    "image": self.renderer_image,
+                    "volumes": self._renderer_mounts(
+                        ("ca.crt", "renderer.crt", "renderer.key"),
+                    ),
+                },
                 "usl-sign-dss": {"image": self.dss_image},
                 "usl-sign-step-ca": {"image": self.step_ca_image},
             },
@@ -520,20 +545,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             cutover.validate_compose(config, self.values)
 
     def test_compose_rejects_incomplete_mcp_topology(self):
-        secret_mounts = [
-            {
-                "type": "bind",
-                "source": self.values["USL_DOCUMENT_RENDERER_CERT_DIR"],
-                "target": "/run/secrets/document-renderer",
-                "read_only": True,
-            },
-            {
-                "type": "bind",
-                "source": self.values["USL_SIGN_ODOO_SECRET_DIR"],
-                "target": "/run/usl-sign",
-                "read_only": True,
-            },
-        ]
+        secret_mounts = self._odoo_secret_mounts()
         services = {
             "odoo": {
                 "ports": [{"host_ip": "127.0.0.1"}],
@@ -556,20 +568,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
             cutover.validate_compose({"services": services}, self.values)
 
     def test_compose_rejects_missing_or_writable_odoo_runtime_secrets(self):
-        secret_mounts = [
-            {
-                "type": "bind",
-                "source": self.values["USL_DOCUMENT_RENDERER_CERT_DIR"],
-                "target": "/run/secrets/document-renderer",
-                "read_only": True,
-            },
-            {
-                "type": "bind",
-                "source": self.values["USL_SIGN_ODOO_SECRET_DIR"],
-                "target": "/run/usl-sign",
-                "read_only": True,
-            },
-        ]
+        secret_mounts = self._odoo_secret_mounts()
         services = {
             "odoo": {
                 "ports": [{"host_ip": "127.0.0.1"}],
@@ -602,7 +601,7 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
 
         services["odoo"]["volumes"] = [
             {**secret_mounts[0], "read_only": False},
-            secret_mounts[1],
+            *secret_mounts[1:],
         ]
         with self.assertRaisesRegex(cutover.CutoverError, "read-only"):
             cutover.validate_compose({"services": services}, self.values)

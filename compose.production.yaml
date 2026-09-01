@@ -21,7 +21,9 @@ services:
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
     volumes: !override
       - odoo-data:/var/lib/odoo
-      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/ca.crt:/run/secrets/document-renderer/ca.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   init-db:
@@ -31,7 +33,9 @@ services:
       USL_USER_DOCS_PATH: /opt/odoo/docs/users
     volumes: !override
       - odoo-data:/var/lib/odoo
-      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/ca.crt:/run/secrets/document-renderer/ca.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   usl-document-renderer:
@@ -39,6 +43,10 @@ services:
     # renderer image; it must never rebuild from the checkout.
     build: !reset null
     logging: *production-logging
+    volumes: !override
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/ca.crt:/run/secrets/document-renderer/ca.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/renderer.crt:/run/secrets/document-renderer/renderer.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/renderer.key:/run/secrets/document-renderer/renderer.key:ro
 
   usl-sign-dss:
     # DSS is qualified and published independently from the Odoo image.

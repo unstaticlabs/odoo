@@ -613,8 +613,11 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
         "odoo_mcp_credential_encryption_key",
     }.issubset(mcp_secrets):
         raise CutoverError("odoo-mcp does not mount both required Docker secrets")
+    renderer_cert_dir = Path(values["USL_DOCUMENT_RENDERER_CERT_DIR"])
     required_odoo_secrets = {
-        "/run/secrets/document-renderer": values["USL_DOCUMENT_RENDERER_CERT_DIR"],
+        "/run/secrets/document-renderer/ca.crt": str(renderer_cert_dir / "ca.crt"),
+        "/run/secrets/document-renderer/odoo.crt": str(renderer_cert_dir / "odoo.crt"),
+        "/run/secrets/document-renderer/odoo.key": str(renderer_cert_dir / "odoo.key"),
         "/run/usl-sign": values["USL_SIGN_ODOO_SECRET_DIR"],
     }
     for service_name in ("odoo", "init-db"):
@@ -633,8 +636,27 @@ def validate_compose(config: dict, values: dict[str, str]) -> None:
             ):
                 raise CutoverError(
                     f"{service_name} does not mount {target} from its approved "
-                    "secret directory read-only",
+                    "secret source read-only",
                 )
+    renderer_service = services.get("usl-document-renderer")
+    if not renderer_service:
+        raise CutoverError("Compose topology is missing usl-document-renderer")
+    renderer_mounts = renderer_service.get("volumes") or []
+    for filename in ("ca.crt", "renderer.crt", "renderer.key"):
+        source = str(renderer_cert_dir / filename)
+        target = f"/run/secrets/document-renderer/{filename}"
+        if not any(
+            isinstance(mount, dict)
+            and mount.get("type") == "bind"
+            and mount.get("source") == source
+            and mount.get("target") == target
+            and mount.get("read_only") is True
+            for mount in renderer_mounts
+        ):
+            raise CutoverError(
+                "usl-document-renderer does not mount "
+                f"{target} from its approved secret source read-only",
+            )
     expected_images = {
         "odoo": values["ODOO_IMAGE"],
         "odoo-mcp": values["ODOO_MCP_IMAGE"],
