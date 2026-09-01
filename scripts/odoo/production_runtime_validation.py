@@ -125,11 +125,13 @@ if gates["inbound_mail"]:
             "is_ssl": True,
             "object_id": False,
         }
-        mismatched = [
-            field_name
-            for field_name, expected_value in expected.items()
-            if incoming[field_name] != expected_value
-        ]
+        mismatched = []
+        for field_name, expected_value in expected.items():
+            configured = incoming[field_name]
+            if field_name == "object_id":
+                configured = configured.id or False
+            if configured != expected_value:
+                mismatched.append(field_name)
         if mismatched:
             inbound_mail_blockers.append(
                 "server fields differ: " + ", ".join(sorted(mismatched))

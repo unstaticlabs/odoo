@@ -173,11 +173,16 @@ if gates["inbound_mail"]:
         )
     incoming = active_fetchmail.ensure_one()
     expected_incoming = expected_inbound_server()
-    incoming_mismatch = {
-        field_name: {"configured": incoming[field_name], "expected": expected_value}
-        for field_name, expected_value in expected_incoming.items()
-        if incoming[field_name] != expected_value
-    }
+    incoming_mismatch = {}
+    for field_name, expected_value in expected_incoming.items():
+        configured = incoming[field_name]
+        if field_name == "object_id":
+            configured = configured.id or False
+        if configured != expected_value:
+            incoming_mismatch[field_name] = {
+                "configured": configured,
+                "expected": expected_value,
+            }
     if incoming_mismatch or not incoming.user or not incoming.password:
         raise RuntimeError(
             "The admitted Gmail IMAP server is incomplete or unsafe: "
