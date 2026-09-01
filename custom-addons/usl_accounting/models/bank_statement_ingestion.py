@@ -1441,6 +1441,7 @@ class AccountBankIngestionFile(models.Model):
         duplicate_ids = {item for item in raw_ids if item and raw_ids.count(item) > 1}
         new_values = []
         existing_lines = self.env["account.bank.statement.line"]
+        existing_provider_ids = {}
         ambiguous = []
         for ordinal, (line_values, raw_id) in enumerate(
             zip(transactions, raw_ids),
@@ -1492,6 +1493,7 @@ class AccountBankIngestionFile(models.Model):
                 raw_id,
                 line_values["unique_import_id"],
                 line_values["date"],
+                line_values["amount"],
             )
             if existing:
                 if (
@@ -1507,6 +1509,14 @@ class AccountBankIngestionFile(models.Model):
                             "A bank transaction identity already exists with different accounting facts.",
                         ),
                     )
+                prior_provider_id = existing_provider_ids.get(existing.id)
+                if prior_provider_id and prior_provider_id != raw_id:
+                    raise UserError(
+                        _(
+                            "Two source transactions resolve to the same migrated bank line.",
+                        ),
+                    )
+                existing_provider_ids[existing.id] = raw_id
                 existing_lines |= existing
                 continue
             line_values.update(
@@ -1537,15 +1547,7 @@ class AccountBankIngestionFile(models.Model):
             for line in existing_lines:
                 update = {"ingestion_file_ids": [Command.link(self.id)]}
                 if not line.provider_transaction_id:
-                    raw_id = next(
-                        (
-                            raw
-                            for parsed, raw in zip(transactions, raw_ids)
-                            if parsed["unique_import_id"] == line.unique_import_id
-                            or self._historical_extra_id(line) == raw
-                        ),
-                        False,
-                    )
+                    raw_id = existing_provider_ids.get(line.id)
                     if raw_id:
                         update.update(
                             {
@@ -1647,6 +1649,7 @@ class AccountBankIngestionFile(models.Model):
         raw_id,
         unique_import_id,
         transaction_date,
+        amount,
     ):
         Line = self.env["account.bank.statement.line"].sudo()
         existing = Line.search(
@@ -1681,12 +1684,41 @@ class AccountBankIngestionFile(models.Model):
                 lambda line: self._historical_extra_id(line) == raw_id,
             )
             if len(exact) > 1:
-                raise UserError(
-                    _(
-                        "The migrated bank history contains a conflicting transaction identity.",
-                    ),
+                matching_facts = exact.filtered(
+                    lambda line: line.currency_id.compare_amounts(
+                        line.amount,
+                        amount,
+                    )
+                    == 0,
                 )
+                if len(matching_facts) != 1:
+                    raise UserError(
+                        _(
+                            "The migrated bank history contains a conflicting transaction identity.",
+                        ),
+                    )
+                exact = matching_facts
             existing = exact[:1]
+            if not existing:
+                matching_facts = candidates.filtered(
+                    lambda line: line.currency_id.compare_amounts(
+                        line.amount,
+                        amount,
+                    )
+                    == 0,
+                )
+                if len(matching_facts) == 1:
+                    candidate = matching_facts
+                    historical_id = self._historical_extra_id(candidate)
+                    shared_historical_id = candidates.filtered(
+                        lambda line: (
+                            line != candidate
+                            and historical_id
+                            and self._historical_extra_id(line) == historical_id
+                        ),
+                    )
+                    if shared_historical_id:
+                        existing = candidate
             if existing and not existing.unique_import_id:
                 existing.with_context(
                     bank_review_internal=True,

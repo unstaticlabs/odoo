@@ -278,7 +278,8 @@ class TestBankStatementIngestion(TransactionCase):
 
         ingestion.action_process_now()
 
-        self.assertEqual(ingestion.state, "done", ingestion.last_error)
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
         self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
         self.assertEqual(
             set(ingestion.statement_ids.line_ids.mapped("provider_account_id")),
@@ -402,6 +403,69 @@ class TestBankStatementIngestion(TransactionCase):
                 ),
             ),
             1,
+        )
+
+    def test_migrated_split_fee_identity_is_recovered_without_duplicates(self):
+        migrated_statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Migrated July history",
+                "journal_id": self.journal.id,
+                "date": dt.date(2026, 7, 31),
+                "balance_start": 1000,
+                "balance_end_real": 1249,
+            },
+        )
+        existing = self.env["account.bank.statement.line"].sudo().create(
+            [
+                {
+                    "name": "Synthetic client receipt",
+                    "payment_ref": "Synthetic client receipt",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 5),
+                    "amount": 300,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-001"}},
+                },
+                {
+                    "name": "Card payment",
+                    "payment_ref": "Card payment",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 10),
+                    "amount": -50,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-002"}},
+                },
+                {
+                    "name": "Card fee",
+                    "payment_ref": "Card fee",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 10),
+                    "amount": -1,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-002"}},
+                },
+            ],
+        )
+        split_fee_ofx = self.ofx.replace(
+            b"<TRNAMT>-50.00</TRNAMT>\n            <FITID>shine-synthetic-003</FITID>",
+            b"<TRNAMT>-1.00</TRNAMT>\n            <FITID>shine-fee-003</FITID>",
+        ).replace(b"<BALAMT>1200.00", b"<BALAMT>1249.00")
+        self.assertIn(b"<FITID>shine-fee-003</FITID>", split_fee_ofx)
+        ingestion = self._ingestion(
+            "<synthetic-split-fee@example.invalid>",
+            ofx=split_fee_ofx,
+            pdf=self.pdf,
+        )
+
+        ingestion.action_process_now()
+
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
+        self.assertEqual(ingestion.statement_ids, migrated_statement)
+        self.assertEqual(ingestion.statement_ids.line_ids, existing)
+        self.assertEqual(
+            set(existing.mapped("provider_transaction_id")),
+            {"shine-synthetic-001", "shine-synthetic-002", "shine-fee-003"},
         )
 
     def test_provider_identity_constraint_is_the_concurrency_backstop(self):
