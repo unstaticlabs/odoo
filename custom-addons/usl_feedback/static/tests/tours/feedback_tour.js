@@ -1,31 +1,58 @@
 import { registry } from "@web/core/registry";
 
 
-const journey = (message, { foldWindow = false } = {}) => [
+const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {}) => [
     {
         content: "Open the native notifications drawer",
         trigger: ".o_menu_systray i[aria-label='Messages']",
         run: "click",
     },
+    ...(verifyDrawerTabs
+        ? [
+              {
+                  content: "Feedback is beside New Message in Notifications",
+                  trigger:
+                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+              },
+              {
+                  content: "Choose Chats",
+                  trigger: ".o-mail-MessagingMenu-headerFilter:contains('Chats')",
+                  run: "click",
+              },
+              {
+                  content: "Feedback remains beside New Message in Chats",
+                  trigger:
+                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+              },
+              {
+                  content: "Choose Channels",
+                  trigger: ".o-mail-MessagingMenu-headerFilter:contains('Channels')",
+                  run: "click",
+              },
+              {
+                  content: "Feedback remains beside New Message in Channels",
+                  trigger:
+                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+              },
+          ]
+        : []),
     {
-        content: "Choose Chats",
-        trigger: ".o-mail-MessagingMenu-headerFilter:contains('Chats'), .o-mail-MessagingMenu-navbar button:contains('Chats')",
-        run: "click",
-    },
-    {
-        content: "Feedback is available from Chats",
+        content: "Open Feedback",
         trigger: ".o-usl-FeedbackButton",
-        run() {
-            Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
-                configurable: true,
-                value: () => Promise.reject(new Error("Screenshot capture skipped by the tour")),
-            });
-            this.anchor.click();
-        },
+        run: "click",
     },
     {
         content: "The drawer closes and a native floating conversation opens",
         trigger: ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel textarea",
+    },
+    {
+        content: "The page preview is prepared locally after messaging closes",
+        trigger: ".o-usl-FeedbackPanel-screenshot img[src^='blob:']",
+        run() {
+            if (document.querySelector(".o-mail-MessagingMenu")) {
+                throw new Error("The messaging drawer remained visible during page preview.");
+            }
+        },
     },
     {
         content: "Describe the issue",
@@ -94,7 +121,11 @@ const journey = (message, { foldWindow = false } = {}) => [
 ];
 
 registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
-    steps: () => journey("The desktop status is unclear after reload.", { foldWindow: true }),
+    steps: () =>
+        journey("The desktop status is unclear after reload.", {
+            foldWindow: true,
+            verifyDrawerTabs: true,
+        }),
 });
 
 registry.category("web_tour.tours").add("usl_feedback_mobile_journey", {

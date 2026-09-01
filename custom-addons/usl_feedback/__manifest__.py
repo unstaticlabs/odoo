@@ -17,6 +17,8 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "usl_feedback/static/src/lib/html_to_image.js",
+            "usl_feedback/static/src/js/feedback_page_preview.js",
             "usl_feedback/static/src/js/feedback_messaging_menu.js",
             "usl_feedback/static/src/js/feedback_chat_window.js",
             "usl_feedback/static/src/xml/feedback_messaging_menu.xml",

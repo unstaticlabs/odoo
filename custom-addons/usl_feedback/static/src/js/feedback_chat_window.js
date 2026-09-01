@@ -22,7 +22,8 @@ export class FeedbackChatWindowService {
         this.mode = "closed";
         this.pageContext = false;
         this.screenshot = false;
-        this.captureError = false;
+        this.captureState = "idle";
+        this.captureId = 0;
     }
 
     get isClosed() {
@@ -33,7 +34,7 @@ export class FeedbackChatWindowService {
         if (this.isClosed && payload) {
             this.pageContext = payload.pageContext;
             this.screenshot = payload.screenshot;
-            this.captureError = payload.captureError;
+            this.captureState = payload.screenshot ? "ready" : payload.captureState || "idle";
         }
         this.reserveNativeWindowSpace();
         this.mode = "open";
@@ -44,11 +45,48 @@ export class FeedbackChatWindowService {
         this.mode = "folded";
     }
 
+    beginCapture(pageContext) {
+        this.clearScreenshot();
+        this.captureId += 1;
+        this.pageContext = pageContext;
+        this.captureState = "preparing";
+        this.open();
+        return this.captureId;
+    }
+
+    completeCapture(captureId, screenshot) {
+        if (captureId !== this.captureId || this.isClosed) {
+            screenshot.release();
+            return false;
+        }
+        this.screenshot = screenshot;
+        this.captureState = "ready";
+        return true;
+    }
+
+    failCapture(captureId) {
+        if (captureId !== this.captureId || this.isClosed) {
+            return false;
+        }
+        this.captureState = "error";
+        return true;
+    }
+
+    clearScreenshot() {
+        this.screenshot?.release?.();
+        this.screenshot = false;
+        this.captureState = "idle";
+    }
+
+    cancelCapture() {
+        this.captureId += 1;
+        this.clearScreenshot();
+    }
+
     close() {
+        this.cancelCapture();
         this.mode = "closed";
         this.pageContext = false;
-        this.screenshot = false;
-        this.captureError = false;
     }
 
     reserveNativeWindowSpace() {
@@ -62,7 +100,10 @@ export class FeedbackChatWindowService {
 export const feedbackChatWindowService = {
     dependencies: ["mail.store"],
     start(env, services) {
-        return reactive(new FeedbackChatWindowService(env, services));
+        const service = reactive(new FeedbackChatWindowService(env, services));
+        browser.addEventListener("pagehide", () => service.cancelCapture());
+        browser.addEventListener("popstate", () => service.cancelCapture());
+        return service;
     },
 };
 registry.category("services").add("usl_feedback.chat_window", feedbackChatWindowService);

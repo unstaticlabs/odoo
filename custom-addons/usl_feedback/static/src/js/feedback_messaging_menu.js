@@ -7,11 +7,17 @@ import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import {
+    Component,
+    onWillStart,
+    onWillUnmount,
+    onWillUpdateProps,
+    useRef,
+    useState,
+} from "@odoo/owl";
 
+import { captureFeedbackPagePreview } from "./feedback_page_preview";
 
-const MAX_SCREENSHOT_DIMENSION = 1920;
-const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 
 function positiveInteger(value) {
     const normalized = Number(value);
@@ -28,62 +34,6 @@ export function feedbackPageContext(actionController, viewport = browser.visualV
         viewport_width: positiveInteger(Math.round(viewport?.width || browser.innerWidth)),
         viewport_height: positiveInteger(Math.round(viewport?.height || browser.innerHeight)),
     };
-}
-
-export async function captureFeedbackScreenshot(mediaDevices = browser.navigator.mediaDevices) {
-    if (!mediaDevices?.getDisplayMedia) {
-        return false;
-    }
-    let stream;
-    try {
-        stream = await mediaDevices.getDisplayMedia({ video: true, audio: false });
-        const video = document.createElement("video");
-        video.muted = true;
-        video.playsInline = true;
-        video.srcObject = stream;
-        await new Promise((resolve, reject) => {
-            video.onloadedmetadata = resolve;
-            video.onerror = reject;
-        });
-        await video.play();
-        const scale = Math.min(
-            1,
-            MAX_SCREENSHOT_DIMENSION / Math.max(video.videoWidth, video.videoHeight)
-        );
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
-        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-        const context = canvas.getContext("2d");
-        let quality = 0.86;
-        let dataUrl;
-        for (let attempt = 0; attempt < 12; attempt++) {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            dataUrl = canvas.toDataURL("image/jpeg", quality);
-            const encoded = dataUrl.slice(dataUrl.indexOf(",") + 1);
-            if (Math.ceil((encoded.length * 3) / 4) <= MAX_SCREENSHOT_BYTES) {
-                return {
-                    name: `odoo-feedback-${new Date().toISOString().replaceAll(":", "-")}.jpg`,
-                    mimetype: "image/jpeg",
-                    data: encoded,
-                    previewUrl: dataUrl,
-                    width: canvas.width,
-                    height: canvas.height,
-                };
-            }
-            if (quality > 0.5) {
-                quality -= 0.1;
-            } else {
-                canvas.width = Math.max(1, Math.round(canvas.width * 0.8));
-                canvas.height = Math.max(1, Math.round(canvas.height * 0.8));
-                quality = 0.8;
-            }
-        }
-        throw new Error(_t("The screenshot is too large. Continue without it or capture a smaller area."));
-    } finally {
-        for (const track of stream?.getTracks() || []) {
-            track.stop();
-        }
-    }
 }
 
 function fileAsBase64(file) {
@@ -113,7 +63,7 @@ export async function focusFeedbackComposer(root) {
 export class FeedbackPanel extends Component {
     static template = "usl_feedback.FeedbackPanel";
     static components = { Chatter };
-    static props = ["close", "pageContext", "screenshot?", "captureError?"];
+    static props = ["captureState?", "clearScreenshot?", "close", "pageContext", "screenshot?"];
 
     setup() {
         this.orm = useService("orm");
@@ -137,6 +87,13 @@ export class FeedbackPanel extends Component {
         this.pollTimer = false;
         onWillStart(() => this.startDraft());
         onWillUnmount(() => browser.clearTimeout(this.pollTimer));
+        onWillUpdateProps((nextProps) => {
+            if (nextProps.screenshot && nextProps.screenshot !== this.props.screenshot) {
+                this.state.screenshotSelected = true;
+            } else if (!nextProps.screenshot && !this.state.screenshotAttachmentId) {
+                this.state.screenshotSelected = false;
+            }
+        });
     }
 
     async startDraft() {
@@ -153,9 +110,6 @@ export class FeedbackPanel extends Component {
                 contextAvailable: result.context_available,
                 recent: result.recent,
             });
-            if (this.props.screenshot && this.state.screenshotSelected) {
-                await this.uploadScreenshot();
-            }
         } catch (error) {
             this.state.phase = "start_error";
             this.showError(error);
@@ -179,7 +133,7 @@ export class FeedbackPanel extends Component {
                 [this.state.draftId],
                 screenshot.name,
                 screenshot.mimetype,
-                screenshot.data,
+                await fileAsBase64(screenshot.blob),
                 true,
             ]
         );
@@ -193,15 +147,16 @@ export class FeedbackPanel extends Component {
         this.state.busy = true;
         this.state.screenshotSelected = !this.state.screenshotSelected;
         try {
-            if (this.state.screenshotSelected) {
-                await this.uploadScreenshot();
-            } else if (this.state.screenshotAttachmentId) {
+            if (!this.state.screenshotSelected && this.state.screenshotAttachmentId) {
                 await this.orm.call(
                     "usl.feedback.submission",
                     "feedback_remove_attachment",
                     [[this.state.draftId], this.state.screenshotAttachmentId]
                 );
                 this.state.screenshotAttachmentId = false;
+            }
+            if (!this.state.screenshotSelected) {
+                this.props.clearScreenshot?.();
             }
         } catch (error) {
             this.state.screenshotSelected = !this.state.screenshotSelected;
@@ -212,7 +167,7 @@ export class FeedbackPanel extends Component {
     }
 
     async onFilesSelected(event) {
-        const screenshotCount = this.state.screenshotAttachmentId ? 1 : 0;
+        const screenshotCount = this.props.screenshot && this.state.screenshotSelected ? 1 : 0;
         const files = [...event.target.files].slice(
             0,
             10 - this.state.attachments.length - screenshotCount
@@ -263,6 +218,9 @@ export class FeedbackPanel extends Component {
         this.state.busy = true;
         this.state.error = false;
         try {
+            if (this.props.screenshot && this.state.screenshotSelected) {
+                await this.uploadScreenshot();
+            }
             const task = await this.orm.call(
                 "usl.feedback.submission",
                 "feedback_submit_initial",
@@ -270,6 +228,9 @@ export class FeedbackPanel extends Component {
             );
             this.state.task = task;
             this.state.phase = "conversation";
+            this.state.screenshotSelected = false;
+            this.state.screenshotAttachmentId = false;
+            this.props.clearScreenshot?.();
             this.schedulePoll(0);
             if (task.context_omitted) {
                 this.notification.add(
@@ -412,15 +373,14 @@ patch(MessagingMenu.prototype, {
             return;
         }
         const pageContext = feedbackPageContext(this.env.services.action.currentController);
-        let screenshot = false;
-        let captureError = false;
-        try {
-            screenshot = await captureFeedbackScreenshot();
-            captureError = !screenshot;
-        } catch {
-            captureError = true;
-        }
-        this.feedbackChatWindow.open({ pageContext, screenshot, captureError });
+        const captureId = this.feedbackChatWindow.beginCapture(pageContext);
         this.dropdown.close();
+        await new Promise((resolve) => browser.requestAnimationFrame(resolve));
+        try {
+            const screenshot = await captureFeedbackPagePreview();
+            this.feedbackChatWindow.completeCapture(captureId, screenshot);
+        } catch {
+            this.feedbackChatWindow.failCapture(captureId);
+        }
     },
 });

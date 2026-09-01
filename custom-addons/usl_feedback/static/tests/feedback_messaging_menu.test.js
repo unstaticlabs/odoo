@@ -12,12 +12,23 @@ import {
 
 import { browser } from "@web/core/browser/browser";
 import {
-    captureFeedbackScreenshot,
     FeedbackPanel,
     feedbackPageContext,
     focusFeedbackComposer,
 } from "../src/js/feedback_messaging_menu";
-import { FeedbackChatWindowService } from "../src/js/feedback_chat_window";
+import {
+    feedbackChatWindowService,
+    FeedbackChatWindowService,
+} from "../src/js/feedback_chat_window";
+import {
+    captureFeedbackPagePreview,
+    isFeedbackPreviewNodeAllowed,
+    MAX_PAGE_PREVIEW_BYTES,
+} from "../src/js/feedback_page_preview";
+import {
+    cloneScrollPosition,
+    isSafeCaptureResourceUrl,
+} from "../src/lib/html_to_image";
 
 defineMailModels();
 
@@ -61,7 +72,7 @@ async function mountFeedbackPanel(props = {}) {
             close() {},
             pageContext: { action_id: 7, model: "project.task", res_id: 9 },
             screenshot: false,
-            captureError: false,
+            captureState: "idle",
             ...props,
         },
     });
@@ -102,53 +113,85 @@ test("narrow screens keep safe empty context defaults", () => {
     });
 });
 
-test("screenshot capture resizes, encodes, and always stops sharing", async () => {
-    let stopped = false;
-    const stream = { getTracks: () => [{ stop: () => (stopped = true) }] };
-    const video = {
-        muted: false,
-        playsInline: false,
-        videoWidth: 2560,
-        videoHeight: 1440,
-        play: () => Promise.resolve(),
-        set onloadedmetadata(callback) {
-            Promise.resolve().then(callback);
+test("page preview keeps Odoo and excludes messaging, alerts, and private fields", () => {
+    for (const selector of [
+        ".o-mail-ChatHub",
+        ".o-mail-MessagingMenu",
+        ".o_notification_manager",
+        ".o-usl-FeedbackButton",
+        "[data-usl-feedback-private]",
+        "input[type='password']",
+    ]) {
+        const node = document.createElement(selector.startsWith("input") ? "input" : "div");
+        if (selector.startsWith(".")) {
+            node.className = selector.slice(1);
+        } else if (selector === "[data-usl-feedback-private]") {
+            node.dataset.uslFeedbackPrivate = "";
+        } else {
+            node.type = "password";
+        }
+        expect(isFeedbackPreviewNodeAllowed(node)).toBe(false);
+    }
+    expect(isFeedbackPreviewNodeAllowed(document.createElement("main"))).toBe(true);
+});
+
+test("page preview rejects external resources and preserves visible scroll offsets", () => {
+    expect(isSafeCaptureResourceUrl("/web/image/1")).toBe(true);
+    expect(isSafeCaptureResourceUrl("data:image/png;base64,AA==")).toBe(true);
+    expect(isSafeCaptureResourceUrl("https://example.com/private.png")).toBe(false);
+
+    const source = document.createElement("div");
+    const clone = document.createElement("div");
+    clone.appendChild(document.createElement("section"));
+    Object.defineProperties(source, {
+        scrollLeft: { value: 12 },
+        scrollTop: { value: 48 },
+    });
+    cloneScrollPosition(source, clone);
+    expect(clone.style.overflow).toBe("hidden");
+    expect(clone.firstElementChild.style.transform).toBe("translate(-12px, -48px)");
+});
+
+test("page preview renders the Odoo viewport, compresses locally, and releases once", async () => {
+    patchWithCleanup(browser, { innerHeight: 1440, innerWidth: 2560 });
+    const root = document.createElement("main");
+    root.className = "o_web_client";
+    const qualities = [];
+    const canvas = {
+        height: 1080,
+        width: 1920,
+        toBlob(callback, mimetype, quality) {
+            qualities.push(quality);
+            callback({ size: quality > 0.5 ? MAX_PAGE_PREVIEW_BYTES + 1 : 1024, type: mimetype });
         },
     };
-    const canvas = {
-        width: 0,
-        height: 0,
-        getContext: () => ({ drawImage: () => {} }),
-        toDataURL: () => "data:image/jpeg;base64,c2NyZWVuc2hvdA==",
-    };
-    const originalCreateElement = document.createElement.bind(document);
-    patchWithCleanup(document, {
-        createElement: (name) =>
-            name === "video" ? video : name === "canvas" ? canvas : originalCreateElement(name),
+    const revoked = [];
+    const preview = await captureFeedbackPagePreview({
+        root,
+        render: async (target, options) => {
+            expect(target).toBe(root);
+            expect(options.canvasWidth).toBe(1920);
+            expect(options.canvasHeight).toBe(1080);
+            expect(options.includeQueryParams).toBe(false);
+            return canvas;
+        },
+        urlApi: {
+            createObjectURL: () => "blob:feedback-preview",
+            revokeObjectURL: (url) => revoked.push(url),
+        },
+        now: () => new Date("2026-09-01T10:11:12Z"),
     });
-    const screenshot = await captureFeedbackScreenshot({
-        getDisplayMedia: () => Promise.resolve(stream),
-    });
-    expect(screenshot.mimetype).toBe("image/jpeg");
-    expect(screenshot.data).toBe("c2NyZWVuc2hvdA==");
-    expect(screenshot.width).toBe(1920);
-    expect(screenshot.height).toBe(1080);
-    expect(stopped).toBe(true);
+    expect(preview.previewUrl).toBe("blob:feedback-preview");
+    expect(preview.name).toBe("odoo-feedback-2026-09-01T10-11-12.000Z.jpg");
+    expect(preview.width).toBe(1920);
+    expect(preview.height).toBe(1080);
+    expect(qualities.length).toBeGreaterThan(1);
+    preview.release();
+    preview.release();
+    expect(revoked).toEqual(["blob:feedback-preview"]);
 });
 
-test("unsupported screenshot capture falls back without failing", async () => {
-    expect(await captureFeedbackScreenshot({})).toBe(false);
-});
-
-test("cancelled screenshot capture remains a safe fallback", async () => {
-    await expect(
-        captureFeedbackScreenshot({
-            getDisplayMedia: () => Promise.reject(new Error("capture cancelled")),
-        })
-    ).rejects.toThrow("capture cancelled");
-});
-
-test("feedback chat window preserves its draft while folding and clears evidence on close", () => {
+test("feedback chat window preserves folds and releases cancelled, late, or closed previews", () => {
     let folded = false;
     const opened = [];
     const nativeWindow = {
@@ -168,17 +211,31 @@ test("feedback chat window preserves its draft while folding and clears evidence
         { bus: { trigger() {} } },
         { "mail.store": store }
     );
-    const payload = {
-        pageContext: { action_id: 7 },
-        screenshot: { name: "screen.jpg" },
-        captureError: false,
-    };
-
-    service.open(payload);
+    const captureId = service.beginCapture({ action_id: 7 });
     expect(folded).toBe(true);
     expect(service.mode).toBe("open");
+    expect(service.captureState).toBe("preparing");
+
+    let released = 0;
+    service.completeCapture(captureId, {
+        name: "screen.jpg",
+        release: () => released++,
+    });
+    expect(service.captureState).toBe("ready");
     expect(service.screenshot.name).toBe("screen.jpg");
 
+    service.cancelCapture();
+    expect(service.captureState).toBe("idle");
+    expect(service.screenshot).toBe(false);
+    expect(released).toBe(1);
+    service.completeCapture(captureId, { release: () => released++ });
+    expect(released).toBe(2);
+
+    const nextCaptureId = service.beginCapture({ action_id: 7 });
+    service.completeCapture(nextCaptureId, {
+        name: "screen.jpg",
+        release: () => released++,
+    });
     service.fold();
     service.open();
     expect(service.mode).toBe("open");
@@ -188,6 +245,27 @@ test("feedback chat window preserves its draft while folding and clears evidence
     expect(service.mode).toBe("closed");
     expect(service.pageContext).toBe(false);
     expect(service.screenshot).toBe(false);
+    expect(released).toBe(3);
+
+    service.completeCapture(nextCaptureId, { release: () => released++ });
+    expect(released).toBe(4);
+});
+
+test("browser back cancels the local page preview and any late result", () => {
+    const service = feedbackChatWindowService.start(
+        { bus: { trigger() {} } },
+        { "mail.store": { chatHub: { opened: [], maxOpened: 1 } } }
+    );
+    const captureId = service.beginCapture({ action_id: 7 });
+    let released = 0;
+    service.completeCapture(captureId, { release: () => released++ });
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    expect(service.screenshot).toBe(false);
+    expect(service.captureState).toBe("idle");
+    expect(released).toBe(1);
+
+    service.completeCapture(captureId, { release: () => released++ });
+    expect(released).toBe(2);
 });
 
 test("refining opens the native Chatter composer before focusing it", async () => {
@@ -210,7 +288,7 @@ test("refining opens the native Chatter composer before focusing it", async () =
     expect(focused).toBe(true);
 });
 
-test("draft previews a default-selected screenshot and removes it explicitly", async () => {
+test("draft keeps its default-selected page preview local until send", async () => {
     onRpc("usl.feedback.submission", "feedback_start", () => {
         expect.step("start");
         return {
@@ -230,33 +308,52 @@ test("draft previews a default-selected screenshot and removes it explicitly", a
         expect.step("upload screenshot");
         return { id: 73, name: "screen.jpg", mimetype: "image/jpeg" };
     });
-    onRpc("usl.feedback.submission", "feedback_remove_attachment", ({ args }) => {
-        expect(args[1]).toBe(73);
-        expect.step("remove screenshot");
-        return true;
+    onRpc("usl.feedback.submission", "feedback_submit_initial", () => {
+        expect.step("submit");
+        return feedbackTask();
     });
-    await mountWithCleanup(FeedbackPanel, {
-        props: {
-            close() {},
-            pageContext: { action_id: 7, model: "project.task", res_id: 9 },
-            screenshot: {
-                name: "screen.jpg",
-                mimetype: "image/jpeg",
-                data: "c2NyZWVuc2hvdA==",
-                previewUrl: "data:image/jpeg;base64,c2NyZWVuc2hvdA==",
-                width: 1440,
-                height: 900,
-            },
-            captureError: false,
+    onRpc("project.task", "feedback_poll_agent", () => feedbackTask());
+    await mountFeedbackPanel({
+        clearScreenshot: () => expect.step("clear local preview"),
+        screenshot: {
+            name: "screen.jpg",
+            mimetype: "image/jpeg",
+            blob: new Blob(["screenshot"], { type: "image/jpeg" }),
+            previewUrl: "blob:feedback-preview",
+            width: 1440,
+            height: 900,
         },
+        captureState: "ready",
     });
     expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
     expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
     expect(".o-usl-FeedbackPanel").toHaveText(/All internal employees can read/);
     expect(".o-usl-FeedbackPanel").toHaveText(/Gemini receives your message/);
-    await contains(".o-usl-FeedbackPanel-screenshot input").click();
+    expect.verifySteps(["start"]);
+    await contains("#usl_feedback_message").edit("The page preview shows the issue.");
+    await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();
+    await animationFrame();
+    expect.verifySteps(["upload screenshot", "submit", "clear local preview"]);
+});
+
+test("deselecting a local page preview releases it without uploading", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel({
+        clearScreenshot: () => expect.step("release local preview"),
+        screenshot: {
+            name: "screen.jpg",
+            mimetype: "image/jpeg",
+            blob: new Blob(["screenshot"], { type: "image/jpeg" }),
+            previewUrl: "blob:feedback-preview",
+            width: 1440,
+            height: 900,
+        },
+        captureState: "ready",
+    });
+    await component.toggleScreenshot();
+    await animationFrame();
     expect(".o-usl-FeedbackPanel-screenshot input").not.toBeChecked();
-    expect.verifySteps(["start", "upload screenshot", "remove screenshot"]);
+    expect.verifySteps(["release local preview"]);
 });
 
 test("capture fallback keeps context opt-in and manual attachments usable", async () => {
@@ -275,10 +372,10 @@ test("capture fallback keeps context opt-in and manual attachments usable", asyn
             close() {},
             pageContext: { action_id: 7, model: "project.task", res_id: 9 },
             screenshot: false,
-            captureError: true,
+            captureState: "error",
         },
     });
-    expect(".o-usl-FeedbackPanel").toHaveText(/No screenshot was captured/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/Page preview unavailable/);
     expect("#usl_feedback_context").not.toBeChecked();
     await contains("#usl_feedback_files").click();
     await setInputFiles(

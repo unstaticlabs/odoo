@@ -2,12 +2,12 @@
 
 ## Product contract
 
-Every authenticated internal user can open **Feedback** from the **Chats** tab
-of Odoo's top-right messaging drawer. After capture, the drawer closes and a
-native-style floating conversation opens in Odoo's ChatHub. Odoo first offers
-a freshly captured image of the current screen, selected by default, then asks
-what the reporter wants to improve. The reporter may clear **Include this
-screenshot**, add up to ten supporting files and opt in to **Share page
+Every authenticated internal user can open **Feedback** beside **New Message**
+from every tab of Odoo's top-right messaging drawer. The drawer closes and a
+native-style floating conversation opens immediately in Odoo's ChatHub. Odoo
+prepares a local preview of the visible Odoo tab, selected by default, while
+asking what the reporter wants to improve. The reporter may clear **Include
+this page preview**, add up to ten supporting files and opt in to **Share page
 details**.
 
 **Send feedback** creates a partial `project.task` in **Inbox before any
@@ -62,11 +62,15 @@ company and exact 40-character release SHA are resolved server-side. URLs,
 queries, fragments, tokens, local storage, form contents and arbitrary browser
 state are never collected.
 
-When selected, the capture is resized to at most 1920 pixels and encoded as
-JPEG; every display-capture track is stopped immediately after the frame is
-taken. Screenshots are limited to 5 MiB and other files to 10 MiB each. Draft
-attachments are owned by a transient record and either move to the created task
-or are deleted with the abandoned draft.
+The page preview reproduces only the current Odoo tab. It includes the navbar,
+active view and ordinary Odoo dialogs, while excluding the messages drawer,
+floating chats, Feedback controls, toast alerts, password fields and elements
+marked private. External media and inaccessible frames render as empty areas.
+Odoo sends only the resulting JPEG—not HTML or browser state—and keeps it on
+the device until the reporter selects **Send feedback**. The image is resized
+to at most 1920 pixels and limited to 5 MiB; other files are limited to 10 MiB
+each. Draft attachments are owned by a transient record and either move to the
+created task or are deleted with the abandoned draft.
 
 The company-wide assistant uses Google's Gemini Interactions API in background,
 stored, stateful mode. Production enablement requires an administrator to
@@ -76,7 +80,7 @@ API key for the dedicated read-only Odoo service identity. Saved secrets are
 never returned to the browser.
 
 Each turn contains the bounded task conversation, a bounded summary of open
-feedback, the selected screenshot on the first turn, and a release-pinned
+feedback, the selected page preview on the first turn, and a release-pinned
 public source link of the form
 `https://github.com/unstaticlabs/odoo/tree/<release-sha>`. Gemini may use URL
 context and the configured HTTPS endpoint ending exactly in `/mcp/projects`.
@@ -108,6 +112,16 @@ leaving the reporting context. The OCA/helpdesk alternative introduces a
 second canonical record and stage system. The ChatHub extension preserves the
 native interaction while keeping `project.task` and its chatter canonical.
 
+For visual evidence, `usl_feedback` owns a licensed copy of the DOM-to-image
+renderer already shipped by Odoo Point of Sale. Rendering `.o_web_client`
+locally avoids browser screen-sharing permission and cannot capture another
+tab, application, display or browser chrome. Depending on Point of Sale only
+for this utility would broaden the product graph; importing it without that
+dependency would make asset loading invalid. A server-side browser would also
+lose the reporter's live session state. The isolated local renderer therefore
+fits the product boundary and degrades to manual file attachment when a page
+cannot be reproduced.
+
 ## Installation, upgrade and recovery
 
 Install `usl_feedback` after its declared `base_setup`, `project`, `mail` and
@@ -124,6 +138,12 @@ renaming the former stages to the new workflow, makes the feedback Project and
 tasks company-neutral, backfills source company metadata, removes obsolete
 private-boundary rules and removes the old standalone submission action. It
 does not move existing cards between workflow positions.
+
+The private page-preview refinement changes frontend assets only. It adds no
+model, field or data migration. Upgrade with the same `-u usl_feedback`
+command, verify the preview journey, then repeat the upgrade to prove identical
+behavior. Recovery is to restore the previous module code and upgrade
+`usl_feedback`; existing tasks, chatter and attachments remain valid.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained

@@ -5,7 +5,7 @@
         THESIS: A native Odoo conversation turns an observation into clear, actionable feedback.
         OWN-WORLD: MessagingMenu, native Chatter, Project tasks, restrained feedback states, and familiar Odoo controls.
         STORY: Preserve evidence; describe; clarify; review; send to the product team.
-        FIRST VIEWPORT: One question, the captured screenshot choice, a clear disclosure, and one send action.
+        FIRST VIEWPORT: One question, the local page-preview choice, a clear disclosure, and one send action.
         FORM: Established Operate extension of Odoo ChatHub; the confirmed product brief governs this implementation.
         FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
         -->
@@ -55,21 +55,25 @@
                     <div class="form-text">We save your message before the assistant reviews it.</div>
                 </div>
 
-                <div t-if="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3">
-                    <img t-att-src="props.screenshot.previewUrl" alt="Screenshot of the page you were viewing" class="w-100 rounded border"/>
+                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
+                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
+                </div>
+                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3">
+                    <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100 rounded border"/>
                     <label class="d-flex align-items-center gap-2 mt-2 mb-0">
                         <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
-                        <span>Include this screenshot</span>
+                        <span>Include this page preview</span>
                         <span class="small text-muted ms-auto"><t t-out="props.screenshot.width"/> × <t t-out="props.screenshot.height"/></span>
                     </label>
+                    <div class="form-text">Messages, chats, alerts, and password fields are excluded. The image stays on this device until you send.</div>
                 </div>
-                <div t-elif="props.captureError" class="alert alert-light border mb-3" role="status">
-                    No screenshot was captured. You can still add a file.
+                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
+                    Page preview unavailable. Add an image if needed.
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="usl_feedback_files">Add supporting files <span class="fw-normal text-muted">(optional)</span></label>
-                    <input id="usl_feedback_files" class="form-control" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (state.screenshotAttachmentId ? 1 : 0) &gt;= 10"/>
+                    <input id="usl_feedback_files" class="form-control" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (props.screenshot and state.screenshotSelected ? 1 : 0) &gt;= 10"/>
                     <div class="d-flex flex-wrap gap-1 mt-2" t-if="state.attachments.length">
                         <span class="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-1" t-foreach="state.attachments" t-as="attachment" t-key="attachment.id">
                             <i class="fa fa-paperclip"/><t t-out="attachment.name"/>
@@ -85,7 +89,7 @@
                 </div>
 
                 <div class="alert alert-info py-2 px-3 small" role="note">
-                    All internal employees can read this feedback and its files. Gemini receives your message, selected screenshot, and any page details you share. Other files stay in Odoo.
+                    All internal employees can read this feedback and its files. Gemini receives your message, selected page preview, and any page details you share. Other files stay in Odoo.
                 </div>
 
                 <div t-if="state.recent.length" class="mt-4 pt-3 border-top">
@@ -163,7 +167,13 @@
                 </button>
             </div>
             <div class="d-flex flex-column h-100 min-h-0 overflow-hidden position-relative bg-inherit">
-                <FeedbackPanel close.bind="this.close" pageContext="this.feedbackChatWindow.pageContext" screenshot="this.feedbackChatWindow.screenshot" captureError="this.feedbackChatWindow.captureError"/>
+                <FeedbackPanel
+                    captureState="this.feedbackChatWindow.captureState"
+                    clearScreenshot.bind="this.feedbackChatWindow.clearScreenshot"
+                    close.bind="this.close"
+                    pageContext="this.feedbackChatWindow.pageContext"
+                    screenshot="this.feedbackChatWindow.screenshot"
+                />
             </div>
         </div>
     </t>
@@ -193,7 +203,7 @@
 
     <t t-inherit="mail.MessagingMenu.content" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('o-mail-MessagingMenu-header')]" position="inside">
-            <button t-if="this.store.discuss.activeTab === 'chat'" class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Capture this screen and send feedback">
+            <button class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Preview this Odoo page and send feedback">
                 <i class="fa fa-commenting-o me-1"/>Feedback
             </button>
         </xpath>

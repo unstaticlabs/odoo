@@ -100,11 +100,11 @@ msgstr "Ajouter des fichiers"
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid ""
 "All internal employees can read this feedback and its files. Gemini receives "
-"your message, selected screenshot, and any page details you share. Other "
+"your message, selected page preview, and any page details you share. Other "
 "files stay in Odoo."
 msgstr ""
 "Tous les employés internes peuvent lire ce retour et ses fichiers. Gemini "
-"reçoit votre message, la capture sélectionnée et les détails de page que "
+"reçoit votre message, l’aperçu de page sélectionné et les détails de page que "
 "vous partagez. Les autres fichiers restent dans Odoo."
 
 #. module: usl_feedback
@@ -171,8 +171,8 @@ msgstr "Réalisation"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Capture this screen and send feedback"
-msgstr "Capturer cet écran et envoyer un retour"
+msgid "Preview this Odoo page and send feedback"
+msgstr "Prévisualiser cette page Odoo et envoyer un retour"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_category
@@ -566,8 +566,8 @@ msgstr "Boîte de réception"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Include this screenshot"
-msgstr "Joindre cette capture"
+msgid "Include this page preview"
+msgstr "Joindre cet aperçu de page"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_usl_feedback_agent_run__input_sha256
@@ -643,6 +643,16 @@ msgstr "Nouvelle clé API Odoo"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid ""
+"Messages, chats, alerts, and password fields are excluded. The image stays "
+"on this device until you send."
+msgstr ""
+"Les messages, les discussions, les alertes et les champs de mot de passe "
+"sont exclus. L’image reste sur cet appareil jusqu’à l’envoi."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "New feedback"
 msgstr "Nouveau retour"
 
@@ -654,8 +664,20 @@ msgstr "Prochaine interrogation le"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "No screenshot was captured. You can still add a file."
-msgstr "Aucune capture n’a été prise. Vous pouvez toujours ajouter un fichier."
+msgid "Page preview unavailable. Add an image if needed."
+msgstr "Aperçu de page indisponible. Ajoutez une image si nécessaire."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Preparing page preview…"
+msgstr "Préparation de l’aperçu de page…"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Preview of the Odoo page you were viewing"
+msgstr "Aperçu de la page Odoo que vous consultiez"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__not_tested

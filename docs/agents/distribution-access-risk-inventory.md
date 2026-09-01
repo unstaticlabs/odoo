@@ -181,11 +181,13 @@ attachment ownership have been validated. Recovery is to retain or move the
 Inbox card, or restore the consistent database and filestore backup after a
 failed deployment.
 
-The Chats-drawer client collects typed action/model/record/viewport candidates
-and never a URL or arbitrary browser state. The server rechecks readable source
-records. Display capture requires an explicit browser choice, selects the
-resulting JPEG by default, stops every media track and allows the reporter to
-remove it before submission.
+The messages-drawer client collects typed action/model/record/viewport
+candidates and never a URL or arbitrary browser state. The server rechecks
+readable source records. A local DOM renderer reproduces only the visible Odoo
+tab, excluding messaging surfaces, alerts, password fields, private-marked
+elements, external media and inaccessible frames. It never uses display
+capture or serializes HTML to the server. The selected JPEG remains on the
+device until Send and can be removed before submission.
 
 `usl.feedback.agent.run` is a system-internal, audited orchestration surface.
 The minute cron and reporter polling may submit or poll a background Gemini
