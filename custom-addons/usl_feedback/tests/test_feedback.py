@@ -10,7 +10,12 @@ from odoo.modules.module import get_module_path
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools.mail import html2plaintext
 
-from odoo.addons.usl_feedback.services import VISION_MODEL, GeminiClient, GeminiError
+from odoo.addons.usl_feedback.services import (
+    FALLBACK_MODEL,
+    VISION_MODEL,
+    GeminiClient,
+    GeminiError,
+)
 
 RELEASE_SHA = "a" * 40
 
@@ -867,6 +872,67 @@ class TestProductFeedback(TransactionCase):
         self.assertEqual(task.usl_feedback_agent_state, "ready")
         self.assertEqual(task.name, "Keep Gemini available without Projects MCP")
 
+    def test_background_failure_completes_in_degraded_mode(self):
+        task, _payload = self._submit(message="Keep the feedback journey available.")
+        params = self.env["ir.config_parameter"].sudo()
+        for key, value in {
+            "usl_feedback.gemini_enabled": "True",
+            "usl_feedback.gemini_paid_tier_confirmed": "True",
+            "usl_feedback.gemini_api_key": "gemini-secret",
+            "usl_feedback.gemini_model": "gemini-3.7-flash",
+            "usl_feedback.mcp_api_key": None,
+            "usl_feedback.mcp_url": None,
+        }.items():
+            params.set_str(key, value)
+        result = {
+            "status": "ready_for_confirmation",
+            "assistant_message": "Your feedback is ready to review.",
+            "questions": [],
+            "summary": "Keep feedback available during agent outages",
+            "description": "The assistant should finish the turn when background mode fails.",
+            "category": "improvement",
+            "priority": 1,
+            "related_feedback_ids": [],
+        }
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id)], limit=1,
+        )
+        run.write(
+            {
+                "state": "submitted",
+                "attempts": 3,
+                "external_interaction_id": "failed-background-run",
+            },
+        )
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run."
+            "GeminiClient.generate_structured_feedback",
+            return_value={
+                "output_text": json.dumps(result),
+                "usage_metadata": {
+                    "prompt_token_count": 90,
+                    "candidates_token_count": 30,
+                },
+            },
+        ) as degraded_completion:
+            run._handle_error(
+                GeminiError("http_500", "INTERNAL", retryable=True, status_code=500),
+            )
+
+        self.assertEqual(run.state, "completed")
+        self.assertEqual(run.model, FALLBACK_MODEL)
+        self.assertEqual(run.input_token_count, 90)
+        self.assertEqual(run.output_token_count, 30)
+        self.assertFalse(task.usl_feedback_latest_interaction_id)
+        self.assertEqual(task.usl_feedback_agent_state, "ready")
+        self.assertEqual(task.name, "Keep feedback available during agent outages")
+        fallback_call = degraded_completion.call_args.kwargs
+        self.assertIn("Keep the feedback journey available.", fallback_call["prompt"])
+        self.assertNotIn(
+            "Use the read-only Odoo Projects MCP",
+            fallback_call["system_instruction"],
+        )
+
     def test_expired_state_rebuilds_from_bounded_chatter_once(self):
         task, _payload = self._submit(message="The stored conversation should recover.")
         params = self.env["ir.config_parameter"].sudo()
@@ -1035,6 +1101,52 @@ class TestProductFeedback(TransactionCase):
         )
         self.assertNotIn("store", provider_payload)
         self.assertNotIn("background", provider_payload)
+
+    def test_degraded_completion_is_structured_and_non_stored(self):
+        response = type(
+            "Response",
+            (),
+            {
+                "status_code": 200,
+                "content": b"{}",
+                "json": lambda _self: {
+                    "candidates": [
+                        {"content": {"parts": [{"text": '{"status":"ready"}'}]}},
+                    ],
+                    "usageMetadata": {
+                        "promptTokenCount": 21,
+                        "candidatesTokenCount": 8,
+                    },
+                },
+            },
+        )()
+        session = MagicMock()
+        session.request.return_value = response
+        schema = {"type": "object", "properties": {"status": {"type": "string"}}}
+        result = GeminiClient(
+            api_key="gemini-secret",
+            session=session,
+        ).generate_structured_feedback(
+            system_instruction="Return only JSON.",
+            prompt="Summarize the feedback.",
+            schema=schema,
+        )
+
+        self.assertEqual(result["output_text"], '{"status":"ready"}')
+        self.assertEqual(result["usage_metadata"]["prompt_token_count"], 21)
+        _method, url = session.request.call_args.args
+        self.assertEqual(
+            url,
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{FALLBACK_MODEL}:generateContent",
+        )
+        provider_payload = session.request.call_args.kwargs["json"]
+        generation = provider_payload["generationConfig"]
+        self.assertEqual(generation["responseMimeType"], "application/json")
+        self.assertEqual(generation["responseJsonSchema"], schema)
+        self.assertNotIn("store", provider_payload)
+        self.assertNotIn("background", provider_payload)
+        self.assertNotIn("tools", provider_payload)
 
     def test_settings_connection_uses_gemini_only_without_projects_mcp(self):
         settings = self.env["res.config.settings"].create(

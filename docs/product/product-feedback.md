@@ -102,10 +102,12 @@ retain identifiers, timestamps, model, hashes, token counts and safe error
 codes—not prompts, keys, screenshots, provider reasoning or raw responses.
 
 Failures leave the partial card in Inbox. Transient provider failures retry
-with a bounded delay; permanent failures state that the feedback is saved and
-offer **Try again**. No provider error may disclose credentials or response
-bodies. Task notifications remain inside Odoo: feedback chatter suppresses
-outgoing email delivery.
+with a bounded delay. If the background interaction still fails, one bounded,
+non-stored Gemini 3.5 Flash-Lite request completes the turn from the full
+sanitized chatter without URL or MCP tools. If that request also fails, Odoo
+states that the feedback is saved and offers **Try again**. No provider error
+may disclose credentials or response bodies. Task notifications remain inside
+Odoo: feedback chatter suppresses outgoing email delivery.
 
 ## Architecture decision
 
@@ -162,6 +164,11 @@ vision pass before the stateful text interaction and replaces the generic task
 creation log with a direct feedback-record link. It adds no field or data
 migration. Recovery is to restore the previous module code and upgrade
 `usl_feedback`; saved cards and attachments remain valid.
+
+Version `saas~19.3.2.0.4` adds the non-stored structured completion fallback
+for exhausted background-agent failures. It adds no field or data migration.
+Recovery is to restore the previous module code and upgrade `usl_feedback`;
+saved cards, conversations and provider audit runs remain valid.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained

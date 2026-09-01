@@ -7,7 +7,12 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.mail import html2plaintext
 
-from odoo.addons.usl_feedback.services import VISION_MODEL, GeminiClient, GeminiError
+from odoo.addons.usl_feedback.services import (
+    FALLBACK_MODEL,
+    VISION_MODEL,
+    GeminiClient,
+    GeminiError,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -293,10 +298,12 @@ class FeedbackAgentRun(models.Model):
                 "question only if a key fact is missing."
             )
 
-    def _build_payload(self, configuration, *, preview_analysis=False):
+    def _build_payload(self, configuration, *, preview_analysis=False, force_full=False):
         self.ensure_one()
         task = self.task_id
-        transcript = self._transcript_text(full=not bool(self.previous_interaction_id))
+        transcript = self._transcript_text(
+            full=force_full or not bool(self.previous_interaction_id),
+        )
         board = self._board_summary(task)
         release_url = f"https://github.com/unstaticlabs/odoo/tree/{task.usl_feedback_release_sha}"
         instructions = (
@@ -363,7 +370,7 @@ class FeedbackAgentRun(models.Model):
                 "schema": RESULT_SCHEMA,
             },
         }
-        if self.previous_interaction_id:
+        if self.previous_interaction_id and not force_full:
             payload["previous_interaction_id"] = self.previous_interaction_id
         digest_payload = {
             **payload,
@@ -600,7 +607,18 @@ class FeedbackAgentRun(models.Model):
                 },
             )
             self._task_for_reporter().write({"usl_feedback_agent_state": "queued"})
-            return
+            return False
+        if error.retryable or error.code.startswith("provider_"):
+            try:
+                return self._complete_with_fallback()
+            except GeminiError as fallback_error:
+                _logger.warning(
+                    "Gemini degraded completion failed for feedback task %s with %s: %s",
+                    self.task_id.id,
+                    FALLBACK_MODEL,
+                    fallback_error.code,
+                )
+                error = fallback_error
         self.write(
             {
                 "state": "error",
@@ -616,6 +634,61 @@ class FeedbackAgentRun(models.Model):
                 "usl_feedback_agent_error": self._safe_provider_error(),
             },
         )
+        return False
+
+    def _complete_with_fallback(self):
+        self.ensure_one()
+        configuration = self._configuration()
+        fallback_configuration = {
+            "api_key": configuration["api_key"],
+            "model": configuration["model"],
+        }
+        preview_analysis = self._preview_analysis(fallback_configuration)
+        payload, _input_hash = self._build_payload(
+            fallback_configuration,
+            preview_analysis=preview_analysis,
+            force_full=True,
+        )
+        response = GeminiClient(
+            api_key=fallback_configuration["api_key"],
+        ).generate_structured_feedback(
+            system_instruction=payload["system_instruction"],
+            prompt=payload["input"][0]["text"],
+            schema=RESULT_SCHEMA,
+        )
+        fallback_id = f"fallback-{self.id}-{self.attempts}"
+        fallback_hash = hashlib.sha256(
+            json.dumps(
+                {
+                    "model": FALLBACK_MODEL,
+                    "system_instruction": payload["system_instruction"],
+                    "input": payload["input"],
+                    "response_format": payload["response_format"],
+                },
+                sort_keys=True,
+            ).encode(),
+        ).hexdigest()
+        self.write(
+            {
+                "state": "submitted",
+                "model": FALLBACK_MODEL,
+                "external_interaction_id": fallback_id,
+                "submitted_at": self.submitted_at or fields.Datetime.now(),
+                "next_poll_at": False,
+                "input_sha256": fallback_hash,
+            },
+        )
+        completed = self._complete(
+            {
+                **response,
+                "id": fallback_id,
+                "status": "completed",
+            },
+        )
+        task = self._task_for_reporter()
+        if task.usl_feedback_latest_interaction_id == fallback_id:
+            task.write({"usl_feedback_latest_interaction_id": False})
+        return completed
 
     def _safe_provider_error(self):
         self.ensure_one()

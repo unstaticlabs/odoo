@@ -7,7 +7,8 @@ import requests
 INTERACTIONS_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 MODELS_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
 API_REVISION = "2026-05-20"
-VISION_MODEL = "gemini-3.5-flash-lite"
+FALLBACK_MODEL = "gemini-3.5-flash-lite"
+VISION_MODEL = FALLBACK_MODEL
 CONNECT_TIMEOUT = 5
 READ_TIMEOUT = 30
 VISION_READ_TIMEOUT = 45
@@ -164,6 +165,51 @@ class GeminiClient:
                 "Gemini did not return a page preview analysis.",
             )
         return text[:2000]
+
+    def generate_structured_feedback(self, *, system_instruction, prompt, schema):
+        """Complete one degraded feedback turn without stored state or tools."""
+        response = self._request(
+            "POST",
+            f"{MODELS_ENDPOINT}/{FALLBACK_MODEL}:generateContent",
+            read_timeout=VISION_READ_TIMEOUT,
+            json={
+                "systemInstruction": {"parts": [{"text": system_instruction}]},
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt}],
+                    },
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 2048,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": schema,
+                },
+            },
+        )
+        try:
+            parts = response["candidates"][0]["content"]["parts"]
+        except (KeyError, IndexError, TypeError) as error:
+            raise GeminiError(
+                ERROR_INVALID_RESPONSE,
+                "Gemini did not return structured feedback.",
+            ) from error
+        text = "".join(
+            str(part.get("text") or "") for part in parts if isinstance(part, dict)
+        ).strip()
+        if not text:
+            raise GeminiError(
+                ERROR_INVALID_RESPONSE,
+                "Gemini did not return structured feedback.",
+            )
+        usage = response.get("usageMetadata") or {}
+        return {
+            "output_text": text,
+            "usage_metadata": {
+                "prompt_token_count": usage.get("promptTokenCount") or 0,
+                "candidates_token_count": usage.get("candidatesTokenCount") or 0,
+            },
+        }
 
     def test_mcp_interaction(self, *, model, mcp_url, mcp_headers):
         response = self.create_interaction(

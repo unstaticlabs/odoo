@@ -1,1 +1,1 @@
-from .gemini import VISION_MODEL, GeminiClient, GeminiError
+from .gemini import FALLBACK_MODEL, VISION_MODEL, GeminiClient, GeminiError

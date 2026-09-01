@@ -169472,6 +169472,8 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._configuration:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2",
@@ -170383,6 +170385,12 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:2": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._configuration:sudo:1": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
@@ -170934,15 +170942,17 @@
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:2": "ea371d67919af7f099ba242730ddecb160b4960412cb58f64c97c41110d88bad",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:3": "321cb9785e4e8b68f57e084b84c82d608b4f1ac22da920281852d2e1df68aa68",
         "sink:stock:addons/stock/models/stock_rule.py:stock.rule._run_scheduler_tasks:sudo:4": "83fde25d8c9891c12d1f5a00a98f387aa442bbe0a6707dde360d7f366b6ee294",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._build_payload:sudo:1": "a9ed57cc3381d5703a8a275977ffde766ffaa6f9099953288ea7e562f19c8f3a",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._build_payload:sudo:1": "974b6efc405cf9d9adcc3209b2066b9c26ab4154fc07d4c8310edd3cb62e793c",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:1": "7927ff76a3f877f8249a1c3a7b5ec3f38a52ce5fe549434e52384e218865e097",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:2": "c34925a9707735e7a7f1de5df07832ae74e28bc97d6c79ae060b7515c865c780",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete:orm_write:3": "85cb20fbeb6df13e6a9cdaee6f5642984d7217d1a73b3ffc183d2ec2e384df20",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:1": "d154ff3110477a5172cd6d3593035fc8e6919fd542aaa0be9a6df6b4fabd7505",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._complete_with_fallback:orm_write:2": "a520ea1ca1f3a11adf6989d50cdbe28b91c30816c5d88bb8cb675f3335327cb1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._configuration:sudo:1": "3c43d77e8446be899eb6eba48d96042f41779d428e1ba3680378cc6809a3f100",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1": "23fff4b18cd5eaf03fa2e45090443b2d8e0a18aedff18950b71b9d561bc270d6",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2": "85720ac6e0c682d1b63ec34f389c7b3584d163e4145e8a03aa8b2bc4132e52f6",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "26c23961289ae8e51c0770ab5ce43a11b7c7eebbd06d3ac936db351e544d3fcd",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "2dfcc2aa2a7840691fb2e05d9e48a33fda4127afd2558d6622f016fca7cddd98",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:1": "d5646f00b6fc378bed64224b620a4ec92f80f0a06e987ffbdb118baa89f92bbd",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:2": "d6b22d9421bee9f708e210e4aea19664a608e4d55f40a8dddae13ce393721d9c",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "01879ccabe59e897c22bbb819637bd2a93d4c4a9a42dd99f761ba8c308552e4d",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "d8583b3999b1f2a041f1d1182253ce59e7e1d707db5690eca10d2ed25a5c75c5",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "ac83858f9677612f0fb5f6fb4f81430c93d81d263a2e4e0d7e88a4a469d38dfb",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "68bf02f0dce249528623b2428c3dd29a3d466ebfe54c6bdd806a13c820a7d16a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "cba9f16ec285bb56cbad3b62eca3d9fb4ba422e85772e55e6b6b5c53816b6d68",
@@ -192240,6 +192250,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "0fa8ff054d84d28be3ee463bbd37f585eecb2cc3600cb6654b27d0269e0aa841",
+  "qualified_policy_digest": "6cafc110fa0de9c254518656a387e0852b24e30b017ff0f713ce91b0bd470d9b",
   "schema": "usl-action-risk-policy-v1"
 }
