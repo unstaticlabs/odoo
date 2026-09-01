@@ -51,6 +51,13 @@ RELEASE_IMAGE_SERVICES = {
     "mcp": ("odoo-mcp-oauth-init", "odoo-mcp"),
     "renderer": ("usl-document-renderer",),
 }
+RELEASE_RUNTIME_SERVICES = {
+    "distribution": "odoo",
+    "paperless": "paperless",
+    "sign-dss": "sign",
+    "mcp": "mcp",
+    "renderer": "renderer",
+}
 MINIMUM_FREE_BYTES = 2 * 1024**3
 CAPACITY_WARNING_BYTES = 8 * 1024**3
 
@@ -224,6 +231,41 @@ def _release_images(release: dict) -> list[str]:
     )
 
 
+def _release_image(release: dict, component: str) -> str:
+    if component == "mcp":
+        return release["mcp"]["image"]
+    if component == "renderer":
+        return release["renderer"]["image"]
+    return release["components"][component]["digest_reference"]
+
+
+def _validate_runtime_release_images(target, runner, runtime: dict, release: dict) -> dict[str, str]:
+    containers = {
+        item.get("Service"): item.get("ID")
+        for item in runtime["containers"]
+        if item.get("State") == "running"
+    }
+    verified = {}
+    for component, service_key in RELEASE_RUNTIME_SERVICES.items():
+        service = target.value["services"][service_key]
+        container = containers.get(service)
+        if not container:
+            raise RuntimeError(f"release service is not running: {service}")
+        expected = _release_image(release, component)
+        expected_id = runner.run(
+            ["docker", "image", "inspect", expected, "--format", "{{.Id}}"],
+        ).stdout.strip()
+        actual_id = runner.run(
+            ["docker", "inspect", container, "--format", "{{.Image}}"],
+        ).stdout.strip()
+        if not expected_id or actual_id != expected_id:
+            raise RuntimeError(
+                f"running {component} image differs from the selected release",
+            )
+        verified[component] = expected
+    return verified
+
+
 def _available_bytes(runner, path: str) -> int:
     result = runner.run(["df", "--output=avail", "--block-size=1", path])
     try:
@@ -355,6 +397,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
             f"{datetime.now(UTC):%Y%m%dt%H%M%Sz}-{release['source']['commit'][:8]}"
         )
         _ensure_image(runner, image)
+        runtime_images = _validate_runtime_release_images(target, runner, runtime, release)
         with runtime_lock(target, runner, "backup", run_id):
             started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "operation", "started")
@@ -468,6 +511,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     "verification_seconds": verify_seconds,
                     "total_seconds": total_seconds,
                 },
+                "runtime_images": runtime_images,
                 "status": "qualified",
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -999,10 +1043,24 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("generation name is invalid")
     identity = current["compose"]
     images = _runtime_images(target_runner, identity)
+    phase_started = time.monotonic()
+    _record_event(target, target_runner, generation, "restore", "image-preparation", "started")
     capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
     for image in _release_images(release):
         _ensure_image(target_runner, image)
     capacity_after_pull = _require_restore_capacity(target, target_runner, "image pre-pull")
+    _record_event(
+        target,
+        target_runner,
+        generation,
+        "restore",
+        "image-preparation",
+        "completed",
+        duration_seconds=round(time.monotonic() - phase_started, 3),
+        **capacity_after_pull,
+    )
+    phase_started = time.monotonic()
+    _record_event(target, target_runner, generation, "restore", "materialization", "started")
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
     volumes, network = _create_generation_resources(target, target_runner, generation)
@@ -1052,6 +1110,16 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             target_runner.run(["docker", "rm", "--force", container], check=False)
     _remove_materialization_workspace(target, target_runner, generation)
     capacity_before_activation = _require_restore_capacity(target, target_runner, "activation")
+    _record_event(
+        target,
+        target_runner,
+        generation,
+        "restore",
+        "materialization",
+        "completed",
+        duration_seconds=round(time.monotonic() - phase_started, 3),
+        **capacity_before_activation,
+    )
     release_path = f"{generation_root}/usl-release.json"
     _write_remote(target, target_runner, release_path, release_raw + "\n")
     overlay = f"{generation_root}/compose.generation.json"
@@ -1069,6 +1137,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "release_manifest": (current["active_state"] or {}).get("release_manifest"),
         "snapshot": (current["active_state"] or {}).get("snapshot"),
     }
+    phase_started = time.monotonic()
+    _record_event(target, target_runner, generation, "restore", "activation", "started")
     try:
         target_runner.run(compose_command(identity, ["stop", "--timeout", "60"]))
         target_runner.run(
@@ -1077,6 +1147,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         _rollback_after_failure(target_runner, identity, error)
         raise
+    _record_event(
+        target,
+        target_runner,
+        generation,
+        "restore",
+        "activation",
+        "completed",
+        duration_seconds=round(time.monotonic() - phase_started, 3),
+    )
     active_path = f"{target.value['state_directory']}/active.json"
     _write_remote(
         target,
@@ -1092,6 +1171,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             previous,
         ),
     )
+    phase_started = time.monotonic()
+    _record_event(target, target_runner, generation, "restore", "validation", "started")
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
@@ -1110,6 +1191,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             )
         _rollback_after_failure(target_runner, identity, error)
         raise
+    _record_event(
+        target,
+        target_runner,
+        generation,
+        "restore",
+        "validation",
+        "completed",
+        duration_seconds=round(time.monotonic() - phase_started, 3),
+    )
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,

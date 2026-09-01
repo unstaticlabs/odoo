@@ -23,6 +23,7 @@ from operations.stack import (
     _rollback_after_failure,
     _restore_unlocked,
     _validate_materialized_release,
+    _validate_runtime_release_images,
     generation_volume_names,
     runtime_lock,
     with_writers_paused,
@@ -328,6 +329,37 @@ class CohortContractTests(unittest.TestCase):
             "renderer": {"image": references[5]},
         }
         self.assertEqual(_release_images(release), sorted(references))
+
+    def test_backup_refuses_runtime_images_outside_selected_release(self) -> None:
+        target = load_target("staging", TARGETS)
+        reference = "ghcr.io/unstaticlabs/example@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": reference},
+                "paperless": {"digest_reference": reference},
+                "sign-dss": {"digest_reference": reference},
+            },
+            "mcp": {"image": reference},
+            "renderer": {"image": reference},
+        }
+        runtime = {
+            "containers": [
+                {"Service": target.value["services"][key], "ID": key, "State": "running"}
+                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+            ],
+        }
+
+        class ImageRunner:
+            def run(self, command, *, check=True):
+                output = (
+                    "sha256:expected\n"
+                    if command[:3] == ["docker", "image", "inspect"]
+                    else "sha256:actual\n"
+                )
+                return subprocess.CompletedProcess(command, 0, output, "")
+
+        with self.assertRaisesRegex(RuntimeError, "running distribution image differs"):
+            _validate_runtime_release_images(target, ImageRunner(), runtime, release)
 
     def test_restore_capacity_fails_closed_below_two_gibibytes(self) -> None:
         target = load_target("staging", TARGETS)
