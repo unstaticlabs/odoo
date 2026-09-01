@@ -28,7 +28,7 @@ if policy.get("schema") != "usl-production-cron-policy-v1":
 if set(gates) != set(policy.get("gates") or []) or gates.get("always") is not True:
     raise RuntimeError("The production cron gate decision is incomplete.")
 
-Cron = env["ir.cron"].sudo()  # noqa: F821
+Cron = env["ir.cron"].sudo().with_context(active_test=False)  # noqa: F821
 crons = Cron.search([])
 xmlid_rows = env["ir.model.data"].sudo().search([  # noqa: F821
     ("model", "=", "ir.cron"),

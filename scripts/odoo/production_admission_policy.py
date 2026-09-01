@@ -45,7 +45,7 @@ for xmlid, rule in rules.items():
     ):
         raise RuntimeError(f"Invalid production cron policy entry: {xmlid!r}")
 
-Cron = env["ir.cron"].sudo()  # noqa: F821
+Cron = env["ir.cron"].sudo().with_context(active_test=False)  # noqa: F821
 crons = Cron.search([])
 xmlid_rows = env["ir.model.data"].sudo().search([  # noqa: F821
     ("model", "=", "ir.cron"),

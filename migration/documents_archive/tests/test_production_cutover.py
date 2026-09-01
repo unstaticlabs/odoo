@@ -166,6 +166,15 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def test_production_cron_inventory_includes_inactive_jobs(self):
+        for relative in (
+            "scripts/odoo/production_admission_policy.py",
+            "scripts/odoo/production_runtime_validation.py",
+        ):
+            with self.subTest(script=relative):
+                script = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn("with_context(active_test=False)", script)
+
     def test_preproduction_overlay_uses_packaged_distribution_paths(self):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
