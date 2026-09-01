@@ -1,7 +1,7 @@
 {
     "name": "USL Pocket ID SSO",
     "summary": "Hardened Pocket ID OIDC login and governed identity linking",
-    "version": "saas~19.3.1.3.2",
+    "version": "saas~19.3.1.4.0",
     "category": "Tools",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -9,6 +9,7 @@
         "account",
         "auth_oidc",
         "auth_passkey",
+        "auth_totp",
         "hr_expense",
         "mail",
         "portal",

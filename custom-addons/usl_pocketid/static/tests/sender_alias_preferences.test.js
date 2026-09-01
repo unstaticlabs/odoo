@@ -52,3 +52,31 @@ test("ordinary preference saves retain the standard close behavior", async () =>
     expect(saved).toBe(true);
     expect.verifySteps(["dialog closed"]);
 });
+
+test("security actions save without closing the Preferences dialog", async () => {
+    const controller = {
+        env: { inDialog: true },
+        model: {
+            root: {
+                async save(params) {
+                    expect(params.reload).toBe(true);
+                    expect.step("saved");
+                    return true;
+                },
+            },
+        },
+        props: {
+            onSave() {
+                expect.step("dialog closed");
+            },
+        },
+    };
+
+    const saved = await UslUserPreferencesController.prototype.beforeExecuteActionButton.call(
+        controller,
+        { name: "action_revoke_all_devices", type: "object" }
+    );
+
+    expect(saved).toBe(true);
+    expect.verifySteps(["saved"]);
+});

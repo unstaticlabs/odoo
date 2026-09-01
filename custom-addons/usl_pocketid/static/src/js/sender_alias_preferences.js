@@ -17,6 +17,18 @@ export class UslUserPreferencesController extends HrUserPreferencesController {
         return result;
     }
 
+    async beforeExecuteActionButton(clickParams) {
+        if (
+            clickParams.name === "preference_save" ||
+            clickParams.special === "save" ||
+            clickParams.special === "cancel"
+        ) {
+            return super.beforeExecuteActionButton(clickParams);
+        }
+        const record = this.model.root;
+        return record.save({ reload: !(this.env.inDialog && clickParams.close) });
+    }
+
     async save(params = {}) {
         const record = this.model.root;
         this.keepOpenForSenderAliases = false;

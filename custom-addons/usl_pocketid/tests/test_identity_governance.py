@@ -1,6 +1,8 @@
 import datetime
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import Command
 from odoo.exceptions import AccessDenied, ValidationError
 from odoo.tests import TransactionCase, tagged
@@ -99,6 +101,59 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             self.env["res.users"].sudo().search_count([]),
             user_count,
         )
+
+    def test_preferences_summarize_the_governed_pocketid_identity(self):
+        identity = self._identity()
+        signed_in_at = datetime.datetime(2026, 9, 1, 8, 30)
+        identity.write(
+            {
+                "last_email": "pocketid@example.test",
+                "last_login_at": signed_in_at,
+            },
+        )
+
+        self.assertEqual(self.user.usl_pocketid_security_state, "connected")
+        self.assertEqual(
+            self.user.usl_pocketid_security_email,
+            "pocketid@example.test",
+        )
+        self.assertEqual(self.user.usl_pocketid_last_login_at, signed_in_at)
+        self.assertEqual(
+            self.user.action_open_pocketid_account(),
+            {
+                "type": "ir.actions.act_url",
+                "url": "https://id.example.test",
+                "target": "new",
+            },
+        )
+
+        identity.active = False
+        self.assertEqual(self.user.usl_pocketid_security_state, "ready")
+        self.user.usl_pocketid_access = False
+        self.assertEqual(self.user.usl_pocketid_security_state, "unavailable")
+
+    def test_preferences_replace_local_sign_in_controls_with_pocketid(self):
+        view = self.env.ref("base.view_users_form_simple_modif")
+        arch = etree.fromstring(
+            self.env["res.users"].get_view(
+                view_id=view.id,
+                view_type="form",
+            )["arch"],
+        )
+
+        pocketid_sections = arch.xpath("//div[@name='usl_pocketid_security']")
+        self.assertEqual(len(pocketid_sections), 1)
+        self.assertEqual(
+            pocketid_sections[0].get("invisible"),
+            "not usl_sso_only_login",
+        )
+        totp_field = arch.xpath("//field[@name='totp_enabled']")[0]
+        totp_row = next(
+            parent
+            for parent in totp_field.iterancestors("div")
+            if "d-flex" in (parent.get("class") or "").split()
+        )
+        self.assertEqual(totp_row.get("invisible"), "usl_sso_only_login")
 
     def test_unknown_identity_never_creates_an_odoo_user(self):
         user_count = self.env["res.users"].sudo().search_count([])

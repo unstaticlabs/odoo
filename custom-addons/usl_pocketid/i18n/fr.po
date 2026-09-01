@@ -1430,3 +1430,55 @@ msgstr "L’état de vérification est géré par Odoo."
 #. module: usl_pocketid
 msgid "The public Odoo URL is not configured safely."
 msgstr "L’URL publique d’Odoo n’est pas configurée de manière sûre."
+
+#. module: usl_pocketid
+msgid "Pocket ID status"
+msgstr "État Pocket ID"
+
+#. module: usl_pocketid
+msgid "Pocket ID email"
+msgstr "Adresse e-mail Pocket ID"
+
+#. module: usl_pocketid
+msgid "Last Pocket ID sign-in"
+msgstr "Dernière connexion Pocket ID"
+
+#. module: usl_pocketid
+msgid "Connected"
+msgstr "Connecté"
+
+#. module: usl_pocketid
+msgid "Ready for first sign-in"
+msgstr "Prêt pour la première connexion"
+
+#. module: usl_pocketid
+msgid "Not enabled"
+msgstr "Non activé"
+
+#. module: usl_pocketid
+msgid "Manages your sign-in and multi-factor security."
+msgstr "Gère votre connexion et votre authentification multifacteur."
+
+#. module: usl_pocketid
+msgid "Manage in Pocket ID"
+msgstr "Gérer dans Pocket ID"
+
+#. module: usl_pocketid
+msgid "Account:"
+msgstr "Compte :"
+
+#. module: usl_pocketid
+msgid "Last sign-in:"
+msgstr "Dernière connexion :"
+
+#. module: usl_pocketid
+msgid "Change your password, passkeys, and second factor in Pocket ID."
+msgstr "Modifiez votre mot de passe, vos clés d’accès et votre second facteur dans Pocket ID."
+
+#. module: usl_pocketid
+msgid "You can only open Pocket ID for your own account."
+msgstr "Vous pouvez ouvrir Pocket ID uniquement pour votre propre compte."
+
+#. module: usl_pocketid
+msgid "Pocket ID is not available. Contact an administrator."
+msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."

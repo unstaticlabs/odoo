@@ -2,7 +2,7 @@ import secrets
 import time
 
 from odoo import SUPERUSER_ID, Command, _, api, fields, models
-from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
 
 from ..exceptions import PocketIDAccessDenied, PocketIDReason
@@ -144,11 +144,71 @@ class ResUsers(models.Model):
         string="SSO-only login",
         compute="_compute_usl_sso_only_login",
     )
+    usl_pocketid_security_state = fields.Selection(
+        [
+            ("connected", "Connected"),
+            ("ready", "Ready for first sign-in"),
+            ("unavailable", "Not enabled"),
+        ],
+        string="Pocket ID status",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
+    usl_pocketid_security_email = fields.Char(
+        string="Pocket ID email",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
+    usl_pocketid_last_login_at = fields.Datetime(
+        string="Last Pocket ID sign-in",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
 
     def _compute_usl_sso_only_login(self):
         enabled = is_sso_only(self.env)
         for user in self:
             user.usl_sso_only_login = enabled
+
+    @api.depends(
+        "email",
+        "usl_pocketid_access",
+        "usl_oidc_identity_ids.active",
+        "usl_oidc_identity_ids.last_email",
+        "usl_oidc_identity_ids.last_login_at",
+    )
+    def _compute_usl_pocketid_security_summary(self):
+        for user in self:
+            identities = user.usl_oidc_identity_ids.filtered("active").sorted(
+                key=lambda identity: identity.last_login_at or identity.linked_at,
+                reverse=True,
+            )
+            identity = identities[:1]
+            if identity:
+                user.usl_pocketid_security_state = "connected"
+            elif user.usl_pocketid_access:
+                user.usl_pocketid_security_state = "ready"
+            else:
+                user.usl_pocketid_security_state = "unavailable"
+            user.usl_pocketid_security_email = (
+                identity.last_email if identity and identity.last_email else user.email
+            )
+            user.usl_pocketid_last_login_at = (
+                identity.last_login_at if identity else False
+            )
+
+    def action_open_pocketid_account(self):
+        self.ensure_one()
+        if self != self.env.user and not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("You can only open Pocket ID for your own account."))
+        provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
+        if not provider.enabled or not provider.usl_oidc_issuer:
+            raise UserError(_("Pocket ID is not available. Contact an administrator."))
+        return {
+            "type": "ir.actions.act_url",
+            "url": provider.usl_oidc_issuer,
+            "target": "new",
+        }
 
     @api.model
     def _usl_pocketid_profile_definitions(self):
