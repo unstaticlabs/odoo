@@ -861,7 +861,7 @@ def _generation_overlay(
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
-            service: {"image": images[component], "build": None}
+            service: {"image": images[component]}
             for component, services in RELEASE_IMAGE_SERVICES.items()
             for service in services
             if available_services is None or service in available_services

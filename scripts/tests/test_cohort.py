@@ -437,7 +437,7 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(_generation_overlay(names, release, services))
         self.assertEqual(set(overlay["services"]), services)
         self.assertTrue(
-            all(item["image"] == reference and item["build"] is None for item in overlay["services"].values()),
+            all(item == {"image": reference} for item in overlay["services"].values()),
         )
 
     def test_materialization_uses_source_repositories_and_fresh_target_volumes(self) -> None:
