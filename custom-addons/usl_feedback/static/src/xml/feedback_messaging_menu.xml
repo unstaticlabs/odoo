@@ -38,8 +38,8 @@
                             <DropdownItem t-if="state.task.can_withdraw" class="'text-danger'" onSelected.bind="confirmWithdraw">Withdraw feedback</DropdownItem>
                         </t>
                     </Dropdown>
-                    <button t-if="!props.isSmall" class="btn btn-link text-body" type="button" t-on-click="props.fold" title="Fold feedback" aria-label="Fold feedback"><i class="fa fa-minus"/></button>
-                    <button class="btn btn-link text-body" type="button" t-on-click="props.close" title="Close feedback" aria-label="Close feedback"><i class="oi oi-close"/></button>
+                    <button t-if="!props.isSmall" class="o-usl-FeedbackPanel-fold btn btn-link text-body" type="button" t-on-click="props.fold" title="Fold feedback" aria-label="Fold feedback"><i class="fa fa-minus"/></button>
+                    <button class="o-usl-FeedbackPanel-close btn btn-link text-body" type="button" t-on-click="props.close" title="Close feedback" aria-label="Close feedback"><i class="oi oi-close"/></button>
                 </nav>
             </header>
 
@@ -274,7 +274,7 @@
 
     <t t-inherit="mail.ChatHub" t-inherit-mode="extension">
         <xpath expr="//ChatWindow" position="attributes">
-            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2) + (this.feedbackChatWindow.mode === 'open' ? this.feedbackChatWindow.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2 : 0)</attribute>
+            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1 + (this.feedbackChatWindow.mode === 'open' ? 1 : 0)) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2)</attribute>
         </xpath>
         <xpath expr="//div[hasclass('o-mail-ChatHub-bubbles')]" position="before">
             <FeedbackChatWindow t-if="this.feedbackChatWindow.mode !== 'closed'" hidden="this.feedbackChatWindow.mode === 'folded'" right="this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER * 2)"/>

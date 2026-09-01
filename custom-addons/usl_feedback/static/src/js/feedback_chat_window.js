@@ -24,7 +24,6 @@ export class FeedbackChatWindowService {
         this.screenshot = false;
         this.captureState = "idle";
         this.captureId = 0;
-        this.WINDOW = 704;
     }
 
     get isClosed() {
@@ -137,12 +136,6 @@ export class FeedbackChatWindow extends Component {
         const oppositeFrom = offsetFrom === "right" ? "left" : "right";
         const visibleOffset = this.ui.isSmall ? 0 : this.props.right;
         return `${offsetFrom}: ${visibleOffset}px; ${oppositeFrom}: auto;`;
-    }
-
-    onClickHeader(ev) {
-        if (!this.ui.isSmall && !ev.target.closest("button")) {
-            this.feedbackChatWindow.fold();
-        }
     }
 
     onKeydown(ev) {
