@@ -128,6 +128,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "external_networks",
             "endpoints",
             "ollama",
+            "backup",
+            "release_manifest",
             "secrets",
             "state_directory",
         },
@@ -150,7 +152,11 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if transport.get("type") == "ssh" and not TARGET_NAME.fullmatch(str(transport.get("host"))):
         raise RuntimeError("transport.host is invalid")
 
-    compose = _exact(root["compose"], {"project", "anchor_service", "profiles"}, "compose")
+    compose = _exact(
+        root["compose"],
+        {"project", "anchor_service", "profiles", "default_network"},
+        "compose",
+    )
     if not TARGET_NAME.fullmatch(str(compose["project"])):
         raise RuntimeError("compose.project is invalid")
     if not isinstance(compose["anchor_service"], str) or not compose["anchor_service"]:
@@ -159,6 +165,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         isinstance(item, str) and item for item in compose["profiles"]
     ):
         raise RuntimeError("compose.profiles must be a string list")
+    if not isinstance(compose["default_network"], str) or not compose["default_network"]:
+        raise RuntimeError("compose.default_network is required")
 
     services = root["services"]
     required_services = {"odoo", "odoo_db", "paperless", "paperless_db", "mcp", "sign"}
@@ -203,11 +211,13 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required"}, f"paths.{role}")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
             raise RuntimeError(f"paths.{role}.path must be absolute")
+        if not isinstance(definition["required"], bool):
+            raise RuntimeError(f"paths.{role}.required must be boolean")
 
     if not isinstance(root["external_networks"], dict) or not all(
         isinstance(key, str) and isinstance(value, str) and key and value
@@ -229,6 +239,15 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("ollama.mode must be native or external")
     if not SHA256.fullmatch(str(ollama["manifest_sha256"])) or ollama["dimension"] != 1024:
         raise RuntimeError("Ollama identity is invalid")
+
+    backup = _exact(root["backup"], {"durable_repository", "cache_repository"}, "backup")
+    for key, value in backup.items():
+        if not isinstance(value, str) or not value.startswith(("s3:", "rest:")):
+            raise RuntimeError(f"backup.{key} is not a supported Restic repository")
+    if backup["durable_repository"] == backup["cache_repository"]:
+        raise RuntimeError("durable and cache repositories must differ")
+    if not isinstance(root["release_manifest"], str) or not root["release_manifest"].startswith("/"):
+        raise RuntimeError("release_manifest must be absolute")
 
     secrets = _exact(root["secrets"], {"env_file", "allowed_keys"}, "secrets")
     if not isinstance(secrets["env_file"], str) or not secrets["env_file"]:

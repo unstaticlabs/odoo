@@ -7,7 +7,8 @@
   "compose": {
     "project": "usl-odoo-local",
     "anchor_service": "odoo",
-    "profiles": ["sign"]
+    "profiles": ["sign"],
+    "default_network": "usl-odoo-local_default"
   },
   "services": {
     "odoo": "odoo",
@@ -43,8 +44,8 @@
     "mcp_oauth": {"name": "usl-odoo-local_odoo-mcp-oauth-data", "class": "durable"}
   },
   "paths": {
-    "sign_ca": {"path": "/tmp/usl-odoo-local/sign/step-ca", "class": "durable"},
-    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign/evidence", "class": "durable"}
+    "sign_ca": {"path": "/tmp/usl-odoo-local/sign/step-ca", "class": "durable", "required": true},
+    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign/evidence", "class": "durable", "required": false}
   },
   "external_networks": {},
   "endpoints": {
@@ -61,6 +62,11 @@
     "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
     "dimension": 1024
   },
+  "backup": {
+    "durable_repository": "rest:/tmp/usl-odoo-local/restic/durable",
+    "cache_repository": "rest:/tmp/usl-odoo-local/restic/cache"
+  },
+  "release_manifest": "/tmp/usl-odoo-local/usl-release.json",
   "secrets": {
     "env_file": "/tmp/usl-odoo-local/operations.env",
     "allowed_keys": [

@@ -23,7 +23,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=restic /usr/bin/restic /usr/local/bin/restic
+COPY operations /opt/usl/operations
+COPY --chmod=755 scripts/cohort-runtime /usr/local/bin/usl-cohort-runtime
 COPY --chmod=755 scripts/odoo_backup.py /usr/local/bin/odoo-backup-runtime
 
-ENTRYPOINT ["python3", "/usr/local/bin/odoo-backup-runtime"]
+ENV PYTHONPATH=/opt/usl
+
+ENTRYPOINT ["/usr/local/bin/usl-cohort-runtime"]
 CMD ["--help"]

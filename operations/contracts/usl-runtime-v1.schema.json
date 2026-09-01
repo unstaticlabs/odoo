@@ -7,7 +7,7 @@
   "required": [
     "schema", "name", "environment", "protected", "transport", "compose",
     "services", "databases", "volumes", "paths", "external_networks", "endpoints",
-    "ollama", "secrets", "state_directory"
+    "ollama", "backup", "release_manifest", "secrets", "state_directory"
   ],
   "properties": {
     "schema": {"const": "usl-runtime/v1"},
@@ -23,6 +23,8 @@
     "external_networks": {"type": "object"},
     "endpoints": {"type": "object"},
     "ollama": {"type": "object"},
+    "backup": {"type": "object"},
+    "release_manifest": {"type": "string"},
     "secrets": {"type": "object"},
     "state_directory": {"type": "string"}
   }

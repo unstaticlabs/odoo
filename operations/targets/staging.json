@@ -7,7 +7,8 @@
   "compose": {
     "project": "usl-odoo-staging-main",
     "anchor_service": "odoo",
-    "profiles": ["sign"]
+    "profiles": ["sign"],
+    "default_network": "usl-odoo-staging-main_default"
   },
   "services": {
     "odoo": "odoo",
@@ -43,8 +44,8 @@
     "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable"}
   },
   "paths": {
-    "sign_ca": {"path": "/opt/usl-odoo/staging/secrets/sign/step-ca", "class": "durable"},
-    "sign_evidence": {"path": "/opt/usl-odoo/staging/sign/evidence", "class": "durable"}
+    "sign_ca": {"path": "/opt/usl-odoo/staging/secrets/sign/step-ca", "class": "durable", "required": true},
+    "sign_evidence": {"path": "/srv/usl/sign/staging-evidence", "class": "durable", "required": false}
   },
   "external_networks": {
     "identity": "usl-identity",
@@ -65,6 +66,11 @@
     "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
     "dimension": 1024
   },
+  "backup": {
+    "durable_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-durable",
+    "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
+  },
+  "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "secrets": {
     "env_file": "/opt/usl-odoo/staging/secrets/operations.env",
     "allowed_keys": [
