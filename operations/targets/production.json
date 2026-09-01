@@ -8,7 +8,8 @@
     "project": "usl-odoo-production-main",
     "anchor_service": "odoo",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
-    "default_network": "usl-odoo-production-main_default"
+    "default_network": "usl-odoo-production-main_default",
+    "resource_overlay": "compose.resources.production.json"
   },
   "services": {
     "odoo": "odoo",

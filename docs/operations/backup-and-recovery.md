@@ -62,7 +62,8 @@ The restore performs these steps unattended:
 5. neutralize staging and isolate MCP OAuth state;
 6. reclaim download scratch before activation;
 7. atomically switch staging and retain the previous generation;
-8. verify HTTP health, Ollama identity, exact business controls, queues,
+8. apply the target's versioned CPU, memory, PID and OOM-priority policy;
+9. verify HTTP health, Ollama identity, exact business controls, queues,
    filestore coverage, Paperless originals, OCR, previews, Tantivy, and vectors.
 
 Production replacement additionally requires explicit confirmation:

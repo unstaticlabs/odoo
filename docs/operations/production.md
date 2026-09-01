@@ -19,6 +19,13 @@ Cloudflare routes production to `odoo:8069` and staging to
 `odoo-staging:8069`; websocket routes use port `8072`. Never reuse the ingress
 alias across environments.
 
+The 4-vCPU/8-GiB VPS uses versioned resource overlays. Production services
+receive higher CPU shares, memory reservations, and lower OOM scores. Staging
+has lower CPU, memory, and PID ceilings, cannot consume swap, and is selected
+before production if the host reaches memory pressure. Every restored
+generation records the applicable overlay in its Compose provenance. Do not
+start either VPS stack without its environment-specific resource overlay.
+
 ## Release contract
 
 Every release manifest binds:

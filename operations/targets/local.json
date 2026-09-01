@@ -8,7 +8,8 @@
     "project": "usl-odoo-local",
     "anchor_service": "odoo",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
-    "default_network": "usl-odoo-local_default"
+    "default_network": "usl-odoo-local_default",
+    "resource_overlay": null
   },
   "services": {
     "odoo": "odoo",

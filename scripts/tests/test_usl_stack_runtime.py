@@ -72,6 +72,14 @@ class RuntimeContractTests(unittest.TestCase):
                 set(target.value["compose"]["profiles"]),
                 {"document-renderer", "mcp", "paperless", "sign"},
             )
+        self.assertEqual(
+            load_target("production", TARGETS).value["compose"]["resource_overlay"],
+            "compose.resources.production.json",
+        )
+        self.assertEqual(
+            load_target("staging", TARGETS).value["compose"]["resource_overlay"],
+            "compose.resources.staging.json",
+        )
 
     def test_secret_file_rejects_scope_fields(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "topology key"):

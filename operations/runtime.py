@@ -154,7 +154,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
 
     compose = _exact(
         root["compose"],
-        {"project", "anchor_service", "profiles", "default_network"},
+        {"project", "anchor_service", "profiles", "default_network", "resource_overlay"},
         "compose",
     )
     if not TARGET_NAME.fullmatch(str(compose["project"])):
@@ -167,6 +167,14 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("compose.profiles must be a string list")
     if not isinstance(compose["default_network"], str) or not compose["default_network"]:
         raise RuntimeError("compose.default_network is required")
+    resource_overlay = compose["resource_overlay"]
+    if resource_overlay is not None and (
+        not isinstance(resource_overlay, str)
+        or resource_overlay.startswith("/")
+        or ".." in Path(resource_overlay).parts
+        or not resource_overlay.endswith(".json")
+    ):
+        raise RuntimeError("compose.resource_overlay must be a safe relative JSON path")
 
     services = root["services"]
     required_services = {

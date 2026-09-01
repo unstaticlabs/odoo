@@ -60,6 +60,16 @@ RELEASE_RUNTIME_SERVICES = {
 }
 MINIMUM_FREE_BYTES = 2 * 1024**3
 CAPACITY_WARNING_BYTES = 8 * 1024**3
+RESOURCE_FIELDS = {
+    "cpus",
+    "cpu_shares",
+    "mem_limit",
+    "mem_reservation",
+    "memswap_limit",
+    "mem_swappiness",
+    "oom_score_adj",
+    "pids_limit",
+}
 
 
 def runtime_command(arguments: argparse.Namespace) -> int:
@@ -903,6 +913,48 @@ def _write_remote(target, runner, path: str, content: str, mode: str = "0600") -
     runner.run(["python3", "-c", program, path, encoded, mode])
 
 
+def _resource_overlay(target) -> str | None:
+    relative = target.value["compose"]["resource_overlay"]
+    if relative is None:
+        return None
+    path = (ROOT / relative).resolve()
+    if ROOT not in path.parents:
+        raise RuntimeError("resource overlay escapes the repository")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"resource overlay is invalid: {relative}") from error
+    if not isinstance(value, dict) or set(value) != {"services"}:
+        raise RuntimeError("resource overlay must contain only services")
+    services = value["services"]
+    expected = set(target.value["services"].values())
+    if not isinstance(services, dict) or set(services) != expected:
+        raise RuntimeError("resource overlay service perimeter differs from the target")
+    for name, limits in services.items():
+        if not isinstance(limits, dict) or set(limits) != RESOURCE_FIELDS:
+            raise RuntimeError(f"resource fields differ for service {name}")
+        if not isinstance(limits["cpus"], (int, float)) or limits["cpus"] <= 0:
+            raise RuntimeError(f"CPU limit is invalid for service {name}")
+        if not isinstance(limits["cpu_shares"], int) or limits["cpu_shares"] < 2:
+            raise RuntimeError(f"CPU shares are invalid for service {name}")
+        if not isinstance(limits["pids_limit"], int) or limits["pids_limit"] <= 0:
+            raise RuntimeError(f"PID limit is invalid for service {name}")
+        if (
+            not isinstance(limits["mem_swappiness"], int)
+            or limits["mem_swappiness"] not in range(0, 101)
+        ):
+            raise RuntimeError(f"memory swappiness is invalid for service {name}")
+        if (
+            not isinstance(limits["oom_score_adj"], int)
+            or not -1000 <= limits["oom_score_adj"] <= 1000
+        ):
+            raise RuntimeError(f"OOM score is invalid for service {name}")
+        for field in ("mem_limit", "mem_reservation", "memswap_limit"):
+            if not isinstance(limits[field], str) or not limits[field]:
+                raise RuntimeError(f"{field} is invalid for service {name}")
+    return json.dumps(value, indent=2, sort_keys=True) + "\n"
+
+
 def _generation_overlay(
     volumes: dict[str, str],
     release: dict | None = None,
@@ -1122,6 +1174,11 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     )
     release_path = f"{generation_root}/usl-release.json"
     _write_remote(target, target_runner, release_path, release_raw + "\n")
+    resource_overlay = _resource_overlay(target)
+    resource_path = None
+    if resource_overlay is not None:
+        resource_path = f"{generation_root}/compose.resources.json"
+        _write_remote(target, target_runner, resource_path, resource_overlay, "0644")
     overlay = f"{generation_root}/compose.generation.json"
     _write_remote(
         target,
@@ -1129,7 +1186,19 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         overlay,
         _generation_overlay(volumes, release, set(images)),
     )
-    generation_identity = {**identity, "compose_files": [*identity["compose_files"], overlay]}
+    generated_prefix = target.value["state_directory"] + "/generations/"
+    compose_files = [
+        path
+        for path in identity["compose_files"]
+        if not (
+            path.startswith(generated_prefix)
+            and path.endswith(("/compose.generation.json", "/compose.resources.json"))
+        )
+    ]
+    if resource_path is not None:
+        compose_files.append(resource_path)
+    compose_files.append(overlay)
+    generation_identity = {**identity, "compose_files": compose_files}
     previous = {
         "generation": current["generation"],
         "volumes": {role: item["name"] for role, item in current["volumes"].items()},
