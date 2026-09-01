@@ -47,6 +47,9 @@ class ProjectTask(models.Model):
     usl_feedback_source_res_id = fields.Integer(
         string="Source record ID", readonly=True, copy=False,
     )
+    usl_feedback_source_section = fields.Char(
+        string="Page section", readonly=True, copy=False, size=128,
+    )
     usl_feedback_viewport_width = fields.Integer(
         string="Viewport width", readonly=True, copy=False,
     )
@@ -140,6 +143,7 @@ class ProjectTask(models.Model):
         "usl_feedback_source_action_id",
         "usl_feedback_source_model_id",
         "usl_feedback_source_res_id",
+        "usl_feedback_source_section",
         "usl_feedback_viewport_width",
         "usl_feedback_viewport_height",
         "usl_feedback_release_sha",
@@ -170,11 +174,17 @@ class ProjectTask(models.Model):
                 raise ValidationError(_("A feedback assistant state is required."))
             if task.usl_feedback_source_res_id and not task.usl_feedback_source_model_id:
                 raise ValidationError(_("A source record requires a source model."))
+            if task.usl_feedback_source_section and (
+                not task.usl_feedback_source_model_id
+                or task.usl_feedback_source_model_id.model != "res.config.settings"
+            ):
+                raise ValidationError(_("A page section requires the Settings source model."))
             if not task.usl_feedback_context_included and any(
                 (
                     task.usl_feedback_source_action_id,
                     task.usl_feedback_source_model_id,
                     task.usl_feedback_source_res_id,
+                    task.usl_feedback_source_section,
                     task.usl_feedback_viewport_width,
                     task.usl_feedback_viewport_height,
                 ),

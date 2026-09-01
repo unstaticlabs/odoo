@@ -169564,8 +169564,10 @@
         "sink:usl_feedback:custom-addons/usl_feedback/services/gemini.py:GeminiClient.__init__:external_call:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._release_sha:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:orm_create:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:orm_write:1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:1",
@@ -170666,10 +170668,16 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": {
+          "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": {
           "reachability_proof": "This internal usl_feedback implementation sink is not an entry point; reachability is owned by separately reviewed feedback RPC, cron, or ORM override actions and remains constrained by module ACLs and rules."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:orm_create:1": {
@@ -171090,25 +171098,27 @@
         "sink:usl_feedback:custom-addons/usl_feedback/services/gemini.py:GeminiClient.__init__:external_call:1": "75958bf11aae9b0926862a93cc6395af2ce9708815de7a60e06e19cf6743ba56",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._release_sha:sudo:1": "0f0b9dd38f197ae186339eb2816bfb761d3b5c1e3924ef85b491cc6812d59c00",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": "2e43fe8c1169af2d82f3bd6abdfd74e26d4eb8a4acf422a5b733c30556f1692f",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "3cef616053ce7230b388617a3469fa4a5f4bf97cf9938a71ad1661e381f7d12a",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "ffe56518e02e6bde0bc333a0b8a158089808ec6ab73286777024ff68e47df96b",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": "6db944b13030fe4876d316a480f2345a0d7cbcda1dea1871732fe51bf8645998",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "0a4223845d3fde2aa758baec8332b22b8d7e0e34e5c0c6abbeccbb86f2561b07",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "8f30c19e2c0680e89c58007a6b008dd353e9638a2563c7a5ac07b8b7ad32a43a",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "24d6394ce3d67f5450e1d12ae833ce076fc57e55b8a4bd24baa563848be3d530",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:orm_create:1": "493d0d280dd074aaac0928d37d71f80024595d15c555ba11f6f4852ae92f4f16",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:orm_write:1": "5ce45f83c8624944da769b53e72ecfca1babb250d0ddff8c6cdf3486c7051c9c",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:1": "e6f148f7ecf933e87de4a47100aa642b4874967c1565dead99f4c51de17504ca",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:2": "508d0808a9ebf80a5248690cc6468b5e23669f53b6b59aae4310f4dc227a7e2b",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:orm_write:1": "e8eb469231b9410390c4d1d506fe6f62342710634a3c874b21b3987902abc7be",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:sudo:1": "4fd527c04f4fd88b3989d68e55383ee51b91006c68bbe1a07deb71fa260dcc2e",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "bf5c80e8ba6bc40558b4ce637230f4027e9136bd5b1d7df726d3e0722a2481d7",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "692b1142e52a60e4f97712c6bb4233fe1d1f79453635343fdc7d31bb1f3cf35e",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": "e3f67513e8fddcf0e26aef30b471125200129d8e8956f0fd563bd65333664ea1",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_create:1": "39c271fc553cd5f7d3b0d757ed964d733a148ec8b70b91dab15b9b5ebb422d5b",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:1": "530b25c30a6c4eb2bb644622ff81c654e14f9c38da566f50b5bf50232f7a089c",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:2": "a0b256c1f95f6526c51f7e464791628809e68dcf8bcd9fb95f19e1772ddef043",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:1": "a8d0f7c5399c7ee804176a8f96ba98ce9238124fd2b73b7decd322f52f7b4fb6",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:2": "d9d285b90908a228ca3ee63ef7e0d842d173280dfa678b8d1be166f0a4bce4a9",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:3": "693b9ade1b1735b70652d82411f892bf74c517fa361cd15d94f852af0cddb5d9",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:4": "a1ad989b1e93a991fdb0acf70062832dcf8dd345d45621271d26750445d09b58",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:5": "de27edb3e55f1be4d076e1db64f647ad9eda5b2b3f02cbd77143d02b59d449e3",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "9ecac400fac7fdd22b8da668ccc189bf624c725b786d53498a5753607d454c9f",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "3a6873c806094fc4faf33d9ed7a034b854bf065ebf59ed9b29215c5520304cfe",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": "a42f33f91d03c55fbdac51b9ab9a218fc7dec8b8720d998c1b625fc7da44117d",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_create:1": "071a7caa7d7955fb680db05910b9b02af8eba4bfbdf58a66721b45302b05dec4",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:1": "fc669b62be78c9b09553f70d3ec5abad6531aac49ff525751ecedb202c1bb855",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:2": "6a0b56ba9fecffee08b8a6b7c99dfd376679e77a3284762517ac63338d3e97cd",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:1": "ede81eb1147c1563500caed09320b6629567f1fe391ca9ef9291e6edc9df3b86",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:2": "2023a4780c5692b7b7c98e8aefa6ea24e18edca2da232d40c8e923a522060f0f",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:3": "0a45b3e8c9b260bf1e94017fd55987ca0beb0e9c097f96e9301d5e1860acc3a7",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:4": "f5a4fc86dbccfd2d397e5cbb77de6077122a0b4cf7315df53d2e83486e9f9ada",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:sudo:5": "5d434a17f00d045da5f087c6fe9ee493d4b2912d102209835f5a3c13c12d25e4",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:orm_unlink:1": "3cab9149ddc89254227c5e3aa3e1eb27c917660956478af7a8c40d350710f176",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.unlink:sudo:1": "6e53e0a0985cb3004f6f74089e8eca1fc8e5fb06dc3edabb21364402eb381306"
       }
@@ -192319,6 +192329,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "86b03927fb4bf13b48ce8ce21881088709020ee5392162d49820eb7a33f43eaa",
+  "qualified_policy_digest": "65325967b6f8b80393fbd9558d54ee248b13d0dafdc321a620cfe0a3df5968a8",
   "schema": "usl-action-risk-policy-v1"
 }

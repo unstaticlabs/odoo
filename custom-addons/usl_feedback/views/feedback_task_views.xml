@@ -112,6 +112,7 @@
                         <field name="usl_feedback_source_action_id" readonly="1"/>
                         <field name="usl_feedback_source_model_id" readonly="1"/>
                         <field name="usl_feedback_source_res_id" readonly="1"/>
+                        <field name="usl_feedback_source_section" readonly="1"/>
                         <field name="usl_feedback_viewport_width" readonly="1"/>
                         <field name="usl_feedback_viewport_height" readonly="1"/>
                     </group>

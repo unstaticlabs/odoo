@@ -233,6 +233,16 @@ schema or stored-task migration. Upgrade with `-u usl_feedback`; recovery is
 to restore the previous module code and repeat the update. Existing tasks,
 chatter, attachments and audit runs remain valid.
 
+Version `saas~19.3.2.0.9` preserves safe semantic context on transient Settings
+pages. It stores the readable source model and the server-validated native
+Settings section, but never the temporary `res.config.settings` record ID or
+field values. Expected transient records no longer produce an access warning;
+genuinely inaccessible and unavailable persistent records keep distinct,
+accurate notices. The additive page-section field requires only
+`-u usl_feedback`; existing tasks remain valid with an empty section. Recovery
+is to restore the previous module code and repeat the update. No task data must
+be reversed.
+
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained
 source company, inactive legacy rules, secret-status indicators, read-only

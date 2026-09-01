@@ -534,6 +534,8 @@ class FeedbackAgentRun(models.Model):
                 lines.append(f"Model: {task.usl_feedback_source_model_id.model}")
             if task.usl_feedback_source_res_id:
                 lines.append(f"Record identifier: {task.usl_feedback_source_res_id}")
+            if task.usl_feedback_source_section:
+                lines.append(f"Page section: {task.usl_feedback_source_section}")
             if task.usl_feedback_viewport_width and task.usl_feedback_viewport_height:
                 lines.append(
                     f"Viewport: {task.usl_feedback_viewport_width} x "

@@ -184,9 +184,51 @@ class TestProductFeedback(TransactionCase):
         payload = draft.feedback_submit_initial("This references a source I cannot read.", True)
         task = self.env["project.task"].sudo().browse(payload["id"])
         self.assertTrue(payload["context_omitted"])
+        self.assertEqual(payload["context_omission_reason"], "access_denied")
         self.assertTrue(task.usl_feedback_context_included)
         self.assertFalse(task.usl_feedback_source_model_id)
         self.assertFalse(task.usl_feedback_source_res_id)
+
+    def test_settings_context_keeps_validated_section_without_transient_record(self):
+        draft = self._start(
+            user=self.technical_admin,
+            context={
+                "action_id": self.env.ref("base_setup.action_general_configuration").id,
+                "model": "res.config.settings",
+                "settings_section": "general_settings",
+                "viewport_width": 1374,
+                "viewport_height": 728,
+            },
+        )
+        payload = draft.feedback_submit_initial("The Users settings are unclear.", True)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertFalse(payload["context_omitted"])
+        self.assertFalse(payload["context_omission_reason"])
+        self.assertEqual(task.usl_feedback_source_model_id.model, "res.config.settings")
+        self.assertFalse(task.usl_feedback_source_res_id)
+        self.assertEqual(task.usl_feedback_source_section, "General Settings")
+        self.assertIn(
+            "Page section: General Settings",
+            self.env["usl.feedback.agent.run"]._context_summary(task),
+        )
+
+    def test_settings_context_drops_transient_record_and_forged_section(self):
+        settings = self.env["res.config.settings"].with_user(self.technical_admin).create({})
+        draft = self._start(
+            user=self.technical_admin,
+            context={
+                "model": "res.config.settings",
+                "res_id": settings.id,
+                "settings_section": "forged_secret_area",
+            },
+        )
+        payload = draft.feedback_submit_initial("The settings page needs context.", True)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertTrue(payload["context_omitted"])
+        self.assertEqual(payload["context_omission_reason"], "temporary")
+        self.assertEqual(task.usl_feedback_source_model_id.model, "res.config.settings")
+        self.assertFalse(task.usl_feedback_source_res_id)
+        self.assertFalse(task.usl_feedback_source_section)
 
     def test_all_internal_users_share_cards_chatter_and_attachments(self):
         task, _payload = self._submit()

@@ -14,6 +14,7 @@ import { browser } from "@web/core/browser/browser";
 import {
     FeedbackPanel,
     feedbackPageContext,
+    pageContextNotice,
 } from "../src/js/feedback_messaging_menu";
 import {
     feedbackChatWindowService,
@@ -118,6 +119,7 @@ test("page context is typed and excludes browser location state", () => {
         action_id: 42,
         model: "project.task",
         res_id: 17,
+        settings_section: false,
         viewport_width: 1440,
         viewport_height: 900,
     });
@@ -131,9 +133,61 @@ test("narrow screens keep safe empty context defaults", () => {
         action_id: false,
         model: false,
         res_id: false,
+        settings_section: false,
         viewport_width: 390,
         viewport_height: 844,
     });
+});
+
+test("settings context keeps only the native selected app key", () => {
+    const root = document.createElement("main");
+    root.innerHTML = `
+        <div class="o_action_manager">
+            <div class="o_setting_container">
+                <div class="settings_tab">
+                    <a class="tab selected" data-key="general_settings">General Settings</a>
+                </div>
+            </div>
+        </div>`;
+    const context = feedbackPageContext(
+        {
+            action: { id: 88 },
+            props: {
+                context: { module: "inventory" },
+                resModel: "res.config.settings",
+                resId: 271,
+            },
+        },
+        { width: 1374, height: 728 },
+        root
+    );
+    expect(context).toEqual({
+        action_id: 88,
+        model: "res.config.settings",
+        res_id: 271,
+        settings_section: "general_settings",
+        viewport_width: 1374,
+        viewport_height: 728,
+    });
+    root.querySelector(".tab").dataset.key = "token=secret";
+    expect(
+        feedbackPageContext(
+            { props: { resModel: "res.config.settings" } },
+            { width: 390, height: 844 },
+            root
+        ).settings_section
+    ).toBe(false);
+});
+
+test("page context notices distinguish access failures from temporary records", () => {
+    expect(pageContextNotice("access_denied")).toBe(
+        "The page record wasn't included because you can't access it."
+    );
+    expect(pageContextNotice("unavailable")).toBe(
+        "The page record wasn't available, so it wasn't included."
+    );
+    expect(pageContextNotice("temporary")).toBe(false);
+    expect(pageContextNotice(false)).toBe(false);
 });
 
 test("page preview keeps Odoo and excludes messaging, alerts, and private fields", () => {

@@ -75,6 +75,12 @@ msgstr "Un enregistrement source nécessite un modèle source."
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
+msgid "A page section requires the Settings source model."
+msgstr "Une section de page nécessite le modèle source Paramètres."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
 msgid "%(feedback_link)s has been created in the %(project_name)s project."
 msgstr "%(feedback_link)s a été créé dans le projet %(project_name)s."
 
@@ -873,13 +879,21 @@ msgid "Page details shared"
 msgstr "Détails de la page partagés"
 
 #. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_source_section
+msgid "Page section"
+msgstr "Section de la page"
+
+#. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
-msgid ""
-"Page details were left out because you no longer have access to this record."
-msgstr ""
-"Les détails de la page ont été omis, car vous n’avez plus accès à cette "
-"fiche."
+msgid "The page record wasn't available, so it wasn't included."
+msgstr "L’enregistrement de la page était indisponible et n’a pas été inclus."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+msgid "The page record wasn't included because you can't access it."
+msgstr "L’enregistrement de la page n’a pas été inclus, car vous n’y avez pas accès."
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_paid_tier_confirmed

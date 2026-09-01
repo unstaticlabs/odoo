@@ -38,7 +38,9 @@ feedback task never grants access to the source business record.
 
 If the agent cannot reply, the chat says that your feedback is saved and offers
 **Try again**. Incomplete agent output becomes a follow-up question. If you lose
-access to the source record, Odoo leaves its details out. If the page preview is
+access to the source record, Odoo leaves its details out. On temporary screens
+such as Settings, Odoo keeps the page and section but never stores the temporary
+record or its field values. If the page preview is
 unavailable, add an image manually or continue without one. A reply in the
 floating chat continues the assistant conversation. From the task chatter, a
 reply runs the assistant only while the status is **Needs details** or when you

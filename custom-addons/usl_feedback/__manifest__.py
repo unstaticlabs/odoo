@@ -1,7 +1,7 @@
 {
     "name": "USL Product Feedback",
     "summary": "Conversational AI-assisted product feedback on native Project tasks",
-    "version": "saas~19.3.2.0.8",
+    "version": "saas~19.3.2.0.9",
     "category": "Productivity",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

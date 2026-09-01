@@ -29,16 +29,43 @@ function positiveInteger(value) {
     return Number.isSafeInteger(normalized) && normalized > 0 ? normalized : false;
 }
 
-export function feedbackPageContext(actionController, viewport = browser.visualViewport) {
+function safeSettingsSection(actionController, root) {
+    const props = actionController?.props || {};
+    if (props.resModel !== "res.config.settings") {
+        return false;
+    }
+    const selected = root?.querySelector?.(
+        ".o_action_manager .o_setting_container .settings_tab .tab.selected[data-key]"
+    );
+    const candidate = String(selected?.dataset?.key || props.context?.module || "");
+    return /^[a-z][a-z0-9_]{0,63}$/.test(candidate) ? candidate : false;
+}
+
+export function feedbackPageContext(
+    actionController,
+    viewport = browser.visualViewport,
+    root = document
+) {
     const props = actionController?.props || {};
     const action = actionController?.action || {};
     return {
         action_id: positiveInteger(action.id || props.actionId),
         model: typeof props.resModel === "string" ? props.resModel : false,
         res_id: positiveInteger(props.resId),
+        settings_section: safeSettingsSection(actionController, root),
         viewport_width: positiveInteger(Math.round(viewport?.width || browser.innerWidth)),
         viewport_height: positiveInteger(Math.round(viewport?.height || browser.innerHeight)),
     };
+}
+
+export function pageContextNotice(reason) {
+    if (reason === "access_denied") {
+        return _t("The page record wasn't included because you can't access it.");
+    }
+    if (reason === "unavailable") {
+        return _t("The page record wasn't available, so it wasn't included.");
+    }
+    return false;
 }
 
 function fileAsBase64(file) {
@@ -255,11 +282,9 @@ export class FeedbackPanel extends Component {
             this.props.clearScreenshot?.();
             this.startAgentProgress();
             this.schedulePoll(0);
-            if (task.context_omitted) {
-                this.notification.add(
-                    _t("Page details were left out because you no longer have access to this record."),
-                    { type: "warning" }
-                );
+            const contextNotice = pageContextNotice(task.context_omission_reason);
+            if (contextNotice) {
+                this.notification.add(contextNotice, { type: "warning" });
             }
         } catch (error) {
             this.showError(error);

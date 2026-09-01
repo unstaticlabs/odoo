@@ -3,6 +3,7 @@ import binascii
 import os
 import re
 
+from lxml import etree
 from markupsafe import Markup, escape
 
 from odoo import Command, _, api, fields, models
@@ -13,6 +14,7 @@ MAX_ATTACHMENTS = 10
 MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 SCREENSHOT_MIMETYPES = {"image/jpeg", "image/png"}
+SETTINGS_SECTION_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
 class FeedbackSubmission(models.TransientModel):
@@ -42,6 +44,7 @@ class FeedbackSubmission(models.TransientModel):
     source_action_id = fields.Many2one("ir.actions.actions", readonly=True)
     source_model_name = fields.Char(readonly=True)
     source_record_id = fields.Integer(readonly=True)
+    source_settings_section = fields.Char(readonly=True)
     viewport_width = fields.Integer(readonly=True)
     viewport_height = fields.Integer(readonly=True)
 
@@ -58,13 +61,17 @@ class FeedbackSubmission(models.TransientModel):
             "source_action_id": self._safe_integer(page_context.get("action_id")) or False,
             "source_model_name": str(page_context.get("model") or "")[:128],
             "source_record_id": self._safe_integer(page_context.get("res_id")),
+            "source_settings_section": str(page_context.get("settings_section") or "")[:64],
             "viewport_width": self._safe_integer(page_context.get("viewport_width")),
             "viewport_height": self._safe_integer(page_context.get("viewport_height")),
             "include_page_context": True,
         }
         draft = self.create(values)
         context_available = bool(
-            values["source_action_id"] or values["source_model_name"] or values["source_record_id"],
+            values["source_action_id"]
+            or values["source_model_name"]
+            or values["source_record_id"]
+            or values["source_settings_section"],
         )
         params = self.env["ir.config_parameter"].sudo()
         assistant_enabled = params.get_bool("usl_feedback.gemini_enabled")
@@ -167,6 +174,16 @@ class FeedbackSubmission(models.TransientModel):
             raise UserError(_("Feedback is unavailable because this release has no verified identity."))
         return valid_values.pop()
 
+    def _validated_settings_section(self, model):
+        key = (self.source_settings_section or "").strip()
+        if model._name != "res.config.settings" or not SETTINGS_SECTION_RE.fullmatch(key):
+            return False
+        view = model.get_view(view_type="form")
+        for app in etree.fromstring(view["arch"]).xpath("//app[@name]"):
+            if app.get("name") == key:
+                return (app.get("string") or key.replace("_", " ").title())[:128]
+        return False
+
     def _validated_page_context(self):
         self.ensure_one()
         if not self.include_page_context:
@@ -183,19 +200,34 @@ class FeedbackSubmission(models.TransientModel):
             values["usl_feedback_source_action_id"] = self.source_action_id.id
         model_name = (self.source_model_name or "").strip()
         record_id = self.source_record_id
-        omitted = False
+        omission_reason = False
         if model_name:
             model = self.env.get(model_name)
-            if model is None or model.is_transient() or not model.browse().has_access("read"):
-                omitted = True
+            if model is None:
+                omission_reason = "unavailable"
+            elif not model.browse().has_access("read"):
+                omission_reason = "access_denied"
+            elif model.is_transient():
+                values["usl_feedback_source_model_id"] = self.env["ir.model"].sudo()._get_id(
+                    model_name,
+                )
+                settings_section = self._validated_settings_section(model)
+                if settings_section:
+                    values["usl_feedback_source_section"] = settings_section
+                if record_id:
+                    omission_reason = "temporary"
             elif record_id:
                 record = model.browse(record_id).exists()
-                if not record or not record.has_access("read"):
-                    omitted = True
+                if not record:
+                    omission_reason = "unavailable"
+                elif not record.has_access("read"):
+                    omission_reason = "access_denied"
                 else:
                     values.update(
                         {
-                            "usl_feedback_source_model_id": self.env["ir.model"].sudo()._get_id(model_name),
+                            "usl_feedback_source_model_id": self.env["ir.model"].sudo()._get_id(
+                                model_name,
+                            ),
                             "usl_feedback_source_res_id": record.id,
                         },
                     )
@@ -204,8 +236,8 @@ class FeedbackSubmission(models.TransientModel):
                     model_name,
                 )
         elif record_id:
-            omitted = True
-        return values, omitted
+            omission_reason = "unavailable"
+        return values, omission_reason
 
     def _validated_attachments(self):
         self.ensure_one()
@@ -228,7 +260,7 @@ class FeedbackSubmission(models.TransientModel):
         if self.company_id != self.env.company or self.company_id not in self.env.user.company_ids:
             raise AccessError(_("Submit feedback from the active company shown in Odoo."))
         self.include_page_context = bool(include_page_context)
-        context_values, context_omitted = self._validated_page_context()
+        context_values, context_omission_reason = self._validated_page_context()
         attachments = self._validated_attachments()
         project = self.env.ref("usl_feedback.project_product_feedback").sudo()
         stage = self.env.ref("usl_feedback.stage_feedback_new").sudo()
@@ -269,7 +301,8 @@ class FeedbackSubmission(models.TransientModel):
             attachment_ids=attachments.ids,
         )
         payload = task.with_user(self.env.user)._usl_feedback_state_payload()
-        payload["context_omitted"] = context_omitted
+        payload["context_omitted"] = bool(context_omission_reason)
+        payload["context_omission_reason"] = context_omission_reason
         self.with_context(usl_feedback_keep_attachments=True).unlink()
         return payload
 
