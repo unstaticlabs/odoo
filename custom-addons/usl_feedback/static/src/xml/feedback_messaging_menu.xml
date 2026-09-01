@@ -10,12 +10,12 @@
         FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
-            <nav class="o-usl-FeedbackPanel-nav nav nav-tabs flex-shrink-0" aria-label="Feedback navigation">
+            <nav class="o-usl-FeedbackPanel-nav nav nav-tabs flex-nowrap flex-shrink-0" aria-label="Feedback navigation">
                 <div t-if="state.task" class="o-usl-FeedbackPanel-currentTab nav-item d-flex align-items-stretch" t-att-class="{ active: state.phase === 'conversation' }">
                     <button class="nav-link flex-grow-1 d-inline-flex align-items-center justify-content-start" t-att-class="{ active: state.phase === 'conversation' }" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)" t-att-aria-current="state.phase === 'conversation' ? 'page' : undefined">
-                        <span class="min-w-0 text-start">
-                            <span class="d-block fw-semibold text-truncate">Feedback #<t t-out="state.task.id"/></span>
-                            <span class="d-block small text-muted text-truncate"><t t-out="state.task.stage"/> · <t t-out="this.feedbackStatus(state.task)[0]"/></span>
+                        <span class="min-w-0 text-start d-flex align-items-center gap-1 text-truncate">
+                            <span class="fw-semibold text-nowrap">Feedback #<t t-out="state.task.id"/></span>
+                            <span class="small text-muted text-truncate">· <t t-out="this.feedbackStatus(state.task)[0]"/></span>
                         </span>
                     </button>
                     <Dropdown menuClass="o-usl-FeedbackPanel-taskMenu">
@@ -123,7 +123,12 @@
                         </span>
                     </div>
                 </div>
-                <p class="small text-muted mb-0" role="note">Gemini sees your message and preview. Files stay in Odoo. Your workspace can view the feedback.</p>
+                <p class="small text-muted mb-0" role="note">
+                    <t t-if="state.assistantMode === 'gemini'">Gemini sees your message and preview.</t>
+                    <t t-elif="state.assistantMode === 'local'">Odoo uses fixed local replies. Nothing is sent to Gemini.</t>
+                    <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
+                    Files stay in Odoo. Your workspace can view the feedback.
+                </p>
                 </div>
                 <footer class="o-usl-FeedbackPanel-submit flex-shrink-0 border-top p-3 bg-view">
                     <div t-if="state.error" class="alert alert-danger py-2 px-3 mb-2" role="alert" aria-live="assertive" t-out="state.error"/>

@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import re
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -18,6 +19,7 @@ _logger = logging.getLogger(__name__)
 
 ACTIVE_STATES = ("queued", "submitted")
 ALLOWED_MODELS = {"gemini-3.7-flash", "gemini-3.6-flash"}
+LOCAL_MODEL = "odoo-local"
 ERROR_CONFIGURATION = "configuration"
 ERROR_INVALID_RESPONSE = "invalid_response"
 ERROR_STATE_EXPIRED = "state_expired"
@@ -103,15 +105,19 @@ class FeedbackAgentRun(models.Model):
     def _configuration(self):
         params = self.env["ir.config_parameter"].sudo()
         model = params.get_str("usl_feedback.gemini_model") or "gemini-3.7-flash"
-        if model not in ALLOWED_MODELS:
-            raise GeminiError(ERROR_CONFIGURATION, "The configured Gemini model is not approved.")
         enabled = params.get_str("usl_feedback.gemini_enabled") == "True"
         paid = params.get_str("usl_feedback.gemini_paid_tier_confirmed") == "True"
         api_key = params.get_str("usl_feedback.gemini_api_key")
         mcp_key = params.get_str("usl_feedback.mcp_api_key")
         mcp_url = params.get_str("usl_feedback.mcp_url")
-        if not all((enabled, paid, api_key)):
+        if not enabled:
             raise GeminiError(ERROR_CONFIGURATION, "The feedback assistant is not fully configured.")
+        if not api_key:
+            return {"model": LOCAL_MODEL, "local": True}
+        if model not in ALLOWED_MODELS:
+            raise GeminiError(ERROR_CONFIGURATION, "The configured Gemini model is not approved.")
+        if not paid:
+            raise GeminiError(ERROR_CONFIGURATION, "Gemini retention has not been confirmed.")
         configuration = {
             "model": model,
             "api_key": api_key,
@@ -137,12 +143,24 @@ class FeedbackAgentRun(models.Model):
             [("task_id", "=", task.id), ("state", "in", ACTIVE_STATES)], limit=1,
         )
         if active:
+            if active.request_message_id == message or task.usl_feedback_pending_message_id == message:
+                return active
             task.write({"usl_feedback_pending_message_id": message.id})
             return active
-        model = (
-            self.env["ir.config_parameter"].sudo().get_str("usl_feedback.gemini_model")
-            or "gemini-3.7-flash"
+        existing = self.search(
+            [
+                ("task_id", "=", task.id),
+                ("request_message_id", "=", message.id),
+                ("state", "!=", "stale"),
+            ],
+            limit=1,
         )
+        if existing:
+            return existing
+        params = self.env["ir.config_parameter"].sudo()
+        model = LOCAL_MODEL
+        if params.get_str("usl_feedback.gemini_api_key"):
+            model = params.get_str("usl_feedback.gemini_model") or "gemini-3.7-flash"
         run = self.create(
             {
                 "task_id": task.id,
@@ -237,6 +255,8 @@ class FeedbackAgentRun(models.Model):
         started = fields.Datetime.now()
         try:
             configuration = self._configuration()
+            if configuration.get("local"):
+                return self._submit_local(configuration, started)
             preview_analysis = self._preview_analysis(configuration)
             payload, input_hash = self._build_payload(
                 configuration,
@@ -261,6 +281,104 @@ class FeedbackAgentRun(models.Model):
         except GeminiError as error:
             self._handle_error(error)
             return False
+
+    def _submit_local(self, configuration, started):
+        """Complete one deterministic, network-free turn for demos and no-key installs."""
+        self.ensure_one()
+        _payload, input_hash = self._build_payload(configuration, force_full=True)
+        interaction_id = f"local-{self.id}-{self.attempts + 1}"
+        self._task_for_reporter().write({"usl_feedback_agent_state": "processing"})
+        self.write(
+            {
+                "state": "submitted",
+                "model": LOCAL_MODEL,
+                "external_interaction_id": interaction_id,
+                "submitted_at": started,
+                "attempts": self.attempts + 1,
+                "input_sha256": input_hash,
+                "next_poll_at": False,
+            },
+        )
+        return self._complete(
+            {
+                "id": interaction_id,
+                "status": "completed",
+                "output_text": json.dumps(self._local_result()),
+            },
+        )
+
+    def _local_result(self):
+        """Return fixed, input-sensitive feedback shaping without external inference."""
+        self.ensure_one()
+        task = self._task_for_reporter()
+        assistant = self.env.ref("usl_feedback.partner_feedback_assistant")
+        messages = self.env["mail.message"].search(
+            [
+                ("model", "=", "project.task"),
+                ("res_id", "=", task.id),
+                ("message_type", "=", "comment"),
+                ("author_id", "!=", assistant.id),
+                ("id", "<=", self.cutoff_message_id),
+            ],
+            order="id",
+            limit=20,
+        )
+        turns = [html2plaintext(message.body or "").strip()[:4000] for message in messages]
+        turns = [text for text in turns if text]
+        latest = turns[-1] if turns else task.name
+        word_count = len(latest.split())
+        vague_phrases = {
+            "broken",
+            "does not work",
+            "doesn't work",
+            "it is broken",
+            "it doesn't work",
+            "it does not work",
+            "not working",
+        }
+        normalized = " ".join(latest.lower().split()).strip(" .!?")
+        needs_detail = len(turns) == 1 and (word_count < 8 or normalized in vague_phrases)
+        category = self._local_category("\n".join(turns))
+        if needs_detail:
+            return {
+                "status": "needs_clarification",
+                "assistant_message": task.env._("I need one detail to prepare a useful draft."),
+                "questions": [
+                    task.env._("What were you trying to do, and what happened instead?"),
+                ],
+                "summary": latest[:120],
+                "description": latest,
+                "category": category,
+                "priority": 1,
+                "related_feedback_ids": [],
+            }
+        summary = re.sub(r"\s+", " ", latest).strip()[:120]
+        description = "\n\n".join(
+            task.env._("Reported: %(detail)s", detail=text) for text in turns[-5:]
+        )
+        return {
+            "status": "ready_for_confirmation",
+            "assistant_message": task.env._(
+                "I prepared a draft from your report. Review it before sending.",
+            ),
+            "questions": [],
+            "summary": summary,
+            "description": description,
+            "category": category,
+            "priority": 1,
+            "related_feedback_ids": [],
+        }
+
+    @staticmethod
+    def _local_category(text):
+        normalized = text.lower()
+        if any(word in normalized for word in ("confusing", "hard to find", "layout", "screen")):
+            return "ux"
+        if any(word in normalized for word in ("error", "fail", "broken", "doesn't", "does not")):
+            return "bug"
+        if any(word in normalized for word in ("how do", "why does", "question")):
+            return "question"
+        return "improvement"
 
     def _poll(self):
         self.ensure_one()
@@ -434,8 +552,14 @@ class FeedbackAgentRun(models.Model):
             domain.append(("id", "=", self.request_message_id.id))
         messages = self.env["mail.message"].search(domain, order="id", limit=100)
         lines = []
+        assistant = self.env.ref("usl_feedback.partner_feedback_assistant")
         for message in messages:
-            author = "Reporter" if message.author_id == self.task_id.usl_feedback_reporter_id.partner_id else "Assistant"
+            if message.author_id == self.task_id.usl_feedback_reporter_id.partner_id:
+                author = "Reporter"
+            elif message.author_id == assistant:
+                author = "Assistant"
+            else:
+                author = "Product teammate"
             text = html2plaintext(message.body or "").strip()[:4000]
             if text:
                 lines.append(f"{author}: {text}")

@@ -24,6 +24,8 @@ leaving your work.
 
 Use the **Feedback #…** tab to return to the open conversation, **My feedback**
 to see each card's status and next step, and **New** to start another report.
+All three stay on one compact row. The active tab shows the feedback number and
+current status.
 The feedback tab's actions menu opens the task or withdraws the feedback after
 confirmation. Withdrawal stops the assistant and product workflow but keeps
 the conversation and files. **Open board** shows the shared Project board
@@ -37,6 +39,10 @@ feedback task never grants access to the source business record.
 If the agent cannot reply, the chat says that your feedback is saved and offers
 **Try again**. Incomplete agent output becomes a follow-up question. If you lose
 access to the source record, Odoo leaves its details out. If the page preview is
-unavailable, add an image manually or continue without one. The agent works
-without the optional Projects MCP connection; MCP only improves awareness of
-existing feedback. Notifications stay in Odoo and are not sent by email.
+unavailable, add an image manually or continue without one. A reply in the
+floating chat continues the assistant conversation. From the task chatter, a
+reply runs the assistant only while the status is **Needs details** or when you
+mention **Feedback Assistant**. The agent works without the optional Projects
+MCP connection. Without a Gemini key, Odoo uses fixed local clarification and
+draft scenarios and sends nothing externally. Notifications stay in Odoo and
+are not sent by email.

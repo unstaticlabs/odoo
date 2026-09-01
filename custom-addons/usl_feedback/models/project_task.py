@@ -232,16 +232,21 @@ class ProjectTask(models.Model):
 
     def message_post(self, **kwargs):
         messages = super().message_post(**kwargs)
-        if self.env.context.get("usl_feedback_skip_agent") or self.env.su:
+        if self.env.context.get("usl_feedback_skip_agent"):
             return messages
         if len(self) == 1:
             task = self
+            assistant = self.env.ref("usl_feedback.partner_feedback_assistant")
+            posted_by_user = messages.author_id == self.env.user.partner_id
+            allowed_author = self.env.user._is_internal()
+            assistant_mentioned = assistant.id in (kwargs.get("partner_ids") or ())
             if (
-                task.usl_feedback_reporter_id == self.env.user
-                and task.usl_feedback_agent_state != "triaged"
+                posted_by_user
+                and allowed_author
                 and task.state != "1_canceled"
                 and task.stage_id == self.env.ref("usl_feedback.stage_feedback_new")
-                and kwargs.get("message_type", "notification") == "comment"
+                and messages.message_type == "comment"
+                and (task.usl_feedback_agent_state == "waiting" or assistant_mentioned)
             ):
                 self.env["usl.feedback.agent.run"].sudo()._queue_message(task.sudo(), messages.sudo())
         return messages
@@ -309,6 +314,33 @@ class ProjectTask(models.Model):
         self.ensure_one()
         if not self._usl_feedback_is_task():
             raise UserError(_("This is not a feedback card."))
+        return self._usl_feedback_state_payload()
+
+    def feedback_queue_chat_reply(self):
+        """Queue the reporter's latest floating-chat reply, regardless of draft state."""
+        self.ensure_one()
+        if not self._usl_feedback_is_task():
+            raise UserError(_("This is not a feedback card."))
+        if self.usl_feedback_reporter_id != self.env.user:
+            raise AccessError(_("Only the reporter can reply through this feedback conversation."))
+        if self.state == "1_canceled" or self.stage_id != self.env.ref(
+            "usl_feedback.stage_feedback_new",
+        ):
+            return self._usl_feedback_state_payload()
+        message = self.env["mail.message"].search(
+            [
+                ("model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("author_id", "=", self.env.user.partner_id.id),
+                ("message_type", "=", "comment"),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        if not message:
+            raise UserError(_("Post a reply before asking the feedback assistant to continue."))
+        self.env["usl.feedback.agent.run"].sudo()._queue_message(self.sudo(), message.sudo())
+        self.invalidate_recordset()
         return self._usl_feedback_state_payload()
 
     def feedback_poll_agent(self):

@@ -8,20 +8,20 @@
             <xpath expr="//form" position="inside">
                 <app string="Product Feedback" name="usl_feedback" groups="base.group_system">
                     <block title="Feedback assistant" name="feedback_assistant">
-                        <setting string="Enable the assistant" help="Saves the first message in Inbox, then uses Gemini to clarify and draft the feedback.">
+                        <setting string="Enable the assistant" help="Saves each report in Inbox, then uses Gemini—or fixed local replies when no key is saved—to clarify and draft it.">
                             <field name="feedback_agent_enabled"/>
                         </setting>
-                        <setting string="Provider data retention" help="Required before activation. Gemini uses a paid tier and may retain stateful interactions for seven days.">
+                        <setting string="Provider data retention" help="Required only when a Gemini key is saved. The paid tier may retain stateful interactions for seven days.">
                             <field name="feedback_paid_tier_confirmed"/>
                         </setting>
                         <setting string="Gemini model">
                             <field name="feedback_gemini_model"/>
                         </setting>
-                        <setting string="Gemini API key" help="Stored on the server for all companies. Odoo never sends the saved value to a browser.">
+                        <setting string="Gemini API key (optional)" help="Stored on the server for all companies. Without a key, Odoo uses fixed local replies and sends nothing externally.">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <field name="feedback_gemini_api_key_input" password="True" placeholder="Leave blank to keep the current key"/>
                                 <span class="text-success" invisible="not feedback_has_gemini_api_key">Key saved</span>
-                                <span class="text-muted" invisible="feedback_has_gemini_api_key">No key saved</span>
+                                <span class="text-muted" invisible="feedback_has_gemini_api_key">Local replies active</span>
                                 <button name="action_clear_feedback_gemini_key" type="object" string="Remove key" class="btn-link text-danger" invisible="not feedback_has_gemini_api_key" confirm="Remove the saved Gemini API key?"/>
                             </div>
                             <field name="feedback_has_gemini_api_key" invisible="1"/>
@@ -38,7 +38,7 @@
                             </div>
                             <field name="feedback_has_mcp_api_key" invisible="1"/>
                         </setting>
-                        <setting string="Connection check" help="Checks Gemini. When Projects MCP is configured, it also checks read-only project access. It does not create feedback.">
+                        <setting string="Connection check" help="Checks the local assistant or Gemini. When Projects MCP is configured, it also checks read-only project access. It does not create feedback.">
                             <button name="action_test_feedback_agent" type="object" string="Test connection" class="btn-link" title="Check Gemini and optional read-only project access without creating feedback."/>
                             <div class="mt-2" invisible="feedback_connection_status == 'not_tested'">
                                 <field name="feedback_connection_status" widget="badge" class="me-2"/>

@@ -80,12 +80,16 @@ class ResConfigSettings(models.TransientModel):
                 self.feedback_mcp_url = GeminiClient.validate_mcp_url(self.feedback_mcp_url)
             except ValueError as error:
                 raise ValidationError(str(error)) from error
-        if self.feedback_agent_enabled and not self.feedback_paid_tier_confirmed:
+        params = self.env["ir.config_parameter"].sudo()
+        has_gemini_key = bool(
+            self.feedback_gemini_api_key_input
+            or params.get_str("usl_feedback.gemini_api_key"),
+        )
+        if self.feedback_agent_enabled and has_gemini_key and not self.feedback_paid_tier_confirmed:
             raise ValidationError(
                 _("Confirm the paid Gemini tier and seven-day retention before you enable the assistant."),
             )
         super().set_values()
-        params = self.env["ir.config_parameter"].sudo()
         if self.feedback_gemini_api_key_input:
             params.set_str(
                 "usl_feedback.gemini_api_key", self.feedback_gemini_api_key_input.strip(),
@@ -104,12 +108,11 @@ class ResConfigSettings(models.TransientModel):
         self.ensure_one()
         params = self.env["ir.config_parameter"].sudo()
         params.set_str("usl_feedback.gemini_api_key", None)
-        params.set_bool("usl_feedback.gemini_enabled", False)
         self._set_feedback_connection_status("not_tested", False)
         return self._feedback_notification(
             _("Gemini API key removed"),
-            _("The assistant is off until you save a new key."),
-            "warning",
+            _("Odoo will use fixed local replies. No feedback will be sent to Gemini."),
+            "success",
         )
 
     def action_clear_feedback_mcp_key(self):
@@ -131,14 +134,16 @@ class ResConfigSettings(models.TransientModel):
         )
         mcp_key = self.feedback_mcp_api_key_input or params.get_str("usl_feedback.mcp_api_key")
         mcp_url = self.feedback_mcp_url or params.get_str("usl_feedback.mcp_url")
-        if not all((api_key, self.feedback_gemini_model)):
-            self._set_feedback_connection_status(
-                "error", _("Save a Gemini API key and model first."),
-            )
+        if not api_key:
+            detail = _("Fixed local replies are ready. No external request was made.")
+            self._set_feedback_connection_status("ready", detail)
             return self._feedback_notification(
-                _("Connection test failed"),
-                _("Save a Gemini API key and model first."),
-                "danger",
+                _("Feedback assistant is ready"), detail, "success",
+            )
+        if not self.feedback_gemini_model:
+            self._set_feedback_connection_status("error", _("Select a Gemini model first."))
+            return self._feedback_notification(
+                _("Connection test failed"), _("Select a Gemini model first."), "danger",
             )
         try:
             client = GeminiClient(api_key=api_key)

@@ -837,6 +837,133 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.reporter).feedback_retry_agent()
         self.assertEqual(task.usl_feedback_agent_state, "queued")
 
+    def test_native_chatter_reply_queues_after_controller_sudo(self):
+        task, _payload = self._submit(message="The assistant needs one more detail.")
+        first_run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        first_run.write({"state": "completed", "completed_at": first_run.queued_at})
+        task.usl_feedback_agent_state = "waiting"
+
+        reply = task.with_user(self.reporter).sudo().message_post(
+            body="Saving the form clears the selected delivery method.",
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+
+        queued = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        self.assertEqual(queued.request_message_id, reply)
+
+    def test_task_chatter_only_queues_when_waiting_or_assistant_is_mentioned(self):
+        task, _payload = self._submit(message="Review this draft before it is sent.")
+        first_run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        first_run.write({"state": "completed", "completed_at": first_run.queued_at})
+        task.usl_feedback_agent_state = "ready"
+
+        quiet_reply = task.with_user(self.reporter).sudo().message_post(
+            body="This note is for the product team.",
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+        self.assertFalse(self.env["usl.feedback.agent.run"].sudo().search_count(
+            [("task_id", "=", task.id), ("state", "=", "queued")],
+        ))
+
+        assistant = self.env.ref("usl_feedback.partner_feedback_assistant")
+        mentioned_reply = task.with_user(self.other).sudo().message_post(
+            body="Please revise the draft with this detail.",
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+            partner_ids=[assistant.id],
+        )
+        queued = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        self.assertEqual(queued.request_message_id, mentioned_reply)
+        self.assertNotEqual(queued.request_message_id, quiet_reply)
+
+    def test_floating_chat_reply_queues_from_any_inbox_draft_state(self):
+        task, _payload = self._submit(message="Review this draft before it is sent.")
+        first_run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        first_run.write({"state": "completed", "completed_at": first_run.queued_at})
+        task.usl_feedback_agent_state = "ready"
+        reply = task.with_user(self.reporter).sudo().message_post(
+            body="The issue also affects purchase orders.",
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+
+        with self.assertRaises(AccessError):
+            task.with_user(self.other).feedback_queue_chat_reply()
+        payload = task.with_user(self.reporter).feedback_queue_chat_reply()
+
+        self.assertEqual(payload["agent_state"], "queued")
+        queued = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id), ("state", "=", "queued")], limit=1,
+        )
+        self.assertEqual(queued.request_message_id, reply)
+
+    def test_no_key_uses_fixed_local_clarification_then_draft(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_bool("usl_feedback.gemini_enabled", True)
+        params.set_str("usl_feedback.gemini_api_key", None)
+        params.set_bool("usl_feedback.gemini_paid_tier_confirmed", False)
+        task, _payload = self._submit(message="It doesn't work.")
+
+        with (
+            patch(
+                "odoo.addons.usl_feedback.models.feedback_agent_run."
+                "GeminiClient.create_interaction",
+            ) as create_interaction,
+            patch(
+                "odoo.addons.usl_feedback.models.feedback_agent_run."
+                "GeminiClient.generate_structured_feedback",
+            ) as generate_feedback,
+            patch(
+                "odoo.addons.usl_feedback.models.feedback_agent_run."
+                "GeminiClient.describe_image",
+            ) as describe_image,
+        ):
+            self.env["usl.feedback.agent.run"].sudo()._process_task(task)
+            self.assertEqual(task.usl_feedback_agent_state, "waiting")
+            self.assertIn(
+                "What were you trying to do",
+                html2plaintext(task.message_ids.sorted("id")[-1].body or ""),
+            )
+            task.with_user(self.reporter).sudo().message_post(
+                body="I saved a sales order, but the delivery method became blank.",
+                message_type="comment",
+                subtype_xmlid="mail.mt_comment",
+            )
+            self.env["usl.feedback.agent.run"].sudo()._process_task(task)
+
+        create_interaction.assert_not_called()
+        generate_feedback.assert_not_called()
+        describe_image.assert_not_called()
+        self.assertEqual(task.usl_feedback_agent_state, "ready")
+        self.assertEqual(task.usl_feedback_category, "bug")
+        self.assertIn("delivery method became blank", html2plaintext(task.description))
+
+    def test_connection_check_without_key_uses_local_assistant(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_str("usl_feedback.gemini_api_key", None)
+        settings = self.env["res.config.settings"].create({})
+
+        with patch(
+            "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_model",
+        ) as test_model:
+            result = settings.action_test_feedback_agent()
+
+        test_model.assert_not_called()
+        self.assertEqual(result["params"]["type"], "success")
+        self.assertIn("No external request", result["params"]["message"])
+
     def test_reporter_can_withdraw_feedback_but_other_users_cannot(self):
         task, _payload = self._submit(message="Withdraw this feedback safely.")
         run = self.env["usl.feedback.agent.run"].sudo().search(

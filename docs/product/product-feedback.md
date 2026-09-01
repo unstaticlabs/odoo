@@ -21,18 +21,21 @@ after the reporter withdraws the feedback. A short **Draft ready** bar links to
 the task and offers **Send to product team**; only that action moves the card
 to Triage.
 
-The window has three stable destinations: the active **Feedback #…**
-conversation, **My feedback** and **New**. The active tab carries the feedback
-identifier, stage and status without a second banner. Its actions menu opens
+The window keeps three stable destinations on one compact row: the active
+**Feedback #…** conversation, **My feedback** and **New**. The active tab
+carries the feedback identifier and status without a second banner. Its actions menu opens
 the native task or withdraws the feedback after confirmation. **My feedback**
 shows each card's full title, identifier, stage, current status and next step;
 **Open board** is a secondary route to the shared Project board.
 Opening either a card or the board keeps the floating conversation alive. The
 window folds into the ChatHub like an ordinary chat, becomes fullscreen on
 narrow screens and restores saved conversations after reload or return.
-Each successful assistant poll refreshes the open native mail thread, and each
-reporter reply refreshes task state and resumes polling. Agent questions and
-status changes therefore appear in the active chat without switching tabs.
+Each successful assistant poll refreshes the open native mail thread. A reply
+in the floating chat always queues the next assistant turn while the card is in
+Inbox. A reply from the native task chatter queues a turn only when the card
+needs details or the writer directly mentions Feedback Assistant. Agent
+questions and status changes therefore appear without switching tabs, and
+ordinary task discussion does not spend provider tokens.
 
 The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
 data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,
@@ -87,15 +90,24 @@ to at most 1920 pixels and limited to 5 MiB; other files are limited to 10 MiB
 each. Draft attachments are owned by a transient record and either move to the
 created task or are deleted with the abandoned draft.
 
-The company-wide assistant uses Google's Gemini Interactions API in background,
+With a saved key, the company-wide assistant uses Google's Gemini Interactions API in background,
 stored, stateful mode for the conversation. Because Gemini's background agent
 currently rejects inline images, the selected JPEG first goes through a bounded,
 non-stored Gemini 3.5 Flash-Lite visual analysis. Only that analysis enters the
 stateful conversation. If visual analysis is unavailable, the saved card still
-continues through the text conversation. Production enablement requires an
+continues through the text conversation. Gemini enablement requires an
 administrator to acknowledge the paid tier and Google's seven-day state
 retention, save a server-side Gemini API key and select an approved Flash
 model. Saved secrets are never returned to the browser.
+
+When the assistant is enabled without a Gemini key, Odoo uses a deterministic
+local mode and makes no external request. A short or vague first message gets
+one fixed clarification question. A detailed first message, or the next human
+reply, produces a reviewable draft from the bounded conversation. The local
+mode uses simple keyword classification, never inspects the page image or
+claims provider intelligence, and records its runs with the `odoo-local` model
+identity. This gives Worktree-QA repeatable scenarios without spending tokens
+and gives no-key installations an explicit degraded path.
 
 Projects MCP is optional enrichment. Without it, Gemini still receives the
 conversation, selected page preview, sanitized page details, release-pinned
@@ -212,14 +224,24 @@ flex layouts. It adds no schema or data migration. Recovery is to restore the
 previous module code and upgrade `usl_feedback`; tasks, chatter, attachments
 and provider runs need no reversal.
 
+Version `saas~19.3.2.0.8` keeps the active conversation, feedback list and new
+action on one compact row. It queues floating-chat replies reliably across
+Odoo's access-checked `sudo()` chatter controller, limits native task-chatter
+runs to **Needs details** or a direct Feedback Assistant mention, and adds the
+network-free local assistant used when no Gemini key is saved. It adds no
+schema or stored-task migration. Upgrade with `-u usl_feedback`; recovery is
+to restore the previous module code and repeat the update. Existing tasks,
+chatter, attachments and audit runs remain valid.
+
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained
 source company, inactive legacy rules, secret-status indicators, read-only
 service denial, one synthetic conversation and a repeated identical update.
 Keep both regulatory live flags at `0` during qualification.
 
-For provider trouble, disable the assistant or remove either key; saved Inbox
-cards remain available and no schema rollback is required. For a failed module
+For provider trouble, remove the Gemini key to use fixed local replies, or
+disable the assistant; saved Inbox cards remain available and no schema
+rollback is required. For a failed module
 upgrade, stop the new workers and restore the matched database and filestore
 backup with the prior image. Removing code alone is not a rollback once stored
 fields, tasks or attachments exist. No migration source dump or production

@@ -1802,6 +1802,85 @@ msgstr "Un retour retiré ne peut pas être relancé."
 msgid "Withdrawn feedback cannot be sent to the product team."
 msgstr "Un retour retiré ne peut pas être envoyé à l’équipe produit."
 
+#. module: usl_feedback
+msgid "Only the reporter can reply through this feedback conversation."
+msgstr "Seul l’auteur peut répondre dans cette conversation de retour."
+
+#. module: usl_feedback
+msgid "Post a reply before asking the feedback assistant to continue."
+msgstr "Publiez une réponse avant de demander à l’assistant de continuer."
+
+#. module: usl_feedback
+msgid "I need one detail to prepare a useful draft."
+msgstr "Il me manque une précision pour préparer un brouillon utile."
+
+#. module: usl_feedback
+msgid "What were you trying to do, and what happened instead?"
+msgstr "Que cherchiez-vous à faire et que s’est-il passé à la place ?"
+
+#. module: usl_feedback
+msgid "Reported: %(detail)s"
+msgstr "Signalé : %(detail)s"
+
+#. module: usl_feedback
+msgid "I prepared a draft from your report. Review it before sending."
+msgstr "J’ai préparé un brouillon à partir de votre retour. Relisez-le avant de l’envoyer."
+
+#. module: usl_feedback
+msgid "Odoo will use fixed local replies. No feedback will be sent to Gemini."
+msgstr "Odoo utilisera des réponses locales prédéfinies. Aucun retour ne sera envoyé à Gemini."
+
+#. module: usl_feedback
+msgid "Fixed local replies are ready. No external request was made."
+msgstr "Les réponses locales prédéfinies sont prêtes. Aucune requête externe n’a été effectuée."
+
+#. module: usl_feedback
+msgid "Select a Gemini model first."
+msgstr "Sélectionnez d’abord un modèle Gemini."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Odoo uses fixed local replies. Nothing is sent to Gemini."
+msgstr "Odoo utilise des réponses locales prédéfinies. Rien n’est envoyé à Gemini."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "The assistant is off. Odoo will still save your feedback."
+msgstr "L’assistant est désactivé. Odoo enregistrera tout de même votre retour."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Files stay in Odoo. Your workspace can view the feedback."
+msgstr "Les fichiers restent dans Odoo. Votre espace de travail peut consulter le retour."
+
+#. module: usl_feedback
+msgid "Gemini sees your message and preview."
+msgstr "Gemini voit votre message et l’aperçu."
+
+#. module: usl_feedback
+msgid "Gemini API key (optional)"
+msgstr "Clé API Gemini (facultative)"
+
+#. module: usl_feedback
+msgid "Local replies active"
+msgstr "Réponses locales actives"
+
+#. module: usl_feedback
+msgid "Saves each report in Inbox, then uses Gemini—or fixed local replies when no key is saved—to clarify and draft it."
+msgstr "Enregistre chaque retour dans la boîte de réception, puis utilise Gemini — ou des réponses locales prédéfinies sans clé — pour le préciser et le préparer."
+
+#. module: usl_feedback
+msgid "Required only when a Gemini key is saved. The paid tier may retain stateful interactions for seven days."
+msgstr "Requis uniquement lorsqu’une clé Gemini est enregistrée. L’offre payante peut conserver les interactions avec état pendant sept jours."
+
+#. module: usl_feedback
+msgid "Stored on the server for all companies. Without a key, Odoo uses fixed local replies and sends nothing externally."
+msgstr "Stockée sur le serveur pour toutes les sociétés. Sans clé, Odoo utilise des réponses locales prédéfinies et n’envoie rien à l’extérieur."
+
+#. module: usl_feedback
+msgid "Checks the local assistant or Gemini. When Projects MCP is configured, it also checks read-only project access. It does not create feedback."
+msgstr "Vérifie l’assistant local ou Gemini. Lorsque Projects MCP est configuré, vérifie aussi l’accès en lecture seule aux projets. Ne crée aucun retour."
+
 #~ msgid "Approved model"
 #~ msgstr "Modèle approuvé"
 

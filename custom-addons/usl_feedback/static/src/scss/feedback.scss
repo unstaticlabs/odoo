@@ -26,7 +26,7 @@
     }
 
     .o-usl-FeedbackPanel-nav {
-        min-height: 56px;
+        min-height: 44px;
         background: $o-view-background-color;
 
         .nav-link {
@@ -35,8 +35,8 @@
             border-top: 0;
             color: $o-main-text-color;
             font-size: $o-font-size-base-smaller;
-            min-height: 56px;
-            padding: map-get($spacers, 2) map-get($spacers, 3);
+            min-height: 44px;
+            padding: map-get($spacers, 1) map-get($spacers, 2);
 
             &:hover:not(:disabled) {
                 background-color: $o-gray-100;
@@ -49,7 +49,7 @@
         }
 
         .o-usl-FeedbackPanel-currentTab {
-            flex: 1 1 52%;
+            flex: 1 1 auto;
             min-width: 0;
 
             &.active {
@@ -63,7 +63,7 @@
         }
 
         .o-usl-FeedbackPanel-historyTab {
-            flex: 0 1 auto;
+            flex: 0 0 auto;
         }
 
         .o-usl-FeedbackPanel-newTab {
@@ -200,8 +200,8 @@
             padding-inline: map-get($spacers, 2);
         }
 
-        .o-usl-FeedbackPanel-currentTab {
-            flex-basis: 48%;
+        .o-usl-FeedbackPanel-currentTab .nav-link {
+            padding-inline-start: map-get($spacers, 2);
         }
     }
 

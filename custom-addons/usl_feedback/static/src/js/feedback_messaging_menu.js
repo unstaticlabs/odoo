@@ -94,6 +94,7 @@ export class FeedbackPanel extends Component {
             screenshotAttachmentId: false,
             attachments: [],
             recent: [],
+            assistantMode: "local",
             task: false,
             error: false,
             busy: false,
@@ -128,6 +129,7 @@ export class FeedbackPanel extends Component {
                 draftId: result.draft_id,
                 contextAvailable: result.context_available,
                 includeContext: result.include_page_context,
+                assistantMode: result.assistant_mode,
                 recent: result.recent,
             });
         } catch (error) {
@@ -360,7 +362,7 @@ export class FeedbackPanel extends Component {
         try {
             this.state.task = await this.orm.call(
                 "project.task",
-                "feedback_conversation_state",
+                "feedback_queue_chat_reply",
                 [[this.state.task.id]]
             );
             if (["queued", "processing"].includes(this.state.task.agent_state)) {

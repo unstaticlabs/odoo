@@ -83,6 +83,7 @@ function mockFeedbackStart(recent = []) {
         draft_id: 41,
         context_available: true,
         include_page_context: true,
+        assistant_mode: "gemini",
         recent,
     }));
 }
@@ -450,7 +451,7 @@ test("conversation renders processing, clarification, error, ready, and success 
     await animationFrame();
     expect(".o-usl-FeedbackPanel-taskBar").toHaveCount(0);
     expect(".o-usl-FeedbackPanel-currentTab").toHaveText(
-        /Feedback #71.*Inbox.*Needs your reply/s
+        /Feedback #71.*Needs your reply/s
     );
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
     expect(".o-test-FeedbackChatter").toHaveAttribute(
@@ -512,7 +513,7 @@ test("poll completion refreshes the open chat without changing tabs", async () =
     await animationFrame();
 
     expect(".o-usl-FeedbackPanel-currentTab").toHaveText(
-        /Feedback #71.*Inbox.*Needs your reply/s
+        /Feedback #71.*Needs your reply/s
     );
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
     expect.verifySteps(["thread refreshed"]);
@@ -520,11 +521,13 @@ test("poll completion refreshes the open chat without changing tabs", async () =
 
 test("posting a clarification returns the open conversation to agent processing", async () => {
     mockFeedbackStart();
-    onRpc("project.task", "feedback_conversation_state", () =>
-        feedbackTask({ agent_state: "queued" })
-    );
+    onRpc("project.task", "feedback_queue_chat_reply", ({ args }) => {
+        expect(args[0]).toEqual([71]);
+        expect.step("chat reply queued");
+        return feedbackTask({ agent_state: "queued" });
+    });
     onRpc("project.task", "feedback_poll_agent", () =>
-        feedbackTask({ agent_state: "processing" })
+        feedbackTask({ agent_state: "queued" })
     );
     const component = await mountFeedbackPanel();
     Object.assign(component.state, {
@@ -538,6 +541,7 @@ test("posting a clarification returns the open conversation to agent processing"
 
     expect(".o-test-AgentActivity").toHaveText(/Reading your report/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+    expect.verifySteps(["chat reply queued"]);
 });
 
 test("reporter can withdraw feedback from its tab and the conversation becomes read-only", async () => {

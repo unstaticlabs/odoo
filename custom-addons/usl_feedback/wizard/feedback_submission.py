@@ -66,10 +66,17 @@ class FeedbackSubmission(models.TransientModel):
         context_available = bool(
             values["source_action_id"] or values["source_model_name"] or values["source_record_id"],
         )
+        params = self.env["ir.config_parameter"].sudo()
+        assistant_enabled = params.get_bool("usl_feedback.gemini_enabled")
         return {
             "draft_id": draft.id,
             "context_available": context_available,
             "include_page_context": context_available,
+            "assistant_mode": (
+                "gemini"
+                if assistant_enabled and params.get_str("usl_feedback.gemini_api_key")
+                else "local" if assistant_enabled else "off"
+            ),
             "recent": self.env["project.task"].feedback_recent(),
         }
 
