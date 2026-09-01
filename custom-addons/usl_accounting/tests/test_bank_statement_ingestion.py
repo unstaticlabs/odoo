@@ -370,6 +370,25 @@ class TestBankStatementIngestion(TransactionCase):
             ),
         )
 
+    def test_retry_preserves_the_accepted_official_pdf(self):
+        ingestion = self._ingestion(
+            "<synthetic-retry-evidence@example.invalid>",
+            ofx=self.ofx,
+            pdf=self.pdf,
+        )
+        ingestion.action_process_now()
+        statement = ingestion.statement_ids
+        evidence = statement.accepted_evidence_id
+
+        self.assertTrue(evidence)
+        self.assertEqual(evidence.evidence_status, "accepted")
+
+        ingestion.action_retry()
+
+        self.assertEqual(statement.accepted_evidence_id, evidence)
+        self.assertEqual(evidence.evidence_status, "accepted")
+        self.assertEqual(evidence.processing_state, "processed")
+
     def test_partially_overlapping_export_adds_only_the_missing_identity(self):
         _first, statement = self._process_complete_month()
         additional_transaction = b"""

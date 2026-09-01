@@ -1912,15 +1912,19 @@ class AccountBankIngestionFile(models.Model):
                 _("Set an unambiguous period on the received export, then retry."),
             )
             return
-        self.write(
-            {
-                "period_start": period_start,
-                "period_end": period_end,
-                "processing_state": "processed",
-                "processing_detail": _("Official PDF retained unchanged."),
-                "evidence_status": "candidate",
-            },
-        )
+        values = {
+            "period_start": period_start,
+            "period_end": period_end,
+            "processing_state": "processed",
+            "processing_detail": _("Official PDF retained unchanged."),
+        }
+        # Retrying a fully retained source must not demote the statement's
+        # accepted evidence. The Documents archive worker deliberately selects
+        # only accepted files, so changing the same record back to candidate
+        # (and then duplicate below) would strand it outside the queue forever.
+        if self.evidence_status != "accepted":
+            values["evidence_status"] = "candidate"
+        self.write(values)
         statement = self.env["account.bank.statement"].search(
             [
                 ("ingestion_config_id", "=", self.ingestion_id.config_id.id),
@@ -1931,7 +1935,17 @@ class AccountBankIngestionFile(models.Model):
         )
         if statement:
             self.statement_id = statement
-            if not statement.accepted_evidence_id:
+            if statement.accepted_evidence_id == self:
+                self.sudo().write(
+                    {
+                        "evidence_status": "accepted",
+                        "processing_state": "processed",
+                        "processing_detail": _(
+                            "This PDF remains the accepted official evidence.",
+                        ),
+                    },
+                )
+            elif not statement.accepted_evidence_id:
                 self._accept_evidence()
             elif statement.accepted_evidence_id.sha256 == self.sha256:
                 self.write(

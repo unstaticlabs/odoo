@@ -261,6 +261,26 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertFalse(statement.can_certify)
         self.assertIn("Archive offline", statement.review_blocking_reason)
 
+    def test_retry_keeps_accepted_evidence_in_the_archive_queue(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+
+        self.assertEqual(source_file.evidence_status, "accepted")
+        self.assertEqual(source_file.paperless_archive_state, "pending")
+
+        source_file._associate_pdf()
+
+        self.assertEqual(statement.accepted_evidence_id, source_file)
+        self.assertEqual(source_file.evidence_status, "accepted")
+        self.assertEqual(source_file.paperless_archive_state, "pending")
+        queued = self.env["account.bank.ingestion.file"].search(
+            [
+                ("classification", "=", "pdf"),
+                ("evidence_status", "=", "accepted"),
+                ("paperless_archive_state", "in", ("pending", "processing")),
+            ],
+        )
+        self.assertIn(source_file, queued)
+
     def test_damaged_pdf_explains_replacement_and_is_not_sent_to_documents(self):
         statement, source_file, _content = self._bank_evidence_fixture(
             b"%PDF-1.4\ntruncated bank statement",
