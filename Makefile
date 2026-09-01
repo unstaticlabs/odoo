@@ -28,7 +28,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
-.PHONY: backup restore smoke health qa-refresh
+.PHONY: backup backup-list backup-verify restore smoke health qa-refresh recovery-cleanup-plan
 
 help:
 	@printf '%s\n' \
@@ -44,7 +44,10 @@ help:
 	  '  make stop                           Stop containers and preserve data' \
 	  '  make login-link USER=username       Create a local one-time sign-in link' \
 	  '  make backup TARGET=production       Capture a coordinated recovery cohort' \
+	  '  make backup-list TARGET=production  List qualified recovery cohorts' \
+	  '  make backup-verify TARGET=production SNAPSHOT=<full-id>  Verify a cohort' \
 	  '  make restore TARGET=staging SNAPSHOT=<full-id>  Restore fresh staging volumes' \
+	  '  make recovery-cleanup-plan TARGET=staging  Preview obsolete generations' \
 	  '  make health TARGET=production       Run fast read-only runtime checks' \
 	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the delivered product boundary' \
@@ -56,6 +59,13 @@ help:
 
 backup:
 	@scripts/usl-stack backup create --target "$(TARGET)"
+
+backup-list:
+	@scripts/usl-stack backup list --target "$(TARGET)"
+
+backup-verify:
+	@if [ -z "$(strip $(SNAPSHOT))" ]; then printf 'Usage: make backup-verify TARGET=<target> SNAPSHOT=<full-id>\n' >&2; exit 2; fi
+	@scripts/usl-stack backup verify --target "$(TARGET)" --snapshot "$(SNAPSHOT)"
 
 restore:
 	@if [ -z "$(strip $(SNAPSHOT))" ]; then printf 'Usage: make restore TARGET=<target> SOURCE=<source> SNAPSHOT=<full-id>\n' >&2; exit 2; fi
@@ -71,6 +81,9 @@ health:
 
 smoke:
 	@scripts/usl-stack smoke --target "$(TARGET)"
+
+recovery-cleanup-plan:
+	@scripts/usl-stack cleanup plan --target "$(TARGET)"
 
 doctor:
 	@$(ODOO_DEV) doctor

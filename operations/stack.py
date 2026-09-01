@@ -72,6 +72,21 @@ RESOURCE_FIELDS = {
 }
 
 
+def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
+    """Write concise operator progress without contaminating JSON stdout."""
+    suffix = f": {detail}" if detail else ""
+    print(f"usl-stack [{operation}] {phase}: {status}{suffix}", file=sys.stderr, flush=True)
+
+
+def _capacity_detail(available: int) -> str:
+    gib = available / 1024**3
+    if available < MINIMUM_FREE_BYTES:
+        return f"{gib:.1f} GiB free; below the 2 GiB safety floor"
+    if available < CAPACITY_WARNING_BYTES:
+        return f"CRITICAL CAPACITY WARNING: {gib:.1f} GiB free; cleanup is required after this operation"
+    return f"{gib:.1f} GiB free"
+
+
 def runtime_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -288,8 +303,9 @@ def _require_restore_capacity(target, runner, phase: str) -> dict:
     available = _available_bytes(runner, target.value["state_directory"])
     if available < MINIMUM_FREE_BYTES:
         raise RuntimeError(
-            f"restore {phase} refused: {available} bytes free is below the 2 GiB safety floor",
+            f"restore {phase} refused: {_capacity_detail(available)}",
         )
+    _report("restore", phase, "capacity checked", _capacity_detail(available))
     return {
         "available_bytes": available,
         "warning": available < CAPACITY_WARNING_BYTES,
@@ -322,6 +338,7 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
 
 
 def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
+    _report("restore", "rollback", "started", f"activation failed: {error}")
     rollback = runner.run(
         compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]),
         check=False,
@@ -331,6 +348,7 @@ def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
         raise RuntimeError(
             f"activation failed ({error}); rollback also failed ({detail})",
         ) from error
+    _report("restore", "rollback", "completed", "previous generation is running")
 
 
 @contextmanager
@@ -378,6 +396,11 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
         "f=p.open('ab');f.write(base64.b64decode(sys.argv[2]));f.close();os.chmod(p,0o600)"
     )
     runner.run(["python3", "-c", program, path, encoded])
+    if phase != "operation" or status != "started":
+        detail = ""
+        if "duration_seconds" in details:
+            detail = f"{details['duration_seconds']:.3f}s"
+        _report(operation, phase, status, detail)
 
 
 def backup_command(arguments: argparse.Namespace) -> int:
@@ -1311,6 +1334,12 @@ def restore_command(arguments: argparse.Namespace) -> int:
                 "failed",
                 duration_seconds=round(time.monotonic() - started, 3),
                 error_type=type(error).__name__,
+            )
+            _report(
+                "restore",
+                "failure summary",
+                "failed",
+                f"{type(error).__name__}: {error}",
             )
             raise
         _record_event(
