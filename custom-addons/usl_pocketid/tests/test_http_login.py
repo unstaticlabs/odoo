@@ -19,7 +19,6 @@ from ..policy import (
     ID_TOKEN_SESSION_KEY,
     LOGIN_POLICY_PARAMETER,
     LOGIN_POLICY_SSO_ONLY,
-    REAUTH_SESSION_KEY,
     emergency_window_active,
 )
 
@@ -113,6 +112,38 @@ class TestPocketIDHttpLogin(HttpCase):
                 },
             },
         ).json()
+
+    def _authenticate_with_pocket_id(self):
+        parameters = self._login_transaction()
+        callback_query = urlencode(
+            {
+                "state": parameters["state"][0],
+                "code": "one-time-code",
+            },
+        )
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_CLIENT_SECRET": "http-test-secret"},
+                clear=False,
+            ),
+            patch(
+                "odoo.addons.usl_pocketid.models."
+                "auth_oauth_provider.requests.post",
+                return_value=self._token_response(parameters["nonce"][0]),
+            ),
+            patch(
+                "odoo.addons.usl_pocketid.models."
+                "auth_oauth_provider.requests.get",
+                return_value=self._jwks_response(),
+            ),
+        ):
+            callback = self.url_open(
+                f"/auth_oauth/signin?{callback_query}",
+                allow_redirects=False,
+            )
+        self.assertEqual(callback.status_code, 303)
+        self.session = callback.session
 
     @contextmanager
     def _sso_only(self):
@@ -226,10 +257,7 @@ class TestPocketIDHttpLogin(HttpCase):
         )
 
     def test_api_key_identity_check_uses_fresh_pocket_id_proof(self):
-        self.authenticate(
-            self.user.login,
-            "ordinary-password-must-not-work",
-        )
+        self._authenticate_with_pocket_id()
         self.update_session(**{"identity-check-last": 0})
 
         with self._sso_only():
@@ -270,13 +298,45 @@ class TestPocketIDHttpLogin(HttpCase):
             key_count = self.user.api_key_ids.search_count(
                 [("user_id", "=", self.user.id)],
             )
-            self.update_session(
-                **{
-                    REAUTH_SESSION_KEY: {
-                        "uid": self.user.id,
-                        "expires_at": time.time() + 60,
-                    },
-                },
+            reauthentication = self.url_open(
+                "/usl/pocketid/reauth/start",
+                allow_redirects=False,
+            )
+            self.assertEqual(reauthentication.status_code, 303)
+            parameters = parse_qs(
+                urlsplit(reauthentication.headers["Location"]).query,
+            )
+            with (
+                patch.dict(
+                    os.environ,
+                    {"USL_POCKET_ID_CLIENT_SECRET": "http-test-secret"},
+                    clear=False,
+                ),
+                patch(
+                    "odoo.addons.usl_pocketid.models."
+                    "auth_oauth_provider.requests.post",
+                    return_value=self._token_response(parameters["nonce"][0]),
+                ),
+                patch(
+                    "odoo.addons.usl_pocketid.models."
+                    "auth_oauth_provider.requests.get",
+                    return_value=self._jwks_response(),
+                ),
+            ):
+                callback = self.url_open(
+                    "/auth_oauth/signin?"
+                    + urlencode(
+                        {
+                            "state": parameters["state"][0],
+                            "code": "reauthentication-code",
+                        },
+                    ),
+                    allow_redirects=False,
+                )
+            self.assertEqual(callback.status_code, 303)
+            self.assertEqual(
+                urlsplit(callback.headers["Location"]).path,
+                "/usl/pocketid/reauth/complete",
             )
             completed = self._rpc(
                 "res.users.identitycheck",
