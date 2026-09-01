@@ -142,9 +142,11 @@ to the routing pattern.
 The native Expense alias is different: it is global and selects the company
 from the sender's employee profile. A user with employee profiles in several
 companies cannot select the company from the recipient address. Until a
-company-specific Expense routing extension is introduced, use the email route
-only for the user's default company and create expenses for another company in
-the Odoo interface.
+company-specific Expense routing extension is justified, let the email route
+create the expense in the user's default company. During review, a user with
+access to both companies may change **Company** while the expense is still a
+draft. Do this before batching, submission or approval, then verify the
+recomputed employee profile, account, taxes, currency and analytic distribution.
 
 ## Final local tour and VPS promotion
 
