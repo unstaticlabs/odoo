@@ -104,7 +104,15 @@ export class FeedbackChatter extends Chatter {
 export class FeedbackPanel extends Component {
     static template = "usl_feedback.FeedbackPanel";
     static components = { Dropdown, DropdownItem, FeedbackChatter };
-    static props = ["captureState?", "clearScreenshot?", "close", "pageContext", "screenshot?"];
+    static props = [
+        "captureState?",
+        "clearScreenshot?",
+        "close",
+        "fold?",
+        "isSmall?",
+        "pageContext",
+        "screenshot?",
+    ];
 
     setup() {
         this.orm = useService("orm");

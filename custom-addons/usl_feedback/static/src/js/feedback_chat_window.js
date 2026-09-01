@@ -24,6 +24,7 @@ export class FeedbackChatWindowService {
         this.screenshot = false;
         this.captureState = "idle";
         this.captureId = 0;
+        this.WINDOW = 704;
     }
 
     get isClosed() {

@@ -10,30 +10,38 @@
         FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
-            <nav class="o-usl-FeedbackPanel-nav nav nav-tabs flex-nowrap flex-shrink-0" aria-label="Feedback navigation">
+            <header class="o-usl-FeedbackPanel-header d-flex align-items-center flex-shrink-0 border-bottom">
                 <t t-set="currentStatus" t-value="state.task and this.feedbackStatus(state.task)"/>
-                <div t-if="state.task" class="o-usl-FeedbackPanel-currentTab nav-item d-flex align-items-stretch" t-att-class="{ active: state.phase === 'conversation' }">
-                    <button class="nav-link flex-grow-1 d-inline-flex align-items-center justify-content-start" t-att-class="{ active: state.phase === 'conversation' }" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)" t-att-aria-current="state.phase === 'conversation' ? 'page' : undefined">
-                        <span class="min-w-0 text-start d-flex align-items-center gap-2 text-truncate">
-                            <span class="fw-semibold text-nowrap">Feedback #<t t-out="state.task.id"/></span>
-                            <span class="badge rounded-pill fw-normal text-truncate" t-att-class="currentStatus[2]" t-out="currentStatus[0]"/>
-                        </span>
+                <span class="o-usl-FeedbackPanel-brand d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true">
+                    <i class="fa fa-commenting-o"/>
+                </span>
+                <div class="o-usl-FeedbackPanel-identity min-w-0">
+                    <h2 class="o-usl-FeedbackPanel-title mb-0 text-truncate">Feedback</h2>
+                    <button t-if="state.task" class="o-usl-FeedbackPanel-current o-usl-FeedbackPanel-currentTab btn btn-link d-flex align-items-center gap-2 p-0 text-start" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)">
+                        <span class="text-nowrap">Feedback #<t t-out="state.task.id"/></span>
+                        <span aria-hidden="true">·</span>
+                        <span class="badge rounded-pill fw-normal text-truncate" t-att-class="currentStatus[2]" t-out="currentStatus[0]"/>
                     </button>
-                    <Dropdown menuClass="o-usl-FeedbackPanel-taskMenu">
-                        <button class="btn btn-link text-body px-2 h-100" type="button" title="Feedback actions" aria-label="Feedback actions"><i class="fa fa-ellipsis-v"/></button>
+                    <span t-else="" class="o-usl-FeedbackPanel-current text-muted">New feedback</span>
+                </div>
+                <nav class="o-usl-FeedbackPanel-headerNav o-usl-FeedbackPanel-nav d-flex align-items-center ms-auto" aria-label="Feedback navigation">
+                    <button class="btn btn-light border d-inline-flex align-items-center gap-2 text-nowrap" t-att-class="{ active: state.phase === 'recent' }" type="button" t-on-click="showRecent" t-att-aria-current="state.phase === 'recent' ? 'page' : undefined">
+                        <i class="fa fa-list-ul"/><span>My feedback</span>
+                    </button>
+                    <button class="btn btn-light border d-inline-flex align-items-center gap-2 text-nowrap" t-att-class="{ active: state.phase === 'draft' or (state.phase === 'loading' and !state.task) }" type="button" t-on-click="newConversation" t-att-disabled="state.phase === 'draft' or (state.phase === 'loading' and !state.task)" t-att-aria-current="state.phase === 'draft' ? 'page' : undefined">
+                        <i class="fa fa-plus"/><span>New</span>
+                    </button>
+                    <Dropdown t-if="state.task" menuClass="o-usl-FeedbackPanel-taskMenu">
+                        <button class="btn btn-link text-body" type="button" title="Feedback actions" aria-label="Feedback actions"><i class="fa fa-ellipsis-v"/></button>
                         <t t-set-slot="content">
                             <DropdownItem onSelected="() => this.openTask(state.task)">Open feedback</DropdownItem>
                             <DropdownItem t-if="state.task.can_withdraw" class="'text-danger'" onSelected.bind="confirmWithdraw">Withdraw feedback</DropdownItem>
                         </t>
                     </Dropdown>
-                </div>
-                <button class="o-usl-FeedbackPanel-historyTab nav-link d-inline-flex align-items-center justify-content-center gap-1 text-nowrap" t-att-class="{ active: state.phase === 'recent' }" type="button" t-on-click="showRecent" t-att-aria-current="state.phase === 'recent' ? 'page' : undefined">
-                    <i class="fa fa-list-ul"/><span>My feedback</span>
-                </button>
-                <button class="o-usl-FeedbackPanel-newTab nav-link d-inline-flex align-items-center justify-content-center gap-1 text-nowrap" t-att-class="{ active: state.phase === 'draft' or (state.phase === 'loading' and !state.task) }" type="button" t-on-click="newConversation" t-att-disabled="state.phase === 'draft' or (state.phase === 'loading' and !state.task)" t-att-aria-current="state.phase === 'draft' ? 'page' : undefined">
-                    <i class="fa fa-plus"/><span>New</span>
-                </button>
-            </nav>
+                    <button t-if="!props.isSmall" class="btn btn-link text-body" type="button" t-on-click="props.fold" title="Fold feedback" aria-label="Fold feedback"><i class="fa fa-minus"/></button>
+                    <button class="btn btn-link text-body" type="button" t-on-click="props.close" title="Close feedback" aria-label="Close feedback"><i class="oi oi-close"/></button>
+                </nav>
+            </header>
 
             <ol t-if="['draft', 'conversation'].includes(state.phase)" class="o-usl-FeedbackPanel-journey list-unstyled d-flex align-items-center flex-shrink-0 mb-0 px-3" aria-label="Feedback progress">
                 <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(1)" t-att-aria-current="this.workflowStep === 1 ? 'step' : undefined">
@@ -239,27 +247,13 @@
             role="dialog"
             aria-label="Feedback agent conversation"
         >
-            <div class="o-mail-ChatWindow-header d-flex align-items-center flex-shrink-0 bg-100 z-1 border-bottom border-dark o-border-opacity-15"
-                t-att-class="{ 'cursor-pointer': !this.ui.isSmall }"
-                t-on-click="this.onClickHeader"
-                title="Fold feedback"
-            >
-                <span class="o-usl-FeedbackChatWindow-avatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white small my-2 ms-3 me-2" aria-hidden="true">
-                    <i class="fa fa-commenting-o"/>
-                </span>
-                <div class="text-truncate fw-bold fs-5 flex-grow-1">Feedback</div>
-                <button t-if="!this.ui.isSmall" class="btn btn-link text-body px-2" type="button" t-on-click.stop="() => this.feedbackChatWindow.fold()" title="Fold feedback" aria-label="Fold feedback">
-                    <i class="fa fa-minus"/>
-                </button>
-                <button class="btn btn-link text-body px-2 me-1" type="button" t-on-click.stop="this.close" title="Close feedback" aria-label="Close feedback">
-                    <i class="oi oi-close"/>
-                </button>
-            </div>
             <div class="d-flex flex-column h-100 min-h-0 overflow-hidden position-relative bg-inherit">
                 <FeedbackPanel
                     captureState="this.feedbackChatWindow.captureState"
                     clearScreenshot.bind="this.feedbackChatWindow.clearScreenshot"
                     close.bind="this.close"
+                    fold.bind="this.feedbackChatWindow.fold"
+                    isSmall="this.ui.isSmall"
                     pageContext="this.feedbackChatWindow.pageContext"
                     screenshot="this.feedbackChatWindow.screenshot"
                 />
@@ -280,7 +274,7 @@
 
     <t t-inherit="mail.ChatHub" t-inherit-mode="extension">
         <xpath expr="//ChatWindow" position="attributes">
-            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1 + (this.feedbackChatWindow.mode === 'open' ? 1 : 0)) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2)</attribute>
+            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2) + (this.feedbackChatWindow.mode === 'open' ? this.feedbackChatWindow.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2 : 0)</attribute>
         </xpath>
         <xpath expr="//div[hasclass('o-mail-ChatHub-bubbles')]" position="before">
             <FeedbackChatWindow t-if="this.feedbackChatWindow.mode !== 'closed'" hidden="this.feedbackChatWindow.mode === 'folded'" right="this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER * 2)"/>
