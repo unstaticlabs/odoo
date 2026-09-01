@@ -1,7 +1,7 @@
 {
     "name": "USL Pocket ID SSO",
     "summary": "Hardened Pocket ID OIDC login and governed identity linking",
-    "version": "saas~19.3.1.1.1",
+    "version": "saas~19.3.1.2.0",
     "category": "Tools",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -16,11 +16,14 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "security/sender_alias_security.xml",
         "data/pocketid_provider.xml",
         "data/mail_templates.xml",
         "views/auth_oauth_provider_views.xml",
         "views/oidc_identity_views.xml",
         "views/res_users_views.xml",
+        "views/sender_alias_views.xml",
+        "views/sender_alias_templates.xml",
         "views/login_templates.xml",
     ],
     "assets": {

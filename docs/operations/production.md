@@ -100,6 +100,20 @@ alias resolves to the intended model and company, and the mailbox has no stale
 unread backlog. Admission then enables `mail.ir_cron_mail_gateway_action` and
 runtime validation requires a successful poll within 15 minutes.
 
+### Personal sender addresses
+
+An employee may send to Project, `todo`, Expenses, or another authorized Odoo
+alias from a personal address after proving ownership. In Odoo, open the user
+preferences, choose **Email Addresses**, add the address, and send the
+verification email. The one-time link expires after 24 hours.
+
+Odoo stores the address as a verified alias of the existing work contact. It
+does not replace the work email or create another employee. Incoming messages
+then resolve to the same contact, user, and company-specific employee profile.
+Pending, expired, disabled, duplicated, or unverified addresses do not grant
+employee alias access. An address already used by another Odoo user, employee,
+or destination alias cannot be claimed.
+
 ### Dynamic aliases and Google Workspace routing
 
 Use a dedicated Gmail mailbox for Odoo ingestion. Do not connect Odoo to a
