@@ -54,6 +54,18 @@ class ComponentBuildTests(unittest.TestCase):
         for value in payload["components"].values():
             self.assertRegex(value["tag"], r"^content-[0-9a-f]{64}$")
 
+    def test_backup_tool_sources_enter_the_docker_build_context(self) -> None:
+        dockerignore = (Path(__file__).resolve().parents[2] / ".dockerignore").read_text(
+            encoding="utf-8",
+        )
+        inclusions = {
+            line[1:]
+            for line in dockerignore.splitlines()
+            if line.startswith("!")
+        }
+        self.assertIn("operations/**", inclusions)
+        self.assertIn("scripts/cohort-runtime", inclusions)
+
 
 if __name__ == "__main__":
     unittest.main()

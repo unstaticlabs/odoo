@@ -13,7 +13,10 @@
 !setup.py
 !scripts/
 scripts/*
+!scripts/cohort-runtime
 !scripts/odoo_backup.py
+!operations/
+!operations/**
 
 !addons/
 !addons/**
