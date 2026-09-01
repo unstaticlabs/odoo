@@ -90,6 +90,18 @@ class ProductionCronPolicyTest(unittest.TestCase):
             },
         )
 
+    def test_production_inbound_aliases_match_google_workspace(self):
+        expected = load_script_function("expected_inbound_aliases")()
+
+        self.assertEqual(
+            expected,
+            {
+                "expense@unstaticlabs.com": "hr.expense",
+                "purchases@unstaticlabs.com": "account.move",
+                "purchases-uslmedia@unstaticlabs.com": "account.move",
+            },
+        )
+
     def test_ereporting_cannot_precede_invoice_exchange(self):
         resolve = load_script_function("expected_regulatory_gates")
 

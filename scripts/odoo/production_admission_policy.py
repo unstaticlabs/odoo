@@ -41,6 +41,14 @@ def expected_inbound_server():
     }
 
 
+def expected_inbound_aliases():
+    return {
+        "expense@unstaticlabs.com": "hr.expense",
+        "purchases@unstaticlabs.com": "account.move",
+        "purchases-uslmedia@unstaticlabs.com": "account.move",
+    }
+
+
 def load_object(name):
     try:
         value = json.loads(os.environ[name])
@@ -191,11 +199,7 @@ if gates["inbound_mail"]:
     if incoming.error_message:
         raise RuntimeError("The admitted Gmail IMAP server has an unresolved error.")
 
-    required_aliases = {
-        "expense@unstaticlabs.com": "hr.expense",
-        "purchases@unstaticlabs.com": "account.move",
-        "purchases-usl-media@unstaticlabs.com": "account.move",
-    }
+    required_aliases = expected_inbound_aliases()
     aliases = env["mail.alias"].sudo().search([  # noqa: F821
         ("alias_full_name", "in", list(required_aliases)),
     ])

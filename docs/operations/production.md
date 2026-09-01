@@ -88,7 +88,7 @@ Odoo must resolve these aliases before enabling the `inbound_mail` gate:
 
 - `expense@unstaticlabs.com` to employee expenses;
 - `purchases@unstaticlabs.com` to the USL vendor-bill journal;
-- `purchases-usl-media@unstaticlabs.com` to the USL Media vendor-bill journal.
+- `purchases-uslmedia@unstaticlabs.com` to the USL Media vendor-bill journal.
 
 Google Workspace may deliver all aliases to one mailbox, but it must preserve
 the alias in `Delivered-To`, `To`, `Cc`, or `Resent-To`. The alias-domain
