@@ -16,6 +16,7 @@ from operations.stack import (
     _generation_overlay,
     _materialize_command,
     _restore_unlocked,
+    _validate_materialized_release,
     generation_volume_names,
     runtime_lock,
     with_writers_paused,
@@ -60,6 +61,40 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_repository_initialization_refuses_authentication_or_network_failure(self) -> None:
+        probe = subprocess.CompletedProcess(
+            ["restic", "cat", "config"],
+            1,
+            "",
+            "access denied",
+        )
+        with (
+            mock.patch.object(cohort.subprocess, "run", return_value=probe),
+            mock.patch.object(cohort, "run") as initialize,
+            self.assertRaisesRegex(cohort.CohortError, "refusing to initialize"),
+        ):
+            cohort.ensure_repository({})
+        initialize.assert_not_called()
+
+    def test_repository_initialization_only_handles_missing_repository(self) -> None:
+        probe = subprocess.CompletedProcess(["restic", "cat", "config"], 10, "", "missing")
+        with (
+            mock.patch.object(cohort.subprocess, "run", return_value=probe),
+            mock.patch.object(cohort, "run") as initialize,
+        ):
+            cohort.ensure_repository({})
+        initialize.assert_called_once_with(["restic", "init"], environment={}, capture=True)
+
+    def test_restore_refuses_a_release_that_differs_from_the_cohort(self) -> None:
+        release = {"source": {"commit": "a" * 40}}
+        materialized = {
+            "release": {"commit": "a" * 40, "manifest_sha256": "b" * 64},
+        }
+        _validate_materialized_release(materialized, release, "b" * 64)
+        materialized["release"]["manifest_sha256"] = "c" * 64
+        with self.assertRaisesRegex(RuntimeError, "differs from the cohort"):
+            _validate_materialized_release(materialized, release, "b" * 64)
+
     def test_tree_identity_detects_content_change(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

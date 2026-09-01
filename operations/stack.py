@@ -888,6 +888,18 @@ def _active_generation_state(
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _validate_materialized_release(
+    materialized: dict,
+    release: dict,
+    release_sha: str,
+) -> None:
+    embedded = materialized.get("release", {})
+    if embedded.get("manifest_sha256") != release_sha:
+        raise RuntimeError("selected release differs from the cohort release")
+    if embedded.get("commit") != release["source"]["commit"]:
+        raise RuntimeError("selected release commit differs from the cohort release")
+
+
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
     source = load_target(arguments.source, arguments.targets)
     target = load_target(arguments.target, arguments.targets)
@@ -900,7 +912,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("source and target must be reachable through the same runtime host")
     current = inspect_runtime(target, target_runner)
     _secret_file(target, target_runner)
-    release, _release_sha, release_raw = _release(source, target_runner, arguments.release)
+    release, release_sha, release_raw = _release(source, target_runner, arguments.release)
     tool_image = release["components"]["backup-tool"]["digest_reference"]
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
     if len(generation) > 32 or not generation.startswith("g"):
@@ -948,6 +960,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             ),
         )
         materialize_state = json.loads(materialized.stdout.splitlines()[-1])
+        _validate_materialized_release(materialize_state, release, release_sha)
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
     finally:
         for container in database_containers:

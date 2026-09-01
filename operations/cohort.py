@@ -408,8 +408,15 @@ def ensure_repository(environment: dict[str, str]) -> None:
         capture_output=True,
         check=False,
     )
-    if probe.returncode:
-        run(["restic", "init"], environment=environment, capture=True)
+    if probe.returncode == 0:
+        return
+    if probe.returncode != 10:
+        detail = (probe.stderr or probe.stdout).strip()
+        raise CohortError(
+            "cannot inspect the Restic repository; refusing to initialize it"
+            + (f": {detail}" if detail else ""),
+        )
+    run(["restic", "init"], environment=environment, capture=True)
 
 
 def restic_backup(paths: list[Path], environment: dict[str, str], tags: list[str]) -> str:
@@ -666,7 +673,8 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         raise CohortError("durable snapshot has no unique cohort manifest")
     manifest = validate_manifest(json.loads(candidates[0].read_text(encoding="utf-8")))
     cohort_root = candidates[0].parent
-    verify_embedded_release(cohort_root, manifest)
+    embedded_release = verify_embedded_release(cohort_root, manifest)
+    embedded_canonical = json.dumps(embedded_release, separators=(",", ":"), sort_keys=True)
     cache_snapshot = manifest["cache_snapshot_id"]
     if not cache_snapshot:
         raise CohortError("durable snapshot does not bind a cache snapshot")
@@ -724,6 +732,10 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "target": _required_environment("USL_TARGET"),
         "durable_snapshot_id": arguments.durable_snapshot,
         "cache_snapshot_id": cache_snapshot,
+        "release": {
+            "commit": embedded_release["source"]["commit"],
+            "manifest_sha256": hashlib.sha256(embedded_canonical.encode()).hexdigest(),
+        },
         "controls": manifest["controls"],
         "transformations": transformations,
         "status": "materialized",
