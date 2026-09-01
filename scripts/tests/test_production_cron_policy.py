@@ -22,17 +22,17 @@ EREPORTING_CRONS = {
 }
 
 
-def load_expected_regulatory_gates():
+def load_script_function(name):
     module = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     function = next(
         node
         for node in module.body
         if isinstance(node, ast.FunctionDef)
-        and node.name == "expected_regulatory_gates"
+        and node.name == name
     )
     namespace = {}
     exec(compile(ast.Module(body=[function], type_ignores=[]), SCRIPT, "exec"), namespace)
-    return namespace["expected_regulatory_gates"]
+    return namespace[name]
 
 
 class ProductionCronPolicyTest(unittest.TestCase):
@@ -51,7 +51,7 @@ class ProductionCronPolicyTest(unittest.TestCase):
         )
 
     def test_invoice_reception_can_precede_ereporting(self):
-        resolve = load_expected_regulatory_gates()
+        resolve = load_script_function("expected_regulatory_gates")
 
         self.assertEqual(
             resolve({
@@ -62,13 +62,26 @@ class ProductionCronPolicyTest(unittest.TestCase):
         )
 
     def test_ereporting_cannot_precede_invoice_exchange(self):
-        resolve = load_expected_regulatory_gates()
+        resolve = load_script_function("expected_regulatory_gates")
 
         with self.assertRaisesRegex(RuntimeError, "before invoice exchange"):
             resolve({
                 "USL_EINVOICE_LIVE_ENABLED": "0",
                 "USL_EREPORTING_LIVE_ENABLED": "1",
             })
+
+    def test_production_mail_alias_domain_is_explicit(self):
+        expected = load_script_function("expected_mail_alias_domain")()
+
+        self.assertEqual(
+            expected,
+            {
+                "name": "unstaticlabs.com",
+                "bounce_alias": "bounce",
+                "catchall_alias": "catchall",
+                "default_from": "odoo",
+            },
+        )
 
 
 if __name__ == "__main__":

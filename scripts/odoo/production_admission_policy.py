@@ -20,6 +20,15 @@ def expected_regulatory_gates(environment):
     }
 
 
+def expected_mail_alias_domain():
+    return {
+        "name": "unstaticlabs.com",
+        "bounce_alias": "bounce",
+        "catchall_alias": "catchall",
+        "default_from": "odoo",
+    }
+
+
 def load_object(name):
     try:
         value = json.loads(os.environ[name])
@@ -107,6 +116,23 @@ if gates["smtp"]:
     if bad_smtp or len(config.get("smtp_password") or "") < 24:
         raise RuntimeError("The host-level Resend transport is not configured safely.")
 
+alias_domains = env["mail.alias.domain"].sudo().search([])  # noqa: F821
+if len(alias_domains) != 1:
+    raise RuntimeError(
+        "Production requires exactly one mail alias domain; "
+        f"found {len(alias_domains)}."
+    )
+alias_domain = alias_domains.ensure_one()
+expected_alias_domain = expected_mail_alias_domain()
+alias_domain_mismatch = {
+    field_name: {
+        "configured": alias_domain[field_name],
+        "expected": expected_value,
+    }
+    for field_name, expected_value in expected_alias_domain.items()
+    if alias_domain[field_name] != expected_value
+}
+
 regulatory_gates = expected_regulatory_gates(os.environ)
 gate_mismatch = {
     name: {"expected": expected, "configured": gates.get(name)}
@@ -132,6 +158,8 @@ if "fetchmail.server" in env.registry:  # noqa: F821
 
 apply = os.environ.get("USL_PRODUCTION_ADMISSION_APPLY") == "1"
 if apply:
+    if alias_domain_mismatch:
+        alias_domain.write(expected_alias_domain)
     if mail_servers:
         mail_servers.unlink()
     if to_disable:
@@ -143,11 +171,14 @@ else:
     env.cr.rollback()  # noqa: F821
 
 assert_converged = os.environ.get("USL_PRODUCTION_ADMISSION_ASSERT_CONVERGED") == "1"
-if assert_converged and (to_disable or to_enable or mail_servers):
+if assert_converged and (
+    alias_domain_mismatch or to_disable or to_enable or mail_servers
+):
     raise RuntimeError(
         "The applied production policy is not converged: "
         + json.dumps(
             {
+                "mail_alias_domain": alias_domain_mismatch,
                 "database_mail_server_ids": mail_servers.ids,
                 "disable": to_disable,
                 "enable": to_enable,
@@ -157,6 +188,8 @@ if assert_converged and (to_disable or to_enable or mail_servers):
     )
 
 print(json.dumps({
+    "mail_alias_domain": expected_alias_domain,
+    "mail_alias_domain_update": alias_domain_mismatch,
     "database_mail_server_count": len(mail_servers),
     "desired_active_xmlids": sorted(desired),
     "disabled_xmlids": sorted(set(rules) - desired),
