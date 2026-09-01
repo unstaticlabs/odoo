@@ -72,7 +72,6 @@ COMPONENTS = {
                 "operations/**",
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
-                "scripts/odoo_backup.py",
                 "scripts/usl-stack",
             ),
         ),

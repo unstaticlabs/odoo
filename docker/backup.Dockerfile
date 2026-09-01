@@ -25,7 +25,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 COPY --from=restic /usr/bin/restic /usr/local/bin/restic
 COPY operations /opt/usl/operations
 COPY --chmod=755 scripts/cohort-runtime /usr/local/bin/usl-cohort-runtime
-COPY --chmod=755 scripts/odoo_backup.py /usr/local/bin/odoo-backup-runtime
 
 ENV PYTHONPATH=/opt/usl
 

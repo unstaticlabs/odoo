@@ -192,31 +192,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Production backup/recovery qualification uses a separate Compose boundary
-  # and therefore needs an explicit directory entry.
-  - package-ecosystem: "docker-compose"
-    directory: "/deploy/odoo-backup"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:15"
-      timezone: "Europe/Paris"
-    open-pull-requests-limit: 3
-    # Qualification intentionally uses the Distribution release image. Its
-    # immutable digest is supplied by release admission, not discovered as a
-    # public dependency by Dependabot.
-    ignore:
-      - dependency-name: "unstaticlabs/usl-odoo"
-    groups:
-      compatible-backup-service-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    commit-message:
-      prefix: "chore(deps)"
-
   # Keep pinned third-party workflow actions current without allowing a bot PR
   # to publish images or bypass the normal pull-request qualification job.
   - package-ecosystem: "github-actions"
