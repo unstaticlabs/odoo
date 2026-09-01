@@ -307,7 +307,8 @@ def validate_environment(
         or any(type(value) is not bool for value in cron_gates.values())
         or cron_gates.get("always") is not True
         or cron_gates.get("smtp") is not True
-        or cron_gates.get("pdp") is not False
+        or cron_gates.get("pdp_reception") is not False
+        or cron_gates.get("pdp_ereporting") is not False
     ):
         raise CutoverError("production cron gate decisions are incomplete or unsafe")
     expected_smtp = {

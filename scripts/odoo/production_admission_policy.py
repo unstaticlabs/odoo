@@ -9,6 +9,17 @@ import os
 from odoo.tools import config
 
 
+def expected_regulatory_gates(environment):
+    einvoice_live = environment.get("USL_EINVOICE_LIVE_ENABLED") == "1"
+    ereporting_live = environment.get("USL_EREPORTING_LIVE_ENABLED") == "1"
+    if ereporting_live and not einvoice_live:
+        raise RuntimeError("E-reporting cannot be enabled before invoice exchange.")
+    return {
+        "pdp_reception": einvoice_live,
+        "pdp_ereporting": ereporting_live,
+    }
+
+
 def load_object(name):
     try:
         value = json.loads(os.environ[name])
@@ -96,12 +107,17 @@ if gates["smtp"]:
     if bad_smtp or len(config.get("smtp_password") or "") < 24:
         raise RuntimeError("The host-level Resend transport is not configured safely.")
 
-live_pdp = (
-    os.environ.get("USL_EINVOICE_LIVE_ENABLED") == "1"
-    and os.environ.get("USL_EREPORTING_LIVE_ENABLED") == "1"
-)
-if gates["pdp"] != live_pdp:
-    raise RuntimeError("The PDP cron gate and regulatory live flags do not agree.")
+regulatory_gates = expected_regulatory_gates(os.environ)
+gate_mismatch = {
+    name: {"expected": expected, "configured": gates.get(name)}
+    for name, expected in regulatory_gates.items()
+    if gates.get(name) != expected
+}
+if gate_mismatch:
+    raise RuntimeError(
+        "The PDP cron gates and regulatory live flags do not agree: "
+        + json.dumps(gate_mismatch, sort_keys=True)
+    )
 
 pending_mail = env["mail.mail"].sudo().search_count([  # noqa: F821
     ("state", "in", ["outgoing", "exception"]),
