@@ -27,6 +27,7 @@ class TestProjectTask(TransactionCase):
             login="todo.sender@example.invalid",
             email="todo.sender@example.invalid",
             groups="base.group_user,project.group_project_user",
+            context={"no_reset_password": True},
         )
 
     def _task_from_email(self, recipient, sender="External <outside@example.invalid>"):
