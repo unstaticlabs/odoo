@@ -210,6 +210,13 @@ class ProductionCutoverSafetyTest(unittest.TestCase):
                 self.assertEqual(overlay.count(renderer_mount), 2)
                 self.assertEqual(overlay.count(sign_mount), 2)
 
+    def test_external_ingress_retains_paperless_tunnel_alias(self):
+        overlay = (ROOT / "compose.external-pocket-id.yaml").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("aliases:\n          - paperless", overlay)
+
     def test_production_admission_owns_sign_services(self):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         release_script = (ROOT / "migration/internal/cutover").read_text(

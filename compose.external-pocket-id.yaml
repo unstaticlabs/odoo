@@ -69,10 +69,12 @@ services:
       PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
       PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: https
     networks:
-      - default
-      - external-identity
-      - external-ingress
-      - external-ollama
+      default:
+      external-identity:
+      external-ingress:
+        aliases:
+          - paperless
+      external-ollama:
     ports: !override
       - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
 
