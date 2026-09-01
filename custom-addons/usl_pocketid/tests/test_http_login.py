@@ -303,9 +303,13 @@ class TestPocketIDHttpLogin(HttpCase):
                 allow_redirects=False,
             )
             self.assertEqual(reauthentication.status_code, 303)
-            parameters = parse_qs(
-                urlsplit(reauthentication.headers["Location"]).query,
+            reauthentication_url = urlsplit(
+                reauthentication.headers["Location"],
             )
+            self.assertEqual(reauthentication_url.scheme, "https")
+            self.assertEqual(reauthentication_url.netloc, "id.example.test")
+            self.assertEqual(reauthentication_url.path, "/authorize")
+            parameters = parse_qs(reauthentication_url.query)
             with (
                 patch.dict(
                     os.environ,

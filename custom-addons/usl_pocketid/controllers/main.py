@@ -381,6 +381,7 @@ class PocketIDLogin(OpenIDLogin):
                 purpose="reauth",
             ),
             303,
+            local=False,
         )
 
     @route(
