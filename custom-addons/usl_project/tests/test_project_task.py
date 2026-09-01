@@ -1,11 +1,65 @@
 from datetime import datetime, timedelta
 
 from odoo import Command
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import TransactionCase, new_test_user, tagged
 
 
 @tagged("usl_project", "post_install", "-at_install")
 class TestProjectTask(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        alias_domain = cls.env["mail.alias.domain"].create({
+            "name": "todo-assignment.example.invalid",
+        })
+        cls.todo_alias = cls.env["mail.alias"].create({
+            "alias_name": "todo",
+            "alias_domain_id": alias_domain.id,
+            "alias_model_id": cls.env["ir.model"]._get_id("project.task"),
+        })
+        cls.other_alias = cls.env["mail.alias"].create({
+            "alias_name": "other-tasks",
+            "alias_domain_id": alias_domain.id,
+            "alias_model_id": cls.env["ir.model"]._get_id("project.task"),
+        })
+        cls.todo_sender = new_test_user(
+            cls.env,
+            login="todo.sender@example.invalid",
+            email="todo.sender@example.invalid",
+            groups="base.group_user,project.group_project_user",
+        )
+
+    def _task_from_email(self, recipient, sender="External <outside@example.invalid>"):
+        return self.env["project.task"].message_new({
+            "subject": "Incoming personal task",
+            "email_from": sender,
+            "to": recipient,
+        })
+
+    def test_todo_email_assigns_internal_sender(self):
+        task = self._task_from_email(
+            self.todo_alias.alias_full_name,
+            f"Todo Sender <{self.todo_sender.email}>",
+        )
+
+        self.assertFalse(task.project_id)
+        self.assertEqual(task.user_ids, self.todo_sender)
+
+    def test_todo_email_keeps_external_sender_unassigned(self):
+        task = self._task_from_email(self.todo_alias.alias_full_name)
+
+        self.assertFalse(task.project_id)
+        self.assertFalse(task.user_ids)
+
+    def test_other_projectless_alias_does_not_assign_sender(self):
+        task = self._task_from_email(
+            self.other_alias.alias_full_name,
+            f"Todo Sender <{self.todo_sender.email}>",
+        )
+
+        self.assertFalse(task.project_id)
+        self.assertFalse(task.user_ids)
+
     def test_project_card_company_label_tracks_active_companies(self):
         second_company = self.env["res.company"].create({
             "name": "Second card company",
