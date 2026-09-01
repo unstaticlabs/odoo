@@ -466,6 +466,32 @@ test("reporter confirmation is guarded by the ready card and updates to Triage",
     expect.verifySteps(["confirmed"]);
 });
 
+test("opening the board keeps the floating feedback conversation open", async () => {
+    mockFeedbackStart();
+    onRpc("project.project", "feedback_open_board", () => ({
+        type: "ir.actions.act_window",
+        name: "Product Feedback",
+        res_model: "project.task",
+        views: [[false, "kanban"]],
+        domain: [],
+        context: {},
+        help: "<p class='o_view_nocontent_smiling_face'>No feedback yet</p>",
+    }));
+    const component = await mountFeedbackPanel({
+        close: () => expect.step("closed"),
+    });
+    component.action = {
+        async doAction(action) {
+            expect(String(action.help)).toMatch(/<p class='o_view_nocontent_smiling_face'>/);
+            expect.step("board opened");
+        },
+    };
+
+    await component.openBoard();
+
+    expect.verifySteps(["board opened"]);
+});
+
 test("draft and provider errors preserve recovery actions and reporter input", async () => {
     mockFeedbackStart();
     const component = await mountFeedbackPanel();

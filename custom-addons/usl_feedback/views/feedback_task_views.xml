@@ -188,6 +188,10 @@
             Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_list_collaborator')}),
             Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_form_collaborator')})
         ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No feedback yet</p>
+            <p>Use Feedback in Messages to report an issue or suggest an improvement.</p>
+        </field>
     </record>
 
     <record id="action_feedback_maintainer" model="ir.actions.act_window">
@@ -208,6 +212,10 @@
             Command.create({'view_mode': 'list', 'view_id': ref('view_feedback_task_list_maintainer')}),
             Command.create({'view_mode': 'form', 'view_id': ref('view_feedback_task_form_maintainer')})
         ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No feedback yet</p>
+            <p>Use Feedback in Messages to report an issue or suggest an improvement.</p>
+        </field>
     </record>
 
     <menuitem id="menu_feedback_root" name="Product Feedback" action="action_feedback_maintainer" groups="group_feedback_maintainer" web_icon="project,static/description/icon.png" sequence="71"/>

@@ -252,6 +252,8 @@ class TestProductFeedback(TransactionCase):
         self.assertFalse(action["context"]["edit"])
         self.assertEqual(action["name"], "Retours produit")
         self.assertEqual(action["domain"], [("project_id", "=", self.project.id)])
+        self.assertIn("Aucun retour pour le moment", action["help"])
+        self.assertIn("Utilisez Retours dans Messages", action["help"])
         self.assertNotIn(
             "active_id",
             self.env.ref("usl_feedback.action_feedback_collaborator").context,

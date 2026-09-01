@@ -328,6 +328,31 @@ sync_product_french_translations() {
     "${catalogues[@]}"
 }
 
+worktree_release_commit() {
+  git diff --quiet --ignore-submodules -- \
+    && git diff --cached --quiet --ignore-submodules -- \
+    && [[ -z "$(git ls-files --others --exclude-standard)" ]] \
+    && git rev-parse --verify HEAD
+}
+
+stamp_worktree_release_identity() {
+  local release_commit=""
+  if ! release_commit="$(worktree_release_commit)"; then
+    printf 'The tracked worktree is dirty; clearing its feedback release identity.\n'
+  fi
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_DEPLOYMENT_ENV="${USL_DEPLOYMENT_ENV:-development}" \
+    -e USL_EINVOICE_LIVE_ENABLED="${USL_EINVOICE_LIVE_ENABLED:-0}" \
+    -e USL_EREPORTING_LIVE_ENABLED="${USL_EREPORTING_LIVE_ENABLED:-0}" \
+    -e USL_WORKTREE_RELEASE_COMMIT="$release_commit" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    < "$ROOT/scripts/odoo/worktree_release_identity.py"
+}
+
 deploy() {
   local module="${1:-$DEV_MODULE}"
   local update_step="${2:-1/2}"
@@ -342,6 +367,7 @@ deploy() {
     usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
     sync_product_french_translations
     disable_dev_tours
+    stamp_worktree_release_identity
     usl_cli_success "modules updated and the development runtime is healthy."
     return
   fi
@@ -349,6 +375,7 @@ deploy() {
     "$ROOT/scripts/pocket-id-dev" update-odoo "$update_modules"
     usl_cli_step "$settings_step" "Apply local QA preferences"
     disable_dev_tours
+    stamp_worktree_release_identity
     usl_cli_success "modules updated and the isolated SSO runtime is healthy."
     return
   fi
@@ -367,6 +394,7 @@ deploy() {
   usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
   sync_product_french_translations
   disable_dev_tours
+  stamp_worktree_release_identity
   print_url
   usl_cli_success "modules updated and the development runtime is healthy."
 }
@@ -753,6 +781,7 @@ command_name="${1:-help}"
 case "$command_name" in
   start) usl_cli_title "Start development"; print_command_context ;;
   deploy) usl_cli_title "Deploy add-ons"; print_command_context ;;
+  stamp-release-identity) usl_cli_title "Record worktree release identity"; print_command_context ;;
   rebuild) usl_cli_title "Rebuild and deploy"; print_command_context ;;
   stop) usl_cli_title "Stop development"; print_command_context ;;
   restart) usl_cli_title "Restart services"; print_command_context ;;
@@ -785,6 +814,9 @@ case "$command_name" in
     ;;
   deploy)
     deploy "${2:-$DEV_MODULE}" "1/2" "2/2"
+    ;;
+  stamp-release-identity)
+    stamp_worktree_release_identity
     ;;
   rebuild)
     usl_cli_step "1/3" "Build the Odoo image"
@@ -904,6 +936,8 @@ Commands:
   start        Start PostgreSQL and Odoo
   deploy [mod] Update a module and recreate the development server
   rebuild [mod] Rebuild images, update a module, and recreate the server
+  stamp-release-identity
+                Record the exact clean worktree commit for feedback submissions
   stop         Stop the stack
   restart      Restart services
   logs         Follow logs

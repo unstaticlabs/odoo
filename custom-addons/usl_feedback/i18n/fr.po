@@ -412,6 +412,14 @@ msgstr ""
 "les champs de la tâche."
 
 #. module: usl_feedback
+#: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_collaborator
+#: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_maintainer
+msgid "Use Feedback in Messages to report an issue or suggest an improvement."
+msgstr ""
+"Utilisez Retours dans Messages pour signaler un problème ou proposer une "
+"amélioration."
+
+#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/project_task.py:0
 msgid "Feedback cards can only be deleted by feedback maintainers."
@@ -457,6 +465,12 @@ msgstr ""
 #: code:addons/usl_feedback/models/project_task.py:0
 msgid "Feedback must carry an exact 40-character release SHA."
 msgstr "Le retour doit contenir le SHA exact de la version sur 40 caractères."
+
+#. module: usl_feedback
+#: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_collaborator
+#: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_maintainer
+msgid "No feedback yet"
+msgstr "Aucun retour pour le moment"
 
 #. module: usl_feedback
 #. odoo-python

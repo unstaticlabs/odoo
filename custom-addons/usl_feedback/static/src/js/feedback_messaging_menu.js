@@ -9,6 +9,7 @@ import { useService } from "@web/core/utils/hooks";
 
 import {
     Component,
+    markup,
     onWillStart,
     onWillUnmount,
     onWillUpdateProps,
@@ -343,7 +344,9 @@ export class FeedbackPanel extends Component {
         const action = await this.orm.call("project.project", "feedback_open_board", []);
         action.name = _t("Feedback");
         action.display_name = action.name;
-        this.props.close();
+        if (action.help) {
+            action.help = markup(action.help);
+        }
         await this.action.doAction(action);
     }
 

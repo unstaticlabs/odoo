@@ -673,6 +673,7 @@ if [[ "$profile" == full ]]; then
     documents_qa_finalize_semantic_index
   write_qa_state
 fi
+stage "record exact worktree release identity" scripts/odoo-dev stamp-release-identity
 
 write_report passed
 trap - EXIT
