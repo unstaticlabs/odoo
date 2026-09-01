@@ -335,6 +335,26 @@ class TestDocumentDownloadGrants(TransactionCase):
         self.assertFalse(grant.exists())
         self.assertTrue(current_grant.exists())
 
+    def test_cleanup_cron_uses_scheduler_only_entry_point(self):
+        cron = self.env.ref(
+            "usl_documents.ir_cron_usl_document_download_grants_cleanup",
+        )
+
+        self.assertEqual(cron.model_id.model, "usl.document.download.grant")
+        self.assertEqual(cron.code, "model._cron_cleanup_download_grants()")
+        self.assertTrue(
+            hasattr(
+                self.env["usl.document.download.grant"],
+                "_cron_cleanup_download_grants",
+            ),
+        )
+        self.assertFalse(
+            hasattr(
+                self.env["usl.document.download.grant"],
+                "cron_cleanup_download_grants",
+            ),
+        )
+
 
 @tagged("post_install", "-at_install", "usl_documents", "download_grants")
 class TestPaperlessDownloadStreaming(TransactionCase):

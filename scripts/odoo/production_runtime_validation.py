@@ -10,6 +10,25 @@ from datetime import timedelta
 from odoo import fields
 
 
+def stale_cron_progress(records, cutoff):
+    """Return only unfinished latest runs that have remained stuck."""
+    latest_by_cron = {}
+    for progress in sorted(records, key=lambda item: item.id, reverse=True):
+        cron_id = progress.cron_id.id
+        if cron_id not in latest_by_cron:
+            latest_by_cron[cron_id] = progress
+    return [
+        progress
+        for progress in latest_by_cron.values()
+        if (
+            progress.cron_id.active
+            and progress.remaining > 0
+            and progress.create_date
+            and progress.create_date < cutoff
+        )
+    ]
+
+
 def load_object(name):
     try:
         value = json.loads(os.environ[name])
@@ -103,10 +122,12 @@ if "sign.oca.request" in env.registry and "archive_status" in env["sign.oca.requ
 stale_progress = 0
 if "ir.cron.progress" in env.registry:  # noqa: F821
     Progress = env["ir.cron.progress"].sudo()  # noqa: F821
-    domain = []
-    if "create_date" in Progress._fields:
-        domain = [("create_date", "<", now - timedelta(hours=2))]
-    stale_progress = Progress.search_count(domain)
+    stale_progress = len(
+        stale_cron_progress(
+            Progress.search([]),
+            now - timedelta(hours=2),
+        ),
+    )
 
 blockers = {}
 if active != desired:
