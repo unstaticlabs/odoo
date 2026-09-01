@@ -2,9 +2,9 @@
   "schema": "usl-odoo-mcp-release-v2",
   "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
   "ref": "main",
-  "commit": "78515eaf6b03441e1b67f27979246247ac270d71",
-  "image_tag": "ghcr.io/unstaticlabs/odoo-mcp:sha-78515eaf6b03441e1b67f27979246247ac270d71",
-  "image_digest": "ghcr.io/unstaticlabs/odoo-mcp@sha256:c1c0861cd1e3f70fd7ecb17cf2108b4aafbe86b2b0901cf63fe36d18420c02ed",
+  "commit": "94cad372c968cc2f8d001f7479ce4297a2a028fe",
+  "image_tag": "ghcr.io/unstaticlabs/odoo-mcp:sha-94cad372c968cc2f8d001f7479ce4297a2a028fe",
+  "image_digest": "ghcr.io/unstaticlabs/odoo-mcp@sha256:ff4ef8244676c9f51493f1a5e1fb5f0d3b841e03822f6b5ce832b5d303c074c9",
   "compatibility": "deploy/odoo-mcp/compatibility.json",
   "compatibility_sha256": "1c02b45290a79a3abaa08babf292c0f155bfdaf796ed34318194388f8d7b32b2"
 }
