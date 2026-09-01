@@ -169,7 +169,19 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("compose.default_network is required")
 
     services = root["services"]
-    required_services = {"odoo", "odoo_db", "paperless", "paperless_db", "mcp", "sign"}
+    required_services = {
+        "odoo",
+        "odoo_db",
+        "paperless",
+        "paperless_db",
+        "paperless_broker",
+        "paperless_gotenberg",
+        "paperless_tika",
+        "mcp",
+        "renderer",
+        "sign",
+        "sign_ca",
+    }
     _exact(services, required_services, "services")
     if not all(isinstance(value, str) and value for value in services.values()):
         raise RuntimeError("service names must be non-empty strings")
@@ -195,6 +207,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "odoo_postgres",
         "paperless_postgres",
         "paperless_broker",
+        "paperless_export",
         "mcp_oauth",
     }
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
@@ -359,6 +372,58 @@ def compose_command(identity: dict[str, Any], arguments: list[str]) -> list[str]
     return [*command, *arguments]
 
 
+def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
+    path = f"{target.value['state_directory']}/active.json"
+    process = runner.run(["cat", path], check=False)
+    if process.returncode:
+        return None
+    try:
+        state = json.loads(process.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"active generation state is invalid: {path}") from error
+    expected = {
+        "schema",
+        "target",
+        "generation",
+        "volumes",
+        "network",
+        "snapshot",
+        "release_manifest",
+        "previous",
+    }
+    if not isinstance(state, dict) or set(state) != expected:
+        raise RuntimeError("active generation state fields differ")
+    if state["schema"] != "usl-active-generation/v1" or state["target"] != target.name:
+        raise RuntimeError("active generation state belongs to another target")
+    if not TARGET_NAME.fullmatch(str(state["generation"])):
+        raise RuntimeError("active generation name is invalid")
+    if set(state["volumes"]) != set(target.value["volumes"]):
+        raise RuntimeError("active generation volume perimeter differs")
+    if not isinstance(state["network"], str) or not state["network"]:
+        raise RuntimeError("active generation network is invalid")
+    if not SHA256.fullmatch(str(state["snapshot"])):
+        raise RuntimeError("active generation snapshot is invalid")
+    if not isinstance(state["release_manifest"], str) or not state["release_manifest"].startswith(
+        target.value["state_directory"] + "/generations/"
+    ):
+        raise RuntimeError("active generation release manifest is invalid")
+    return state
+
+
+def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[str, str]], str | None]:
+    state = read_active_state(target, runner)
+    if state is None:
+        return target.value["volumes"], None
+    volumes = {
+        role: {"name": name, "class": target.value["volumes"][role]["class"]}
+        for role, name in state["volumes"].items()
+        if isinstance(name, str) and name
+    }
+    if set(volumes) != set(target.value["volumes"]):
+        raise RuntimeError("active generation contains an invalid volume name")
+    return volumes, state["generation"]
+
+
 def inspect_runtime(target: Target, runner: Runner) -> dict[str, Any]:
     identity = compose_identity(target, runner)
     process = runner.run(compose_command(identity, ["ps", "--all", "--format", "json"]))
@@ -370,13 +435,22 @@ def inspect_runtime(target: Target, runner: Runner) -> dict[str, Any]:
     ]
     if foreign:
         raise RuntimeError(f"Compose returned foreign containers: {foreign}")
+    active_state = read_active_state(target, runner)
+    definitions, generation = effective_volumes(target, runner)
     volumes = {}
-    for role, definition in target.value["volumes"].items():
+    for role, definition in definitions.items():
         inspected = runner.run(
             ["docker", "volume", "inspect", definition["name"], "--format", "{{json .Labels}}"],
         )
         labels = json.loads(inspected.stdout)
-        if labels.get("com.docker.compose.project") != target.project:
+        legacy_owner = labels.get("com.docker.compose.project") == target.project
+        generation_owner = (
+            labels.get("com.unstaticlabs.runtime.project") == target.project
+            and labels.get("com.unstaticlabs.runtime.target") == target.name
+            and labels.get("com.unstaticlabs.runtime.generation") == generation
+            and labels.get("com.unstaticlabs.runtime.role") == role
+        )
+        if not legacy_owner and not generation_owner:
             raise RuntimeError(f"volume {definition['name']} is not owned by {target.project}")
         volumes[role] = {"name": definition["name"], "class": definition["class"]}
     return {
@@ -387,5 +461,7 @@ def inspect_runtime(target: Target, runner: Runner) -> dict[str, Any]:
         "compose": identity,
         "containers": containers,
         "volumes": volumes,
+        "generation": generation or "adopted",
+        "active_state": active_state,
         "paths": target.value["paths"],
     }

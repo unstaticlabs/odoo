@@ -29,6 +29,8 @@ class FakeRunner:
 
     def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
         self.commands.append(command)
+        if command[:1] == ["cat"]:
+            return subprocess.CompletedProcess(command, 1, "", "missing")
         if command[:2] == ["docker", "ps"]:
             return self.completed(command, "anchor-id\n")
         if command[:3] == ["docker", "inspect", "anchor-id"]:
@@ -102,6 +104,51 @@ class RuntimeContractTests(unittest.TestCase):
         result = inspect_runtime(target, FakeRunner(target))
         self.assertEqual(result["target"], "staging")
         self.assertEqual(set(result["volumes"]), set(target.value["volumes"]))
+
+    def test_status_accepts_only_the_recorded_active_generation(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260901-a1b2c3d4"
+        volumes = {
+            role: f"generation-{role}"
+            for role in target.value["volumes"]
+        }
+        state = {
+            "schema": "usl-active-generation/v1",
+            "target": target.name,
+            "generation": generation,
+            "volumes": volumes,
+            "network": "generation-network",
+            "snapshot": "a" * 64,
+            "release_manifest": (
+                target.value["state_directory"]
+                + f"/generations/{generation}/usl-release.json"
+            ),
+            "previous": {},
+        }
+
+        class GenerationRunner(FakeRunner):
+            def run(self, command: list[str], *, check: bool = True):
+                if command[:1] == ["cat"]:
+                    return self.completed(command, json.dumps(state))
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    name = command[3]
+                    role = next(key for key, value in volumes.items() if value == name)
+                    return self.completed(
+                        command,
+                        json.dumps(
+                            {
+                                "com.unstaticlabs.runtime.project": target.project,
+                                "com.unstaticlabs.runtime.target": target.name,
+                                "com.unstaticlabs.runtime.generation": generation,
+                                "com.unstaticlabs.runtime.role": role,
+                            },
+                        ),
+                    )
+                return super().run(command, check=check)
+
+        result = inspect_runtime(target, GenerationRunner(target))
+        self.assertEqual(result["generation"], generation)
+        self.assertEqual(result["active_state"]["snapshot"], "a" * 64)
 
 
 if __name__ == "__main__":

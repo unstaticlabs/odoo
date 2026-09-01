@@ -15,8 +15,13 @@
     "odoo_db": "db",
     "paperless": "paperless-webserver",
     "paperless_db": "paperless-db",
+    "paperless_broker": "paperless-broker",
+    "paperless_gotenberg": "paperless-gotenberg",
+    "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
-    "sign": "usl-sign-dss"
+    "renderer": "usl-document-renderer",
+    "sign": "usl-sign-dss",
+    "sign_ca": "usl-sign-step-ca"
   },
   "databases": {
     "odoo": {
@@ -41,6 +46,7 @@
     "paperless_data": {"name": "usl-odoo-staging-main_paperless-data", "class": "cache"},
     "paperless_trash": {"name": "usl-odoo-staging-main_paperless-trash", "class": "durable"},
     "paperless_consume": {"name": "usl-odoo-staging-main_paperless-consume", "class": "durable"},
+    "paperless_export": {"name": "usl-odoo-staging-main_paperless-export", "class": "transient"},
     "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable"}
   },
   "paths": {

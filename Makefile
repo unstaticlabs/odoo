@@ -6,6 +6,9 @@ ODOO_DEV ?= scripts/odoo-dev
 ODOO_DEV_DB ?= odoo_dev
 MODULE ?=
 SERVICE ?=
+TARGET ?= local
+SOURCE ?= production
+SNAPSHOT ?=
 ACCOUNTING_TEST_DB ?= odoo_rebuild_accounting_unit_$(shell date -u +%Y%m%d%H%M%S)
 ACCOUNTING_TEST_TAGS ?= rebuild_account_migration_unit
 ACCOUNTING_TEST_LOG_LEVEL ?= warn
@@ -25,6 +28,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
+.PHONY: backup restore smoke health qa-refresh
 
 help:
 	@printf '%s\n' \
@@ -39,12 +43,34 @@ help:
 	  '  make logs [SERVICE=odoo]            Follow service logs' \
 	  '  make stop                           Stop containers and preserve data' \
 	  '  make login-link USER=username       Create a local one-time sign-in link' \
+	  '  make backup TARGET=production       Capture a coordinated recovery cohort' \
+	  '  make restore TARGET=staging SNAPSHOT=<full-id>  Restore fresh staging volumes' \
+	  '  make health TARGET=production       Run fast read-only runtime checks' \
+	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the delivered product boundary' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make user-docs-build                Render user documentation' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
 	  'Run migration/manage --help for its lifecycle commands.'
+
+backup:
+	@scripts/usl-stack backup create --target "$(TARGET)"
+
+restore:
+	@if [ -z "$(strip $(SNAPSHOT))" ]; then printf 'Usage: make restore TARGET=<target> SOURCE=<source> SNAPSHOT=<full-id>\n' >&2; exit 2; fi
+	@scripts/usl-stack restore run --source "$(SOURCE)" --target "$(TARGET)" \
+		--snapshot "$(SNAPSHOT)" --replace --confirm "$(TARGET)"
+
+qa-refresh:
+	@if [ -z "$(strip $(SNAPSHOT))" ]; then printf 'Usage: make qa-refresh SNAPSHOT=<full-id>\n' >&2; exit 2; fi
+	@$(MAKE) restore TARGET=staging SOURCE=production SNAPSHOT="$(SNAPSHOT)"
+
+health:
+	@scripts/usl-stack health --target "$(TARGET)"
+
+smoke:
+	@scripts/usl-stack smoke --target "$(TARGET)"
 
 doctor:
 	@$(ODOO_DEV) doctor

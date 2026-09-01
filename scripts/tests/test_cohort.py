@@ -10,7 +10,16 @@ from unittest import mock
 
 from operations import cohort
 from operations.runtime import load_target
-from operations.stack import _cohort_command, with_writers_paused
+from operations.stack import (
+    VOLUME_LOGICAL_NAMES,
+    _cohort_command,
+    _generation_overlay,
+    _materialize_command,
+    _restore_unlocked,
+    generation_volume_names,
+    runtime_lock,
+    with_writers_paused,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,14 +32,29 @@ def manifest(durable: dict, cache: dict) -> dict:
         "run_id": "20260901t120000z-a1b2c3d4",
         "created_at": "2026-09-01T12:00:00Z",
         "target": "production",
-        "release": {"commit": "a" * 40, "manifest_sha256": "b" * 64},
+        "release": {
+            "commit": "a" * 40,
+            "manifest_sha256": "b" * 64,
+            "path": "durable/release.json",
+        },
         "ollama": {"model": "bge-m3:latest", "manifest_sha256": "c" * 64, "dimension": 1024},
         "databases": {
             "odoo": {"name": "odoo_production", "bytes": 1, "sha256": "d" * 64},
             "paperless": {"name": "paperless", "bytes": 1, "sha256": "e" * 64},
         },
+        "controls": {
+            "odoo": {"ledger_delta": 0},
+            "paperless": {"documents": 1},
+        },
         "durable": durable,
         "cache": cache,
+        "resources": {
+            "odoo_filestore": {
+                "class": "durable",
+                "path": "durable/odoo-filestore",
+                "identity": durable,
+            }
+        },
         "cache_snapshot_id": None,
     }
 
@@ -85,8 +109,67 @@ class CohortContractTests(unittest.TestCase):
                 result = cohort.push(arguments)
             self.assertEqual(calls[0][0], ["cache"])
             self.assertEqual(calls[1][0], ["durable", "manifest.json"])
+            self.assertIn("pending-verification", calls[1][1])
+            self.assertNotIn("recovery-eligible", calls[1][1])
             self.assertEqual(result["cache_snapshot_id"], "1" * 64)
             self.assertEqual(result["durable_snapshot_id"], "2" * 64)
+
+    def test_push_resumes_without_duplicate_upload_after_state_is_written(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id = "20260901t120000z-a1b2c3d4"
+            run_root = root / run_id
+            run_root.mkdir()
+            state = {
+                "schema": cohort.STATE_SCHEMA,
+                "run_id": run_id,
+                "target": "production",
+                "durable_snapshot_id": "1" * 64,
+                "cache_snapshot_id": "2" * 64,
+                "status": "uploaded",
+            }
+            (run_root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+            with mock.patch.object(cohort, "restic_backup") as backup:
+                self.assertEqual(
+                    cohort.push(argparse.Namespace(root=str(root), run_id=run_id)),
+                    state,
+                )
+            backup.assert_not_called()
+
+    def test_qualification_tags_snapshots_only_after_verification(self) -> None:
+        arguments = argparse.Namespace(root="/cohort", durable_snapshot="1" * 64)
+        calls = []
+        with (
+            mock.patch.object(
+                cohort,
+                "verify",
+                return_value={
+                    "schema": cohort.STATE_SCHEMA,
+                    "run_id": "run-id",
+                    "target": "production",
+                    "durable_snapshot_id": "1" * 64,
+                    "cache_snapshot_id": "2" * 64,
+                    "status": "verified",
+                },
+            ) as verify,
+            mock.patch.object(cohort, "restic_environment", side_effect=({"repo": "d"}, {"repo": "c"})),
+            mock.patch.object(
+                cohort,
+                "retry_restic",
+                side_effect=lambda command, environment: calls.append((command, environment)),
+            ),
+        ):
+            result = cohort.qualify(arguments)
+        verify.assert_called_once_with(arguments)
+        self.assertEqual(result["status"], "qualified")
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(all("recovery-eligible" in command for command, _environment in calls))
+
+    def test_staging_restore_isolates_production_mcp_oauth_state(self) -> None:
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging"))
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local"))
+        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production"))
+        self.assertTrue(cohort.should_restore_resource("paperless_originals", "staging"))
 
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
@@ -130,6 +213,91 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("stop", runner.commands[0])
         self.assertIn("up", runner.commands[-1])
         self.assertIn("--no-recreate", runner.commands[-1])
+
+    def test_runtime_lock_is_released_after_failure(self) -> None:
+        target = load_target("local", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        with self.assertRaisesRegex(RuntimeError, "injected"):
+            with runtime_lock(target, runner, "backup", "run-id"):
+                raise RuntimeError("injected")
+        self.assertIn(["rmdir", target.value["state_directory"] + "/operation.lock"], runner.commands)
+
+    def test_production_restore_requires_exact_confirmation_before_runtime_access(self) -> None:
+        arguments = argparse.Namespace(
+            source="production",
+            target="production",
+            targets=TARGETS,
+            replace=False,
+            confirm=None,
+        )
+        with self.assertRaisesRegex(RuntimeError, "protected restore"):
+            _restore_unlocked(arguments)
+
+    def test_generation_uses_unique_exact_volume_names(self) -> None:
+        target = load_target("staging", TARGETS)
+        names = generation_volume_names(target, "g20260901-a1b2c3d4")
+        self.assertEqual(set(names), set(target.value["volumes"]))
+        self.assertEqual(len(set(names.values())), len(names))
+        self.assertTrue(all("g20260901-a1b2c3d4" in name for name in names.values()))
+        overlay = json.loads(_generation_overlay(names))
+        self.assertEqual(set(overlay["volumes"]), set(VOLUME_LOGICAL_NAMES.values()))
+        self.assertTrue(all(value["external"] for value in overlay["volumes"].values()))
+
+    def test_generation_pins_every_release_owned_runtime_image(self) -> None:
+        digest = "sha256:" + "a" * 64
+        reference = "ghcr.io/unstaticlabs/example@" + digest
+        release = {
+            "components": {
+                "distribution": {"digest_reference": reference},
+                "paperless": {"digest_reference": reference},
+                "sign-dss": {"digest_reference": reference},
+            },
+            "mcp": {"image": reference},
+            "renderer": {"image": reference},
+        }
+        target = load_target("staging", TARGETS)
+        names = generation_volume_names(target, "g20260901-a1b2c3d4")
+        services = {
+            "odoo",
+            "paperless-webserver",
+            "usl-sign-dss",
+            "odoo-mcp",
+            "usl-document-renderer",
+        }
+        overlay = json.loads(_generation_overlay(names, release, services))
+        self.assertEqual(set(overlay["services"]), services)
+        self.assertTrue(
+            all(item["image"] == reference and item["build"] is None for item in overlay["services"].values()),
+        )
+
+    def test_materialization_uses_source_repositories_and_fresh_target_volumes(self) -> None:
+        source = load_target("production", TARGETS)
+        target = load_target("staging", TARGETS)
+        names = generation_volume_names(target, "g20260901-a1b2c3d4")
+        command = _materialize_command(
+            source,
+            target,
+            "backup@sha256:" + "a" * 64,
+            "b" * 64,
+            "g20260901-a1b2c3d4",
+            "recovery-network",
+            names,
+        )
+        joined = " ".join(command)
+        self.assertIn(source.value["backup"]["durable_repository"], joined)
+        self.assertIn(source.value["backup"]["cache_repository"], joined)
+        self.assertIn(names["odoo_filestore"] + ":/target/odoo-data", joined)
+        self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
+        self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
 
 
 if __name__ == "__main__":
