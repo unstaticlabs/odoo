@@ -257,6 +257,59 @@ class TestBankStatementIngestion(TransactionCase):
             self.env.ref("usl_accounting.view_bank_statement_form_review").id,
         )
 
+    def test_french_ofx_components_match_the_configured_iban(self):
+        split_account_ofx = self.ofx.replace(
+            b"<BANKID>00001</BANKID>\n          <ACCTID>FR7630001007941234567890185</ACCTID>",
+            b"<BANKID>30001</BANKID>\n          <BRANCHID>00794</BRANCHID>\n          <ACCTID>12345678901</ACCTID>",
+        )
+        ingestion = self._ingestion(
+            "<synthetic-french-components@example.invalid>",
+            ofx=split_account_ofx,
+            pdf=self.pdf,
+        )
+        ingestion._retain_message_attachments()
+        ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )._ensure_exception(
+            "account",
+            "Prior account mismatch",
+            "Created by the former complete-IBAN-only matcher.",
+        )
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "done", ingestion.last_error)
+        self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
+        self.assertEqual(
+            set(ingestion.statement_ids.line_ids.mapped("provider_account_id")),
+            {"FR7630001007941234567890185"},
+        )
+        self.assertFalse(
+            ingestion.exception_ids.filtered(
+                lambda item: item.kind == "account" and item.state == "open",
+            ),
+        )
+
+    def test_french_ofx_components_must_all_match_the_configured_iban(self):
+        mismatched_ofx = self.ofx.replace(
+            b"<BANKID>00001</BANKID>\n          <ACCTID>FR7630001007941234567890185</ACCTID>",
+            b"<BANKID>30001</BANKID>\n          <BRANCHID>00795</BRANCHID>\n          <ACCTID>12345678901</ACCTID>",
+        )
+        ingestion = self._ingestion(
+            "<synthetic-french-mismatch@example.invalid>",
+            ofx=mismatched_ofx,
+        )
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids)
+        self.assertTrue(
+            ingestion.exception_ids.filtered(
+                lambda item: item.kind == "account" and item.state == "open",
+            ),
+        )
+
     def test_unmanaged_manual_statement_remains_outside_scheduled_review(self):
         statement = self.env["account.bank.statement"].create(
             {
@@ -462,10 +515,6 @@ class TestBankStatementIngestion(TransactionCase):
             None,
             message.as_bytes(),
         )
-        self.assertEqual(ingestion.state, "received")
-
-        self.env["account.bank.ingestion"]._cron_process_pending()
-
         self.assertEqual(ingestion.state, "done", ingestion.last_error)
         self.assertTrue(ingestion.statement_ids.line_ids)
         self.assertTrue(ingestion.statement_ids.accepted_evidence_id)

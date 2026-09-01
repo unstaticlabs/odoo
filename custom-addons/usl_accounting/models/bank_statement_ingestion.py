@@ -48,6 +48,33 @@ def _month_end(value):
     return next_month - dt.timedelta(days=1)
 
 
+def _ofx_account_matches(configured_identifier, parsed_identifier, ofx_account):
+    """Match either a complete account identifier or strict French OFX parts."""
+    configured = sanitize_account_number(configured_identifier or "").upper()
+    parsed = sanitize_account_number(parsed_identifier or "").upper()
+    if parsed == configured:
+        return True
+    if not configured.startswith("FR") or len(configured) != 27:
+        return False
+    expected_bank = configured[4:9]
+    expected_branch = configured[9:14]
+    expected_account = configured[14:25]
+    return (
+        sanitize_account_number(
+            getattr(ofx_account, "routing_number", "") or "",
+        ).upper()
+        == expected_bank
+        and sanitize_account_number(
+            getattr(ofx_account, "branch_id", "") or "",
+        ).upper()
+        == expected_branch
+        and sanitize_account_number(
+            getattr(ofx_account, "account_id", "") or "",
+        ).upper()
+        == expected_account
+    )
+
+
 class AccountBankIngestionConfig(models.Model):
     _name = "account.bank.ingestion.config"
     _description = "Bank Statement Email Setup"
@@ -1330,8 +1357,11 @@ class AccountBankIngestionFile(models.Model):
             raise UserError(_("The bank export must contain exactly one bank account."))
         currency_code, account_number, statements_values = parsed_accounts[0]
         config = self.ingestion_id.config_id
-        if sanitize_account_number(account_number) != sanitize_account_number(
+        ofx_account = ofx.accounts[0]
+        if not _ofx_account_matches(
             config.source_account_identifier,
+            account_number,
+            ofx_account,
         ):
             self._ensure_exception(
                 "account",
@@ -1342,6 +1372,22 @@ class AccountBankIngestionFile(models.Model):
             )
             self.processing_state = "attention"
             return
+        canonical_account_id = sanitize_account_number(
+            config.source_account_identifier,
+        )
+        self.exception_ids.filtered(
+            lambda item: item.kind == "account" and item.state == "open",
+        ).sudo().with_context(bank_exception_internal=True).write(
+            {
+                "state": "resolved",
+                "resolution": "corrected_source",
+                "resolution_reason": _(
+                    "The retained OFX account components match the configured bank account.",
+                ),
+                "resolved_by_id": self.env.user.id,
+                "resolved_at": fields.Datetime.now(),
+            },
+        )
         currency = wizard._match_currency(currency_code)
         journal_currency = (
             config.journal_id.currency_id or config.company_id.currency_id
@@ -1404,14 +1450,14 @@ class AccountBankIngestionFile(models.Model):
             line_values["date"] = fields.Date.to_date(line_values["date"])
             if not raw_id or raw_id in duplicate_ids:
                 fallback = hashlib.sha256(
-                    f"{self.sha256}:{sanitize_account_number(account_number)}:{period_start}:{ordinal}".encode(),
+                    f"{self.sha256}:{canonical_account_id}:{period_start}:{ordinal}".encode(),
                 ).hexdigest()
                 candidate = {
                     **line_values,
                     "date": line_values["date"].isoformat(),
                     "unique_import_id": f"fallback-{fallback}",
                     "provider_code": config.provider,
-                    "provider_account_id": sanitize_account_number(account_number),
+                    "provider_account_id": canonical_account_id,
                     "provider_transaction_id": f"fallback:{fallback}",
                 }
                 prior_decision = self.env["account.bank.statement.exception"].search(
@@ -1466,12 +1512,12 @@ class AccountBankIngestionFile(models.Model):
             line_values.update(
                 {
                     "provider_code": config.provider,
-                    "provider_account_id": sanitize_account_number(account_number),
+                    "provider_account_id": canonical_account_id,
                     "provider_transaction_id": raw_id,
                     "provider_identity_kind": "stable",
                     "transaction_details": {
                         "provider": config.provider,
-                        "account_id": sanitize_account_number(account_number),
+                        "account_id": canonical_account_id,
                         "transaction_id": raw_id,
                     },
                     "ingestion_file_ids": [Command.link(self.id)],
@@ -1504,9 +1550,7 @@ class AccountBankIngestionFile(models.Model):
                         update.update(
                             {
                                 "provider_code": config.provider,
-                                "provider_account_id": sanitize_account_number(
-                                    account_number,
-                                ),
+                                "provider_account_id": canonical_account_id,
                                 "provider_transaction_id": raw_id,
                                 "provider_identity_kind": "stable",
                             },
@@ -2101,4 +2145,6 @@ class MailThread(models.AbstractModel):
                         "company_id": ingestion.company_id.id,
                     },
                 )
+                if ingestion.config_id.processing_enabled and ingestion.state == "received":
+                    ingestion.with_context(bank_ingestion_cron=True)._process()
         return record

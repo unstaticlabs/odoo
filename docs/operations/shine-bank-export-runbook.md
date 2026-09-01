@@ -37,9 +37,16 @@ original through the **Official statement** action. Choose **Confirm bank balanc
 displayed period, opening and closing values with that PDF. Resolve any exact
 difference, continuity or Documents issue, then certify.
 
-The two scheduled jobs process retained sources every ten minutes and update
-expected-period activities daily. Pausing a configuration stops scheduled
-processing; it does not delete sources or change accounting.
+Odoo processes a configured bank email as soon as it has retained the message
+and attachments. A ten-minute recovery job picks up any source left in the
+received state after an interrupted mail transaction. The daily job updates
+expected-period activities. Pausing a configuration stops processing; it does
+not delete sources or change accounting.
+
+Shine may identify a French account either with the complete IBAN or with its
+OFX bank code, branch code and account-number components. Odoo accepts the
+component form only when all three exactly match the configured IBAN. Imported
+transaction provenance always records the complete configured IBAN.
 
 ## Recovery
 
