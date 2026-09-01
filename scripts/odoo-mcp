@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from migration.mcp_release import McpReleaseError, resolve_release  # noqa: E402
+from operations.mcp_release import McpReleaseError, resolve_release  # noqa: E402
 
 
 def run(arguments: list[str], *, cwd: Path | None = None) -> str:

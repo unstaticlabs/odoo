@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location(
     "release_identity",
-    ROOT / "migration/release_identity.py",
+    ROOT / "operations/release_identity.py",
 )
 RELEASE_IDENTITY = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
@@ -30,7 +30,8 @@ class ReleaseIdentityTest(unittest.TestCase):
         )[0]
         dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
         preprod = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
-        self.assertIn("org.opencontainers.image.revision", distribution)
+        self.assertIn("com.unstaticlabs.odoo.component-input-sha256", distribution)
+        self.assertIn("USL_COMPONENT_INPUT_SHA256", distribution)
         self.assertIn("USL_OCA_BUNDLE_SHA256", distribution)
         self.assertIn("custom-addons ./custom-addons", distribution)
         self.assertIn("/srv/resolved ./oca-addons", distribution)
@@ -40,10 +41,12 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("!oca-src/**", dockerignore)
         self.assertIn("build: !reset null", preprod)
         self.assertNotIn("./custom-addons", preprod)
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        self.assertIn("USL_RELEASE_COMMIT: ${USL_RELEASE_COMMIT:-development}", compose)
 
     def test_release_and_database_boundary_scripts_parse(self):
         for relative_path in (
-            "migration/release_identity.py",
+            "operations/release_identity.py",
             "scripts/odoo/documents_identity_boundary.py",
             "scripts/odoo/documents_integrity_manifest.py",
             "scripts/odoo/documents_restore_acceptance.py",

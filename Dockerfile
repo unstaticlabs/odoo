@@ -148,17 +148,17 @@ ENV ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-add
 # the image and cannot drift with a host checkout after qualification.
 FROM product AS distribution
 
-ARG USL_RELEASE_COMMIT=unverified
+ARG USL_COMPONENT_INPUT_SHA256=unverified
 ARG USL_OCA_BUNDLE_SHA256=unverified
 ARG USL_ACTION_RISK_POLICY_SHA256=unverified
 
 LABEL org.opencontainers.image.title="USL Odoo Distribution" \
-      org.opencontainers.image.revision="${USL_RELEASE_COMMIT}" \
+      com.unstaticlabs.odoo.component-input-sha256="${USL_COMPONENT_INPUT_SHA256}" \
       com.unstaticlabs.odoo.oca-bundle-sha256="${USL_OCA_BUNDLE_SHA256}" \
       com.unstaticlabs.odoo.action-risk-policy-sha256="${USL_ACTION_RISK_POLICY_SHA256}" \
       com.unstaticlabs.odoo.runtime="distribution"
 
-ENV USL_RELEASE_COMMIT="${USL_RELEASE_COMMIT}" \
+ENV USL_COMPONENT_INPUT_SHA256="${USL_COMPONENT_INPUT_SHA256}" \
     USL_OCA_BUNDLE_SHA256="${USL_OCA_BUNDLE_SHA256}" \
     USL_ACTION_RISK_POLICY_SHA256="${USL_ACTION_RISK_POLICY_SHA256}"
 

@@ -6,10 +6,10 @@ ARG RESTIC_IMAGE=restic/restic:0.19.1@sha256:136600b6ff6843d61d355f7f71f460a1664
 FROM ${RESTIC_IMAGE} AS restic
 FROM ${POSTGRES_IMAGE} AS runtime
 
-ARG USL_RELEASE_COMMIT=unverified
+ARG USL_COMPONENT_INPUT_SHA256=unverified
 
 LABEL org.opencontainers.image.title="USL Odoo Backup Tool" \
-      org.opencontainers.image.revision="${USL_RELEASE_COMMIT}" \
+      com.unstaticlabs.odoo.component-input-sha256="${USL_COMPONENT_INPUT_SHA256}" \
       com.unstaticlabs.odoo.runtime="backup"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

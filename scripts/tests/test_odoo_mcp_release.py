@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from migration.mcp_release import McpReleaseError
+from operations.mcp_release import McpReleaseError
 
 
 ROOT = Path(__file__).resolve().parents[2]
