@@ -62,6 +62,7 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
         self.assertIn('"paperless_personal_ai.PersonalAIProfile"', script)
         self.assertIn('"socialaccount.SocialAccount"', script)
         self.assertIn('"authtoken.Token"', script)
+        self.assertIn('"account.EmailAddress"', script)
         self.assertIn("release-disabled-", script)
         self.assertIn("set_unusable_password", script)
 
