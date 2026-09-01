@@ -14,6 +14,7 @@ from operations.stack import (
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
     _generation_overlay,
+    _ensure_image,
     _materialize_command,
     _restore_unlocked,
     _validate_materialized_release,
@@ -193,12 +194,48 @@ class CohortContractTests(unittest.TestCase):
                 "retry_restic",
                 side_effect=lambda command, environment: calls.append((command, environment)),
             ),
+            mock.patch.object(
+                cohort,
+                "resolve_tagged_snapshot",
+                return_value="3" * 64,
+            ) as resolve,
         ):
             result = cohort.qualify(arguments)
         verify.assert_called_once_with(arguments)
         self.assertEqual(result["status"], "qualified")
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 1)
         self.assertTrue(all("recovery-eligible" in command for command, _environment in calls))
+        resolve.assert_called_once()
+        self.assertEqual(result["durable_snapshot_id"], "3" * 64)
+        self.assertEqual(result["cache_snapshot_id"], "2" * 64)
+
+    def test_qualified_snapshot_resolution_requires_one_exact_tag_match(self) -> None:
+        required = {"usl-cohort", "durable", "recovery-eligible", "run-example"}
+        inventory = [
+            {"id": "1" * 64, "tags": sorted(required)},
+            {"id": "2" * 64, "tags": ["usl-cohort", "durable"]},
+        ]
+        completed = subprocess.CompletedProcess(
+            ["restic", "snapshots"],
+            0,
+            json.dumps(inventory),
+            "",
+        )
+        with mock.patch.object(cohort, "retry_restic", return_value=completed):
+            self.assertEqual(cohort.resolve_tagged_snapshot({}, required), "1" * 64)
+
+    def test_snapshot_reference_follows_one_rewritten_tag_identity(self) -> None:
+        original = "1" * 64
+        current = "2" * 64
+        inventory = [{"id": current, "original": original, "tags": ["recovery-eligible"]}]
+        completed = subprocess.CompletedProcess(
+            ["restic", "snapshots"],
+            0,
+            json.dumps(inventory),
+            "",
+        )
+        with mock.patch.object(cohort, "retry_restic", return_value=completed):
+            self.assertEqual(cohort.resolve_snapshot_reference({}, original), current)
 
     def test_staging_restore_isolates_production_mcp_oauth_state(self) -> None:
         self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging"))
@@ -246,8 +283,29 @@ class CohortContractTests(unittest.TestCase):
                 lambda: (_ for _ in ()).throw(RuntimeError("injected")),
             )
         self.assertIn("stop", runner.commands[0])
+        self.assertIn("30", runner.commands[0])
         self.assertIn("up", runner.commands[-1])
         self.assertIn("--no-recreate", runner.commands[-1])
+
+    def test_backup_image_is_pulled_only_when_missing(self) -> None:
+        image = "backup@sha256:" + "a" * 64
+
+        class RecordingRunner:
+            def __init__(self, present: bool):
+                self.present = present
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                status = 0 if self.present or command[:2] != ["docker", "image"] else 1
+                return subprocess.CompletedProcess(command, status, "", "")
+
+        present = RecordingRunner(True)
+        _ensure_image(present, image)
+        self.assertEqual(len(present.commands), 1)
+        missing = RecordingRunner(False)
+        _ensure_image(missing, image)
+        self.assertEqual(missing.commands[-1], ["docker", "pull", image])
 
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)

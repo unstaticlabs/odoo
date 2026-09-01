@@ -66,7 +66,12 @@ class FakeRunner:
 class RuntimeContractTests(unittest.TestCase):
     def test_all_versioned_targets_validate(self) -> None:
         for name in ("production", "staging", "local"):
-            self.assertEqual(load_target(name, TARGETS).name, name)
+            target = load_target(name, TARGETS)
+            self.assertEqual(target.name, name)
+            self.assertEqual(
+                set(target.value["compose"]["profiles"]),
+                {"document-renderer", "mcp", "paperless", "sign"},
+            )
 
     def test_secret_file_rejects_scope_fields(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "topology key"):
@@ -85,7 +90,10 @@ class RuntimeContractTests(unittest.TestCase):
         identity = compose_identity(target, runner)
         self.assertEqual(identity["project"], target.project)
         self.assertEqual(identity["compose_files"], ["/release/compose.yaml", "/release/production.yaml"])
-        self.assertIn("--env-file", compose_command(identity, ["ps"]))
+        command = compose_command(identity, ["ps"])
+        self.assertIn("--env-file", command)
+        for profile in target.value["compose"]["profiles"]:
+            self.assertIn(profile, command)
 
     def test_status_rejects_foreign_volume_ownership(self) -> None:
         target = load_target("production", TARGETS)

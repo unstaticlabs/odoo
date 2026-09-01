@@ -7,7 +7,7 @@
   "compose": {
     "project": "usl-odoo-local",
     "anchor_service": "odoo",
-    "profiles": ["sign"],
+    "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-local_default"
   },
   "services": {

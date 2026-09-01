@@ -190,7 +190,7 @@ def _run_cohort(
 
 
 def with_writers_paused(runner, identity: dict, services: list[str], callback):
-    runner.run(compose_command(identity, ["stop", "--timeout", "60", *services]))
+    runner.run(compose_command(identity, ["stop", "--timeout", "30", *services]))
     try:
         return callback()
     finally:
@@ -200,6 +200,12 @@ def with_writers_paused(runner, identity: dict, services: list[str], callback):
                 ["up", "--detach", "--wait", "--no-recreate", *services],
             ),
         )
+
+
+def _ensure_image(runner, image: str) -> None:
+    present = runner.run(["docker", "image", "inspect", image], check=False)
+    if present.returncode:
+        runner.run(["docker", "pull", image])
 
 
 @contextmanager
@@ -275,6 +281,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
         run_id = arguments.resume or arguments.run_id or (
             f"{datetime.now(UTC):%Y%m%dt%H%M%Sz}-{release['source']['commit'][:8]}"
         )
+        _ensure_image(runner, image)
         with runtime_lock(target, runner, "backup", run_id):
             started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "operation", "started")

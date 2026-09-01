@@ -353,6 +353,7 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
         "working_directory": directory,
         "compose_files": files,
         "environment_file": env_file,
+        "profiles": target.value["compose"]["profiles"],
     }
 
 
@@ -369,6 +370,8 @@ def compose_command(identity: dict[str, Any], arguments: list[str]) -> list[str]
     ]
     for path in identity["compose_files"]:
         command.extend(("--file", path))
+    for profile in identity.get("profiles", []):
+        command.extend(("--profile", profile))
     return [*command, *arguments]
 
 

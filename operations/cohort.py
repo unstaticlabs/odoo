@@ -456,6 +456,29 @@ def retry_restic(
     raise failure
 
 
+def resolve_tagged_snapshot(environment: dict[str, str], required_tags: set[str]) -> str:
+    command = ["restic", "snapshots", "--json"]
+    for tag in sorted(required_tags):
+        command.extend(("--tag", tag))
+    result = retry_restic(command, environment)
+    try:
+        snapshots = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise CohortError("Restic snapshot inventory is invalid") from error
+    if not isinstance(snapshots, list):
+        raise CohortError("Restic snapshot inventory is invalid")
+    matches = [
+        item["id"]
+        for item in snapshots
+        if isinstance(item, dict)
+        and SNAPSHOT.fullmatch(str(item.get("id", "")))
+        and required_tags <= set(item.get("tags", []))
+    ]
+    if len(matches) != 1:
+        raise CohortError("qualified Restic snapshot identity is not unique")
+    return matches[0]
+
+
 def push(arguments: argparse.Namespace) -> dict[str, Any]:
     root = Path(arguments.root) / arguments.run_id
     manifest_path = root / "manifest.json"
@@ -512,9 +535,37 @@ def push(arguments: argparse.Namespace) -> dict[str, Any]:
     return state
 
 
-def restore_snapshot(snapshot: str, destination: Path, environment: dict[str, str]) -> None:
+def resolve_snapshot_reference(environment: dict[str, str], snapshot: str) -> str:
     if not SNAPSHOT.fullmatch(snapshot):
         raise CohortError("snapshot must be a full 64-character ID")
+    result = retry_restic(["restic", "snapshots", "--json"], environment)
+    try:
+        snapshots = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise CohortError("Restic snapshot inventory is invalid") from error
+    if not isinstance(snapshots, list):
+        raise CohortError("Restic snapshot inventory is invalid")
+    exact = [
+        item["id"]
+        for item in snapshots
+        if isinstance(item, dict) and item.get("id") == snapshot
+    ]
+    if len(exact) == 1:
+        return exact[0]
+    rewritten = [
+        item["id"]
+        for item in snapshots
+        if isinstance(item, dict)
+        and item.get("original") == snapshot
+        and SNAPSHOT.fullmatch(str(item.get("id", "")))
+    ]
+    if len(rewritten) != 1:
+        raise CohortError("Restic snapshot reference is missing or ambiguous")
+    return rewritten[0]
+
+
+def restore_snapshot(snapshot: str, destination: Path, environment: dict[str, str]) -> str:
+    snapshot = resolve_snapshot_reference(environment, snapshot)
     if destination.exists():
         raise CohortError(f"restore destination already exists: {destination}")
     destination.mkdir(parents=True, mode=0o700)
@@ -522,6 +573,7 @@ def restore_snapshot(snapshot: str, destination: Path, environment: dict[str, st
         ["restic", "restore", snapshot, "--target", str(destination)],
         environment,
     )
+    return snapshot
 
 
 def verify_embedded_release(cohort_root: Path, manifest: dict[str, Any]) -> dict[str, Any]:
@@ -548,7 +600,11 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
     if verify_root.exists():
         shutil.rmtree(verify_root)
     try:
-        restore_snapshot(arguments.durable_snapshot, verify_root / "durable-snapshot", durable_environment)
+        durable_snapshot = restore_snapshot(
+            arguments.durable_snapshot,
+            verify_root / "durable-snapshot",
+            durable_environment,
+        )
         candidates = list((verify_root / "durable-snapshot").rglob("manifest.json"))
         if len(candidates) != 1:
             raise CohortError("durable snapshot has no unique cohort manifest")
@@ -560,7 +616,11 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
         cache_snapshot = manifest["cache_snapshot_id"]
         if not cache_snapshot:
             raise CohortError("durable snapshot does not bind a cache snapshot")
-        restore_snapshot(cache_snapshot, verify_root / "cache-snapshot", cache_environment)
+        cache_snapshot = restore_snapshot(
+            cache_snapshot,
+            verify_root / "cache-snapshot",
+            cache_environment,
+        )
         cache_roots = [path for path in (verify_root / "cache-snapshot").rglob("cache") if path.is_dir()]
         if len(cache_roots) != 1 or tree_identity(cache_roots[0]) != manifest["cache"]:
             raise CohortError("restored cache differs from the durable manifest")
@@ -573,7 +633,7 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
             "schema": STATE_SCHEMA,
             "run_id": manifest["run_id"],
             "target": manifest["target"],
-            "durable_snapshot_id": arguments.durable_snapshot,
+            "durable_snapshot_id": durable_snapshot,
             "cache_snapshot_id": cache_snapshot,
             "status": "verified",
         }
@@ -584,10 +644,6 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
 def qualify(arguments: argparse.Namespace) -> dict[str, Any]:
     state = verify(arguments)
     durable_environment = restic_environment("RESTIC_REPOSITORY", "RESTIC_PASSWORD")
-    cache_environment = restic_environment(
-        "USL_BACKUP_CACHE_REPOSITORY",
-        "USL_BACKUP_CACHE_PASSWORD",
-    )
     retry_restic(
         [
             "restic",
@@ -600,9 +656,10 @@ def qualify(arguments: argparse.Namespace) -> dict[str, Any]:
         ],
         durable_environment,
     )
-    retry_restic(
-        ["restic", "tag", state["cache_snapshot_id"], "--add", "recovery-eligible"],
-        cache_environment,
+    run_tag = f"run-{state['run_id']}"
+    state["durable_snapshot_id"] = resolve_tagged_snapshot(
+        durable_environment,
+        {"usl-cohort", "durable", "recovery-eligible", run_tag},
     )
     state["status"] = "qualified"
     state_path = Path(arguments.root) / state["run_id"] / "state.json"
@@ -667,7 +724,11 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
     work = Path(arguments.root) / f"materialize-{arguments.durable_snapshot[:12]}"
     if work.exists():
         raise CohortError(f"materialization workspace already exists: {work}")
-    restore_snapshot(arguments.durable_snapshot, work / "durable-snapshot", durable_environment)
+    durable_snapshot = restore_snapshot(
+        arguments.durable_snapshot,
+        work / "durable-snapshot",
+        durable_environment,
+    )
     candidates = list((work / "durable-snapshot").rglob("manifest.json"))
     if len(candidates) != 1:
         raise CohortError("durable snapshot has no unique cohort manifest")
@@ -678,7 +739,11 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
     cache_snapshot = manifest["cache_snapshot_id"]
     if not cache_snapshot:
         raise CohortError("durable snapshot does not bind a cache snapshot")
-    restore_snapshot(cache_snapshot, work / "cache-snapshot", cache_environment)
+    cache_snapshot = restore_snapshot(
+        cache_snapshot,
+        work / "cache-snapshot",
+        cache_environment,
+    )
     cache_roots = [path for path in (work / "cache-snapshot").rglob("cache") if path.is_dir()]
     if len(cache_roots) != 1:
         raise CohortError("cache snapshot has no unique cache root")
@@ -730,7 +795,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "schema": STATE_SCHEMA,
         "run_id": manifest["run_id"],
         "target": _required_environment("USL_TARGET"),
-        "durable_snapshot_id": arguments.durable_snapshot,
+        "durable_snapshot_id": durable_snapshot,
         "cache_snapshot_id": cache_snapshot,
         "release": {
             "commit": embedded_release["source"]["commit"],
