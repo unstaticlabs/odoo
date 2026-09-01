@@ -32,6 +32,11 @@ only the verified durable snapshot as recovery-eligible. The JSON result
 contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
 snapshot IDs.
 
+Progress and capacity messages are written to stderr; the final result remains
+valid JSON on stdout. Every phase reports its start, completion, and elapsed
+time. A failure ends with one concise cause. Activation failures also state
+whether the previous generation was restored successfully.
+
 List and recheck recovery points without changing a runtime:
 
 ```bash
@@ -106,6 +111,12 @@ The first clean production-to-staging benchmark completed on 2 September 2026
 in 332.411 seconds. It reused OCR and vector state and matched all recorded
 business controls. The unattended backup plus fresh restore target is under 30
 minutes; unchanged content-addressed images should be reused rather than built.
+
+Expected warm-path timing is 5–10 minutes for restore and validation, plus the
+backup upload time determined by changed durable content. A missing component
+image may add several minutes. A run approaching 30 minutes is abnormal: use
+the phase timings to identify image transfer, Restic transfer, materialization,
+activation, or validation before retrying.
 
 Operation events are stored under each target's private runtime directory.
 Secrets remain in the target's mode-0600 allowlisted environment file and are

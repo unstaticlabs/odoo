@@ -57,6 +57,19 @@ repository-owned packages must also permit publication from this repository.
 No production, SSH, Pocket ID, database, Restic, SMTP, or application secret
 belongs in this build workflow.
 
+Configure package access in GitHub under the package's **Package settings →
+Manage Actions access**. Grant `unstaticlabs/odoo` read access to the separately
+owned `odoo-mcp` and document-renderer packages. Repository-owned Distribution,
+backup-tool, Paperless, and Sign packages inherit publication access from
+`unstaticlabs/odoo`; their workflow job alone receives `packages: write`.
+
+The validated repository context is `unstaticlabs/odoo`, not a fork or local
+runner. Run 33568552569 at commit `84c8d30159dbc99258c8e44f3316fbdec88bf799`
+completed release tests, external image verification, content-addressed
+component resolution, and coordinated release assembly in about three minutes.
+Unchanged Distribution, Paperless, and Sign images were reused. The backup tool
+alone rebuilt because its tracked orchestration inputs changed.
+
 ## Deployment boundary
 
 A later protected deployment workflow consumes the release artifact and uses
