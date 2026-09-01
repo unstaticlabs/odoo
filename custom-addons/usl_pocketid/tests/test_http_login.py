@@ -19,6 +19,7 @@ from ..policy import (
     ID_TOKEN_SESSION_KEY,
     LOGIN_POLICY_PARAMETER,
     LOGIN_POLICY_SSO_ONLY,
+    REAUTH_SESSION_KEY,
     emergency_window_active,
 )
 
@@ -99,6 +100,19 @@ class TestPocketIDHttpLogin(HttpCase):
         self.assertEqual(parameters["response_type"], ["code"])
         self.assertEqual(parameters["code_challenge_method"], ["S256"])
         return parameters
+
+    def _rpc(self, model, method, *args, **kwargs):
+        return self.url_open(
+            "/web/dataset/call_kw",
+            json={
+                "params": {
+                    "model": model,
+                    "method": method,
+                    "args": args,
+                    "kwargs": kwargs,
+                },
+            },
+        ).json()
 
     @contextmanager
     def _sso_only(self):
@@ -210,6 +224,75 @@ class TestPocketIDHttpLogin(HttpCase):
                 "//a[contains(normalize-space(.), 'Open Odoo in Chrome')]",
             ),
         )
+
+    def test_api_key_identity_check_uses_fresh_pocket_id_proof(self):
+        self.authenticate(
+            self.user.login,
+            "ordinary-password-must-not-work",
+        )
+        self.update_session(**{"identity-check-last": 0})
+
+        with self._sso_only():
+            description_id = self._rpc(
+                "res.users.apikeys.description",
+                "create",
+                {"name": "Pocket ID test key", "duration": "1"},
+            )["result"]
+            identity_action = self._rpc(
+                "res.users.apikeys.description",
+                "make_key",
+                description_id,
+            )["result"]
+            self.assertEqual(
+                identity_action["res_model"],
+                "res.users.identitycheck",
+            )
+            identity_id = identity_action["res_id"]
+            identity_values = self._rpc(
+                "res.users.identitycheck",
+                "read",
+                [identity_id],
+                ["auth_method"],
+            )["result"][0]
+            self.assertEqual(identity_values["auth_method"], "usl_pocketid")
+
+            missing_proof = self._rpc(
+                "res.users.identitycheck",
+                "run_check",
+                identity_id,
+            )
+            self.assertFalse(missing_proof.get("result"))
+            self.assertEqual(
+                missing_proof["error"]["data"]["name"],
+                "odoo.exceptions.UserError",
+            )
+
+            key_count = self.user.api_key_ids.search_count(
+                [("user_id", "=", self.user.id)],
+            )
+            self.update_session(
+                **{
+                    REAUTH_SESSION_KEY: {
+                        "uid": self.user.id,
+                        "expires_at": time.time() + 60,
+                    },
+                },
+            )
+            completed = self._rpc(
+                "res.users.identitycheck",
+                "run_check",
+                identity_id,
+            )
+            self.assertEqual(
+                completed["result"]["res_model"],
+                "res.users.apikeys.show",
+            )
+            self.assertEqual(
+                self.user.api_key_ids.search_count(
+                    [("user_id", "=", self.user.id)],
+                ),
+                key_count + 1,
+            )
 
     def test_logout_uses_the_external_provider_endpoint(self):
         self.authenticate(None, None)

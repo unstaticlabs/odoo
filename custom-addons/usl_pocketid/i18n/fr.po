@@ -1149,6 +1149,16 @@ msgid "Confirm with Pocket ID"
 msgstr "Confirmer avec Pocket ID"
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.res_users_identitycheck_view_form_pocketid
+msgid "Confirm your identity with Pocket ID"
+msgstr "Confirmez votre identité avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.res_users_identitycheck_view_form_pocketid
+msgid "A secure Pocket ID window will open for this sensitive action."
+msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir pour cette action sensible."
+
+#. module: usl_pocketid
 #: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityLink
 msgid "Use Pocket ID"
 msgstr "Utiliser Pocket ID"
@@ -1164,6 +1174,12 @@ msgstr "Autorisez la fenêtre de confirmation Pocket ID, puis réessayez."
 #: code:addons/usl_pocketid/static/src/js/check_identity.js:0
 msgid "Pocket ID confirmation was not completed."
 msgstr "La confirmation Pocket ID n’a pas abouti."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users_identitycheck.py:0
+msgid "Pocket ID confirmation expired. Confirm your identity again."
+msgstr "La confirmation Pocket ID a expiré. Confirmez à nouveau votre identité."
 
 #. module: usl_pocketid
 #: model:mail.template,body_html:usl_pocketid.portal_sso_invitation
