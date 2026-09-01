@@ -47,6 +47,8 @@ class ExternalModelRebindTests(unittest.TestCase):
         )
 
     def test_rebind_changes_only_the_model_label_and_is_idempotent(self):
+        self.index.with_name(self.index.name + "-wal").touch()
+        self.index.with_name(self.index.name + "-shm").touch()
         first = self.apply()
         second = self.apply()
         self.assertEqual(first["action"], "rebound")
@@ -61,6 +63,11 @@ class ExternalModelRebindTests(unittest.TestCase):
         )
         self.assertEqual(connection.execute("SELECT count(*) FROM documents").fetchone()[0], 3)
         connection.close()
+
+    def test_rebind_rejects_uncheckpointed_writes(self):
+        self.index.with_name(self.index.name + "-wal").write_bytes(b"pending")
+        with self.assertRaises(RebindError):
+            self.apply()
 
     def test_rebind_fails_on_count_or_identity_mismatch(self):
         with self.assertRaises(RebindError):

@@ -100,9 +100,9 @@ def rebind(
 ) -> dict:
     if not index.is_file():
         raise RebindError("vector index is missing")
-    for suffix in ("-wal", "-shm"):
-        if index.with_name(index.name + suffix).exists():
-            raise RebindError("vector index has active SQLite sidecar state")
+    wal = index.with_name(index.name + "-wal")
+    if wal.exists() and wal.stat().st_size:
+        raise RebindError("vector index has uncheckpointed SQLite writes")
     before_sha256 = sha256_file(index)
     connection = sqlite3.connect(index)
     try:
