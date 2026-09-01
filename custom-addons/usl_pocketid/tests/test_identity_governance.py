@@ -155,6 +155,19 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         )
         self.assertEqual(totp_row.get("invisible"), "usl_sso_only_login")
 
+    def test_preferences_pocketid_security_copy_is_translated(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        view = self.env.ref("base.view_users_form_simple_modif")
+        arch = self.env["res.users"].with_context(lang="fr_FR").get_view(
+            view_id=view.id,
+            view_type="form",
+        )["arch"]
+
+        self.assertIn("Gère votre connexion", arch)
+        self.assertIn("Gérer dans Pocket ID", arch)
+        self.assertIn("Dernière connexion :", arch)
+        self.assertNotIn("Manages your sign-in", arch)
+
     def test_unknown_identity_never_creates_an_odoo_user(self):
         user_count = self.env["res.users"].sudo().search_count([])
         with self.assertRaisesRegex(PocketIDAccessDenied, "Pocket ID"):

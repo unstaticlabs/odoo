@@ -1432,53 +1432,82 @@ msgid "The public Odoo URL is not configured safely."
 msgstr "L’URL publique d’Odoo n’est pas configurée de manière sûre."
 
 #. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_security_state
 msgid "Pocket ID status"
 msgstr "État Pocket ID"
 
 #. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_security_email
 msgid "Pocket ID email"
 msgstr "Adresse e-mail Pocket ID"
 
 #. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_last_login_at
 msgid "Last Pocket ID sign-in"
 msgstr "Dernière connexion Pocket ID"
 
 #. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__connected
 msgid "Connected"
 msgstr "Connecté"
 
 #. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__ready
 msgid "Ready for first sign-in"
 msgstr "Prêt pour la première connexion"
 
 #. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__unavailable
 msgid "Not enabled"
 msgstr "Non activé"
 
 #. module: usl_pocketid
-msgid "Manages your sign-in and multi-factor security."
-msgstr "Gère votre connexion et votre authentification multifacteur."
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid ""
+"<span class=\"o_form_label\">Pocket ID</span>\n"
+"                        <span class=\"text-muted\">\n"
+"                            Manages your sign-in and multi-factor security.\n"
+"                        </span>"
+msgstr ""
+"<span class=\"o_form_label\">Pocket ID</span>\n"
+"                        <span class=\"text-muted\">\n"
+"                            Gère votre connexion et votre authentification multifacteur.\n"
+"                        </span>"
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
 msgid "Manage in Pocket ID"
 msgstr "Gérer dans Pocket ID"
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
 msgid "Account:"
 msgstr "Compte :"
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
 msgid "Last sign-in:"
 msgstr "Dernière connexion :"
 
 #. module: usl_pocketid
-msgid "Change your password, passkeys, and second factor in Pocket ID."
-msgstr "Modifiez votre mot de passe, vos clés d’accès et votre second facteur dans Pocket ID."
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid ""
+"<span class=\"text-muted\">\n"
+"                            Change your password, passkeys, and second factor in Pocket ID.\n"
+"                        </span>"
+msgstr ""
+"<span class=\"text-muted\">\n"
+"                            Modifiez votre mot de passe, vos clés d’accès et votre second facteur dans Pocket ID.\n"
+"                        </span>"
 
 #. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
 msgid "You can only open Pocket ID for your own account."
 msgstr "Vous pouvez ouvrir Pocket ID uniquement pour votre propre compte."
 
 #. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
 msgid "Pocket ID is not available. Contact an administrator."
 msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
