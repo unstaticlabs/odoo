@@ -13,6 +13,7 @@ Specialized product procedures remain separate when they require a deliberate
 activation or domain-specific response:
 
 - [Production image CI contract](production-image-ci.md)
+- [Backup and recovery](backup-and-recovery.md)
 - [Product and migration boundary](product-migration-boundary.md)
 - [Pocket ID SSO](pocket-id-sso-runbook.md)
 - [Electronic-invoice activation](activate-french-electronic-invoicing.md)
