@@ -11,6 +11,7 @@ MIGRATION_INPUTS = (
     "accounting_compat",
     "compose.yaml",
     "compose.external-pocket-id.yaml",
+    "compose.odoo-ingress.yaml",
     "compose.ollama-native.yaml",
     "compose.pocket-id.yaml",
     "compose.production.yaml",

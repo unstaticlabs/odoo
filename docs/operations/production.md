@@ -193,6 +193,33 @@ renderer, Sign, MCP, and supporting images. Keep e-invoicing, e-reporting,
 outbound mail, inbound mail, bank-email ingestion, and unapproved jobs disabled until their
 separate activation gates pass.
 
+## Staging ingress
+
+Expose staging through `https://odoo-staging.unstaticlabs.com`. Keep its
+Compose project and data isolated from production, but attach its Odoo service
+to the existing Cloudflare network with a unique alias:
+
+```bash
+docker compose \
+  --env-file <staging-env> \
+  -f compose.yaml \
+  -f compose.production.yaml \
+  -f compose.odoo-ingress.yaml \
+  up -d
+```
+
+The staging environment must set:
+
+```text
+USL_EXTERNAL_INGRESS_NETWORK=cloudflare
+ODOO_INGRESS_ALIAS=odoo-staging
+ODOO_PUBLIC_BASE_URL=https://odoo-staging.unstaticlabs.com
+```
+
+In Cloudflare Tunnel, route the hostname to `http://odoo-staging:8069`. Add a
+higher-priority route for path `^/websocket` to
+`http://odoo-staging:8072`. Never reuse production's `odoo` alias.
+
 ## Odoo backup primitive
 
 The maintained backup tooling separates preparation, upload, isolated restore,
