@@ -16,6 +16,10 @@ from operations.stack import (
     _generation_overlay,
     _ensure_image,
     _materialize_command,
+    _release_images,
+    _remove_materialization_workspace,
+    _require_restore_capacity,
+    _rollback_after_failure,
     _restore_unlocked,
     _validate_materialized_release,
     generation_volume_names,
@@ -306,6 +310,70 @@ class CohortContractTests(unittest.TestCase):
         missing = RecordingRunner(False)
         _ensure_image(missing, image)
         self.assertEqual(missing.commands[-1], ["docker", "pull", image])
+
+    def test_restore_prepulls_every_release_image_once(self) -> None:
+        references = [
+            f"ghcr.io/unstaticlabs/image-{index}@sha256:{str(index) * 64}"
+            for index in range(1, 7)
+        ]
+        release = {
+            "components": {
+                "backup-tool": {"digest_reference": references[0]},
+                "distribution": {"digest_reference": references[1]},
+                "paperless": {"digest_reference": references[2]},
+                "sign-dss": {"digest_reference": references[3]},
+            },
+            "mcp": {"image": references[4]},
+            "renderer": {"image": references[5]},
+        }
+        self.assertEqual(_release_images(release), sorted(references))
+
+    def test_restore_capacity_fails_closed_below_two_gibibytes(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class CapacityRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 0, "Avail\n1073741824\n", "")
+
+        with self.assertRaisesRegex(RuntimeError, "below the 2 GiB safety floor"):
+            _require_restore_capacity(target, CapacityRunner(), "preflight")
+
+    def test_materialization_workspace_cleanup_is_exactly_scoped(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        _remove_materialization_workspace(target, runner, "g20260901-a1b2c3d4")
+        self.assertEqual(
+            runner.commands,
+            [[
+                "rm",
+                "-rf",
+                target.value["state_directory"] + "/generations/g20260901-a1b2c3d4/work",
+            ]],
+        )
+
+    def test_rollback_failure_preserves_the_activation_error(self) -> None:
+        identity = {
+            "project": "safe-project",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml"],
+        }
+
+        class FailedRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 1, "", "disk full")
+
+        with self.assertRaisesRegex(RuntimeError, "activation failed \\(original failure\\).*disk full"):
+            _rollback_after_failure(FailedRunner(), identity, RuntimeError("original failure"))
 
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)

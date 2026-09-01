@@ -51,6 +51,8 @@ RELEASE_IMAGE_SERVICES = {
     "mcp": ("odoo-mcp-oauth-init", "odoo-mcp"),
     "renderer": ("usl-document-renderer",),
 }
+MINIMUM_FREE_BYTES = 2 * 1024**3
+CAPACITY_WARNING_BYTES = 8 * 1024**3
 
 
 def runtime_command(arguments: argparse.Namespace) -> int:
@@ -206,6 +208,59 @@ def _ensure_image(runner, image: str) -> None:
     present = runner.run(["docker", "image", "inspect", image], check=False)
     if present.returncode:
         runner.run(["docker", "pull", image])
+
+
+def _release_images(release: dict) -> list[str]:
+    """Return every immutable image needed before a restore can start."""
+    return sorted(
+        {
+            release["components"]["backup-tool"]["digest_reference"],
+            release["components"]["distribution"]["digest_reference"],
+            release["components"]["paperless"]["digest_reference"],
+            release["components"]["sign-dss"]["digest_reference"],
+            release["mcp"]["image"],
+            release["renderer"]["image"],
+        },
+    )
+
+
+def _available_bytes(runner, path: str) -> int:
+    result = runner.run(["df", "--output=avail", "--block-size=1", path])
+    try:
+        return int(result.stdout.splitlines()[-1].strip())
+    except (IndexError, ValueError) as error:
+        raise RuntimeError(f"disk capacity probe returned invalid output for {path}") from error
+
+
+def _require_restore_capacity(target, runner, phase: str) -> dict:
+    available = _available_bytes(runner, target.value["state_directory"])
+    if available < MINIMUM_FREE_BYTES:
+        raise RuntimeError(
+            f"restore {phase} refused: {available} bytes free is below the 2 GiB safety floor",
+        )
+    return {
+        "available_bytes": available,
+        "warning": available < CAPACITY_WARNING_BYTES,
+    }
+
+
+def _remove_materialization_workspace(target, runner, generation: str) -> None:
+    root = target.value["state_directory"]
+    if not generation.startswith("g") or len(generation) > 32:
+        raise RuntimeError("refusing to remove an invalid generation workspace")
+    runner.run(["rm", "-rf", f"{root}/generations/{generation}/work"])
+
+
+def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
+    rollback = runner.run(
+        compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]),
+        check=False,
+    )
+    if rollback.returncode:
+        detail = (rollback.stderr or rollback.stdout).strip()
+        raise RuntimeError(
+            f"activation failed ({error}); rollback also failed ({detail})",
+        ) from error
 
 
 @contextmanager
@@ -924,11 +979,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
     if len(generation) > 32 or not generation.startswith("g"):
         raise RuntimeError("generation name is invalid")
+    identity = current["compose"]
+    images = _runtime_images(target_runner, identity)
+    capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
+    for image in _release_images(release):
+        _ensure_image(target_runner, image)
+    capacity_after_pull = _require_restore_capacity(target, target_runner, "image pre-pull")
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
     volumes, network = _create_generation_resources(target, target_runner, generation)
-    identity = current["compose"]
-    images = _runtime_images(target_runner, identity)
     database_containers = []
     try:
         database_containers.append(
@@ -972,6 +1031,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     finally:
         for container in database_containers:
             target_runner.run(["docker", "rm", "--force", container], check=False)
+    _remove_materialization_workspace(target, target_runner, generation)
+    capacity_before_activation = _require_restore_capacity(target, target_runner, "activation")
     release_path = f"{generation_root}/usl-release.json"
     _write_remote(target, target_runner, release_path, release_raw + "\n")
     overlay = f"{generation_root}/compose.generation.json"
@@ -994,8 +1055,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         target_runner.run(
             compose_command(generation_identity, ["up", "--detach", "--wait", "--force-recreate"]),
         )
-    except Exception:
-        target_runner.run(compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]))
+    except Exception as error:
+        _rollback_after_failure(target_runner, identity, error)
         raise
     active_path = f"{target.value['state_directory']}/active.json"
     _write_remote(
@@ -1017,7 +1078,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         smoke = _gate(smoke_command, target, arguments.targets)
         if smoke["controls"] != materialize_state["controls"]:
             raise RuntimeError("restored business controls differ from the source cohort")
-    except Exception:
+    except Exception as error:
         target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
         if current["active_state"] is None:
             target_runner.run(["rm", "-f", active_path], check=False)
@@ -1028,7 +1089,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 active_path,
                 json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
             )
-        target_runner.run(compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]))
+        _rollback_after_failure(target_runner, identity, error)
         raise
     result = {
         "schema": "usl-restore-run/v1",
@@ -1039,6 +1100,11 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "materialize": materialize_state,
         "health": health,
         "smoke": smoke,
+        "capacity": {
+            "before_pull": capacity_before_pull,
+            "after_pull": capacity_after_pull,
+            "before_activation": capacity_before_activation,
+        },
         "status": "activated",
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
