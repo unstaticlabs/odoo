@@ -107,6 +107,28 @@ class ProjectTask(models.Model):
         self.ensure_one()
         return bool(self.project_id.usl_feedback_project)
 
+    def _creation_subtype(self):
+        self.ensure_one()
+        if self._usl_feedback_is_task():
+            return self.env["mail.message.subtype"]
+        return super()._creation_subtype()
+
+    def _creation_message(self):
+        self.ensure_one()
+        if not self._usl_feedback_is_task():
+            return super()._creation_message()
+        task = self.with_context(
+            lang=self.usl_feedback_reporter_id.lang or self.env.lang,
+        )
+        feedback_link = task._get_html_link(
+            title=task.env._("Feedback #%(feedback_id)s", feedback_id=self.id),
+        )
+        return task.env._(
+            "%(feedback_link)s has been created in the %(project_name)s project.",
+            feedback_link=feedback_link,
+            project_name=task.project_id.display_name,
+        )
+
     @api.constrains(
         "project_id",
         "stage_id",

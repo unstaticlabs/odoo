@@ -15,7 +15,8 @@ leaving your work.
    values, or browser data.
 5. Review the disclosure, then select **Send feedback**. Odoo saves your
    message before the assistant reviews it. The page preview stays on your
-   device until this step.
+   device until this step. The confirmation links directly to the saved
+   feedback card.
 6. Answer a short follow-up question if the assistant needs more detail. You
    can fold or close the conversation and return through **Your feedback**.
 7. Check the proposed feedback. Choose **Add details** to revise it or **Send

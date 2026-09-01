@@ -73,6 +73,12 @@ msgid "A source record requires a source model."
 msgstr "Un enregistrement source nécessite un modèle source."
 
 #. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "%(feedback_link)s has been created in the %(project_name)s project."
+msgstr "%(feedback_link)s a été créé dans le projet %(project_name)s."
+
+#. module: usl_feedback
 #: model:ir.model,name:usl_feedback.model_mail_activity
 msgid "Activity"
 msgstr "Activité"
@@ -363,6 +369,12 @@ msgstr "Échec"
 #: model:project.project,label_tasks:usl_feedback.project_product_feedback
 msgid "Feedback"
 msgstr "Retours"
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
+msgid "Feedback #%(feedback_id)s"
+msgstr "Retour n° %(feedback_id)s"
 
 #. module: usl_feedback
 #: model:res.groups,name:usl_feedback.group_feedback_agent

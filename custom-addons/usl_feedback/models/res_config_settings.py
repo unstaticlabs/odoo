@@ -3,7 +3,7 @@ import requests
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-from odoo.addons.usl_feedback.services import GeminiClient, GeminiError
+from odoo.addons.usl_feedback.services import VISION_MODEL, GeminiClient, GeminiError
 
 ALLOWED_MODELS = [
     ("gemini-3.7-flash", "Gemini 3.7 Flash"),
@@ -143,6 +143,7 @@ class ResConfigSettings(models.TransientModel):
         try:
             client = GeminiClient(api_key=api_key)
             client.test_model(self.feedback_gemini_model)
+            client.test_model(VISION_MODEL)
             mcp_enabled = bool(mcp_key and mcp_url)
             if mcp_enabled:
                 mcp_url = GeminiClient.validate_mcp_url(mcp_url)

@@ -73,10 +73,14 @@ each. Draft attachments are owned by a transient record and either move to the
 created task or are deleted with the abandoned draft.
 
 The company-wide assistant uses Google's Gemini Interactions API in background,
-stored, stateful mode. Production enablement requires an administrator to
-acknowledge the paid tier and Google's seven-day state retention, save a
-server-side Gemini API key and select an approved Flash model. Saved secrets
-are never returned to the browser.
+stored, stateful mode for the conversation. Because Gemini's background agent
+currently rejects inline images, the selected JPEG first goes through a bounded,
+non-stored Gemini 3.5 Flash-Lite visual analysis. Only that analysis enters the
+stateful conversation. If visual analysis is unavailable, the saved card still
+continues through the text conversation. Production enablement requires an
+administrator to acknowledge the paid tier and Google's seven-day state
+retention, save a server-side Gemini API key and select an approved Flash
+model. Saved secrets are never returned to the browser.
 
 Projects MCP is optional enrichment. Without it, Gemini still receives the
 conversation, selected page preview, sanitized page details, release-pinned
@@ -152,6 +156,12 @@ model, field or data migration. Upgrade with the same `-u usl_feedback`
 command, verify the preview journey, then repeat the upgrade to prove identical
 behavior. Recovery is to restore the previous module code and upgrade
 `usl_feedback`; existing tasks, chatter and attachments remain valid.
+
+Version `saas~19.3.2.0.3` routes selected previews through the bounded Gemini
+vision pass before the stateful text interaction and replaces the generic task
+creation log with a direct feedback-record link. It adds no field or data
+migration. Recovery is to restore the previous module code and upgrade
+`usl_feedback`; saved cards and attachments remain valid.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained

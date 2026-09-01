@@ -2,12 +2,15 @@ import base64
 import importlib.util
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, call, patch
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.modules.module import get_module_path
 from odoo.tests import TransactionCase, new_test_user, tagged
+from odoo.tools.mail import html2plaintext
+
+from odoo.addons.usl_feedback.services import VISION_MODEL, GeminiClient, GeminiError
 
 RELEASE_SHA = "a" * 40
 
@@ -136,6 +139,14 @@ class TestProductFeedback(TransactionCase):
             self.env["usl.feedback.agent.run"].sudo().search_count([("task_id", "=", task.id)]),
             1,
         )
+        creation = task.message_ids.filtered(
+            lambda item: f"Feedback #{task.id}" in html2plaintext(item.body or ""),
+        )
+        self.assertEqual(len(creation), 1)
+        self.assertNotEqual(creation.subtype_id, self.env.ref("project.mt_task_new"))
+        self.assertIn('data-oe-model="project.task"', str(creation.body))
+        self.assertIn(f'data-oe-id="{task.id}"', str(creation.body))
+        self.assertIn("Odoo Product Feedback project", html2plaintext(creation.body))
 
     def test_context_opt_out_retains_no_page_state(self):
         draft = self._start(
@@ -234,6 +245,10 @@ class TestProductFeedback(TransactionCase):
         task, _payload = self._submit()
         with self.assertRaises(AccessError):
             task.with_user(self.other).feedback_poll_agent()
+        self.env["ir.config_parameter"].sudo().set_bool(
+            "usl_feedback.gemini_enabled",
+            False,
+        )
         self.assertTrue(task.with_user(self.maintainer).feedback_poll_agent())
 
     def test_shared_board_uses_native_project_stage_expansion(self):
@@ -462,22 +477,39 @@ class TestProductFeedback(TransactionCase):
         run = self.env["usl.feedback.agent.run"].sudo().search(
             [("task_id", "=", task.id)], limit=1,
         )
-        interaction_payload, _input_hash = run._build_payload(
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run.GeminiClient.describe_image",
+            return_value="The Settings page shows the Users list and its navigation.",
+        ) as describe_image:
+            preview_analysis = run._preview_analysis({"api_key": "gemini-secret"})
+        describe_image.assert_called_once_with(
+            image_bytes=b"synthetic screenshot",
+            mime_type="image/jpeg",
+        )
+        interaction_payload, input_hash = run._build_payload(
             {
                 "model": "gemini-3.7-flash",
                 "mcp_key": "redacted-test-key",
                 "mcp_url": "http://localhost:3000/mcp/projects",
             },
+            preview_analysis=preview_analysis,
         )
-        self.assertEqual(
-            [item["type"] for item in interaction_payload["input"]],
-            ["text", "image"],
+        self.assertEqual([item["type"] for item in interaction_payload["input"]], ["text"])
+        self.assertIn(
+            "The Settings page shows the Users list",
+            interaction_payload["input"][0]["text"],
         )
-        self.assertEqual(interaction_payload["input"][1]["mime_type"], "image/jpeg")
-        self.assertEqual(
-            base64.b64decode(interaction_payload["input"][1]["data"]),
-            b"synthetic screenshot",
+        self.assertNotIn(
+            base64.b64encode(b"synthetic screenshot").decode(),
+            json.dumps(interaction_payload),
         )
+        self.assertRegex(input_hash, r"^[0-9a-f]{64}$")
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run.GeminiClient.describe_image",
+            side_effect=GeminiError("http_400", "INVALID_ARGUMENT", status_code=400),
+        ):
+            degraded_analysis = run._preview_analysis({"api_key": "gemini-secret"})
+        self.assertIn("visual analysis was unavailable", degraded_analysis)
         other_attachment = self.env["ir.attachment"].with_user(self.other).sudo().create(
             {"name": "other.txt", "raw": b"other", "res_model": draft._name, "res_id": draft.id},
         )
@@ -966,6 +998,44 @@ class TestProductFeedback(TransactionCase):
         )
         self.assertNotIn("gemini-secret", json.dumps(payload))
 
+    def test_preview_analysis_uses_bounded_non_stored_gemini_request(self):
+        response = type(
+            "Response",
+            (),
+            {
+                "status_code": 200,
+                "content": b"{}",
+                "json": lambda _self: {
+                    "candidates": [
+                        {"content": {"parts": [{"text": "A visible Settings page."}]}},
+                    ],
+                },
+            },
+        )()
+        session = MagicMock()
+        session.request.return_value = response
+        result = GeminiClient(api_key="gemini-secret", session=session).describe_image(
+            image_bytes=b"jpeg-bytes",
+            mime_type="image/jpeg",
+        )
+
+        self.assertEqual(result, "A visible Settings page.")
+        _method, url = session.request.call_args.args
+        self.assertEqual(
+            url,
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{VISION_MODEL}:generateContent",
+        )
+        provider_payload = session.request.call_args.kwargs["json"]
+        self.assertEqual(
+            base64.b64decode(
+                provider_payload["contents"][0]["parts"][1]["inlineData"]["data"],
+            ),
+            b"jpeg-bytes",
+        )
+        self.assertNotIn("store", provider_payload)
+        self.assertNotIn("background", provider_payload)
+
     def test_settings_connection_uses_gemini_only_without_projects_mcp(self):
         settings = self.env["res.config.settings"].create(
             {
@@ -991,7 +1061,10 @@ class TestProductFeedback(TransactionCase):
         self.assertEqual(result["params"]["type"], "success")
         self.assertEqual(fresh.feedback_connection_status, "ready")
         self.assertIn("Existing feedback lookup is off", fresh.feedback_connection_detail)
-        test_model.assert_called_once_with("gemini-3.7-flash")
+        self.assertEqual(
+            test_model.call_args_list,
+            [call("gemini-3.7-flash"), call(VISION_MODEL)],
+        )
         mcp_initialize.assert_not_called()
         test_mcp.assert_not_called()
 

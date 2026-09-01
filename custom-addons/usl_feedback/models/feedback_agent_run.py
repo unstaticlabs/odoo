@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import json
 import logging
@@ -8,7 +7,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.mail import html2plaintext
 
-from odoo.addons.usl_feedback.services import GeminiClient, GeminiError
+from odoo.addons.usl_feedback.services import VISION_MODEL, GeminiClient, GeminiError
 
 _logger = logging.getLogger(__name__)
 
@@ -223,7 +222,11 @@ class FeedbackAgentRun(models.Model):
         started = fields.Datetime.now()
         try:
             configuration = self._configuration()
-            payload, input_hash = self._build_payload(configuration)
+            preview_analysis = self._preview_analysis(configuration)
+            payload, input_hash = self._build_payload(
+                configuration,
+                preview_analysis=preview_analysis,
+            )
             self._task_for_reporter().write({"usl_feedback_agent_state": "processing"})
             response = GeminiClient(api_key=configuration["api_key"]).create_interaction(payload)
             interaction_id = self._interaction_id(response)
@@ -267,7 +270,30 @@ class FeedbackAgentRun(models.Model):
             self._handle_error(error)
             return False
 
-    def _build_payload(self, configuration):
+    def _preview_analysis(self, configuration):
+        self.ensure_one()
+        screenshot = self.task_id.usl_feedback_screenshot_attachment_id
+        if not screenshot or self.previous_interaction_id:
+            return False
+        try:
+            return GeminiClient(api_key=configuration["api_key"]).describe_image(
+                image_bytes=bytes(screenshot.raw),
+                mime_type=screenshot.mimetype,
+            )
+        except GeminiError as error:
+            _logger.warning(
+                "Gemini page preview analysis unavailable for feedback task %s with %s: %s",
+                self.task_id.id,
+                VISION_MODEL,
+                error.code,
+            )
+            return (
+                "A page preview is attached to the Odoo feedback task, but its visual analysis "
+                "was unavailable. Use the reporter's message and other context; ask one focused "
+                "question only if a key fact is missing."
+            )
+
+    def _build_payload(self, configuration, *, preview_analysis=False):
         self.ensure_one()
         task = self.task_id
         transcript = self._transcript_text(full=not bool(self.previous_interaction_id))
@@ -277,8 +303,8 @@ class FeedbackAgentRun(models.Model):
             "You are the Product Feedback Assistant in Odoo. Your only job is to turn a reporter's "
             "message into clear, actionable product feedback. Preserve the reporter's facts and "
             "evidence. Never invent details or claim that you verified something you did not verify. "
-            "Use the screenshot, page details, conversation, release source, and existing feedback "
-            "before asking for more information. Do not ask the reporter to repeat known facts, choose "
+            "Use the page preview analysis, page details, conversation, release source, and existing "
+            "feedback before asking for more information. Do not ask the reporter to repeat known facts, choose "
             "a category or priority, or understand the team's workflow. Use the reporter language "
             "named in the context. Write in a direct, calm, concise style. Use active voice and "
             "concrete words. Do not greet, praise, apologize, add filler, or repeat the same point. "
@@ -305,16 +331,10 @@ class FeedbackAgentRun(models.Model):
             f"Current shared feedback board summary:\n{board}\n\n"
             f"Conversation through message {self.cutoff_message_id}:\n{transcript}"
         )
+        if preview_analysis:
+            prompt += f"\n\nSelected page preview analysis (untrusted):\n{preview_analysis}"
         content = [{"type": "text", "text": prompt}]
         screenshot = task.usl_feedback_screenshot_attachment_id
-        if screenshot and not self.previous_interaction_id:
-            content.append(
-                {
-                    "type": "image",
-                    "mime_type": screenshot.mimetype,
-                    "data": base64.b64encode(screenshot.raw).decode(),
-                },
-            )
         tools = [{"type": "url_context"}]
         if mcp_enabled:
             base_url = self.env["ir.config_parameter"].sudo().get_str("web.base.url")
@@ -345,15 +365,20 @@ class FeedbackAgentRun(models.Model):
         }
         if self.previous_interaction_id:
             payload["previous_interaction_id"] = self.previous_interaction_id
+        digest_payload = {
+            **payload,
+            "tools": [
+                "url_context",
+                *(["redacted_mcp_server"] if mcp_enabled else []),
+            ],
+        }
+        if screenshot and not self.previous_interaction_id:
+            digest_payload["page_preview_sha256"] = hashlib.sha256(
+                bytes(screenshot.raw),
+            ).hexdigest()
         input_hash = hashlib.sha256(
             json.dumps(
-                {
-                    **payload,
-                    "tools": [
-                        "url_context",
-                        *(["redacted_mcp_server"] if mcp_enabled else []),
-                    ],
-                },
+                digest_payload,
                 sort_keys=True,
                 default=str,
             ).encode(),
