@@ -59,12 +59,19 @@ export class FeedbackChatter extends Chatter {
         "busy",
         "composer",
         "onConfirm",
+        "onMessagePosted",
         "onOpenTask",
         "onRetry",
+        "placeholder",
         "task",
         "threadId",
         "threadModel",
     ];
+
+    async onPostCallback() {
+        await super.onPostCallback(...arguments);
+        await this.props.onMessagePosted();
+    }
 }
 
 export class FeedbackPanel extends Component {
@@ -318,11 +325,15 @@ export class FeedbackPanel extends Component {
             return;
         }
         try {
-            this.state.task = await this.orm.call(
+            const task = await this.orm.call(
                 "project.task",
                 "feedback_poll_agent",
                 [[this.state.task.id]]
             );
+            this.state.task = task;
+            if (!["queued", "processing"].includes(task.agent_state)) {
+                this.refreshConversation(task);
+            }
         } catch (error) {
             this.showError(error, false);
         }
@@ -330,6 +341,34 @@ export class FeedbackPanel extends Component {
             this.schedulePoll();
         } else {
             this.stopAgentProgress();
+        }
+    }
+
+    refreshConversation(task = this.state.task) {
+        if (task) {
+            this.env.bus.trigger("MAIL:RELOAD-THREAD", {
+                model: "project.task",
+                id: task.id,
+            });
+        }
+    }
+
+    async onMessagePosted() {
+        if (!this.state.task || this.state.task.withdrawn) {
+            return;
+        }
+        try {
+            this.state.task = await this.orm.call(
+                "project.task",
+                "feedback_conversation_state",
+                [[this.state.task.id]]
+            );
+            if (["queued", "processing"].includes(this.state.task.agent_state)) {
+                this.startAgentProgress();
+                this.schedulePoll(0);
+            }
+        } catch (error) {
+            this.showError(error, false);
         }
     }
 
@@ -386,7 +425,33 @@ export class FeedbackPanel extends Component {
     }
 
     feedbackChatLabel(task) {
-        return _t("Feedback #%(id)s chat", { id: task.id });
+        const status = this.feedbackStatus(task)[0];
+        return _t("Feedback #%(id)s, %(stage)s, %(status)s", {
+            id: task.id,
+            stage: task.stage,
+            status,
+        });
+    }
+
+    get canPostMessage() {
+        return (
+            !this.state.busy &&
+            !this.state.task?.withdrawn &&
+            !["queued", "processing"].includes(this.state.task?.agent_state)
+        );
+    }
+
+    get composerPlaceholder() {
+        if (this.state.task?.withdrawn) {
+            return _t("This feedback is withdrawn.");
+        }
+        if (["queued", "processing"].includes(this.state.task?.agent_state)) {
+            return _t("The feedback agent is replying…");
+        }
+        if (this.state.task?.agent_state === "triaged") {
+            return _t("Message the product team…");
+        }
+        return _t("Reply to the feedback agent…");
     }
 
     async retry() {
@@ -414,6 +479,7 @@ export class FeedbackPanel extends Component {
                 "feedback_confirm_triage",
                 [[this.state.task.id]]
             );
+            this.refreshConversation();
             this.stopAgentProgress();
         } catch (error) {
             this.showError(error);
@@ -443,6 +509,7 @@ export class FeedbackPanel extends Component {
                 "feedback_withdraw",
                 [[this.state.task.id]]
             );
+            this.refreshConversation();
             this.stopAgentProgress();
             browser.clearTimeout(this.pollTimer);
             return true;

@@ -1719,8 +1719,8 @@ msgstr "Transmis à l’équipe produit"
 
 #. module: usl_feedback
 #. odoo-javascript
-msgid "Feedback #%(id)s chat"
-msgstr "Discussion du retour nº %(id)s"
+msgid "Feedback #%(id)s, %(stage)s, %(status)s"
+msgstr "Retour nº %(id)s, %(stage)s, %(status)s"
 
 #. module: usl_feedback
 #. odoo-javascript
@@ -1761,6 +1761,26 @@ msgstr "Retiré"
 #. odoo-javascript
 msgid "Feedback withdrawn"
 msgstr "Retour retiré"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Message the product team…"
+msgstr "Écrivez à l’équipe produit…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Reply to the feedback agent…"
+msgstr "Répondez à l’assistant de retours…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "The feedback agent is replying…"
+msgstr "L’assistant de retours vous répond…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "This feedback is withdrawn."
+msgstr "Ce retour est retiré."
 
 #. module: usl_feedback
 #. odoo-python

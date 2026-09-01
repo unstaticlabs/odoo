@@ -16,7 +16,9 @@ leaving your work.
 5. Select **Send feedback**. Odoo saves your message before the agent starts.
    The preview stays on your device until this step.
 6. Follow the agent's progress in the chat. Reply if it asks for one more
-   detail.
+   detail. The reply appears in the open chat; you do not need to change tabs
+   or reopen the window. While the agent replies, the message box stays visible
+   and shows why it is temporarily unavailable.
 7. When **Draft ready** appears, open the task if you want to check it, then
    select **Send to product team**.
 
@@ -25,7 +27,8 @@ to see each card's status and next step, and **New** to start another report.
 The feedback tab's actions menu opens the task or withdraws the feedback after
 confirmation. Withdrawal stops the assistant and product workflow but keeps
 the conversation and files. **Open board** shows the shared Project board
-without closing the floating chat.
+without closing the floating chat. After you send feedback to Triage, use the
+same message box to discuss it with the product team.
 
 Everyone in the workspace can read and discuss feedback and its files. Only
 feedback maintainers can change task fields or workflow stages. A shared

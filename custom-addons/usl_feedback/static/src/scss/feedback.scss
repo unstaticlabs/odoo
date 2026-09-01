@@ -26,7 +26,8 @@
     }
 
     .o-usl-FeedbackPanel-nav {
-        min-height: 44px;
+        min-height: 56px;
+        background: $o-view-background-color;
 
         .nav-link {
             min-width: 0;
@@ -34,19 +35,39 @@
             border-top: 0;
             color: $o-main-text-color;
             font-size: $o-font-size-base-smaller;
+            min-height: 56px;
+            padding: map-get($spacers, 2) map-get($spacers, 3);
+
+            &:hover:not(:disabled) {
+                background-color: $o-gray-100;
+            }
+
+            &:focus-visible {
+                position: relative;
+                z-index: 2;
+            }
         }
 
         .o-usl-FeedbackPanel-currentTab {
-            flex: 1 1 0;
+            flex: 1 1 52%;
             min-width: 0;
 
             &.active {
-                border-bottom: var(--bs-nav-tabs-border-width) solid $o-brand-primary;
+                background-color: rgba($o-brand-primary, 0.04);
+                box-shadow: inset 0 -2px $o-brand-primary;
             }
 
             .nav-link.active {
                 border-bottom: 0;
             }
+        }
+
+        .o-usl-FeedbackPanel-historyTab {
+            flex: 0 1 auto;
+        }
+
+        .o-usl-FeedbackPanel-newTab {
+            flex: 0 0 auto;
         }
     }
 
@@ -113,6 +134,10 @@
     > .o-mail-Composer {
         border-top: 1px solid $o-gray-300;
         padding-top: map-get($spacers, 2) !important;
+
+        &.o-disabled {
+            opacity: 0.72;
+        }
     }
 }
 
@@ -170,8 +195,14 @@
         margin-inline-start: 0 !important;
     }
 
-    .o-usl-FeedbackPanel-nav .nav-link {
-        min-height: 2.75rem;
+    .o-usl-FeedbackPanel-nav {
+        .nav-link {
+            padding-inline: map-get($spacers, 2);
+        }
+
+        .o-usl-FeedbackPanel-currentTab {
+            flex-basis: 48%;
+        }
     }
 
     .o-usl-FeedbackPanel-readyBar {

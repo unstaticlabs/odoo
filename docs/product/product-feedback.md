@@ -15,8 +15,11 @@ provider call**. The floating window then becomes a native task conversation.
 The Feedback Agent reports its current step in the chat—reading the report,
 checking the preview and preparing a draft—then asks one focused question per
 turn when details are missing. The reporter replies through Odoo's compact
-message composer. A short **Draft ready** bar links to the task and offers
-**Send to product team**; only that action moves the card to Triage.
+message composer. The composer stays in place throughout the conversation. It
+is disabled with a clear state message only while the agent is replying or
+after the reporter withdraws the feedback. A short **Draft ready** bar links to
+the task and offers **Send to product team**; only that action moves the card
+to Triage.
 
 The window has three stable destinations: the active **Feedback #…**
 conversation, **My feedback** and **New**. The active tab carries the feedback
@@ -27,6 +30,9 @@ shows each card's full title, identifier, stage, current status and next step;
 Opening either a card or the board keeps the floating conversation alive. The
 window folds into the ChatHub like an ordinary chat, becomes fullscreen on
 narrow screens and restores saved conversations after reload or return.
+Each successful assistant poll refreshes the open native mail thread, and each
+reporter reply refreshes task state and resumes polling. Agent questions and
+status changes therefore appear in the active chat without switching tabs.
 
 The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
 data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,
@@ -196,6 +202,15 @@ reporter withdraw feedback through Odoo's native cancelled task state. Active
 assistant work becomes stale, while the task, chatter and files remain intact.
 It adds no schema or data migration. Recovery is to restore the previous module
 code and upgrade `usl_feedback`; existing feedback records remain valid.
+
+Version `saas~19.3.2.0.7` keeps the native composer visible in every
+conversation state, makes sent feedback discussable with the product team,
+refreshes assistant messages in the open thread as soon as polling completes,
+and resumes agent progress immediately after a clarification reply. It also
+protects the active tab's feedback identifier, stage and status from narrow
+flex layouts. It adds no schema or data migration. Recovery is to restore the
+previous module code and upgrade `usl_feedback`; tasks, chatter, attachments
+and provider runs need no reversal.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained

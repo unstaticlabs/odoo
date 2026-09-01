@@ -33,7 +33,7 @@ defineMailModels();
 
 class TestChatter extends Component {
     static template = xml`
-        <div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'">
+        <div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'" t-att-data-placeholder="props.placeholder">
             <span t-if="['queued', 'processing'].includes(props.agentState)" class="o-test-AgentActivity" t-out="props.agentActivity"/>
             <div t-if="props.agentState === 'error'" class="o-test-AgentError">Your feedback is saved.<button t-on-click="props.onRetry">Try again</button></div>
             <div t-if="!props.task.withdrawn and props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar"><button t-on-click="() => props.onOpenTask()">Open draft</button><button t-on-click="props.onConfirm">Send to product team</button></div>
@@ -46,8 +46,10 @@ class TestChatter extends Component {
         "busy",
         "composer",
         "onConfirm",
+        "onMessagePosted",
         "onOpenTask",
         "onRetry",
+        "placeholder",
         "task",
         "threadModel",
         "threadId",
@@ -439,6 +441,10 @@ test("conversation renders processing, clarification, error, ready, and success 
     await animationFrame();
     expect(".o-test-AgentActivity").toHaveText(/Reading your report/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
+    expect(".o-test-FeedbackChatter").toHaveAttribute(
+        "data-placeholder",
+        "The feedback agent is replying…"
+    );
 
     component.state.task = feedbackTask({ agent_state: "waiting" });
     await animationFrame();
@@ -447,6 +453,10 @@ test("conversation renders processing, clarification, error, ready, and success 
         /Feedback #71.*Inbox.*Needs your reply/s
     );
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
+    expect(".o-test-FeedbackChatter").toHaveAttribute(
+        "data-placeholder",
+        "Reply to the feedback agent…"
+    );
 
     component.state.task = feedbackTask({
         agent_state: "error",
@@ -475,6 +485,58 @@ test("conversation renders processing, clarification, error, ready, and success 
     component.state.task = feedbackTask({ agent_state: "triaged", stage: "Triage" });
     await animationFrame();
     expect(".o-usl-FeedbackPanel-sentBar").toHaveText(/With the product team/);
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
+    expect(".o-test-FeedbackChatter").toHaveAttribute(
+        "data-placeholder",
+        "Message the product team…"
+    );
+});
+
+test("poll completion refreshes the open chat without changing tabs", async () => {
+    mockFeedbackStart();
+    onRpc("project.task", "feedback_poll_agent", () =>
+        feedbackTask({ agent_state: "waiting" })
+    );
+    const component = await mountFeedbackPanel();
+    Object.assign(component.state, {
+        phase: "conversation",
+        task: feedbackTask({ agent_state: "processing" }),
+    });
+    component.env.bus.addEventListener("MAIL:RELOAD-THREAD", ({ detail }) => {
+        expect(detail).toEqual({ model: "project.task", id: 71 });
+        expect.step("thread refreshed");
+    });
+    await animationFrame();
+
+    await component.poll();
+    await animationFrame();
+
+    expect(".o-usl-FeedbackPanel-currentTab").toHaveText(
+        /Feedback #71.*Inbox.*Needs your reply/s
+    );
+    expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
+    expect.verifySteps(["thread refreshed"]);
+});
+
+test("posting a clarification returns the open conversation to agent processing", async () => {
+    mockFeedbackStart();
+    onRpc("project.task", "feedback_conversation_state", () =>
+        feedbackTask({ agent_state: "queued" })
+    );
+    onRpc("project.task", "feedback_poll_agent", () =>
+        feedbackTask({ agent_state: "processing" })
+    );
+    const component = await mountFeedbackPanel();
+    Object.assign(component.state, {
+        phase: "conversation",
+        task: feedbackTask({ agent_state: "waiting" }),
+    });
+    await animationFrame();
+
+    await component.onMessagePosted();
+    await animationFrame();
+
+    expect(".o-test-AgentActivity").toHaveText(/Reading your report/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
 });
 
