@@ -11,11 +11,12 @@
         -->
         <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
             <nav class="o-usl-FeedbackPanel-nav nav nav-tabs flex-nowrap flex-shrink-0" aria-label="Feedback navigation">
+                <t t-set="currentStatus" t-value="state.task and this.feedbackStatus(state.task)"/>
                 <div t-if="state.task" class="o-usl-FeedbackPanel-currentTab nav-item d-flex align-items-stretch" t-att-class="{ active: state.phase === 'conversation' }">
                     <button class="nav-link flex-grow-1 d-inline-flex align-items-center justify-content-start" t-att-class="{ active: state.phase === 'conversation' }" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)" t-att-aria-current="state.phase === 'conversation' ? 'page' : undefined">
-                        <span class="min-w-0 text-start d-flex align-items-center gap-1 text-truncate">
+                        <span class="min-w-0 text-start d-flex align-items-center gap-2 text-truncate">
                             <span class="fw-semibold text-nowrap">Feedback #<t t-out="state.task.id"/></span>
-                            <span class="small text-muted text-truncate">· <t t-out="this.feedbackStatus(state.task)[0]"/></span>
+                            <span class="badge rounded-pill fw-normal text-truncate" t-att-class="currentStatus[2]" t-out="currentStatus[0]"/>
                         </span>
                     </button>
                     <Dropdown menuClass="o-usl-FeedbackPanel-taskMenu">
@@ -33,6 +34,23 @@
                     <i class="fa fa-plus"/><span>New</span>
                 </button>
             </nav>
+
+            <ol t-if="['draft', 'conversation'].includes(state.phase)" class="o-usl-FeedbackPanel-journey list-unstyled d-flex align-items-center flex-shrink-0 mb-0 px-3" aria-label="Feedback progress">
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(1)" t-att-aria-current="this.workflowStep === 1 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 1" class="fa fa-check"/><t t-else="">1</t></span>
+                    <span class="ms-2">Describe</span>
+                </li>
+                <li class="o-usl-FeedbackPanel-journeyLine" aria-hidden="true"/>
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(2)" t-att-aria-current="this.workflowStep === 2 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 2" class="fa fa-check"/><t t-else="">2</t></span>
+                    <span class="ms-2">Review</span>
+                </li>
+                <li class="o-usl-FeedbackPanel-journeyLine" aria-hidden="true"/>
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(3)" t-att-aria-current="this.workflowStep === 3 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 3" class="fa fa-check"/><t t-else="">3</t></span>
+                    <span class="ms-2">Send</span>
+                </li>
+            </ol>
 
             <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
                 <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Opening feedback…</span>
@@ -181,14 +199,23 @@
                 </div>
             </div>
             <div t-if="!this.props.task.withdrawn and this.props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar border-top px-3 py-2" role="status" aria-live="polite">
-                <div class="d-flex align-items-center flex-wrap gap-2">
-                    <div class="min-w-0 flex-grow-1">
-                        <div class="small fw-semibold"><i class="fa fa-check-circle text-success me-1"/>Draft ready <span t-if="this.props.task.category" class="badge text-bg-light border ms-1" t-out="this.props.task.category"/></div>
-                        <div class="small text-muted text-truncate" t-out="this.props.task.name"/>
+                <article class="o-usl-FeedbackPanel-draftCard rounded-3 p-3">
+                    <header class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                        <span class="o-usl-FeedbackPanel-readyLabel small fw-semibold"><i class="fa fa-check-circle text-success me-1"/>Draft ready</span>
+                        <span t-if="this.props.task.category" class="badge text-bg-light border fw-normal" t-out="this.props.task.category"/>
+                        <button class="btn btn-sm btn-link ms-auto px-0" type="button" t-on-click="() => this.props.onOpenTask()">Review full draft <i class="oi oi-chevron-right ms-1"/></button>
+                    </header>
+                    <div class="o-usl-FeedbackPanel-draftContent">
+                        <h3 class="h5 mb-2 text-break" t-out="this.props.task.name"/>
+                        <p t-if="this.props.task.description_text" class="text-pre-wrap mb-0" t-out="this.props.task.description_text"/>
+                        <p t-else="" class="text-muted mb-0">The agent prepared your draft.</p>
                     </div>
-                    <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open draft</button>
-                    <button class="btn btn-sm btn-primary" type="button" t-on-click="this.props.onConfirm" t-att-disabled="this.props.busy">Send to product team</button>
-                </div>
+                    <footer class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                        <button class="btn btn-outline-primary" type="button" t-on-click="() => this.props.onOpenTask()"><i class="fa fa-pencil me-1"/>Edit draft</button>
+                        <button class="btn btn-primary" type="button" t-on-click="this.props.onConfirm" t-att-disabled="this.props.busy"><i class="fa fa-paper-plane-o me-1"/>Send feedback</button>
+                    </footer>
+                </article>
+                <p class="o-usl-FeedbackPanel-refineHint small text-muted text-center mt-2 mb-0"><i class="fa fa-commenting-o me-1"/>Keep chatting to refine the draft.</p>
             </div>
             <div t-if="!this.props.task.withdrawn and this.props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
                 <i class="fa fa-check-circle text-success"/><span class="small fw-semibold flex-grow-1">With the product team</span>
@@ -220,7 +247,7 @@
                 <span class="o-usl-FeedbackChatWindow-avatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white small my-2 ms-3 me-2" aria-hidden="true">
                     <i class="fa fa-commenting-o"/>
                 </span>
-                <div class="text-truncate fw-bold fs-5 flex-grow-1">Feedback agent</div>
+                <div class="text-truncate fw-bold fs-5 flex-grow-1">Feedback</div>
                 <button t-if="!this.ui.isSmall" class="btn btn-link text-body px-2" type="button" t-on-click.stop="() => this.feedbackChatWindow.fold()" title="Fold feedback" aria-label="Fold feedback">
                     <i class="fa fa-minus"/>
                 </button>

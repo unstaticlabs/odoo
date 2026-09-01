@@ -445,10 +445,30 @@ export class FeedbackPanel extends Component {
             processing: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
             waiting: [_t("Needs your reply"), _t("Reply in the chat"), "text-bg-warning"],
             error: [_t("Needs attention"), _t("Open to retry"), "text-bg-danger"],
-            ready: [_t("Ready to send"), _t("Review and send"), "text-bg-success"],
+            ready: [_t("Draft ready"), _t("Review and send"), "text-bg-success"],
             triaged: [_t("With product team"), task.stage, "text-bg-primary"],
         };
         return statuses[task.agent_state] || [task.stage, _t("Open feedback"), "text-bg-secondary"];
+    }
+
+    get workflowStep() {
+        if (!this.state.task) {
+            return 1;
+        }
+        if (this.state.task.agent_state === "ready") {
+            return 2;
+        }
+        if (this.state.task.agent_state === "triaged" || this.state.task.withdrawn) {
+            return 3;
+        }
+        return 1;
+    }
+
+    workflowStepClass(step) {
+        return {
+            active: this.workflowStep === step,
+            complete: this.workflowStep > step,
+        };
     }
 
     feedbackChatLabel(task) {

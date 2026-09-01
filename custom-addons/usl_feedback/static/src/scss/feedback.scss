@@ -26,7 +26,7 @@
     }
 
     .o-usl-FeedbackPanel-nav {
-        min-height: 44px;
+        min-height: 48px;
         background: $o-view-background-color;
 
         .nav-link {
@@ -35,7 +35,7 @@
             border-top: 0;
             color: $o-main-text-color;
             font-size: $o-font-size-base-smaller;
-            min-height: 44px;
+            min-height: 48px;
             padding: map-get($spacers, 1) map-get($spacers, 2);
 
             &:hover:not(:disabled) {
@@ -60,6 +60,10 @@
             .nav-link.active {
                 border-bottom: 0;
             }
+
+            .badge {
+                max-width: 8rem;
+            }
         }
 
         .o-usl-FeedbackPanel-historyTab {
@@ -68,6 +72,50 @@
 
         .o-usl-FeedbackPanel-newTab {
             flex: 0 0 auto;
+        }
+    }
+
+    .o-usl-FeedbackPanel-journey {
+        min-height: 64px;
+        border-bottom: 1px solid $o-gray-200;
+        background: $o-view-background-color;
+        color: $o-gray-600;
+        font-size: $o-font-size-base-smaller;
+
+        .o-usl-FeedbackPanel-journeyStep {
+            flex: 0 0 auto;
+
+            &.active {
+                color: $o-brand-primary;
+                font-weight: 600;
+            }
+
+            &.complete {
+                color: $o-main-text-color;
+            }
+        }
+
+        .o-usl-FeedbackPanel-journeyMarker {
+            width: 28px;
+            height: 28px;
+            background: $o-gray-200;
+            color: $o-gray-700;
+            font-weight: 600;
+        }
+
+        .active .o-usl-FeedbackPanel-journeyMarker,
+        .complete .o-usl-FeedbackPanel-journeyMarker {
+            background: $o-brand-primary;
+            color: $o-white;
+        }
+
+        .o-usl-FeedbackPanel-journeyLine {
+            flex: 1 1 2.75rem;
+            min-width: map-get($spacers, 2);
+            max-width: 4.5rem;
+            height: 1px;
+            margin-inline: map-get($spacers, 2);
+            background: $o-gray-300;
         }
     }
 
@@ -90,7 +138,22 @@
     }
 
     .o-usl-FeedbackPanel-readyBar {
-        background-color: rgba(var(--o-success-rgb, 25, 135, 84), 0.05);
+        background-color: $o-view-background-color;
+
+        .o-usl-FeedbackPanel-draftCard {
+            border: 1px solid rgba($o-success, 0.28);
+            background: rgba($o-success, 0.035);
+        }
+
+        .o-usl-FeedbackPanel-readyLabel {
+            color: $o-success;
+        }
+
+        .o-usl-FeedbackPanel-draftContent {
+            max-height: 10rem;
+            overflow: auto;
+            scrollbar-width: thin;
+        }
     }
 
     .o-usl-FeedbackPanel-sentBar {
@@ -139,6 +202,13 @@
             opacity: 0.72;
         }
     }
+
+    .o-usl-FeedbackPanel-readyBar {
+        flex: 0 0 auto;
+        height: 17rem;
+        max-height: 52vh;
+        overflow: auto;
+    }
 }
 
 @keyframes o-usl-feedback-typing {
@@ -169,7 +239,7 @@
     }
 
     .o-mail-ChatWindow-header {
-        min-height: 42px;
+        min-height: 48px;
     }
 }
 
@@ -203,15 +273,32 @@
         .o-usl-FeedbackPanel-currentTab .nav-link {
             padding-inline-start: map-get($spacers, 2);
         }
+
+        .o-usl-FeedbackPanel-currentTab .badge {
+            max-width: 6rem;
+        }
+    }
+
+    .o-usl-FeedbackPanel-journey {
+        min-height: 56px;
+        padding-inline: map-get($spacers, 2) !important;
+
+        .o-usl-FeedbackPanel-journeyMarker {
+            width: 24px;
+            height: 24px;
+        }
+
+        .o-usl-FeedbackPanel-journeyLine {
+            margin-inline: map-get($spacers, 1);
+        }
     }
 
     .o-usl-FeedbackPanel-readyBar {
-        .min-w-0 {
-            flex-basis: 100%;
-        }
-
-        .btn-primary {
-            flex-grow: 1;
+        .o-usl-FeedbackPanel-draftCard footer {
+            .btn {
+                flex: 1 1 50%;
+                white-space: nowrap;
+            }
         }
     }
 }

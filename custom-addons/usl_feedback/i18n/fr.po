@@ -1895,6 +1895,42 @@ msgstr "Stockée sur le serveur pour toutes les sociétés. Sans clé, Odoo util
 msgid "Checks the local assistant or Gemini. When Projects MCP is configured, it also checks read-only project access. It does not create feedback."
 msgstr "Vérifie l’assistant local ou Gemini. Lorsque Projects MCP est configuré, vérifie aussi l’accès en lecture seule aux projets. Ne crée aucun retour."
 
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Describe"
+msgstr "Décrire"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Edit draft"
+msgstr "Modifier le brouillon"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Keep chatting to refine the draft."
+msgstr "Continuez à échanger pour affiner le brouillon."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Review full draft"
+msgstr "Voir le brouillon complet"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Send"
+msgstr "Envoyer"
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "The agent prepared your draft."
+msgstr "L’agent a préparé votre brouillon."
+
 #~ msgid "Approved model"
 #~ msgstr "Modèle approuvé"
 
