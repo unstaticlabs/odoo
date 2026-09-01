@@ -97,7 +97,12 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
     },
     {
         content: "Start another conversation without losing the saved card",
-        trigger: ".o-usl-FeedbackPanel-toolbar button[aria-label='New feedback']",
+        trigger: ".o-usl-FeedbackPanel-nav button:contains('New')",
+        run: "click",
+    },
+    {
+        content: "Open the clear feedback tracker",
+        trigger: ".o-usl-FeedbackPanel-nav button:contains('My feedback')",
         run: "click",
     },
     {
@@ -111,7 +116,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
     },
     {
         content: "Saved feedback is an explicit conversation control",
-        trigger: ".o-usl-FeedbackPanel-toolbar button[aria-label='Your feedback']",
+        trigger: ".o-usl-FeedbackPanel-nav button:contains('My feedback')",
         run: "click",
     },
     {

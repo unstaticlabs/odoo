@@ -14,7 +14,6 @@ import { browser } from "@web/core/browser/browser";
 import {
     FeedbackPanel,
     feedbackPageContext,
-    focusFeedbackComposer,
 } from "../src/js/feedback_messaging_menu";
 import {
     feedbackChatWindowService,
@@ -33,8 +32,25 @@ import {
 defineMailModels();
 
 class TestChatter extends Component {
-    static template = xml`<div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'"/>`;
-    static props = ["threadModel", "threadId", "composer"];
+    static template = xml`
+        <div class="o-test-FeedbackChatter" t-att-data-composer="props.composer ? 'enabled' : 'disabled'">
+            <span t-if="['queued', 'processing'].includes(props.agentState)" class="o-test-AgentActivity" t-out="props.agentActivity"/>
+            <div t-if="props.agentState === 'error'" class="o-test-AgentError">Your feedback is saved.<button t-on-click="props.onRetry">Try again</button></div>
+            <div t-if="props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar"><button t-on-click="() => props.onOpenTask()">Open draft</button><button t-on-click="props.onConfirm">Send to product team</button></div>
+            <div t-if="props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar">With the product team</div>
+        </div>`;
+    static props = [
+        "agentActivity",
+        "agentState",
+        "busy",
+        "composer",
+        "onConfirm",
+        "onOpenTask",
+        "onRetry",
+        "task",
+        "threadModel",
+        "threadId",
+    ];
 }
 
 function feedbackTask(values = {}) {
@@ -66,7 +82,7 @@ function mockFeedbackStart(recent = []) {
 }
 
 async function mountFeedbackPanel(props = {}) {
-    patchWithCleanup(FeedbackPanel.components, { Chatter: TestChatter });
+    patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
     return mountWithCleanup(FeedbackPanel, {
         props: {
             close() {},
@@ -268,26 +284,6 @@ test("browser back cancels the local page preview and any late result", () => {
     expect(released).toBe(2);
 });
 
-test("refining opens the native Chatter composer before focusing it", async () => {
-    let opened = false;
-    let focused = false;
-    const input = { focus: () => (focused = true) };
-    const root = {
-        querySelector(selector) {
-            if (selector === ".o-mail-Chatter-sendMessage") {
-                return { click: () => (opened = true) };
-            }
-            if (selector === ".o-mail-Composer-input") {
-                return opened ? input : null;
-            }
-            return null;
-        },
-    };
-    expect(await focusFeedbackComposer(root)).toBe(true);
-    expect(opened).toBe(true);
-    expect(focused).toBe(true);
-});
-
 test("draft keeps its default-selected page preview local until send", async () => {
     onRpc("usl.feedback.submission", "feedback_start", () => {
         expect.step("start");
@@ -327,8 +323,8 @@ test("draft keeps its default-selected page preview local until send", async () 
     });
     expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
     expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
-    expect(".o-usl-FeedbackPanel").toHaveText(/All internal employees can read/);
-    expect(".o-usl-FeedbackPanel").toHaveText(/Gemini receives your message/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/Your workspace can view the feedback/);
+    expect(".o-usl-FeedbackPanel").toHaveText(/Gemini sees your message/);
     expect.verifySteps(["start"]);
     await contains("#usl_feedback_message").edit("The page preview shows the issue.");
     await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();
@@ -410,6 +406,23 @@ test("first message creates the conversation and keeps page context opt-in", asy
     expect.verifySteps(["created inbox task"]);
 });
 
+test("My feedback shows a readable status and next step", async () => {
+    const task = feedbackTask({
+        name: "The full feedback title remains readable without a clipped status badge",
+    });
+    mockFeedbackStart([task]);
+    onRpc("project.task", "feedback_recent", () => [task]);
+    await mountFeedbackPanel();
+
+    await contains(".o-usl-FeedbackPanel-nav button:contains('My feedback')").click();
+
+    expect(".o-usl-FeedbackPanel-feedbackItem").toHaveCount(1);
+    expect(".o-usl-FeedbackPanel-feedbackItem").toHaveText(
+        /Feedback #71 · Inbox.*Needs your reply.*full feedback title.*Reply in the chat/s
+    );
+    expect(".o-usl-FeedbackPanel button:contains('Open board')").toHaveCount(1);
+});
+
 test("conversation renders processing, clarification, error, ready, and success states", async () => {
     mockFeedbackStart();
     const component = await mountFeedbackPanel();
@@ -418,7 +431,7 @@ test("conversation renders processing, clarification, error, ready, and success 
         task: feedbackTask({ agent_state: "processing" }),
     });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel").toHaveText(/Reviewing your feedback/);
+    expect(".o-test-AgentActivity").toHaveText(/Reading your report/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
 
     component.state.task = feedbackTask({ agent_state: "waiting" });
@@ -430,19 +443,28 @@ test("conversation renders processing, clarification, error, ready, and success 
         agent_error: "The assistant couldn’t reply. Your feedback is saved.",
     });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel .alert-warning").toHaveText(/feedback is saved/);
-    expect(".o-usl-FeedbackPanel .alert-warning button").toHaveText("Try again");
+    expect(".o-test-AgentError").toHaveText(/feedback is saved/);
+    expect(".o-test-AgentError button").toHaveText("Try again");
 
     component.state.task = feedbackTask({ agent_state: "ready" });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Review your feedback/);
-    expect(".o-usl-FeedbackPanel-ready").toHaveText(/Clarify the reload status/);
-    expect(".o-usl-FeedbackPanel-ready").toHaveText(/After reload/);
-    expect(".o-usl-FeedbackPanel-ready button").toHaveCount(2);
+    expect(".o-usl-FeedbackPanel-readyBar").toHaveText(/Open draft/);
+    expect(".o-usl-FeedbackPanel-readyBar").toHaveText(/Send to product team/);
+    expect(".o-usl-FeedbackPanel-readyBar button").toHaveCount(2);
+    component.action = {
+        async doAction(action) {
+            expect(action.res_id).toBe(71);
+            expect(action.target).toBe("current");
+            expect.step("draft opened");
+        },
+    };
+    await contains(".o-usl-FeedbackPanel-readyBar button:contains('Open draft')").click();
+    expect(".o-usl-FeedbackPanel-conversation").toHaveCount(1);
+    expect.verifySteps(["draft opened"]);
 
     component.state.task = feedbackTask({ agent_state: "triaged", stage: "Triage" });
     await animationFrame();
-    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/Sent to the product team/);
+    expect(".o-usl-FeedbackPanel-sentBar").toHaveText(/With the product team/);
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "disabled");
 });
 
@@ -460,9 +482,9 @@ test("reporter confirmation is guarded by the ready card and updates to Triage",
     });
     await animationFrame();
     await contains(
-        ".o-usl-FeedbackPanel-ready button:contains('Send to product team')"
+        ".o-usl-FeedbackPanel-readyBar button:contains('Send to product team')"
     ).click();
-    expect(".o-usl-FeedbackPanel .alert-success").toHaveText(/Sent to the product team/);
+    expect(".o-usl-FeedbackPanel-sentBar").toHaveText(/With the product team/);
     expect.verifySteps(["confirmed"]);
 });
 

@@ -344,17 +344,19 @@ class ProjectTask(models.Model):
         if self.usl_feedback_agent_state != "ready":
             raise UserError(_("This feedback is not ready to send."))
         triage = self.env.ref("usl_feedback.stage_feedback_triaged")
-        self.sudo().write(
+        self.sudo().with_context(tracking_disable=True).write(
             {
                 "stage_id": triage.id,
                 "usl_feedback_agent_state": "triaged",
                 "usl_feedback_agent_error": False,
             },
         )
+        self._track_discard()
         self.with_context(usl_feedback_skip_agent=True).message_post(
-            body=_("The reporter sent this feedback to the product team."),
+            body=_("Sent to the product team."),
+            author_id=self.env.ref("usl_feedback.partner_feedback_assistant").id,
             message_type="comment",
-            subtype_xmlid="mail.mt_note",
+            subtype_xmlid="mail.mt_comment",
         )
         return self._usl_feedback_state_payload()
 
@@ -363,17 +365,27 @@ class ProjectTask(models.Model):
         self.ensure_one()
         if not self.env.su or not self._usl_feedback_is_task():
             raise AccessError(_("Only the feedback service can apply an assistant result."))
-        status = result.get("status")
+        status = str(result.get("status") or "").strip().lower()
+        status = {
+            "ready": "ready_for_confirmation",
+            "complete": "ready_for_confirmation",
+            "completed": "ready_for_confirmation",
+            "clarification": "needs_clarification",
+            "needs_info": "needs_clarification",
+            "needs_information": "needs_clarification",
+        }.get(status, status)
         if status not in {"needs_clarification", "ready_for_confirmation"}:
-            raise ValidationError(_("The assistant returned an invalid status."))
-        assistant_message = str(result.get("assistant_message") or "").strip()
-        if not assistant_message or len(assistant_message) > 4000:
-            raise ValidationError(_("The assistant response is missing or too long."))
+            status = "needs_clarification"
+        assistant_message = str(result.get("assistant_message") or "").strip()[:4000]
         questions = result.get("questions") or []
-        if not isinstance(questions, list) or len(questions) > 3:
-            raise ValidationError(_("The assistant returned invalid clarification questions."))
-        questions = [str(question).strip()[:500] for question in questions if str(question).strip()]
-        category = result.get("category")
+        if not isinstance(questions, list):
+            questions = []
+        questions = [
+            str(question).strip()[:500]
+            for question in questions[:3]
+            if str(question).strip()
+        ]
+        category = str(result.get("category") or "").strip().lower()
         if category not in dict(FEEDBACK_CATEGORIES):
             category = False
         try:
@@ -385,9 +397,22 @@ class ProjectTask(models.Model):
         summary = str(result.get("summary") or "").strip()[:200]
         description = str(result.get("description") or "").strip()[:12000]
         if status == "ready_for_confirmation" and not all((summary, description, category)):
-            raise ValidationError(_("The assistant returned an incomplete feedback brief."))
+            status = "needs_clarification"
+            if not questions:
+                questions = [_('What happened, and what did you expect instead?')]
+        if status == "needs_clarification" and not questions:
+            questions = [_('What happened, and what did you expect instead?')]
+        if not assistant_message:
+            assistant_message = (
+                _("I prepared a draft. Review it before sending.")
+                if status == "ready_for_confirmation"
+                else _("I need one more detail to prepare the draft.")
+            )
+        related_values = result.get("related_feedback_ids") or []
+        if not isinstance(related_values, (list, tuple)):
+            related_values = []
         related_ids = []
-        for value in result.get("related_feedback_ids") or []:
+        for value in related_values:
             try:
                 related_ids.append(int(value))
             except (TypeError, ValueError):
@@ -413,7 +438,8 @@ class ProjectTask(models.Model):
             tag = self.env.ref(f"usl_feedback.tag_feedback_{category}", raise_if_not_found=False)
             if tag:
                 values["tag_ids"] = [(6, 0, tag.ids)]
-        self.write(values)
+        self.with_context(tracking_disable=True).write(values)
+        self._track_discard()
         body = escape(assistant_message)
         if questions:
             body += Markup("<ul>%s</ul>") % Markup().join(

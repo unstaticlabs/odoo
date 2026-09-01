@@ -727,8 +727,7 @@ class TestProductFeedback(TransactionCase):
         self.reporter.lang = "fr_FR"
         task, _payload = self._submit(message="The workflow is confusing.")
         # Submission and assistant processing are separate RPC transactions in
-        # production. Finalize the create transaction so later assistant writes
-        # produce the same native tracking messages as the live conversation.
+        # production. Finalize the create transaction before the assistant turn.
         self.env.flush_all()
         self.env.cr.precommit.run()
         params = self.env["ir.config_parameter"].sudo()
@@ -803,8 +802,8 @@ class TestProductFeedback(TransactionCase):
         self.assertEqual(task.name, "Clarify status after workflow reload")
         self.assertEqual(task.usl_feedback_category, "ux")
         self.assertEqual(task.stage_id, self.env.ref("usl_feedback.stage_feedback_new"))
-        # Mail tracking is finalized by Odoo's pre-commit callback. Run it here
-        # so this transaction-level assertion observes the persisted chatter.
+        # Internal assistant edits stay out of the reporter's chat. The agent's
+        # concise reply is the only explanation the reporter needs.
         self.env.flush_all()
         self.env.cr.precommit.run()
         task.invalidate_recordset(["message_ids"])
@@ -814,8 +813,8 @@ class TestProductFeedback(TransactionCase):
                 lambda message: message.message_type == "tracking",
             ).mapped("body")
         )
-        self.assertIn("(Priorité)", tracking_html)
-        self.assertIn("(Titre)", tracking_html)
+        self.assertNotIn("(Priorité)", tracking_html)
+        self.assertNotIn("(Titre)", tracking_html)
         self.assertNotIn("(Priority)", tracking_html)
         task.with_user(self.reporter).feedback_confirm_triage()
         self.assertEqual(task.stage_id, self.env.ref("usl_feedback.stage_feedback_triaged"))
@@ -932,6 +931,58 @@ class TestProductFeedback(TransactionCase):
             "Use the read-only Odoo Projects MCP",
             fallback_call["system_instruction"],
         )
+
+    def test_incomplete_degraded_brief_becomes_clarification(self):
+        task, _payload = self._submit(message="The assistant response should recover safely.")
+        params = self.env["ir.config_parameter"].sudo()
+        for key, value in {
+            "usl_feedback.gemini_enabled": "True",
+            "usl_feedback.gemini_paid_tier_confirmed": "True",
+            "usl_feedback.gemini_api_key": "gemini-secret",
+            "usl_feedback.gemini_model": "gemini-3.7-flash",
+            "usl_feedback.mcp_api_key": None,
+            "usl_feedback.mcp_url": None,
+        }.items():
+            params.set_str(key, value)
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id)], limit=1,
+        )
+        run.write(
+            {
+                "state": "submitted",
+                "attempts": 3,
+                "external_interaction_id": "failed-background-run",
+            },
+        )
+        malformed_result = {
+            "status": "unexpected_provider_status",
+            "assistant_message": "",
+            "questions": "What happened?",
+            "summary": "",
+            "description": "",
+            "category": "",
+            "priority": "unknown",
+            "related_feedback_ids": "not-a-list",
+        }
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run."
+            "GeminiClient.generate_structured_feedback",
+            return_value={"output_text": json.dumps(malformed_result)},
+        ):
+            run._handle_error(
+                GeminiError("http_500", "INTERNAL", retryable=True, status_code=500),
+            )
+
+        self.assertEqual(run.state, "completed")
+        self.assertEqual(task.usl_feedback_agent_state, "waiting")
+        self.assertFalse(task.usl_feedback_agent_error)
+        assistant_message = task.message_ids.filtered(
+            lambda message: message.author_id
+            == self.env.ref("usl_feedback.partner_feedback_assistant"),
+        )[-1:]
+        assistant_text = html2plaintext(assistant_message.body).strip()
+        self.assertIn("I need one more detail", assistant_text)
+        self.assertIn("What happened, and what did you expect instead?", assistant_text)
 
     def test_expired_state_rebuilds_from_bounded_chatter_once(self):
         task, _payload = self._submit(message="The stored conversation should recover.")

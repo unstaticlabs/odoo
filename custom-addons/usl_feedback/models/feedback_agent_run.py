@@ -520,13 +520,24 @@ class FeedbackAgentRun(models.Model):
             raise GeminiError(
                 ERROR_INVALID_RESPONSE, "Gemini returned invalid structured output.",
             ) from error
+        if not isinstance(result, dict):
+            _logger.warning(
+                "Gemini returned a non-object feedback brief for task %s; asking the reporter for details",
+                task.id,
+            )
+            result = {}
         pending = task.usl_feedback_pending_message_id
         try:
             task._usl_feedback_apply_agent_result(result, self.external_interaction_id)
         except ValidationError as error:
+            _logger.warning(
+                "Gemini result failed local validation for feedback task %s: %s",
+                task.id,
+                error,
+            )
             raise GeminiError(
                 ERROR_INVALID_RESPONSE,
-                "Gemini returned a feedback brief that failed validation.",
+                f"Gemini returned a feedback brief that failed validation: {error}",
             ) from error
         usage = response.get("usage") or response.get("usage_metadata") or {}
         now = fields.Datetime.now()

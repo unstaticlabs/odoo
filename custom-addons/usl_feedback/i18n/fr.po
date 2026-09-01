@@ -1537,6 +1537,186 @@ msgstr "https://mcp.example.com/mcp/projects"
 msgid "project_id"
 msgstr "project_id"
 
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Add files"
+msgstr "Ajouter des fichiers"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Agent working"
+msgstr "Traitement en cours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Chat"
+msgstr "Discussion"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Checking the details…"
+msgstr "Vérification des détails…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Describe your feedback"
+msgstr "Décrivez votre retour"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Draft ready"
+msgstr "Proposition prête"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback #"
+msgstr "Retour nº "
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback agent"
+msgstr "Assistant de retours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback agent conversation"
+msgstr "Conversation avec l’assistant de retours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Feedback navigation"
+msgstr "Navigation des retours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Gemini sees your message and preview. Files stay in Odoo. Your workspace can view the feedback."
+msgstr "Gemini reçoit votre message et l’aperçu. Les fichiers restent dans Odoo. Votre espace de travail peut consulter le retour."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "I couldn’t finish this reply. Your feedback is saved."
+msgstr "Je n’ai pas pu terminer cette réponse. Votre retour est enregistré."
+
+#. module: usl_feedback
+#. odoo-python
+msgid "I need one more detail to prepare the draft."
+msgstr "Il me manque une précision pour préparer la proposition."
+
+#. module: usl_feedback
+#. odoo-python
+msgid "I prepared a draft. Review it before sending."
+msgstr "J’ai préparé une proposition. Vérifiez-la avant de l’envoyer."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Include page preview"
+msgstr "Inclure l’aperçu de la page"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Looking at the page preview…"
+msgstr "Analyse de l’aperçu de la page…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Needs attention"
+msgstr "À reprendre"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Needs your reply"
+msgstr "Votre réponse est attendue"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "New"
+msgstr "Nouveau"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Odoo only"
+msgstr "Odoo uniquement"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Open board"
+msgstr "Ouvrir le tableau"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Open draft"
+msgstr "Ouvrir la proposition"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Open to retry"
+msgstr "Ouvrez pour réessayer"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Page details"
+msgstr "Détails de la page"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Preparing a draft"
+msgstr "Préparation d’une proposition"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Preparing a draft…"
+msgstr "Préparation d’une proposition…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Reading your report…"
+msgstr "Lecture de votre retour…"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Reply in the chat"
+msgstr "Répondez dans la discussion"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Review and send"
+msgstr "Vérifiez puis envoyez"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Start a chat when something could work better."
+msgstr "Ouvrez une discussion dès qu’un élément pourrait être amélioré."
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Start feedback"
+msgstr "Envoyer un retour"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Status and next step"
+msgstr "État et prochaine étape"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Still working…"
+msgstr "Traitement toujours en cours…"
+
+#. module: usl_feedback
+#. odoo-python
+msgid "What happened, and what did you expect instead?"
+msgstr "Que s’est-il passé et qu’attendiez-vous à la place ?"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "With product team"
+msgstr "Transmis à l’équipe produit"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "With the product team"
+msgstr "Transmis à l’équipe produit"
+
 #~ msgid "Approved model"
 #~ msgstr "Modèle approuvé"
 

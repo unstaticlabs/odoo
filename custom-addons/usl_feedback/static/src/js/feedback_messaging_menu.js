@@ -1,7 +1,9 @@
 import "@mail/chatter/web/chatter_patch";
 
 import { Chatter } from "@mail/chatter/web_portal_project/chatter";
+import { Composer } from "@mail/core/common/composer";
 import { MessagingMenu } from "@mail/core/public_web/messaging_menu";
+import { Thread } from "@mail/core/common/thread";
 import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
@@ -13,7 +15,6 @@ import {
     onWillStart,
     onWillUnmount,
     onWillUpdateProps,
-    useRef,
     useState,
 } from "@odoo/owl";
 
@@ -46,31 +47,32 @@ function fileAsBase64(file) {
     });
 }
 
-export async function focusFeedbackComposer(root) {
-    let input = root.querySelector(".o-mail-Composer-input");
-    if (!input) {
-        const trigger = root.querySelector(".o-mail-Chatter-sendMessage");
-        if (!trigger) {
-            return false;
-        }
-        trigger.click();
-        await new Promise((resolve) => browser.setTimeout(resolve, 0));
-        input = root.querySelector(".o-mail-Composer-input");
-    }
-    input?.focus();
-    return Boolean(input);
+export class FeedbackChatter extends Chatter {
+    static template = "usl_feedback.FeedbackChatter";
+    static components = { Composer, Thread };
+    static props = [
+        "agentActivity",
+        "agentState",
+        "busy",
+        "composer",
+        "onConfirm",
+        "onOpenTask",
+        "onRetry",
+        "task",
+        "threadId",
+        "threadModel",
+    ];
 }
 
 export class FeedbackPanel extends Component {
     static template = "usl_feedback.FeedbackPanel";
-    static components = { Chatter };
+    static components = { FeedbackChatter };
     static props = ["captureState?", "clearScreenshot?", "close", "pageContext", "screenshot?"];
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-        this.rootRef = useRef("root");
         this.state = useState({
             phase: "loading",
             draftId: false,
@@ -84,10 +86,15 @@ export class FeedbackPanel extends Component {
             task: false,
             error: false,
             busy: false,
+            progressStep: 0,
         });
         this.pollTimer = false;
+        this.progressTimer = false;
         onWillStart(() => this.startDraft());
-        onWillUnmount(() => browser.clearTimeout(this.pollTimer));
+        onWillUnmount(() => {
+            browser.clearTimeout(this.pollTimer);
+            browser.clearTimeout(this.progressTimer);
+        });
         onWillUpdateProps((nextProps) => {
             if (nextProps.screenshot && nextProps.screenshot !== this.props.screenshot) {
                 this.state.screenshotSelected = true;
@@ -232,6 +239,7 @@ export class FeedbackPanel extends Component {
             this.state.screenshotSelected = false;
             this.state.screenshotAttachmentId = false;
             this.props.clearScreenshot?.();
+            this.startAgentProgress();
             this.schedulePoll(0);
             if (task.context_omitted) {
                 this.notification.add(
@@ -249,11 +257,24 @@ export class FeedbackPanel extends Component {
     async resumeTask(task) {
         this.state.task = task;
         this.state.phase = "conversation";
+        this.startAgentProgress();
         this.schedulePoll(0);
+    }
+
+    showConversation() {
+        if (!this.state.task) {
+            return;
+        }
+        this.state.phase = "conversation";
+        this.startAgentProgress();
+        if (["queued", "processing"].includes(this.state.task.agent_state)) {
+            this.schedulePoll(0);
+        }
     }
 
     async showRecent() {
         browser.clearTimeout(this.pollTimer);
+        this.stopAgentProgress();
         this.state.error = false;
         this.state.busy = true;
         try {
@@ -267,7 +288,11 @@ export class FeedbackPanel extends Component {
     }
 
     async newConversation() {
+        if (this.state.phase === "draft" || (this.state.phase === "loading" && !this.state.task)) {
+            return;
+        }
         browser.clearTimeout(this.pollTimer);
+        this.stopAgentProgress();
         this.state.phase = "loading";
         this.state.task = false;
         this.state.message = "";
@@ -298,7 +323,58 @@ export class FeedbackPanel extends Component {
         }
         if (["queued", "processing"].includes(this.state.task?.agent_state)) {
             this.schedulePoll();
+        } else {
+            this.stopAgentProgress();
         }
+    }
+
+    startAgentProgress() {
+        this.stopAgentProgress();
+        if (!["queued", "processing"].includes(this.state.task?.agent_state)) {
+            return;
+        }
+        this.state.progressStep = 0;
+        const advance = () => {
+            if (!["queued", "processing"].includes(this.state.task?.agent_state)) {
+                this.stopAgentProgress();
+                return;
+            }
+            this.state.progressStep = Math.min(this.state.progressStep + 1, 3);
+            this.progressTimer = browser.setTimeout(advance, 3500);
+        };
+        this.progressTimer = browser.setTimeout(advance, 2500);
+    }
+
+    stopAgentProgress() {
+        browser.clearTimeout(this.progressTimer);
+        this.progressTimer = false;
+    }
+
+    get agentActivity() {
+        if (this.state.progressStep === 0) {
+            return _t("Reading your report…");
+        }
+        if (this.state.progressStep === 1) {
+            return this.state.task?.screenshot_attachment_id
+                ? _t("Looking at the page preview…")
+                : _t("Checking the details…");
+        }
+        if (this.state.progressStep === 2) {
+            return _t("Preparing a draft…");
+        }
+        return _t("Still working…");
+    }
+
+    feedbackStatus(task) {
+        const statuses = {
+            queued: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
+            processing: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
+            waiting: [_t("Needs your reply"), _t("Reply in the chat"), "text-bg-warning"],
+            error: [_t("Needs attention"), _t("Open to retry"), "text-bg-danger"],
+            ready: [_t("Ready to send"), _t("Review and send"), "text-bg-success"],
+            triaged: [_t("With product team"), task.stage, "text-bg-primary"],
+        };
+        return statuses[task.agent_state] || [task.stage, _t("Open feedback"), "text-bg-secondary"];
     }
 
     async retry() {
@@ -309,6 +385,7 @@ export class FeedbackPanel extends Component {
                 "feedback_retry_agent",
                 [[this.state.task.id]]
             );
+            this.startAgentProgress();
             this.schedulePoll(0);
         } catch (error) {
             this.showError(error);
@@ -325,6 +402,7 @@ export class FeedbackPanel extends Component {
                 "feedback_confirm_triage",
                 [[this.state.task.id]]
             );
+            this.stopAgentProgress();
         } catch (error) {
             this.showError(error);
         } finally {
@@ -332,12 +410,18 @@ export class FeedbackPanel extends Component {
         }
     }
 
-    async keepRefining() {
-        if (!(await focusFeedbackComposer(this.rootRef.el))) {
-            this.notification.add(_t("Open the conversation to add details."), {
-                type: "warning",
-            });
+    async openTask(task = this.state.task) {
+        if (!task) {
+            return;
         }
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            name: task.name,
+            res_model: "project.task",
+            res_id: task.id,
+            views: [[false, "form"]],
+            target: "current",
+        });
     }
 
     async openBoard() {

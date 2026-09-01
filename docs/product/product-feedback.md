@@ -11,14 +11,19 @@ this page preview**, add up to ten supporting files and opt in to **Share page
 details**.
 
 **Send feedback** creates a partial `project.task` in **Inbox before any
-provider call**. The floating conversation then uses native task chatter while
-the Feedback Assistant asks one focused question per turn and updates the same
-card. It folds into the ChatHub like an ordinary chat, becomes fullscreen on
-narrow screens and closes with the standard Escape/back behavior. The reporter
-reviews the result, chooses **Add details** when needed, then selects **Send to
-product team**. Only that action moves the card to Triage. **Your feedback**
-restores saved conversations after a reload or return to Odoo, while **New
-feedback** starts a separate Inbox card.
+provider call**. The floating window then becomes a native task conversation.
+The Feedback Agent reports its current step in the chat—reading the report,
+checking the preview and preparing a draft—then asks one focused question per
+turn when details are missing. The reporter replies through Odoo's compact
+message composer. A short **Draft ready** bar links to the task and offers
+**Send to product team**; only that action moves the card to Triage.
+
+The window has three stable destinations: **Chat**, **My feedback** and **New**.
+**My feedback** shows each card's full title, identifier, stage, current status
+and next step; **Open board** is a secondary route to the shared Project board.
+Opening either a card or the board keeps the floating conversation alive. The
+window folds into the ChatHub like an ordinary chat, becomes fullscreen on
+narrow screens and restores saved conversations after reload or return.
 
 The canonical **Odoo Product Feedback** Project remains ordinary Odoo Project
 data. Its native stages are **Inbox**, **Triage**, **Shaping**, **Build**,
@@ -104,19 +109,23 @@ codes—not prompts, keys, screenshots, provider reasoning or raw responses.
 Failures leave the partial card in Inbox. Transient provider failures retry
 with a bounded delay. If the background interaction still fails, one bounded,
 non-stored Gemini 3.5 Flash-Lite request completes the turn from the full
-sanitized chatter without URL or MCP tools. If that request also fails, Odoo
-states that the feedback is saved and offers **Try again**. No provider error
-may disclose credentials or response bodies. Task notifications remain inside
+sanitized chatter without URL or MCP tools. Incomplete or slightly malformed
+structured output becomes a clarification question instead of a dead-end
+error. If the provider cannot return usable text at all, the agent says in the
+chat that the feedback is saved and offers **Try again**. No provider error may
+disclose credentials or response bodies. Task notifications remain inside
 Odoo: feedback chatter suppresses outgoing email delivery.
 
 ## Architecture decision
 
 The selected path patches Odoo's native `MessagingMenu` only to add the
-launcher, then extends `ChatHub` with a module-owned floating window that embeds
-native `Chatter` against the canonical task. It follows Odoo's normal chat
-launch, fold, close, focus, desktop positioning and mobile fullscreen patterns,
-preserves the current action behind the conversation, and avoids a second
-ticket/conversation model.
+launcher, then extends `ChatHub` with a module-owned floating window. Its chat
+surface composes Odoo's native `Thread` and compact `Composer` against the
+canonical task. Module-owned agent activity, recovery and confirmation rows
+sit inside that same conversation instead of above a generic form Chatter. It
+follows Odoo's normal launch, fold, close, focus, desktop positioning and mobile
+fullscreen patterns, preserves the current action behind the conversation,
+and avoids a second ticket/conversation model.
 
 Stock `mail.ChatWindow` was also evaluated. It is hard-wired to a
 `discuss.channel`, so using it directly would create a duplicate conversation
@@ -169,6 +178,13 @@ Version `saas~19.3.2.0.4` adds the non-stored structured completion fallback
 for exhausted background-agent failures. It adds no field or data migration.
 Recovery is to restore the previous module code and upgrade `usl_feedback`;
 saved cards, conversations and provider audit runs remain valid.
+
+Version `saas~19.3.2.0.5` makes the floating experience chat-first, adds clear
+Chat/My feedback/New navigation and status tracking, removes internal assistant
+field diffs from the conversation, and turns incomplete provider briefs into a
+clarification turn. It adds no schema or stored-task migration. Recovery is to
+restore the previous module code and upgrade `usl_feedback`; existing tasks,
+chatter, attachments and provider runs remain valid.
 
 Before production upgrade, take a consistent database and filestore backup.
 Afterward verify the seven governed stages, company-neutral cards with retained
