@@ -26,6 +26,7 @@ def configure(env):
         raise RuntimeError(USERS_JSON_ERROR) from error
 
     apply_changes = _is_enabled("USL_POCKET_ID_APPLY")
+    defer_paperless_sync = _is_enabled("USL_POCKET_ID_DEFER_PAPERLESS_SYNC")
     try:
         env["auth.oauth.provider"]._usl_pocketid_apply_environment()
         public_base_url = (
@@ -38,7 +39,7 @@ def configure(env):
         users = env["res.users"].with_context(
             usl_documents_defer_user_access_sync=True,
         )
-        if not apply_changes:
+        if not apply_changes or defer_paperless_sync:
             # The dry run is rolled back, but Paperless permission updates are
             # external side effects and cannot be rolled back with PostgreSQL.
             # Keep those hooks disabled while still exercising all Odoo-side
@@ -50,7 +51,7 @@ def configure(env):
             strict=True,
         )
         summary["login_policy"] = users._usl_pocketid_apply_login_policy()
-        if apply_changes and "usl.document" in env:
+        if apply_changes and not defer_paperless_sync and "usl.document" in env:
             env["usl.document"].sudo().search(
                 [("access_scope", "=", "linked_record")],
             )._recompute_linked_record_access(sync_permissions=True)
@@ -62,6 +63,9 @@ def configure(env):
         env.cr.rollback()
         raise
     summary["mode"] = "applied" if apply_changes else "dry_run"
+    summary["paperless_sync"] = (
+        "deferred" if defer_paperless_sync else "synchronized"
+    )
     print(json.dumps(summary, indent=2, sort_keys=True))  # noqa: T201
 
 

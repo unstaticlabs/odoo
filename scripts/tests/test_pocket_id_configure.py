@@ -98,6 +98,33 @@ class PocketIdConfigureTest(unittest.TestCase):
         self.assertEqual(env.cr.commits, 1)
         self.assertEqual(env.cr.rollbacks, 0)
 
+    def test_production_can_defer_all_paperless_sync_until_identity_mapping(self):
+        env = _Environment()
+        environment = {
+            "USL_POCKET_ID_APPLY": "1",
+            "USL_POCKET_ID_BREAK_GLASS_PASSWORD": "a-secure-test-password-value",
+            "USL_POCKET_ID_DEFER_PAPERLESS_SYNC": "1",
+            "USL_POCKET_ID_USERS_JSON": json.dumps([{"login": "valentin"}]),
+        }
+
+        output = io.StringIO()
+        with (
+            patch.dict("os.environ", environment, clear=False),
+            contextlib.redirect_stdout(output),
+        ):
+            runpy.run_path(str(SCRIPT), init_globals={"env": env})
+
+        self.assertEqual(
+            env.users.context,
+            {
+                "usl_documents_defer_user_access_sync": True,
+                "usl_documents_user_access_no_sync": True,
+            },
+        )
+        self.assertFalse(env.documents.recomputed)
+        self.assertEqual(json.loads(output.getvalue())["paperless_sync"], "deferred")
+        self.assertEqual(env.cr.commits, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
