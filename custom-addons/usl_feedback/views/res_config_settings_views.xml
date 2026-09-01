@@ -26,10 +26,10 @@
                             </div>
                             <field name="feedback_has_gemini_api_key" invisible="1"/>
                         </setting>
-                        <setting string="Projects MCP URL" help="Enter the exact /mcp/projects endpoint. Use HTTPS outside localhost.">
+                        <setting string="Projects MCP URL (optional)" help="Lets Gemini inspect existing feedback for likely duplicates. Enter the exact /mcp/projects endpoint; use HTTPS outside localhost.">
                             <field name="feedback_mcp_url" placeholder="https://mcp.example.com/mcp/projects"/>
                         </setting>
-                        <setting string="Read-only Odoo API key" help="Use a dedicated Feedback Agent service account. Gemini sends this key only to the read-only Projects MCP.">
+                        <setting string="Read-only Odoo API key (optional)" help="Used only with Projects MCP. Choose a dedicated Feedback Agent service account.">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <field name="feedback_mcp_api_key_input" password="True" placeholder="Leave blank to keep the current key"/>
                                 <span class="text-success" invisible="not feedback_has_mcp_api_key">Key saved</span>
@@ -38,8 +38,8 @@
                             </div>
                             <field name="feedback_has_mcp_api_key" invisible="1"/>
                         </setting>
-                        <setting string="Connection check" help="Checks Gemini and read-only project access. It does not create feedback.">
-                            <button name="action_test_feedback_agent" type="object" string="Test connection" class="btn-link" title="Check Gemini and the read-only Projects MCP without creating feedback."/>
+                        <setting string="Connection check" help="Checks Gemini. When Projects MCP is configured, it also checks read-only project access. It does not create feedback.">
+                            <button name="action_test_feedback_agent" type="object" string="Test connection" class="btn-link" title="Check Gemini and optional read-only project access without creating feedback."/>
                             <div class="mt-2" invisible="feedback_connection_status == 'not_tested'">
                                 <field name="feedback_connection_status" widget="badge" class="me-2"/>
                                 <field name="feedback_connection_checked_at" class="text-muted"/>

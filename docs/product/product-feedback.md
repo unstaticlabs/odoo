@@ -75,15 +75,23 @@ created task or are deleted with the abandoned draft.
 The company-wide assistant uses Google's Gemini Interactions API in background,
 stored, stateful mode. Production enablement requires an administrator to
 acknowledge the paid tier and Google's seven-day state retention, save a
-server-side Gemini API key, select an approved Flash model, and save a second
-API key for the dedicated read-only Odoo service identity. Saved secrets are
-never returned to the browser.
+server-side Gemini API key and select an approved Flash model. Saved secrets
+are never returned to the browser.
+
+Projects MCP is optional enrichment. Without it, Gemini still receives the
+conversation, selected page preview, sanitized page details, release-pinned
+source link and Odoo's bounded summary of current feedback. When an
+administrator also configures the exact Projects MCP URL and the dedicated
+read-only service identity's API key, Gemini may inspect relevant existing
+cards for better duplicate detection. Missing or partial MCP settings never
+block feedback submission or clarification.
 
 Each turn contains the bounded task conversation, a bounded summary of open
 feedback, the selected page preview on the first turn, and a release-pinned
 public source link of the form
 `https://github.com/unstaticlabs/odoo/tree/<release-sha>`. Gemini may use URL
-context and the configured HTTPS endpoint ending exactly in `/mcp/projects`.
+context and, when configured, the HTTPS endpoint ending exactly in
+`/mcp/projects`.
 Prompt and tool content are treated as untrusted. Structured output is
 validated before a narrow privileged update changes the same task. Audit runs
 retain identifiers, timestamps, model, hashes, token counts and safe error

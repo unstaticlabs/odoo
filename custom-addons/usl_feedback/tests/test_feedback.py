@@ -800,6 +800,41 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.reporter).feedback_retry_agent()
         self.assertEqual(task.usl_feedback_agent_state, "queued")
 
+    def test_gemini_runs_without_projects_mcp(self):
+        task, _payload = self._submit(message="The assistant should work without MCP.")
+        params = self.env["ir.config_parameter"].sudo()
+        for key, value in {
+            "usl_feedback.gemini_enabled": "True",
+            "usl_feedback.gemini_paid_tier_confirmed": "True",
+            "usl_feedback.gemini_api_key": "gemini-secret",
+            "usl_feedback.gemini_model": "gemini-3.7-flash",
+            "usl_feedback.mcp_api_key": None,
+            "usl_feedback.mcp_url": None,
+        }.items():
+            params.set_str(key, value)
+        result = {
+            "status": "ready_for_confirmation",
+            "assistant_message": "Your feedback is ready to review.",
+            "questions": [],
+            "summary": "Keep Gemini available without Projects MCP",
+            "description": "Gemini should draft feedback when optional MCP settings are absent.",
+            "category": "improvement",
+            "priority": 1,
+            "related_feedback_ids": [],
+        }
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run.GeminiClient.create_interaction",
+            return_value=interaction_response("gemini-only", result),
+        ) as create_interaction:
+            self.env["usl.feedback.agent.run"].sudo()._process_task(task)
+
+        interaction_payload = create_interaction.call_args.args[0]
+        self.assertEqual(interaction_payload["tools"], [{"type": "url_context"}])
+        self.assertNotIn("Projects MCP", interaction_payload["system_instruction"])
+        self.assertNotIn("X-Odoo-Api-Key", json.dumps(interaction_payload))
+        self.assertEqual(task.usl_feedback_agent_state, "ready")
+        self.assertEqual(task.name, "Keep Gemini available without Projects MCP")
+
     def test_expired_state_rebuilds_from_bounded_chatter_once(self):
         task, _payload = self._submit(message="The stored conversation should recover.")
         params = self.env["ir.config_parameter"].sudo()
@@ -930,6 +965,45 @@ class TestProductFeedback(TransactionCase):
             payload["tools"][0]["headers"]["X-Odoo-Api-Key"], "odoo-secret",
         )
         self.assertNotIn("gemini-secret", json.dumps(payload))
+
+    def test_settings_connection_uses_gemini_only_without_projects_mcp(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "feedback_gemini_model": "gemini-3.7-flash",
+                "feedback_gemini_api_key_input": "gemini-secret",
+            },
+        )
+        settings.set_values()
+        fresh = self.env["res.config.settings"].create({})
+        with (
+            patch(
+                "odoo.addons.usl_feedback.models.res_config_settings.requests.post",
+            ) as mcp_initialize,
+            patch(
+                "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_model",
+            ) as test_model,
+            patch(
+                "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_mcp_interaction",
+            ) as test_mcp,
+        ):
+            result = fresh.action_test_feedback_agent()
+
+        self.assertEqual(result["params"]["type"], "success")
+        self.assertEqual(fresh.feedback_connection_status, "ready")
+        self.assertIn("Existing feedback lookup is off", fresh.feedback_connection_detail)
+        test_model.assert_called_once_with("gemini-3.7-flash")
+        mcp_initialize.assert_not_called()
+        test_mcp.assert_not_called()
+
+        self.env["ir.config_parameter"].sudo().set_bool(
+            "usl_feedback.gemini_enabled", True,
+        )
+        fresh.action_clear_feedback_mcp_key()
+        self.assertTrue(
+            self.env["ir.config_parameter"].sudo().get_bool(
+                "usl_feedback.gemini_enabled",
+            ),
+        )
 
     def test_concurrent_reporter_turn_is_queued_after_active_run(self):
         task, _payload = self._submit(message="First turn")

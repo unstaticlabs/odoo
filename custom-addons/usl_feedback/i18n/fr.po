@@ -182,15 +182,17 @@ msgstr "Catégorie"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
-msgid "Check Gemini and the read-only Projects MCP without creating feedback."
-msgstr "Vérifier Gemini et le MCP Projects en lecture seule sans créer de retour."
+msgid "Check Gemini and optional read-only project access without creating feedback."
+msgstr "Vérifier Gemini et l’accès facultatif aux projets en lecture seule sans créer de retour."
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
 msgid ""
-"Checks Gemini and read-only project access. It does not create feedback."
+"Checks Gemini. When Projects MCP is configured, it also checks read-only "
+"project access. It does not create feedback."
 msgstr ""
-"Vérifie Gemini et l’accès au projet en lecture seule. Aucun retour n’est créé."
+"Vérifie Gemini. Lorsque le MCP Projets est configuré, vérifie également "
+"l’accès aux projets en lecture seule. Aucun retour n’est créé."
 
 #. module: usl_feedback
 #. odoo-javascript
@@ -321,8 +323,13 @@ msgstr "Activer l’assistant de retours"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
-msgid "Enter the exact /mcp/projects endpoint. Use HTTPS outside localhost."
-msgstr "Saisissez l’URL exacte /mcp/projects. Utilisez HTTPS hors de localhost."
+msgid ""
+"Lets Gemini inspect existing feedback for likely duplicates. Enter the exact "
+"/mcp/projects endpoint; use HTTPS outside localhost."
+msgstr ""
+"Permet à Gemini de consulter les retours existants pour repérer les doublons "
+"probables. Saisissez l’URL exacte /mcp/projects ; utilisez HTTPS hors de "
+"localhost."
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__error
@@ -525,9 +532,18 @@ msgstr "Interaction Gemini"
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/res_config_settings.py:0
-msgid "Gemini can read the feedback project through the read-only connection."
+msgid "Gemini and existing feedback lookup are ready."
+msgstr "Gemini et la recherche dans les retours existants sont prêts."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid ""
+"Gemini is ready. Existing feedback lookup is off until Projects MCP is "
+"configured."
 msgstr ""
-"Gemini peut lire le projet de retours via la connexion en lecture seule."
+"Gemini est prêt. La recherche dans les retours existants reste désactivée "
+"tant que le MCP Projets n’est pas configuré."
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_gemini_model
@@ -920,9 +936,13 @@ msgstr "Étiquette de projet"
 
 #. module: usl_feedback
 #: model:ir.model.fields,field_description:usl_feedback.field_res_config_settings__feedback_mcp_url
-#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
 msgid "Projects MCP URL"
 msgstr "URL du MCP Projets"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Projects MCP URL (optional)"
+msgstr "URL du MCP Projets (facultative)"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
@@ -948,8 +968,15 @@ msgstr "Mis en attente le"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
-msgid "Read-only Odoo API key"
-msgstr "Clé API Odoo en lecture seule"
+msgid "Read-only Odoo API key (optional)"
+msgstr "Clé API Odoo en lecture seule (facultative)"
+
+#. module: usl_feedback
+#: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
+msgid "Used only with Projects MCP. Choose a dedicated Feedback Agent service account."
+msgstr ""
+"Utilisée uniquement avec le MCP Projets. Choisissez un compte de service "
+"dédié à l’agent de retours."
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__res_config_settings__feedback_connection_status__ready
@@ -1048,10 +1075,8 @@ msgstr "Analyse de votre retour…"
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/models/res_config_settings.py:0
-msgid "Save both API keys, the Projects MCP URL, and a Gemini model first."
-msgstr ""
-"Enregistrez d’abord les deux clés API, l’URL MCP Projects et un modèle "
-"Gemini."
+msgid "Save a Gemini API key and model first."
+msgstr "Enregistrez d’abord une clé API Gemini et un modèle."
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.res_config_settings_view_form_feedback
@@ -1247,6 +1272,14 @@ msgstr "L’agent de retours doit être une identité technique externe."
 #: code:addons/usl_feedback/models/res_config_settings.py:0
 msgid "The assistant is off until you save a new key."
 msgstr "L’assistant est désactivé jusqu’à l’enregistrement d’une nouvelle clé."
+
+#. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Existing feedback lookup is off. The assistant still works with Gemini."
+msgstr ""
+"La recherche dans les retours existants est désactivée. L’assistant continue "
+"de fonctionner avec Gemini."
 
 #. module: usl_feedback
 #. odoo-python

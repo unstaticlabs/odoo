@@ -29,4 +29,6 @@ source business record.
 If the assistant cannot reply, your feedback stays saved and **Try again**
 appears. If you lose access to the source record, Odoo leaves its details out.
 If the page preview is unavailable, add an image manually or continue without
-one. Feedback notifications stay in Odoo and are not sent by email.
+one. The assistant works without the optional Projects MCP connection; that
+connection only improves its awareness of existing feedback. Feedback
+notifications stay in Odoo and are not sent by email.
