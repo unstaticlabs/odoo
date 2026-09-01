@@ -226,6 +226,7 @@
         "route:jsonrpc:ANY:/sign/strong/<int:signer_id>/<string:token>/finalize",
         "route:jsonrpc:ANY:/sign/strong/<int:signer_id>/<string:token>/status",
         "route:jsonrpc:ANY:/sign_oca/sign/<int:signer_id>/<string:access_token>",
+        "route:jsonrpc:POST:/mail/attachment/update_thumbnail",
         "rpc:res.users.sign_oca_request_user_count",
         "rpc:sign.oca.request.action_create_replacement",
         "rpc:sign.oca.request.action_resume_after_enrollment",
@@ -301,6 +302,7 @@
         "route:jsonrpc:ANY:/sign/strong/<int:signer_id>/<string:token>/finalize": "81d5ada6b41dd6cc2112978f83a115a4d65a8077a2b3c0c48ba7cd4ca7df187e",
         "route:jsonrpc:ANY:/sign/strong/<int:signer_id>/<string:token>/status": "7ffbc5a6083e98a9a36ab3f8b4e4d35b2e0809b759e38df1c1e642f0733c7131",
         "route:jsonrpc:ANY:/sign_oca/sign/<int:signer_id>/<string:access_token>": "05c9ba6fb29d0197841503b166cf2fd2c9821c22de9c8b4c6d2a2d0e7c8cef85",
+        "route:jsonrpc:POST:/mail/attachment/update_thumbnail": "9564d6bb67f58d948f40103ab22a63de9800c558ada599e6157f4c9a40d7a5e7",
         "rpc:res.users.sign_oca_request_user_count": "6b1fadf6623829181e9c3a2158ef7710e6fb4225243f74baa03036b09a72b7e5",
         "rpc:sign.oca.request.action_create_replacement": "564517053eb15de58b1b3c8253eefd13d3bdc09f9ea99cacf593dd70fb9978e1",
         "rpc:sign.oca.request.action_resume_after_enrollment": "51f93f3e66c8f525bc153fdc0ce06c55cc0b4ad0486c3bdb657d562a0ed4eca7",
@@ -7682,6 +7684,7 @@
         "rpc:rebuild.account.overview.action_open_accountant_actions",
         "rpc:rebuild.account.overview.action_open_accounting_home",
         "rpc:rebuild.account.overview.action_open_accounting_settings",
+        "rpc:rebuild.account.overview.action_open_bank_attention",
         "rpc:rebuild.account.overview.action_open_bank_checkpoint",
         "rpc:rebuild.account.overview.action_open_bank_matching",
         "rpc:rebuild.account.overview.action_open_bank_review",
@@ -14068,6 +14071,7 @@
         "rpc:rebuild.account.overview.action_open_accountant_actions": "0b38024f0d67111c42828a53fda29d1b28739d94aca11e7b6bf93e4170333a74",
         "rpc:rebuild.account.overview.action_open_accounting_home": "d343a076f4c3f857609e6c992c26d39469bf244b87bc73e12178ff3d747344f4",
         "rpc:rebuild.account.overview.action_open_accounting_settings": "ef49fcae33a5431f23b63ec24cdd0d5e02d9acef134ea61d08027b534d598fb4",
+        "rpc:rebuild.account.overview.action_open_bank_attention": "ae0663a7604e585a0f6fbceab139a163f61edc05edda2a78ee716455804778fa",
         "rpc:rebuild.account.overview.action_open_bank_checkpoint": "cda07bbbbc86e52858154907904330ecd6e5d4d0e4a85d907bb592fcdd665b4d",
         "rpc:rebuild.account.overview.action_open_bank_matching": "a0568512f7a5c768d1200085c30fdd19439afad808cc3ddc8f697732ed31a6f5",
         "rpc:rebuild.account.overview.action_open_bank_review": "3eb2ea64e6434bad7eda4479b8ad8e99251b48cac441d94070bff5b315f2e5fa",
@@ -14092,8 +14096,8 @@
         "rpc:rebuild.account.overview.action_open_journal_dashboard": "e483af11d348f48041a4aa3f210de0e008957962ef78829be93743c11415f71b",
         "rpc:rebuild.account.overview.action_open_latest_closing": "09f2de15d38e942a29ace8dc3f1c7362b81e7aace937a3affb9f914c2cc2bb42",
         "rpc:rebuild.account.overview.action_open_latest_closing_controls": "1cc6060048229b3d7b65b4ea1a499dfdcc1061b21bbd90d2905c5380739c2452",
-        "rpc:rebuild.account.overview.action_open_missing_expense_attachments": "5ed6cf07b54cb5e499df80c118d90b08fdcdb9f377c9c71db97e0b63675d92c0",
-        "rpc:rebuild.account.overview.action_open_missing_vendor_attachments": "55b50e67a3625ec0bad91c988324c621152ab9c870a418cb3c91a83534bcd876",
+        "rpc:rebuild.account.overview.action_open_missing_expense_attachments": "36199ad9c79699615f8a60b858020393de8b67515d598a713136dc3f0080cb89",
+        "rpc:rebuild.account.overview.action_open_missing_vendor_attachments": "347f632f03a1cc2146c257e1e7da11c5b1fbfc91fd8576dff751cf59c53a876e",
         "rpc:rebuild.account.overview.action_open_next_declaration": "5b486b9a5b31f57b1a5f8bea6064cec82a254a1c4e866ce55e223b5833e6f568",
         "rpc:rebuild.account.overview.action_open_open_payables": "cd8f391b590ef8aca19304ba0658ffaf47335fe49f112aad5d92ab9589a4fc54",
         "rpc:rebuild.account.overview.action_open_open_receivables": "c0d735dab3153d67f1755bee2d03ba82cf2b21ef2070db4ef9b40a05724b1e97",
@@ -25419,7 +25423,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_url",
         "route:jsonrpc:POST:/mail/action",
         "route:jsonrpc:POST:/mail/attachment/delete",
-        "route:jsonrpc:POST:/mail/attachment/update_thumbnail",
         "route:jsonrpc:POST:/mail/data",
         "route:jsonrpc:POST:/mail/guest/update_name",
         "route:jsonrpc:POST:/mail/link_preview",
@@ -29232,7 +29235,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_url": "8d09d0f10a49935a60cd08892abe80e8e9d1860f5a5fa8f58e975cc2636d815f",
         "route:jsonrpc:POST:/mail/action": "7ce57a9f17915322fd503906f1df4570bdc349cbb1168300b5ddeeeb09d88ee7",
         "route:jsonrpc:POST:/mail/attachment/delete": "155b20b11072bc37b8675e0e23c16107a910bec80b56ded8560fbf6580087f32",
-        "route:jsonrpc:POST:/mail/attachment/update_thumbnail": "5e4e49fabc8221c93c47655b06a2bd373aae6b4640ef5f4a59a5b202e0062c82",
         "route:jsonrpc:POST:/mail/data": "8922325747836c4023aca9f459876803d708dbfbd39acf2e5a64d2dd4911dccb",
         "route:jsonrpc:POST:/mail/guest/update_name": "dc7e56256060f832be2b37a6966d510d9b0db38cabf9f3a795c1c4091432f1f0",
         "route:jsonrpc:POST:/mail/link_preview": "5b4edc361991ee154343322d024ea154171a57f6797b013c69baf1f1526757d7",
@@ -59735,8 +59737,8 @@
         "rpc:usl.home.service.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:usl.home.service.fields_get": "4ccf4aca00c071a9f49461da310a8a7665ee2121f4b3ffefcdff26805743a07d",
         "rpc:usl.home.service.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
-        "rpc:usl.home.service.get_accounting_alert_action": "245bb5532b142a7fd3ef92090c9487b7d2a134802a653ad719b0da7ed502f43e",
-        "rpc:usl.home.service.get_accounting_alerts": "b90633fa23ea16ad8be10d918a6f4a7c80728e49f508bb0172abc8365fb36f4b",
+        "rpc:usl.home.service.get_accounting_alert_action": "6ef8bbf43e3696ea31a53dc9755037fc16cf5ad9b742205aaf7b06a37b688c36",
+        "rpc:usl.home.service.get_accounting_alerts": "a77395509834fc6f732a4d66711fd115517538a4fcd83dc20fb4d0f3a3de2c10",
         "rpc:usl.home.service.get_activities": "b7d73ea473d98128279df006b46e23ef3237719d5b706804a47f58d10b668897",
         "rpc:usl.home.service.get_ai_attention": "2e9960ae1df04fda062060816e5a591bf5afb7dcf83eeecddee5558cb35a5901",
         "rpc:usl.home.service.get_ai_workspace_action": "6f62617b114b4969d3581362208947dda226b515c57098e019d9c4de9d5c6d6a",
@@ -132973,7 +132975,6 @@
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:1",
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:2",
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:3",
-        "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:4",
         "sink:account:addons/account/models/account_move.py:account.move._get_edi_creation:orm_create:1",
         "sink:account:addons/account/models/account_move.py:account.move._get_edi_creation:orm_write:1",
         "sink:account:addons/account/models/account_move.py:account.move._get_invoice_counterpart_amls_for_early_payment_discount_per_payment_term_line:orm_write:1",
@@ -133340,7 +133341,6 @@
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:orm_write:2",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:orm_write:3",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:1",
-        "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:2",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._get_batch_available_partner_banks:sudo:1",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._get_wizard_values_from_batch:sudo:1",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._init_payments:orm_create:1",
@@ -134127,7 +134127,6 @@
         "sink:analytic:addons/analytic/models/analytic_plan.py:account.analytic.plan.write:orm_write:3",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:orm_create:1",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:1",
-        "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:2",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:1",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:2",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:3",
@@ -134283,13 +134282,8 @@
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/wizard/pdp_response_wizard.py:pdp.response.wizard._get_base_lines:orm_write:1",
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/wizard/pdp_response_wizard.py:pdp.response.wizard.button_send:orm_write:1",
         "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:2",
-        "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:3",
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_for_all:sudo:3",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:1",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:2",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:3",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:1",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:2",
         "sink:mrp_account:addons/mrp_account/models/account_move.py:account.move.copy:sudo:1",
         "sink:mrp_account:addons/mrp_account/models/account_move.py:account.move.copy:sudo:2",
         "sink:mrp_account:addons/mrp_account/models/mrp_production.py:mrp.production._post_inventory:orm_write:1",
@@ -135595,9 +135589,6 @@
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:account:addons/account/models/account_move.py:account.move._get_edi_creation:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -136694,9 +136685,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._get_batch_available_partner_banks:sudo:1": {
@@ -139057,9 +139045,6 @@
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -139525,25 +139510,10 @@
         "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_for_all:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mrp_account:addons/mrp_account/models/account_move.py:account.move.copy:sudo:1": {
@@ -141939,7 +141909,6 @@
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:1": "c2e154e77a62b910afbb88f96232463b4815378fa882dc1bf3c786d723efff9f",
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:2": "c6999ab279cd73f8e2d9f05f6015e26d24632b9d8a193cda552559952eb04f9c",
         "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:3": "ea4cf6c6e8b309083d57767fd7c5c5f24085e6cecb5a7052b5365338d35c8d92",
-        "sink:account:addons/account/models/account_move.py:account.move._get_chain_info:sudo:4": "d62fad9dda35569e4407694f2e1705ecee2f636039310fdb91fd52d35d7e06f0",
         "sink:account:addons/account/models/account_move.py:account.move._get_edi_creation:orm_create:1": "5da9f68fa7b41295149c2040f1a51e368003f04e09a7bb5d648ca7bc355e0b3c",
         "sink:account:addons/account/models/account_move.py:account.move._get_edi_creation:orm_write:1": "2954e3ea8b81adc8400c18e364895865cf58783723f959ba9bae9de858cf96f3",
         "sink:account:addons/account/models/account_move.py:account.move._get_invoice_counterpart_amls_for_early_payment_discount_per_payment_term_line:orm_write:1": "358191e7832db163f370f537fb828f4c1b077914ff528e0abee60cb171b59045",
@@ -142306,7 +142275,6 @@
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:orm_write:2": "dc4a73d98b2760a1564c3bfe7470514e2d074b89049d4eba3a740e1a8f9b3643",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:orm_write:3": "3a7893123673138bfc1965dd496a3b04963f5d9a4202029fdf0e61409c6203d6",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:1": "e4606a86065f8c6aa99fe1504cbf26769f0729d862c57d3cd729736eed3bafe8",
-        "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._create_payments:sudo:2": "cdec551fd08ad567df0d305a63f630a1a36a50d7a0613d1c11f4bf10aba3e834",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._get_batch_available_partner_banks:sudo:1": "29370ed9ea759e90194e0210ce78866916ab3f6c04a6fe111276f48e6f6a4642",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._get_wizard_values_from_batch:sudo:1": "dce3fec9f8a3a25d50d9e648694a028cd554b16ff4bde56e6af82ae81370afd9",
         "sink:account:addons/account/wizard/account_payment_register.py:account.payment.register._init_payments:orm_create:1": "9468774e354ffcebc4347e9af64c2723a06df07d13c013f5c2fa964bd8e758f8",
@@ -143093,7 +143061,6 @@
         "sink:analytic:addons/analytic/models/analytic_plan.py:account.analytic.plan.write:orm_write:3": "ca91987a119d18dd0b8ac5dc0fc7e5aee09fa0fbe4123ee9777dbd1259f5adbc",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:orm_create:1": "fc5aab5e23834e22fac0cf19504ac9823da4deff0eba3c7f9021275f8edbc11b",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:1": "516ae394f1eda809c918d8373a0823cfbcc5ab05c6d555cb90268ec32a8e75d2",
-        "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank._find_or_create_bank_account:sudo:2": "58d5d554e7dd3f80b016449720dd9abfb56abf1457bda02039b40c9b62560aa5",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:1": "06c06a3c65a87b2b2780b852bd14c5c8b836fa835d53f45d749bc6cf61e4d324",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:2": "a42864881d46eadf127a48035ee6ac58b975a2cc03c032e3757465a5215a6042",
         "sink:base:odoo/addons/base/wizard/base_partner_merge.py:base.partner.merge.automatic.wizard._merge_bank_accounts:orm_write:3": "d1ccd64c3392fd4271bd3fbfd354292be7342661ad34cc29810cd99d6fca2888",
@@ -143249,13 +143216,8 @@
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/wizard/pdp_response_wizard.py:pdp.response.wizard._get_base_lines:orm_write:1": "f4986c1ccfc7bacea650444156cd3d88e310ae5bfeef94a2b5cf124ab4168e22",
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/wizard/pdp_response_wizard.py:pdp.response.wizard.button_send:orm_write:1": "ba836ca713081b188acc5d9f21d04b7d2f18eaaa4df3d99ef8e242ad7e13e4bf",
         "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:2": "b7da292d4ce3de8a4c9e1c73e232838f8542ad2986defb1e615b952cb6587d7a",
-        "sink:mail:addons/mail/controllers/thread.py:ThreadController._prepare_message_data:sudo:3": "491e711341045cc0d5fbf260934b0d4c0dbe7a7e3ebc1ad75da6bcb665c52ce7",
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_for_all:sudo:3": "29be3012bdca71f2e70c3b231309524ff6afb55791fb0249e6fc544533f68bb8",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:1": "c55280bd8c4ee03faf3d7933bb0fcd700050fbd4d79561589f2c2de2d3530bcb",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:2": "eff8470badc324a430bf99b5a51a584f418f0d90d39237755b7d676cacca5a8a",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search:sudo:3": "a4f42480acc8c62fa5e45b4e4d779a688e581ea2b6554e708aca506680deb928",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:1": "6370ec879659502b2c8dd2f2dde9a118dd5d3de872f6a7f34e8fa835ebe7f253",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search:sudo:2": "ddca842111ee6382eb5efcbfbb34a3e7715901ad09681efd6dc030c04c17ff2e",
         "sink:mrp_account:addons/mrp_account/models/account_move.py:account.move.copy:sudo:1": "4798dbd41602f86c79ee558357a144e4d1f40216c5ce23519df655315bdcad23",
         "sink:mrp_account:addons/mrp_account/models/account_move.py:account.move.copy:sudo:2": "09d0f755bf6e9fd7e049eee3f3b874539ff29a1516deb34c05a269808f340ddf",
         "sink:mrp_account:addons/mrp_account/models/mrp_production.py:mrp.production._post_inventory:orm_write:1": "dbdce4bd4cbccd7e2de0b4a20a55e25aaeecee59d249b493982f86773c8e6201",
@@ -151317,8 +151279,6 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._can_return_content:sudo:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_circular_attachment:sudo:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:orm_write:1",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:sudo:1",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._compute_res_access:sudo:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._file_write:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._gc_file_store_unsafe:filesystem_delete:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._gc_file_store_unsafe:filesystem_delete:2",
@@ -151326,12 +151286,8 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._migrate:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._postprocess_contents:sudo:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:1",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:2",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:3",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:2",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:3",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:4",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:2",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:3",
@@ -151438,7 +151394,6 @@
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:orm_create:1",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:1",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:2",
-        "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:3",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:orm_write:1",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:sudo:1",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:sudo:2",
@@ -151515,7 +151470,6 @@
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_for_logged_in_user:sudo:2",
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_loop:sudo:1",
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._resolve_messages:sudo:1",
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._store_init_messaging_global_fields:sudo:1",
         "sink:mail:addons/mail/controllers/websocket.py:WebsocketControllerPresence.update_bus_presence:orm_write:1",
         "sink:mail:addons/mail/models/discuss/bus_listener_mixin.py:bus.listener.mixin._bus_send_transient_message:orm_write:1",
         "sink:mail:addons/mail/models/discuss/bus_sync_mixin.py:bus.sync.mixin.write:orm_write:1",
@@ -151627,12 +151581,9 @@
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._post_add_create:orm_write:1",
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._post_add_create:orm_write:2",
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._set_voice_metadata:orm_create:1",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_context:sudo:1",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:1",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:2",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_create:1",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_write:1",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:sudo:1",
         "sink:mail:addons/mail/models/discuss/res_partner.py:res.partner.search_for_channel_invite:sudo:1",
         "sink:mail:addons/mail/models/fetchmail.py:fetchmail.server._fetch_mail:orm_write:1",
         "sink:mail:addons/mail/models/fetchmail.py:fetchmail.server.button_confirm_login:orm_write:1",
@@ -151651,14 +151602,12 @@
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:orm_write:1",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:orm_write:2",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:sudo:1",
-        "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._has_attachments_ownership:sudo:1",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._post_add_create:orm_write:1",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment.register_as_main_attachment:orm_write:1",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.create:orm_create:1",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.set_bool:orm_write:1",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:1",
         "sink:mail:addons/mail/models/ir_cron.py:ir.cron._notify_admin:message_send:1",
-        "sink:mail:addons/mail/models/ir_http.py:ir.http.session_info:sudo:1",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_default_bounce_address:orm_write:1",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_default_from_address:orm_write:1",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_personal_mail_servers_limit:sudo:1",
@@ -151667,8 +151616,6 @@
         "sink:mail:addons/mail/models/ir_ui_menu.py:ir.ui.menu._get_best_backend_root_menu_id_for_model:sudo:2",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:1",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:2",
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:3",
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:4",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._on_websocket_closed:sudo:1",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._on_websocket_closed:sudo:2",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._serve_ir_websocket:orm_write:1",
@@ -151677,13 +151624,10 @@
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:orm_write:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:sudo:2",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._compute_res_access:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._default_activity_type:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._gc_delete_old_overdue_activities:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:2",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:3",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:4",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.action_notify:sudo:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.create:orm_create:1",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.create:orm_write:1",
@@ -151771,10 +151715,8 @@
         "sink:mail:addons/mail/models/mail_link_preview.py:mail.link.preview._is_link_preview_enabled:sudo:1",
         "sink:mail:addons/mail/models/mail_link_preview.py:mail.link.preview._search_or_create_from_url:orm_create:1",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:1",
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:2",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._filter_mail_mail_servers:sudo:1",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:1",
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:2",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._post_model_setup__:orm_write:1",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._postprocess_sent_message:orm_write:1",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._postprocess_sent_message:orm_write:2",
@@ -151826,17 +151768,12 @@
         "sink:mail:addons/mail/models/mail_message.py:exists_in_cache:sudo:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_has_error:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:1",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:2",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_linked_message_ids:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_needaction:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_record_name:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:1",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:2",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:3",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_reply_to:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:2",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:3",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:3",
@@ -151845,7 +151782,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message._records_by_model_name:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:2",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:3",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:3",
@@ -151855,7 +151791,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:orm_create:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:orm_create:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:1",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:orm_write:1",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:orm_write:2",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:sudo:1",
@@ -151910,12 +151845,10 @@
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin._update_field_translations:orm_write:1",
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin.create:orm_create:1",
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin.write:orm_write:1",
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._compute_res_access:sudo:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:message_send:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:orm_unlink:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:orm_write:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_messages_cron:orm_write:1",
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._search_res_access:sudo:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.create:orm_create:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.create:orm_write:1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.post_message:orm_write:1",
@@ -151953,7 +151886,6 @@
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._detect_loop_sender:sudo:3",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._detect_loop_sender:sudo:4",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._encode_link:sudo:1",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._get_thread_with_access:sudo:1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:2",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:3",
@@ -152044,8 +151976,6 @@
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._search_message_partner_ids:sudo:1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:2",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:3",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:4",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:2",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:3",
@@ -153126,12 +153056,6 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._compute_res_access:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._file_write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -153153,22 +153077,10 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:1": {
@@ -153489,9 +153401,6 @@
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -153718,9 +153627,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._resolve_messages:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._store_init_messaging_global_fields:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/controllers/websocket.py:WebsocketControllerPresence.update_bus_presence:orm_write:1": {
@@ -154056,22 +153962,13 @@
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._set_voice_metadata:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_context:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/discuss/res_partner.py:res.partner.search_for_channel_invite:sudo:1": {
@@ -154128,9 +154025,6 @@
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._has_attachments_ownership:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._post_add_create:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -154148,9 +154042,6 @@
         },
         "sink:mail:addons/mail/models/ir_cron.py:ir.cron._notify_admin:message_send:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/ir_http.py:ir.http.session_info:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:ir.http.session_info"
         },
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_default_bounce_address:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -154174,12 +154065,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._on_websocket_closed:sudo:1": {
@@ -154206,9 +154091,6 @@
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._compute_res_access:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._default_activity_type:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -154219,12 +154101,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.action_notify:sudo:1": {
@@ -154488,16 +154364,10 @@
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._filter_mail_mail_servers:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._post_model_setup__:orm_write:1": {
@@ -154653,12 +154523,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_linked_message_ids:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_needaction:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -154668,12 +154532,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_reply_to:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -154681,9 +154539,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:1": {
@@ -154708,9 +154563,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:1": {
@@ -154738,9 +154590,6 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mail.message.create"
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mail.message.create"
-        },
-        "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mail.message.create"
         },
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:orm_write:1": {
@@ -154905,9 +154754,6 @@
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mail.render.mixin.write"
         },
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._compute_res_access:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:message_send:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -154918,9 +154764,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_messages_cron:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._search_res_access:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.create:orm_create:1": {
@@ -155032,9 +154875,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._encode_link:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._get_thread_with_access:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:1": {
@@ -155305,12 +155145,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:1": {
@@ -158447,8 +158281,6 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._can_return_content:sudo:1": "b87b4661bf57ee92905e25d5f814cdd2412e22e222a44838960dd94b0df8f6f2",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_circular_attachment:sudo:1": "c2e7953da430a96442061c9124c0af6a8a53ba592502280fb402a77cd725d307",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:orm_write:1": "36f5cef36c6761c6adeede8ee75af51b1c4c2e63f6478c82008f3d4db1c4a768",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._check_contents:sudo:1": "54164e0f67c257fe946542b9176c21cfe153aec99f0fa6b5e71862af46612f40",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._compute_res_access:sudo:1": "1104159f6b8b4b58d11d78bba7f570314c0b6161259884b298d69f4f67029ffe",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._file_write:orm_write:1": "95ca8e5598962f9c7c531938f8ef0e118fd07b44ce278662f07b57d7ce3bd91b",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._gc_file_store_unsafe:filesystem_delete:1": "c75e46d5808b6829e58f07116c08b64046a372aa5cbff29818b9a0bed0c3e30b",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._gc_file_store_unsafe:filesystem_delete:2": "fab715b14f713caff46b33edb681fc7b82e1c161ee4fbd3bc99b937841402295",
@@ -158456,12 +158288,8 @@
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._migrate:orm_write:1": "a8c54bc109a33f49655978abcbe484839cff5a0533e216a833ea859e542c456a",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._postprocess_contents:sudo:1": "41792020ac7820678b096495d5bf0ab29fd16a14c1b02396103ef00de030c9bf",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:1": "348c2f7212afce6ba1df728dd9744b4a80d97c4d9ec1ca44de7ad6e16ef95654",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:2": "6e64a3bcb2fdf6d938d639a031efd5a913898cb39c01f1fd66327060c568fa49",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search:sudo:3": "f3aa6f55eeaeebb4a535e25604f840f0888053b754955201377e0905739bfb5e",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:1": "bc0b57c3eaac6c6c1cd300b51b551b0ade81b6e7630cbffca1feba6faf35d100",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:2": "9bec7458c079d08cf5222b2484704df8cfb4951e1f833dc7d171e4ab5e1e6b31",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:3": "4603c2ea2c0dc58bc1e7517238da7a8c894114b0e289e1257e2f2f83ca0a13ff",
-        "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._search_res_access:sudo:4": "ff754151e54876a1608c9a3a5026d89c207fb4086dd5335ea6c7bb9accc7b053",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:1": "31da1aac4288b2b1ec5279f52e71be888ec05c81897db12aa1249fcdd95c316a",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:2": "408f37855d517289b46f988091ac2f45b979348823d7269d04f76dbbf3f652f5",
         "sink:base:odoo/addons/base/models/ir_attachment.py:ir.attachment._set_attachment_data:orm_write:3": "6b865efe7d2611a6d3985e65353c3fab7440e34add04eab206ccf9361591203d",
@@ -158568,7 +158396,6 @@
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:orm_create:1": "0bd3d1ccb316c35da37e37d4a906833dc197677d32a2547572ecfd8da80aca70",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:1": "e03d3cdfbe5043121628ab828f49b48e47dd9a48c963b1d45644b7275d2e9ba6",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:2": "8991a4e0a158ccf06cdde4885dc48d5a2476ca449d1c7501c0749ae25fe10681",
-        "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_from_token:sudo:3": "572e17131ec6f62e89daca6efb69b87bae9de5d74c966e91e9f2336c7e50e77b",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:orm_write:1": "032d973fc4d95f45399b326351089752115270cc4ec562642771ecf12b20be49",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:sudo:1": "c05687c1c1fe5f84c48dd254d46f8d0ccb3c4ca07f6cbff7751cf604ad20757a",
         "sink:mail:addons/mail/controllers/discuss/public_page.py:PublicPageController._response_discuss_channel_invitation:sudo:2": "a007658dfde42ba2aa313e84ce5120c5cfc7e21b2d9ee3523c2f390c4edfbbdb",
@@ -158645,7 +158472,6 @@
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_for_logged_in_user:sudo:2": "3e06edc8292fbd47480b7bad618b8f4b199b6e432b81b9904f8d1c875d3a4e73",
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._process_request_loop:sudo:1": "3180c62b8324922b24ae1688ae572ae784954aac0d2623dc98d86971ca49b945",
         "sink:mail:addons/mail/controllers/webclient.py:WebclientController._resolve_messages:sudo:1": "3cc521fd7d00f445b13e4a1a1a10937e799dbb1bff6a81c4e5408efec5f4a2a9",
-        "sink:mail:addons/mail/controllers/webclient.py:WebclientController._store_init_messaging_global_fields:sudo:1": "0cee612d0649261aaa14f88937811d64218f1a3fabd488e42e7dd9620d567961",
         "sink:mail:addons/mail/controllers/websocket.py:WebsocketControllerPresence.update_bus_presence:orm_write:1": "f616e3dea9451c6a08d0eba48cec41706772155902627012b7fed22113a5fdf8",
         "sink:mail:addons/mail/models/discuss/bus_listener_mixin.py:bus.listener.mixin._bus_send_transient_message:orm_write:1": "c2722c87d9b63603054cdb76565a8525d151a81e8390b9ea03ee1f8cd323506c",
         "sink:mail:addons/mail/models/discuss/bus_sync_mixin.py:bus.sync.mixin.write:orm_write:1": "a9217fd7c600ded54532161e9abe821b19b2dff7b41cf7e06588b66329ad79f8",
@@ -158757,12 +158583,9 @@
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._post_add_create:orm_write:1": "9dfdc9983a18b31f69100ec9ece3edede3b8d28545e7f1ee4df862b8b75cbe0e",
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._post_add_create:orm_write:2": "28877c8c681f32490b6879159e389c7c532fbd1889369143c72a0e37297d8221",
         "sink:mail:addons/mail/models/discuss/ir_attachment.py:ir.attachment._set_voice_metadata:orm_create:1": "93f8df8d18c7b00a41dc5e5115df058522452c6ec19ad02aef9668d522af7185",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_context:sudo:1": "da97d93fb051efe465da255e747f237896e26b74eb80d43229178b289dcfb019",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:1": "c3561700d77350003b153a29152faadcac4ec15478ff2feea6604345dff72c9b",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_guest_from_token:sudo:2": "dff04bd9d2bb1af297bfcecae5d122ce858ffaca014caaaa78dbf9bfe2d919a8",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_create:1": "62a0cdc20085d2ea8d197a4201c10c2ac14dfa36596209e9e4a2b2d426f5f19f",
         "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:orm_write:1": "d91190825204c8a2444709082c70babeee5883bf6018e0a12464ba30d8d924a3",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._get_or_create_guest:sudo:1": "32bfb4b8af64af67473dbaa9c6989c4e8e7dff3d2e575f47c9161ab3f3657d66",
         "sink:mail:addons/mail/models/discuss/res_partner.py:res.partner.search_for_channel_invite:sudo:1": "a0d8d459960c09c914b0c571c82616ebdc228ea2cff08d8ae58aeb5fcb326a43",
         "sink:mail:addons/mail/models/fetchmail.py:fetchmail.server._fetch_mail:orm_write:1": "1bb050c0a1431cb94d5cfd4e713430c6ccd8786ece34366b5ad8c47a15014f4c",
         "sink:mail:addons/mail/models/fetchmail.py:fetchmail.server.button_confirm_login:orm_write:1": "812db66bdc6f882bc842aa216e0576fc6b86ad1edf7124a90b42c62ca35eb522",
@@ -158781,14 +158604,12 @@
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:orm_write:1": "f345f0eaea604bc8ef573de7b7d6f75daceb2d2bec59f38bf32d97dfbb8f0f2b",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:orm_write:2": "44a72c73f0897ced70365bce37bb325aa1a8fa42a05458fd2510904478aa83d1",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._delete_and_notify:sudo:1": "99497b9929f7c631035a0c1b2d393ffdb290c8223f32e5ff8ab0f26f52eaab2e",
-        "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._has_attachments_ownership:sudo:1": "044564a6ea6b6534c4465bc9d425c319450a47fa9f93bceebc49ef0b48807094",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment._post_add_create:orm_write:1": "4fad6aa54c2c6c92b63d531642b20bacf5948b220efef797146d98696afcf9ba",
         "sink:mail:addons/mail/models/ir_attachment.py:ir.attachment.register_as_main_attachment:orm_write:1": "91a724a89968dea65079649177c31da83438b563b7286d5a4b9acbf2e212580b",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.create:orm_create:1": "0030456b53ba9d4463d54135ee35a5c8e34d72b1d044fcd3de777cb000c1d9ea",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.set_bool:orm_write:1": "433cc88d931aa5c578a63d213a5faabd63fa5640818c52a7c7def9d1f11a6e10",
         "sink:mail:addons/mail/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:1": "234191c764ae9babcb4c5ce767da31df08fd647d632ed71111bcb5d636ca620b",
         "sink:mail:addons/mail/models/ir_cron.py:ir.cron._notify_admin:message_send:1": "f9309f99f7a8bb32285f4ee3b9d382203eb9537db29dcddfdb4dbf085559ecff",
-        "sink:mail:addons/mail/models/ir_http.py:ir.http.session_info:sudo:1": "3840b18ad1d54117f1bcfa229e37804da660d5cc2f8026098ee342c43fffca43",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_default_bounce_address:orm_write:1": "f9a7a78b9e50c9bad9684e51e9f7b9cb99a9ff96768f72fa70bcdce1c2ee7567",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_default_from_address:orm_write:1": "c5b5e3f1da7c9893d12fb342e5ff39bcf81ec84c2672bc988af9879586c4b63b",
         "sink:mail:addons/mail/models/ir_mail_server.py:ir.mail_server._get_personal_mail_servers_limit:sudo:1": "f452d26c5b1d432c52e7504ba3e60d285dbee4102e269f239854538fbc4eb801",
@@ -158797,8 +158618,6 @@
         "sink:mail:addons/mail/models/ir_ui_menu.py:ir.ui.menu._get_best_backend_root_menu_id_for_model:sudo:2": "d3a8cd52cb8a4963894fb719062524e040db8a36ba0a66b7efb8494a9aa51481",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:1": "5e410c45bce23f91e2b343f4c8de07d83ffcac8ce110fa3c0fb9163a112e5075",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:2": "fd42862af56750b44d8d669d7405ad65ad9005e8a6a9f39f521d71ec5763955a",
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:3": "7dbfb3f8a92b19e00fc5f47c167c405bd99ddcd4322d0c14df68f19ed6b72bd5",
-        "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._build_bus_channel_list:sudo:4": "709b8bb54eeb5095844b8b684cba96216196c8925d81f675a1fc4813a53fd91f",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._on_websocket_closed:sudo:1": "43b3a0157c15f46ce06ce295f705867b51b2a6fc225e3adf3266c3d235ebec6d",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._on_websocket_closed:sudo:2": "2af585a487e4dea9a66deceb6ffa8134c47b9f5e13a3e12d75e72fbf0f39b77e",
         "sink:mail:addons/mail/models/ir_websocket.py:ir.websocket._serve_ir_websocket:orm_write:1": "5c74bba922ac26aa8abaeedd32b328cb2a4ff78f77144d35dd193d6fc09173bd",
@@ -158807,13 +158626,10 @@
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:orm_write:1": "9ba580fc8150ab285b70fc7f77f059873a6bc3ead3713c8fa947d2841a221b6d",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:sudo:1": "00b0a185ae29c5df33d3b3e1969d47687264c3b07f1fa79e8147be6a0218a03f",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._action_done:sudo:2": "906db362f35704cc55eec749bf4335e376bae3da79deecf5971a1424dcfd88f4",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._compute_res_access:sudo:1": "aeb566ec6b1d27b8064a417a28f2299ec27fcc53eb304cec315ebef0e93ab791",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._default_activity_type:sudo:1": "225f851c4f13f2df048591eb0675a18a26fb7c2cddcc9b22ea8595338e7dfca5",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._gc_delete_old_overdue_activities:sudo:1": "d08d7be2961f6f20966d47b3c93d11ea54f0837c3b7368ee34e79e253a1af54c",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:1": "60d4fefd68a4df0df2a9bff9867e3ad33aa230bdc89314e6a25407a434f219ea",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:2": "52423b0f447c5c2230e32d900259317b83ed0afb0923c0fee7cfead6a2321906",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:3": "c7ef03260c8da587d6dd70c348bc8ec5c832c39b78c5d83c5b4d987bc1e67064",
-        "sink:mail:addons/mail/models/mail_activity.py:mail.activity._search_res_access:sudo:4": "4173ebf63403da8e9c4131ec80c43004e9bdea7c401942798705c485915d4df9",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.action_notify:sudo:1": "62a1c01bb22f35565a487ed83faf39f8b9c7fa4298f17760b530924b58fb84fa",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.create:orm_create:1": "dbf64ce7c8263d3fe65143ef840243342feda6a278adc59f2a2116f35b18ce37",
         "sink:mail:addons/mail/models/mail_activity.py:mail.activity.create:orm_write:1": "9f66fc366381c451cbeb87d411c797eb7eaed0596d39327d7d720b14fd542401",
@@ -158901,10 +158717,8 @@
         "sink:mail:addons/mail/models/mail_link_preview.py:mail.link.preview._is_link_preview_enabled:sudo:1": "12036dbf6d712b0fd5aa77d13d4ec0f49c5e1452098ad672eb813d901f7cc113",
         "sink:mail:addons/mail/models/mail_link_preview.py:mail.link.preview._search_or_create_from_url:orm_create:1": "e476b0badd17480475b075bc73c8697a88a391b1e0f8d5c49c3d748e07c2815b",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:1": "c71a513ab9e2279324892567d3d4d9d22b54ebf3b992b68ab824eab8390736b3",
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._compute_restricted_attachments:sudo:2": "e7ee6f6130c1bca70544b8cbfcf21261a41e991deaae24a9d6a31cfff54fda58",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._filter_mail_mail_servers:sudo:1": "555bd9a128f619315a60a34373548e3f921fbfc77fa5dcafa2888c8f6a6e7b29",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:1": "c57ac992837105f71cde818b68e21e994860e698997a8f23e4d64e37ad23395e",
-        "sink:mail:addons/mail/models/mail_mail.py:mail.mail._inverse_unrestricted_attachment_ids:sudo:2": "aaf33310fc4353458dd6836afbcf939c18ed8c74fed9b918f5872a3486a9e700",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._post_model_setup__:orm_write:1": "e7baeb903bfdbab87c636e4511957b8b69127461502004561a6f9578ad6575d7",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._postprocess_sent_message:orm_write:1": "30807f81100979965aee2d8f8a4373c90ae784e7652bb97622b90936b1f204fb",
         "sink:mail:addons/mail/models/mail_mail.py:mail.mail._postprocess_sent_message:orm_write:2": "ff8ab0b79699f6a58d767b61385bde0ce424599ec3931ba40199c761cf206c06",
@@ -158956,17 +158770,12 @@
         "sink:mail:addons/mail/models/mail_message.py:exists_in_cache:sudo:2": "bda3860787561b1c548fb9703b8d2e74ee4c6d4c9a9fffe10b959e8408cf3ecc",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_has_error:sudo:1": "b7b6d986c28cddb51dcedaf72b6604d77e16879ba3ffb4970158a6050349a668",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:1": "49cba7da03df75805338ad7f830b927322b8d0180394aa33952b84a243ebfbdd",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_is_bookmarked:sudo:2": "7c0aeb6619aacf34e598d52c33dd2980601f9b2c17fdc5e1ef23c99f998733de",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_linked_message_ids:sudo:1": "6a2c7a2933c3d856cc56c54717a3c4e1fa375a12229b373928939a6345df3aec",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_needaction:sudo:1": "ab7a5ba6afe0b1379e76cb3efbcb26653090b7838867fc05820e063aa8486dc7",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_record_name:sudo:1": "23140c3d0863d1c333370b1057d0afae1fa6aa73612df8e6b3d3ee39cba14d05",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:1": "44102a37ef69f39832c5d60da4c09b076b67ba15e071d02fb89381537c813cb1",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:2": "3d1dcc7c6e61bb758785b7d289c1d669e147278217983761affa84b204ac2b39",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._compute_res_access:sudo:3": "7f55c12a49da3a73f4b0d25dc7f5820fc7a8469f81ae3ac78a35ba757fb80abd",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_reply_to:sudo:1": "734f61ddfc8b55675a34f7039378a7f33e7c33c6b0f94e00a0be01164215087f",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:1": "2e2746ef7d5f0c0339a13a1ee62c98b81bbf726fc6bfad4286e172ff79d599be",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:2": "fe8cde0c01c9b2a77b342e3f2f6de927fa1346f3d52db3fc3f2ed0b1c2e8b1ed",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._get_with_access:sudo:3": "430d7ea5bd7642b9c110adc9b070603c1228814f5c4069db55a5b2c0fa7e6829",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:1": "65e304605c62292bd576db1ad44e1e33a9bf0ca414a8c8787a5da9807dff0ab7",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:2": "53cd3b62978c0ff506fbcfd4e9c05dc108d4288f25c165e7df203442f6d1bc07",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._message_fetch:sudo:3": "d98ce41e1271065e2ac9b024b914272cf3d1a804f29d6408e35ba15ccd48f63d",
@@ -158975,7 +158784,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message._records_by_model_name:sudo:1": "9e06f651641ee10e3e1e171ed4d9d0ef5a9ba62831ed62fdd29a412d75254684",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:1": "987a843d8f061f0df177dad67ad255ad0f62b8f0498dbfdfe7de161bbdd4be68",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:2": "c964863069141903c29dfc2fa501206a6340868b873ae5cccc22da482223906a",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message._search_res_access:sudo:3": "9d11c19a996d2876e895d3f83044d0ebd10cf412d59b4eac31bc180d086adafa",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:1": "a314993d92bdcbd4af7b3e6ae7c2c24574fb03ec1186930d3503b85d89ab2927",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:2": "593e0846da3cadfa854eaa8f4f18086bbf22ef2a2d10efdd4f25a7cbebcf70b4",
         "sink:mail:addons/mail/models/mail_message.py:mail.message._store_message_fields:sudo:3": "d64d7354a2e17423cc4c5c0152ac609b37b70fd3b760aac87d62dcfebfe6f33a",
@@ -158985,7 +158793,6 @@
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:orm_create:1": "49e7bd2fbb365681c9c039e6ccac959ec02afd80671b2695f211fcecc8e883da",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:orm_create:2": "ed7ab9e99664ad40474df1eebafd0128cb2ed438ff8cc1fcc8118a2272777a8e",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:1": "038497c57e53781c26bc910d037928a047df83a45d234344d6a3d183af6d5a80",
-        "sink:mail:addons/mail/models/mail_message.py:mail.message.create:sudo:2": "f36c3b2de8f4956185cd65aa3d15e2166e8baefaf4b6f35bdafc2e82302182a0",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:orm_write:1": "6794128c63bfd00c0930dccd319b8b9eee6f40fb09a324a3734ea942f6c78436",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:orm_write:2": "0622abe533dce43a2545ab51a3c7ddbc3fbb8865ae9dca265e7fc02280fae3c5",
         "sink:mail:addons/mail/models/mail_message.py:mail.message.mark_all_as_read:sudo:1": "ded6e7be3bfcfbf7d8c6affef3eed9b12d24cc8c587bac2b7ee770a27c82928f",
@@ -159040,12 +158847,10 @@
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin._update_field_translations:orm_write:1": "fd492d2718fb1cbb55ff859e4ff0595c3c29bebb950986735dc54f2ac515763e",
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin.create:orm_create:1": "1e860fc6d1700c2962aa08e1ee01faaaa27562840141c61b4d2330518f6c8825",
         "sink:mail:addons/mail/models/mail_render_mixin.py:mail.render.mixin.write:orm_write:1": "5309de7f1eabfdb08c4a4f42f41de272f3a8c2b87f121ec9521935e1718d2e08",
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._compute_res_access:sudo:1": "e4ed0bfa04a76a736a3e957844031950d86b93823911a815014a04262bf26e9c",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:message_send:1": "885d767a567d88ab3a932877e0c7daad17f4b5260311fc172cd281fce64d2e05",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:orm_unlink:1": "d26ef3b43b2c76178381bc7953170db44d72831885dbb212fb41895b7a2a4478",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_message:orm_write:1": "9d71f70d1acbc60d86a91a6d99b25f164f3581f5cbc95d90604ae9f68d3c6f5d",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._post_messages_cron:orm_write:1": "0f1b7706b4889b50e8e328d95d7d420b5f20d709b45dac37bbf505e02db3b828",
-        "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message._search_res_access:sudo:1": "35ad990c9e25f1628bb7a504eb216dd21fca95282ada1e60e25d789cbe0cf473",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.create:orm_create:1": "5a9546dc8eb6a5c5a717d8598fb9602e40f26ae4c59d55010e7804689dd3e5c1",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.create:orm_write:1": "249e2e7264add4aa82e47355778468b79dd9c0b30dee29cc2449792862cd6476",
         "sink:mail:addons/mail/models/mail_scheduled_message.py:mail.scheduled.message.post_message:orm_write:1": "9348716368992441457b2faee4b17f7982bb33ed294ddbafd1533c20578c451e",
@@ -159083,7 +158888,6 @@
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._detect_loop_sender:sudo:3": "79d950dafe88803cb794f018735fb62a6f0667522f0e2b7a3713e036306fe81d",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._detect_loop_sender:sudo:4": "6b38223aec9c3c0759ffaba30131db675e09c02e929a7d7cd30dc7a6584645a7",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._encode_link:sudo:1": "8c7080977a0860c324ba391568e6d6b0c8a38d29e1bf0043753c241fbf3c3338",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._get_thread_with_access:sudo:1": "455a960aabb6bf5f137b93b28cbb4b77bb09f23e25e8ea5cd8c2805bbd2858ff",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:1": "6207ded003c70412f8319cfdc050efbdbecaaee4403f297a6c50d9f56f0f6d3c",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:2": "6d0a2f8d594af499b1dcebea84efaa2cdf3e2d774ba3e06825b9a34ec6dfdbb9",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._mail_find_user_for_gateway:sudo:3": "ee4eb4ea19a1a08262f51ab2b9b360089c7349597f6e90c2c16fc76ea6d56a1b",
@@ -159174,8 +158978,6 @@
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._search_message_partner_ids:sudo:1": "21b48b872f3aa0931a15af99a0f64eefa9ceaf03d7b0a200a03017e2237b7ca9",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:1": "10ce152cd32e2e5d181e0614d241de684961482fc70b2c5f5d4244bce753e0d1",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:2": "01a2a46e9bca5f0b52dc2e97576bb78b94750beac10f680b9b824cd981fe3f53",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:3": "cfd87ec6df0f647ba772b48974f43c359b46d7037e1e124fdb07b7c75ed01917",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._store_thread_fields:sudo:4": "276ce9c4b9d81b1275d375665a6dbc73e5bb5f37b7b5cd84153734c2943db686",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:1": "6cfc4b9d5538e3a0ab7a31744f9b4a57505db348e6ca22028e1596a7eca1cb2f",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:2": "35e03116a86aab22b77bfdc4f102574387aa803b8a4595435f67275877c06f06",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._track_add:orm_write:3": "4eff5e4b34d302af0c5214be577841f0fbbdd86b0ea11d2932db97ab80461b26",
@@ -160293,7 +160095,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_hours_per_week_batch:sudo:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_tz:sudo:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:1",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:2",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:orm_write:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:orm_write:2",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:sudo:1",
@@ -160312,7 +160113,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:2",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:3",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:4",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_contract:orm_write:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:orm_create:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:orm_write:1",
@@ -160321,7 +160121,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:2",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:3",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:4",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:5",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.get_formview_action:sudo:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.get_formview_id:sudo:1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.unlink:orm_unlink:1",
@@ -160402,9 +160201,6 @@
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_cannot_approve_reason:sudo:2",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_cannot_approve_reason:sudo:3",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:1",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:2",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:3",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:4",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._inverse_total_amount:orm_write:1",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._post_wizard:orm_create:1",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._prepare_move_lines_vals:sudo:1",
@@ -160451,11 +160247,9 @@
         "sink:hr_skills:addons/hr_skills/models/hr_skill_type.py:hr.skill.type._onchange_skill_level_ids:orm_write:1",
         "sink:hr_skills:addons/hr_skills/models/hr_skill_type.py:hr.skill.type.copy_data:orm_create:1",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:orm_write:1",
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:sudo:1",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:1",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:2",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:3",
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:4",
         "sink:portal_rating:addons/portal_rating/controllers/thread.py:PortalRatingThreadController._setup_portal_message_fetch_extra_domain:orm_write:1",
         "sink:portal_rating:addons/portal_rating/models/rating_rating.py:rating.rating._synchronize_publisher_values:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense._analytic_distribution_label:sudo:1",
@@ -160639,9 +160433,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -160696,9 +160487,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create"
         },
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:4": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create"
-        },
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_contract:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create_contract"
         },
@@ -160721,9 +160509,6 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create_version"
         },
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:4": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create_version"
-        },
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:5": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.employee.create_version"
         },
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.get_formview_action:sudo:1": {
@@ -160966,15 +160751,6 @@
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._inverse_total_amount:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -161113,9 +160889,6 @@
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -161123,9 +160896,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:portal_rating:addons/portal_rating/controllers/thread.py:PortalRatingThreadController._setup_portal_message_fetch_extra_domain:orm_write:1": {
@@ -161387,7 +161157,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_hours_per_week_batch:sudo:1": "ec76efc2fd7a1e559270ea046d884a85ba1cb3c49d40d2ab7d222742b8651799",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_tz:sudo:1": "cd43682bf12c5345165acc474521de27a085ac10dc2426e5caf0c70d46af9064",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:1": "d30e48be9b4a7edbab16896c27b5690bbeb754b1365e8e4782e10db756475726",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee._get_unusual_days:sudo:2": "bfd6e7ed9fd08832e87804fd79a7de9547db464a0978587b99e5058d901261aa",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:orm_write:1": "c659dcea3a458dafc4d2ebd27d56362840e08a2793415a2b73cbe12c5a45e10c",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:orm_write:2": "69b684ddd1deeb7742d95f34a1d173852e56782401870f169411acfa60253e64",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee._inverse_work_contact_details:sudo:1": "1dad19df9d7dd119f59999347916aa2c64d4bef9b89e1487fe67318e9421eafa",
@@ -161406,7 +161175,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:1": "bb8425fb4c27ea7e5350a9f03e9a7ac05e56f0dc60c1f9c477c96f87df6fdcfc",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:2": "cc2c137dea6258f7efa40340b4650c5e47b5ed9e21bcb096a3aa88f15ae8f8be",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:3": "e34da3de80913ae39418b90ad737a91be9dbfaef9c159e66d3faff28a3850561",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create:sudo:4": "13e8708b0bf2b94df6da71771a425639be1d7bf86735e5a9056354f48452a306",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_contract:orm_write:1": "27a52eac6837bd4cf6d2b7ca8c3b8d73460b896f0c139557ef88e187ffd13f3c",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:orm_create:1": "f33d9f5ca89e2279afb954110d8208c15c540ee8ce386a5e210612a25c278513",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:orm_write:1": "bb1377756e3e52b3fc6989805f58c1d4c92b065328cf3fba2deba7d1d9ad82c0",
@@ -161415,7 +161183,6 @@
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:2": "400d314c824173cccb6f9e38d3a42085c5cd0243512ee5a9855164f3d7050b8e",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:3": "5577560ae41a034051107ddc3c965e806c4ecd800f7ba9b5b8229b5ae8b1ce02",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:4": "5f67960454aadf6cdd3e6dce30c68f972103a87df8d2f95f23c6127e651c44f7",
-        "sink:hr:addons/hr/models/hr_employee.py:hr.employee.create_version:sudo:5": "549710b7c14760c75491988dbabadf3910c0c6757f92df4548e8fde11d4208d1",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.get_formview_action:sudo:1": "2f520a40a1026f92322e10ab4236a0892d228a8753560baa91734724f434621a",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.get_formview_id:sudo:1": "1e9bd38d437655619cc6d83607c54b4698cafa0ccacc57267879c6c7d773d81f",
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.unlink:orm_unlink:1": "dc3f314238a0c69cf5eb8cf56838efdf528202ff0ccd222c1628dea7dc241c8d",
@@ -161496,9 +161263,6 @@
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_cannot_approve_reason:sudo:2": "e9c829f461e59178d0927e44ad2ea4104b811e7cb0adfdb5850cb8d5d1529176",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_cannot_approve_reason:sudo:3": "76d03566b5abf8a7bc056fca4cbc266e3257fb3bca2ea13cfc91e26dddc47a7e",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:1": "154b26fadd1bbdc5d97b460434d35be6d3cb7d6e54c7a724392fff75d8924347",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:2": "16bec240ef389f359363c016c401dc1ae47c1be4e043824d7354ebff269519b2",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:3": "a06e4f1449acf1e58751199f399080698a3a9eb642fca5a8cad17cd2b0704c5b",
-        "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._get_default_responsible_for_approval:sudo:4": "3883460f5685d572753b0ad8d47adb55cc894139a7c1458dfda6a415406ef880",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._inverse_total_amount:orm_write:1": "059c9c084cffbdec83944f85bbe9b28d62b86d610f4c1a1c177c89dece5f1a31",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._post_wizard:orm_create:1": "2afea4d366e0fa949503265f7f4c2a050e3ba0450827c849819db222583e9f4c",
         "sink:hr_expense:addons/hr_expense/models/hr_expense.py:hr.expense._prepare_move_lines_vals:sudo:1": "4ba2bf7fb157f638e6849a054e5e4306833419e4d46985df750e6b1bc6a7e166",
@@ -161545,11 +161309,9 @@
         "sink:hr_skills:addons/hr_skills/models/hr_skill_type.py:hr.skill.type._onchange_skill_level_ids:orm_write:1": "cbabda7d66646537205c86e3aaeb7be7f7c2da24e6f12f2a32472a894e99df51",
         "sink:hr_skills:addons/hr_skills/models/hr_skill_type.py:hr.skill.type.copy_data:orm_create:1": "704e9f28d493ee0b8a37f38285d9e8e3733f594c2e7945d560498612787b39a1",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:orm_write:1": "8e2865c33b519b18f96e0c6c6db2a87ce3f60847969263876086a7556dbe371d",
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._process_request_for_all:sudo:1": "b6d65d20467cb32bd139fd3a83755d1df9df87734b75b262b303bd268f496bf1",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:1": "b1cbf9ae11d8986a0ce540a12532c00782a73a4ec7d985feaf338c4e847f4183",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:2": "2e09f43350f07163f4395349a9c4ebcb3b8cca2d80b92ae81f5759893654423a",
         "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:3": "871e5c7a311f7a3fbb80498a12da5e6bcc364622a5e54550c0eb0065000d3258",
-        "sink:portal:addons/portal/controllers/thread.py:PortalWebClientController._store_portal_thread_fields:sudo:4": "cae912a54cfb28b62400b0d529d069c49d2d8e4daac460c7ef455218faec8f09",
         "sink:portal_rating:addons/portal_rating/controllers/thread.py:PortalRatingThreadController._setup_portal_message_fetch_extra_domain:orm_write:1": "367397160f249680852594095999d6d5dfe3ef2492bb5f44b59f612af167596b",
         "sink:portal_rating:addons/portal_rating/models/rating_rating.py:rating.rating._synchronize_publisher_values:orm_write:1": "7af28f5f21d8027dcac1a89285a48b86c28b2837902708c99fbc32991f93d0b2",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense._analytic_distribution_label:sudo:1": "1ff50ddd0cc519333e4fc5066f680829a1f33bfff117d913cd82ea7904aca324",
@@ -162138,7 +161900,6 @@
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:1",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:2",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:3",
-        "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:4",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_create:1",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_write:1",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_write:2",
@@ -162700,9 +162461,6 @@
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -163192,7 +162950,6 @@
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:1": "1aa18641651610b2a65b929f87b6d5347423466f7850a165b086579da23e5d4d",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:2": "e83046599a265edb4e5343098d4e9f2f45586b6a542d8cdbfebf05abbddad0aa",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:3": "cd591dcd7d1757eaae662058b2575e9b85f808c6d6d3986ba8e48c38c547551d",
-        "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences:sudo:4": "cfadd04e4c0d1237fe1d9009f3d36d7062664cb377dee9a739503cbd6b7234d5",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_create:1": "f8664857cf4035bc5ed8899f2161ed4c1b0cfa6c95c08e21e6f51631590b9639",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_write:1": "260c162a1fa4c661ffd04eb7dbd3af72a76f9aad23c6e27affe7bf632a578d2a",
         "sink:project:addons/project/models/project_task_recurrence.py:project.task.recurrence._create_next_occurrences_values:orm_write:2": "35effc80d895edd73b5caa289f150502f6f11ba57815439614271e16220442cd",
@@ -163550,7 +163307,6 @@
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:2",
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:3",
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:4",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._set_auth_cookie:sudo:1",
         "sink:mail:addons/mail/models/discuss/res_groups.py:res.groups.write:orm_write:1",
         "sink:mail:addons/mail/models/discuss/res_users.py:res.users._store_init_global_fields:sudo:1",
         "sink:mail:addons/mail/models/discuss/res_users.py:res.users._store_init_global_fields:sudo:2",
@@ -163564,7 +163320,6 @@
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:1",
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:2",
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:3",
-        "sink:mail:addons/mail/models/res_users.py:res.users._compute_can_edit_role:sudo:1",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_has_external_mail_server:sudo:1",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_notification_type:orm_write:1",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_outgoing_mail_server_id:sudo:1",
@@ -164367,9 +164122,6 @@
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:4": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.users.write"
         },
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._set_auth_cookie:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:mail:addons/mail/models/discuss/res_groups.py:res.groups.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.groups.write"
         },
@@ -164408,9 +164160,6 @@
         },
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:ir.model.write"
-        },
-        "sink:mail:addons/mail/models/res_users.py:res.users._compute_can_edit_role:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_has_external_mail_server:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -165032,7 +164781,6 @@
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:2": "809c134e52cf613f03810052840567b90950ff2f062fc80c253fe9aa0dcea24a",
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:3": "14750d4102dae06c6a85b67ab4546f9be01f2a68a9c8ea98f5dded1758946333",
         "sink:hr:addons/hr/models/res_users.py:res.users.write:sudo:4": "0b2fc7fed2a233cff42b0e366bf4283f1fa622782a9068ad459e78d132d0a054",
-        "sink:mail:addons/mail/models/discuss/mail_guest.py:mail.guest._set_auth_cookie:sudo:1": "7fe21482fd430ba87b3cdcca4a199b9926173be9211b985555c29519bdaf3d12",
         "sink:mail:addons/mail/models/discuss/res_groups.py:res.groups.write:orm_write:1": "b20f64a76f73efeaf32426c8f99cb53aeefe46a8781e0c4f62ef71bf8b920829",
         "sink:mail:addons/mail/models/discuss/res_users.py:res.users._store_init_global_fields:sudo:1": "df0901ca69782af81dc89c01aff731c48245c55157a36fb9b536a3a2763a46f0",
         "sink:mail:addons/mail/models/discuss/res_users.py:res.users._store_init_global_fields:sudo:2": "bcaf75ec3736e4af398c223e5179f7cc70d6d5ae3f0e825dc3153a92ab23e1e1",
@@ -165046,7 +164794,6 @@
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:1": "dd35f2fc291b4b9dccc5cdd587946cd2912efacef69de632bd847328f4c2c6e9",
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:2": "603536adf3c3cadf339d12ac5a89836cef81344a89792bf18595400773aa8386",
         "sink:mail:addons/mail/models/ir_model.py:ir.model.write:orm_write:3": "12aec6f7aab6e63c30617cf8514c09fb6a419fd310675763bb5f545c4f9b7a50",
-        "sink:mail:addons/mail/models/res_users.py:res.users._compute_can_edit_role:sudo:1": "cb59be36d6d10c3954082f65b2d0b22ca0b08eefe9d9f5cfa99dbdc2207bff81",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_has_external_mail_server:sudo:1": "78e98661efe24be6c3795d5598a0202deb678f3459ccb6928dec8d421011dce3",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_notification_type:orm_write:1": "76dc963fedabfa38d6845745cffaa1cd9e99fbe9ce96d278a7f115b575e5333f",
         "sink:mail:addons/mail/models/res_users.py:res.users._compute_outgoing_mail_server_id:sudo:1": "d4f3705cf7bc4af354b73f67df05fddae1e84c64ed3acaaee364293edc7fd300",
@@ -165312,7 +165059,6 @@
         "sink:base:odoo/addons/base/models/ir_asset.py:ir.asset._get_related_bundle:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._find_record:sudo:1",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._find_record:sudo:2",
-        "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._get_stream_from:sudo:1",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._record_to_stream:sudo:1",
         "sink:base:odoo/addons/base/models/ir_config_parameter.py:ir.config_parameter._set:orm_create:1",
         "sink:base:odoo/addons/base/models/ir_config_parameter.py:ir.config_parameter._set:orm_write:1",
@@ -165462,7 +165208,6 @@
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._fetch_template_views:sudo:2",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_cached_template_info:sudo:1",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_cached_template_info:sudo:2",
-        "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_x2many_missing_view_archs:sudo:1",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._inverse_arch:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._load_records_write:orm_write:1",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._load_records_write:orm_write:2",
@@ -165621,7 +165366,6 @@
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._prepare_display_address:orm_write:1",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._prepare_display_address:orm_write:2",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:1",
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:2",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._update_address:orm_write:1",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._update_address:orm_write:2",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.create:orm_create:1",
@@ -165635,7 +165379,6 @@
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:orm_write:2",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:orm_write:3",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:1",
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:2",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank.create:orm_create:1",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank.write:orm_write:1",
         "sink:base:odoo/addons/base/models/res_users.py:change.password.own.change_password:orm_unlink:1",
@@ -165912,7 +165655,6 @@
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.media_library_search:external_call:1",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.media_library_search:sudo:1",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:1",
-        "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:2",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:external_call:1",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:external_call:2",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:orm_create:1",
@@ -166140,7 +165882,6 @@
         "sink:rating:addons/rating/models/rating_mixin.py:rating.mixin.write:orm_write:2",
         "sink:rating:addons/rating/models/rating_mixin.py:rating.mixin.write:sudo:1",
         "sink:rating:addons/rating/models/rating_parent_mixin.py:rating.parent.mixin._search_rating_avg:sudo:1",
-        "sink:report_xlsx:oca-addons/report_xlsx/models/ir_report.py:ir.actions.report._render_xlsx:sudo:1",
         "sink:report_xlsx:oca-addons/report_xlsx/report/report_partner_xlsx.py:report.report_xlsx.partner_xlsx.generate_xlsx_report:orm_write:1",
         "sink:report_xlsx_helper:oca-addons/report_xlsx_helper/report/test_partner_report_xlsx.py:report.report_xlsx_helper.test_partner_xlsx._partner_report:orm_write:1",
         "sink:report_xlsx_helper:oca-addons/report_xlsx_helper/report/test_partner_report_xlsx.py:report.report_xlsx_helper.test_partner_xlsx._partner_report:orm_write:2",
@@ -166607,9 +166348,6 @@
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._find_record:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._get_stream_from:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._record_to_stream:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -167055,9 +166793,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_cached_template_info:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_x2many_missing_view_archs:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._inverse_arch:orm_write:1": {
@@ -167534,9 +167269,6 @@
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._update_address:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -167574,9 +167306,6 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.write"
         },
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.write"
-        },
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.write"
         },
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank.create:orm_create:1": {
@@ -168407,9 +168136,6 @@
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:external_call:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -169089,9 +168815,6 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rating.mixin.write"
         },
         "sink:rating:addons/rating/models/rating_parent_mixin.py:rating.parent.mixin._search_rating_avg:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:report_xlsx:oca-addons/report_xlsx/models/ir_report.py:ir.actions.report._render_xlsx:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:report_xlsx:oca-addons/report_xlsx/report/report_partner_xlsx.py:report.report_xlsx.partner_xlsx.generate_xlsx_report:orm_write:1": {
@@ -169834,7 +169557,6 @@
         "sink:base:odoo/addons/base/models/ir_asset.py:ir.asset._get_related_bundle:orm_write:1": "e989e467052fadbf0ed1c7895269c632ca020e5f3de77b904a6948a89271f52b",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._find_record:sudo:1": "faf08ed9d9157f41b5952326590429d32c126193a171acac1c40e2980dc68ee0",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._find_record:sudo:2": "f7318ce6654f801c074541c26235c33f8bbd3c7a3436ef3c947f5fa53c165443",
-        "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._get_stream_from:sudo:1": "9a23c4a34a3eb094b555dba46ed7ca25fcb90bfe5bfa77f949798deb808accb3",
         "sink:base:odoo/addons/base/models/ir_binary.py:ir.binary._record_to_stream:sudo:1": "0ae5ed6a3f14c69839f79226d2d28d10ffd4816e8392860a9302c19047e7c221",
         "sink:base:odoo/addons/base/models/ir_config_parameter.py:ir.config_parameter._set:orm_create:1": "637916efa2dfe9b16df1e2ca3bda87eaf36baa04bf722efdd3c1ae18e53ba357",
         "sink:base:odoo/addons/base/models/ir_config_parameter.py:ir.config_parameter._set:orm_write:1": "0437b1fce75189bc0851675f4e6300c7f2b65af4a8afaaea307e3daa549b1898",
@@ -169984,7 +169706,6 @@
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._fetch_template_views:sudo:2": "d57217099337d4499abdf80a341707a40618e162694b9054e5f03908ccde630f",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_cached_template_info:sudo:1": "3971e27c9878041f9fac80f7e0134aa228478de4db5acc87d60f39793e161c0c",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_cached_template_info:sudo:2": "3ffc456a5dc92ca77be347b6fe371ce3f27465e6dd2544970e49c4f04101ae75",
-        "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._get_x2many_missing_view_archs:sudo:1": "834c3f59e54573d6935bf895361fa0cb516cd82338535da28d817d816c741ee8",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._inverse_arch:orm_write:1": "1211fcd5409dea07f5c40c8808b351b13ecf7d703562c33504c6b671c8efe66b",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._load_records_write:orm_write:1": "a3fdcd8bc600bac885b2b167367aa6294034d2737cffed4dcc765b85f8ca3b15",
         "sink:base:odoo/addons/base/models/ir_ui_view.py:ir.ui.view._load_records_write:orm_write:2": "82722c737502a714798dae50393af9bc5bd66c899bde4ec16058e7df97bd647f",
@@ -170143,7 +169864,6 @@
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._prepare_display_address:orm_write:1": "73d3ca3003e141d2133f4c96a36385a453b5d84dd84c67f5ceb91cd84b7b4ef1",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._prepare_display_address:orm_write:2": "68f67a21064ff14acbd9abda1c4948d1cd7ad7ca0b2d9bfcce27be80a2833e29",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:1": "51eda77677b9de6def99e43be3810bfd8c1aa90ee6d6ff635440f03807462f8e",
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner._unlink_except_user:sudo:2": "59efb2c10f1c45d8242ff525ab6eaf5538162655bfc0ad11b4885a807330dbe2",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._update_address:orm_write:1": "1a22fe05174e116740e8292fe0a8148bb15c9e780f7b985d20625872518a5445",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner._update_address:orm_write:2": "7cb4d1163758a653358f6f83070edc8507acae5551b92c0019f250f4e7ae4d40",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.create:orm_create:1": "3b6d4589898650effefe7cccba932e6fac5c28957ab838ad9eae5fbd81611058",
@@ -170157,7 +169877,6 @@
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:orm_write:2": "ebb053a9f98ccd6c88915a6738f7ec3ab577729217cbbee8708ada82d97b9559",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:orm_write:3": "fc2a66d0457de3d2ecb5cbbbce2ecfd82752c8838f1d33dd62f1fb2f70583af6",
         "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:1": "8da249e865fe04784901a2a3b1e3cca302de87984ccdec7fa17ffb25bc98da13",
-        "sink:base:odoo/addons/base/models/res_partner.py:res.partner.write:sudo:2": "812ddf1e85c7cecef46abf87d78824a276b4c15f4c90df4072406f646386786e",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank.create:orm_create:1": "d1349af5fe0963cd5b98a703de65a58857d64b3491a5a431c26c2b862d116b52",
         "sink:base:odoo/addons/base/models/res_partner_bank.py:res.partner.bank.write:orm_write:1": "aeaf83c169d615fbefe8072806138d9cb32a189f30e9eb072e0e33aa7e5c955e",
         "sink:base:odoo/addons/base/models/res_users.py:change.password.own.change_password:orm_unlink:1": "1515e1d0d4a54f088acc24fa7f01f9cb13139565ed4fe337fa02bd2458db4686",
@@ -170434,7 +170153,6 @@
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.media_library_search:external_call:1": "0a171fd35657c47a2beafd3e392b582fae573041fa943e6c87160d400600392f",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.media_library_search:sudo:1": "80443f8134b6a6111802f5975a5bbb1ce77c440bab925654afa10b4b984d39ff",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:1": "308917e454c48fafc96357b479a81d345c8495d616a9a15725ee566a7ceb430d",
-        "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.modify_image:sudo:2": "8bc72883e80262a55b1cedae44a7c40c608e3bcf1f8495acb64b2eb5f920c4b9",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:external_call:1": "e04e64f8380959591d7b902827af6060ea342295cfd6f89060db59c748eda040",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:external_call:2": "18da337fca7a19e3d953be240318a8c7a91b38afcf3d890962597cf34bb7792c",
         "sink:html_editor:addons/html_editor/controllers/main.py:HTML_Editor.save_library_media:orm_create:1": "d5d716b1594c7865ba7c6952304da9d8c0c1acbd820130f35481720db43122b3",
@@ -170662,7 +170380,6 @@
         "sink:rating:addons/rating/models/rating_mixin.py:rating.mixin.write:orm_write:2": "5bf6625bee9a1f9c8bcd9752384e651e290b821da583df46c4bc271cc1e4dece",
         "sink:rating:addons/rating/models/rating_mixin.py:rating.mixin.write:sudo:1": "f22bbafc3426b8a15708e7b5ffab3dcdab96e7871f3f22d79f8a5ebc8ea9fa28",
         "sink:rating:addons/rating/models/rating_parent_mixin.py:rating.parent.mixin._search_rating_avg:sudo:1": "668d3c1145bd536801237d67f97b45ee13e70cda6afc2f3acaf5e97954390f1c",
-        "sink:report_xlsx:oca-addons/report_xlsx/models/ir_report.py:ir.actions.report._render_xlsx:sudo:1": "86f57fd0655902aa1e8eec9ff4be79be509fcf9c79862aeba7301342969028bf",
         "sink:report_xlsx:oca-addons/report_xlsx/report/report_partner_xlsx.py:report.report_xlsx.partner_xlsx.generate_xlsx_report:orm_write:1": "764f38e6a083b241c24e8053b4c9c8793b1f336c05fe486070122d1cd17a9e84",
         "sink:report_xlsx_helper:oca-addons/report_xlsx_helper/report/test_partner_report_xlsx.py:report.report_xlsx_helper.test_partner_xlsx._partner_report:orm_write:1": "bec4cdcdbd643665396f748a4e29b917d20546031f5e2ee12ed9e65797faab58",
         "sink:report_xlsx_helper:oca-addons/report_xlsx_helper/report/test_partner_report_xlsx.py:report.report_xlsx_helper.test_partner_xlsx._partner_report:orm_write:2": "5220f41e1a4ecef27c49843981aafcbf9366f446555c441b5cdaf4cfb1923d79",
@@ -170899,7 +170616,6 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1",
-        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1",
@@ -170951,9 +170667,6 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": {
           "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": {
-          "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": {
           "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -170985,7 +170698,6 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1": "1cc57358db24d8ff2561d1b02cf5a7cb07bf098e75ce4453afedfcf4cc762622",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1": "f0b5ee3062d2c53894fefae0e752db839a7c6ecb57da0aebdb3e6f2fa373cbdd",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": "9339d16ac88afecdd2f8e7b642f407ed995999123b3c7aa3d54abb0d9b7b8f71",
-        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": "a5b0c3ac58949fe675e7cc783e718bbc7071b5a3cd9163c468d0db26f4b961d0",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": "810acc8b1327854a06ee5cbafcec357c772a89941cb856672d229e393ac89ca9",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1": "bc884f77f27feeab3fbc0773b80cddf1fa712f2086d040c54e269e8864eb71e0",
         "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1": "90dc380995902ebd954d53e92df756951cf030e570887e6209113c2d6eb754c6",
@@ -183500,6 +183212,7 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_reviewed_operational_server_action_does_not_require_capability",
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_framework_and_user_cleanup_are_operational",
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_readonly_thumbnail_update_is_a_noop_for_existing_clients",
         "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_materialization_is_exactly_once_and_revocable"
       ]
     },
@@ -183531,6 +183244,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "fafcce62c18b1f8364672855138b73b02dd6c5e762e91f0d1df1ff944a40d83d",
+  "qualified_policy_digest": "bff171cc8dcba544cff359e9d5495bc41d45bb83ff5f0163546d972a420f6e89",
   "schema": "usl-action-risk-policy-v1"
 }

@@ -202,6 +202,9 @@ class Thing(models.Model):
 
     def elevated_write(self):
         return self.sudo().write({"name": "elevated"})
+
+    def deescalated_read(self):
+        return self.sudo(False).read(["name"])
 """,
         )
         self.write(
@@ -339,6 +342,10 @@ export class Action {
         self.assertEqual(
             {"orm_write", "sudo"},
             set(actions["rpc:x.thing.elevated_write"].get("sinks", [])),
+        )
+        self.assertNotIn(
+            "sudo",
+            actions["rpc:x.thing.deescalated_read"].get("sinks", []),
         )
         totp_sink = next(
             action

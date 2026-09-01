@@ -668,7 +668,23 @@ class _MethodAnalysis(ast.NodeVisitor):
             if isinstance(node.func, ast.Attribute)
             else ""
         )
-        if name == "sudo":
+        sudo_disabled = (
+            name == "sudo"
+            and (
+                (
+                    bool(node.args)
+                    and isinstance(node.args[0], ast.Constant)
+                    and node.args[0].value is False
+                )
+                or any(
+                    keyword.arg == "flag"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value is False
+                    for keyword in node.keywords
+                )
+            )
+        )
+        if name == "sudo" and not sudo_disabled:
             self._add_sink("sudo")
         elif name == "create":
             self._add_sink("orm_create")
