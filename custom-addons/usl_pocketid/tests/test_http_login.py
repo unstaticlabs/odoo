@@ -168,6 +168,49 @@ class TestPocketIDHttpLogin(HttpCase):
                     404,
                 )
 
+    def test_android_store_app_is_directed_to_the_sso_capable_pwa(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={"X-Requested-With": "com.odoo.mobile"},
+            )
+        document = html.fromstring(response.content)
+        self.assertFalse(
+            document.xpath(
+                "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+            ),
+        )
+        pwa_links = document.xpath(
+            "//a[contains(normalize-space(.), 'Open Odoo in Chrome')]/@href",
+        )
+        self.assertEqual(pwa_links, [self.base_url() + "/web/login"])
+        self.assertIn(
+            "cannot complete Pocket ID sign-in",
+            document.text_content(),
+        )
+
+    def test_android_browser_keeps_the_pocket_id_login(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 "
+                        "Chrome/140.0 Mobile Safari/537.36"
+                    ),
+                },
+            )
+        document = html.fromstring(response.content)
+        buttons = document.xpath(
+            "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+        )
+        self.assertEqual(len(buttons), 1)
+        self.assertFalse(
+            document.xpath(
+                "//a[contains(normalize-space(.), 'Open Odoo in Chrome')]",
+            ),
+        )
+
     def test_logout_uses_the_external_provider_endpoint(self):
         self.authenticate(None, None)
         # Simulate a completed Pocket ID login that stored the ID token.

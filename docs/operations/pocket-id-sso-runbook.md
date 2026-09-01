@@ -48,6 +48,17 @@ make repair-pocket-id
 This reapplies environment-owned provider configuration; it does not grant
 roles or companies.
 
+## Android access
+
+Use Odoo's progressive web app on Android. Open the public Odoo URL in Chrome,
+complete Pocket ID sign-in, then choose **Install app** from Chrome's menu.
+The installed PWA supports SSO and push notifications.
+
+Do not use the Odoo Play Store app with this distribution. Odoo documents that
+its store apps do not support SSO. The login page detects the official Android
+app and directs the user to the PWA instead of starting an authentication flow
+that cannot return to the store app.
+
 ## Historical reconstruction runtimes
 
 Migration runtimes store resolved identity separately from secrets. Adopt or

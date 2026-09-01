@@ -10,19 +10,36 @@
         </xpath>
         <xpath expr="//form[@data-captcha='login']" position="after">
             <div t-if="usl_sso_only" class="oe_login_form text-center">
-                <p class="mb-3">Use your USL identity to continue.</p>
-                <p class="alert alert-danger text-start" t-if="error" role="alert">
-                    <t t-out="error"/>
-                </p>
-                <a
-                    t-if="usl_pocketid_provider"
-                    t-att-href="usl_pocketid_provider['auth_link']"
-                    class="btn btn-primary w-100">
-                    Continue with Pocket ID
-                </a>
-                <p t-else="" class="alert alert-warning text-start" role="alert">
-                    Pocket ID is not ready. Contact an administrator.
-                </p>
+                <t t-if="usl_odoo_store_app">
+                    <p class="alert alert-info text-start" role="status">
+                        The Odoo store app cannot complete Pocket ID sign-in.
+                        Open Odoo in Chrome, sign in, then use Chrome’s
+                        <strong>Install app</strong> command.
+                    </p>
+                    <a
+                        t-if="usl_pwa_login_url"
+                        t-att-href="usl_pwa_login_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-primary w-100">
+                        Open Odoo in Chrome
+                    </a>
+                </t>
+                <t t-else="">
+                    <p class="mb-3">Use your USL identity to continue.</p>
+                    <p class="alert alert-danger text-start" t-if="error" role="alert">
+                        <t t-out="error"/>
+                    </p>
+                    <a
+                        t-if="usl_pocketid_provider"
+                        t-att-href="usl_pocketid_provider['auth_link']"
+                        class="btn btn-primary w-100">
+                        Continue with Pocket ID
+                    </a>
+                    <p t-else="" class="alert alert-warning text-start" role="alert">
+                        Pocket ID is not ready. Contact an administrator.
+                    </p>
+                </t>
             </div>
         </xpath>
     </template>
