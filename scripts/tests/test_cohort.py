@@ -16,6 +16,7 @@ from operations.stack import (
     _generation_overlay,
     _ensure_image,
     _materialize_command,
+    _prepare_generation_volume_ownership,
     _release_images,
     _remove_materialization_workspace,
     _require_restore_capacity,
@@ -359,6 +360,29 @@ class CohortContractTests(unittest.TestCase):
                 target.value["state_directory"] + "/generations/g20260901-a1b2c3d4/work",
             ]],
         )
+
+    def test_fresh_odoo_volume_is_prepared_for_the_runtime_user(self) -> None:
+        image = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
+        release = {"components": {"distribution": {"digest_reference": image}}}
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        _prepare_generation_volume_ownership(
+            runner,
+            release,
+            {"odoo_filestore": "fresh-odoo-data"},
+        )
+        command = runner.commands[0]
+        self.assertIn("fresh-odoo-data:/var/lib/odoo", command)
+        self.assertIn(image, command)
+        self.assertEqual(command[-3:], ["1000:1000", "/var/lib/odoo", "/var/lib/odoo/filestore"])
 
     def test_rollback_failure_preserves_the_activation_error(self) -> None:
         identity = {

@@ -251,6 +251,24 @@ def _remove_materialization_workspace(target, runner, generation: str) -> None:
     runner.run(["rm", "-rf", f"{root}/generations/{generation}/work"])
 
 
+def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[str, str]) -> None:
+    runner.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--volume",
+            f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            "--entrypoint",
+            "chown",
+            release["components"]["distribution"]["digest_reference"],
+            "1000:1000",
+            "/var/lib/odoo",
+            "/var/lib/odoo/filestore",
+        ],
+    )
+
+
 def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
     rollback = runner.run(
         compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]),
@@ -1028,6 +1046,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         materialize_state = json.loads(materialized.stdout.splitlines()[-1])
         _validate_materialized_release(materialize_state, release, release_sha)
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
+        _prepare_generation_volume_ownership(target_runner, release, volumes)
     finally:
         for container in database_containers:
             target_runner.run(["docker", "rm", "--force", container], check=False)
