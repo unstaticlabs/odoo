@@ -361,7 +361,8 @@ services:
       test:
         - CMD-SHELL
         - >-
-          curl --fail --silent http://127.0.0.1:8000/api/ >/dev/null &&
+          curl --fail --silent --header 'Host: paperless-webserver'
+          http://127.0.0.1:8000/api/ >/dev/null &&
           for service in svc-webserver svc-worker svc-consumer svc-scheduler;
           do s6-svstat "/run/service/$$service" | grep -q '^up ' || exit 1;
           done

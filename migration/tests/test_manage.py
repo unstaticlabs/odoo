@@ -1247,6 +1247,10 @@ class MigrationManageTests(unittest.TestCase):
             ],
             "allauth.socialaccount.providers.openid_connect,paperless_personal_ai",
         )
+        self.assertIn(
+            "Host: paperless-webserver",
+            linux_config["services"]["paperless-webserver"]["healthcheck"]["test"][-1],
+        )
 
 
 if __name__ == "__main__":
