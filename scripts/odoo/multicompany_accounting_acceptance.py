@@ -192,7 +192,10 @@ summary["multi_company_expenses"] = expense_profiles
 if len(companies) > 1 and not expense_users:
     errors.append("No governed multi-company expense user is configured")
 
-reviewer = env["res.users"].sudo().search([("login", "=", "prosper")], limit=1)
+reviewer = env["res.users"].sudo().with_context(active_test=False).search(
+    [("login", "=", "prosper")],
+    limit=1,
+)
 if reviewer and main_company and media_company:
     reviewer_env = env(
         user=reviewer.id,
@@ -222,6 +225,7 @@ if reviewer and main_company and media_company:
     required_reviewer_companies = {main_company.name, media_company.name}
     summary["reviewer_scope"] = {
         "login": reviewer.login,
+        "active": reviewer.active,
         "allowed_companies": sorted(reviewer_companies),
         "multi_company_ui": reviewer.has_group("base.group_multi_company"),
         "main_move_count": main_move_count,
