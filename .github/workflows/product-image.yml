@@ -31,7 +31,6 @@ jobs:
     outputs:
       matrix: ${{ steps.inputs.outputs.matrix }}
       mcp_commit: ${{ steps.inputs.outputs.mcp_commit }}
-      mcp_ref: ${{ steps.inputs.outputs.mcp_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,7 +43,6 @@ jobs:
           jq -c '{include: [.components | to_entries[] | .value + {name: .key}]}' \
             component-inputs.json | sed 's/^/matrix=/' >> "$GITHUB_OUTPUT"
           echo "mcp_commit=$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
-          echo "mcp_ref=$(jq -r .ref deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
           cat component-inputs.json
 
   test:
@@ -79,9 +77,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: unstaticlabs/odoo-mcp
-          # Checking out the declared ref creates the local ref that the
-          # compatibility verifier binds to the exact commit in release.json.
-          ref: ${{ needs.resolve.outputs.mcp_ref }}
+          ref: ${{ needs.resolve.outputs.mcp_commit }}
           path: .release/odoo-mcp
           persist-credentials: false
       - name: Log in to GHCR

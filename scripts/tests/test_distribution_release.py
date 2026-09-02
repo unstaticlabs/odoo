@@ -58,6 +58,17 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
 
+    def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
+        self.assertIn(
+            "ref: ${{ needs.resolve.outputs.mcp_commit }}",
+            self.workflow,
+        )
+        self.assertNotIn("mcp_ref", self.workflow)
+        release = json.loads(
+            (ROOT / "deploy/odoo-mcp/release.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(release["ref"], release["commit"])
+
     def test_renderer_revision_is_consistent_across_release_inputs(self) -> None:
         release = json.loads(
             (ROOT / "deploy/document-renderer/release.json").read_text(

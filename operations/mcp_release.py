@@ -104,6 +104,8 @@ def load_release(repository_root: Path) -> dict[str, Any]:
         raise McpReleaseError("Odoo MCP release identity values must be non-empty strings")
     if not COMMIT.fullmatch(value["commit"]):
         raise McpReleaseError("Odoo MCP release commit must be a full lowercase Git SHA")
+    if not COMMIT.fullmatch(value["ref"]) or value["ref"] != value["commit"]:
+        raise McpReleaseError("Odoo MCP release ref must equal the full pinned commit")
     if not IMAGE_TAG.fullmatch(value["image_tag"]):
         raise McpReleaseError("Odoo MCP build image must use an explicit commit tag")
     tag = value["image_tag"].rsplit(":", 1)[1]
