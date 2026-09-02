@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessDenied, AccessError, ValidationError
+from odoo.fields import Domain
 
 
 class ResUsers(models.Model):
@@ -151,6 +152,48 @@ class ResUsers(models.Model):
         if self.usl_is_ai_agent:
             return []
         return super()._get_auth_methods()
+
+    @api.depends("log_ids", "usl_identity_classification")
+    def _compute_state(self):
+        """Show governed Agents as active identities, never pending invitations."""
+        super()._compute_state()
+        for user in self:
+            if user.usl_identity_classification == "agent":
+                user.state = "active"
+
+    def _search_state(self, operator, value):
+        values = tuple(value)
+        if operator != "in" or len(values) != 1:
+            return super()._search_state(operator, value)
+        if values[0] == "active":
+            return Domain.OR(
+                [
+                    Domain("log_ids", "!=", False),
+                    Domain("usl_identity_classification", "=", "agent"),
+                ],
+            )
+        if values[0] == "new":
+            return Domain.AND(
+                [
+                    Domain("log_ids", "=", False),
+                    Domain("usl_identity_classification", "!=", "agent"),
+                ],
+            )
+        return super()._search_state(operator, value)
+
+    def _reject_agent_password_lifecycle(self):
+        if self.filtered(lambda user: user.usl_identity_classification == "agent"):
+            raise AccessError(
+                _("Agent identities use governed API keys and cannot receive invitations or passwords."),
+            )
+
+    def _action_reset_password(self, signup_type="reset"):
+        self._reject_agent_password_lifecycle()
+        return super()._action_reset_password(signup_type=signup_type)
+
+    def get_reset_password_link(self):
+        self._reject_agent_password_lifecycle()
+        return super().get_reset_password_link()
 
     def _generate_onboarding_todo(self):
         """Keep non-interactive Agent identities out of human onboarding."""

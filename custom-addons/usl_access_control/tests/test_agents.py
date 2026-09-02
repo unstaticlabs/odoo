@@ -85,6 +85,20 @@ class TestAutonomousAgents(TransactionCase):
         )
         self.assertFalse(onboarding_tasks)
 
+    def test_agent_identity_is_confirmed_without_invitation_or_fake_login(self):
+        agent = self._create_agent()
+        user = agent.user_id.with_context(active_test=False)
+
+        self.assertEqual(user.state, "active")
+        self.assertFalse(user.log_ids)
+        self.assertFalse(user.partner_id.signup_type)
+        self.assertNotIn(user, self.env["res.users"].search([("state", "in", ["new"])]))
+        self.assertIn(user, self.env["res.users"].search([("state", "in", ["active"])]))
+        with self.assertRaises(AccessError):
+            user._action_reset_password(signup_type="signup")
+        with self.assertRaises(AccessError):
+            user.get_reset_password_link()
+
     def test_only_internal_humans_create_owned_agents(self):
         owned = self.env["usl.agent"].with_user(self.other_user).create(
             {

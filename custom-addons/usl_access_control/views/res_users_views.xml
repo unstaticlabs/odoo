@@ -23,6 +23,24 @@
         </field>
     </record>
 
+    <record id="view_users_form_agent_password_lifecycle" model="ir.ui.view">
+        <field name="name">res.users.form.agent.password.lifecycle</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="auth_signup.res_users_view_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_reset_password']" position="attributes">
+                <attribute name="invisible">state != 'new' or usl_is_ai_agent</attribute>
+            </xpath>
+            <xpath expr="//div[@name='auth']/button[@name='action_reset_password']" position="attributes">
+                <attribute name="invisible">id == uid or state != 'active' or usl_is_ai_agent</attribute>
+            </xpath>
+            <xpath expr="//div[@name='auth']/widget[@name='auth_signup.button_reset_password_link']" position="attributes">
+                <attribute name="invisible">id == uid or usl_is_ai_agent</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_users_form_simple_agents" model="ir.ui.view">
         <field name="name">res.users.preferences.agents</field>
         <field name="model">res.users</field>

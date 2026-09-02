@@ -471,6 +471,7 @@
         "rpc:payment.token.unlink",
         "rpc:res.partner.category.unlink",
         "rpc:res.partner.industry.unlink",
+        "rpc:res.users.get_reset_password_link",
         "rpc:spreadsheet.dashboard.share.unlink",
         "rpc:usl.document.link.unlink",
         "rpc:usl.document.quick.filter.unlink",
@@ -513,6 +514,7 @@
         "rpc:payment.token.unlink": "227896eee751b4b19fe16d30512683b4534ed621da10e9decba3aa8b42ee1c94",
         "rpc:res.partner.category.unlink": "227896eee751b4b19fe16d30512683b4534ed621da10e9decba3aa8b42ee1c94",
         "rpc:res.partner.industry.unlink": "227896eee751b4b19fe16d30512683b4534ed621da10e9decba3aa8b42ee1c94",
+        "rpc:res.users.get_reset_password_link": "964c64adfca38dbeba72f19346fcdf90d4e764280de13467a3ef9b9c272f7188",
         "rpc:spreadsheet.dashboard.share.unlink": "227896eee751b4b19fe16d30512683b4534ed621da10e9decba3aa8b42ee1c94",
         "rpc:usl.document.link.unlink": "55798f4e03a606cb6662ec311f89fe90c399d2a65b59686e0c8fd7bbc981fa8e",
         "rpc:usl.document.quick.filter.unlink": "b5d914a7b4970d2bc1a6f95436081650a40c1a24a6591004cd4d2b97b1067c47",
@@ -38395,7 +38397,6 @@
         "rpc:res.users.get_import_templates",
         "rpc:res.users.get_metadata",
         "rpc:res.users.get_property_definition",
-        "rpc:res.users.get_reset_password_link",
         "rpc:res.users.get_totp_invite_url",
         "rpc:res.users.has_access",
         "rpc:res.users.has_field_access",
@@ -39238,7 +39239,6 @@
         "rpc:res.users.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
         "rpc:res.users.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
         "rpc:res.users.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
-        "rpc:res.users.get_reset_password_link": "89d47b0148b9beb1e6203fbf56a14e0e07e6cb63b65b2a2ccfbea677ddb4f239",
         "rpc:res.users.get_totp_invite_url": "432bc829c6914c358ce577e5e21aa6968985b9542e15dd05ea743f3b42b169f5",
         "rpc:res.users.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
         "rpc:res.users.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
@@ -185050,6 +185050,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "bafe96cb0cf29f3fde502eebb7281b77d86dc261614123fd68ebcfe9e58cefbb",
+  "qualified_policy_digest": "b0986d7261f54ea93d9ea2bf455abd39d3eda21fae31172a800289743c052dec",
   "schema": "usl-action-risk-policy-v1"
 }

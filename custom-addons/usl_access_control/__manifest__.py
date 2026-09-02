@@ -7,6 +7,7 @@
     "license": "LGPL-3",
     "depends": [
         "api_doc",
+        "auth_signup",
         "base_automation",
         "base_import_module",
         "base_install_request",
