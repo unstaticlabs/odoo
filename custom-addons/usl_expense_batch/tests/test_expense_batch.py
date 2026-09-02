@@ -704,7 +704,7 @@ class TestExpenseBatch(TestExpenseCommon):
             "hr_expense.hr_expense_view_search",
         )._get_combined_arch()
         for filter_name in (
-            "not_in_batch",
+            "needs_batching",
             "batch_ready",
             "batch_incomplete",
             "already_batched",
@@ -712,11 +712,24 @@ class TestExpenseBatch(TestExpenseCommon):
             self.assertTrue(
                 expense_search.xpath(f"//filter[@name='{filter_name}']"),
             )
+        needs_batching = expense_search.xpath(
+            "//filter[@name='needs_batching']",
+        )[0]
+        self.assertEqual(needs_batching.get("string"), "Needs batching")
+        self.assertEqual(
+            needs_batching.get("domain"),
+            "[('expense_batch_id', '=', False), "
+            "('state', 'in', ['draft', 'approved', 'posted'])]",
+        )
         my_expenses_action = self.env.ref(
             "hr_expense.hr_expense_actions_my_all",
         )
         self.assertIn(
-            "'search_default_not_in_batch': 1",
+            "'search_default_needs_batching': 1",
+            my_expenses_action.context,
+        )
+        self.assertNotIn(
+            "search_default_not_in_batch",
             my_expenses_action.context,
         )
 

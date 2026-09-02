@@ -101,15 +101,17 @@ group. The list shows **Attachment status**, each expense's normal status and
 its optional **Expense Batch** link without a permanent **Batch readiness**
 column.
 
-The default **Not in a batch** filter keeps the working list limited to
-expenses that can still be grouped; remove it to review historical batched
-expenses. Use **Ready to submit**, **Needs information** and **Already in a
-batch** for more specific review. Select one or more unbatched Draft, Approved
-or Posted expenses, then use **Add to a Batch**. For a multi-selection it is
-the primary contextual action without removing native submission actions. The
-create-or-select preview ranks compatible Batches, shows readiness, payer
-split, warnings and context impact before anything is saved. Both completion
-actions close the preview and refresh the list.
+The default **Needs batching** filter shows only unbatched Draft, Approved and
+Posted expenses. Paid, Refused, Submitted and In Payment expenses remain
+available through **All expenses**. Batching is optional: removing the filter
+does not change an expense or prevent its normal submission, posting or
+payment. Use **Ready to submit**, **Needs information** and **Already in a
+batch** for more specific review. Select one or more eligible expenses, then
+use **Add to a Batch**. For a multi-selection it is the primary contextual
+action without removing native submission actions. The create-or-select
+preview ranks compatible Batches, shows readiness, payer split, warnings and
+context impact before anything is saved. Both completion actions close the
+preview and refresh the list.
 
 Managers use **Expense Batches** to review purpose, totals, dates, payer split,
 interactive shared analytics, Product breakdown and individual evidence. A
