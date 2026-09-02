@@ -38,7 +38,9 @@ class FakeRunner:
                 "com.docker.compose.project": self.target.project,
                 "com.docker.compose.project.config_files": "/release/compose.yaml,/release/production.yaml",
                 "com.docker.compose.project.working_dir": "/release",
-                "com.docker.compose.project.environment_file": "/runtime/target.env",
+                "com.docker.compose.project.environment_file": (
+                    "/runtime/site.env,/release/.env"
+                ),
             }
             return self.completed(command, json.dumps(labels))
         if command[:3] == ["docker", "volume", "inspect"]:
@@ -110,7 +112,9 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertEqual(identity["project"], target.project)
         self.assertEqual(identity["compose_files"], ["/release/compose.yaml", "/release/production.yaml"])
         command = compose_command(identity, ["ps"])
-        self.assertIn("--env-file", command)
+        self.assertEqual(command.count("--env-file"), 2)
+        self.assertIn("/runtime/site.env", command)
+        self.assertIn("/release/.env", command)
         for profile in target.value["compose"]["profiles"]:
             self.assertIn(profile, command)
 

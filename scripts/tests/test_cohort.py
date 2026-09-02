@@ -412,6 +412,7 @@ class CohortContractTests(unittest.TestCase):
             {"odoo_filestore": "fresh-odoo-data"},
         )
         command = runner.commands[0]
+        self.assertIn("0:0", command)
         self.assertIn("fresh-odoo-data:/var/lib/odoo", command)
         self.assertIn(image, command)
         self.assertEqual(command[-3:], ["1000:1000", "/var/lib/odoo", "/var/lib/odoo/filestore"])

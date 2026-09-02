@@ -325,6 +325,8 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
             "docker",
             "run",
             "--rm",
+            "--user",
+            "0:0",
             "--volume",
             f"{volumes['odoo_filestore']}:/var/lib/odoo",
             "--entrypoint",

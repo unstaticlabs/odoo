@@ -367,7 +367,13 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     files = [item for item in labels.get("com.docker.compose.project.config_files", "").split(",") if item]
     directory = labels.get("com.docker.compose.project.working_dir", "")
     env_file = labels.get("com.docker.compose.project.environment_file", "")
-    if not files or not directory.startswith("/") or not env_file.startswith("/"):
+    env_files = [item for item in env_file.split(",") if item]
+    if (
+        not files
+        or not directory.startswith("/")
+        or not env_files
+        or any(not item.startswith("/") for item in env_files)
+    ):
         raise RuntimeError("anchor container has incomplete Compose provenance")
     return {
         "container_id": identifiers[0],
@@ -387,9 +393,9 @@ def compose_command(identity: dict[str, Any], arguments: list[str]) -> list[str]
         identity["project"],
         "--project-directory",
         identity["working_directory"],
-        "--env-file",
-        identity["environment_file"],
     ]
+    for path in identity["environment_file"].split(","):
+        command.extend(("--env-file", path))
     for path in identity["compose_files"]:
         command.extend(("--file", path))
     for profile in identity.get("profiles", []):
