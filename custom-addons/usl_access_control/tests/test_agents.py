@@ -213,6 +213,8 @@ class TestAutonomousAgents(TransactionCase):
         with self.assertRaises(AccessError):
             agent.with_user(self.other_user).action_grant_all_read_write()
         with self.assertRaises(AccessError):
+            agent.with_user(self.portal).action_grant_all_read_write()
+        with self.assertRaises(AccessError):
             agent.with_user(agent.user_id).action_grant_all_read_write()
 
     def test_read_profile_preserves_chatter_capability_on_readable_records(self):
@@ -221,15 +223,43 @@ class TestAutonomousAgents(TransactionCase):
         move = self.env["account.move"].with_user(self.owner).create(
             {"move_type": "entry", "date": fields.Date.today()},
         )
+        recipient = self.env["res.partner"].create(
+            {"name": "Agent chatter recipient", "email": "agent-chatter@example.test"},
+        )
 
-        message = move.with_user(agent.user_id).message_post(
+        # Native read-only Chatter access permits users to follow themselves;
+        # adding unrelated followers remains a business-record write operation.
+        move.with_user(agent.user_id).message_subscribe(
+            partner_ids=agent.user_id.partner_id.ids,
+        )
+        activity = move.with_user(agent.user_id).activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+            summary="Review Agent finding",
+        )
+        mail_count = self.env["mail.mail"].sudo().search_count([])
+        message = move.with_user(agent.user_id).with_context(
+            mail_notify_force_send=False,
+        ).message_post(
             body="Agent review note",
             message_type="comment",
-            subtype_xmlid="mail.mt_note",
+            subtype_xmlid="mail.mt_comment",
+            partner_ids=recipient.ids,
         )
 
         self.assertEqual(message.author_id, agent.user_id.partner_id)
         self.assertIn("Agent review note", message.body)
+        self.assertEqual(activity.create_uid, agent.user_id)
+        self.assertTrue(
+            self.env["mail.followers"].sudo().search_count(
+                [
+                    ("res_model", "=", "account.move"),
+                    ("res_id", "=", move.id),
+                    ("partner_id", "=", agent.user_id.partner_id.id),
+                ],
+            ),
+        )
+        self.assertGreater(self.env["mail.mail"].sudo().search_count([]), mail_count)
 
     def test_agent_cannot_administer_identities_or_irreversible_actions(self):
         agent = self._create_agent()

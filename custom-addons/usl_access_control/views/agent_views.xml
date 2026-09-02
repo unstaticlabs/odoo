@@ -38,7 +38,7 @@
         <field name="arch" type="xml">
             <form string="Agent" create="1" edit="1" delete="0">
                 <header>
-                    <button name="action_suspend" type="object" string="Suspend" class="btn-secondary" invisible="state != 'active' or not id"/>
+                    <button name="action_suspend" type="object" string="Suspend" class="btn-secondary" invisible="state != 'active' or not id" title="Immediately block this Agent and all of its API keys."/>
                     <button name="action_reactivate" type="object" string="Reactivate" class="btn-primary" invisible="state != 'suspended' or not id"/>
                     <button name="action_transfer_owner" type="object" string="Transfer ownership" class="btn-secondary" invisible="not id or not can_admin_agents"/>
                     <field name="state" widget="statusbar" statusbar_visible="active,suspended"/>
@@ -110,7 +110,7 @@
                                     <field name="expiration_date"/>
                                     <field name="last_used_at" optional="show"/>
                                     <field name="status" widget="badge" decoration-success="status == 'active'" decoration-warning="status == 'expired'" decoration-muted="status == 'revoked'"/>
-                                    <button name="action_create_replacement" type="object" string="Create replacement" invisible="status != 'active'"/>
+                                    <button name="action_create_replacement" type="object" string="Create replacement" invisible="status != 'active'" title="Create another key before revoking this one, so integrations can rotate credentials without interruption."/>
                                     <button name="action_revoke" type="object" string="Revoke" class="text-danger" invisible="status != 'active'"/>
                                 </list>
                             </field>
@@ -145,7 +145,7 @@
                     <field name="expiration_date" invisible="duration != 'custom'" required="duration == 'custom'"/>
                 </group>
                 <footer>
-                    <button name="action_generate" type="object" string="Generate" class="btn-primary"/>
+                    <button name="action_generate" type="object" string="Generate" class="btn-primary" title="Create the API key and display its secret once."/>
                     <button special="cancel" string="Cancel" class="btn-secondary"/>
                 </footer>
             </form>

@@ -116,11 +116,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "guard:inventory.landed_cost.validate",
-      "action_name": "post a landed cost and its inventory valuation",
-      "classification": "protected"
-    },
-    {
       "action_key": "guard:module.install",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -1586,21 +1581,6 @@
       }
     },
     {
-      "action_key": "rpc:stock.landed.cost.button_validate",
-      "action_name": "post a landed cost and its inventory valuation",
-      "classification": "protected"
-    },
-    {
-      "action_key": "rpc:stock.landed.cost.unlink",
-      "action_name": "permanently delete stock.landed.cost",
-      "classification": "protected",
-      "enforcement": {
-        "kind": "model_operation",
-        "model": "stock.landed.cost",
-        "operation": "unlink"
-      }
-    },
-    {
       "action_key": "rpc:stock.location.unlink",
       "action_name": "permanently delete stock.location",
       "classification": "protected",
@@ -1916,6 +1896,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "server_action:database:957",
+      "action_name": "reconcile delegated Agent authority",
+      "classification": "protected"
+    },
+    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "action_name": "execute a server action",
       "classification": "protected"
@@ -1971,8 +1956,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "dafc88bef8b68e2b06e016c2be3912ca346e33a4d07cdcb62744a1ecb75ac61a",
-  "runtime_policy_sha256": "34ff3544ef940d3cdce4698702822212358567c48f64a786c22df0031ab37f8a",
+  "qualified_policy_digest": "bafe96cb0cf29f3fde502eebb7281b77d86dc261614123fd68ebcfe9e58cefbb",
+  "runtime_policy_sha256": "44fdff91a4b07b3d8ec38061d6c5b6b8294361022b0e52099042b76beddf299c",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2122,6 +2107,10 @@
     {
       "action_key": "server_action:base_vat.vies_iap_check_update_ir_actions_server",
       "classification": "operational"
+    },
+    {
+      "action_key": "server_action:database:957",
+      "classification": "protected"
     },
     {
       "action_key": "server_action:date_range.ir_cron_autocreate_ir_actions_server",
