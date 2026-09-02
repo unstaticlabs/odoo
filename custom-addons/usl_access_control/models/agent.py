@@ -25,6 +25,10 @@ _AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS = (
     "base.group_system",
 )
 
+_AGENT_VISIBLE_STANDALONE_READER_PRIVILEGES = (
+    ("account.group_account_readonly", "account.res_groups_privilege_accounting"),
+)
+
 
 class UslAgent(models.Model):
     _name = "usl.agent"
@@ -201,6 +205,18 @@ class UslAgent(models.Model):
                 for privilege_id, definition in value["privileges"].items()
                 if any(item in allowed_ids for item in definition["group_ids"])
             }
+            for group_xmlid, privilege_xmlid in _AGENT_VISIBLE_STANDALONE_READER_PRIVILEGES:
+                group = self.env.ref(group_xmlid, raise_if_not_found=False)
+                privilege = self.env.ref(privilege_xmlid, raise_if_not_found=False)
+                if (
+                    group
+                    and privilege
+                    and group.id in allowed_ids
+                    and group.id in value["groups"]
+                    and privilege.id in value["privileges"]
+                    and group.id not in value["privileges"][privilege.id]["group_ids"]
+                ):
+                    value["privileges"][privilege.id]["group_ids"].insert(0, group.id)
             privilege_ids = set(value["privileges"])
             value["categories"] = [
                 {

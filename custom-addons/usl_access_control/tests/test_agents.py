@@ -206,6 +206,14 @@ class TestAutonomousAgents(TransactionCase):
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
 
+        accounting_privilege = self.env.ref("account.res_groups_privilege_accounting")
+        accounting_reader = self.env.ref("account.group_account_readonly")
+        hierarchy = agent.view_group_hierarchy
+        self.assertEqual(
+            hierarchy["privileges"][accounting_privilege.id]["group_ids"][0],
+            accounting_reader.id,
+        )
+
     def test_bulk_access_profile_actions_are_visible_on_new_agent_form(self):
         architecture = etree.fromstring(
             self.env.ref("usl_access_control.view_usl_agent_form").arch_db.encode(),
