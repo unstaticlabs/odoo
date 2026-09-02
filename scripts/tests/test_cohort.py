@@ -453,6 +453,53 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "running distribution image differs"):
             _validate_runtime_release_images(target, ImageRunner(), runtime, release)
 
+    def test_backup_recovers_a_pruned_named_reference_before_comparing_images(self) -> None:
+        target = load_target("staging", TARGETS)
+        reference = "ghcr.io/unstaticlabs/example@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": reference},
+                "paperless": {"digest_reference": reference},
+                "sign-dss": {"digest_reference": reference},
+            },
+            "mcp": {"image": reference},
+            "renderer": {"image": reference},
+        }
+        runtime = {
+            "containers": [
+                {"Service": target.value["services"][key], "ID": key, "State": "running"}
+                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+            ],
+        }
+
+        class PrunedReferenceRunner:
+            def __init__(self):
+                self.pulled = False
+
+            def run(self, command, *, check=True):
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, "sha256:local-image\n", "")
+                if command[-1] == "{{.Id}}":
+                    status = 0 if self.pulled else 1
+                    return subprocess.CompletedProcess(
+                        command,
+                        status,
+                        "sha256:local-image\n" if self.pulled else "",
+                        "" if self.pulled else "No such image",
+                    )
+                self.pulled = True
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = PrunedReferenceRunner()
+        verified = _validate_runtime_release_images(
+            target,
+            runner,
+            runtime,
+            release,
+        )
+        self.assertEqual(set(verified.values()), {reference})
+        self.assertTrue(runner.pulled)
+
     def test_restore_capacity_fails_closed_below_two_gibibytes(self) -> None:
         target = load_target("staging", TARGETS)
 
