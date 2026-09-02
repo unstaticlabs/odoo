@@ -1097,8 +1097,8 @@ msgstr "Activation et diagnostic"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__activation_required
-msgid "Activation in progress"
-msgstr "Activation en cours"
+msgid "Activation required"
+msgstr "Activation requise"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_rule__active
@@ -9543,8 +9543,8 @@ msgstr "L'inscription nécessite une attention particulière"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_connection_status__registration_pending
-msgid "Registration pending"
-msgstr "Inscription en attente"
+msgid "Registration in progress"
+msgstr "Inscription en cours"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.client,name:rebuild_account_migration.action_rebuild_interactive_fixed_assets
@@ -13074,3 +13074,96 @@ msgstr "Blocages de clôture"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
 msgid "Open company overview"
 msgstr "Ouvrir la vue de la société"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_res_company__rebuild_einvoice_production_prepared_by_id
+msgid "Production Prepared By"
+msgstr "Production préparée par"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_res_company__rebuild_einvoice_production_prepared_at
+msgid "Production Prepared At"
+msgstr "Production préparée le"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Prepare production activation"
+msgstr "Préparer l’activation en production"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation already prepared"
+msgstr "Activation en production déjà préparée"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation prepared"
+msgstr "Activation en production préparée"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "You cannot govern electronic-invoice activation for a company outside your allowed companies."
+msgstr "Vous ne pouvez pas gérer l’activation de la facturation électronique pour une société à laquelle vous n’avez pas accès."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "No setting changed. Continue with the separate reception activation step when ready."
+msgstr "Aucun réglage n’a changé. Poursuivez avec l’étape distincte d’activation de la réception quand vous êtes prêt."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation cannot be prepared:\n%s"
+msgstr "L’activation en production ne peut pas être préparée :\n%s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "The company is eligible for production onboarding. No platform was contacted and invoice reception remains inactive."
+msgstr "La société peut désormais commencer son inscription en production. Aucune plateforme n’a été contactée et la réception des factures reste inactive."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Mark this company as eligible for production onboarding. This does not contact or register with the platform, start invoice reception, enable e-reporting, or send regulatory data."
+msgstr "Rendez cette société éligible à l’inscription en production. Cette action ne contacte ni n’inscrit la société auprès de la plateforme, ne lance pas la réception des factures, n’active pas l’e-reporting et n’envoie aucune donnée réglementaire."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Mark this company as eligible for production onboarding without contacting the platform or starting invoice reception."
+msgstr "Rendez cette société éligible à l’inscription en production sans contacter la plateforme ni lancer la réception des factures."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Prepare this company for production activation? This marks it as eligible for production onboarding. It does not contact or register with the platform, start invoice reception, enable e-reporting, or send regulatory data."
+msgstr "Préparer cette société pour l’activation en production ? Elle deviendra éligible à l’inscription en production. Cette action ne contacte ni n’inscrit la société auprès de la plateforme, ne lance pas la réception des factures, n’active pas l’e-reporting et n’envoie aucune donnée réglementaire."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "The deployment is configured for safe demo onboarding. Configure the native PDP mode for production before activation."
+msgstr "Le déploiement est configuré pour une inscription de démonstration sécurisée. Configurez le mode PDP natif pour la production avant l’activation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Missing scheduled action: %s"
+msgstr "Action planifiée manquante : %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Inactive scheduled action: %s"
+msgstr "Action planifiée inactive : %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production reception scheduling is not ready. Ask a system administrator to apply the production cron policy:\n%s"
+msgstr "La planification de la réception en production n’est pas prête. Demandez à un administrateur système d’appliquer la politique de tâches planifiées de production :\n%s"

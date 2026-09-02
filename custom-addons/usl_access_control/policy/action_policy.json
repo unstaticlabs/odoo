@@ -50,6 +50,7 @@
       "domain": "accounting",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.accounting.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "rpc:account.bank.ingestion.config.unlink": "7aeb202b2ace913ad910d0ea2dd1e85346032fcc2049a3e2332adce60e8ab665",
@@ -159,6 +160,7 @@
       "domain": "commerce_and_fulfilment",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.commerce_and_fulfilment.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "rpc:product.product.action_usl_unpack_supplier_pack": "a54155f517e2215e78459ecaddb291a950c03b9bb308d7982a90d02e720d0f8f",
@@ -294,6 +296,7 @@
       "domain": "documents_and_communications",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.documents_and_communications.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "route:http:GET,HEAD:/usl_documents/<int:document_id>/download": "4e33405f665208252409c29e083ad6d5f255687264fc64c9f8484bf59615a2d9",
@@ -375,6 +378,7 @@
       "domain": "documents_and_communications",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.documents_and_communications.qualified_changes_20260902",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native ACLs, record rules, company isolation, and attributable business history.",
       "reviewed_digests": {
         "rpc:usl.document.operation.cron_poll_operations": "005f4bdaded66493e5c294384ca834af77336d7620d3e7e5d27ef55cb4d02111"
@@ -400,6 +404,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.people_and_payroll.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "server_action:hr.action_hr_employee_departure": "4176d87dd73c7e2c8ada286e3485670c27d1732e0ab03e5eecef874b01fa629e",
@@ -425,6 +430,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.people_and_payroll.qualified_changes_20260902",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native ACLs, record rules, company isolation, and attributable business history.",
       "reviewed_digests": {
         "rpc:usl.tese.document.link.wizard.action_link_document": "a5a443e5125bbfa3c4deec799230e3243b0a465d8af664a6473f3516b061121d"
@@ -445,6 +451,7 @@
       "domain": "projects",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.projects.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "server_action:project.action_server_convert_project_to_template": "83acab65ef281b745c94e900387b1945477ab28e9cf707121d9ea4935ba605f9",
@@ -499,6 +506,7 @@
       "domain": "security_and_administration",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.security_and_administration.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "rpc:crm.team.member.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -570,6 +578,7 @@
       "domain": "security_and_administration",
       "evidence_id": "governed-agent-lifecycle-v1",
       "id": "operational.security_and_administration.governed_agent_20260902",
+      "overrides": {},
       "rationale": "Native ACLs, owner/company ceilings, step-up checks where applicable, audit evidence, and the Agent platform safety policy constrain the exact reviewed operation.",
       "reviewed_digests": {
         "rpc:usl.agent.action_acknowledge_authority_reduction": "de545fe208e9bf748fc6e72846702edd268fea1923623492df75248f7cca1caf",
@@ -608,6 +617,7 @@
       "domain": "security_and_administration",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.security_and_administration.qualified_changes_20260902",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native ACLs, record rules, company isolation, and attributable business history.",
       "reviewed_digests": {
         "route:http:GET:/usl/mail/sender/verify/<int:alias_id>/<string:token>": "68561b06c74a44099569acf4eccf9f649e02e5590658fef4be930cb16f61bc33",
@@ -637,6 +647,7 @@
       "domain": "system_framework",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "operational.system_framework.actions",
+      "overrides": {},
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "server_action:base.autovacuum_job_ir_actions_server": "6da1310d02f2c9b761cabb2d07d88a36058320556f044eac2e97a8319e6a4269",
@@ -1055,7 +1066,7 @@
         "rpc:pdp.config.wizard.button_peppol_unregister": "444448c6dec7e36e4c445794ee0380d7f3f27d0f43a895c4629d259f472459ec",
         "rpc:pdp.config.wizard.button_sync_form_with_peppol_proxy": "24fc2b60deb1b922d5914e49b541f1122d95345247043a790dfbab0507a9e580",
         "rpc:pdp.registration.button_deregister_pdp_participant": "e99309e0103b53a74565edbcd2a7f10e3e7aa03b97353c91e6b71b2515d734c8",
-        "rpc:pdp.registration.button_register_pdp_participant": "bbd4347f03de14471c3e89cbd7421815253086342421db94b8db4dd13d9cdbb9",
+        "rpc:pdp.registration.button_register_pdp_participant": "45c6faedff698f42a71bc81853db4f90b62f45a76432c6a0174c09570e794e43",
         "rpc:peppol.registration.button_register_peppol_participant": "cb70c18d1b865e6ee181c8905e5803bce9a04438097fcd1f294e29fc669f5698",
         "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates": "687eedc7a66c3ebd6f02ff3bae986e767a1957912930dab34e22511e0b6da700",
         "rpc:rebuild.account.declaration.rule.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -9187,6 +9198,7 @@
       "domain": "accounting",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.accounting.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/account/download_invoice_attachments/<models(\"ir.attachment\"):attachments>": "a451a900066e9775e9cf5997260ac812b7a401dd03e72d459ee5126f20d37e3e",
@@ -20661,6 +20673,7 @@
       "domain": "commerce_and_fulfilment",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.commerce_and_fulfilment.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/my/orders": "22c84b3ecd0e3b542baaca6151f4bba366c55cb86d644abb2b9dd5274e8d4a8f",
@@ -29558,6 +29571,7 @@
       "domain": "documents_and_communications",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.documents_and_communications.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "client:sign_oca:oca-addons/sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js:_onClickSign:route:1": "d388f32970e7f0ac22c29959611901e80ca50e81977fdc4edd582211bccf1588",
@@ -33488,6 +33502,7 @@
       "domain": "documents_and_communications",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.documents_and_communications.latex_documents",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "rpc:usl.document.letter.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -35022,6 +35037,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.people_and_payroll.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/print/cv": "bad7b5a2f068848eb18420dea35832ba771ea466f5ff6f8184d6a38664a8c995",
@@ -36479,6 +36495,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.people_and_payroll.qualified_changes_20260902",
+      "overrides": {},
       "rationale": "The exact reviewed source and resolved delegates contain no reachable persistent mutation or external-effect sink.",
       "reviewed_digests": {
         "rpc:usl.tese.document.link.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -36538,6 +36555,7 @@
       "domain": "platform_billing",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.platform_billing.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "rpc:usl.platform.billing.bank.import.wizard.payout.line.action_select": "764649232ef8a2c7059ee8709195be36ba35203cb1c78fe7c84f6b4e5d64486d",
@@ -37315,6 +37333,7 @@
       "domain": "projects",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.projects.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/my/projects": "ce72e785324e3b48a4ddb539bc8a75ff51da3bd1562f96ea6e2aebc5476535d4",
@@ -38917,6 +38936,7 @@
       "domain": "security_and_administration",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.security_and_administration.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/.well-known/assetlinks.json": "5f0c5c5297b8b88068287e023afe3a294dbcadad95686672658ee6bcbbf0dd19",
@@ -39918,6 +39938,7 @@
       "domain": "security_and_administration",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.security_and_administration.governed_agent_20260902",
+      "overrides": {},
       "rationale": "The exact reviewed source and resolved delegates contain no reachable persistent mutation or external-effect sink.",
       "reviewed_digests": {
         "rpc:res.users.action_open_owned_agents": "0d5d8da36b9a06d5521ea37fb5309f34c4b5d8f167bb9b3aa0f9b39d08d69823",
@@ -40123,6 +40144,7 @@
       "domain": "security_and_administration",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.security_and_administration.qualified_changes_20260902",
+      "overrides": {},
       "rationale": "The exact reviewed source and resolved delegates contain no reachable persistent mutation or external-effect sink.",
       "reviewed_digests": {
         "rpc:res.users.action_open_pocketid_account": "bde66d88417b76f9842c8c369c4f14e9575c6b98e27d116eb83459ff4c5ab9ce",
@@ -50339,6 +50361,7 @@
       "domain": "system_framework",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.system_framework.actions",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/": "36b55232480b564e5c65d1ad2cb21af6dd1b08fec1a2dec488fad39bc6fc7540",
@@ -60594,6 +60617,7 @@
       "domain": "system_framework",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.system_framework.actions.usl_home",
+      "overrides": {},
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "rpc:usl.home.favorite.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -63807,6 +63831,7 @@
         "rpc:res.company.action_rebuild_approve_einvoice_activation",
         "rpc:res.company.action_rebuild_begin_einvoice_activation",
         "rpc:res.company.action_rebuild_enable_einvoice_exchange",
+        "rpc:res.company.action_rebuild_prepare_einvoice_activation",
         "rpc:res.company.action_rebuild_revoke_einvoice_activation",
         "rpc:res.company.action_rebuild_run_einvoice_acceptance_test",
         "rpc:res.company.message_post",
@@ -73362,6 +73387,9 @@
         "rpc:res.company.action_rebuild_enable_einvoice_exchange": {
           "reversal_action": "rpc:res.company.write"
         },
+        "rpc:res.company.action_rebuild_prepare_einvoice_activation": {
+          "reversal_action": "rpc:res.company.action_rebuild_revoke_einvoice_activation"
+        },
         "rpc:res.company.action_rebuild_revoke_einvoice_activation": {
           "reversal_action": "rpc:res.company.write"
         },
@@ -76966,10 +76994,11 @@
         "rpc:report.account_financial_report.vat_report.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:report.account_financial_report.vat_report.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
         "rpc:res.company.action_close_stock_valuation": "4f361cbab4b07db82437f0a9661df3b5b7f7e2a0208f2e7c6a4cbedbbc7f670a",
-        "rpc:res.company.action_rebuild_approve_einvoice_activation": "f37e269a37748e099362d644356e1fd15354dd1a9da4e752fb363afc05246fd1",
+        "rpc:res.company.action_rebuild_approve_einvoice_activation": "0815d9210244be8e76b51555f15e1ac3e61e8811f8b14ad37a0ae45d70f4e25b",
         "rpc:res.company.action_rebuild_begin_einvoice_activation": "86da6c2c14ef422fadcd3885ee83e911cab3f1fb2010cc48cfe37a16e9b6662d",
-        "rpc:res.company.action_rebuild_enable_einvoice_exchange": "5f7e17cc1a1e89665abaee5594b459ca8f54bd76749d7d61f18d67aa991f3417",
-        "rpc:res.company.action_rebuild_revoke_einvoice_activation": "6c61f3df1368f9ecba2063676cfe9573628269037f1e5e399e9125b12296c55c",
+        "rpc:res.company.action_rebuild_enable_einvoice_exchange": "ce6666cc91fb5c57ffe38589e689359eda7f83e0ce8b0da44b326ba391646134",
+        "rpc:res.company.action_rebuild_prepare_einvoice_activation": "423a9b27f61b60009b7c4e2ca7b6a8d09d291f68f6a6674963378473a63b3962",
+        "rpc:res.company.action_rebuild_revoke_einvoice_activation": "05547d54f941a871b8fb634a2493656fc56a785daaf4f8162d5b981b8195c8a5",
         "rpc:res.company.action_rebuild_run_einvoice_acceptance_test": "91ef743b94082c67ec247025646ae5e55a64c11d48eaff17990ed59539f07eba",
         "rpc:res.company.message_post": "368cf0e7a2ebc9c6a905dd2a958a2113243bb315e00f511536c1c4b5a540787a",
         "rpc:res.company.reflect_code_prefix_change": "a625db94765b4d8bd3b8648624bc6c808df8d0c462decb7e913f8879345c9749",
@@ -136193,9 +136222,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_open_authentication_link:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2",
@@ -136205,14 +136232,14 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_check_einvoice_reception_crons:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:3",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:4",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_modules_ready:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_production_mode_is_configured:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_record_einvoice_poll_result:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_record_einvoice_poll_result:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:orm_write:1",
@@ -136220,10 +136247,11 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:4",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_begin_einvoice_activation:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_run_einvoice_acceptance_test:orm_create:1",
@@ -141765,13 +141793,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_refresh_authentication"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_register_pdp_participant"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_register_pdp_participant"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_register_pdp_participant"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1": {
@@ -141801,6 +141823,9 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_check_einvoice_reception_crons:sudo:1": {
+          "reachability_proof": "This private implementation sink is reachable only through reviewed electronic-invoice actions that enforce Accounting Manager access, selected-company membership, current offline readiness, and the deployment live-reception guard."
+        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -141819,11 +141844,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_modules_ready:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_production_mode_is_configured:sudo:1": {
+          "reachability_proof": "This private implementation sink is reachable only through reviewed electronic-invoice actions that enforce Accounting Manager access, selected-company membership, current offline readiness, and the deployment live-reception guard."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_record_einvoice_poll_result:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -141846,9 +141868,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.company.action_rebuild_approve_einvoice_activation"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:4": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.company.action_rebuild_approve_einvoice_activation"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_begin_einvoice_activation:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.company.action_rebuild_begin_einvoice_activation"
         },
@@ -141857,6 +141876,12 @@
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.company.action_rebuild_enable_einvoice_exchange"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:orm_write:1": {
+          "reachability_proof": "This private implementation sink is reachable only through reviewed electronic-invoice actions that enforce Accounting Manager access, selected-company membership, current offline readiness, and the deployment live-reception guard."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:sudo:1": {
+          "reachability_proof": "This private implementation sink is reachable only through reviewed electronic-invoice actions that enforce Accounting Manager access, selected-company membership, current offline readiness, and the deployment live-reception guard."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.company.action_rebuild_revoke_einvoice_activation"
@@ -145135,39 +145160,38 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:2": "e5b4eefd7b8e30916856d2dc11e3fe1c6dc9b2158c211dc092e813e298dbb716",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_open_authentication_link:sudo:1": "3fc9efe23a696348da79fadd3c6728476eccf4dfbaa6ec1a32e99f0f389e840d",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1": "3b4ec6f1a28cc380739c14bba889a17ce1a2199575dc3a67c43b3a78ec20c377",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:orm_write:1": "5f9bc7f457c330a422f5318a518363ea415acdde2fa53c7fd94eeca2f25c2668",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1": "ce9f290145fe1f41807cfb538b98e579ca0219ae71187e8ead48dac554e98a97",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:2": "db0a0faf536b5f106bfeb62af51503a663d768f915e65103c88fc1f55ced7b06",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1": "1a129d93bcb484eafcdf3d8ac5bb35f088aa167e7acea3ef7674b0fe344920cd",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1": "17dc092c3985e6b3fed3d79bb345aba8cebe3e4539678e6b9a84ab72b8731b15",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1": "e9fef9506e4418b5b0e8f97e9486b5a63846d926a2386b7ba289f4496bf5a522",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2": "390a286b1c34694f23ef72c36b96a409826c48d9c4e3c77c109a15ddd14b692f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3": "bd78009fdde084c181c194c121ae7cb926f10e643857ef3c0615a2a98224c108",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_counts:sudo:1": "2863ffccf8bf818050b94d21372b67d688c018c5897efd49cfdea7a3557ce835",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_readiness:sudo:1": "3d7936651919e10405991dddb08296ea8fb7073596d4e7d215c29b2ec087ff0c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1": "ac1ae9f35c01d27a4644dd63fde3e137bc651a9d0d3097c746ba838416df5641",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1": "d0605374097282b854ef6b558e23db0e026eabe0ff58d06aae32d62e8699607a",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": "4049cfa327a4abc1d171c5812fcb3d1eef75bd673691778c546b19980a456f79",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1": "1e5755f340af4cd7f0cc2660e383bdf5542f52c690372914aa2d94e80dc41c49",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1": "ebc2ac6793161473b092cbaf4ee231b52b0a698a3687638fb458ddef31198618",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": "cbbd15676b9dcaa4efbac81d5705ece3da825578e17f7a80b9da4dcf8816b001",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_check_einvoice_reception_crons:sudo:1": "58a6e63231d42e01f6c95dadac685d494e7c24b46ad59b2bd495a47541ac8484",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:orm_write:1": "ea56c2df4bb8d89a01f4e51cc2e319d5e0cb8bfdbdbd8449bfed9fd45bd43a5d",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:1": "cfd242aa5cc3829646996136963d3a1a18418276e1c555d9b6bf3ed5f536a0a2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:2": "7da456f66e7f47d621f36cce259b168a80444c329d0e458d4cae9471302ff8a2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:3": "ebc021b61c1008b57080d4ae1f98e18e3ceed8c14e0167c4c0e28de061cac912",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:4": "77e1d4808fcdeec350c7511eee9b86db93694d6b605ef40a05f9a2ff9b7ca5fe",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_modules_ready:sudo:1": "345b6b7cda29241c5e2eaf323bd0bf209896ba40301863773588c2214309ed09",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:orm_write:1": "a333d81e9610becaf8ac931287d8b44d4b7b47356019d6f0c73f48ed245b9410",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_ensure_einvoice_reception_crons:sudo:1": "ca79bf2ee83995aa36f21be6e3ebc847f71192926bbcd672517e3908814d7a74",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_einvoice_production_mode_is_configured:sudo:1": "8a0863c955ee94cfbfee9709a3ae770e657ad36752eb64a7c5110362f3c6ad9d",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_record_einvoice_poll_result:orm_write:1": "dbf15380501d2ab452566f553436a691e5fa5d0833c1dff6c506c8e339e94286",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_record_einvoice_poll_result:sudo:1": "aea55c3c9b917a7fccfa208e3386478a33272f0b74be5ac97761038f9390f1c9",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:orm_write:1": "107f386ca80d0080923aada08f5c9964dac1c073e62f599bc9cd886ee6c95c22",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:orm_write:2": "4aaed59dff0e9a8ce97bdf70b3801dca7154383d1654521b86032457e6fd7570",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:1": "2d9c0375b6f33d8ca89e94406430406ff0576dd18d94bbfa47fa57778095f06a",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:2": "355d319bef2b5346b041ec304831a00c0e33362157e9bf7c379b9e064f56b237",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:3": "c75e799104363050a4952dce067a5e6fc9e23351430c4c8c9cd987bbf8610b5e",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:4": "9a46f03d2cd1544a5c5c6318d0cc556f8f7181add16ecc3f8c7bf79d15bdc107",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:orm_write:1": "daae00ec671ce142ec99d77c048309fde20bb0c93e98b4b1fcad72cef032ce07",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:orm_write:2": "7c613fcf483c04e5cbde0898ecec86a0d219617da8478b811e46f0763f604473",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:1": "33415af7d48c964abf8ea46cedd3d37ea0488b2714767365bd53c028f561cbf4",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:2": "2d2ba76b1bc1a5bf84227f76ce4cb969fbdda2eaad451410056143970d44f412",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_approve_einvoice_activation:sudo:3": "efd0f2df358df8bb3e59d3f5ed768ed4f5af9ac92e08e97028facbfbf524f51c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_begin_einvoice_activation:orm_create:1": "bd1ee28c7018c284b83c3afaa716a8a0437e6a0fbeecbb2615b4f7420ec83095",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:1": "56332dbed7c64f3964fbf03492186d91ab699ac28d8dc2d4eba849cc1e68a30b",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:2": "b5693383b6fd9f208c6b14337d8e13eb63c2ac16ebfbddc06d823693533e3952",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:orm_write:1": "e1a0ab37594f06cc61264a435fd2d675448aee570bb2dd44afd20dee4cc4f31b",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:sudo:1": "877d47bb13f68b7548f191eb5052fb268ec4dfc6012271c3ee080c825e6983ca",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:1": "995b1b05e0330f09b3fb1f610340dad50a49fd164e561860a1b6f52956f829d3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_enable_einvoice_exchange:sudo:2": "d2239ef61fe86068122713333075650428d4033d62dc401decdf0698dc5505b8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:orm_write:1": "5837740386a7b7e42156c3a6e2d8db53eefaf8d500d77dec1681c573c04aadfa",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_prepare_einvoice_activation:sudo:1": "d677e57bc4d3432f2746867fb146d2801b295f2b35601a72a48642001dc8a0d9",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:orm_write:1": "0b4e0f7a33c9b500cc11b5efc2a9a8cb551b95409ee39cca1b37bf87c5bbe43f",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_revoke_einvoice_activation:sudo:1": "87c2f35daed945d1735dafd2ca7eaad0e1476b51c3ddc87c7d01b43c1b32b628",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_run_einvoice_acceptance_test:orm_create:1": "6262b0448678ef7fb882e925917258f63c7443207e036c0e2b904a5112bb8486",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_run_einvoice_acceptance_test:orm_create:2": "9062aeed27568769229e25c16a2ee4452e97943fa3a1fe2195f3e4f760f13f51",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_run_einvoice_acceptance_test:orm_write:1": "49ca39d9c3ead33301c9c2dfcfdbd2532f8987617b899b9aea1a20a268a3be92",
@@ -173355,6 +173379,7 @@
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_check_einvoice_now:1",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_enable_einvoice_exchange:1",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_open_einvoice_history:1",
+        "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_prepare_einvoice_activation:1",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_review_einvoice_issues:1",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_review_einvoice_issues:2",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_revoke_einvoice_activation:1",
@@ -175026,6 +175051,11 @@
             "rpc:res.company.action_rebuild_open_einvoice_history"
           ]
         },
+        "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_prepare_einvoice_activation:1": {
+          "targets": [
+            "rpc:res.company.action_rebuild_prepare_einvoice_activation"
+          ]
+        },
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_review_einvoice_issues:1": {
           "targets": [
             "rpc:res.company.action_rebuild_review_einvoice_issues"
@@ -176523,6 +176553,7 @@
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_check_einvoice_now:1": "81f9f003e22ed1096810978650da231d444cff7a9a747b35d6da378442b6b823",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_enable_einvoice_exchange:1": "6fbee91b4628001efc1f186aa141948518b6990c4a8d4df3c55b95ae57c36b93",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_open_einvoice_history:1": "a42bc6043aa99a7b452fac4579e65ffd55827acb5eb51becd353244c90b86e35",
+        "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_prepare_einvoice_activation:1": "ddae98135f81eddab4698e21ec91ff5955def2924570ed522f8a341a0b523f7c",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_review_einvoice_issues:1": "27b92cc858f8822c6aa7b28208caf7c776ec17a4167562fe0d8d5b696b113f4d",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_review_einvoice_issues:2": "8bac5b362f414285363ce3384d0ea478814e45d260cbcecfc13f0dd719ea08ca",
         "ui:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form:button:object:action_rebuild_revoke_einvoice_activation:1": "181a54513c591416e65da21515db8c920e822b7a438afb2c885c8f70c3facd56",
@@ -185866,6 +185897,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "954c10cc7c7aa96a25374cb3e563bdd051a3d98b5abb2431483366db00b499d7",
+  "qualified_policy_digest": "4d5790ceef763d50e43e9014769f5daeed367a28c08f119cad4696ad425a6a14",
   "schema": "usl-action-risk-policy-v1"
 }
