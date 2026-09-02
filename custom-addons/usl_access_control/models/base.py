@@ -8,10 +8,14 @@ from odoo import SUPERUSER_ID, api, models
 from odoo.exceptions import AccessError
 from odoo.fields import Domain
 
-from .action_policy import ActionPolicyConfigurationError, load_action_policy
+from ..exceptions import AgentPolicyAccessError
+from .action_policy import (
+    ActionPolicyConfigurationError,
+    load_action_policy,
+    load_agent_readonly_policy,
+)
 from .agent_policy_tokens import has_agent_collaboration_token
 from .agent_secrets import is_agent_secret_field
-from ..exceptions import AgentPolicyAccessError
 
 _logger = logging.getLogger(__name__)
 
@@ -75,6 +79,42 @@ class Base(models.AbstractModel):
             [("user_id", "=", self.env.uid)],
             limit=1,
         )
+
+    @api.model
+    def _api_doc_access(self):
+        access = super()._api_doc_access()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return access
+        return {
+            operation: bool(access[operation] and agent._api_method_access(self._name, operation))
+            for operation in access
+        }
+
+    @api.model
+    def _api_doc_public_method_allowed(self, method_name):
+        if not super()._api_doc_public_method_allowed(method_name):
+            return False
+        agent = self._usl_managed_agent()
+        return not agent or bool(agent._api_method_access(self._name, method_name))
+
+    @api.model
+    def _api_doc_cache_vary(self):
+        vary = super()._api_doc_cache_vary()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return vary
+        try:
+            policy_digest = load_agent_readonly_policy().qualified_policy_digest
+        except ActionPolicyConfigurationError:
+            policy_digest = "invalid"
+        return (*vary, {
+            "agent_policy": policy_digest,
+            "read_only_group_ids": sorted(agent.read_only_group_ids.ids),
+            "company_ids": sorted(
+                set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+            ),
+        })
 
     @api.model
     def _access_domain(self, operation):

@@ -1,4 +1,6 @@
 import datetime
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from lxml import etree
 
@@ -6,8 +8,9 @@ from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
-from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..controllers.json2 import UslAgentJson2Controller
+from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
+from ..models import agent as agent_model_module
 from ..models.agent import (
     UslAgentCredential,
     UslAgentKeyWizard,
@@ -317,6 +320,12 @@ class TestAutonomousAgents(TransactionCase):
         self.assertTrue(agent._allows_model_operation("project.task", "read"))
         self.assertFalse(agent._allows_model_operation("project.task", "write"))
         self.assertTrue(agent._allows_model_operation("account.move", "write"))
+        project_model = self.env["project.task"].with_user(agent.user_id)
+        accounting_model = self.env["account.move"].with_user(agent.user_id)
+        self.assertFalse(project_model._api_doc_access()["write"])
+        self.assertFalse(project_model._api_doc_public_method_allowed("write"))
+        self.assertTrue(accounting_model._api_doc_access()["write"])
+        self.assertTrue(accounting_model._api_doc_public_method_allowed("write"))
         with self.assertRaises(AccessError):
             self.env["project.task"].with_user(agent.user_id).create({"name": "Denied"})
 
@@ -681,15 +690,58 @@ class TestAutonomousAgents(TransactionCase):
         self.assertNotIn(self.group_settings, agent.delegated_group_ids)
         self.assertFalse(agent.user_id.has_group("base.group_system"))
         self.assertTrue(agent.authority_reduced_at)
-        with self.assertRaises(AgentPolicyAccessError) as denied:
-            self.env["usl.agent"].with_user(agent.user_id).current_identity()
-        self.assertEqual(denied.exception.context["usl_code"], "agent_authority_reduced")
+        identity = self.env["usl.agent"].with_user(agent.user_id).current_identity()
+        self.assertTrue(identity["agent"]["authority_reduced"])
         self.owner.with_user(SUPERUSER_ID).with_context(usl_agent_provisioning=True).write(
             {"group_ids": [Command.set([self.group_settings.id])]},
         )
         self.assertNotIn(self.group_settings, agent.delegated_group_ids)
         agent.with_user(self.owner).action_acknowledge_authority_reduction()
         self.assertFalse(agent.authority_reduced_at)
+
+    def test_partial_owner_loss_keeps_operations_inside_reduced_scope(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        accounting_manager = self.env.ref("account.group_account_manager")
+        agent.with_user(self.owner).write(
+            {"delegated_group_ids": [Command.set((project_manager | accounting_manager).ids)]},
+        )
+
+        self.owner.with_user(SUPERUSER_ID).with_context(usl_agent_provisioning=True).write(
+            {"group_ids": [Command.set((self.group_user | accounting_manager).ids)]},
+        )
+
+        identity = self.env["usl.agent"].with_user(agent.user_id).current_identity()
+        self.assertTrue(identity["agent"]["authority_reduced"])
+        self.assertNotIn(project_manager, agent.delegated_group_ids)
+        self.assertIn(accounting_manager, agent.delegated_group_ids)
+        with self.assertRaises(AccessError):
+            self.env["project.task"].with_user(agent.user_id).create({"name": "Denied"})
+        self.env["account.move"].with_user(agent.user_id).search([], limit=1)
+
+    def test_agent_api_document_policy_reports_effective_access(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        partner_model = self.env["res.partner"].with_user(agent.user_id)
+        access = partner_model._api_doc_access()
+        self.assertTrue(access["read"])
+        self.assertFalse(access["create"])
+        self.assertFalse(access["write"])
+        self.assertFalse(access["unlink"])
+        self.assertTrue(partner_model._api_doc_public_method_allowed("message_post"))
+        self.assertFalse(partner_model._api_doc_public_method_allowed("write"))
+
+    def test_agent_api_document_cache_varies_by_access_and_company(self):
+        agent = self._create_agent()
+        partner_model = self.env["res.partner"].with_user(agent.user_id)
+        initial = partner_model._api_doc_cache_vary()
+        agent.with_context(usl_agent_profile_change=True).write(
+            {"read_only_group_ids": [Command.set(agent.delegated_group_ids.ids)]},
+        )
+        read_only = partner_model._api_doc_cache_vary()
+        self.assertNotEqual(initial, read_only)
+        agent.with_user(self.owner).write({"company_ids": [Command.set([self.company.id])]})
+        self.assertNotEqual(read_only, partner_model._api_doc_cache_vary())
 
     def test_new_owner_access_requires_read_profile_reapplication(self):
         owner = self._create_user("agent.profile.reapply.owner", self.group_user)
@@ -822,6 +874,31 @@ class TestAutonomousAgents(TransactionCase):
         finally:
             transaction.default_env = previous_default_env
         self.assertEqual(uid, agent.user_id.id)
+
+    def test_authenticated_identity_reconciles_authority_only_once(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        request_state = SimpleNamespace(
+            httprequest=SimpleNamespace(path="/json/2/usl.agent/current_identity"),
+        )
+        model_type = type(agent)
+        original_reconcile = model_type._reconcile_authority
+        reconciliations = []
+
+        def counted_reconcile(records):
+            reconciliations.append(records.ids)
+            return original_reconcile(records)
+
+        with (
+            patch.object(agent_model_module, "request", request_state),
+            patch.object(model_type, "_reconcile_authority", counted_reconcile),
+        ):
+            uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+            identity = self.env["usl.agent"].with_user(agent.user_id).current_identity()
+
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertEqual(identity["agent"]["id"], agent.id)
+        self.assertEqual(reconciliations, [[agent.id]])
 
     def test_expired_agent_key_is_rejected(self):
         agent = self._create_agent()

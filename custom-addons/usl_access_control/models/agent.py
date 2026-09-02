@@ -3,12 +3,12 @@ import uuid
 from copy import deepcopy
 
 from odoo import SUPERUSER_ID, Command, _, api, fields, models
-from odoo.addons.base.models.res_users import KEY_CRYPT_CONTEXT, check_identity
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
 
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
-
+from .action_policy import ActionPolicyConfigurationError, load_agent_readonly_policy
+from odoo.addons.base.models.res_users import KEY_CRYPT_CONTEXT, check_identity
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
 
@@ -426,6 +426,20 @@ class UslAgent(models.Model):
             for access in access_rows
         )
 
+    def _api_method_access(self, model_name, method_name):
+        """Return the effective Agent policy classification for one JSON-2 call."""
+        self.ensure_one()
+        try:
+            access = load_agent_readonly_policy().access_for(model_name, method_name)
+        except ActionPolicyConfigurationError:
+            return None
+        operation = method_name if method_name in {"read", "create", "write", "unlink"} else "write"
+        if access in {"read_only", "collaboration"}:
+            return access if self._allows_model_operation(model_name, "read") else None
+        if access == "write" and self._allows_model_operation(model_name, operation):
+            return access
+        return None
+
     def _model_is_read_only(self, model_name):
         self.ensure_one()
         return self._allows_model_operation(model_name, "read") and not any(
@@ -827,14 +841,15 @@ class UslAgent(models.Model):
             )
         if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
             raise AgentPolicyAccessError(_("This Agent is suspended."), "agent_suspended")
-        agent._reconcile_authority()
+        request_agent_id = (
+            getattr(request, "usl_agent_reconciled_id", None)
+            if request
+            else None
+        )
+        if request_agent_id != agent.id:
+            agent._reconcile_authority()
         if agent.state != "active":
             raise AgentPolicyAccessError(_("This Agent is suspended."), "agent_suspended")
-        if agent.authority_reduced_at:
-            raise AgentPolicyAccessError(
-                _("This Agent's authority was reduced and requires owner review."),
-                "agent_authority_reduced",
-            )
         credential_id = getattr(request, "usl_agent_credential_id", None) if request else None
         credential = self.env["usl.agent.credential"].sudo().browse(credential_id).exists()
         hierarchy = agent.view_group_hierarchy
@@ -1177,6 +1192,7 @@ class ResUsersApikeys(models.Model):
         if not credential.last_used_at or credential.last_used_at < now - datetime.timedelta(minutes=1):
             credential.with_context(usl_agent_credential_internal=True).write({"last_used_at": now})
         if request:
+            request.usl_agent_reconciled_id = agent.id
             request.usl_agent_credential_id = credential.id
         return uid
 

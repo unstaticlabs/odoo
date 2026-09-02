@@ -71,6 +71,12 @@ class DocController(http.Controller):
                             for name in fields_get()
                         },
                         'methods': list[str],
+                        'access': {
+                            'read': bool,
+                            'create': bool,
+                            'write': bool,
+                            'unlink': bool,
+                        },
                     }
                     for model in ...
                 ]
@@ -102,6 +108,7 @@ class DocController(http.Controller):
                 db_registry_sequence,
                 self.env.lang,
                 sorted(self.env.user.all_group_ids.ids),
+                self.env['base']._api_doc_cache_vary(),
             ),
         )
 
@@ -121,7 +128,8 @@ class DocController(http.Controller):
                     "Generated /doc/index.json document.\n\n"
                     f"Sequence: {db_registry_sequence}\n"
                     f"Lang: {self.env.lang}\n"
-                    f"Groups: {sorted(self.env.user.all_group_ids.ids)}"
+                    f"Groups: {sorted(self.env.user.all_group_ids.ids)}\n"
+                    f"Policy vary: {self.env['base']._api_doc_cache_vary()}"
                 ),
                 'mimetype': 'application/json; charset=utf-8',
                 'raw': json.dumps(
@@ -155,7 +163,9 @@ class DocController(http.Controller):
                     method_name
                     for method_name in dir(Model)
                     if is_public_method(Model, method_name)
+                    if Model._api_doc_public_method_allowed(method_name)
                 ],
+                'access': Model._api_doc_access(),
                 # sorted(..., key=partial(sort_key_method, modules, type(Model))),
             }
             for ir_model in self.env['ir.model'].sudo().search([])
@@ -209,6 +219,7 @@ class DocController(http.Controller):
                 db_registry_sequence,
                 self.env.lang,
                 sorted(self.env.user.all_group_ids.ids),
+                Model._api_doc_cache_vary(),
             ),
         )
         use_cache = not parse_cache_control_header(
@@ -232,7 +243,9 @@ class DocController(http.Controller):
                 method_name: self._doc_method(Model, model_name, method, method_name)
                 for method_name in dir(Model)
                 if (method := is_public_method(Model, method_name))
+                if Model._api_doc_public_method_allowed(method_name)
             },
+            'access': Model._api_doc_access(),
         }
 
         response = request.make_json_response(result)

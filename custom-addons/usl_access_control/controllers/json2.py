@@ -4,18 +4,15 @@ import uuid
 from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
-from odoo.addons.rpc.controllers.json2 import WebJson2Controller
 
 from ..exceptions import AgentPolicyAccessError
-from ..models.action_policy import (
-    ActionPolicyConfigurationError,
-    load_agent_readonly_policy,
-)
 from ..models.agent_secrets import (
     AGENT_HIDDEN_API_MODELS,
     is_agent_secret_field,
     sanitize_agent_payload,
 )
+from odoo.addons.rpc.controllers.json2 import WebJson2Controller
+
 
 class UslAgentJson2Controller(WebJson2Controller):
     @http.route()
@@ -94,19 +91,7 @@ class UslAgentJson2Controller(WebJson2Controller):
                 _("Secret fields are not available to Agents."),
                 "agent_read_only_action_denied",
             )
-        try:
-            access = load_agent_readonly_policy().access_for(model_name, method_name)
-        except ActionPolicyConfigurationError as error:
-            raise AgentPolicyAccessError(
-                _(
-                    "The Agent read-only policy is invalid. Contact an administrator.",
-                ),
-                "agent_read_only_action_denied",
-            ) from error
-        if access not in {"read_only", "collaboration"}:
-            operation = method_name if method_name in {"create", "write", "unlink"} else "write"
-            if access == "write" and agent._allows_model_operation(model_name, operation):
-                return
+        if not agent._api_method_access(model_name, method_name):
             raise AgentPolicyAccessError(
                 _(
                     "This Agent has no approved application access for %(model)s.%(method)s.",
