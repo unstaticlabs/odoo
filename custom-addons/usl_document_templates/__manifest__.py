@@ -1,7 +1,7 @@
 {
     "name": "USL Document Templates",
     "summary": "Governed LaTeX rendering for official business documents",
-    "version": "saas~19.3.1.1.2",
+    "version": "saas~19.3.1.1.3",
     "category": "Productivity/Documents",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
