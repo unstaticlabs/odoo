@@ -72,6 +72,7 @@ def _load_compatibility(repository_root: Path, release: dict[str, str]) -> dict[
         "odoo_series",
         "mcp_server_version",
         "required_modules",
+        "required_agent_identity",
         "source_rpc_actions",
         "dynamic_rpc_actions",
     }
@@ -87,6 +88,38 @@ def _load_compatibility(repository_root: Path, release: dict[str, str]) -> dict[
             or not all(isinstance(item, str) and item for item in items)
         ):
             raise McpReleaseError(f"Odoo MCP compatibility {name} must be sorted and unique")
+    identity = value.get("required_agent_identity")
+    expected_identity_keys = {
+        "method",
+        "principal_kind",
+        "schema_version",
+        "fields",
+    }
+    if not isinstance(identity, dict) or set(identity) != expected_identity_keys:
+        raise McpReleaseError("Odoo MCP Agent identity contract has unexpected fields")
+    if (
+        identity.get("method") != "usl.agent.current_identity"
+        or identity.get("principal_kind") != "agent"
+        or not isinstance(identity.get("schema_version"), int)
+        or identity["schema_version"] < 1
+    ):
+        raise McpReleaseError("Odoo MCP Agent identity contract is invalid")
+    identity_fields = identity.get("fields")
+    if (
+        not isinstance(identity_fields, list)
+        or identity_fields != sorted(set(identity_fields))
+        or not all(isinstance(item, str) and item for item in identity_fields)
+        or not {
+            "agent",
+            "companies",
+            "credential",
+            "effective_applications",
+            "owner",
+            "principal_kind",
+            "schema_version",
+        } <= set(identity_fields)
+    ):
+        raise McpReleaseError("Odoo MCP Agent identity fields are invalid")
     return value
 
 
@@ -172,7 +205,12 @@ def verify_compatibility(
     available_actions = {
         item.get("key") for item in surface.get("actions", []) if isinstance(item, dict)
     }
-    required_actions = set(contract["source_rpc_actions"]) | set(contract["dynamic_rpc_actions"])
+    identity_action = f"rpc:{contract['required_agent_identity']['method']}"
+    required_actions = (
+        set(contract["source_rpc_actions"])
+        | set(contract["dynamic_rpc_actions"])
+        | {identity_action}
+    )
     missing_actions = sorted(required_actions - available_actions)
     if missing_modules or missing_actions:
         details = []

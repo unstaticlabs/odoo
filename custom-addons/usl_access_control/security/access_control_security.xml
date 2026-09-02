@@ -42,6 +42,7 @@
         <field name="name">AI Agent</field>
         <field name="privilege_id" ref="privilege_identity_type"/>
         <field name="comment">Marks an autonomous identity. Combine with application groups; irreversible actions remain explicitly denied.</field>
+        <field name="api_key_duration">1826</field>
         <field name="implied_ids" eval="[
             Command.link(ref('base.group_user')),
             Command.link(ref('api_doc.group_allow_doc'))
@@ -105,6 +106,51 @@
         <field name="model_id" ref="model_usl_audit_event"/>
         <field name="groups" eval="[Command.link(ref('group_accounting_reviewer'))]"/>
         <field name="domain_force">['|', '|', ('model_name', '=like', 'account.%'), ('model_name', '=like', 'rebuild.account.%'), ('model_name', '=like', 'usl.tese.%')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_usl_agent_owner" model="ir.rule">
+        <field name="name">Agents: owner access</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('owner_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_usl_agent_administrator" model="ir.rule">
+        <field name="name">Agents: administrator access</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="groups" eval="[Command.link(ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_usl_agent_credential_owner" model="ir.rule">
+        <field name="name">Agent credentials: owner access</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('agent_id.owner_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_usl_agent_credential_administrator" model="ir.rule">
+        <field name="name">Agent credentials: administrator access</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="groups" eval="[Command.link(ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_usl_audit_owner" model="ir.rule">
+        <field name="name">Distribution audit: owned Agent activity</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('owner_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_usl_audit_reader_all" model="ir.rule">
+        <field name="name">Distribution audit: full reader access</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="groups" eval="[Command.link(ref('group_audit_reader'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

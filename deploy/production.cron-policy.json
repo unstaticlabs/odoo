@@ -57,6 +57,7 @@
     "snailmail.snailmail_print": {"gate": null, "reason": "No Snailmail provider is approved."},
     "stock.ir_cron_scheduler_action": {"gate": "stock", "reason": "Run procurement only after reordering rules and pending work are accepted."},
     "stock_account.ir_cron_post_stock_valuation": {"gate": "stock", "reason": "Close inventory valuation only after pending valuation work is accepted."},
+    "usl_access_control.ir_cron_usl_agent_authority_reconcile": {"gate": "always", "reason": "Reduce Agent companies and application access when an owner or delegated group loses authority."},
     "usl_accounting.ir_cron_bank_export_expected_activities": {"gate": "always", "reason": "Create internal activities for expected bank statements."},
     "usl_accounting.ir_cron_process_bank_exports": {"gate": "always", "reason": "Process admitted bank-ingestion queue items with duplicate protection."},
     "usl_documents.ir_cron_usl_document_download_grants_cleanup": {"gate": "always", "reason": "Expire temporary document-download grants."},

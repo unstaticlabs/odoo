@@ -30,6 +30,20 @@ def write_release(root: Path, ref: str, *, commit: str = "a" * 40) -> str:
         "odoo_series": "19.0",
         "mcp_server_version": "1.0.0",
         "required_modules": [],
+        "required_agent_identity": {
+            "method": "usl.agent.current_identity",
+            "principal_kind": "agent",
+            "schema_version": 3,
+            "fields": [
+                "agent",
+                "companies",
+                "credential",
+                "effective_applications",
+                "owner",
+                "principal_kind",
+                "schema_version",
+            ],
+        },
         "source_rpc_actions": [],
         "dynamic_rpc_actions": [],
     }
@@ -94,7 +108,10 @@ def initialize_source_checkout(root: Path, *, origin: str | None = None) -> tupl
 def write_empty_action_surface(root: Path) -> None:
     path = root / "custom-addons/usl_access_control/policy/action_surface.json"
     path.parent.mkdir(parents=True)
-    path.write_text('{"modules": [], "actions": []}\n', encoding="utf-8")
+    path.write_text(
+        '{"modules": [], "actions": [{"key": "rpc:usl.agent.current_identity"}]}\n',
+        encoding="utf-8",
+    )
 
 
 class OdooMcpReleaseIdentityTest(unittest.TestCase):
@@ -174,6 +191,23 @@ class OdooMcpReleaseIdentityTest(unittest.TestCase):
             compatibility.write_text("{}\n", encoding="utf-8")
 
             with self.assertRaisesRegex(McpReleaseError, "digest differs"):
+                load_release(root)
+
+    def test_rejects_an_invalid_agent_identity_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_release(root, "a" * 40)
+            release_path = root / "deploy/odoo-mcp/release.json"
+            release = json.loads(release_path.read_text(encoding="utf-8"))
+            compatibility_path = root / release["compatibility"]
+            compatibility = json.loads(compatibility_path.read_text(encoding="utf-8"))
+            compatibility["required_agent_identity"]["schema_version"] = "3"
+            compatibility_bytes = (json.dumps(compatibility, indent=2) + "\n").encode()
+            compatibility_path.write_bytes(compatibility_bytes)
+            release["compatibility_sha256"] = hashlib.sha256(compatibility_bytes).hexdigest()
+            release_path.write_text(json.dumps(release, indent=2) + "\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(McpReleaseError, "identity contract is invalid"):
                 load_release(root)
 
 

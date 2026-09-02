@@ -15,6 +15,22 @@
     "usl_expense_batch",
     "usl_home"
   ],
+  "required_agent_identity": {
+    "method": "usl.agent.current_identity",
+    "principal_kind": "agent",
+    "schema_version": 3,
+    "fields": [
+      "access_mode",
+      "agent",
+      "authority_reduced",
+      "companies",
+      "credential",
+      "effective_applications",
+      "owner",
+      "principal_kind",
+      "schema_version"
+    ]
+  },
   "source_rpc_actions": [
     "rpc:account.account.search_read",
     "rpc:account.move.line.formatted_read_group",
@@ -45,6 +61,7 @@
     "rpc:res.users.read",
     "rpc:stock.picking.create",
     "rpc:stock.picking.read",
+    "rpc:usl.agent.current_identity",
     "rpc:usl.document.link.search_read",
     "rpc:usl.document.link_to_record",
     "rpc:usl.document.mcp_create_download_grant",

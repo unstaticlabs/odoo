@@ -236,3 +236,55 @@ msgstr "Annuler la lettre émise"
 #: model_terms:ir.ui.view,arch_db:usl_access_control.view_document_letter_irreversible
 msgid "Record the cancellation of this finalized letter without deleting its evidence."
 msgstr "Consigner l’annulation de cette lettre finalisée sans supprimer ses éléments de preuve."
+
+#. module: usl_access_control
+msgid "Apply read-only profile"
+msgstr "Appliquer le profil de lecture seule"
+
+#. module: usl_access_control
+msgid "Apply read/write profile"
+msgstr "Appliquer le profil de lecture/écriture"
+
+#. module: usl_access_control
+msgid "The read-only profile uses only qualified reader roles. Applications without a safe read-only role remain set to No; their standard User roles would permit changes."
+msgstr "Le profil de lecture seule utilise uniquement des rôles de lecteur qualifiés. Les applications sans rôle de lecture seule sûr restent sur Non, car leur rôle Utilisateur standard autoriserait des modifications."
+
+#. module: usl_access_control
+msgid "Read-only profile applied"
+msgstr "Profil de lecture seule appliqué"
+
+#. module: usl_access_control
+msgid "%(count)s qualified reader roles granted. Applications without a safe read-only role remain set to No."
+msgstr "%(count)s rôles de lecteur qualifiés accordés. Les applications sans rôle de lecture seule sûr restent sur Non."
+
+#. module: usl_access_control
+msgid "Read/write profile applied"
+msgstr "Profil de lecture/écriture appliqué"
+
+#. module: usl_access_control
+msgid "%(count)s owner-approved application roles granted."
+msgstr "%(count)s rôles d’application approuvés par le propriétaire accordés."
+
+#. module: usl_access_control
+msgid "No access"
+msgstr "Aucun accès"
+
+#. module: usl_access_control
+msgid "Read-only"
+msgstr "Lecture seule"
+
+#. module: usl_access_control
+msgid "Mixed"
+msgstr "Mixte"
+
+#. module: usl_access_control
+msgid "Set all to read-only"
+msgstr "Tout définir en lecture seule"
+
+#. module: usl_access_control
+msgid "Set all to highest access"
+msgstr "Tout définir au niveau maximal"
+
+#. module: usl_access_control
+msgid "Irreversible actions are always blocked."
+msgstr "Les actions irréversibles sont toujours bloquées."

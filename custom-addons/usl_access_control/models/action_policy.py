@@ -12,8 +12,13 @@ _POLICY_DIRECTORY = Path(__file__).resolve().parent.parent / "policy"
 _SURFACE_FILE = _POLICY_DIRECTORY / "action_surface.json"
 _POLICY_FILE = _POLICY_DIRECTORY / "action_policy.json"
 _RUNTIME_POLICY_FILE = _POLICY_DIRECTORY / "protected_runtime_policy.json"
+_AGENT_READONLY_RUNTIME_POLICY_FILE = (
+    _POLICY_DIRECTORY / "agent_readonly_runtime_policy.json"
+)
 _RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
+_AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v2"
 _RUNTIME_POLICY_MAX_BYTES = 512 * 1024
+_AGENT_READONLY_RUNTIME_POLICY_MAX_BYTES = 4 * 1024 * 1024
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -58,6 +63,24 @@ class ActionPolicy:
 
     def server_action_classification(self, action_key):
         return self.server_actions.get(action_key)
+
+
+@dataclass(frozen=True)
+class AgentReadonlyPolicy:
+    read_only_actions: frozenset[str]
+    collaboration_actions: frozenset[str]
+    write_actions: frozenset[str]
+    qualified_policy_digest: str
+
+    def access_for(self, model_name, method_name):
+        action_key = f"rpc:{model_name}.{method_name}"
+        if action_key in self.read_only_actions:
+            return "read_only"
+        if action_key in self.collaboration_actions:
+            return "collaboration"
+        if action_key in self.write_actions:
+            return "write"
+        return None
 
 
 def _read_json(path, *, max_bytes=None):
@@ -228,6 +251,26 @@ def _load_server_actions(runtime_policy):
     return result
 
 
+def _load_sorted_action_keys(runtime_policy, field_name):
+    values = runtime_policy.get(field_name)
+    if not isinstance(values, list):
+        raise ActionPolicyConfigurationError(
+            f"Agent read-only runtime policy {field_name} must be an array.",
+        )
+    if any(
+        not isinstance(action_key, str) or not action_key.startswith("rpc:")
+        for action_key in values
+    ):
+        raise ActionPolicyConfigurationError(
+            f"Agent read-only runtime policy {field_name} contains an invalid action key.",
+        )
+    if values != sorted(set(values)):
+        raise ActionPolicyConfigurationError(
+            f"Agent read-only runtime policy {field_name} must be sorted and unique.",
+        )
+    return frozenset(values)
+
+
 @lru_cache(maxsize=1)
 def load_action_policy():
     runtime_policy = _read_json(
@@ -264,5 +307,58 @@ def load_action_policy():
         entries=MappingProxyType(entries),
         model_operation_guards=MappingProxyType(_model_operation_guards(entries)),
         server_actions=MappingProxyType(_load_server_actions(runtime_policy)),
+        qualified_policy_digest=qualified_digest,
+    )
+
+
+@lru_cache(maxsize=1)
+def load_agent_readonly_policy():
+    runtime_policy = _read_json(
+        _AGENT_READONLY_RUNTIME_POLICY_FILE,
+        max_bytes=_AGENT_READONLY_RUNTIME_POLICY_MAX_BYTES,
+    )
+    if runtime_policy.get("schema") != _AGENT_READONLY_RUNTIME_POLICY_SCHEMA:
+        raise ActionPolicyConfigurationError(
+            "Agent read-only runtime policy has an unsupported schema.",
+        )
+    if runtime_policy.get("runtime_policy_sha256") != _runtime_policy_digest(
+        runtime_policy,
+    ):
+        raise ActionPolicyConfigurationError(
+            "Agent read-only runtime policy digest does not match its canonical content.",
+        )
+    qualified_digest = runtime_policy.get("qualified_policy_digest")
+    if not isinstance(qualified_digest, str) or not _SHA256.fullmatch(
+        qualified_digest,
+    ):
+        raise ActionPolicyConfigurationError(
+            "Agent read-only runtime policy has no valid qualified policy digest.",
+        )
+    image_digest = os.environ.get("USL_ACTION_RISK_POLICY_SHA256")
+    if (
+        image_digest not in {None, "", "unverified"}
+        and image_digest != qualified_digest
+    ):
+        raise ActionPolicyConfigurationError(
+            "Agent read-only runtime policy does not match the qualified image policy digest.",
+        )
+    read_only_actions = _load_sorted_action_keys(runtime_policy, "read_only_actions")
+    collaboration_actions = _load_sorted_action_keys(
+        runtime_policy,
+        "collaboration_actions",
+    )
+    write_actions = _load_sorted_action_keys(runtime_policy, "write_actions")
+    if (
+        read_only_actions & collaboration_actions
+        or read_only_actions & write_actions
+        or collaboration_actions & write_actions
+    ):
+        raise ActionPolicyConfigurationError(
+            "Agent read-only, collaboration, and write action allowlists overlap.",
+        )
+    return AgentReadonlyPolicy(
+        read_only_actions=read_only_actions,
+        collaboration_actions=collaboration_actions,
+        write_actions=write_actions,
         qualified_policy_digest=qualified_digest,
     )

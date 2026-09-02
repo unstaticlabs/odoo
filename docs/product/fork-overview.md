@@ -24,11 +24,11 @@ production-admission work.
 | Governed official PDFs and correspondence | `usl_document_templates`, document renderer | Native print actions, **Official Documents** | Operational |
 | Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational locally; production certificate and ingress configuration remain |
 | Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational locally; production issuer configuration remains |
-| Company-scoped roles, irreversible-action controls and immutable audit events | `usl_access_control` | Access rights and protected actions | Operational |
+| Company-scoped roles, owned autonomous Agents, irreversible-action controls and immutable audit events | `usl_access_control` | **My Agents**, access rights and protected actions | Operational |
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
-| Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | MCP service endpoint | Operational locally; production ingress and credentials remain |
+| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | Governed Agent rollout in qualification |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
 operations documents rather than in this inventory.
@@ -40,7 +40,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | Module | Durable responsibility |
 | --- | --- |
 | `rebuild_account_migration` | Accounting cockpit, Hygiene, configurable controls, reports, declarations, closing and electronic-invoice readiness. The historical technical name is retained to preserve installed model and XML-ID ownership; the module is delivered product code. |
-| `usl_access_control` | Named roles, automation denial, irreversible-action enforcement and security audit evidence. |
+| `usl_access_control` | Named roles, owned autonomous identities, delegated-authority enforcement, governed API credentials, irreversible-action enforcement and security audit evidence. |
 | `usl_accounting` | Native/OCA Accounting extensions, expense and bank matching, foreign-currency settlement, fiscal-year behavior, scheduled statements, analytics and evidence security. |
 | `usl_b2c` | Commerce channels, orders, events, SKU aliases, accounting sessions, controls and analytics. |
 | `usl_document_templates` | Governed report bindings, renderer integration, immutable correspondence and PDF provenance. |
@@ -104,7 +104,7 @@ banking, e-invoicing and e-reporting require separate activation gates.
 - Odoo owns structured operational and Accounting truth.
 - Paperless owns archived originals, derivatives, OCR and search artifacts;
   Odoo owns authorized business links and workflow state.
-- Pocket ID authenticates users; Odoo owns roles, companies and record rules.
+- Pocket ID authenticates humans; governed API keys authenticate non-interactive Agents. Odoo owns both identities' roles, companies and record rules.
 - TESE remains the legal payroll calculator.
 - External commerce and bank systems remain authoritative for their source
   events; imports must be duplicate-safe and auditable.
