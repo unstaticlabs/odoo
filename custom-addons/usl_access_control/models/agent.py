@@ -12,6 +12,19 @@ from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
 
+_AGENT_READ_ONLY_GROUP_XMLIDS = (
+    "account.group_account_readonly",
+    "usl_access_control.group_audit_reader",
+    "usl_b2c.group_b2c_reader",
+    "usl_b2c.group_b2c_sensitive_evidence",
+    "usl_documents.group_documents_accountant",
+    "usl_platform_billing.group_platform_billing_reader",
+)
+
+_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS = (
+    "base.group_system",
+)
+
 
 class UslAgent(models.Model):
     _name = "usl.agent"
@@ -443,6 +456,57 @@ class UslAgent(models.Model):
             {"authority_reduced_at": False, "authority_reduction_reason": False},
         )
         return True
+
+    @api.model
+    def _groups_from_xmlids(self, xmlids):
+        groups = self.env["res.groups"]
+        for xmlid in xmlids:
+            group = self.env.ref(xmlid, raise_if_not_found=False)
+            if group:
+                groups |= group
+        return groups
+
+    def _owner_delegable_groups(self, groups):
+        self.ensure_one()
+        forbidden = self._forbidden_delegated_groups()
+        return (groups & self.owner_id.all_group_ids).filtered(
+            lambda group: not group.all_implied_ids & forbidden,
+        )
+
+    def _all_read_groups(self):
+        self.ensure_one()
+        return self._owner_delegable_groups(
+            self._groups_from_xmlids(_AGENT_READ_ONLY_GROUP_XMLIDS),
+        )
+
+    def _all_read_write_groups(self):
+        self.ensure_one()
+        hierarchy = self.env["res.groups"]._get_view_group_hierarchy()
+        groups = self.env["res.groups"]
+        owner_group_ids = set(self.owner_id.all_group_ids.ids)
+        forbidden = self._forbidden_delegated_groups()
+        for privilege in hierarchy["privileges"].values():
+            candidates = self.env["res.groups"].browse(
+                [group_id for group_id in privilege["group_ids"] if group_id in owner_group_ids],
+            ).filtered(lambda group: not group.all_implied_ids & forbidden)
+            if candidates:
+                groups |= candidates[-1]
+        groups |= self._groups_from_xmlids(_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS)
+        return self._owner_delegable_groups(groups)
+
+    def _replace_delegated_access(self, group_resolver):
+        self._check_caller_can_manage()
+        for agent in self:
+            agent.write(
+                {"delegated_group_ids": [Command.set(group_resolver(agent).ids)]},
+            )
+        return True
+
+    def action_grant_all_read(self):
+        return self._replace_delegated_access(lambda agent: agent._all_read_groups())
+
+    def action_grant_all_read_write(self):
+        return self._replace_delegated_access(lambda agent: agent._all_read_write_groups())
 
     def action_new_credential(self):
         self.ensure_one()

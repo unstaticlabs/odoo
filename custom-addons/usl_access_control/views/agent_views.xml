@@ -84,6 +84,19 @@
                             <div class="alert alert-info" role="status">
                                 This Agent can use only access delegated by its owner. Settings is allowed when delegated; identity administration and irreversible actions remain blocked.
                             </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3" invisible="not id">
+                                <span class="text-muted me-auto">Replace the current application access with an owner-limited profile.</span>
+                                <button name="action_grant_all_read"
+                                        type="object"
+                                        string="Grant all read access"
+                                        class="btn-secondary"
+                                        confirm="Replace this Agent's current application access with every qualified read-only role available to its owner?"/>
+                                <button name="action_grant_all_read_write"
+                                        type="object"
+                                        string="Grant all read/write access"
+                                        class="btn-secondary"
+                                        confirm="Replace this Agent's current application access with the highest safe level available to its owner in every application?"/>
+                            </div>
                             <field name="view_group_hierarchy" invisible="1"/>
                             <field name="approved_effective_group_ids" invisible="1"/>
                             <field name="delegated_group_ids" widget="res_user_group_ids" nolabel="1" colspan="2"/>

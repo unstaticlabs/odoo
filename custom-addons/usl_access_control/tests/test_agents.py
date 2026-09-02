@@ -25,6 +25,9 @@ class TestAutonomousAgents(TransactionCase):
         cls.owner = cls._create_user(
             "agent.owner",
             cls.group_settings,
+            cls.env.ref("usl_b2c.group_b2c_manager"),
+            cls.env.ref("usl_documents.group_documents_manager"),
+            cls.env.ref("usl_platform_billing.group_platform_billing_manager"),
             companies=cls.company | cls.other_company,
         )
         cls.other_user = cls._create_user("agent.other", cls.group_user)
@@ -156,6 +159,77 @@ class TestAutonomousAgents(TransactionCase):
                     "delegated_group_ids": [Command.set([self.group_distribution_admin.id])],
                 },
             )
+
+    def test_bulk_read_access_uses_only_qualified_native_reader_groups(self):
+        agent = self._create_agent()
+        reader_xmlids = (
+            "account.group_account_readonly",
+            "usl_access_control.group_audit_reader",
+            "usl_b2c.group_b2c_reader",
+            "usl_b2c.group_b2c_sensitive_evidence",
+            "usl_documents.group_documents_accountant",
+            "usl_platform_billing.group_platform_billing_reader",
+        )
+        expected = self.env["res.groups"]
+        for xmlid in reader_xmlids:
+            expected |= self.env.ref(xmlid)
+        expected &= self.owner.all_group_ids
+
+        agent.with_user(self.owner).action_grant_all_read()
+
+        self.assertEqual(agent.delegated_group_ids, expected)
+        self.assertNotIn(self.group_settings, agent.delegated_group_ids)
+        self.assertNotIn(
+            self.env.ref("usl_documents.group_documents_hr"),
+            agent.delegated_group_ids,
+        )
+        self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
+        self.assertEqual(agent.company_ids, self.company | self.other_company)
+
+    def test_bulk_read_write_selects_highest_safe_owner_levels_and_settings(self):
+        agent = self._create_agent()
+
+        agent.with_user(self.owner).action_grant_all_read_write()
+
+        hierarchy = self.env["res.groups"]._get_view_group_hierarchy()
+        forbidden = agent._forbidden_delegated_groups()
+        for privilege in hierarchy["privileges"].values():
+            candidates = self.env["res.groups"].browse(privilege["group_ids"]).filtered(
+                lambda group: group in self.owner.all_group_ids
+                and not group.all_implied_ids & forbidden,
+            )
+            if candidates:
+                self.assertIn(candidates[-1], agent.delegated_group_ids)
+        self.assertIn(self.group_settings, agent.delegated_group_ids)
+        self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
+        self.assertEqual(agent.company_ids, self.company | self.other_company)
+
+    def test_bulk_access_is_idempotent_and_owner_only(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        first_group_ids = agent.delegated_group_ids.ids
+        agent.with_user(self.owner).action_grant_all_read()
+        self.assertEqual(set(agent.delegated_group_ids.ids), set(first_group_ids))
+        with self.assertRaises(AccessError):
+            agent.with_user(self.other_user).action_grant_all_read_write()
+        with self.assertRaises(AccessError):
+            agent.with_user(agent.user_id).action_grant_all_read_write()
+
+    def test_read_profile_preserves_chatter_capability_on_readable_records(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+
+        message = move.with_user(agent.user_id).message_post(
+            body="Agent review note",
+            message_type="comment",
+            subtype_xmlid="mail.mt_note",
+        )
+
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
+        self.assertIn("Agent review note", message.body)
 
     def test_agent_cannot_administer_identities_or_irreversible_actions(self):
         agent = self._create_agent()
