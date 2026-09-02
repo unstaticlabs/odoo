@@ -39687,7 +39687,7 @@
         "rpc:usl.agent.credential.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:usl.agent.credential.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.agent.credential.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:usl.agent.current_identity": "3e939d62bd189271b6788949b73b74734925ea890a8a62b38ebec0e9277c1269",
+        "rpc:usl.agent.current_identity": "2d497852353ed57d1be22d9225686dd06e2fb25e5765d2e2746eb17058f686a6",
         "rpc:usl.agent.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
         "rpc:usl.agent.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:usl.agent.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
@@ -164538,8 +164538,8 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:sudo:1": "6c6d8b63219676d447227be09464c3d3a75d60b8a7bbcaaca14edbcc90c81984",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.create:orm_create:1": "5647948f62ad35ae061fde2d1cb305457da04c9d749acf23f20e30e5f1da5038",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.write:orm_write:1": "72daee0daf9d06e4583ca2a3bafe65d7636e1f54bf28cfdcc75e649b1131da48",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "c5e29d729e5d5263578b51a9151e24c0e0c4eb263b1ec5051ba734f59a8ece60",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "af4a52064b5e4e0d73113aa11fb8744e529bd23829dc8c4c97697820ad0e2d55",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "1f9b43b43a0bded87b999bdd0f8533b2a7b1d5f031d4c0e74be5a4e6d069f36f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "5155c1a6d201f785f8a6ddf69e88f683bcc5f27e5d124710294073f175fdc085",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_create:1": "ae6e45b9febedc47a72920dfdac025b61f468626a75543fc623bd0f2ee3e9997",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_unlink:1": "978b03fa5a0322ee7d4c587eeb6700665301171160250c8a070208b9b06992a0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:sudo:1": "1babcc78551343c29b0975048777f3e13814668ace04b2a72a771f20e1d9b731",
@@ -185052,6 +185052,7 @@
       "contract": "No reachable mutation or external-effect sink.",
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_key_transport_is_json2_and_api_documentation_only",
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_keys_allow_five_year_limit_and_overlapping_replacement",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_secret_fields_and_nested_payloads_are_redacted",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_bulk_read_access_uses_every_safe_owner_group_with_runtime_readonly_mode",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_read_profile_preserves_chatter_capability_on_readable_records",
@@ -185086,6 +185087,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "44a3fb055755e9aecdadd37ddd2a26d0165e48b0705bf815d82347e3f5021d0d",
+  "qualified_policy_digest": "23a20ca4571e34d9b5324283347fd1d45d4cae0a9ea1452b64678c96838976b5",
   "schema": "usl-action-risk-policy-v1"
 }
