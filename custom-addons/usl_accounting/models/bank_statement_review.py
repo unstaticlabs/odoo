@@ -972,7 +972,7 @@ class AccountBankStatementException(models.Model):
         self.file_id.sudo().write(
             {
                 "statement_id": statement.id,
-                "processing_state": "attention",
+                "processing_state": "processed",
                 "processing_detail": _(
                     "A manager approved a conservative transaction identity.",
                 ),
@@ -1021,7 +1021,13 @@ class AccountBankStatementException(models.Model):
         )
         self.sudo().with_context(bank_exception_internal=True).statement_id = statement
         self.file_id.sudo().write(
-            {"statement_id": statement.id, "processing_state": "attention"},
+            {
+                "statement_id": statement.id,
+                "processing_state": "processed",
+                "processing_detail": _(
+                    "A manager linked the transaction to an existing bank entry.",
+                ),
+            },
         )
         self.file_id._associate_period_pdfs(statement)
 

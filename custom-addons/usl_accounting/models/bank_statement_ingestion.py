@@ -705,18 +705,7 @@ class AccountBankIngestion(models.Model):
                 lambda item: item.classification == "pdf",
             ):
                 source_file._process_isolated()
-            for source_file in files.filtered(
-                lambda item: item.classification == "unsupported",
-            ):
-                source_file._ensure_exception(
-                    "unsupported",
-                    _("Unsupported bank export attachment"),
-                    _(
-                        "The attachment %(name)s needs an accounting review.",
-                        name=source_file.filename,
-                    ),
-                )
-                source_file.processing_state = "attention"
+            self._finalize_retained_files()
             missing_ofx_name = _("OFX transaction export missing")
             matched_statements = files.filtered(
                 lambda item: item.classification == "pdf",
@@ -774,6 +763,7 @@ class AccountBankIngestion(models.Model):
                 type(error).__name__,
             )
             self.write({"state": "failed", "last_error": str(error)})
+            self._fail_pending_files(error)
             self._ensure_exception(
                 "import",
                 _("Bank export processing failed"),
@@ -781,6 +771,56 @@ class AccountBankIngestion(models.Model):
             )
         finally:
             self.config_id._sync_review_activity()
+
+    def _finalize_retained_files(self):
+        """Give every retained file a durable, explicit disposition."""
+        for ingestion in self.sorted("id"):
+            pending = ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ).sorted("id")
+            for source_file in pending:
+                if source_file.classification == "email":
+                    source_file.sudo().write(
+                        {
+                            "processing_state": "processed",
+                            "processing_detail": _(
+                                "Original source email retained unchanged.",
+                            ),
+                        },
+                    )
+                    continue
+                if source_file.classification in ("csv", "qif", "unsupported"):
+                    source_file._finalize_supplemental_file()
+                    continue
+                detail = _(
+                    "The retained file has no completed processing result. Retry the bank export; if it fails again, replace the file with a fresh bank export.",
+                )
+                source_file.sudo().write(
+                    {
+                        "processing_state": "failed",
+                        "processing_detail": detail,
+                    },
+                )
+                source_file._ensure_exception(
+                    "import",
+                    _("Retained file was not fully processed"),
+                    detail,
+                )
+
+    def _fail_pending_files(self, error):
+        detail = _(
+            "The bank email could not be fully processed: %(error)s Retry after correcting the reported problem.",
+            error=str(error),
+        )
+        for source_file in self.file_ids.filtered(
+            lambda item: item.processing_state == "pending",
+        ):
+            source_file.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": detail,
+                },
+            )
 
     def _resolve_recovered_import_failures(self, files):
         self.ensure_one()
@@ -1082,6 +1122,7 @@ class AccountBankIngestionFile(models.Model):
             ("pending", "Pending"),
             ("processed", "Processed"),
             ("duplicate", "Already imported"),
+            ("ignored", "Intentionally ignored"),
             ("attention", "Needs attention"),
             ("failed", "Failed"),
         ],
@@ -1229,6 +1270,57 @@ class AccountBankIngestionFile(models.Model):
             )
         return content
 
+    def _finalize_supplemental_file(self):
+        self.ensure_one()
+        prior = self.search(
+            [
+                ("ingestion_id.config_id", "=", self.ingestion_id.config_id.id),
+                ("id", "<", self.id),
+                ("sha256", "=", self.sha256),
+                ("classification", "=", self.classification),
+                ("processing_state", "in", ("processed", "duplicate", "ignored")),
+            ],
+            order="id",
+            limit=1,
+        )
+        if prior:
+            values = {
+                "processing_state": "duplicate",
+                "processing_detail": _(
+                    "An identical retained file already has a final disposition on this bank import route.",
+                ),
+            }
+        else:
+            explanations = {
+                "csv": _(
+                    "CSV copy retained unchanged. OFX is the authoritative transaction import for this route.",
+                ),
+                "qif": _(
+                    "QIF copy retained unchanged. OFX is the authoritative transaction import for this route.",
+                ),
+                "unsupported": _(
+                    "File retained unchanged and intentionally ignored because this file type is not used by automated bank import.",
+                ),
+            }
+            values = {
+                "processing_state": "ignored",
+                "processing_detail": explanations[self.classification],
+            }
+        self.sudo().write(values)
+        self.exception_ids.filtered(
+            lambda item: item.kind == "unsupported" and item.state == "open",
+        ).sudo().with_context(bank_exception_internal=True).write(
+            {
+                "state": "resolved",
+                "resolution": "not_relevant",
+                "resolution_reason": _(
+                    "The retained supplemental file is not an input to automated bank import.",
+                ),
+                "resolved_by_id": self.env.user.id,
+                "resolved_at": fields.Datetime.now(),
+            },
+        )
+
     @api.model
     def _pdf_integrity_error(self, content):
         """Return user-facing guidance when a retained PDF cannot be opened."""
@@ -1374,14 +1466,20 @@ class AccountBankIngestionFile(models.Model):
             account_number,
             ofx_account,
         ):
+            detail = _(
+                "The OFX account does not match the account configured for this route.",
+            )
             self._ensure_exception(
                 "account",
                 _("Bank account does not match"),
-                _(
-                    "The OFX account does not match the account configured for this route.",
-                ),
+                detail,
             )
-            self.processing_state = "attention"
+            self.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": detail,
+                },
+            )
             return
         canonical_account_id = sanitize_account_number(
             config.source_account_identifier,
@@ -1626,7 +1724,14 @@ class AccountBankIngestionFile(models.Model):
                 {"candidate_values": candidate},
             )
         if ambiguous:
-            self.processing_state = "attention"
+            self.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": _(
+                        "One or more transactions need an identity decision before this OFX file can be completed.",
+                    ),
+                },
+            )
 
     @api.model
     def _normalize_ofx_parser_content(self, content):
@@ -2039,7 +2144,7 @@ class AccountBankIngestionFile(models.Model):
         if not period_start or not period_end:
             self.write(
                 {
-                    "processing_state": "attention",
+                    "processing_state": "failed",
                     "processing_detail": _(
                         "The statement period could not be determined from the email subject.",
                     ),

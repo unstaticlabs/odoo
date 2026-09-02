@@ -43,6 +43,12 @@ received state after an interrupted mail transaction. The daily job updates
 expected-period activities. Pausing a configuration stops processing; it does
 not delete sources or change accounting.
 
+Every retained attachment receives a terminal disposition. Odoo imports OFX
+transactions, archives official PDFs, recognizes exact duplicates, and retains
+supplemental CSV/QIF or unrelated files as intentionally ignored with a reason.
+A file that cannot be handled is retained as failed with recovery guidance; it
+must never remain indefinitely pending.
+
 Shine may identify a French account either with the complete IBAN or with its
 OFX bank code, branch code and account-number components. Odoo accepts the
 component form only when all three exactly match the configured IBAN. Imported
@@ -63,9 +69,9 @@ transaction provenance always records the complete configured IBAN.
   choose **Add official PDF** and select the original PDF downloaded from the
   bank. Odoo retains it with the received email and saves it in Documents;
   certification remains blocked until Documents verifies the exact version.
-- **Unsupported file:** inspect the retained original. CSV/QIF copies are
-  expected alternatives and need no action when OFX is present; an actually
-  unsupported attachment remains an explicit exception.
+- **Unsupported file:** Odoo retains it unchanged and marks it intentionally
+  ignored because it is not an automated import input. The recorded reason
+  remains visible with the source file.
 - **Balance difference:** verify PDF balances and period first, then inspect
   missing/duplicate movements and source exceptions. Never add an unexplained
   balancing line.
