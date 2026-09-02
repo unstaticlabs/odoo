@@ -7,11 +7,18 @@ project, database, secret file, port, or release from ambient variables.
 ## Recovery unit
 
 One cohort contains the Odoo and Paperless PostgreSQL dumps, Odoo filestore,
-Paperless originals, Trash and consume state, Sign CA and evidence, and MCP
-OAuth state for production. OCR output, previews, Tantivy, and vector indexes
-are stored in the cohort's reusable cache repository. The shared Ollama volume
-is not copied: the cohort records and verifies its image, BGE model digest, and
+Paperless originals, Trash and consume state, complete Sign recovery secrets
+and evidence, and MCP OAuth state for production. Sign recovery includes the
+Step CA database, offline root, provisioner, mTLS material, and DSS sealing and
+manifest keystores. OCR output, previews, Tantivy, and vector indexes are stored
+in the cohort's reusable cache repository. The shared Ollama volume is not
+copied: the cohort records and verifies its image, BGE model digest, and
 1,024-dimension contract.
+
+The encrypted durable repository is therefore signing-key-sensitive. Never
+expose its credentials, Restic password, restored files, or secret contents in
+logs or evidence. Production Sign secrets are restored only to production.
+Staging and local runtimes keep their own isolated signing identities.
 
 ## Backup
 
@@ -25,10 +32,10 @@ scripts/usl-stack smoke --target production
 scripts/usl-stack backup create --target production --json
 ```
 
-The command pre-pulls the backup tool, pauses the four application writers,
-dumps both databases, captures durable and reusable-cache state, restarts the
-writers, uploads both Restic snapshots, verifies their identities, and marks
-only the verified durable snapshot as recovery-eligible. The JSON result
+The command pre-pulls the backup tool, pauses the application writers and Step
+CA, dumps both databases, captures durable and reusable-cache state, restarts
+the writers, uploads both Restic snapshots, verifies their identities, and
+marks only the verified durable snapshot as recovery-eligible. The JSON result
 contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
 snapshot IDs.
 
@@ -63,7 +70,8 @@ The restore performs these steps unattended:
 1. validate the target, secrets, source release, and free-space floor;
 2. pre-pull every immutable release image;
 3. create generation-labeled volumes and a private network;
-4. restore both databases and all durable/cache resources;
+4. restore both databases and all durable/cache resources while retaining the
+   target's isolated Sign identity outside production;
 5. neutralize staging and isolate MCP OAuth state;
 6. reclaim download scratch before activation;
 7. atomically switch staging and retain the previous generation;
@@ -119,5 +127,6 @@ the phase timings to identify image transfer, Restic transfer, materialization,
 activation, or validation before retrying.
 
 Operation events are stored under each target's private runtime directory.
-Secrets remain in the target's mode-0600 allowlisted environment file and are
-never written to cohort manifests or logs.
+Secret values are never written to cohort manifests or logs; manifests contain
+only resource identities and digests. Cohort v1 snapshots predate complete Sign
+secret capture and must not be used as complete production recovery points.

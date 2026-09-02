@@ -19,13 +19,62 @@ from typing import Any
 from operations.release_manifest import ReleaseManifestError, validate as validate_release
 
 
-SCHEMA = "usl-recovery-cohort/v1"
+SCHEMA = "usl-recovery-cohort/v2"
+LEGACY_SCHEMA = "usl-recovery-cohort/v1"
 STATE_SCHEMA = "usl-recovery-cohort-state/v1"
 RUN_ID = re.compile(r"[a-z0-9][a-z0-9._-]{7,95}\Z")
 SNAPSHOT = re.compile(r"[0-9a-f]{64}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 DATABASES = ("odoo", "paperless")
+SIGN_SECRET_FILES = (
+    "dss.env",
+    "dss/client-trust.p12",
+    "dss/local-trust.p12",
+    "dss/manifest.crt",
+    "dss/manifest.key",
+    "dss/manifest.p12",
+    "dss/platform.crt",
+    "dss/platform.key",
+    "dss/platform.p12",
+    "dss/server.crt",
+    "dss/server.key",
+    "dss/server.p12",
+    "odoo.env",
+    "odoo/client-chain.crt",
+    "odoo/client.crt",
+    "odoo/client.key",
+    "odoo/provisioner.jwk",
+    "odoo/root_ca.crt",
+    "offline-root/root_ca.crt",
+    "offline-root/root_ca_key",
+    "step-ca.env",
+    "step-ca/certs/intermediate_ca.crt",
+    "step-ca/certs/root_ca.crt",
+    "step-ca/certs/usl-sign-ca.srl",
+    "step-ca/config/ca.json",
+    "step-ca/password",
+    "step-ca/secrets/intermediate_ca_key",
+    "step-ca/templates/personal-certificate.tpl",
+)
+PRIVATE_SIGN_SECRET_FILES = (
+    "dss.env",
+    "dss/client-trust.p12",
+    "dss/local-trust.p12",
+    "dss/manifest.key",
+    "dss/manifest.p12",
+    "dss/platform.key",
+    "dss/platform.p12",
+    "dss/server.key",
+    "dss/server.p12",
+    "odoo.env",
+    "odoo/client.key",
+    "odoo/provisioner.jwk",
+    "offline-root/root_ca_key",
+    "step-ca.env",
+    "step-ca/password",
+    "step-ca/secrets/intermediate_ca_key",
+)
 
 
 class CohortError(RuntimeError):
@@ -92,6 +141,38 @@ def copy_tree(source: Path, destination: Path, *, required: bool = True) -> None
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
     run(["cp", "--archive", "--reflink=auto", str(source), str(destination)])
+
+
+def validate_sign_secrets(root: Path) -> dict[str, Any]:
+    """Validate complete Sign recovery material without exposing its contents."""
+    if not root.is_dir() or root.is_symlink():
+        raise CohortError("complete Sign secret root is missing or unsafe")
+    if root.stat().st_mode & 0o077:
+        raise CohortError("complete Sign secret root has unsafe permissions")
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise CohortError("Sign secret root contains a symlink")
+        if path.stat().st_mode & 0o022:
+            kind = "directory" if path.is_dir() else "file"
+            raise CohortError(f"Sign secret {kind} is group- or world-writable")
+    for relative in SIGN_SECRET_FILES:
+        path = root / relative
+        if not path.is_file() or path.stat().st_size < 1:
+            raise CohortError(f"required Sign recovery material is missing: {relative}")
+    for relative in PRIVATE_SIGN_SECRET_FILES:
+        if (root / relative).stat().st_mode & 0o077:
+            raise CohortError(f"private Sign recovery material has unsafe permissions: {relative}")
+    database = root / "step-ca/db"
+    if not database.is_dir() or not any(path.is_file() for path in database.iterdir()):
+        raise CohortError("Step CA database is missing")
+    for relative in ("step-ca/config/ca.json", "odoo/provisioner.jwk"):
+        try:
+            value = json.loads((root / relative).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise CohortError(f"Sign recovery JSON is invalid: {relative}") from error
+        if not isinstance(value, dict) or not value:
+            raise CohortError(f"Sign recovery JSON is empty: {relative}")
+    return tree_identity(root)
 
 
 def database_environment(prefix: str) -> tuple[list[str], dict[str, str]]:
@@ -170,7 +251,7 @@ def validate_manifest(value: object) -> dict[str, Any]:
     }
     if not isinstance(value, dict) or set(value) != expected:
         raise CohortError("cohort manifest fields differ")
-    if value["schema"] != SCHEMA or not RUN_ID.fullmatch(str(value["run_id"])):
+    if value["schema"] not in {SCHEMA, LEGACY_SCHEMA} or not RUN_ID.fullmatch(str(value["run_id"])):
         raise CohortError("cohort manifest identity is invalid")
     if not SHA256.fullmatch(str(value["release"].get("manifest_sha256", ""))):
         raise CohortError("release manifest digest is invalid")
@@ -213,6 +294,8 @@ def validate_manifest(value: object) -> dict[str, Any]:
             str(identity["sha256"]),
         ):
             raise CohortError(f"resource {role} identity is invalid")
+    if value["schema"] == SCHEMA and "sign_secrets" not in resources:
+        raise CohortError("complete Sign recovery material is missing")
     cache_snapshot = value["cache_snapshot_id"]
     if cache_snapshot is not None and not SNAPSHOT.fullmatch(str(cache_snapshot)):
         raise CohortError("cache snapshot ID is invalid")
@@ -261,7 +344,8 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
         copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
         copy_tree(Path("/source/mcp-oauth"), durable / "mcp-oauth")
-        copy_tree(Path("/source/sign-ca"), durable / "sign-ca")
+        sign_secrets_identity = validate_sign_secrets(Path("/source/sign-secrets"))
+        copy_tree(Path("/source/sign-secrets"), durable / "sign-secrets")
         copy_tree(Path("/source/sign-evidence"), durable / "sign-evidence", required=False)
         copy_tree(
             Path("/source/paperless-media/documents/archive"),
@@ -279,7 +363,7 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "paperless_trash": ("durable", durable / "paperless-trash"),
             "paperless_consume": ("durable", durable / "paperless-consume"),
             "mcp_oauth": ("durable", durable / "mcp-oauth"),
-            "sign_ca": ("durable", durable / "sign-ca"),
+            "sign_secrets": ("durable", durable / "sign-secrets"),
             "sign_evidence": ("durable", durable / "sign-evidence"),
             "paperless_archive": ("cache", cache / "paperless-media/documents/archive"),
             "paperless_thumbnails": ("cache", cache / "paperless-media/documents/thumbnails"),
@@ -294,6 +378,8 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             }
             for role, (classification, path) in resource_paths.items()
         }
+        if resources["sign_secrets"]["identity"] != sign_secrets_identity:
+            raise CohortError("Sign recovery material changed during capture")
         manifest = {
             "schema": SCHEMA,
             "run_id": arguments.run_id,
@@ -525,6 +611,7 @@ def push(arguments: argparse.Namespace) -> dict[str, Any]:
     )
     state = {
         "schema": STATE_SCHEMA,
+        "cohort_schema": manifest["schema"],
         "run_id": arguments.run_id,
         "target": manifest["target"],
         "durable_snapshot_id": durable_snapshot,
@@ -613,6 +700,10 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
         verify_embedded_release(cohort_root, manifest)
         if tree_identity(cohort_root / "durable") != manifest["durable"]:
             raise CohortError("restored durable tree differs from its manifest")
+        if manifest["schema"] == SCHEMA:
+            sign_identity = validate_sign_secrets(cohort_root / "durable/sign-secrets")
+            if sign_identity != manifest["resources"]["sign_secrets"]["identity"]:
+                raise CohortError("restored Sign recovery material differs from its manifest")
         cache_snapshot = manifest["cache_snapshot_id"]
         if not cache_snapshot:
             raise CohortError("durable snapshot does not bind a cache snapshot")
@@ -631,6 +722,7 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
             run(["pg_restore", "--list", str(path)], capture=True)
         return {
             "schema": STATE_SCHEMA,
+            "cohort_schema": manifest["schema"],
             "run_id": manifest["run_id"],
             "target": manifest["target"],
             "durable_snapshot_id": durable_snapshot,
@@ -643,6 +735,8 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
 
 def qualify(arguments: argparse.Namespace) -> dict[str, Any]:
     state = verify(arguments)
+    if state["target"] == "production" and state["cohort_schema"] != SCHEMA:
+        raise CohortError("legacy production snapshot lacks complete Sign recovery material")
     durable_environment = restic_environment("RESTIC_REPOSITORY", "RESTIC_PASSWORD")
     retry_restic(
         [
@@ -697,7 +791,8 @@ def _copy_contents(source: Path, destination: Path) -> None:
 
 
 def should_restore_resource(role: str, target_environment: str) -> bool:
-    return role != "mcp_oauth" or target_environment == "production"
+    production_only = {"mcp_oauth", "sign_ca", "sign_secrets"}
+    return role not in production_only or target_environment == "production"
 
 
 def _reset_database(prefix: str, dump: Path) -> None:
@@ -756,6 +851,8 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
     target_database = os.environ["ODOO_DB_NAME"]
     source_database = manifest["databases"]["odoo"]["name"]
     target_environment = _required_environment("USL_TARGET_ENVIRONMENT")
+    if target_environment == "production" and manifest["schema"] != SCHEMA:
+        raise CohortError("legacy production snapshot lacks complete Sign recovery material")
     transformations: list[str] = []
     destinations = {
         "odoo_filestore": Path("/target/odoo-data/filestore") / target_database,
@@ -763,7 +860,8 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "paperless_trash": Path("/target/paperless-trash"),
         "paperless_consume": Path("/target/paperless-consume"),
         "mcp_oauth": Path("/target/mcp-oauth"),
-        "sign_ca": Path("/target/sign-ca"),
+        "sign_ca": Path("/target/sign-secrets/step-ca"),
+        "sign_secrets": Path("/target/sign-secrets"),
         "sign_evidence": Path("/target/sign-evidence"),
         "paperless_archive": Path("/target/paperless-media/documents/archive"),
         "paperless_thumbnails": Path("/target/paperless-media/documents/thumbnails"),
@@ -773,7 +871,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
     for role, metadata in manifest["resources"].items():
         if not should_restore_resource(role, target_environment):
             _empty_directory(destinations[role])
-            transformations.append("mcp_oauth:target-isolated")
+            transformations.append(f"{role}:target-isolated")
             continue
         source = cohort_root / metadata["path"] if metadata["class"] == "durable" else cache_root.parent / metadata["path"]
         if role == "odoo_filestore":
@@ -784,6 +882,11 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
             _copy_contents(source, destinations[role])
         if tree_identity(destinations[role]) != metadata["identity"]:
             raise CohortError(f"materialized resource differs: {role}")
+    sign_secrets_restored = target_environment == "production" and manifest["schema"] == SCHEMA
+    if sign_secrets_restored:
+        identity = validate_sign_secrets(destinations["sign_secrets"])
+        if identity != manifest["resources"]["sign_secrets"]["identity"]:
+            raise CohortError("materialized Sign recovery material differs")
 
     for name in DATABASES:
         dump = cohort_root / "durable/databases" / f"{name}.dump"
@@ -793,6 +896,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         _reset_database(name.upper(), dump)
     return {
         "schema": STATE_SCHEMA,
+        "cohort_schema": manifest["schema"],
         "run_id": manifest["run_id"],
         "target": _required_environment("USL_TARGET"),
         "durable_snapshot_id": durable_snapshot,
@@ -803,6 +907,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         },
         "controls": manifest["controls"],
         "transformations": transformations,
+        "sign_secrets_restored": sign_secrets_restored,
         "status": "materialized",
     }
 

@@ -51,8 +51,8 @@
     "mcp_oauth": {"name": "usl-odoo-local_odoo-mcp-oauth-data", "class": "durable"}
   },
   "paths": {
-    "sign_ca": {"path": "/tmp/usl-odoo-local/sign/step-ca", "class": "durable", "required": true},
-    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign/evidence", "class": "durable", "required": false}
+    "sign_secrets": {"path": "/tmp/usl-odoo-local/sign", "class": "durable", "required": true},
+    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign-evidence", "class": "durable", "required": false}
   },
   "external_networks": {},
   "endpoints": {

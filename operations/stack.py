@@ -70,6 +70,7 @@ RESOURCE_FIELDS = {
     "oom_score_adj",
     "pids_limit",
 }
+BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -167,7 +168,7 @@ def _cohort_command(
         "--volume",
         f"{volumes['mcp_oauth']['name']}:/source/mcp-oauth:ro",
         "--volume",
-        f"{paths['sign_ca']['path']}:/source/sign-ca:ro",
+        f"{paths['sign_secrets']['path']}:/source/sign-secrets:ro",
         image,
         action,
         *arguments,
@@ -442,7 +443,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 identity = compose_identity(target, runner)
                 writer_services = [
                     target.value["services"][name]
-                    for name in ("odoo", "paperless", "mcp", "sign")
+                    for name in BACKUP_WRITER_SERVICE_ROLES
                 ]
 
                 def capture_phase():
@@ -983,7 +984,7 @@ def _materialize_command(
         "--volume",
         f"{volumes['mcp_oauth']}:/target/mcp-oauth",
         "--volume",
-        f"{generation_root}/sign-ca:/target/sign-ca",
+        f"{generation_root}/sign-secrets:/target/sign-secrets",
         "--volume",
         f"{generation_root}/sign-evidence:/target/sign-evidence",
         image,
@@ -1051,6 +1052,8 @@ def _generation_overlay(
     release: dict | None = None,
     available_services: set[str] | None = None,
     ingress: dict | None = None,
+    sign_secret_root: str | None = None,
+    service_names: dict[str, str] | None = None,
 ) -> str:
     value = {
         "volumes": {
@@ -1078,6 +1081,30 @@ def _generation_overlay(
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
             }
+    if sign_secret_root is not None:
+        if not service_names:
+            raise RuntimeError("Sign secret activation requires service names")
+        sign_mounts = {
+            service_names["sign_ca"]: {
+                "env_file": [{"path": f"{sign_secret_root}/step-ca.env", "required": True}],
+                "volumes": [f"{sign_secret_root}/step-ca:/home/step"],
+            },
+            service_names["sign"]: {
+                "env_file": [{"path": f"{sign_secret_root}/dss.env", "required": True}],
+                "volumes": [f"{sign_secret_root}/dss:/run/usl-sign-dss:ro"],
+            },
+            service_names["odoo"]: {
+                "env_file": [{"path": f"{sign_secret_root}/odoo.env", "required": True}],
+                "volumes": [f"{sign_secret_root}/odoo:/run/usl-sign:ro"],
+            },
+            "init-db": {
+                "env_file": [{"path": f"{sign_secret_root}/odoo.env", "required": True}],
+                "volumes": [f"{sign_secret_root}/odoo:/run/usl-sign:ro"],
+            },
+        }
+        services = value.setdefault("services", {})
+        for service, settings in sign_mounts.items():
+            services.setdefault(service, {}).update(settings)
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
@@ -1166,12 +1193,16 @@ def _validate_materialized_release(
     materialized: dict,
     release: dict,
     release_sha: str,
+    *,
+    require_sign_secrets: bool = False,
 ) -> None:
     embedded = materialized.get("release", {})
     if embedded.get("manifest_sha256") != release_sha:
         raise RuntimeError("selected release differs from the cohort release")
     if embedded.get("commit") != release["source"]["commit"]:
         raise RuntimeError("selected release commit differs from the cohort release")
+    if require_sign_secrets and not materialized.get("sign_secrets_restored"):
+        raise RuntimeError("production recovery lacks complete Sign secret material")
 
 
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
@@ -1252,7 +1283,12 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             ),
         )
         materialize_state = json.loads(materialized.stdout.splitlines()[-1])
-        _validate_materialized_release(materialize_state, release, release_sha)
+        _validate_materialized_release(
+            materialize_state,
+            release,
+            release_sha,
+            require_sign_secrets=target.value["environment"] == "production",
+        )
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     finally:
@@ -1282,7 +1318,18 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         target,
         target_runner,
         overlay,
-        _generation_overlay(volumes, release, set(images), target.value["ingress"]),
+        _generation_overlay(
+            volumes,
+            release,
+            set(images),
+            target.value["ingress"],
+            sign_secret_root=(
+                f"{generation_root}/sign-secrets"
+                if target.value["environment"] == "production"
+                else None
+            ),
+            service_names=target.value["services"],
+        ),
     )
     generated_prefix = target.value["state_directory"] + "/generations/"
     compose_files = [

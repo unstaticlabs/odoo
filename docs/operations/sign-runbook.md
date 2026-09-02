@@ -42,10 +42,13 @@ chatter, and sanitized audit history remain preserved evidence. See
 
 ## Production
 
-Sign PostgreSQL and evidence, Step CA material, Odoo records, Paperless state
-and release identity form one coordinated cohort. Capture and independently
-restore them through the coordinated backup or cohort procedure; do not copy
-or reset a Sign component independently.
+Sign PostgreSQL and evidence, the complete server-side Sign secret root, Odoo
+records, Paperless state, and release identity form one coordinated cohort. The
+secret root includes Step CA state, the offline root, Odoo provisioner and mTLS
+material, and DSS sealing and manifest keystores. Capture and independently
+restore them through the coordinated backup procedure; do not copy or reset a
+Sign component independently. Production secrets must never be restored into
+staging or local runtimes.
 
 Keep production identity, ingress, and private key material in the deployment
 secret store. Do not place them in runtime configuration, Git, screenshots,
