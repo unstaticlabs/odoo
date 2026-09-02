@@ -1381,14 +1381,8 @@ msgstr "Dépenses à vérifier"
 #. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/models/expense_batch.py:0
-msgid "Needs attention · %(count)s issue"
-msgstr "Attention requise · %(count)s anomalie"
-
-#. module: usl_expense_batch
-#. odoo-python
-#: code:addons/usl_expense_batch/models/expense_batch.py:0
-msgid "Needs attention · %(count)s issues"
-msgstr "Attention requise · %(count)s anomalies"
+msgid "Needs attention · %(count)s"
+msgstr "Attention requise · %(count)s"
 
 #. module: usl_expense_batch
 msgid "Review the marked expense lines for details."
@@ -1415,6 +1409,37 @@ msgstr "Anomalies"
 #. module: usl_expense_batch
 msgid "Add expenses"
 msgstr "Ajouter des dépenses"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "%s expense(s) added to this Batch."
+msgstr "%s dépense(s) ajoutée(s) à cette note de frais."
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "%s total"
+msgstr "%s au total"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "Add expenses to %s"
+msgstr "Ajouter des dépenses à %s"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "Add selected expenses"
+msgstr "Ajouter les dépenses sélectionnées"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_candidate_list
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_candidate_search
+msgid "Available expenses"
+msgstr "Dépenses disponibles"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "No unbatched draft, approved, or posted expenses are available for this employee and company."
+msgstr "Aucune dépense non regroupée au statut brouillon, approuvé ou comptabilisé n’est disponible pour cet employé et cette société."
 
 #. module: usl_expense_batch
 msgid "Select at least one expense to add."

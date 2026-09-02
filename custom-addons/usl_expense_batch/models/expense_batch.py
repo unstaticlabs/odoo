@@ -371,12 +371,7 @@ class UslExpenseBatch(models.Model):
             )
             batch.readiness_summary = (
                 _(
-                    "Needs attention · %(count)s issue",
-                    count=batch.attention_count,
-                )
-                if batch.attention_count == 1
-                else _(
-                    "Needs attention · %(count)s issues",
+                    "Needs attention · %(count)s",
                     count=batch.attention_count,
                 )
                 if batch.attention_count

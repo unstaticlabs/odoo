@@ -728,7 +728,7 @@ class TestExpenseBatch(TestExpenseCommon):
             '{"draft":2,"approved":1}',
         )
         self.assertEqual(batch.attention_count, 3)
-        self.assertEqual(batch.readiness_summary, "Needs attention · 3 issues")
+        self.assertEqual(batch.readiness_summary, "Needs attention · 3")
         self.assertEqual(
             batch.period_summary,
             format_date(self.env, batch.date_from),
@@ -1077,6 +1077,8 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(batch_list.xpath("//field[@name='period_summary']"))
         self.assertFalse(batch_list.xpath("//field[@name='date_from']"))
         self.assertFalse(batch_list.xpath("//field[@name='date_to']"))
+        self.assertFalse(batch_list.xpath("//field[@name='expense_count']"))
+        self.assertFalse(batch_list.xpath("//field[@name='exception_count']"))
         self.assertTrue(
             batch_list.xpath("//field[@name='expense_progress_summary']"),
         )
@@ -1094,7 +1096,44 @@ class TestExpenseBatch(TestExpenseCommon):
                 "[@column_invisible='True']",
             ),
         )
+        readiness = batch_list.xpath(
+            "//field[@name='readiness_summary']",
+        )[0]
+        self.assertEqual(readiness.get("widget"), "badge")
+        self.assertIn("attention_count", readiness.get("decoration-warning"))
         self.assertTrue(batch_list.xpath("//field[@name='batch_state']"))
+
+        self.assertEqual(batch_form.get("js_class"), "usl_expense_batch_form")
+        line_state = expense_lines.xpath("./field[@name='state']")[0]
+        self.assertIn("submitted", line_state.get("decoration-warning"))
+        self.assertIn("in_payment", line_state.get("decoration-primary"))
+        self.assertIn("paid", line_state.get("decoration-success"))
+        self.assertIn("refused", line_state.get("decoration-danger"))
+
+        candidate_list = self.env.ref(
+            "usl_expense_batch.view_expense_batch_add_candidate_list",
+        )._get_combined_arch()
+        self.assertEqual(
+            candidate_list.get("js_class"),
+            "usl_expense_batch_candidate_list",
+        )
+        self.assertEqual(candidate_list.get("create"), "false")
+        self.assertEqual(candidate_list.get("edit"), "false")
+        self.assertEqual(candidate_list.get("delete"), "false")
+        candidate_state = candidate_list.xpath("//field[@name='state']")[0]
+        self.assertIn("approved", candidate_state.get("decoration-info"))
+        self.assertIn("posted", candidate_state.get("decoration-primary"))
+
+        candidate_search = self.env.ref(
+            "usl_expense_batch.view_expense_batch_add_candidate_search",
+        )._get_combined_arch()
+        self.assertEqual(
+            {
+                item.get("name")
+                for item in candidate_search.xpath("//filter")
+            },
+            {"draft", "approved", "posted", "date", "group_state", "group_product"},
+        )
 
         context_wizard = self.env.ref(
             "usl_expense_batch.view_expense_batch_context_apply_wizard_form",

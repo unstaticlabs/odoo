@@ -11,6 +11,11 @@ import {
     parseExpenseProgressBreakdown,
 } from "../src/js/expense_batch_progress_field";
 import {
+    EXPENSE_BATCH_ADD_STATES,
+    expenseBatchCandidateDomain,
+    relationalId,
+} from "../src/js/expense_batch_form";
+import {
     activeQuickFilterName,
     quickFilterItemIds,
 } from "../src/js/expense_batch_workspace";
@@ -100,6 +105,23 @@ test("expense progress safely ignores malformed presentation data", () => {
     expect(expenseProgressSegments('{"draft":-1,"paid":"invalid"}')).toEqual(
         [],
     );
+});
+
+test("direct Batch picker keeps the server eligibility and ownership domain", () => {
+    expect(relationalId([7, "Valentin"])).toBe(7);
+    expect(relationalId({ id: 8, display_name: "USL" })).toBe(8);
+    expect(EXPENSE_BATCH_ADD_STATES).toEqual(["draft", "approved", "posted"]);
+    expect(
+        expenseBatchCandidateDomain({
+            employee_id: [7, "Valentin"],
+            company_id: { id: 8, display_name: "USL" },
+        }),
+    ).toEqual([
+        ["employee_id", "=", 7],
+        ["company_id", "=", 8],
+        ["expense_batch_id", "=", false],
+        ["state", "in", ["draft", "approved", "posted"]],
+    ]);
 });
 
 test("batch quick filters expose one clear active workspace", () => {

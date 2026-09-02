@@ -1,4 +1,5 @@
 import { Component } from "@odoo/owl";
+import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
@@ -48,6 +49,18 @@ export class ExpenseBatchProgressField extends Component {
         return expenseProgressSegments(
             this.props.record.data.expense_progress_breakdown,
         );
+    }
+
+    get total() {
+        return this.segments.reduce((sum, segment) => sum + segment.count, 0);
+    }
+
+    get totalLabel() {
+        return _t("%s total", this.total);
+    }
+
+    get accessibleSummary() {
+        return `${this.totalLabel}: ${this.summary}`;
     }
 }
 
