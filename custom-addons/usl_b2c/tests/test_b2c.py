@@ -314,6 +314,61 @@ class TestB2cFoundation(TransactionCase):
             2,
         )
 
+    def test_zero_stock_allocation_placeholder_is_archived(self):
+        placeholder = self.env["product.product"].create(
+            {
+                "name": "Master locks awaiting colour allocation",
+                "default_code": "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+                "is_storable": True,
+                "sale_ok": False,
+                "purchase_ok": False,
+            },
+        )
+        pack = self.env["product.product"].create(
+            {
+                "name": "Master assorted supplier pack",
+                "default_code": "GBC-ML-9120-QCOLNOP",
+                "is_storable": True,
+                "sale_ok": False,
+                "purchase_ok": True,
+            },
+        )
+        bom = self.env["mrp.bom"].create(
+            {
+                "product_tmpl_id": pack.product_tmpl_id.id,
+                "product_id": pack.id,
+                "product_qty": 1,
+                "uom_id": pack.uom_id.id,
+                "type": "normal",
+                "bom_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": placeholder.id,
+                            "product_qty": 4,
+                            "uom_id": placeholder.uom_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.2.2"
+            / "post-archive-empty-allocation-product.py",
+        )
+
+        migration["migrate"](self.env.cr, "saas~19.3.1.2.1")
+        self.env.invalidate_all()
+
+        self.assertFalse(placeholder.product_tmpl_id.active)
+        self.assertFalse(bom.active)
+        self.assertTrue(pack.product_tmpl_id.active)
+        self.assertEqual(
+            placeholder.product_tmpl_id.b2c_catalog_classification,
+            "legacy",
+        )
+
     def test_catalog_variation_parser_preserves_real_attributes(self):
         migration = run_path(
             Path(__file__).parents[1]
@@ -357,8 +412,12 @@ class TestB2cFoundation(TransactionCase):
         )
         self.assertEqual(
             migration["LEGACY_UNALLOCATED_CODES"],
-            {"PADLOCK_QD40_UNALLOCATED_2026-05"},
+            {
+                "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+                "PADLOCK_QD40_UNALLOCATED_2026-05",
+            },
         )
+        self.assertNotIn("GBC-ML-9120-QCOLNOP", migration["MASTER_PACK_CONTENTS"])
 
     def test_catalog_variant_matrix_extends_but_never_rewrites(self):
         migration = run_path(

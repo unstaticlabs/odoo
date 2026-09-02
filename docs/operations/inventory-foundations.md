@@ -59,12 +59,13 @@ as product-identity evidence, but not as an approved physical opening count.
 The old Quandun “colours unallocated” template is therefore archived as a
 historical source identity; it is not deleted and its cost history is preserved.
 
-The Master Lock assorted-pack holding product remains active, internal,
-non-saleable and non-purchasable. The source proves that `QCOLNOP` contains four
-locks, but does not prove their colour mix. Its exact native unpacking recipe
-therefore produces four pending-allocation units. Those units must be allocated
-to the five real colour variants from a reviewed count. Removing this remaining
-holding identity without that evidence would invent inventory composition.
+The Master Lock assorted-pack holding product is archived alongside the old
+Quandun placeholder. Both have zero stock and no historical stock movements, so
+neither has an operational role now that the real colour variants exist. Their
+source identities, cost history and provider evidence remain available for
+audit. The assorted supplier pack remains a purchasing product, but it has no
+unpacking recipe until reviewed evidence defines its colour mix; Odoo must not
+invent that composition.
 
 ## Opening inventory and future configuration
 
