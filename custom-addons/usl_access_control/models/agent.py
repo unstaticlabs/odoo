@@ -736,8 +736,15 @@ class ResUsersApikeys(models.Model):
         uid = super()._check_credentials(scope=scope, key=key)
         if not uid:
             return uid
-        agent = self.env["usl.agent"].sudo().search([("user_id", "=", uid)], limit=1)
-        user = self.env["res.users"].sudo().browse(uid)
+        # Bearer authentication runs before ``request.update_env(user=uid)``.
+        # At that point the transaction may not yet have a default user
+        # environment, which relational group computations require. Establish
+        # the governance environment explicitly on the same transaction; the
+        # returned actor remains ``uid`` and subsequent business calls still
+        # execute with that Agent's ordinary ACLs and record rules.
+        governance_env = api.Environment(self.env.cr, SUPERUSER_ID, {})
+        agent = governance_env["usl.agent"].search([("user_id", "=", uid)], limit=1)
+        user = governance_env["res.users"].browse(uid)
         if not agent and not user.usl_is_ai_agent:
             return uid
         if not agent:
@@ -745,12 +752,12 @@ class ResUsersApikeys(models.Model):
         agent._reconcile_authority()
         if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
             raise AccessDenied(_("This Agent is suspended."))
-        self.env.cr.execute(
+        governance_env.cr.execute(
             "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
             [uid, key[:8]],
         )
-        row = self.env.cr.fetchone()
-        credential = self.env["usl.agent.credential"].sudo().search(
+        row = governance_env.cr.fetchone()
+        credential = governance_env["usl.agent.credential"].search(
             [("native_key_id", "=", row[0] if row else 0), ("agent_id", "=", agent.id)],
             limit=1,
         )

@@ -1,6 +1,6 @@
 import datetime
 
-from odoo import SUPERUSER_ID, Command, fields
+from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -271,6 +271,22 @@ class TestAutonomousAgents(TransactionCase):
             self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=replacement_key),
             agent.user_id.id,
         )
+
+    def test_agent_key_authenticates_before_request_user_environment_exists(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        transaction = self.env.cr.transaction
+        previous_default_env = transaction.default_env
+        try:
+            transaction.default_env = None
+            authentication_env = api.Environment(self.env.cr, None, {})
+            uid = authentication_env["res.users.apikeys"]._check_credentials(
+                scope="rpc",
+                key=key,
+            )
+        finally:
+            transaction.default_env = previous_default_env
+        self.assertEqual(uid, agent.user_id.id)
 
     def test_expired_agent_key_is_rejected(self):
         agent = self._create_agent()
