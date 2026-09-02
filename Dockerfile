@@ -174,7 +174,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
     && apt-get install -y --no-install-recommends chromium \
     && PIP_NO_CACHE_DIR=0 python -m pip install \
-        responses==0.26.2 \
         websocket-client==1.9.0
 
 USER odoo
@@ -200,7 +199,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         debugpy==1.8.16 \
         inotify==0.2.10 \
         pytest==8.4.1 \
-        responses==0.26.2 \
         ruff==0.16.1 \
     && printf 'odoo ALL=(root) NOPASSWD:ALL\n' > /etc/sudoers.d/odoo \
     && chmod 0440 /etc/sudoers.d/odoo \
