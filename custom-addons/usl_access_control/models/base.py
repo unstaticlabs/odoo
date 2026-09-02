@@ -142,6 +142,11 @@ class Base(models.AbstractModel):
 
     @api.model
     def _usl_reject_readonly_agent_mutation(self, operation):
+        operation_labels = {
+            "create": self.env._("create"),
+            "write": self.env._("modify"),
+            "unlink": self.env._("delete"),
+        }
         agent = self._usl_managed_agent()
         if (
             agent
@@ -152,7 +157,7 @@ class Base(models.AbstractModel):
                 self.env._(
                     "This Agent has no read/write access for %(model)s and cannot %(operation)s records.",
                     model=self._name,
-                    operation=operation,
+                    operation=operation_labels.get(operation, operation),
                 ),
                 "agent_read_only_action_denied",
             )
@@ -443,7 +448,7 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, values):
-        self._usl_reject_readonly_agent_mutation("modify")
+        self._usl_reject_readonly_agent_mutation("write")
         self._usl_reject_agent_identity_mutation("modify")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
@@ -467,7 +472,7 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
-        self._usl_reject_readonly_agent_mutation("delete")
+        self._usl_reject_readonly_agent_mutation("unlink")
         self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(

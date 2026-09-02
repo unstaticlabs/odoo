@@ -94,3 +94,6 @@ effective companies and any authority reduction.
 
 The authenticated method `usl.agent.current_identity` is the compatibility
 contract for clients that must confirm this identity before doing work.
+The granular application-access response is schema version 3. A coordinated
+release must keep that version aligned in Odoo, the MCP parser, and
+`deploy/odoo-mcp/compatibility.json`.

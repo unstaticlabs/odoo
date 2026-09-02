@@ -320,6 +320,25 @@ class TestAutonomousAgents(TransactionCase):
         with self.assertRaises(AccessError):
             self.env["project.task"].with_user(agent.user_id).create({"name": "Denied"})
 
+    def test_read_write_application_access_allows_ordinary_crud(self):
+        agent = self._create_agent()
+
+        partner = self.env["res.partner"].with_user(agent.user_id).create(
+            {"name": "Agent-created contact"},
+        )
+        partner.with_user(agent.user_id).write({"name": "Agent-updated contact"})
+
+        self.assertEqual(partner.name, "Agent-updated contact")
+        audit_operations = self.env["usl.audit.event"].sudo().search(
+            [
+                ("agent_id", "=", agent.id),
+                ("model_name", "=", "res.partner"),
+                ("record_ids", "ilike", str(partner.id)),
+            ],
+        ).mapped("operation")
+        self.assertIn("create", audit_operations)
+        self.assertIn("write", audit_operations)
+
     def test_highest_access_still_excludes_irreversible_actions(self):
         agent = self._create_agent()
         agent.with_user(self.owner).action_grant_all_read_write()
@@ -757,6 +776,7 @@ class TestAutonomousAgents(TransactionCase):
         uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
         self.assertEqual(uid, agent.user_id.id)
         identity = self.env["usl.agent"].with_user(agent.user_id).current_identity()
+        self.assertEqual(identity["schema_version"], 3)
         self.assertEqual(identity["principal_kind"], "agent")
         self.assertEqual(identity["agent"]["id"], agent.id)
         self.assertIn(

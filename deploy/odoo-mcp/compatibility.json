@@ -18,7 +18,7 @@
   "required_agent_identity": {
     "method": "usl.agent.current_identity",
     "principal_kind": "agent",
-    "schema_version": 2,
+    "schema_version": 3,
     "fields": [
       "access_mode",
       "agent",
