@@ -40,7 +40,7 @@
                         <group string="Statement review">
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="journal_id" string="Bank account"/>
-                            <field name="source_account_identifier" password="True"/>
+                            <field name="source_account_identifier"/>
                             <field name="responsible_user_id"/>
                             <field name="automatic_start_date" string="Review statements from"/>
                         </group>

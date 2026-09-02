@@ -878,6 +878,28 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(setup_menu.parent_id, matching_menu.parent_id)
         self.assertEqual(setup_menu.sequence, matching_menu.sequence + 1)
 
+    def test_bank_identifier_is_readable_but_credentials_remain_masked(self):
+        config_architecture = self.env.ref(
+            "usl_accounting.view_bank_ingestion_config_form",
+        )._get_combined_arch()
+        account_identifiers = config_architecture.xpath(
+            "//field[@name='source_account_identifier']",
+        )
+        self.assertEqual(len(account_identifiers), 1)
+        self.assertIsNone(account_identifiers[0].get("password"))
+        self.assertNotEqual(account_identifiers[0].get("widget"), "password")
+
+        incoming_mail_architecture = self.env.ref(
+            "mail.view_email_server_form",
+        )._get_combined_arch()
+        credential_fields = incoming_mail_architecture.xpath(
+            "//field[@name='password']",
+        )
+        self.assertTrue(credential_fields)
+        self.assertTrue(
+            all(field.get("password") == "True" for field in credential_fields),
+        )
+
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion("<synthetic-no-pdf@example.invalid>", ofx=self.ofx)
         ingestion.action_process_now()
