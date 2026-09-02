@@ -41,12 +41,12 @@ later variants; exact title and variation identify them instead.
 
 Master Lock commercial packs remain distinct purchasing products. They are
 storable and purchasable, but not saleable. The individual coloured locks are
-separate saleable inventory variants and are not directly purchased. Each
-known pack has one exact native unpacking recipe:
+separate saleable inventory variants and are not directly purchased. Packs with
+an exact known composition have native unpacking recipes:
 
 - `TBLK` produces two black individual locks;
 - `QBLKNOP` produces four black individual locks;
-- `QCOLNOP` produces four internal units awaiting colour allocation.
+- `QCOLNOP` has no recipe until reviewed evidence proves its colour mix.
 
 The supplier-pack product form exposes **Unpack supplier pack**, which opens Odoo's
 native Unbuild Order with the exact pack recipe. It creates inventory movements
@@ -85,7 +85,8 @@ approved physical opening count. Before entering stock:
 3. review product weights, volumes, packagings and replenishment rules;
 4. enter opening quantities through a native inventory adjustment;
 5. reconcile the resulting valuation with Accounting;
-6. allocate pending-colour units only from that signed count.
+6. allocate assorted units to colour variants only from that signed count and
+   reviewed pack evidence.
 
 Landed Costs is installed but remains unconfigured if no unique restored stock
 journal and exact freight, customs or brokerage product exists. A future

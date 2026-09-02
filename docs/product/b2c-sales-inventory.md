@@ -126,9 +126,12 @@ The normalization preserves raw provider rows, original titles, variations,
 SKUs, linked documents and cost-history row identity. It may advance a reviewed
 alias from `not_applicable` to `verified`, but never rewrites the source fields.
 Commercial supplier packs and individual saleable locks are separate products.
-Known pack contents use exact native unpacking recipes; assorted contents flow
-to an internal pending-colour identity until a dated physical count supports
-allocation. Gross purchased quantities are evidence, not current stock.
+Known pack contents use exact native unpacking recipes. The assorted Master Lock
+pack remains purchasable but has no unpacking recipe until reviewed evidence
+proves its colour mix. The former pending-colour products are archived because
+they have no stock or historical movements; their source identities and evidence
+remain available for audit. Gross purchased quantities are evidence, not current
+stock.
 
 When a provider reuses one generic SKU for several variants, the source SKU is
 preserved but marked non-unique. The alias then uses the exact source product
