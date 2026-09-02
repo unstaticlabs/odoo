@@ -39,6 +39,22 @@ class AccountBankStatement(models.Model):
         compute="_compute_bank_evidence_archive",
     )
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        self.ensure_one()
+        evidence = self.accepted_evidence_id
+        if evidence and attachment == evidence.attachment_id:
+            policy.update(
+                {
+                    "archive_mode": "never",
+                    "document_role": "evidence",
+                    "policy_reason": "managed_bank_statement_evidence",
+                    "confidentiality": "accounting",
+                    "accounting_evidence": True,
+                },
+            )
+        return policy
+
     @api.depends(
         "accepted_evidence_id.paperless_archive_state",
         "accepted_evidence_id.paperless_archive_error",
@@ -260,6 +276,28 @@ class AccountBankIngestionFile(models.Model):
         statement = self.statement_id
         if not statement or statement.accepted_evidence_id != self:
             return None
+        exact_link = self._exact_linked_evidence()
+        if exact_link:
+            competing_links = self.env["usl.document.link"].sudo().search(
+                [
+                    ("res_model", "=", statement._name),
+                    ("res_id", "=", statement.id),
+                    ("active", "=", True),
+                    ("id", "!=", exact_link.id),
+                ],
+            )
+            if competing_links:
+                competing_links.sudo().write({"active": False})
+                statement.message_post(
+                    body=_(
+                        "Documents evidence repaired: the exact official statement "
+                        "version was retained and %(count)s conflicting link(s) were "
+                        "deactivated without deleting their documents.",
+                        count=len(competing_links),
+                    ),
+                )
+            self._pin_paperless_version(exact_link.document_id)
+            return None
         content_base64 = base64.b64encode(self._content()).decode()
         existing_link = (
             self.env["usl.document.link"]
@@ -333,6 +371,33 @@ class AccountBankIngestionFile(models.Model):
         if document:
             self._pin_paperless_version(document)
         return None
+
+    def _exact_linked_evidence(self):
+        """Return the sole linked document version matching the retained PDF."""
+        self.ensure_one()
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("res_model", "=", self.statement_id._name),
+                ("res_id", "=", self.statement_id.id),
+                ("active", "=", True),
+            ],
+        )
+        exact_links = links.filtered(
+            lambda link: any(
+                version.paperless_version_id == link.version_id
+                and version.checksum == self.sha256
+                for version in link.document_id.version_ids
+            ),
+        )
+        if len(exact_links) > 1:
+            raise UserError(
+                _(
+                    "Several Documents records are linked to this statement with "
+                    "the exact official PDF. A Documents administrator must choose "
+                    "one before retrying.",
+                ),
+            )
+        return exact_links
 
     def _reconcile_bank_evidence_operation(self):
         self.ensure_one()

@@ -205,12 +205,12 @@ class TestAccountingDocumentContexts(TransactionCase):
         source_file._accept_evidence()
         return statement, source_file, content
 
-    def _archived_document(self, source_file, checksum=None):
+    def _archived_document(self, source_file, checksum=None, paperless_id=98001):
         checksum = checksum or source_file.sha256
         document = self.env["usl.document"].sudo().create(
             {
                 "name": "Archived bank statement",
-                "paperless_id": 98001,
+                "paperless_id": paperless_id,
                 "company_id": source_file.company_id.id,
                 "confidentiality": "accounting",
                 "accounting_evidence": True,
@@ -280,6 +280,54 @@ class TestAccountingDocumentContexts(TransactionCase):
             ],
         )
         self.assertIn(source_file, queued)
+
+    def test_accepted_bank_evidence_skips_generic_attachment_archive(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+
+        policy = statement._document_archive_policy(source_file.attachment_id)
+
+        self.assertEqual(policy["archive_mode"], "never")
+        self.assertEqual(policy["policy_reason"], "managed_bank_statement_evidence")
+        self.assertTrue(policy["accounting_evidence"])
+
+    def test_retry_reuses_exact_link_and_deactivates_conflicting_link(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+        wrong_document = self._archived_document(source_file, checksum="f" * 64)
+        exact_document = self._archived_document(source_file, paperless_id=98002)
+        Link = self.env["usl.document.link"].sudo()
+        wrong_link = Link.create(
+            {
+                "document_id": wrong_document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": statement.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": "bank-version-1",
+            },
+        )
+        exact_link = Link.create(
+            {
+                "document_id": exact_document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": statement.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": "bank-version-1",
+            },
+        )
+
+        with patch.object(UslDocument, "action_sync_permissions", return_value=True):
+            source_file._process_bank_evidence_archive()
+
+        wrong_link.invalidate_recordset()
+        exact_link.invalidate_recordset()
+        self.assertFalse(wrong_link.active)
+        self.assertTrue(exact_link.active)
+        self.assertEqual(source_file.paperless_archive_state, "archived")
+        self.assertEqual(source_file.paperless_document_id, exact_document)
+        self.assertEqual(source_file.paperless_version, "bank-version-1")
 
     def test_damaged_pdf_explains_replacement_and_is_not_sent_to_documents(self):
         statement, source_file, _content = self._bank_evidence_fixture(
