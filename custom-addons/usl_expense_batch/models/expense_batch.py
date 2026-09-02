@@ -83,6 +83,18 @@ class UslExpenseBatch(models.Model):
         index=True,
         string="Expense progress",
     )
+    expense_progress_summary = fields.Char(
+        compute="_compute_expense_progress_summary",
+        string="Progress breakdown",
+    )
+    batch_state = fields.Selection(
+        selection=[
+            ("open", "Open"),
+            ("archived", "Archived"),
+        ],
+        compute="_compute_batch_state",
+        string="Batch state",
+    )
     submitted_by_id = fields.Many2one(
         "res.users",
         readonly=True,
@@ -141,6 +153,10 @@ class UslExpenseBatch(models.Model):
     analytic_context_summary = fields.Char(compute="_compute_review_context")
     product_summary = fields.Char(compute="_compute_review_context")
     exception_count = fields.Integer(compute="_compute_review_context")
+    has_exceptions = fields.Boolean(
+        compute="_compute_review_context",
+        search="_search_has_exceptions",
+    )
     stale_context_count = fields.Integer(compute="_compute_review_context")
     warning_count = fields.Integer(compute="_compute_review_context")
     employee_paid_open_count = fields.Integer(compute="_compute_review_context")
@@ -167,6 +183,39 @@ class UslExpenseBatch(models.Model):
         string="Journal Entries",
     )
     move_count = fields.Integer(compute="_compute_moves")
+
+    @api.depends("active")
+    def _compute_batch_state(self):
+        for batch in self:
+            batch.batch_state = "open" if batch.active else "archived"
+
+    @api.depends("expense_ids.state")
+    def _compute_expense_progress_summary(self):
+        labels = {
+            "draft": _("draft"),
+            "submitted": _("submitted"),
+            "approved": _("approved"),
+            "posted": _("posted"),
+            "in_payment": _("in payment"),
+            "paid": _("paid"),
+            "refused": _("refused"),
+        }
+        order = tuple(labels)
+        for batch in self:
+            counts = {
+                state: len(
+                    batch.expense_ids.filtered(
+                        lambda expense, state=state: expense.state == state,
+                    ),
+                )
+                for state in order
+            }
+            parts = [
+                _("%(count)s %(state)s", count=counts[state], state=labels[state])
+                for state in order
+                if counts[state]
+            ]
+            batch.expense_progress_summary = " · ".join(parts) or _("No expenses")
 
     @api.depends("expense_ids.state")
     def _compute_expense_progress(self):
@@ -297,6 +346,7 @@ class UslExpenseBatch(models.Model):
                     lambda expense: expense.batch_context_status == "exception",
                 ),
             )
+            batch.has_exceptions = batch.exception_count > 0
             batch.stale_context_count = len(
                 batch.expense_ids.filtered(
                     lambda expense: expense.batch_context_status == "stale",
@@ -330,6 +380,14 @@ class UslExpenseBatch(models.Model):
                     lambda expense: expense.state == "approved",
                 ),
             )
+
+    @api.model
+    def _search_has_exceptions(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise UserError(_("Exception filtering expects a true or false value."))
+        matching_ids = self.search([]).filtered("has_exceptions").ids
+        include_matches = (operator == "=") == value
+        return [("id", "in" if include_matches else "not in", matching_ids)]
 
     @api.depends("expense_ids.account_move_id")
     def _compute_moves(self):

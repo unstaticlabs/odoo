@@ -712,6 +712,19 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(wizard._create_batch(), existing)
         self.assertEqual(expense.expense_batch_id, existing)
 
+    def test_batch_presentation_summarizes_progress_without_changing_lifecycle(self):
+        draft = self._expense("Draft receipt")
+        approved = self._expense("Approved receipt")
+        approved.sudo().approval_state = "approved"
+        batch = self._batch(draft + approved, "Mixed progress")
+
+        self.assertEqual(batch.batch_state, "open")
+        self.assertEqual(batch.expense_progress, "draft")
+        self.assertEqual(batch.expense_progress_summary, "1 draft · 1 approved")
+
+        batch.active = False
+        self.assertEqual(batch.batch_state, "archived")
+
     def test_mixed_payer_posting_keeps_one_batch_and_remaining_action(self):
         employee_paid = self._expense("Canada hotel", amount=215)
         company_paid = self._expense(
@@ -939,7 +952,9 @@ class TestExpenseBatch(TestExpenseCommon):
             "Missing information",
         )
         self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
-        self.assertTrue(batch_form.xpath("//field[@name='expense_progress']"))
+        self.assertTrue(
+            batch_form.xpath("//field[@name='expense_progress_summary']"),
+        )
         self.assertFalse(batch_form.xpath("/form/header/field[@name='state']"))
         self.assertTrue(
             batch_form.xpath("//widget[@name='web_ribbon'][@text='Archived']"),
@@ -979,8 +994,26 @@ class TestExpenseBatch(TestExpenseCommon):
         batch_search = self.env.ref(
             "usl_expense_batch.view_expense_batch_search",
         )._get_combined_arch()
+        for filter_name in (
+            "open_batches",
+            "needs_information",
+            "my_batches",
+            "exceptions",
+        ):
+            self.assertTrue(
+                batch_search.xpath(f"//filter[@name='{filter_name}']"),
+            )
         archived = batch_search.xpath("//filter[@name='inactive']")[0]
         self.assertEqual(archived.get("domain"), "[('active', '=', False)]")
+
+        batch_list = self.env.ref(
+            "usl_expense_batch.view_expense_batch_list",
+        )._get_combined_arch()
+        self.assertFalse(batch_list.xpath("/list[@decoration-info]"))
+        self.assertTrue(
+            batch_list.xpath("//field[@name='expense_progress_summary']"),
+        )
+        self.assertTrue(batch_list.xpath("//field[@name='batch_state']"))
 
         context_wizard = self.env.ref(
             "usl_expense_batch.view_expense_batch_context_apply_wizard_form",

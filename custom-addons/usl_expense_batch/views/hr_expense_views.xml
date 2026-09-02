@@ -5,13 +5,35 @@
         <field name="model">hr.expense</field>
         <field name="inherit_id" ref="hr_expense.hr_expense_view_expenses_analysis_tree"/>
         <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class">o_usl_expense_worklist</attribute>
+            </xpath>
+            <xpath expr="//field[@name='employee_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_mode']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='analytic_distribution']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id'][not(@column_invisible)]" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='nb_attachment'][not(@column_invisible)]" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
             <xpath expr="//field[@name='state']" position="before">
                 <field name="batch_attachment_status"
+                       string="Receipt"
                        widget="badge"
                        optional="show"
                        decoration-success="batch_attachment_status in ('attached', 'not_required')"
                        decoration-warning="batch_attachment_status == 'missing'"/>
-                <field name="expense_batch_id" optional="show"/>
+                <field name="expense_batch_id" string="Batch" optional="show"/>
             </xpath>
         </field>
     </record>
