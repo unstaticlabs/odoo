@@ -7,7 +7,14 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
-from ..models.agent import UslAgentCredential, UslAgentKeyWizard, UslAgentTransferWizard
+from ..controllers.json2 import UslAgentJson2Controller
+from ..models.agent import (
+    UslAgentCredential,
+    UslAgentKeyWizard,
+    UslAgentTransferWizard,
+    _agent_key_path_allowed,
+)
+from ..models.agent_secrets import is_agent_secret_field, sanitize_agent_payload
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -27,7 +34,16 @@ class TestAutonomousAgents(TransactionCase):
         cls.owner = cls._create_user(
             "agent.owner",
             cls.group_settings,
+            cls.env.ref("account.group_account_manager"),
+            cls.env.ref("base.group_partner_manager"),
+            cls.env.ref("hr.group_hr_manager"),
+            cls.env.ref("hr_expense.group_hr_expense_manager"),
+            cls.env.ref("project.group_project_manager"),
+            cls.env.ref("purchase.group_purchase_manager"),
+            cls.env.ref("sales_team.group_sale_manager"),
+            cls.env.ref("stock.group_stock_manager"),
             cls.env.ref("usl_b2c.group_b2c_manager"),
+            cls.env.ref("usl_document_templates.group_document_letter_manager"),
             cls.env.ref("usl_documents.group_documents_manager"),
             cls.env.ref("usl_platform_billing.group_platform_billing_manager"),
             companies=cls.company | cls.other_company,
@@ -65,6 +81,7 @@ class TestAutonomousAgents(TransactionCase):
                 "company_id": self.company.id,
                 "company_ids": [Command.set((self.company | self.other_company).ids)],
                 "delegated_group_ids": [Command.set([self.group_settings.id])],
+                "access_mode": "read_write",
             },
         )
 
@@ -176,42 +193,44 @@ class TestAutonomousAgents(TransactionCase):
                 },
             )
 
-    def test_bulk_read_access_uses_only_qualified_native_reader_groups(self):
+    def test_bulk_read_access_uses_every_safe_owner_group_with_runtime_readonly_mode(self):
         agent = self._create_agent()
-        reader_xmlids = (
-            "account.group_account_readonly",
-            "usl_access_control.group_audit_reader",
-            "usl_b2c.group_b2c_reader",
-            "usl_b2c.group_b2c_sensitive_evidence",
-            "usl_documents.group_documents_accountant",
-            "usl_platform_billing.group_platform_billing_reader",
-        )
-        expected = self.env["res.groups"]
-        for xmlid in reader_xmlids:
-            expected |= self.env.ref(xmlid)
-        expected &= self.owner.all_group_ids
+        expected = agent._owner_delegable_groups(self.owner.all_group_ids)
 
         result = agent.with_user(self.owner).action_grant_all_read()
 
         self.assertEqual(agent.delegated_group_ids, expected)
+        self.assertEqual(agent.access_mode, "read_only")
         self.assertEqual(result["tag"], "display_notification")
         self.assertEqual(result["params"]["type"], "success")
         self.assertIn(str(len(expected)), result["params"]["message"])
         self.assertEqual(result["params"]["next"]["tag"], "soft_reload")
-        self.assertNotIn(self.group_settings, agent.delegated_group_ids)
-        self.assertNotIn(
-            self.env.ref("usl_documents.group_documents_hr"),
-            agent.delegated_group_ids,
-        )
+        self.assertIn(self.group_settings, agent.delegated_group_ids)
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
 
         accounting_privilege = self.env.ref("account.res_groups_privilege_accounting")
-        accounting_reader = self.env.ref("account.group_account_readonly")
         hierarchy = agent.view_group_hierarchy
+        privilege = hierarchy["privileges"][str(accounting_privilege.id)]
+        selected_group_id = privilege["group_ids"][0]
         self.assertEqual(
-            hierarchy["privileges"][accounting_privilege.id]["group_ids"][0],
-            accounting_reader.id,
+            hierarchy["groups"][str(selected_group_id)]["name"],
+            "Read-only",
+        )
+
+    def test_new_agent_defaults_to_universal_readonly_profile(self):
+        agent = self.env["usl.agent"].with_user(self.owner).create(
+            {
+                "name": "Default read-only Agent",
+                "purpose": "Verify safe universal visibility by default.",
+                "company_id": self.company.id,
+                "company_ids": [Command.set([self.company.id])],
+            },
+        )
+        self.assertEqual(agent.access_mode, "read_only")
+        self.assertEqual(
+            agent.delegated_group_ids,
+            agent._owner_delegable_groups(self.owner.all_group_ids),
         )
 
     def test_bulk_access_profile_actions_are_visible_on_new_agent_form(self):
@@ -246,6 +265,7 @@ class TestAutonomousAgents(TransactionCase):
             if candidates:
                 self.assertIn(candidates[-1], agent.delegated_group_ids)
         self.assertIn(self.group_settings, agent.delegated_group_ids)
+        self.assertEqual(agent.access_mode, "read_write")
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
         self.assertEqual(result["tag"], "display_notification")
@@ -263,6 +283,25 @@ class TestAutonomousAgents(TransactionCase):
             agent.with_user(self.portal).action_grant_all_read_write()
         with self.assertRaises(AccessError):
             agent.with_user(agent.user_id).action_grant_all_read_write()
+        with self.assertRaises(ValidationError):
+            agent.with_user(self.owner).write({"access_mode": "read_only"})
+
+    def test_new_owner_access_requires_explicit_read_profile_reapplication(self):
+        project_manager = self.env.ref("project.group_project_manager")
+        if project_manager in self.owner.all_group_ids:
+            self.skipTest("Owner already has the project manager group")
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+
+        self.owner.with_user(SUPERUSER_ID).with_context(
+            usl_agent_provisioning=True,
+        ).write({"group_ids": [Command.link(project_manager.id)]})
+
+        self.assertNotIn(project_manager, agent.delegated_group_ids)
+        self.assertTrue(agent.read_profile_update_available)
+        agent.with_user(self.owner).action_grant_all_read()
+        self.assertIn(project_manager, agent.delegated_group_ids)
+        self.assertFalse(agent.read_profile_update_available)
 
     def test_read_profile_preserves_chatter_capability_on_readable_records(self):
         agent = self._create_agent()
@@ -308,6 +347,223 @@ class TestAutonomousAgents(TransactionCase):
         )
         self.assertGreater(self.env["mail.mail"].sudo().search_count([]), mail_count)
 
+    def test_readonly_agent_denies_crud_and_sudo_retaining_agent_actor(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        partner = self.env["res.partner"].create({"name": "Read-only boundary"})
+
+        self.assertEqual(
+            partner.with_user(agent.user_id).read(["name"])[0]["name"],
+            "Read-only boundary",
+        )
+        for operation in (
+            lambda: self.env["res.partner"].with_user(agent.user_id).create(
+                {"name": "Denied"},
+            ),
+            lambda: partner.with_user(agent.user_id).write({"name": "Denied"}),
+            lambda: partner.with_user(agent.user_id).unlink(),
+            lambda: partner.with_user(agent.user_id).sudo().write({"name": "Denied sudo"}),
+        ):
+            with self.assertRaises(AgentPolicyAccessError) as denied:
+                operation()
+            self.assertEqual(
+                denied.exception.context["usl_code"],
+                "agent_read_only_action_denied",
+            )
+
+    def test_readonly_profile_exposes_every_owner_application(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+
+        for model_name in (
+            "account.bank.statement",
+            "account.move",
+            "hr.employee",
+            "hr.expense",
+            "project.project",
+            "purchase.order",
+            "res.config.settings",
+            "res.partner",
+            "sale.order",
+            "stock.picking",
+            "usl.document",
+            "usl.document.letter",
+        ):
+            with self.subTest(model_name=model_name):
+                model = self.env[model_name].with_user(agent.user_id)
+                model.check_access("read")
+                model.search([], limit=1)
+
+    def test_readonly_scope_uses_owner_private_project_and_assignment_rules(self):
+        project_user = self.env.ref("project.group_project_user")
+        scoped_owner = self._create_user("agent.scoped.owner", project_user)
+        agent = self.env["usl.agent"].with_user(scoped_owner).create(
+            {
+                "name": "Scoped project Agent",
+                "purpose": "Exercise owner-specific project visibility.",
+                "company_id": self.company.id,
+                "company_ids": [Command.set([self.company.id])],
+            },
+        )
+        followed_project = self.env["project.project"].create(
+            {
+                "name": "Owner-followed private project",
+                "privacy_visibility": "followers",
+                "company_id": self.company.id,
+            },
+        )
+        followed_project.message_subscribe(partner_ids=scoped_owner.partner_id.ids)
+        hidden_project = self.env["project.project"].create(
+            {
+                "name": "Unrelated private project",
+                "privacy_visibility": "followers",
+                "company_id": self.company.id,
+            },
+        )
+        assigned_task = self.env["project.task"].create(
+            {
+                "name": "Owner-assigned standalone task",
+                "user_ids": [Command.set(scoped_owner.ids)],
+            },
+        )
+
+        visible_projects = self.env["project.project"].with_user(agent.user_id).search(
+            [("id", "in", (followed_project | hidden_project).ids)],
+        )
+        visible_tasks = self.env["project.task"].with_user(agent.user_id).search(
+            [("id", "=", assigned_task.id)],
+        )
+
+        self.assertEqual(visible_projects, followed_project)
+        self.assertEqual(visible_tasks, assigned_task)
+
+    def test_readonly_agent_scope_intersects_selected_companies(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).write(
+            {
+                "company_id": self.company.id,
+                "company_ids": [Command.set([self.company.id])],
+            },
+        )
+        agent.with_user(self.owner).action_grant_all_read()
+        own_move = self.env["account.move"].with_company(self.company).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        other_journal = self.env["account.journal"].with_company(
+            self.other_company,
+        ).create(
+            {
+                "name": "Agent other-company operations",
+                "code": "AOTH",
+                "type": "general",
+                "company_id": self.other_company.id,
+            },
+        )
+        other_move = self.env["account.move"].with_company(self.other_company).create(
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "journal_id": other_journal.id,
+            },
+        )
+        visible = self.env["account.move"].with_user(agent.user_id).search(
+            [("id", "in", [own_move.id, other_move.id])],
+        )
+        self.assertEqual(visible, own_move)
+        foreign_context = self.env["account.move"].with_user(agent.user_id).with_context(
+            allowed_company_ids=[self.other_company.id],
+        )
+        with self.assertRaisesRegex(AccessError, "unauthorized or invalid companies"):
+            foreign_context.search([("id", "in", [own_move.id, other_move.id])])
+
+    def test_agent_secret_fields_and_nested_payloads_are_redacted(self):
+        self.assertTrue(is_agent_secret_field("smtp_password"))
+        self.assertTrue(is_agent_secret_field("access_token"))
+        self.assertTrue(is_agent_secret_field("invitation_token_sha256"))
+        self.assertTrue(is_agent_secret_field("server_id/smtp_password"))
+        self.assertTrue(is_agent_secret_field("provider.client_secret"))
+        self.assertTrue(
+            is_agent_secret_field(
+                "private_key_id",
+                model_name="account_edi_proxy_client.user",
+            ),
+        )
+        self.assertTrue(
+            is_agent_secret_field("content", model_name="certificate.certificate"),
+        )
+        self.assertFalse(is_agent_secret_field("content", model_name="usl.document"))
+        self.assertFalse(is_agent_secret_field("token_expiration_date"))
+        self.assertEqual(
+            sanitize_agent_payload(
+                {
+                    "configured": True,
+                    "smtp_password": "never-return",
+                    "invitation_token_sha256": "never-return",
+                    "nested": {"access_token": "never-return", "status": "ready"},
+                },
+            ),
+            {"configured": True, "nested": {"status": "ready"}},
+        )
+        self.assertEqual(
+            sanitize_agent_payload(
+                {
+                    "usl_document_renderer_private_key_path": "/run/secret/key.pem",
+                    "usl_document_renderer_status": "healthy",
+                },
+                model_name="res.config.settings",
+            ),
+            {"usl_document_renderer_status": "healthy"},
+        )
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        mail_server_fields = self.env["ir.mail_server"].with_user(
+            agent.user_id,
+        ).fields_get()
+        self.assertNotIn("smtp_pass", mail_server_fields)
+        self.assertIn("smtp_host", mail_server_fields)
+
+    def test_agent_key_transport_is_json2_and_api_documentation_only(self):
+        for path in (
+            "/json/2/res.partner/search_read",
+            "/doc-bearer/index.json",
+            "/doc-bearer/res.partner.json",
+        ):
+            self.assertTrue(_agent_key_path_allowed(path))
+        for path in (
+            "/xmlrpc/2/object",
+            "/jsonrpc",
+            "/web/session/authenticate",
+            "/mail/plugin/authenticate",
+        ):
+            self.assertFalse(_agent_key_path_allowed(path))
+
+    def test_readonly_json2_policy_denies_unknown_mutations_and_secrets(self):
+        UslAgentJson2Controller._check_readonly_agent_call(
+            model_name="res.partner",
+            method_name="search_read",
+            kwargs={"fields": ["name", "email"]},
+        )
+        for model_name, method_name, kwargs in (
+            ("res.partner", "write", {}),
+            ("ir.config_parameter", "search_read", {}),
+            ("res.config.settings", "read", {"fields": ["smtp_password"]}),
+            (
+                "res.config.settings",
+                "read",
+                {"fields": ["usl_document_renderer_private_key_path"]},
+            ),
+        ):
+            with self.assertRaises(AgentPolicyAccessError) as denied:
+                UslAgentJson2Controller._check_readonly_agent_call(
+                    model_name=model_name,
+                    method_name=method_name,
+                    kwargs=kwargs,
+                )
+            self.assertEqual(
+                denied.exception.context["usl_code"],
+                "agent_read_only_action_denied",
+            )
+
     def test_agent_cannot_administer_identities_or_irreversible_actions(self):
         agent = self._create_agent()
         with self.assertRaises(AgentPolicyAccessError) as denied:
@@ -343,6 +599,31 @@ class TestAutonomousAgents(TransactionCase):
         self.assertNotIn(self.group_settings, agent.delegated_group_ids)
         agent.with_user(self.owner).action_acknowledge_authority_reduction()
         self.assertFalse(agent.authority_reduced_at)
+
+    def test_new_owner_access_requires_read_profile_reapplication(self):
+        owner = self._create_user("agent.profile.reapply.owner", self.group_user)
+        agent = self.env["usl.agent"].with_user(owner).create(
+            {
+                "name": "Profile reapplication Agent",
+                "purpose": "Prove new owner access does not expand automatically.",
+                "company_id": self.company.id,
+                "company_ids": [Command.set([self.company.id])],
+            },
+        )
+        settings = self.env["res.config.settings"].with_user(agent.user_id)
+        self.assertFalse(settings.has_access("read"))
+
+        owner.with_user(SUPERUSER_ID).with_context(usl_agent_provisioning=True).write(
+            {"group_ids": [Command.set([self.group_settings.id])]},
+        )
+
+        self.assertNotIn(self.group_settings, agent.delegated_group_ids)
+        self.assertTrue(agent.read_profile_update_available)
+        self.assertFalse(settings.has_access("read"))
+
+        agent.with_user(owner).action_grant_all_read()
+        self.assertIn(self.group_settings, agent.delegated_group_ids)
+        self.assertTrue(settings.has_access("read"))
 
     def test_owner_company_loss_shrinks_agent(self):
         agent = self._create_agent()

@@ -82,7 +82,10 @@
                     <notebook>
                         <page name="access" string="Access">
                             <div class="alert alert-info" role="status">
-                                This Agent can use only access delegated by its owner. Settings is allowed when delegated; identity administration and irreversible actions remain blocked.
+                                This Agent is limited to its owner's current permissions and selected companies. Identity administration, credentials, secrets and irreversible actions remain blocked.
+                            </div>
+                            <div class="alert alert-warning" role="status" invisible="not read_profile_update_available">
+                                The owner can now access applications that are not in this Agent's approved read-only profile. Reapply the profile to review and add them.
                             </div>
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                                 <span class="text-muted me-auto">Apply an owner-limited access profile.</span>
@@ -90,7 +93,7 @@
                                         type="object"
                                         string="Apply read-only profile"
                                         class="btn-secondary"
-                                        confirm="Replace this Agent's current application access with every qualified read-only role available to its owner?"/>
+                                        confirm="Replace this Agent's current application access with read-only visibility for everything its owner can access?"/>
                                 <button name="action_grant_all_read_write"
                                         type="object"
                                         string="Apply read/write profile"
@@ -98,11 +101,13 @@
                                         confirm="Replace this Agent's current application access with the highest safe level available to its owner in every application?"/>
                             </div>
                             <p class="text-muted mb-3">
-                                The read-only profile uses only qualified reader roles. Applications without a safe read-only role remain set to No; their standard User roles would permit changes.
+                                Read-only mode uses native roles for visibility, while the platform blocks business and configuration changes. Collaboration on readable records remains available.
                             </p>
+                            <field name="access_mode" widget="badge" readonly="1"/>
+                            <field name="read_profile_update_available" invisible="1"/>
                             <field name="view_group_hierarchy" invisible="1"/>
                             <field name="approved_effective_group_ids" invisible="1"/>
-                            <field name="delegated_group_ids" widget="res_user_group_ids" nolabel="1" colspan="2"/>
+                            <field name="delegated_group_ids" widget="res_user_group_ids" nolabel="1" colspan="2" readonly="access_mode == 'read_only'"/>
                         </page>
                         <page name="credentials" string="Credentials" invisible="not id">
                             <button name="action_new_credential" type="object" string="New API Key" class="btn-primary mb-3" invisible="state != 'active'"/>

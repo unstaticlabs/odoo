@@ -9,6 +9,8 @@ from odoo.exceptions import AccessError
 from odoo.fields import Domain
 
 from .action_policy import ActionPolicyConfigurationError, load_action_policy
+from .agent_policy_tokens import has_agent_collaboration_token
+from .agent_secrets import is_agent_secret_field
 from ..exceptions import AgentPolicyAccessError
 
 _logger = logging.getLogger(__name__)
@@ -40,6 +42,7 @@ _AGENT_HIDDEN_MODELS = frozenset(
         "usl.agent.credential",
         "usl.agent.key.wizard",
         "usl.agent.transfer.wizard",
+        "ir.config_parameter",
     },
 )
 
@@ -75,20 +78,75 @@ class Base(models.AbstractModel):
 
     @api.model
     def _access_domain(self, operation):
-        domain = super()._access_domain(operation)
         agent = self._usl_managed_agent()
         if not agent:
-            return domain
+            return super()._access_domain(operation)
         if self._name in _AGENT_HIDDEN_MODELS:
+            return Domain.FALSE
+        if (
+            operation != "read"
+            and agent.access_mode == "read_only"
+            and not has_agent_collaboration_token(self.env.context)
+        ):
             return Domain.FALSE
         owner_context = dict(self.env.context)
         requested_companies = set(owner_context.get("allowed_company_ids") or agent.company_ids.ids)
-        owner_context["allowed_company_ids"] = list(
-            requested_companies & set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+        allowed_companies = (
+            requested_companies
+            & set(agent.company_ids.ids)
+            & set(agent.owner_id.company_ids.ids)
         )
+        if not allowed_companies:
+            return Domain.FALSE
+        owner_context["allowed_company_ids"] = list(allowed_companies)
         owner_env = self.env(user=agent.owner_id, context=owner_context)
         owner_domain = self.with_env(owner_env)._access_domain(operation)
+        if operation == "read" and agent.access_mode == "read_only":
+            if self._name not in self.env["ir.model.access"]._get_allowed_models(
+                operation,
+            ):
+                return Domain.FALSE
+            return owner_domain
+        domain = super()._access_domain(operation)
         return Domain.AND([domain, owner_domain])
+
+    @api.model
+    def _has_field_access(self, field, operation):
+        if not super()._has_field_access(field, operation):
+            return False
+        agent = self._usl_managed_agent()
+        if not agent:
+            return True
+        owner_context = dict(self.env.context)
+        requested_companies = set(
+            owner_context.get("allowed_company_ids") or agent.company_ids.ids,
+        )
+        allowed_companies = (
+            requested_companies
+            & set(agent.company_ids.ids)
+            & set(agent.owner_id.company_ids.ids)
+        )
+        if not allowed_companies:
+            return False
+        owner_context["allowed_company_ids"] = list(allowed_companies)
+        owner_env = self.env(user=agent.owner_id, context=owner_context)
+        return self.with_env(owner_env)._has_field_access(field, operation)
+
+    @api.model
+    def _usl_reject_readonly_agent_mutation(self, operation):
+        agent = self._usl_managed_agent()
+        if (
+            agent
+            and agent.access_mode == "read_only"
+            and not has_agent_collaboration_token(self.env.context)
+        ):
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "This Agent has read-only access and cannot %(operation)s records.",
+                    operation=operation,
+                ),
+                "agent_read_only_action_denied",
+            )
 
     @api.model
     def _usl_reject_agent_identity_mutation(self, operation):
@@ -100,6 +158,26 @@ class Base(models.AbstractModel):
                 ),
                 "approval_required",
             )
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        result = super().fields_get(allfields=allfields, attributes=attributes)
+        agent = self._usl_managed_agent()
+        if agent:
+            owner_context = dict(self.env.context)
+            owner_context["allowed_company_ids"] = sorted(
+                set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+            )
+            owner_fields = self.with_env(
+                self.env(user=agent.owner_id, context=owner_context),
+            ).fields_get(allfields=allfields, attributes=attributes)
+            result = {
+                field_name: definition
+                for field_name, definition in result.items()
+                if field_name in owner_fields
+                and not is_agent_secret_field(field_name, model_name=self._name)
+            }
+        return result
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -334,6 +412,7 @@ class Base(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
+        self._usl_reject_readonly_agent_mutation("create")
         self._usl_reject_agent_identity_mutation("create")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
@@ -355,6 +434,7 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, values):
+        self._usl_reject_readonly_agent_mutation("modify")
         self._usl_reject_agent_identity_mutation("modify")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
@@ -378,6 +458,7 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
+        self._usl_reject_readonly_agent_mutation("delete")
         self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(

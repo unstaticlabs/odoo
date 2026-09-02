@@ -17,21 +17,50 @@ ordinary applications through the API. It never lets the Agent manage users,
 authentication, access-control groups, ACLs, record rules, other Agents, API
 credentials or its own lifecycle. Irreversible Actions are never delegable.
 
-The Access tab provides two owner-limited bulk profiles while creating or
-editing an Agent. **Apply read-only profile** replaces the current delegation
-with qualified native reader roles and confirms how many roles were granted.
-Applications without a genuine reader role remain set to **No** because their
-standard User role permits changes. Normal Chatter collaboration remains
-available on records the Agent can read. **Apply read/write profile** selects
-the highest safe application level the owner can delegate, including Settings
-when available. Neither profile changes company scope or grants identity
-administration or Irreversible Actions.
+The Access tab provides two owner-limited profiles. **Apply read-only profile**
+makes every application and configuration area available to the owner visible
+to the Agent, while the platform blocks mutation before any side effect. The
+form presents this as **Read-only** instead of exposing the native User or
+Administrator group that supplies menu and field visibility. **No access**
+means the owner lacks that access or the platform forbids delegation.
 
-The owner and Agent record rules are both applied to every business operation
-with the same active-company context. Losing an owner permission or company
-removes it from the Agent. Restoring the owner's access does not silently
-restore the Agent's delegation. Deactivating an owner suspends all of their
-Agents; an owner or administrator must reactivate them explicitly.
+Read-only is the default for new Agents. Existing Agents keep their current
+read/write mode during upgrade. **Apply read/write profile** selects the
+highest safe application level the owner can delegate, including Settings when
+available. Neither profile changes company scope or grants identity
+administration or Irreversible Actions. A newly installed application never
+expands an existing Agent silently: the form reports that broader owner access
+is available and the owner must reapply the chosen profile.
+
+Read access is the intersection of the Agent's delegated applications and
+companies, the owner's current ACLs and record rules in the same company
+context, and the platform safety policy. This includes private, assigned-only,
+employee, Accounting and Documents rules. Losing an owner permission or
+company removes it from the Agent immediately. Restoring the owner's access
+does not silently restore the Agent's delegation. Deactivating an owner
+suspends all of their Agents; an owner or administrator must reactivate them
+explicitly.
+
+Read-only enforcement applies at both the ORM and JSON-2 boundaries, including
+code that retains the Agent actor through `sudo()`. Create, write, delete,
+archive, workflow, import, module, server-action and unknown public methods are
+denied. Agent keys work only with JSON-2 and the qualified API-document
+endpoints; legacy RPC transports are rejected. The exact read allowlist is
+generated from the audited Agent-eligible subset of `read_only` action-risk
+entries and fails closed if code or policy identity drifts. A general low-risk
+classification is not sufficient: only standard data-query methods and
+individually named product helpers enter the Agent runtime allowlist.
+
+The only write exceptions are guarded collaboration methods on records the
+Agent can already read: Chatter notes and comments, activities, self-following,
+normal Chatter notifications, and short-lived Documents download grants.
+Direct writes to messages, activities, followers, mail queues or grants remain
+blocked.
+
+Credential values and secret-bearing models or fields remain hidden even when
+Settings is visible. Agents can inspect safe configuration identity, status,
+expiry, digest and health metadata, but not passwords, private keys, API/OAuth
+tokens, mail credentials, payment credentials, or integration secrets.
 
 ## Native Odoo experience
 
@@ -61,7 +90,8 @@ the previous key is revoked.
 ChatGPT or another client authorizes the MCP connection as a human interaction,
 but a governed Agent credential is the Odoo execution identity. Human API keys
 are rejected. `odoo_describe_environment` reports the Agent, its purpose,
-accountable owner, credential expiry and effective companies.
+accountable owner, access mode, effective applications, credential expiry,
+effective companies and any authority reduction.
 
 The authenticated method `usl.agent.current_identity` is the compatibility
 contract for clients that must confirm this identity before doing work.

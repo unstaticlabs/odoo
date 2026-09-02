@@ -39,11 +39,20 @@ DEFAULT_RUNTIME_POLICY = (
     / "policy"
     / "protected_runtime_policy.json"
 )
+DEFAULT_AGENT_READONLY_RUNTIME_POLICY = (
+    ROOT
+    / "custom-addons"
+    / "usl_access_control"
+    / "policy"
+    / "agent_readonly_runtime_policy.json"
+)
 SURFACE_SCHEMA = "usl-action-risk-surface-v1"
 POLICY_SCHEMA = "usl-action-risk-policy-v1"
 RUNTIME_SCHEMA = "usl-action-risk-runtime-v1"
 RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
+AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-read-only-runtime-v1"
 MAX_RUNTIME_POLICY_BYTES = 512 * 1024
+MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES = 4 * 1024 * 1024
 CLASSIFICATIONS = frozenset(
     {
         "operational",
@@ -63,6 +72,56 @@ ACTION_PREFIXES = (
     "client:",
     "sink:",
     "guard:",
+)
+AGENT_COLLABORATION_METHODS = frozenset(
+    {
+        "activity_schedule",
+        "mcp_create_download_grant",
+        "mcp_revoke_download_grant",
+        "message_post",
+        "message_subscribe",
+        "message_unsubscribe",
+    },
+)
+AGENT_READONLY_GENERIC_METHODS = frozenset(
+    {
+        "check_field_access",
+        "context_get",
+        "export_data",
+        "fields_get",
+        "formatted_read_group",
+        "formatted_read_grouping_sets",
+        "get_external_id",
+        "get_field_translations",
+        "get_metadata",
+        "has_access",
+        "has_field_access",
+        "hierarchy_read",
+        "name_search",
+        "read",
+        "read_group",
+        "read_progress_bar",
+        "search",
+        "search_count",
+        "search_read",
+    },
+)
+AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
+    {
+        "rpc:usl.agent.current_identity",
+        "rpc:usl.document.mcp_find_similar",
+        "rpc:usl.document.mcp_get",
+        "rpc:usl.document.mcp_get_content",
+        "rpc:usl.document.mcp_get_links",
+        "rpc:usl.document.mcp_get_versions",
+        "rpc:usl.document.mcp_list_correspondents",
+        "rpc:usl.document.mcp_list_saved_views",
+        "rpc:usl.document.mcp_list_tags",
+        "rpc:usl.document.mcp_list_types",
+        "rpc:usl.document.mcp_search",
+        "rpc:usl.expense.batch.get_review_summary",
+        "rpc:usl.home.service.get_ai_attention",
+    },
 )
 PRODUCT_MODULES = frozenset(
     {
@@ -289,6 +348,81 @@ def build_runtime_policy(
     return result
 
 
+def build_agent_readonly_runtime_policy(
+    surface: Mapping[str, object],
+    policy: Mapping[str, object],
+) -> dict[str, object]:
+    """Compile the exact public methods a read-only Agent may invoke."""
+
+    failures: list[str] = []
+    reviewed = normalize_policy_actions(policy, failures)
+    if failures:
+        raise InventoryError(
+            "Cannot compile Agent read-only runtime policy: " + "; ".join(failures),
+        )
+    read_only_actions = []
+    collaboration_actions = []
+    for action_key, entry in sorted(reviewed.items()):
+        if not action_key.startswith("rpc:"):
+            continue
+        method_name = action_key.rsplit(".", 1)[-1]
+        if entry.get("classification") == "read_only" and (
+            method_name in AGENT_READONLY_GENERIC_METHODS
+            or action_key in AGENT_READONLY_EXPLICIT_ACTIONS
+        ):
+            read_only_actions.append(action_key)
+            continue
+        if method_name in AGENT_COLLABORATION_METHODS:
+            collaboration_actions.append(action_key)
+    result: dict[str, object] = {
+        "collaboration_actions": collaboration_actions,
+        "qualified_policy_digest": qualified_policy_digest(surface, policy),
+        "read_only_actions": read_only_actions,
+        "schema": AGENT_READONLY_RUNTIME_POLICY_SCHEMA,
+    }
+    result["runtime_policy_sha256"] = runtime_policy_digest(result)
+    return result
+
+
+def validate_agent_readonly_runtime_policy(
+    surface: Mapping[str, object],
+    policy: Mapping[str, object],
+    runtime_policy: Mapping[str, object],
+) -> list[str]:
+    """Prove the Agent allowlist is the exact derivative of the reviewed policy."""
+
+    errors: list[str] = []
+    runtime_size = len(canonical_json(runtime_policy).encode())
+    if runtime_size > MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES:
+        errors.append(
+            "Agent read-only runtime policy exceeds the 4 MiB worker-load budget: "
+            f"{runtime_size} bytes.",
+        )
+    if runtime_policy.get("schema") != AGENT_READONLY_RUNTIME_POLICY_SCHEMA:
+        errors.append(
+            "Agent read-only runtime policy schema must be "
+            f"{AGENT_READONLY_RUNTIME_POLICY_SCHEMA}.",
+        )
+    recorded_digest = runtime_policy.get("runtime_policy_sha256")
+    computed_digest = runtime_policy_digest(runtime_policy)
+    if recorded_digest != computed_digest:
+        errors.append(
+            "Agent read-only runtime policy digest mismatch: "
+            f"recorded {recorded_digest!r}, computed {computed_digest}.",
+        )
+    try:
+        expected = build_agent_readonly_runtime_policy(surface, policy)
+    except InventoryError as error:
+        errors.append(str(error))
+        return errors
+    if runtime_policy != expected:
+        errors.append(
+            "Agent read-only runtime policy is stale or was not compiled from "
+            "the exact reviewed surface and policy.",
+        )
+    return errors
+
+
 def validate_runtime_policy(
     surface: Mapping[str, object],
     policy: Mapping[str, object],
@@ -508,6 +642,7 @@ def _module_source_digest(info: ModuleInfo) -> str:
             or relative.as_posix()
             in {
                 "policy/action_policy.json",
+                "policy/agent_readonly_runtime_policy.json",
                 "policy/action_surface.json",
                 "policy/protected_runtime_policy.json",
             }
@@ -2152,6 +2287,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=DEFAULT_RUNTIME_POLICY,
     )
+    refresh.add_argument(
+        "--agent-readonly-runtime-policy",
+        type=Path,
+        default=DEFAULT_AGENT_READONLY_RUNTIME_POLICY,
+    )
 
     compile_runtime = subparsers.add_parser("compile-runtime-policy")
     compile_runtime.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
@@ -2162,6 +2302,17 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_RUNTIME_POLICY,
     )
 
+    compile_agent_runtime = subparsers.add_parser(
+        "compile-agent-readonly-runtime-policy",
+    )
+    compile_agent_runtime.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
+    compile_agent_runtime.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    compile_agent_runtime.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_AGENT_READONLY_RUNTIME_POLICY,
+    )
+
     check = subparsers.add_parser("check", aliases=["check-source"])
     check.add_argument("--root", type=Path, default=ROOT)
     check.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
@@ -2170,6 +2321,11 @@ def _parser() -> argparse.ArgumentParser:
         "--runtime-policy",
         type=Path,
         default=DEFAULT_RUNTIME_POLICY,
+    )
+    check.add_argument(
+        "--agent-readonly-runtime-policy",
+        type=Path,
+        default=DEFAULT_AGENT_READONLY_RUNTIME_POLICY,
     )
     check.add_argument("--candidate", type=Path)
     check.add_argument("--runtime", type=Path)
@@ -2213,6 +2369,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.runtime_policy,
                 build_runtime_policy(candidate, policy),
             )
+            write_json(
+                args.agent_readonly_runtime_policy,
+                build_agent_readonly_runtime_policy(candidate, policy),
+            )
             print(
                 f"Action-risk surface refreshed: {len(candidate.get('actions', []))} actions, "
                 f"digest {qualified_policy_digest(candidate, policy)}",
@@ -2229,6 +2389,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(
                 "Protected runtime policy compiled: "
                 f"{len(runtime_policy['actions'])} actions, "
+                f"{runtime_policy['runtime_policy_sha256']}",
+            )
+            return 0
+        if args.command == "compile-agent-readonly-runtime-policy":
+            surface = load_json(args.surface)
+            policy = load_json(args.policy)
+            errors = validate_inventory(surface, policy)
+            if errors:
+                return _print_errors("Agent read-only runtime policy", errors)
+            runtime_policy = build_agent_readonly_runtime_policy(surface, policy)
+            write_json(args.output, runtime_policy)
+            print(
+                "Agent read-only runtime policy compiled: "
+                f"{len(runtime_policy['read_only_actions'])} reads, "
+                f"{len(runtime_policy['collaboration_actions'])} collaboration actions, "
                 f"{runtime_policy['runtime_policy_sha256']}",
             )
             return 0
@@ -2254,6 +2429,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             errors = validate_inventory(surface, policy)
             runtime_policy = load_json(args.runtime_policy)
             errors.extend(validate_runtime_policy(surface, policy, runtime_policy))
+            agent_runtime_policy = load_json(args.agent_readonly_runtime_policy)
+            errors.extend(
+                validate_agent_readonly_runtime_policy(
+                    surface,
+                    policy,
+                    agent_runtime_policy,
+                ),
+            )
             if args.candidate:
                 errors.extend(compare_surfaces(surface, load_json(args.candidate)))
             elif args.runtime:

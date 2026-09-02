@@ -12,15 +12,6 @@ from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
 
-_AGENT_READ_ONLY_GROUP_XMLIDS = (
-    "account.group_account_readonly",
-    "usl_access_control.group_audit_reader",
-    "usl_b2c.group_b2c_reader",
-    "usl_b2c.group_b2c_sensitive_evidence",
-    "usl_documents.group_documents_accountant",
-    "usl_platform_billing.group_platform_billing_reader",
-)
-
 _AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS = (
     "base.group_system",
 )
@@ -28,6 +19,14 @@ _AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS = (
 _AGENT_VISIBLE_STANDALONE_READER_PRIVILEGES = (
     ("account.group_account_readonly", "account.res_groups_privilege_accounting"),
 )
+
+
+def _agent_key_path_allowed(path):
+    return bool(
+        path.startswith("/json/2/")
+        or path == "/doc-bearer/index.json"
+        or (path.startswith("/doc-bearer/") and path.endswith(".json"))
+    )
 
 
 class UslAgent(models.Model):
@@ -59,6 +58,19 @@ class UslAgent(models.Model):
         required=True,
         default="active",
         index=True,
+    )
+    access_mode = fields.Selection(
+        [
+            ("read_only", "Read-only"),
+            ("read_write", "Read/write"),
+        ],
+        required=True,
+        default="read_only",
+        index=True,
+        help=(
+            "Read-only Agents can inspect their owner's delegated scope and use "
+            "approved collaboration actions. Read/write Agents use normal Odoo permissions."
+        ),
     )
     suspension_reason = fields.Char(readonly=True, copy=False)
     authority_reduced_at = fields.Datetime(readonly=True, copy=False)
@@ -106,6 +118,9 @@ class UslAgent(models.Model):
         string="Owner companies",
     )
     can_admin_agents = fields.Boolean(compute="_compute_owner_authority")
+    read_profile_update_available = fields.Boolean(
+        compute="_compute_read_profile_update_available",
+    )
     credential_ids = fields.One2many(
         "usl.agent.credential",
         "agent_id",
@@ -135,6 +150,23 @@ class UslAgent(models.Model):
         for agent in self:
             agent.owner_company_ids = agent.owner_id.company_ids
             agent.can_admin_agents = can_admin
+
+    @api.depends(
+        "access_mode",
+        "delegated_group_ids",
+        "approved_effective_group_ids",
+        "owner_id.all_group_ids",
+    )
+    def _compute_read_profile_update_available(self):
+        for agent in self:
+            if agent.access_mode != "read_only" or not agent.owner_id:
+                agent.read_profile_update_available = False
+                continue
+            available = agent._all_read_groups().all_implied_ids
+            delegated = agent._effective_groups(agent.delegated_group_ids)
+            agent.read_profile_update_available = bool(
+                available - (agent.approved_effective_group_ids & delegated),
+            )
 
     @api.depends(
         "credential_ids.status",
@@ -167,16 +199,25 @@ class UslAgent(models.Model):
         ]
         return [("id", "in" if (operator == "=") == value else "not in", attention_ids)]
 
-    @api.depends("delegated_group_ids", "company_ids")
+    @api.depends("access_mode", "delegated_group_ids", "company_ids")
     def _compute_access_summary(self):
         for agent in self:
             agent.access_summary = _(
-                "%(apps)s access groups · %(companies)s companies",
+                "%(mode)s · %(apps)s access groups · %(companies)s companies",
+                mode=dict(agent._fields["access_mode"].selection).get(
+                    agent.access_mode,
+                    agent.access_mode,
+                ),
                 apps=len(agent.delegated_group_ids),
                 companies=len(agent.company_ids),
             )
 
-    @api.depends("owner_id", "owner_id.all_group_ids")
+    @api.depends(
+        "access_mode",
+        "delegated_group_ids",
+        "owner_id",
+        "owner_id.all_group_ids",
+    )
     def _compute_view_group_hierarchy(self):
         hierarchy = self.env["res.groups"]._get_view_group_hierarchy()
         forbidden = self._forbidden_delegated_groups()
@@ -217,6 +258,24 @@ class UslAgent(models.Model):
                     and group.id not in value["privileges"][privilege.id]["group_ids"]
                 ):
                     value["privileges"][privilege.id]["group_ids"].insert(0, group.id)
+            if agent.access_mode == "read_only":
+                delegated_ids = set(agent.delegated_group_ids.ids)
+                for definition in value["privileges"].values():
+                    selected = [
+                        group_id
+                        for group_id in definition["group_ids"]
+                        if group_id in delegated_ids
+                    ]
+                    if not selected:
+                        definition["group_ids"] = []
+                        continue
+                    selected_group_id = selected[-1]
+                    definition["group_ids"] = [selected_group_id]
+                    value["groups"][selected_group_id]["name"] = _("Read-only")
+                    value["groups"][selected_group_id]["comment"] = _(
+                        "This application is visible within the owner's scope. "
+                        "The server blocks business and configuration mutations."
+                    )
             privilege_ids = set(value["privileges"])
             value["categories"] = [
                 {
@@ -286,6 +345,12 @@ class UslAgent(models.Model):
             groups = self.env["res.groups"].browse(
                 self._ids_from_commands(values.get("delegated_group_ids"), []),
             ).exists()
+            access_mode = values.get("access_mode", "read_only")
+            if access_mode == "read_only" and not groups:
+                forbidden = self._forbidden_delegated_groups()
+                groups = owner.all_group_ids.filtered(
+                    lambda group: not group.all_implied_ids & forbidden,
+                )
             default_company = self.env["res.company"].browse(
                 values.get("company_id") or owner.company_id.id,
             ).exists()
@@ -319,6 +384,7 @@ class UslAgent(models.Model):
                 company_ids=[Command.set(companies.ids)],
                 delegated_group_ids=[Command.set(groups.ids)],
                 approved_effective_group_ids=[Command.set(self._effective_groups(groups).ids)],
+                access_mode=access_mode,
             )
             records |= super().create(clean)
         return records
@@ -346,6 +412,12 @@ class UslAgent(models.Model):
         self._check_caller_can_manage()
         if "owner_id" in values:
             raise ValidationError(_("Use Transfer ownership to change an Agent owner."))
+        if "access_mode" in values and not self.env.context.get(
+            "usl_agent_profile_change",
+        ):
+            raise ValidationError(
+                _("Use an access-profile action to change the Agent access mode."),
+            )
         for agent in self:
             companies = agent.company_ids
             groups = agent.delegated_group_ids
@@ -491,9 +563,7 @@ class UslAgent(models.Model):
 
     def _all_read_groups(self):
         self.ensure_one()
-        return self._owner_delegable_groups(
-            self._groups_from_xmlids(_AGENT_READ_ONLY_GROUP_XMLIDS),
-        )
+        return self._owner_delegable_groups(self.owner_id.all_group_ids)
 
     def _all_read_write_groups(self):
         self.ensure_one()
@@ -510,14 +580,19 @@ class UslAgent(models.Model):
         groups |= self._groups_from_xmlids(_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS)
         return self._owner_delegable_groups(groups)
 
-    def _replace_delegated_access(self, group_resolver, *, title, message):
+    def _replace_delegated_access(self, group_resolver, *, access_mode, title, message):
         self._check_caller_can_manage()
         granted_group_count = 0
         for agent in self:
             groups = group_resolver(agent)
             granted_group_count += len(groups)
-            agent.write(
-                {"delegated_group_ids": [Command.set(groups.ids)]},
+            agent.with_context(
+                usl_agent_profile_change=True,
+            ).write(
+                {
+                    "access_mode": access_mode,
+                    "delegated_group_ids": [Command.set(groups.ids)],
+                },
             )
         return {
             "type": "ir.actions.client",
@@ -534,16 +609,17 @@ class UslAgent(models.Model):
     def action_grant_all_read(self):
         return self._replace_delegated_access(
             lambda agent: agent._all_read_groups(),
+            access_mode="read_only",
             title=_("Read-only profile applied"),
             message=_(
-                "%(count)s qualified reader roles granted. Applications without "
-                "a safe read-only role remain set to No."
+                "%(count)s owner-scoped access roles are now visible in read-only mode."
             ),
         )
 
     def action_grant_all_read_write(self):
         return self._replace_delegated_access(
             lambda agent: agent._all_read_write_groups(),
+            access_mode="read_write",
             title=_("Read/write profile applied"),
             message=_("%(count)s owner-approved application roles granted."),
         )
@@ -603,8 +679,18 @@ class UslAgent(models.Model):
             )
         credential_id = getattr(request, "usl_agent_credential_id", None) if request else None
         credential = self.env["usl.agent.credential"].sudo().browse(credential_id).exists()
+        hierarchy = agent.view_group_hierarchy
+        effective_applications = [
+            {
+                "id": int(privilege_id),
+                "name": definition["name"],
+                "access": agent.access_mode,
+            }
+            for privilege_id, definition in hierarchy.get("privileges", {}).items()
+            if definition.get("group_ids")
+        ]
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "principal_kind": "agent",
             "user_id": agent.user_id.id,
             "agent": {
@@ -612,6 +698,9 @@ class UslAgent(models.Model):
                 "name": agent.name,
                 "purpose": agent.purpose,
                 "state": agent.state,
+                "access_mode": agent.access_mode,
+                "authority_reduced": bool(agent.authority_reduced_at),
+                "partner_id": agent.user_id.partner_id.id,
             },
             "owner": {"id": agent.owner_id.id, "name": agent.owner_id.name},
             "credential": (
@@ -625,6 +714,12 @@ class UslAgent(models.Model):
             ),
             "company_id": agent.company_id.id,
             "company_ids": agent.company_ids.ids,
+            "companies": [
+                {"id": company.id, "name": company.name}
+                for company in agent.company_ids
+            ],
+            "effective_applications": effective_applications,
+            "effective_group_ids": agent.user_id.all_group_ids.ids,
         }
 
 
@@ -900,6 +995,13 @@ class ResUsersApikeys(models.Model):
         )
         if not credential or credential.status != "active":
             raise AccessDenied(_("This Agent credential is not active."))
+        if request:
+            path = request.httprequest.path or ""
+            if not _agent_key_path_allowed(path):
+                raise AgentAuthenticationError(
+                    _("Agent API keys may be used only with JSON-2 and API documentation."),
+                    "agent_transport_denied",
+                )
         now = fields.Datetime.now()
         if not credential.last_used_at or credential.last_used_at < now - datetime.timedelta(minutes=1):
             credential.with_context(usl_agent_credential_internal=True).write({"last_used_at": now})

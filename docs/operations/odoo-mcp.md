@@ -63,6 +63,15 @@ the Distribution safety policy jointly determine what MCP tools may read or
 change. Agents cannot manage identities or credentials and cannot perform
 protected irreversible actions, even when Settings is delegated.
 
+New Agents default to universal owner-scoped read-only access. In that mode MCP
+publishes only tools backed by exact `read_only` action-policy entries, plus the
+guarded message, activity, self-follow and Documents download-grant tools.
+Generic create, update, archive, delete and arbitrary-action tools are absent.
+Odoo independently enforces the same boundary, so a stale client catalogue or
+crafted JSON-2 request cannot restore write access. Secrets are filtered from
+explicit fields, default reads, exports, settings helpers and nested results;
+safe configuration status and health metadata remain available.
+
 ## Readiness and acceptance
 
 The container is ready only when `/readyz` reports `status=ready`, the default
