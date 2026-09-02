@@ -49,7 +49,9 @@ endpoints; legacy RPC transports are rejected. The exact read allowlist is
 generated from the audited Agent-eligible subset of `read_only` action-risk
 entries and fails closed if code or policy identity drifts. A general low-risk
 classification is not sufficient: only standard data-query methods and
-individually named product helpers enter the Agent runtime allowlist.
+individually named product helpers enter the Agent runtime allowlist. Specialized
+helpers that bypass ordinary record rules remain unavailable; Agents use the
+equivalent owner-scoped generic reads instead.
 
 The only write exceptions are guarded collaboration methods on records the
 Agent can already read: Chatter notes and comments, activities, self-following,

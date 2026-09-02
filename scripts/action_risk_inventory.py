@@ -119,7 +119,6 @@ AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
         "rpc:usl.document.mcp_list_tags",
         "rpc:usl.document.mcp_list_types",
         "rpc:usl.document.mcp_search",
-        "rpc:usl.expense.batch.get_review_summary",
         "rpc:usl.home.service.get_ai_attention",
     },
 )

@@ -944,6 +944,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         read_actions = set(runtime_policy["read_only_actions"])
         for action_key in inventory.AGENT_READONLY_EXPLICIT_ACTIONS:
             self.assertIn(action_key, read_actions)
+        self.assertNotIn("rpc:usl.expense.batch.get_review_summary", read_actions)
         for forbidden_suffix in (
             ".action_archive",
             ".action_unarchive",
