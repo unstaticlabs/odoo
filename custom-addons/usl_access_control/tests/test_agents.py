@@ -247,6 +247,7 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(len(fields), 1)
         self.assertFalse(architecture.xpath("//button[@name='action_grant_all_read']"))
         self.assertFalse(architecture.xpath("//button[@name='action_grant_all_read_write']"))
+        self.assertNotIn("New owner access is available", "".join(architecture.itertext()))
 
     def test_bulk_read_write_selects_highest_safe_owner_levels_and_settings(self):
         agent = self._create_agent()

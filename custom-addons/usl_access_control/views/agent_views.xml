@@ -81,9 +81,6 @@
                     </group>
                     <notebook>
                         <page name="access" string="Access">
-                            <div class="alert alert-warning" role="status" invisible="not read_profile_update_available">
-                                New owner access is available. Use a batch shortcut or configure it below.
-                            </div>
                             <field name="access_mode" invisible="1"/>
                             <field name="settings_access" invisible="1"/>
                             <field name="read_profile_update_available" invisible="1"/>
