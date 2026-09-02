@@ -328,6 +328,11 @@ class TestAutonomousAgents(TransactionCase):
         )
         partner.with_user(agent.user_id).write({"name": "Agent-updated contact"})
 
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["mail.message"].with_user(agent.user_id).create(
+                {"body": "Direct internal message creation remains denied."},
+            )
+
         self.assertEqual(partner.name, "Agent-updated contact")
         audit_operations = self.env["usl.audit.event"].sudo().search(
             [

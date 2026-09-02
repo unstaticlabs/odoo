@@ -167219,8 +167219,8 @@
         "sink:project:addons/project/models/res_users_settings.py:res.users.settings.get_embedded_actions_settings:sudo:2": "33cc1ec1eda89848d51719038585a9efa2f574b4e4f9a29e6d1b81ef9f70ad46",
         "sink:project_todo:addons/project_todo/models/res_users.py:res.users._generate_onboarding_todo:orm_create:1": "a280d9f7d3c982f1aafd6e41dc0539ac441bee816c82df5c2451f0b6c4e2f505",
         "sink:resource:addons/resource/models/res_users.py:res.users.write:orm_write:1": "bd1ee42fe075d8fc5216d2ff56dc08630c16d1419143c10cc86d651b3b784594",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/audit_event.py:usl.audit.event._record_event:orm_create:1": "b1ff57baa51c7fd92b86440ec5090c8bf8c5b300037109ad82605c82a583ceed",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/audit_event.py:usl.audit.event._record_event:sudo:1": "cae62f4f827b86e1cc9287b153fc62dff5c66008c2c2a31a90765bf16d269885",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/audit_event.py:usl.audit.event._record_event:orm_create:1": "08ed68f428896d708ae94d202000ad621fc445d91c98a84955e15281a1fa1431",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/audit_event.py:usl.audit.event._record_event:sudo:1": "aaa9e1b0f05c72442ceb0867e21674c933ee28a62b5ccc98a099293a8abdcd97",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.create:orm_create:1": "7afee58101418639e790b1a79e8b27a1763c378e9d333abd44b1cb69a8ac9bac",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.unlink:orm_unlink:1": "8b71f9eb56f9e9cd0a27e02e034deb947654d1e61619505c5445ee33eacab469",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base.write:orm_write:1": "aa2a353aa10cd04b293db0359fd0794c7ae7734797dc06b8e6972878e970a7f5",
@@ -185866,6 +185866,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "4b29052bb6b996350e3ab5e84e132282155b26f2c75bbbb569c5ab1dea6bf2d1",
+  "qualified_policy_digest": "954c10cc7c7aa96a25374cb3e563bdd051a3d98b5abb2431483366db00b499d7",
   "schema": "usl-action-risk-policy-v1"
 }

@@ -1,6 +1,11 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from .agent_policy_tokens import (
+    AGENT_COLLABORATION_CONTEXT_KEY,
+    AGENT_COLLABORATION_TOKEN,
+)
+
 
 class UslAuditEvent(models.Model):
     _name = "usl.audit.event"
@@ -83,7 +88,12 @@ class UslAuditEvent(models.Model):
                     "New protected-action audit events require an action key and policy digest.",
                 ),
             )
-        return self.sudo().with_context(usl_skip_distribution_audit=True).create(values)
+        return self.sudo().with_context(
+            {
+                "usl_skip_distribution_audit": True,
+                AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN,
+            },
+        ).create(values)
 
     def write(self, values):
         raise UserError(self.env._("Distribution audit events are immutable."))

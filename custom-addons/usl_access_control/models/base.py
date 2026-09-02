@@ -402,27 +402,35 @@ class Base(models.AbstractModel):
     def _usl_record_agent_mutation(self, operation, values=None, before=None, ids=None):
         if not self._usl_agent_audit_enabled():
             return
+        agent = self._usl_managed_agent()
         record_ids = list(ids if ids is not None else self.ids)
         changes = {}
         if before:
             changes["before"] = before
         if values is not None:
             changes["submitted"] = self._usl_audit_json_value("values", values)
-        self.env["usl.audit.event"]._record_event(
-            {
-                "actor_id": self.env.uid,
-                "actor_is_agent": True,
-                "event_type": "mutation",
-                "model_name": self._name,
-                "record_ids": json.dumps(record_ids),
-                "record_count": len(record_ids),
-                "operation": operation,
-                "action_name": f"{self._name}.{operation}",
-                "changes_json": json.dumps(changes, sort_keys=True),
-                "origin": self._usl_audit_origin(),
-                "correlation_id": self._usl_audit_correlation_id(),
-            },
-        )
+        event_values = {
+            "actor_id": self.env.uid,
+            "actor_is_agent": True,
+            "event_type": "mutation",
+            "model_name": self._name,
+            "record_ids": json.dumps(record_ids),
+            "record_count": len(record_ids),
+            "operation": operation,
+            "action_name": f"{self._name}.{operation}",
+            "changes_json": json.dumps(changes, sort_keys=True),
+            "origin": self._usl_audit_origin(),
+            "correlation_id": self._usl_audit_correlation_id(),
+        }
+        if agent:
+            event_values.update(
+                {
+                    "agent_id": agent.id,
+                    "owner_id": agent.owner_id.id,
+                    "company_id": self.env.company.id,
+                },
+            )
+        self.env["usl.audit.event"]._record_event(event_values)
 
     @api.model_create_multi
     def create(self, vals_list):

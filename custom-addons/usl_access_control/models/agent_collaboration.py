@@ -5,6 +5,7 @@ from ..exceptions import AgentPolicyAccessError
 from .agent_policy_tokens import (
     AGENT_COLLABORATION_CONTEXT_KEY,
     AGENT_COLLABORATION_TOKEN,
+    has_agent_collaboration_token,
 )
 
 
@@ -40,6 +41,19 @@ class MailThread(models.AbstractModel):
                     "agent_read_only_action_denied",
                 )
         return super(MailThread, records).message_post(*args, **kwargs)
+
+    def _message_log_batch(self, *args, **kwargs):
+        """Allow Odoo's private Chatter log created by an authorized business write."""
+        agent = self._usl_managed_agent()
+        records = self
+        if agent and (
+            has_agent_collaboration_token(self.env.context)
+            or agent._allows_model_operation(self._name, "write")
+        ):
+            records = self.with_context(
+                **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
+            )
+        return super(MailThread, records)._message_log_batch(*args, **kwargs)
 
     def message_subscribe(self, partner_ids=None, subtype_ids=None):
         records = self._usl_readonly_agent_collaboration()
