@@ -98,6 +98,7 @@
     },
     {
       "action_keys": [
+        "rpc:product.product.action_usl_unpack_supplier_pack",
         "server_action:mrp.action_open_bom_lines",
         "server_action:mrp.action_pause_workorders",
         "server_action:mrp.action_plan_at_date",
@@ -148,7 +149,8 @@
         "server_action:stock.method_action_picking_tree_incoming",
         "server_action:stock.method_action_picking_tree_internal",
         "server_action:stock.method_action_picking_tree_outgoing",
-        "server_action:stock.stock_split_picking"
+        "server_action:stock.stock_split_picking",
+        "ui:usl_b2c.product_product_form_b2c_unpack:button:object:action_usl_unpack_supplier_pack:1"
       ],
       "classification": "operational",
       "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
@@ -157,6 +159,7 @@
       "id": "operational.commerce_and_fulfilment.actions",
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
+        "rpc:product.product.action_usl_unpack_supplier_pack": "1a56179d170b29bd094f5dfae5d46f63b0c045821ff8df9a75aa3015a973643c",
         "server_action:mrp.action_open_bom_lines": "409210057ec42ed4e370054cdbe0999a69e8c1397e3a92e95115aa968ba8858a",
         "server_action:mrp.action_pause_workorders": "4aa1eeb36ab1708d8ebee308d5c57b6228ea37a3d64612dd2a68a1895fcc7850",
         "server_action:mrp.action_plan_at_date": "eac81f9f9aa3a0f48784693b2af5cadeb0bc1e99a81b64dba8bf0d4a3059d845",
@@ -207,7 +210,8 @@
         "server_action:stock.method_action_picking_tree_incoming": "8f2acc0041eabb786b648cb97b7ec6c57c67982486653ff4bc40418f68ae7841",
         "server_action:stock.method_action_picking_tree_internal": "e200d98fecb63fe01f4d181ff568bb86c9ea126d3229ba5a63c1ed9611fc8edb",
         "server_action:stock.method_action_picking_tree_outgoing": "2445c4b65ce03128ea98d7f363523cd6665af504d46561fc79eeaa32c73bb9c9",
-        "server_action:stock.stock_split_picking": "0c287ff850f2cd0fd14b5ca5cbb98a27fc9cb2f873b0867094affc99060c9c9d"
+        "server_action:stock.stock_split_picking": "0c287ff850f2cd0fd14b5ca5cbb98a27fc9cb2f873b0867094affc99060c9c9d",
+        "ui:usl_b2c.product_product_form_b2c_unpack:button:object:action_usl_unpack_supplier_pack:1": "085096d6836cf327bafa86d33d912a5e39dbac77d11eb923c6998c7f97911447"
       }
     },
     {
@@ -184657,6 +184661,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "f22f06dbc93cb3d0a61d6eb96301f9b2f6ee7fbf655cef08a8d7a0ff142ba2d6",
+  "qualified_policy_digest": "b7dfa1d35d958500964c2744640660e003c1979fee3728d83ef6c81e9c91fae8",
   "schema": "usl-action-risk-policy-v1"
 }
