@@ -29,7 +29,7 @@ def manifest() -> dict[str, object]:
         "components": {name: component(name) for name in ("distribution", "backup-tool", "paperless", "sign-dss")},
         "mcp": {
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
-            "ref": "main",
+            "ref": "b" * 40,
             "commit": "b" * 40,
             "image": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64,
             "compatibility_sha256": "c" * 64,
