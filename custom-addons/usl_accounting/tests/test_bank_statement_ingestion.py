@@ -460,6 +460,11 @@ class TestBankStatementIngestion(TransactionCase):
 
         self.assertEqual(ingestion.state, "attention")
         self.assertFalse(ingestion.statement_ids)
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file.processing_state, "failed")
+        self.assertTrue(ofx_file.processing_detail)
         self.assertTrue(
             ingestion.exception_ids.filtered(
                 lambda item: item.kind == "account" and item.state == "open",
@@ -756,6 +761,15 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(ingestion.state, "done", ingestion.last_error)
         self.assertTrue(ingestion.statement_ids.line_ids)
         self.assertTrue(ingestion.statement_ids.accepted_evidence_id)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        source_email = ingestion.file_ids.filtered(
+            lambda item: item.classification == "email",
+        )
+        self.assertEqual(source_email.processing_state, "processed")
 
     def test_email_processing_requires_a_complete_route(self):
         self.config.allowed_senders = False
@@ -768,6 +782,7 @@ class TestBankStatementIngestion(TransactionCase):
             archive.writestr("transactions.ofx", self.ofx)
             archive.writestr("statement.pdf", self.pdf)
             archive.writestr("transactions.csv", "Date,Amount\n2026-07-05,300\n")
+            archive.writestr("copies/transactions.csv", "Date,Amount\n2026-07-05,300\n")
             archive.writestr("transactions.qif", "!Type:Bank\nD07/05/2026\nT300\n^")
         ingestion = self._ingestion("<synthetic-zip@example.invalid>")
         self.env["ir.attachment"].sudo().create(
@@ -792,6 +807,43 @@ class TestBankStatementIngestion(TransactionCase):
             set(archive_file.extracted_file_ids.mapped("classification")),
             {"ofx", "pdf", "csv", "qif"},
         )
+        csv_files = archive_file.extracted_file_ids.filtered(
+            lambda item: item.classification == "csv",
+        )
+        self.assertEqual(
+            csv_files.mapped("processing_state"),
+            ["ignored", "duplicate"],
+        )
+        qif_file = archive_file.extracted_file_ids.filtered(
+            lambda item: item.classification == "qif",
+        )
+        self.assertEqual(qif_file.processing_state, "ignored")
+        self.assertTrue(all(csv_files.mapped("processing_detail")))
+        self.assertTrue(qif_file.processing_detail)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
+
+        retained = {
+            source_file.id: (source_file.sha256, source_file._content())
+            for source_file in ingestion.file_ids
+        }
+        ingestion._process()
+
+        self.assertEqual(set(ingestion.file_ids.ids), set(retained))
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state in ("pending", "attention"),
+            ),
+        )
+        for source_file in ingestion.file_ids:
+            self.assertEqual(
+                (source_file.sha256, source_file._content()),
+                retained[source_file.id],
+            )
         self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
 
     def test_allowlisted_shine_link_download_is_retained_and_processed(self):
@@ -883,21 +935,29 @@ class TestBankStatementIngestion(TransactionCase):
         archive_file = ingestion.file_ids.filtered(
             lambda item: item.classification == "zip",
         )
+        self.assertEqual(archive_file.processing_state, "failed")
+        self.assertIn("unsafe path", archive_file.processing_detail)
         self.assertFalse(archive_file.extracted_file_ids)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
         self.assertTrue(
             ingestion.exception_ids.filtered(lambda item: item.state == "open"),
         )
 
-    def test_unsupported_attachment_is_visible_and_blocks_certification(self):
+    def test_unsupported_attachment_is_retained_and_intentionally_ignored(self):
         ingestion = self._ingestion(
             "<synthetic-unsupported@example.invalid>",
             ofx=self.ofx,
             pdf=self.pdf,
         )
-        self.env["ir.attachment"].sudo().create(
+        original = b"unexpected accounting export"
+        attachment = self.env["ir.attachment"].sudo().create(
             {
                 "name": "unexpected.bin",
-                "raw": b"unexpected accounting export",
+                "raw": original,
                 "mimetype": "application/octet-stream",
                 "res_model": ingestion._name,
                 "res_id": ingestion.id,
@@ -909,9 +969,18 @@ class TestBankStatementIngestion(TransactionCase):
 
         statement = ingestion.statement_ids
         self._complete_documents_archive(statement)
-        self.assertEqual(ingestion.state, "attention")
-        self.assertTrue(
-            statement.exception_ids.filtered(lambda item: item.kind == "unsupported"),
+        source_file = ingestion.file_ids.filtered(
+            lambda item: item.attachment_id == attachment,
+        )
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(source_file.processing_state, "ignored")
+        self.assertTrue(source_file.processing_detail)
+        self.assertEqual(source_file._content(), original)
+        self.assertEqual(bytes(attachment.raw), original)
+        self.assertFalse(
+            statement.exception_ids.filtered(
+                lambda item: item.kind == "unsupported" and item.state == "open",
+            ),
         )
         self.env["account.bank.statement.confirm"].create(
             {
@@ -921,15 +990,30 @@ class TestBankStatementIngestion(TransactionCase):
             },
         ).action_confirm()
         statement.action_confirm_cutover_baseline()
-        self.assertFalse(statement.can_certify)
-        open_issue = statement.exception_ids.filtered(
-            lambda item: item.kind == "unsupported" and item.state == "open",
+        self.assertTrue(statement.can_certify, statement.review_blocking_reason)
+
+    def test_unapproved_sender_fails_every_retained_file_with_guidance(self):
+        ingestion = self._ingestion(
+            "<synthetic-unapproved@example.invalid>",
+            ofx=self.ofx,
+            pdf=self.pdf,
+            sender="Unknown <unknown@example.invalid>",
         )
-        self.assertEqual(len(open_issue), 1)
-        self.assertIn(open_issue.name, statement.review_blocking_reason)
-        self.assertEqual(statement.transaction_check_status, "attention")
-        action = open_issue.action_open_resolution()
-        self.assertEqual(action["res_id"], open_issue.id)
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "failed")
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        self.assertEqual(set(ingestion.file_ids.mapped("processing_state")), {"failed"})
+        self.assertTrue(all(ingestion.file_ids.mapped("processing_detail")))
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file._content(), self.ofx)
 
     def test_accounting_manager_can_resolve_issue_without_ingestion_write_access(self):
         ingestion = self._ingestion(
@@ -948,9 +1032,13 @@ class TestBankStatementIngestion(TransactionCase):
             },
         )
         ingestion.action_process_now()
-        issue = ingestion.exception_ids.filtered(
-            lambda item: item.kind == "unsupported" and item.state == "open",
+        issue = ingestion._ensure_exception(
+            "import",
+            "Synthetic manager decision",
+            "A focused fixture for the exception-resolution access workflow.",
+            statement=ingestion.statement_ids,
         )
+        ingestion._refresh_processing_state()
         manager = new_test_user(
             self.env,
             login="bank-ingestion-issue-manager",
@@ -965,7 +1053,7 @@ class TestBankStatementIngestion(TransactionCase):
         issue.with_user(manager).write(
             {
                 "resolution": "not_relevant",
-                "resolution_reason": "This text file is not part of the bank statement.",
+                "resolution_reason": "The source was reviewed and needs no correction.",
             },
         )
         issue.with_user(manager).action_resolve()
@@ -1090,6 +1178,11 @@ class TestBankStatementIngestion(TransactionCase):
 
         self.assertEqual(ingestion.state, "attention")
         self.assertFalse(ingestion.statement_ids)
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file.processing_state, "failed")
+        self.assertTrue(ofx_file.processing_detail)
         exceptions = ingestion.exception_ids.filtered(
             lambda item: item.kind == "identity" and item.state == "open",
         )
@@ -1119,6 +1212,7 @@ class TestBankStatementIngestion(TransactionCase):
             set(statement.line_ids.mapped("provider_identity_kind")),
             {"approved_fallback"},
         )
+        self.assertEqual(ofx_file.processing_state, "processed")
         self.assertEqual(ingestion.state, "done")
         ingestion.action_retry()
         self.assertEqual(len(statement.line_ids), 3)
