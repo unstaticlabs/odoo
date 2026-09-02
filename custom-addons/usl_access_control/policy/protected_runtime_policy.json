@@ -1896,11 +1896,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "server_action:database:957",
-      "action_name": "reconcile delegated Agent authority",
-      "classification": "protected"
-    },
-    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "action_name": "execute a server action",
       "classification": "protected"
@@ -1923,6 +1918,11 @@
     {
       "action_key": "server_action:project.unlink_task_type_action",
       "action_name": "execute a server action",
+      "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "action_name": "reconcile delegated Agent authority",
       "classification": "protected"
     },
     {
@@ -1956,8 +1956,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "b0986d7261f54ea93d9ea2bf455abd39d3eda21fae31172a800289743c052dec",
-  "runtime_policy_sha256": "50bbc23d99e559a0a43d5643eed0102dbbbb1a5c4e04bb1054f05ce39aa38da5",
+  "qualified_policy_digest": "31a5909233b2ce8176faa5729867fe82063d7d9a31dab93fdab847f5a38fe38b",
+  "runtime_policy_sha256": "2c5e07d3ce4aaef04166ef133116e2ec7baaeb339be4c3327637a8973a317d1f",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2107,10 +2107,6 @@
     {
       "action_key": "server_action:base_vat.vies_iap_check_update_ir_actions_server",
       "classification": "operational"
-    },
-    {
-      "action_key": "server_action:database:957",
-      "classification": "protected"
     },
     {
       "action_key": "server_action:date_range.ir_cron_autocreate_ir_actions_server",
@@ -2523,6 +2519,10 @@
     {
       "action_key": "server_action:stock_account.stock_move_action_adjust_valuation",
       "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "classification": "protected"
     },
     {
       "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",

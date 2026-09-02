@@ -2706,7 +2706,7 @@
     },
     {
       "action_keys": [
-        "server_action:database:957"
+        "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server"
       ],
       "classification": "protected",
       "consequence": "May change security authority or protected control-plane state.",
@@ -2714,14 +2714,14 @@
       "evidence_id": "protected-deny-allow-audit-v1",
       "id": "protected.security_and_administration.governed_agent_20260902",
       "overrides": {
-        "server_action:database:957": {
+        "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server": {
           "action_name": "reconcile delegated Agent authority",
           "guard_key": "guard:automation.server_action.execute"
         }
       },
       "rationale": "The exact semantic guard denies ordinary humans and Agents before effects and records immutable evidence for an authorized human.",
       "reviewed_digests": {
-        "server_action:database:957": "8fd81d8ab05f4b1acd29880e50434b36a7316068f136479b65ca48441db84ce5"
+        "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server": "8fd81d8ab05f4b1acd29880e50434b36a7316068f136479b65ca48441db84ce5"
       }
     },
     {
@@ -182941,7 +182941,7 @@
     {
       "action_keys": [
         "client:usl_access_control:custom-addons/usl_access_control/static/src/js/agent_user_menu.js:module:rpc:1",
-        "ui:database:957",
+        "ui:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
         "ui:usl_access_control.view_users_form_distribution_access:button:object:action_open_owned_agents:1",
         "ui:usl_access_control.view_users_form_simple_agents:button:object:action_open_owned_agents:1",
         "ui:usl_access_control.view_usl_agent_form:button:object:action_acknowledge_authority_reduction:1",
@@ -182968,9 +182968,9 @@
             "rpc:usl.agent.action_my_agents"
           ]
         },
-        "ui:database:957": {
+        "ui:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server": {
           "targets": [
-            "server_action:database:957"
+            "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server"
           ]
         },
         "ui:usl_access_control.view_users_form_distribution_access:button:object:action_open_owned_agents:1": {
@@ -183047,7 +183047,7 @@
       "rationale": "The dispatcher has no direct mutation sink and every statically resolved target is listed explicitly.",
       "reviewed_digests": {
         "client:usl_access_control:custom-addons/usl_access_control/static/src/js/agent_user_menu.js:module:rpc:1": "32caca35591c557e94d7482f679b1f968929997ceb76cc42e4b0f56601d1ea63",
-        "ui:database:957": "cf18fe4e2f02fd14558418c4f41bc67473ae3447915ca8d964cb46219a80b394",
+        "ui:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server": "cf18fe4e2f02fd14558418c4f41bc67473ae3447915ca8d964cb46219a80b394",
         "ui:usl_access_control.view_users_form_distribution_access:button:object:action_open_owned_agents:1": "af5bfef769115ded7a3b28dd6c5c7fcb676e4dcd8a4e0eb5aa55f3ea4d7afcc2",
         "ui:usl_access_control.view_users_form_simple_agents:button:object:action_open_owned_agents:1": "03104b1ffb4b2fec9d448bee221e1556a5624ec71c796a036630b6ccb8fb46ba",
         "ui:usl_access_control.view_usl_agent_form:button:object:action_acknowledge_authority_reduction:1": "8e3f59017b58402b753c05769b555f73856768d78d6eeb80f224e5d7c1954ac3",
@@ -185050,6 +185050,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "b0986d7261f54ea93d9ea2bf455abd39d3eda21fae31172a800289743c052dec",
+  "qualified_policy_digest": "31a5909233b2ce8176faa5729867fe82063d7d9a31dab93fdab847f5a38fe38b",
   "schema": "usl-action-risk-policy-v1"
 }
