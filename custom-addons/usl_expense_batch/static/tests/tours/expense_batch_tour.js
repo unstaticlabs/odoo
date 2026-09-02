@@ -83,7 +83,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
                 ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link:contains('Expenses'))",
         },
         {
-            content: "Shared analytics stay editable while the Batch is draft",
+            content: "Shared analytics stay editable while the Batch is open",
             trigger:
                 ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)",
         },

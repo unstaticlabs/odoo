@@ -129,11 +129,6 @@ msgid "Approve batch"
 msgstr "Approuver le lot"
 
 #. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__approved
-msgid "Approved"
-msgstr "Approuvée"
-
-#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__approved_by_id
 msgid "Approved By"
 msgstr "Approuvée par"
@@ -293,12 +288,6 @@ msgstr "Date de fin"
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
-
-#. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__draft
-#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
-msgid "Draft"
-msgstr "Brouillon"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__draft_count
@@ -639,19 +628,9 @@ msgstr ""
 "figurent dans aucune note peuvent être sélectionnées."
 
 #. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__paid
-msgid "Paid"
-msgstr "Payée"
-
-#. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Post batch"
 msgstr "Comptabiliser le lot"
-
-#. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__posted
-msgid "Posted"
-msgstr "Comptabilisée"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
@@ -717,11 +696,6 @@ msgid "Responsible User"
 msgstr "Utilisateur responsable"
 
 #. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__refused
-msgid "Returned"
-msgstr "Retournée"
-
-#. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Review"
 msgstr "Vérifier"
@@ -742,16 +716,6 @@ msgstr "Sélectionnez au moins une dépense admissible."
 #: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
 msgid "Select at least one expense."
 msgstr "Sélectionnez au moins une dépense."
-
-#. module: usl_expense_batch
-#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__state
-msgid "State"
-msgstr "État"
-
-#. module: usl_expense_batch
-#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
-msgid "Status"
-msgstr "Statut"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__activity_state
@@ -780,11 +744,6 @@ msgid ""
 msgstr ""
 "Envoie uniquement les dépenses en brouillon de cette note pour approbation. "
 "Elles ne sont ni comptabilisées ni payées."
-
-#. module: usl_expense_batch
-#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted
-msgid "Submitted"
-msgstr "Soumise"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__submitted_by_id
@@ -1271,3 +1230,67 @@ msgstr "Traitement comptable"
 #. module: usl_expense_batch
 msgid "History"
 msgstr "Historique"
+
+#. module: usl_expense_batch
+msgid "Active"
+msgstr "Actif"
+
+#. module: usl_expense_batch
+msgid "All paid"
+msgstr "Toutes payées"
+
+#. module: usl_expense_batch
+msgid "All posted"
+msgstr "Toutes comptabilisées"
+
+#. module: usl_expense_batch
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: usl_expense_batch
+msgid "Batch"
+msgstr "Lot"
+
+#. module: usl_expense_batch
+msgid "Expense progress"
+msgstr "Progression des dépenses"
+
+#. module: usl_expense_batch
+msgid "Has drafts"
+msgstr "Contient des brouillons"
+
+#. module: usl_expense_batch
+msgid "No expenses"
+msgstr "Aucune dépense"
+
+#. module: usl_expense_batch
+msgid "Open"
+msgstr "Ouvert"
+
+#. module: usl_expense_batch
+msgid "Returned only"
+msgstr "Toutes retournées"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Reopen this Expense Batch before changing its information."
+msgstr "Rouvrez ce lot de dépenses avant de modifier ses informations."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Reopen this Expense Batch before changing or processing it."
+msgstr "Rouvrez ce lot de dépenses avant de le modifier ou de le traiter."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "The employee and company cannot change after expenses have been added to a Batch."
+msgstr "L’employé et la société ne peuvent plus être modifiés après l’ajout de dépenses au lot."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "%(count)s selected expense(s) fall outside this Batch's intended dates. You can still add and process them."
+msgstr "%(count)s dépense(s) sélectionnée(s) se trouve(nt) hors de la période prévue du lot. Vous pouvez tout de même les ajouter et les traiter."

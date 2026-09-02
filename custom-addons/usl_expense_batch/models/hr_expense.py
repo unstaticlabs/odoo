@@ -601,7 +601,7 @@ class HrExpense(models.Model):
         candidates = self.env["usl.expense.batch"].search([
             ("employee_id", "=", expenses.employee_id.id),
             ("company_id", "=", expenses.company_id.id),
-            ("state", "=", "draft"),
+            ("active", "=", True),
         ])
         result = []
         for batch in candidates:

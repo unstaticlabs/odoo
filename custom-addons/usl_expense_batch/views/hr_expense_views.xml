@@ -79,7 +79,7 @@
             <xpath expr="//field[@name='employee_id']" position="after">
                 <field name="expense_batch_id"
                        readonly="state != 'draft'"
-                       domain="[('employee_id', '=', employee_id), ('company_id', '=', company_id), ('state', '=', 'draft')]"/>
+                       domain="[('employee_id', '=', employee_id), ('company_id', '=', company_id), ('active', '=', True)]"/>
             </xpath>
             <xpath expr="//field[@name='analytic_distribution']" position="after">
                 <field name="analytic_context_source"
