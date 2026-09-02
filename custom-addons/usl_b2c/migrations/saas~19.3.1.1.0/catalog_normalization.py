@@ -999,6 +999,11 @@ class CatalogNormalizer:
                 "schema_digest": item.schema_digest,
                 "payload_digest": item.payload_digest,
                 "attachment_id": item.attachment_id.id or False,
+                "archived_document_id": (
+                    item.archived_document_id.id
+                    if "archived_document_id" in item._fields
+                    else False
+                ),
             }
             for item in evidence
         ]
@@ -1193,7 +1198,11 @@ class CatalogNormalizer:
         evidence_digest = self._digest(before_evidence)
         source_line_digest = self._digest(before_source_lines)
         source_document_ids = sorted(
-            {row["attachment_id"] for row in before_evidence if row["attachment_id"]},
+            {
+                row["archived_document_id"]
+                for row in before_evidence
+                if row["archived_document_id"]
+            },
         )
         report = {
             "schema": "usl-inventory-foundations-normalization-v1",
