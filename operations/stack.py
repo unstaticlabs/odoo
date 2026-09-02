@@ -620,10 +620,74 @@ def health_command(arguments: argparse.Namespace) -> int:
             check=False,
         )
         code = int(process.stdout) if process.returncode == 0 and process.stdout.isdigit() else 0
-        ok = 200 <= code < 500
+        ok = code == 200 if name in {"odoo", "mcp"} else 200 <= code < 500
         endpoints[name] = {"url": url, "status_code": code, "ok": ok}
         if not ok:
             failures.append(f"{name}:http")
+    ingress = target.value["ingress"]
+    odoo_service = target.value["services"]["odoo"]
+    config_probe = (
+        "import configparser,json;"
+        "c=configparser.ConfigParser();c.read('/etc/odoo/odoo.conf');"
+        "o=c['options'];"
+        "print(json.dumps({'proxy_mode':o.getboolean('proxy_mode'),"
+        "'list_db':o.getboolean('list_db'),'dbfilter':o.get('dbfilter')}))"
+    )
+    config_result = runner.run(
+        compose_command(
+            status["compose"],
+            ["exec", "--no-TTY", odoo_service, "python", "-c", config_probe],
+        ),
+        check=False,
+    )
+    odoo_config = None
+    if config_result.returncode:
+        failures.append("odoo:config-unreadable")
+    else:
+        try:
+            odoo_config = json.loads(config_result.stdout.strip())
+        except json.JSONDecodeError:
+            failures.append("odoo:config-invalid")
+        else:
+            expected_config = {
+                "proxy_mode": ingress["proxy_mode"],
+                "list_db": ingress["list_db"],
+                "dbfilter": ingress["dbfilter"],
+            }
+            if odoo_config != expected_config:
+                failures.append("odoo:config-mismatch")
+    websocket_status = {"required": ingress["websocket"], "status_code": None, "ok": True}
+    if ingress["websocket"]:
+        origin = target.value["endpoints"]["odoo"].rstrip("/")
+        websocket_result = runner.run(
+            [
+                "curl",
+                "--silent",
+                "--show-error",
+                "--include",
+                "--no-buffer",
+                "--http1.1",
+                "--max-time",
+                "3",
+                "--header",
+                "Connection: Upgrade",
+                "--header",
+                "Upgrade: websocket",
+                "--header",
+                f"Origin: {origin}",
+                "--header",
+                "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
+                "--header",
+                "Sec-WebSocket-Version: 13",
+                origin + "/websocket",
+            ],
+            check=False,
+        )
+        first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
+        websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+        websocket_status = {"required": True, "status_code": 101 if websocket_ok else 0, "ok": websocket_ok}
+        if not websocket_ok:
+            failures.append("odoo:websocket")
     paperless = target.value["services"]["paperless"]
     ollama = target.value["ollama"]
     probe = (
@@ -653,6 +717,8 @@ def health_command(arguments: argparse.Namespace) -> int:
         "status": "passed" if not failures else "failed",
         "failures": failures,
         "endpoints": endpoints,
+        "odoo_config": odoo_config,
+        "websocket": websocket_status,
         "ollama": ollama_status,
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -982,6 +1048,7 @@ def _generation_overlay(
     volumes: dict[str, str],
     release: dict | None = None,
     available_services: set[str] | None = None,
+    ingress: dict | None = None,
 ) -> str:
     value = {
         "volumes": {
@@ -1003,6 +1070,12 @@ def _generation_overlay(
             for service in services
             if available_services is None or service in available_services
         }
+        if ingress is not None and "odoo" in value["services"]:
+            value["services"]["odoo"]["environment"] = {
+                "ODOO_PROXY_MODE": "True" if ingress["proxy_mode"] else "False",
+                "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
+                "ODOO_DB_FILTER": ingress["dbfilter"],
+            }
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
@@ -1207,7 +1280,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         target,
         target_runner,
         overlay,
-        _generation_overlay(volumes, release, set(images)),
+        _generation_overlay(volumes, release, set(images), target.value["ingress"]),
     )
     generated_prefix = target.value["state_directory"] + "/generations/"
     compose_files = [

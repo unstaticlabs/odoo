@@ -60,6 +60,12 @@
     "paperless": "http://papers.localhost:28671",
     "mcp": "http://mcp.localhost:28672"
   },
+  "ingress": {
+    "proxy_mode": false,
+    "list_db": true,
+    "dbfilter": "^odoo_local$",
+    "websocket": false
+  },
   "ollama": {
     "mode": "native",
     "container": "",

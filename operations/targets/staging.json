@@ -64,6 +64,12 @@
     "paperless": "http://127.0.0.1:19010",
     "mcp": "http://127.0.0.1:19000"
   },
+  "ingress": {
+    "proxy_mode": true,
+    "list_db": false,
+    "dbfilter": "^odoo_staging$",
+    "websocket": true
+  },
   "ollama": {
     "mode": "external",
     "container": "ollama",
