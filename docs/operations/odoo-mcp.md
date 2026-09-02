@@ -40,21 +40,28 @@ database, image, source identity and secret-file paths once. Local macOS uses
 through the existing ingress network; only the reverse proxy should reach the
 container port.
 
-Each MCP request uses either:
+Each MCP request uses a governed Agent credential through either:
 
 - `X-Odoo-Url`, `X-Odoo-Database`, and `X-Odoo-Api-Key`; or
 - the hosted OAuth flow backed by the encrypted SQLite vault.
 
-Direct keys are request-local and are not stored. OAuth credentials are
-encrypted with a dedicated 32-byte key in the persistent
+Direct keys are request-local and are not stored. OAuth enrollment stores the
+Agent credential in the encrypted vault. The human authorizes the client, but
+the distinct Agent remains the Odoo actor for every request. Human API keys,
+suspended Agents and expired credentials are rejected before tools are
+exposed and again before each capability runs.
+
+OAuth credentials are encrypted with a dedicated 32-byte key in the persistent
 `odoo-mcp-oauth-data` volume. The Better Auth and encryption secrets are
 independent mounted files. Never place either secret or an Odoo API key in Git,
 runtime URLs, logs, or deployment instructions.
 
-Full Product Administrators, Technical Administrators, and explicit AI Agent
-identities receive Odoo API-document access. Their normal Odoo application
-groups and active company scope still determine what MCP tools can read or
-change. Accounting Reviewer access alone does not enable MCP discovery.
+Create and rotate credentials in **My Agents**. Application permissions belong
+to the Agent, not to its individual keys. The Agent's delegated application
+groups, its owner's current authority, active companies, Odoo record rules and
+the Distribution safety policy jointly determine what MCP tools may read or
+change. Agents cannot manage identities or credentials and cannot perform
+protected irreversible actions, even when Settings is delegated.
 
 ## Readiness and acceptance
 
@@ -75,8 +82,11 @@ key that is revoked immediately afterward.
 The production environment must use an immutable registry digest, retain the
 same source and revision OCI labels, mount independent mode-0600 Better Auth
 and credential-encryption secrets, and declare a dedicated OAuth volume. The
-cutover gate checks readiness and the unauthenticated 401 boundary; its
-reviewed journey evidence separately proves a complete OAuth connection.
+cutover gate checks readiness, the unauthenticated 401 boundary and the
+`usl.agent.current_identity` compatibility contract. Its reviewed journey
+evidence separately proves a complete OAuth connection and confirms that
+`odoo_describe_environment` identifies the Agent, owner, credential expiry and
+effective companies.
 
 ## Backup, transfer, and rollback
 
