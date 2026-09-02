@@ -1294,3 +1294,83 @@ msgstr "L’employé et la société ne peuvent plus être modifiés après l’
 #: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
 msgid "%(count)s selected expense(s) fall outside this Batch's intended dates. You can still add and process them."
 msgstr "%(count)s dépense(s) sélectionnée(s) se trouve(nt) hors de la période prévue du lot. Vous pouvez tout de même les ajouter et les traiter."
+
+#. module: usl_expense_batch
+msgid "Progress breakdown"
+msgstr "Répartition de l’avancement"
+
+#. module: usl_expense_batch
+msgid "Batch state"
+msgstr "État du lot"
+
+#. module: usl_expense_batch
+msgid "My batches"
+msgstr "Mes lots"
+
+#. module: usl_expense_batch
+msgid "Exceptions"
+msgstr "Exceptions"
+
+#. module: usl_expense_batch
+msgid "Apply context"
+msgstr "Appliquer le contexte"
+
+#. module: usl_expense_batch
+msgid "Receipt"
+msgstr "Justificatif"
+
+#. module: usl_expense_batch
+msgid "Some expenses need attention."
+msgstr "Certaines dépenses sont à vérifier."
+
+#. module: usl_expense_batch
+msgid "Point to a line warning for details."
+msgstr "Survolez l’avertissement d’une ligne pour afficher le détail."
+
+#. module: usl_expense_batch
+msgid "draft"
+msgstr "brouillon"
+
+#. module: usl_expense_batch
+msgid "submitted"
+msgstr "soumise"
+
+#. module: usl_expense_batch
+msgid "approved"
+msgstr "approuvée"
+
+#. module: usl_expense_batch
+msgid "posted"
+msgstr "comptabilisée"
+
+#. module: usl_expense_batch
+msgid "in payment"
+msgstr "en paiement"
+
+#. module: usl_expense_batch
+msgid "paid"
+msgstr "payée"
+
+#. module: usl_expense_batch
+msgid "refused"
+msgstr "refusée"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "%(count)s %(state)s"
+msgstr "%(count)s %(state)s"
+
+#. module: usl_expense_batch
+msgid "Expense Progress"
+msgstr "Avancement des dépenses"
+
+#. module: usl_expense_batch
+msgid "Readiness"
+msgstr "État de préparation"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Exception filtering expects a true or false value."
+msgstr "Le filtre des exceptions attend une valeur vraie ou fausse."

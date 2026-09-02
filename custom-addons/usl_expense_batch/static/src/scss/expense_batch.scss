@@ -1,8 +1,157 @@
 .o_usl_batch_summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(8rem, 1fr));
     border-block: 1px solid var(--border-color, #dee2e6);
+    background: var(--o-view-background-color, #fff);
 
     .o_usl_batch_metric {
-        min-width: 9rem;
+        min-width: 0;
+        padding: 0.85rem 1rem;
+
+        &:not(:last-child) {
+            border-inline-end: 1px solid var(--border-color, #dee2e6);
+        }
+    }
+
+    .o_usl_batch_metric_label {
+        margin-bottom: 0.2rem;
+        color: var(--body-color, #5f6b76);
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .o_usl_batch_metric_detail {
+        margin-top: 0.15rem;
+        color: var(--body-color, #5f6b76);
+        font-size: 0.75rem;
+        line-height: 1.25;
+    }
+
+    .badge {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
+}
+
+.o_usl_expense_batch_title .o_field_text {
+    max-width: 64rem;
+}
+
+.o_usl_expense_batch_title h1 {
+    .o_field_widget[name="name"] {
+        flex: 1 1 24rem;
+        min-width: 0;
+        width: auto;
+    }
+
+    .o_field_widget[name="batch_state"] {
+        flex: 0 0 auto;
+    }
+}
+
+.o_usl_batch_context {
+    padding-block: 0.5rem;
+}
+
+.o_usl_expense_batch_list {
+    td[name="total_amount"],
+    th[data-name="total_amount"] {
+        font-variant-numeric: tabular-nums;
+    }
+
+    td[name="exception_count"]:not(:empty) {
+        font-weight: 600;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .o_usl_batch_summary {
+        grid-template-columns: repeat(2, minmax(8rem, 1fr));
+
+        .o_usl_batch_metric:nth-child(even) {
+            border-inline-end: 0;
+        }
+
+        .o_usl_batch_metric:nth-child(odd):last-child {
+            grid-column: 1 / -1;
+            border-block-start: 1px solid var(--border-color, #dee2e6);
+            border-inline-end: 0;
+        }
+    }
+
+    .o_usl_expense_batch_list {
+        th[data-name="context_type"],
+        td[name="context_type"],
+        th[data-name="date_to"],
+        td[name="date_to"],
+        th[data-name="exception_count"],
+        td[name="exception_count"] {
+            display: none !important;
+        }
+    }
+}
+
+@media (max-width: 575.98px) {
+    .o_usl_batch_summary {
+        grid-template-columns: 1fr;
+
+        .o_usl_batch_metric {
+            border-inline-end: 0;
+            border-block-end: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_usl_batch_metric:last-child {
+            border-block-end: 0;
+        }
+    }
+
+    .o_usl_expense_batch_list {
+        th[data-name="employee_id"],
+        td[name="employee_id"],
+        th[data-name="date_from"],
+        td[name="date_from"],
+        th[data-name="expense_count"],
+        td[name="expense_count"],
+        th[data-name="expense_progress_summary"],
+        td[name="expense_progress_summary"],
+        th[data-name="readiness_state"],
+        td[name="readiness_state"],
+        th[data-name="batch_state"],
+        td[name="batch_state"] {
+            display: none !important;
+        }
+    }
+
+    .o_usl_batch_summary {
+        border: 1px solid var(--border-color, #dee2e6);
+
+        .o_usl_batch_metric,
+        .o_usl_batch_metric:nth-child(odd):last-child {
+            grid-column: auto;
+            border-block-start: 0;
+            border-block-end: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_usl_batch_metric:last-child {
+            border-block-end: 0;
+        }
+    }
+
+    .o_usl_batch_context {
+        > * {
+            grid-column: 1 / -1 !important;
+        }
+
+        > .o_wrap_label {
+            margin-bottom: -0.35rem;
+        }
+
+        .o_row {
+            max-width: 100%;
+        }
     }
 }
 

@@ -19,7 +19,7 @@ export function canCreateExpenseBatch(records) {
 }
 
 export function batchActionIsPrimary(records) {
-    return canCreateExpenseBatch(records) && records.length > 1;
+    return canCreateExpenseBatch(records);
 }
 
 export async function refreshExpenseList(controller) {

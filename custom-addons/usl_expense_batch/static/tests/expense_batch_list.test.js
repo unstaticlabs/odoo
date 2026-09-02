@@ -37,8 +37,8 @@ test("batch creation accepts only unbatched eligible expense states", () => {
     );
 });
 
-test("batch assignment is primary only for eligible multi-selection", () => {
-    expect(batchActionIsPrimary([record("draft")])).toBe(false);
+test("batch assignment is the primary action for every eligible selection", () => {
+    expect(batchActionIsPrimary([record("draft")])).toBe(true);
     expect(batchActionIsPrimary([record("draft"), record("draft")])).toBe(true);
     expect(batchActionIsPrimary([record("draft"), record("submitted")])).toBe(
         false
