@@ -1,3 +1,4 @@
+import codecs
 import datetime as dt
 import hashlib
 import ipaddress
@@ -15,7 +16,7 @@ from io import BytesIO
 from pathlib import PurePosixPath
 from urllib.error import HTTPError, URLError
 
-from lxml import html
+from lxml import etree, html
 from psycopg2 import IntegrityError
 
 from odoo import Command, _, api, fields, models
@@ -33,6 +34,15 @@ MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_MEMBERS = 100
 MAX_COMPRESSION_RATIO = 100
 MISSING_FITID_PREFIX = "__USL_MISSING_FITID_"
+OFX_XML_COMPATIBILITY_HEADER = (
+    b"OFXHEADER:200\n"
+    b"DATA:OFXXML\n"
+    b"VERSION:200\n"
+    b"SECURITY:NONE\n"
+    b"ENCODING:UTF-8\n"
+    b"CHARSET:NONE\n"
+    b"COMPRESSION:NONE\n\n"
+)
 
 
 def _split_config_values(value):
@@ -1338,7 +1348,8 @@ class AccountBankIngestionFile(models.Model):
     def _process_ofx(self):
         self.ensure_one()
         content = self._content()
-        parser_content = self._with_parser_fitid_placeholders(content)
+        parser_content = self._normalize_ofx_parser_content(content)
+        parser_content = self._with_parser_fitid_placeholders(parser_content)
         wizard = (
             self.env["account.statement.import"]
             .with_context(journal_id=self.ingestion_id.journal_id.id)
@@ -1584,6 +1595,19 @@ class AccountBankIngestionFile(models.Model):
             ).sudo().with_context(bank_exception_internal=True).write(
                 {"statement_id": statement.id},
             )
+            self.exception_ids.filtered(
+                lambda item: item.kind == "import" and item.state == "open",
+            ).sudo().with_context(bank_exception_internal=True).write(
+                {
+                    "state": "resolved",
+                    "resolution": "corrected_source",
+                    "resolution_reason": _(
+                        "The retained OFX source parsed and imported successfully on retry.",
+                    ),
+                    "resolved_by_id": self.env.user.id,
+                    "resolved_at": fields.Datetime.now(),
+                },
+            )
         for ordinal, raw_id, candidate in ambiguous:
             exception = self._ensure_exception(
                 "identity",
@@ -1603,6 +1627,122 @@ class AccountBankIngestionFile(models.Model):
             )
         if ambiguous:
             self.processing_state = "attention"
+
+    @api.model
+    def _normalize_ofx_parser_content(self, content):
+        """Return a parser-only UTF-8 copy for OFX 2.x XML.
+
+        ofxparse reads legacy OFX headers before it examines XML processing
+        instructions. Without an ``ENCODING:`` header it decodes the stream as
+        ASCII. Keep legacy SGML byte-for-byte compatible and add the header only
+        to a validated, in-memory OFX XML copy.
+        """
+        stripped = content.lstrip()
+        if stripped.upper().startswith(b"OFXHEADER:"):
+            return content
+
+        probe = content[:8192]
+        if probe.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+            probe_text = probe.decode("utf-32", errors="ignore")
+        elif probe.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+            probe_text = probe.decode("utf-16", errors="ignore")
+        else:
+            probe_text = probe.decode("latin-1")
+
+        xml_declaration = re.search(
+            r"<\?xml\b[^>]*\bencoding\s*=\s*(['\"])([^'\"]+)\1",
+            probe_text,
+            re.I,
+        )
+        ofx_instruction = re.search(
+            r"<\?ofx\b([^>]*)\?>",
+            probe_text,
+            re.I,
+        )
+        ofx_encoding = (
+            re.search(
+                r"\bencoding\s*=\s*(['\"])([^'\"]+)\1",
+                ofx_instruction.group(1),
+                re.I,
+            )
+            if ofx_instruction
+            else None
+        )
+        xml_encoding = xml_declaration.group(2).strip() if xml_declaration else None
+        instruction_encoding = (
+            ofx_encoding.group(2).strip() if ofx_encoding else None
+        )
+        explicit_xml = bool(xml_declaration or ofx_instruction)
+        unsupported_encoding_message = _(
+            "The OFX XML declares an unsupported encoding: %(encoding)s.",
+        )
+
+        def resolve_encoding(name):
+            try:
+                return codecs.lookup(name).name
+            except (LookupError, TypeError) as error:
+                raise UserError(
+                    unsupported_encoding_message
+                    % {"encoding": name or _("empty")},
+                ) from error
+
+        resolved_xml = resolve_encoding(xml_encoding) if xml_encoding else None
+        resolved_instruction = (
+            resolve_encoding(instruction_encoding)
+            if instruction_encoding
+            else None
+        )
+        if (
+            resolved_xml
+            and resolved_instruction
+            and resolved_xml != resolved_instruction
+        ):
+            raise UserError(
+                _(
+                    "The OFX XML declares conflicting encodings: %(xml)s and %(ofx)s.",
+                    xml=xml_encoding,
+                    ofx=instruction_encoding,
+                ),
+            )
+        encoding = resolved_xml or resolved_instruction or "utf-8"
+        try:
+            xml_text = content.decode(encoding).lstrip("\ufeff")
+        except UnicodeError as error:
+            raise UserError(
+                _(
+                    "The OFX XML is not valid %(encoding)s text.",
+                    encoding=xml_encoding or instruction_encoding or "UTF-8",
+                ),
+            ) from error
+
+        parser_xml = re.sub(
+            r"(<\?xml\b[^>]*\bencoding\s*=\s*['\"])[^'\"]+(['\"])",
+            r"\1UTF-8\2",
+            xml_text,
+            count=1,
+            flags=re.I,
+        ).encode("utf-8")
+        try:
+            root = etree.fromstring(
+                parser_xml,
+                parser=etree.XMLParser(
+                    recover=False,
+                    resolve_entities=False,
+                    no_network=True,
+                ),
+            )
+        except (etree.XMLSyntaxError, ValueError) as error:
+            if not explicit_xml:
+                return content
+            detail = getattr(error, "msg", None) or str(error).splitlines()[0]
+            raise UserError(
+                _("The OFX XML attachment is malformed: %(detail)s", detail=detail),
+            ) from error
+        if etree.QName(root).localname.upper() != "OFX":
+            if not explicit_xml:
+                return content
+            raise UserError(_("The XML attachment does not contain an OFX document."))
+        return OFX_XML_COMPATIBILITY_HEADER + parser_xml
 
     @api.model
     def _with_parser_fitid_placeholders(self, content):
