@@ -3,11 +3,11 @@ import uuid
 from copy import deepcopy
 
 from odoo import SUPERUSER_ID, Command, _, api, fields, models
-from odoo.addons.base.models.res_users import check_identity
+from odoo.addons.base.models.res_users import KEY_CRYPT_CONTEXT, check_identity
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
 
-from ..exceptions import AgentPolicyAccessError
+from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
@@ -735,6 +735,36 @@ class ResUsersApikeys(models.Model):
     def _check_credentials(self, *, scope, key):
         uid = super()._check_credentials(scope=scope, key=key)
         if not uid:
+            # Native API-key authentication deliberately ignores inactive
+            # users. Governed Agent users are inactive while suspended, so
+            # verify only matching, unexpired governed-key candidates to
+            # return the stable suspension code. Never authenticate through
+            # this fallback: an exact match can only be denied.
+            self.env.cr.execute(
+                """
+                SELECT native_key.user_id, native_key.key
+                  FROM res_users_apikeys AS native_key
+                  JOIN usl_agent_credential AS credential
+                    ON credential.native_key_id = native_key.id
+                  JOIN usl_agent AS agent
+                    ON agent.id = credential.agent_id
+                 WHERE native_key.index = %s
+                   AND (native_key.scope IS NULL OR native_key.scope = %s)
+                   AND (
+                        native_key.expiration_date IS NULL
+                        OR native_key.expiration_date >= now() at time zone 'utc'
+                   )
+                   AND credential.revoked_at IS NULL
+                   AND credential.expiration_date > now() at time zone 'utc'
+                """,
+                [key[:8], scope],
+            )
+            exact_governed_key = any(
+                KEY_CRYPT_CONTEXT.verify(key, candidate)
+                for _user_id, candidate in self.env.cr.fetchall()
+            )
+            if exact_governed_key:
+                raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
             return uid
         # Bearer authentication runs before ``request.update_env(user=uid)``.
         # At that point the transaction may not yet have a default user
@@ -748,10 +778,13 @@ class ResUsersApikeys(models.Model):
         if not agent and not user.usl_is_ai_agent:
             return uid
         if not agent:
-            raise AccessDenied(_("This Agent identity is not governed."))
+            raise AgentAuthenticationError(
+                _("This Agent identity is not governed."),
+                "agent_principal_required",
+            )
         agent._reconcile_authority()
         if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
-            raise AccessDenied(_("This Agent is suspended."))
+            raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
         governance_env.cr.execute(
             "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
             [uid, key[:8]],

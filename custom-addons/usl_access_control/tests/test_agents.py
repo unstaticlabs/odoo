@@ -4,7 +4,7 @@ from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
-from ..exceptions import AgentPolicyAccessError
+from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..models.agent import UslAgentCredential, UslAgentKeyWizard, UslAgentTransferWizard
 
 
@@ -303,6 +303,15 @@ class TestAutonomousAgents(TransactionCase):
         self.assertFalse(
             self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key),
         )
+
+    def test_suspended_agent_key_returns_stable_authentication_error(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        agent.sudo().with_context(usl_agent_internal=True).write({"state": "suspended"})
+        agent._sync_backing_user()
+        with self.assertRaises(AgentAuthenticationError) as denied:
+            self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+        self.assertEqual(denied.exception.context["usl_code"], "agent_suspended")
 
     def test_needs_attention_search_includes_authority_reduction(self):
         agent = self._create_agent()
