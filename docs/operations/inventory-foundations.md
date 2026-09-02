@@ -32,7 +32,11 @@ The normalizer groups products only when identity is exact:
 The expected catalog result includes native variants for POD apparel and
 accessories, stocked chain products, collars, padlocks, and resale packs.
 Expense, service and delivery classifications remain separate products.
-Unallocated Quandun and Master Lock physical-unit records remain unchanged.
+The explicit `40 mm Quandun padlocks — colours unallocated — May 2026 batch`
+and `Master Lock 9120EUR — assorted colours — unallocated physical units`
+placeholders remain separate and unchanged. Exact colour variants evidenced
+for the ordinary Master Lock physical-unit family are still normalized; the
+placeholder is not used as their source.
 
 The Etsy hoodie listing `1838821663` is intentionally blocked: the frozen
 evidence assigns conflicting SKUs to the same apparent colour/size

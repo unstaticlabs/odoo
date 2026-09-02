@@ -436,7 +436,7 @@ class CatalogNormalizer:
             )
         if not current_lines:
             template.write({"attribute_line_ids": lines})
-        template._create_variant_ids()
+            template._create_variant_ids()
         expected = {
             tuple(sorted((canonical_attribute_name(a), normalized_text(v)) for a, v in combo))
             for combo in combinations
