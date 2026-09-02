@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from runpy import run_path
+from types import SimpleNamespace
 
 from psycopg2 import IntegrityError
 
@@ -127,6 +128,9 @@ class TestB2cFoundation(TransactionCase):
             "installed",
         )
         self.assertFalse(self.unauthorized.has_group("stock.group_stock_manager"))
+        unpacker = self.env.ref("usl_b2c.group_b2c_pack_unpacker")
+        self.assertIn(self.env.ref("mrp.group_mrp_user"), unpacker.implied_ids)
+        self.assertNotIn(unpacker, self.operator.group_ids)
 
     def test_source_name_variation_aliases_are_distinct_without_a_sku(self):
         base_values = {
@@ -172,6 +176,132 @@ class TestB2cFoundation(TransactionCase):
             {**base_values, "original_variation": "Color:Blue"},
         )
         self.assertNotEqual(red.alias_key, blue.alias_key)
+
+    def test_generic_provider_sku_keeps_exact_variations_distinct(self):
+        base_values = {
+            "company_id": self.company.id,
+            "channel_id": self.channel.id,
+            "source_provider": "etsy",
+            "external_listing_id": "1838821663",
+            "original_sku": "67544159BCEB6_10780",
+            "source_sku_is_unique": False,
+            "original_name": "good boys obey – hoodie summer (2025.06) – limited edition",
+        }
+        black_small = self.env["b2c.product.alias"].create(
+            {**base_values, "original_variation": "Color:Black,Men's chest size:S"},
+        )
+        maroon_medium = self.env["b2c.product.alias"].create(
+            {**base_values, "original_variation": "Color:Maroon,Men's chest size:M"},
+        )
+        self.assertEqual(black_small.original_sku, "67544159BCEB6_10780")
+        self.assertEqual(maroon_medium.original_sku, "67544159BCEB6_10780")
+        self.assertNotEqual(black_small.alias_key, maroon_medium.alias_key)
+
+    def test_reconfigured_etsy_listing_has_two_product_generations(self):
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.1.0"
+            / "catalog_normalization.py",
+        )
+        original = SimpleNamespace(
+            source_provider="etsy",
+            external_listing_id="1838821663",
+            original_name="Good Boys Obey Hoodie by SBFH",
+        )
+        summer = SimpleNamespace(
+            source_provider="etsy",
+            external_listing_id="1838821663",
+            original_name="good boys obey – hoodie summer (2025.06) – limited edition",
+        )
+        self.assertEqual(migration["family_key"](original), "1838821663::original")
+        self.assertEqual(
+            migration["family_key"](summer),
+            "1838821663::summer-2025-06",
+        )
+        self.assertFalse(
+            migration["source_sku_is_unique"](
+                "etsy",
+                "1838821663::summer-2025-06",
+                "67544159BCEB6_10780",
+            ),
+        )
+        self.assertTrue(
+            migration["source_sku_is_unique"](
+                "etsy",
+                "1838821663::original",
+                "67544159BCEB6_10780",
+            ),
+        )
+
+    def test_supplier_pack_opens_exact_native_unbuild_recipe(self):
+        unit = self.env["product.product"].create(
+            {
+                "name": "Test saleable lock",
+                "is_storable": True,
+                "purchase_ok": False,
+            },
+        )
+        unit.product_tmpl_id.b2c_inventory_role = "saleable_unit"
+        pack = self.env["product.product"].create(
+            {
+                "name": "Test supplier two-pack",
+                "is_storable": True,
+                "sale_ok": False,
+                "purchase_ok": True,
+            },
+        )
+        pack.product_tmpl_id.b2c_inventory_role = "supplier_pack"
+        bom = self.env["mrp.bom"].create(
+            {
+                "product_tmpl_id": pack.product_tmpl_id.id,
+                "product_id": pack.id,
+                "product_qty": 1,
+                "uom_id": pack.uom_id.id,
+                "type": "normal",
+                "bom_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": unit.id,
+                            "product_qty": 2,
+                            "uom_id": unit.uom_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        action = pack.action_usl_unpack_supplier_pack()
+        self.assertEqual(action["res_model"], "mrp.unbuild")
+        self.assertEqual(action["context"]["default_product_id"], pack.id)
+        self.assertEqual(action["context"]["default_bom_id"], bom.id)
+        self.assertEqual(bom.bom_line_ids.product_qty, 2)
+
+        location = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.company.id)],
+            limit=1,
+        ).lot_stock_id
+        self.env["stock.quant"]._update_available_quantity(pack, location, 1)
+        unbuild = self.env["mrp.unbuild"].create(
+            {
+                "company_id": self.company.id,
+                "product_id": pack.id,
+                "product_qty": 1,
+                "uom_id": pack.uom_id.id,
+                "bom_id": bom.id,
+                "location_id": location.id,
+                "location_dest_id": location.id,
+            },
+        )
+        unbuild.action_validate()
+        self.assertEqual(unbuild.state, "done")
+        self.assertEqual(
+            self.env["stock.quant"]._get_available_quantity(pack, location),
+            0,
+        )
+        self.assertEqual(
+            self.env["stock.quant"]._get_available_quantity(unit, location),
+            2,
+        )
 
     def test_catalog_variation_parser_preserves_real_attributes(self):
         migration = run_path(

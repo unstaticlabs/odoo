@@ -2868,3 +2868,55 @@ msgstr "Messages du site web"
 #: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__website_message_ids
 msgid "Website communication history"
 msgstr "Historique de communication du site web"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__b2c_inventory_role
+#: model:ir.model.fields,field_description:usl_b2c.field_product_product__b2c_inventory_role
+msgid "Inventory Role"
+msgstr "Rôle dans l’inventaire"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_inventory_role__ordinary
+msgid "Ordinary product"
+msgstr "Produit ordinaire"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_inventory_role__supplier_pack
+msgid "Supplier pack to unpack"
+msgstr "Lot fournisseur à déconditionner"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_inventory_role__saleable_unit
+msgid "Saleable inventory unit"
+msgstr "Unité de stock vendable"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_inventory_role__pending_allocation
+msgid "Internal units awaiting allocation"
+msgstr "Unités internes en attente d’affectation"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__source_sku_is_unique
+msgid "Source SKU uniquely identifies a variant"
+msgstr "Le SKU source identifie une variante de manière unique"
+
+#. module: usl_b2c
+#: model:res.groups,name:usl_b2c.group_b2c_pack_unpacker
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_product_form_b2c_unpack
+msgid "Unpack supplier packs"
+msgstr "Déconditionner les lots fournisseur"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_product_form_b2c_unpack
+msgid "Unpack supplier pack"
+msgstr "Déconditionner le lot fournisseur"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
+msgid "This is a purchasing pack, not a saleable unit. Receive it as purchased, then open the exact variant and use Unpack supplier pack to create its individual inventory units."
+msgstr "Il s’agit d’un lot d’achat, et non d’une unité vendable. Réceptionnez-le tel qu’acheté, puis ouvrez la variante exacte et utilisez Déconditionner le lot fournisseur pour créer les unités individuelles en stock."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
+msgid "This is an internal holding identity for units whose exact colour is not yet evidenced. Do not sell it. Allocate only from a reviewed physical count; never infer current stock from gross purchases."
+msgstr "Il s’agit d’une identité interne temporaire pour des unités dont la couleur exacte n’est pas encore justifiée. Ne la vendez pas. Affectez les couleurs uniquement à partir d’un inventaire physique vérifié ; ne déduisez jamais le stock actuel des achats bruts."

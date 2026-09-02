@@ -32,17 +32,41 @@ The normalizer groups products only when identity is exact:
 The expected catalog result includes native variants for POD apparel and
 accessories, stocked chain products, collars, padlocks, and resale packs.
 Expense, service and delivery classifications remain separate products.
-The explicit `40 mm Quandun padlocks — colours unallocated — May 2026 batch`
-and `Master Lock 9120EUR — assorted colours — unallocated physical units`
-placeholders remain separate and unchanged. Exact colour variants evidenced
-for the ordinary Master Lock physical-unit family are still normalized; the
-placeholder is not used as their source.
+The Etsy hoodie listing `1838821663` contains two documented catalog
+generations. The normalizer keeps the original and summer 2025 products as
+separate templates. Etsy later reused `_10780` across several colour/size
+combinations, so that value remains immutable source evidence but is explicitly
+marked non-unique. It is never assigned as the internal reference of those
+later variants; exact title and variation identify them instead.
 
-The Etsy hoodie listing `1838821663` is intentionally blocked: the frozen
-evidence assigns conflicting SKUs to the same apparent colour/size
-combinations. Resolve that provider evidence before normalizing the family.
+Master Lock commercial packs remain distinct purchasing products. They are
+storable and purchasable, but not saleable. The individual coloured locks are
+separate saleable inventory variants and are not directly purchased. Each
+known pack has one exact native unpacking recipe:
+
+- `TBLK` produces two black individual locks;
+- `QBLKNOP` produces four black individual locks;
+- `QCOLNOP` produces four internal units awaiting colour allocation.
+
+The product-variant form exposes **Unpack supplier pack**, which opens Odoo's
+native Unbuild Order with the exact pack recipe. It creates inventory movements
+only when an authorized operator validates the order; the migration itself
+creates no quantities or movements.
+
+The two old “unallocated” records remain as historical identities, but their
+operational role is now explicit: they are internal, non-saleable,
+non-purchasable holding products for units whose colours are not yet evidenced.
+They are not variants and do not appear in the customer catalog.
 
 ## Opening inventory and future configuration
+
+Supplier evidence reconstructs gross acquisitions, including 200 Quandun locks
+from the first order, 90 colour-unallocated Quandun locks from the later order,
+130 black Master Lock units and 12 assorted Master Lock units. Those figures do
+not establish present on-hand stock: sales, gifts, samples, damage and other
+movements occurred outside native Inventory. The known 130-versus-39 Master
+Lock variance demonstrates why gross purchases cannot be posted as current
+quants.
 
 The Online source contains no native historical stock operations and no
 approved physical opening count. Before entering stock:
@@ -51,7 +75,8 @@ approved physical opening count. Before entering stock:
 2. decide which products require lot or serial tracking;
 3. review product weights, volumes, packagings and replenishment rules;
 4. enter opening quantities through a native inventory adjustment;
-5. reconcile the resulting valuation with Accounting.
+5. reconcile the resulting valuation with Accounting;
+6. allocate pending-colour units only from that signed count.
 
 Landed Costs is installed but remains unconfigured if no unique restored stock
 journal and exact freight, customs or brokerage product exists. A future
@@ -59,8 +84,7 @@ configuration must choose the journal, valuation accounts, eligible cost
 products and allocation methods from reviewed business evidence. Do not infer
 weights, volumes or historical receipts.
 
-Master Lock commercial packs retain their distinct ASIN/SKU combinations as
-variants. Raw AISI 304 chain uses diameter variants; A4/316 remains separate so
+Raw AISI 304 chain uses diameter variants; A4/316 remains separate so
 Odoo cannot offer impossible material/diameter combinations. Any later merge,
 manufacturing design or cross-channel catalog merge requires explicit product
 identity and bill-of-material evidence.

@@ -28,6 +28,18 @@ class B2cProductAlias(models.Model):
     )
     source_provider = fields.Selection(SOURCE_PROVIDERS, required=True, index=True)
     original_sku = fields.Char(index=True, copy=False)
+    source_sku_is_unique = fields.Boolean(
+        string="Source SKU uniquely identifies a variant",
+        default=True,
+        required=True,
+        copy=False,
+        help=(
+            "Clear this only when provider evidence proves that the source reused "
+            "one generic SKU for several distinct variants. The original SKU is "
+            "preserved, while product matching also uses the exact source name and "
+            "variation."
+        ),
+    )
     original_name = fields.Char(copy=False)
     original_variation = fields.Text(copy=False)
     external_listing_id = fields.Char(index=True, copy=False)
@@ -82,6 +94,7 @@ class B2cProductAlias(models.Model):
         "source_provider",
         "channel_id",
         "original_sku",
+        "source_sku_is_unique",
         "external_listing_id",
         "original_name",
         "original_variation",
@@ -90,7 +103,7 @@ class B2cProductAlias(models.Model):
         for alias in self:
             sku = (alias.original_sku or "").strip()
             listing = (alias.external_listing_id or "").strip()
-            fallback = not sku
+            fallback = not sku or not alias.source_sku_is_unique
             payload = "\x1f".join(
                 [
                     alias.source_provider or "",

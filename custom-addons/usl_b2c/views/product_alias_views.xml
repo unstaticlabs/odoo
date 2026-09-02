@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="original_sku"/>
+                <field name="source_sku_is_unique" optional="hide"/>
                 <field name="original_name"/>
                 <field name="external_listing_id"/>
                 <field name="product_id"/>
@@ -57,6 +58,7 @@
                             <field name="source_provider"/>
                             <field name="channel_id"/>
                             <field name="original_sku"/>
+                            <field name="source_sku_is_unique"/>
                             <field name="external_listing_id"/>
                             <field name="original_name"/>
                             <field name="original_variation"/>

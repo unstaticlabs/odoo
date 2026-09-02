@@ -125,6 +125,12 @@ to make that gap disappear.
 The normalization preserves raw provider rows, original titles, variations,
 SKUs, linked documents and cost-history row identity. It may advance a reviewed
 alias from `not_applicable` to `verified`, but never rewrites the source fields.
-Unallocated physical-unit records remain separate until a dated physical count
-supports allocation. Products with conflicting provider identity remain
-unchanged and appear in the normalization report.
+Commercial supplier packs and individual saleable locks are separate products.
+Known pack contents use exact native unpacking recipes; assorted contents flow
+to an internal pending-colour identity until a dated physical count supports
+allocation. Gross purchased quantities are evidence, not current stock.
+
+When a provider reuses one generic SKU for several variants, the source SKU is
+preserved but marked non-unique. The alias then uses the exact source product
+generation and variation. Etsy listing `1838821663` follows this rule for the
+later `_10780` records, while its original catalog generation remains separate.

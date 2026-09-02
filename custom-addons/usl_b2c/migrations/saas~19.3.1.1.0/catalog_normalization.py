@@ -19,18 +19,24 @@ from odoo import Command, fields
 
 CATALOG_MODE = os.environ.get("USL_B2C_CATALOG_MODE", "dry-run")
 EXPECTED_PROVIDERS = {"etsy", "medusa"}
-BLOCKED_FAMILIES = {
-    ("etsy", "1838821663"): (
-        "The same Etsy variation is evidenced with conflicting source SKUs; "
-        "the family requires reviewed provider evidence before normalization."
-    ),
+BLOCKED_FAMILIES = {}
+
+ETSY_RECONFIGURED_GENERATIONS = {
+    "1838821663": {
+        "good boys obey hoodie by sbfh": "original",
+        "good boys obey – hoodie summer (2025.06) – limited edition": "summer-2025-06",
+    },
+}
+GENERIC_SOURCE_SKU_SUFFIXES = {
+    ("etsy", "1838821663::summer-2025-06", "_10780"),
 }
 
 ETSY_FAMILIES = {
     "1827574902",
     "1835869928",
     "1835871476",
-    "1838821663",
+    "1838821663::original",
+    "1838821663::summer-2025-06",
     "1850659208",
     "1890044896",
     "4298199085",
@@ -89,6 +95,18 @@ MASTER_UNIT_CODES = {
     "PADLOCK_MASTER_9120EUR_BLACK": "Black",
     "PADLOCK_MASTER_9120EUR_BLUE": "Blue",
     "PADLOCK_MASTER_9120EUR_PINK": "Pink",
+}
+PENDING_ALLOCATION_CODES = {
+    "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+    "PADLOCK_QD40_UNALLOCATED_2026-05",
+}
+MASTER_PACK_CONTENTS = {
+    "GBC-ML-9120-TBLK": ("PADLOCK_MASTER_9120EUR_BLACK", 2.0),
+    "GBC-ML-9120-QBLKNOP": ("PADLOCK_MASTER_9120EUR_BLACK", 4.0),
+    "GBC-ML-9120-QCOLNOP": (
+        "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+        4.0,
+    ),
 }
 
 ATTRIBUTE_ALIASES = {
@@ -166,8 +184,25 @@ def canonical_attribute_name(value):
 
 def family_key(line):
     if line.source_provider == "etsy":
-        return (line.external_listing_id or "").strip()
+        listing = (line.external_listing_id or "").strip()
+        generations = ETSY_RECONFIGURED_GENERATIONS.get(listing)
+        if generations:
+            generation = generations.get(normalized_text(line.original_name))
+            if not generation:
+                return f"{listing}::unknown-generation"
+            return f"{listing}::{generation}"
+        return listing
     return normalized_text(line.original_name)
+
+
+def source_sku_is_unique(provider, key, sku):
+    source_sku = (sku or "").strip()
+    return not any(
+        provider == generic_provider
+        and key == generic_key
+        and source_sku.endswith(generic_suffix)
+        for generic_provider, generic_key, generic_suffix in GENERIC_SOURCE_SKU_SUFFIXES
+    )
 
 
 def parse_etsy_variation(raw):
@@ -681,9 +716,19 @@ class CatalogNormalizer:
                 raise CatalogNormalizationError(
                     f"{provider}/{key} has two source variations for {combination!r}",
                 )
+            source_sku = skus[0] if skus else False
             raw_variants[combination] = {
                 "variation": variation,
-                "sku": skus[0] if skus else False,
+                "sku": (
+                    source_sku
+                    if source_sku_is_unique(provider, key, source_sku)
+                    else False
+                ),
+                "source_sku_is_unique": source_sku_is_unique(
+                    provider,
+                    key,
+                    source_sku,
+                ),
                 "lines": matching,
             }
         attributes = sorted(
@@ -714,6 +759,24 @@ class CatalogNormalizer:
         return self.env["product.template"]
 
     def _verify_alias_and_lines(self, product, lines):
+        generic_aliases = self.env["b2c.product.alias"].sudo()
+        for line in lines:
+            key = family_key(line)
+            if source_sku_is_unique(line.source_provider, key, line.original_sku):
+                continue
+            generic_aliases |= self.env["b2c.product.alias"].sudo().search(
+                [
+                    ("company_id", "=", line.company_id.id),
+                    ("channel_id", "=", line.channel_id.id),
+                    ("source_provider", "=", line.source_provider),
+                    ("original_sku", "=", line.original_sku),
+                    ("external_listing_id", "=", line.external_listing_id),
+                ],
+            )
+        if generic_aliases:
+            generic_aliases.filtered("source_sku_is_unique").write(
+                {"source_sku_is_unique": False},
+            )
         grouped = defaultdict(lambda: self.env["b2c.order.line"])
         for line in lines:
             grouped[
@@ -729,6 +792,8 @@ class CatalogNormalizer:
             ] |= line
         for key, exact_lines in grouped.items():
             company_id, channel_id, provider, sku, listing, name, variation = key
+            provider_key = family_key(exact_lines[0])
+            sku_is_unique = source_sku_is_unique(provider, provider_key, sku)
             domain = [
                 ("company_id", "=", company_id),
                 ("channel_id", "=", channel_id),
@@ -736,7 +801,7 @@ class CatalogNormalizer:
                 ("original_sku", "=", sku),
                 ("external_listing_id", "=", listing),
             ]
-            if not sku:
+            if not sku or not sku_is_unique:
                 domain.extend(
                     [("original_name", "=", name), ("original_variation", "=", variation)],
                 )
@@ -748,6 +813,7 @@ class CatalogNormalizer:
                 "channel_id": channel_id,
                 "source_provider": provider,
                 "original_sku": sku,
+                "source_sku_is_unique": sku_is_unique,
                 "external_listing_id": listing,
                 "original_name": name,
                 "original_variation": variation,
@@ -763,6 +829,8 @@ class CatalogNormalizer:
                 ),
             }
             if alias:
+                if alias.source_sku_is_unique != sku_is_unique:
+                    alias.source_sku_is_unique = sku_is_unique
                 changed = {
                     field_name: value
                     for field_name, value in mapping_values.items()
@@ -829,6 +897,113 @@ class CatalogNormalizer:
             if item["sku"]:
                 product.default_code = item["sku"]
             self._verify_alias_and_lines(product, item["lines"])
+
+    def _unique_product_by_code(self, code):
+        products = (
+            self.env["product.product"]
+            .sudo()
+            .with_context(active_test=False)
+            .search([("default_code", "=", code)], limit=2)
+        )
+        if len(products) != 1:
+            raise CatalogNormalizationError(
+                f"Internal reference {code!r} does not identify exactly one product.",
+            )
+        return products
+
+    def _ensure_unpack_bom(self, pack, component, component_qty):
+        boms = self.env["mrp.bom"].sudo().search(
+            [
+                ("product_id", "=", pack.id),
+                ("type", "=", "normal"),
+                "|",
+                ("company_id", "=", pack.company_id.id),
+                ("company_id", "=", False),
+            ],
+        )
+        exact = boms.filtered(
+            lambda bom: bom.product_qty == 1
+            and len(bom.bom_line_ids) == 1
+            and bom.bom_line_ids.product_id == component
+            and bom.bom_line_ids.product_qty == component_qty
+            and bom.bom_line_ids.uom_id == component.uom_id
+        )
+        if boms and len(exact) != 1:
+            raise CatalogNormalizationError(
+                f"Supplier pack {pack.default_code!r} has a conflicting unpacking recipe.",
+            )
+        if exact:
+            return exact
+        if self.mode == "dry-run":
+            self.changes["supplier_unpack_boms_planned"] += 1
+            return exact
+        bom = self.env["mrp.bom"].sudo().create(
+            {
+                "product_tmpl_id": pack.product_tmpl_id.id,
+                "product_id": pack.id,
+                "product_qty": 1,
+                "uom_id": pack.uom_id.id,
+                "type": "normal",
+                "company_id": pack.company_id.id or False,
+                "bom_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": component.id,
+                            "product_qty": component_qty,
+                            "uom_id": component.uom_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        self.changes["supplier_unpack_boms_created"] += 1
+        return bom
+
+    def _configure_pack_and_holding_products(self, pack_products, unit_products):
+        pending = {
+            code: self._unique_product_by_code(code)
+            for code in PENDING_ALLOCATION_CODES
+        }
+        if self.mode == "apply":
+            pack_records = sum(pack_products.values(), self.env["product.product"])
+            pack_records.product_tmpl_id.write(
+                {
+                    "type": "consu",
+                    "is_storable": True,
+                    "sale_ok": False,
+                    "purchase_ok": True,
+                    "b2c_inventory_role": "supplier_pack",
+                    "b2c_opening_stock_state": "not_evidenced",
+                },
+            )
+            sum(unit_products.values(), self.env["product.product"]).product_tmpl_id.write(
+                {
+                    "type": "consu",
+                    "is_storable": True,
+                    "sale_ok": True,
+                    "purchase_ok": False,
+                    "b2c_inventory_role": "saleable_unit",
+                    "b2c_opening_stock_state": "not_evidenced",
+                },
+            )
+            for product in pending.values():
+                product.product_tmpl_id.write(
+                    {
+                        "type": "consu",
+                        "is_storable": True,
+                        "sale_ok": False,
+                        "purchase_ok": False,
+                        "b2c_inventory_role": "pending_allocation",
+                        "b2c_opening_stock_state": "not_evidenced",
+                    },
+                )
+        all_products = {**pack_products, **unit_products, **pending}
+        for pack_code, (component_code, quantity) in MASTER_PACK_CONTENTS.items():
+            self._ensure_unpack_bom(
+                all_products[pack_code],
+                all_products[component_code],
+                quantity,
+            )
 
     def _map_padlock_family(self, provider, key, lines, products_by_code):
         variants = self._family_variants(provider, key, lines)
@@ -899,7 +1074,7 @@ class CatalogNormalizer:
                 f"Master Lock physical unit has protected references: {references}",
             )
         if self.mode == "dry-run":
-            return self.env["product.template"], {}
+            return self.env["product.template"], found
         template = source.product_tmpl_id.copy(
             default={
                 "name": "Master Lock 9120 physical unit",
@@ -1127,7 +1302,7 @@ class CatalogNormalizer:
             CHAIN_CODES,
             "diameter",
         )
-        self._consolidate_existing(
+        _master_pack_template, master_pack_products = self._consolidate_existing(
             "Master Lock 9120 commercial pack",
             MASTER_PACK_CODES,
             "package",
@@ -1135,6 +1310,7 @@ class CatalogNormalizer:
         for family, reason in BLOCKED_FAMILIES.items():
             self.blocked[f"{family[0]}/{family[1]}"] = reason
 
+        master_unit_products = {}
         for (provider, key), lines in sorted(observed.items()):
             if (provider, key) in BLOCKED_FAMILIES:
                 continue
@@ -1145,7 +1321,11 @@ class CatalogNormalizer:
                 self._map_padlock_family(provider, key, lines, padlock_products)
                 continue
             if provider == "medusa" and key == "master padlock 20mm":
-                self._master_unit_template(company, resale_category, lines)
+                _master_unit_template, master_unit_products = self._master_unit_template(
+                    company,
+                    resale_category,
+                    lines,
+                )
                 continue
             changes_before = dict(self.changes)
             templates_before = list(self.created_templates)
@@ -1164,6 +1344,15 @@ class CatalogNormalizer:
                 self._attributes = {}
                 self.blocked[f"{provider}/{key}"] = str(error)
                 self.family_report[f"{provider}/{key}"]["status"] = "blocked"
+
+        if self.mode == "apply" and len(master_unit_products) != len(MASTER_UNIT_CODES):
+            raise CatalogNormalizationError(
+                "Master Lock individual-unit family is incomplete after normalization.",
+            )
+        self._configure_pack_and_holding_products(
+            master_pack_products,
+            master_unit_products,
+        )
 
         if self.mode == "apply":
             self._refresh_order_mapping_states(company)
