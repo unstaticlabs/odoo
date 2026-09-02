@@ -15,7 +15,7 @@ import { useService } from "@web/core/utils/hooks";
 import {
     Component,
     markup,
-    onWillStart,
+    onMounted,
     onWillUnmount,
     onWillUpdateProps,
     useState,
@@ -81,23 +81,29 @@ export class FeedbackChatter extends Chatter {
     static template = "usl_feedback.FeedbackChatter";
     static components = { Composer, Thread };
     static props = [
+        ...Chatter.props,
         "agentActivity",
         "agentState",
         "busy",
-        "composer",
         "onConfirm",
         "onMessagePosted",
         "onOpenTask",
         "onRetry",
         "placeholder",
         "task",
-        "threadId",
-        "threadModel",
     ];
 
     async onPostCallback() {
         await super.onPostCallback(...arguments);
         await this.props.onMessagePosted();
+    }
+
+    get childSubEnv() {
+        return {
+            ...super.childSubEnv,
+            // This is a task-backed chat, not the form chatter. Use native chat sending.
+            inChatter: false,
+        };
     }
 }
 
@@ -137,7 +143,7 @@ export class FeedbackPanel extends Component {
         });
         this.pollTimer = false;
         this.progressTimer = false;
-        onWillStart(() => this.startDraft());
+        onMounted(() => this.startDraft());
         onWillUnmount(() => {
             browser.clearTimeout(this.pollTimer);
             browser.clearTimeout(this.progressTimer);
@@ -299,6 +305,18 @@ export class FeedbackPanel extends Component {
         } finally {
             this.state.busy = false;
         }
+    }
+
+    onInitialKeydown(event) {
+        if (
+            event.key !== "Enter" ||
+            event.isComposing ||
+            !(event.metaKey || event.ctrlKey)
+        ) {
+            return;
+        }
+        event.preventDefault();
+        this.submitInitial();
     }
 
     async resumeTask(task) {
@@ -580,6 +598,7 @@ export class FeedbackPanel extends Component {
         if (!task) {
             return;
         }
+        this.props.fold?.();
         await this.action.doAction({
             type: "ir.actions.act_window",
             name: task.name,
@@ -619,7 +638,7 @@ patch(MessagingMenu.prototype, {
         this.feedbackChatWindow = useService("usl_feedback.chat_window");
     },
 
-    async onClickFeedback() {
+    onClickFeedback() {
         if (!this.feedbackChatWindow.isClosed) {
             this.feedbackChatWindow.open();
             this.dropdown.close();
@@ -628,12 +647,16 @@ patch(MessagingMenu.prototype, {
         const pageContext = feedbackPageContext(this.env.services.action.currentController);
         const captureId = this.feedbackChatWindow.beginCapture(pageContext);
         this.dropdown.close();
-        await new Promise((resolve) => browser.requestAnimationFrame(resolve));
-        try {
-            const screenshot = await captureFeedbackPagePreview();
-            this.feedbackChatWindow.completeCapture(captureId, screenshot);
-        } catch {
-            this.feedbackChatWindow.failCapture(captureId);
-        }
+        // Paint the native window first; page reproduction must not delay this interaction.
+        browser.requestAnimationFrame(() => {
+            browser.setTimeout(async () => {
+                try {
+                    const screenshot = await captureFeedbackPagePreview();
+                    this.feedbackChatWindow.completeCapture(captureId, screenshot);
+                } catch {
+                    this.feedbackChatWindow.failCapture(captureId);
+                }
+            }, 0);
+        });
     },
 });

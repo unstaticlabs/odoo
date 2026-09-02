@@ -115,7 +115,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="visually-hidden" for="usl_feedback_message">Describe your feedback</label>
-                    <textarea id="usl_feedback_message" class="form-control" rows="4" maxlength="8000" autofocus="autofocus" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value"/>
+                    <textarea id="usl_feedback_message" class="form-control" rows="4" maxlength="8000" autofocus="autofocus" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value" t-on-keydown="onInitialKeydown"/>
                 </div>
 
                 <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
@@ -250,9 +250,9 @@
             <div class="d-flex flex-column h-100 min-h-0 overflow-hidden position-relative bg-inherit">
                 <FeedbackPanel
                     captureState="this.feedbackChatWindow.captureState"
-                    clearScreenshot.bind="this.feedbackChatWindow.clearScreenshot"
+                    clearScreenshot="() => this.feedbackChatWindow.clearScreenshot()"
                     close.bind="this.close"
-                    fold.bind="this.feedbackChatWindow.fold"
+                    fold="() => this.feedbackChatWindow.fold()"
                     isSmall="this.ui.isSmall"
                     pageContext="this.feedbackChatWindow.pageContext"
                     screenshot="this.feedbackChatWindow.screenshot"

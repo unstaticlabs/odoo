@@ -99,7 +99,7 @@ function mockFeedbackStart(recent = []) {
 
 async function mountFeedbackPanel(props = {}) {
     patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
-    return mountWithCleanup(FeedbackPanel, {
+    const component = await mountWithCleanup(FeedbackPanel, {
         props: {
             close() {},
             pageContext: { action_id: 7, model: "project.task", res_id: 9 },
@@ -108,6 +108,8 @@ async function mountFeedbackPanel(props = {}) {
             ...props,
         },
     });
+    await waitFor("#usl_feedback_message");
+    return component;
 }
 
 test("page context is typed and excludes browser location state", () => {
@@ -439,6 +441,7 @@ test("capture fallback keeps default page details and manual attachments usable"
             captureState: "error",
         },
     });
+    await waitFor("#usl_feedback_context");
     expect(".o-usl-FeedbackPanel").toHaveText(/Page preview unavailable/);
     expect("#usl_feedback_context").toBeChecked();
     await contains("#usl_feedback_files").click();
@@ -473,6 +476,30 @@ test("first message creates the conversation with page details selected by defau
     expect(".o-test-FeedbackChatter").toHaveAttribute("data-composer", "enabled");
     expect(".o-usl-FeedbackPanel-journeyStep.active").toHaveText(/Describe/);
     expect.verifySteps(["created inbox task"]);
+});
+
+test("Command or Control Enter sends the first message", async () => {
+    mockFeedbackStart();
+    onRpc("usl.feedback.submission", "feedback_submit_initial", ({ args }) => {
+        expect(args[1]).toBe("The first message should use the chat shortcut.");
+        expect.step("shortcut submitted");
+        return feedbackTask({ agent_state: "waiting" });
+    });
+    const component = await mountFeedbackPanel();
+    component.state.message = "The first message should use the chat shortcut.";
+    let prevented = false;
+
+    component.onInitialKeydown({
+        key: "Enter",
+        metaKey: true,
+        ctrlKey: false,
+        isComposing: false,
+        preventDefault: () => (prevented = true),
+    });
+    await animationFrame();
+
+    expect(prevented).toBe(true);
+    expect.verifySteps(["shortcut submitted"]);
 });
 
 test("My feedback shows a readable status and next step", async () => {
@@ -680,6 +707,23 @@ test("opening the board keeps the floating feedback conversation open", async ()
     await component.openBoard();
 
     expect.verifySteps(["board opened"]);
+});
+
+test("opening a feedback task folds the chat window before navigation", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel({
+        fold: () => expect.step("folded"),
+    });
+    component.action = {
+        async doAction(action) {
+            expect(action.res_id).toBe(71);
+            expect.step("task opened");
+        },
+    };
+
+    await component.openTask(feedbackTask());
+
+    expect.verifySteps(["folded", "task opened"]);
 });
 
 test("draft and provider errors preserve recovery actions and reporter input", async () => {
