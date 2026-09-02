@@ -1,6 +1,9 @@
 .o_usl_batch_summary {
     display: grid;
-    grid-template-columns: repeat(5, minmax(8rem, 1fr));
+    grid-template-columns:
+        repeat(3, minmax(7.5rem, 1fr))
+        minmax(10.5rem, 1.15fr)
+        minmax(11.5rem, 1.2fr);
     overflow: hidden;
     border: 1px solid var(--border-color, #dee2e6);
     border-radius: var(--border-radius, 0.25rem);
@@ -17,8 +20,8 @@
 
     .o_usl_batch_metric_label {
         margin-bottom: 0.2rem;
-        color: var(--body-color, #5f6b76);
-        font-weight: 600;
+        color: var(--o-gray-600, #6c757d);
+        font-weight: 400;
         line-height: 1.2;
     }
 
@@ -34,10 +37,21 @@
     }
 
     .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 1.625rem;
         max-width: 100%;
+        padding: 0.3rem 0.65rem;
         overflow: hidden;
+        line-height: 1.1;
         text-overflow: ellipsis;
         vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .o_usl_batch_metric--readiness > .o_field_widget {
+        display: inline-flex;
+        max-width: 100%;
     }
 }
 
@@ -56,8 +70,16 @@
         min-width: 0;
 
         .o_field_tags {
+            flex-wrap: nowrap;
             max-width: 100%;
+            overflow-x: auto;
         }
+    }
+
+    .o_form_label,
+    .o_wrap_label > label {
+        color: var(--o-gray-600, #6c757d);
+        font-weight: 400;
     }
 }
 
@@ -129,18 +151,12 @@
 
     th[data-name="expense_progress_summary"],
     td[name="expense_progress_summary"] {
-        width: 13rem;
-        max-width: 13rem;
+        width: 12.5rem;
+        max-width: 12.5rem;
     }
 
-    td[name="expense_progress_summary"] .o_usl_progress_summary,
-    td[name="expense_progress_summary"] .badge,
-    td[name="expense_progress_summary"] .o_field_badge {
-        display: block;
+    td[name="expense_progress_summary"] .o_usl_progress_summary {
         max-width: 12rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     th[data-name="readiness_state"],
@@ -164,6 +180,43 @@
 
     td[name="exception_count"]:not(:empty) {
         font-weight: 600;
+    }
+}
+
+.o_usl_progress_summary {
+    display: grid;
+    gap: 0.25rem;
+    width: 12rem;
+    max-width: 100%;
+    outline: none;
+
+    &:focus-visible {
+        border-radius: var(--border-radius-sm, 0.2rem);
+        outline: 2px solid var(--o-action, #714b67);
+        outline-offset: 2px;
+    }
+
+    .o_usl_progress_track {
+        display: flex;
+        width: 100%;
+        height: 0.45rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--o-gray-200, #e9ecef);
+    }
+
+    .o_usl_progress_segment {
+        min-width: 2px;
+    }
+
+    .o_usl_progress_label {
+        display: block;
+        overflow: hidden;
+        color: var(--o-gray-700, #495057);
+        font-size: 0.8125rem;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
@@ -318,9 +371,7 @@ body:has(.o_usl_expense_batch_list, .o_usl_expense_batch_form, .o_usl_expense_wo
             min-width: 0;
         }
 
-        td[name="expense_progress_summary"] .o_usl_progress_summary,
-        td[name="expense_progress_summary"] .badge,
-        td[name="expense_progress_summary"] .o_field_badge {
+        td[name="expense_progress_summary"] .o_usl_progress_summary {
             max-width: 100%;
         }
 

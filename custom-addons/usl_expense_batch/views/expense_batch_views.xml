@@ -10,6 +10,7 @@
                 <field name="active" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
                 <field name="expense_progress" column_invisible="True"/>
+                <field name="expense_progress_breakdown" column_invisible="True"/>
                 <field name="name"/>
                 <field name="context_type" optional="show"/>
                 <field name="employee_id" widget="many2one_avatar_employee"/>
@@ -20,11 +21,7 @@
                 <field name="expense_progress_summary"
                        string="Expense Progress"
                        class="o_usl_progress_summary"
-                       widget="badge"
-                       decoration-info="expense_progress == 'draft'"
-                       decoration-warning="expense_progress == 'submitted'"
-                       decoration-success="expense_progress in ('approved', 'posted', 'paid')"
-                       decoration-danger="expense_progress == 'refused'"/>
+                       widget="expense_batch_progress"/>
                 <field name="readiness_state"
                        string="Readiness"
                        widget="badge"
@@ -90,32 +87,33 @@
                             string="Apply context"
                             type="object"
                             class="oe_highlight"
-                            title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
+                            title="Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
                             invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_open_add_expenses_wizard"
                             string="Add expenses"
                             type="object"
                             class="btn-secondary"
                             icon="fa-plus"
+                            title="Select unbatched draft, approved, or posted expenses for this employee and company. Existing accounting entries and expense states remain unchanged."
                             invisible="not active"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
                             class="btn-secondary"
-                            title="Send only the draft expenses in this batch for manager approval. This does not post or pay them."
+                            title="Submit every eligible draft expense in this Batch for manager approval. Posted, paid, refused, and already-submitted expenses remain unchanged."
                             invisible="not active or draft_expense_count == 0"/>
                     <button name="action_approve"
                             string="Approve batch"
                             type="object"
                             class="oe_highlight"
-                            title="Approve the submitted expenses in this batch. Nothing is posted or paid."
+                            title="Approve every submitted expense in this Batch. This does not post accounting entries or make payments."
                             groups="hr_expense.group_hr_expense_team_approver"
                             invisible="not active or draft_expense_count != 0 or submitted_expense_count == 0"/>
                     <button name="action_post"
                             string="Post batch"
                             type="object"
                             class="oe_highlight"
-                            title="Post the approved expenses in this batch to Accounting."
+                            title="Post every approved expense in this Batch to Accounting. This does not pay the expenses or change expenses already posted."
                             groups="account.group_account_invoice"
                             invisible="not active or draft_expense_count != 0 or submitted_expense_count != 0 or approved_expense_count == 0"/>
                 </header>
@@ -180,7 +178,7 @@
                             <span class="text-muted"> / </span>
                             <field name="company_paid_total" nolabel="1" class="oe_inline"/>
                         </div>
-                        <div class="o_usl_batch_metric">
+                        <div class="o_usl_batch_metric o_usl_batch_metric--readiness">
                             <div class="o_usl_batch_metric_label small">Readiness</div>
                             <field name="readiness_summary"
                                    nolabel="1"
@@ -226,11 +224,6 @@
                         <strong><field name="attention_count" nolabel="1" class="oe_inline"/> issues require attention.</strong>
                         Review the marked expense lines for details.
                     </div>
-                    <div class="text-muted small mb-3" invisible="not product_summary">
-                        <span class="fw-semibold">Expense types:</span>
-                        <field name="product_summary" nolabel="1" class="oe_inline"/>
-                    </div>
-
                     <notebook>
                         <page name="expenses" string="Expenses">
                             <field name="expense_ids" readonly="not active">

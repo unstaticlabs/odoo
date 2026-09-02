@@ -723,6 +723,10 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(batch.batch_state, "open")
         self.assertEqual(batch.expense_progress, "draft")
         self.assertEqual(batch.expense_progress_summary, "2 draft · 1 approved")
+        self.assertEqual(
+            batch.expense_progress_breakdown,
+            '{"draft":2,"approved":1}',
+        )
         self.assertEqual(batch.attention_count, 3)
         self.assertEqual(batch.readiness_summary, "Needs attention · 3 issues")
         self.assertEqual(
@@ -992,6 +996,7 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertFalse(
             batch_form.xpath("//field[@name='expense_progress_summary']"),
         )
+        self.assertFalse(batch_form.xpath("//field[@name='product_summary']"))
         self.assertTrue(batch_form.xpath("//field[@name='readiness_summary']"))
         self.assertFalse(
             batch_form.xpath("//div[contains(@class, 'alert-warning')]"),
@@ -1036,11 +1041,17 @@ class TestExpenseBatch(TestExpenseCommon):
         apply_context = batch_form.xpath(
             "//button[@name='action_open_context_wizard']",
         )[0]
-        self.assertIn("Line-specific choices", apply_context.get("title"))
+        self.assertIn("shared expense account", apply_context.get("title"))
+        self.assertIn("preview", apply_context.get("title").lower())
         self.assertIn("draft_expense_count == 0", apply_context.get("invisible"))
+        add_expenses = batch_form.xpath(
+            "//button[@name='action_open_add_expenses_wizard']",
+        )[0]
+        self.assertIn("Existing accounting entries", add_expenses.get("title"))
+        self.assertIn("expense states remain unchanged", add_expenses.get("title"))
         submit = batch_form.xpath("//button[@name='action_submit']")[0]
-        self.assertIn("only the draft expenses", submit.get("title"))
-        self.assertIn("does not post", submit.get("title").lower())
+        self.assertIn("eligible draft expense", submit.get("title"))
+        self.assertIn("remain unchanged", submit.get("title").lower())
         self.assertIn("draft_expense_count == 0", submit.get("invisible"))
 
         batch_search = self.env.ref(
@@ -1073,6 +1084,16 @@ class TestExpenseBatch(TestExpenseCommon):
             "//field[@name='expense_progress_summary']",
         )[0]
         self.assertIn("o_usl_progress_summary", progress_summary.get("class"))
+        self.assertEqual(
+            progress_summary.get("widget"),
+            "expense_batch_progress",
+        )
+        self.assertTrue(
+            batch_list.xpath(
+                "//field[@name='expense_progress_breakdown']"
+                "[@column_invisible='True']",
+            ),
+        )
         self.assertTrue(batch_list.xpath("//field[@name='batch_state']"))
 
         context_wizard = self.env.ref(

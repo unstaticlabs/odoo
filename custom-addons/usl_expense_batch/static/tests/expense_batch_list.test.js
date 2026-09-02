@@ -7,6 +7,10 @@ import {
 } from "../src/js/expense_batch_list";
 import { attentionIconClass } from "../src/js/expense_batch_attention_field";
 import {
+    expenseProgressSegments,
+    parseExpenseProgressBreakdown,
+} from "../src/js/expense_batch_progress_field";
+import {
     activeQuickFilterName,
     quickFilterItemIds,
 } from "../src/js/expense_batch_workspace";
@@ -71,6 +75,31 @@ test("closing the batch wizard reloads and renders the expense list", async () =
 test("attention indicator stays compact and distinguishes warnings from locks", () => {
     expect(attentionIconClass("warning")).toInclude("text-warning");
     expect(attentionIconClass("info")).toInclude("fa-lock");
+});
+
+test("expense progress keeps every state as a proportional segment", () => {
+    expect(
+        expenseProgressSegments(
+            '{"draft":2,"submitted":1,"approved":3,"posted":4,' +
+                '"in_payment":5,"paid":6,"refused":1}',
+        ).map(({ key, count }) => [key, count]),
+    ).toEqual([
+        ["draft", 2],
+        ["submitted", 1],
+        ["approved", 3],
+        ["posted", 4],
+        ["in_payment", 5],
+        ["paid", 6],
+        ["refused", 1],
+    ]);
+});
+
+test("expense progress safely ignores malformed presentation data", () => {
+    expect(parseExpenseProgressBreakdown("not-json")).toEqual({});
+    expect(parseExpenseProgressBreakdown("[]")).toEqual({});
+    expect(expenseProgressSegments('{"draft":-1,"paid":"invalid"}')).toEqual(
+        [],
+    );
 });
 
 test("batch quick filters expose one clear active workspace", () => {

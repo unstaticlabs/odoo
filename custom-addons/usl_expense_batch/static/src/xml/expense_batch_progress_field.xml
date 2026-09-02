@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_expense_batch.ExpenseBatchProgressField">
+        <div class="o_usl_progress_summary"
+             role="img"
+             tabindex="0"
+             t-att-title="summary"
+             t-att-aria-label="summary">
+            <div class="o_usl_progress_track" aria-hidden="true">
+                <span t-foreach="segments"
+                      t-as="segment"
+                      t-key="segment.key"
+                      t-att-class="'o_usl_progress_segment ' + segment.colorClass"
+                      t-att-style="'flex-grow: ' + segment.count"
+                      t-att-title="segment.count + ' ' + segment.label"/>
+            </div>
+            <span class="o_usl_progress_label" t-out="summary"/>
+        </div>
+    </t>
+</templates>

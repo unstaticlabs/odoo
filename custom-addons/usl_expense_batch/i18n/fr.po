@@ -739,11 +739,12 @@ msgstr "Soumettre le lot"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid ""
-"Send only the draft expenses in this batch for manager approval. This does "
-"not post or pay them."
+"Submit every eligible draft expense in this Batch for manager approval. "
+"Posted, paid, refused, and already-submitted expenses remain unchanged."
 msgstr ""
-"Envoie uniquement les dépenses en brouillon de cette note pour approbation. "
-"Elles ne sont ni comptabilisées ni payées."
+"Soumet toutes les dépenses en brouillon éligibles de ce lot à l’approbation "
+"d’un responsable. Les dépenses déjà soumises, comptabilisées, payées ou "
+"refusées restent inchangées."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__submitted_by_id
@@ -857,13 +858,13 @@ msgstr "justificatif"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
-msgid "Approve the submitted expenses in this batch. Nothing is posted or paid."
-msgstr "Approuve les dépenses soumises de cette note. Rien n’est comptabilisé ni payé."
+msgid "Approve every submitted expense in this Batch. This does not post accounting entries or make payments."
+msgstr "Approuve toutes les dépenses soumises de ce lot, sans comptabiliser d’écriture ni effectuer de paiement."
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
-msgid "Post the approved expenses in this batch to Accounting."
-msgstr "Comptabilise les dépenses approuvées de cette note."
+msgid "Post every approved expense in this Batch to Accounting. This does not pay the expenses or change expenses already posted."
+msgstr "Comptabilise toutes les dépenses approuvées de ce lot, sans les payer ni modifier celles déjà comptabilisées."
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
@@ -1176,8 +1177,12 @@ msgid "Accounting is preserved because this expense is no longer a draft."
 msgstr "La comptabilité est conservée car cette dépense n’est plus en brouillon."
 
 #. module: usl_expense_batch
-msgid "Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-msgstr "Prévisualisez les changements sur les brouillons. Les choix propres à une dépense restent inchangés sauf remplacement explicite par un responsable."
+msgid "Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
+msgstr "Prévisualise puis applique le compte de charge et la répartition analytique communs du lot aux brouillons éligibles. Les choix propres à une dépense restent inchangés sauf remplacement explicite dans la prévisualisation."
+
+#. module: usl_expense_batch
+msgid "Select unbatched draft, approved, or posted expenses for this employee and company. Existing accounting entries and expense states remain unchanged."
+msgstr "Sélectionne des dépenses non regroupées, en brouillon, approuvées ou comptabilisées, pour cet employé et cette société. Les écritures et les états existants restent inchangés."
 
 #. module: usl_expense_batch
 msgid "What are these expenses for?"
@@ -1198,10 +1203,6 @@ msgstr "Payé par l’employé / la société"
 #. module: usl_expense_batch
 msgid "Some expenses need attention. Point to the warning indicator on a line for details."
 msgstr "Certaines dépenses sont à vérifier. Survolez leur indicateur pour afficher le détail."
-
-#. module: usl_expense_batch
-msgid "Expense types:"
-msgstr "Types de dépenses :"
 
 #. module: usl_expense_batch
 msgid "Remove from Batch"
@@ -1298,6 +1299,10 @@ msgstr "%(count)s dépense(s) sélectionnée(s) se trouve(nt) hors de la périod
 #. module: usl_expense_batch
 msgid "Progress breakdown"
 msgstr "Répartition de l’avancement"
+
+#. module: usl_expense_batch
+msgid "Progress segments"
+msgstr "Segments d’avancement"
 
 #. module: usl_expense_batch
 msgid "Batch state"

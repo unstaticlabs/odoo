@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from lxml import etree
@@ -88,6 +89,10 @@ class UslExpenseBatch(models.Model):
         compute="_compute_expense_progress_summary",
         string="Progress breakdown",
     )
+    expense_progress_breakdown = fields.Char(
+        compute="_compute_expense_progress_summary",
+        string="Progress segments",
+    )
     batch_state = fields.Selection(
         selection=[
             ("open", "Open"),
@@ -161,7 +166,6 @@ class UslExpenseBatch(models.Model):
     readiness_summary = fields.Char(compute="_compute_review_context")
     main_analytic_activity = fields.Char(compute="_compute_review_context")
     analytic_context_summary = fields.Char(compute="_compute_review_context")
-    product_summary = fields.Char(compute="_compute_review_context")
     exception_count = fields.Integer(compute="_compute_review_context")
     has_exceptions = fields.Boolean(
         compute="_compute_review_context",
@@ -227,6 +231,10 @@ class UslExpenseBatch(models.Model):
                 if counts[state]
             ]
             batch.expense_progress_summary = " · ".join(parts) or _("No expenses")
+            batch.expense_progress_breakdown = json.dumps(
+                {state: counts[state] for state in order if counts[state]},
+                separators=(",", ":"),
+            )
 
     @api.depends("expense_ids.state")
     def _compute_expense_progress(self):
@@ -342,18 +350,6 @@ class UslExpenseBatch(models.Model):
                     for plan, names in by_plan.items()
                 )
 
-            product_totals = defaultdict(float)
-            for expense in batch.expense_ids:
-                product_totals[expense.product_id.display_name or _("Uncategorized")] += (
-                    expense.total_amount
-                )
-            batch.product_summary = " · ".join(
-                f"{name}: {amount:.2f}"
-                for name, amount in sorted(
-                    product_totals.items(),
-                    key=lambda item: (-item[1], item[0]),
-                )
-            ) or False
             batch.exception_count = len(
                 batch.expense_ids.filtered(
                     lambda expense: expense.batch_context_status == "exception",
