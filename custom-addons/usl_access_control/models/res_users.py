@@ -152,6 +152,13 @@ class ResUsers(models.Model):
             return []
         return super()._get_auth_methods()
 
+    def _generate_onboarding_todo(self):
+        """Keep non-interactive Agent identities out of human onboarding."""
+        human_users = self.filtered(
+            lambda user: user.usl_identity_classification != "agent",
+        )
+        return super(ResUsers, human_users)._generate_onboarding_todo()
+
     @api.model
     def _usl_pocketid_profile_definitions(self):
         definitions = super()._usl_pocketid_profile_definitions()

@@ -75,6 +75,13 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(agent.user_id._get_auth_methods(), [])
         self.assertEqual(agent.user_id.company_ids, self.company | self.other_company)
 
+    def test_agent_creation_does_not_create_human_onboarding_task(self):
+        agent = self._create_agent()
+        onboarding_tasks = self.env["project.task"].with_user(SUPERUSER_ID).search(
+            [("user_ids", "in", agent.user_id.ids), ("name", "ilike", "Welcome")],
+        )
+        self.assertFalse(onboarding_tasks)
+
     def test_only_internal_humans_create_owned_agents(self):
         owned = self.env["usl.agent"].with_user(self.other_user).create(
             {
