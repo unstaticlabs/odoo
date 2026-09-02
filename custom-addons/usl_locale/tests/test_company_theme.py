@@ -5,6 +5,8 @@ from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import HttpCase, new_test_user, tagged
 
+from odoo.addons.usl_locale.models.res_company import _AUTOMATIC_THEME_COLORS
+
 
 @tagged("post_install", "-at_install", "usl_locale")
 class TestCompanyTheme(HttpCase):
@@ -30,20 +32,78 @@ class TestCompanyTheme(HttpCase):
             groups="base.group_user",
         )
 
-    def test_explicit_and_automatic_colors_are_stable(self):
-        color = self.company_a._get_usl_ui_theme_color()
-        self.assertRegex(color, r"^#[0-9A-F]{6}$")
-        self.assertEqual(color, self.company_a._get_usl_ui_theme_color())
+    def test_automatic_palette_uses_company_id_modulo(self):
+        companies = self.env["res.company"].create([
+            {"name": f"Automatic Theme Company {index}"}
+            for index in range(16)
+        ])
+
+        for company in companies:
+            self.assertEqual(
+                company._get_usl_ui_theme_color(),
+                _AUTOMATIC_THEME_COLORS[
+                    (company.id - 1) % len(_AUTOMATIC_THEME_COLORS)
+                ],
+            )
+        self.assertEqual(
+            companies[0]._get_usl_ui_theme_color(),
+            companies[15]._get_usl_ui_theme_color(),
+        )
+        self.assertNotIn("#714B67", _AUTOMATIC_THEME_COLORS)
+
+    def test_explicit_color_and_reset(self):
         self.assertEqual(self.company_b._get_usl_ui_theme_color(), "#1A2B3C")
+        self.company_b.usl_ui_theme_color = "#714b67"
+        self.assertEqual(self.company_b._get_usl_ui_theme_color(), "#714B67")
+
         self.company_b.action_use_automatic_usl_ui_theme_color()
         self.assertFalse(self.company_b.usl_ui_theme_color)
-        self.assertRegex(self.company_b._get_usl_ui_theme_color(), r"^#[0-9A-F]{6}$")
+        self.assertEqual(
+            self.company_b._get_usl_ui_theme_color(),
+            _AUTOMATIC_THEME_COLORS[
+                (self.company_b.id - 1) % len(_AUTOMATIC_THEME_COLORS)
+            ],
+        )
 
-        equivalent = self.env["res.company"].create({
-            "name": "Different display name",
-            "company_registry": self.company_a.company_registry,
+    def test_branch_inherits_until_customized(self):
+        other_parent = self.env["res.company"].create({
+            "name": "Other Theme Parent",
+            "usl_ui_theme_color": "#B07A2A",
         })
-        self.assertEqual(color, equivalent._get_usl_ui_theme_color())
+        branch = self.env["res.company"].create({
+            "name": "Theme Branch",
+            "parent_id": self.company_a.id,
+        })
+
+        self.assertEqual(
+            branch._get_usl_ui_theme_color(),
+            self.company_a._get_usl_ui_theme_color(),
+        )
+        self.company_a.usl_ui_theme_color = "#4F7A3A"
+        self.assertEqual(branch._get_usl_ui_theme_color(), "#4F7A3A")
+
+        branch.usl_ui_theme_color = "#B44F7A"
+        self.company_a.usl_ui_theme_color = "#536A7A"
+        self.assertEqual(branch._get_usl_ui_theme_color(), "#B44F7A")
+
+        branch.action_use_automatic_usl_ui_theme_color()
+        self.assertEqual(branch._get_usl_ui_theme_color(), "#536A7A")
+
+        # Odoo freezes company hierarchies after creation. Simulate a controlled
+        # reconstruction changing the parent to verify that the color stays dynamic.
+        self.env.cr.execute(
+            "UPDATE res_company SET parent_id = %s WHERE id = %s",
+            (other_parent.id, branch.id),
+        )
+        branch.invalidate_recordset(["parent_id", "usl_resolved_ui_theme_color"])
+        self.assertEqual(branch._get_usl_ui_theme_color(), "#B07A2A")
+
+    def test_native_company_color_does_not_change_interface_color(self):
+        expected = self.company_a._get_usl_ui_theme_color()
+
+        self.company_a.color = 11 if self.company_a.color != 11 else 10
+
+        self.assertEqual(self.company_a._get_usl_ui_theme_color(), expected)
 
     def test_invalid_color_is_rejected(self):
         for invalid_color in ("1A2B3C", "#123", "#GGGGGG", "blue"):
@@ -55,6 +115,10 @@ class TestCompanyTheme(HttpCase):
         self.assertEqual(
             self.company_a.with_user(self.user).usl_ui_theme_color,
             self.company_a.usl_ui_theme_color,
+        )
+        self.assertEqual(
+            self.company_a.with_user(self.user).usl_resolved_ui_theme_color,
+            self.company_a.usl_resolved_ui_theme_color,
         )
         with self.assertRaises(AccessError):
             self.company_a.with_user(self.user).usl_ui_theme_color = "#112233"
@@ -85,4 +149,29 @@ class TestCompanyTheme(HttpCase):
         self.assertEqual(
             companies[str(self.company_b.id)]["usl_ui_theme_color"],
             "#1A2B3C",
+        )
+
+    def test_company_color_field_is_the_user_facing_color(self):
+        fields_description = self.env["res.company"].fields_get([
+            "color",
+            "usl_ui_theme_color",
+        ])
+
+        self.assertEqual(fields_description["usl_ui_theme_color"]["string"], "Color")
+        self.assertEqual(fields_description["color"]["type"], "integer")
+        self.assertEqual(fields_description["color"]["string"], "Technical color index")
+
+        company_arch = self.env.ref("base.view_company_form")._get_combined_arch()
+        native_color = company_arch.xpath("//field[@name='color']")
+        self.assertEqual(len(native_color), 1)
+        self.assertEqual(native_color[0].get("invisible"), "1")
+        self.assertTrue(company_arch.xpath("//field[@name='usl_ui_theme_color']"))
+
+        user_arch = self.env.ref("base.view_users_form")._get_combined_arch()
+        company_tags = user_arch.xpath("//field[@name='company_ids']")
+        self.assertEqual(len(company_tags), 1)
+        self.assertEqual(company_tags[0].get("widget"), "many2many_tags_color_dot")
+        self.assertIn(
+            "'color_field': 'usl_resolved_ui_theme_color'",
+            company_tags[0].get("options"),
         )

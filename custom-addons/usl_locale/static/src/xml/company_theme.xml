@@ -21,7 +21,7 @@
             <div class="usl_company_scope_summary d-flex align-items-center gap-2 px-2 pb-2 small"
                  t-att-title="uslCompanyScopeTitle">
                 <span class="usl_company_color_dot flex-shrink-0"
-                      t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
+                      t-att-style="uslActiveCompanyColorStyle"/>
                 <span class="text-truncate" t-out="user.activeCompany.name"/>
                 <span t-if="uslAdditionalCompanyCount"
                       class="badge rounded-pill text-bg-secondary"
@@ -49,7 +49,7 @@
        t-inherit-mode="extension">
         <xpath expr="//span[contains(@class, 'company_label')]/t" position="before">
             <span class="usl_company_color_dot d-inline-block me-2"
-                  t-att-style="'--usl-company-indicator:' + props.company.usl_ui_theme_color"/>
+                  t-att-style="uslCompanyColorStyle"/>
         </xpath>
     </t>
 </templates>

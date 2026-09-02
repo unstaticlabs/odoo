@@ -1,7 +1,7 @@
 {
     "name": "USL Locale",
     "summary": "Shared locale and company-context presentation defaults",
-    "version": "saas~19.3.1.3.4",
+    "version": "saas~19.3.1.3.5",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -9,6 +9,7 @@
     "data": [
         "data/european_date_format.xml",
         "views/res_company_views.xml",
+        "views/res_users_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
