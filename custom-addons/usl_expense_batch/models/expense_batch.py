@@ -142,6 +142,10 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         string="Expenses needing information",
     )
+    has_incomplete_expenses = fields.Boolean(
+        compute="_compute_review_context",
+        search="_search_has_incomplete_expenses",
+    )
     readiness_state = fields.Selection(
         selection=[
             ("ready", "Ready"),
@@ -296,6 +300,7 @@ class UslExpenseBatch(models.Model):
             )
             batch.incomplete_expense_ids = incomplete
             batch.incomplete_count = len(incomplete)
+            batch.has_incomplete_expenses = bool(incomplete)
             batch.readiness_state = "incomplete" if incomplete else "ready"
 
             analytic_weights = defaultdict(float)
@@ -391,6 +396,14 @@ class UslExpenseBatch(models.Model):
         include_matches = (operator == "=") == value
         return [("id", "in" if include_matches else "not in", matching_ids)]
 
+    @api.model
+    def _search_has_incomplete_expenses(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise UserError(_("Readiness filtering expects a true or false value."))
+        matching_ids = self.search([]).filtered("has_incomplete_expenses").ids
+        include_matches = (operator == "=") == value
+        return [("id", "in" if include_matches else "not in", matching_ids)]
+
     @api.depends("date_from", "date_to")
     def _compute_period_summary(self):
         for batch in self:
@@ -412,7 +425,7 @@ class UslExpenseBatch(models.Model):
             "all": self.search_count([]),
             "open_batches": self.search_count([("active", "=", True)]),
             "needs_information": self.search_count(
-                [("expense_ids.batch_readiness", "=", "incomplete")],
+                [("has_incomplete_expenses", "=", True)],
             ),
             "my_batches": self.search_count(
                 [("employee_id.user_id", "=", self.env.uid)],

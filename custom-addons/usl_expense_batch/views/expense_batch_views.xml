@@ -55,7 +55,7 @@
                 <filter name="open_batches" string="Open" domain="[('active', '=', True)]"/>
                 <filter name="needs_information"
                         string="Needs information"
-                        domain="[('expense_ids.batch_readiness', '=', 'incomplete')]"/>
+                        domain="[('has_incomplete_expenses', '=', True)]"/>
                 <filter name="my_batches"
                         string="My batches"
                         domain="[('employee_id.user_id', '=', uid)]"/>

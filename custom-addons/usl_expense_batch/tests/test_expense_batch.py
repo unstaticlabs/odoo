@@ -716,12 +716,13 @@ class TestExpenseBatch(TestExpenseCommon):
     def test_batch_presentation_summarizes_progress_without_changing_lifecycle(self):
         draft = self._expense("Draft receipt")
         approved = self._expense("Approved receipt")
+        incomplete = self._expense("Missing receipt", with_receipt=False)
         approved.sudo().approval_state = "approved"
-        batch = self._batch(draft + approved, "Mixed progress")
+        batch = self._batch(draft + approved + incomplete, "Mixed progress")
 
         self.assertEqual(batch.batch_state, "open")
         self.assertEqual(batch.expense_progress, "draft")
-        self.assertEqual(batch.expense_progress_summary, "1 draft · 1 approved")
+        self.assertEqual(batch.expense_progress_summary, "2 draft · 1 approved")
         self.assertEqual(
             batch.period_summary,
             format_date(self.env, batch.date_from),
@@ -730,6 +731,13 @@ class TestExpenseBatch(TestExpenseCommon):
         dashboard = self.env["usl.expense.batch"].get_batch_dashboard_counts()
         self.assertGreaterEqual(dashboard["all"], 1)
         self.assertGreaterEqual(dashboard["open_batches"], 1)
+        self.assertGreaterEqual(dashboard["needs_information"], 1)
+        self.assertIn(
+            batch,
+            self.env["usl.expense.batch"].search([
+                ("has_incomplete_expenses", "=", True),
+            ]),
+        )
         self.assertEqual(
             set(dashboard),
             {"all", "open_batches", "needs_information", "my_batches", "exceptions"},
