@@ -19,6 +19,18 @@ Cloudflare routes production to `odoo:8069` and staging to
 `odoo-staging:8069`; websocket routes use port `8072`. Never reuse the ingress
 alias across environments.
 
+Odoo enables `proxy_mode` only in production-like targets. Cloudflare is the
+trusted edge for those targets and must preserve `Host`, `X-Forwarded-For`, and
+`X-Forwarded-Proto`. The public `/websocket` route must reach Odoo's gevent
+port and complete an HTTP 101 upgrade. Runtime health fails when the effective
+Odoo configuration, HTTPS endpoint, or WebSocket route differs from this
+contract. Local direct-access stacks keep proxy mode disabled.
+
+This trust boundary does not yet enforce an HTTP-to-HTTPS redirect or add
+`Secure` and `SameSite=Lax` to Odoo's session cookie. Those are separate
+hardening items. Do not expose ports 8069 or 8072 beyond the controlled Docker
+networks while they remain open.
+
 The 4-vCPU/8-GiB VPS uses versioned resource overlays. Production services
 receive higher CPU shares, memory reservations, and lower OOM scores. Staging
 has lower CPU, memory, and PID ceilings, cannot consume swap, and is selected
@@ -106,6 +118,8 @@ Before opening a changed runtime, require:
 
 - exact release and running-image identity;
 - healthy Odoo, Paperless, MCP, Sign, databases, and Ollama contract;
+- `proxy_mode=True`, `list_db=False`, the exact database filter, public HTTPS,
+  and a successful WebSocket upgrade;
 - balanced Accounting and expected company/business counts;
 - Odoo filestore and Paperless original coverage;
 - preserved OCR, previews, Tantivy, and vectors;

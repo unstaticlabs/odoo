@@ -490,10 +490,18 @@ class CohortContractTests(unittest.TestCase):
             "odoo-mcp",
             "usl-document-renderer",
         }
-        overlay = json.loads(_generation_overlay(names, release, services))
+        overlay = json.loads(
+            _generation_overlay(names, release, services, target.value["ingress"]),
+        )
         self.assertEqual(set(overlay["services"]), services)
-        self.assertTrue(
-            all(item == {"image": reference} for item in overlay["services"].values()),
+        self.assertTrue(all(item["image"] == reference for item in overlay["services"].values()))
+        self.assertEqual(
+            overlay["services"]["odoo"]["environment"],
+            {
+                "ODOO_PROXY_MODE": "True",
+                "ODOO_LIST_DB": "False",
+                "ODOO_DB_FILTER": "^odoo_staging$",
+            },
         )
 
     def test_materialization_uses_source_repositories_and_fresh_target_volumes(self) -> None:

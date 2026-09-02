@@ -64,6 +64,12 @@
     "paperless": "https://papers.unstaticlabs.com",
     "mcp": "https://odoo-mcp.unstaticlabs.com"
   },
+  "ingress": {
+    "proxy_mode": true,
+    "list_db": false,
+    "dbfilter": "^odoo_production$",
+    "websocket": true
+  },
   "ollama": {
     "mode": "external",
     "container": "ollama",

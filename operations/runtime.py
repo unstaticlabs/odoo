@@ -127,6 +127,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "paths",
             "external_networks",
             "endpoints",
+            "ingress",
             "ollama",
             "backup",
             "release_manifest",
@@ -250,6 +251,19 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         for key, value in root["endpoints"].items()
     ):
         raise RuntimeError("endpoints must contain HTTP URLs")
+
+    ingress = _exact(
+        root["ingress"],
+        {"proxy_mode", "list_db", "dbfilter", "websocket"},
+        "ingress",
+    )
+    for field in ("proxy_mode", "list_db", "websocket"):
+        if not isinstance(ingress[field], bool):
+            raise RuntimeError(f"ingress.{field} must be boolean")
+    if not isinstance(ingress["dbfilter"], str) or not ingress["dbfilter"]:
+        raise RuntimeError("ingress.dbfilter is required")
+    if ingress["proxy_mode"] and not root["endpoints"]["odoo"].startswith("https://"):
+        raise RuntimeError("proxy-mode targets require a public HTTPS Odoo endpoint")
 
     ollama = _exact(
         root["ollama"],

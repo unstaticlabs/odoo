@@ -80,6 +80,17 @@ class RuntimeContractTests(unittest.TestCase):
             load_target("staging", TARGETS).value["compose"]["resource_overlay"],
             "compose.resources.staging.json",
         )
+        self.assertEqual(
+            load_target("production", TARGETS).value["ingress"],
+            {
+                "proxy_mode": True,
+                "list_db": False,
+                "dbfilter": "^odoo_production$",
+                "websocket": True,
+            },
+        )
+        self.assertTrue(load_target("staging", TARGETS).value["ingress"]["proxy_mode"])
+        self.assertFalse(load_target("local", TARGETS).value["ingress"]["proxy_mode"])
 
     def test_secret_file_rejects_scope_fields(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "topology key"):
