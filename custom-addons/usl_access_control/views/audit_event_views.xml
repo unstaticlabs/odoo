@@ -8,7 +8,12 @@
                 <field name="occurred_at"/>
                 <field name="actor_id"/>
                 <field name="actor_is_agent"/>
+                <field name="agent_id" optional="show"/>
+                <field name="owner_id" optional="hide"/>
+                <field name="credential_id" optional="hide"/>
+                <field name="company_id" optional="show"/>
                 <field name="event_type"/>
+                <field name="outcome"/>
                 <field name="model_name"/>
                 <field name="action_name"/>
                 <field name="action_key" optional="show"/>
@@ -31,6 +36,10 @@
                             <field name="occurred_at"/>
                             <field name="actor_id"/>
                             <field name="actor_is_agent"/>
+                            <field name="agent_id"/>
+                            <field name="owner_id"/>
+                            <field name="credential_id"/>
+                            <field name="company_id"/>
                             <field name="event_type"/>
                             <field name="outcome"/>
                         </group>
@@ -43,6 +52,9 @@
                             <field name="policy_digest"/>
                             <field name="origin"/>
                             <field name="correlation_id"/>
+                            <field name="request_id"/>
+                            <field name="remote_address"/>
+                            <field name="user_agent"/>
                         </group>
                     </group>
                     <group string="Change evidence" invisible="not changes_json">

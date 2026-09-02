@@ -6,8 +6,10 @@ from lxml import etree
 
 from odoo import SUPERUSER_ID, api, models
 from odoo.exceptions import AccessError
+from odoo.fields import Domain
 
 from .action_policy import ActionPolicyConfigurationError, load_action_policy
+from ..exceptions import AgentPolicyAccessError
 
 _logger = logging.getLogger(__name__)
 
@@ -30,9 +32,74 @@ _SENSITIVE_MARKERS = (
     "token",
 )
 
+_AGENT_HIDDEN_MODELS = frozenset(
+    {
+        "res.users.apikeys",
+        "res.users.apikeys.description",
+        "usl.agent",
+        "usl.agent.credential",
+        "usl.agent.key.wizard",
+        "usl.agent.transfer.wizard",
+    },
+)
+
+_AGENT_IDENTITY_MUTATION_MODELS = frozenset(
+    {
+        "auth.oauth.provider",
+        "auth.passkey.key",
+        "ir.model.access",
+        "ir.rule",
+        "res.groups",
+        "res.groups.privilege",
+        "res.users",
+        "res.users.apikeys",
+        "res.users.identitycheck",
+        "usl.agent",
+        "usl.agent.credential",
+        "usl.oidc.identity",
+    },
+)
+
 
 class Base(models.AbstractModel):
     _inherit = "base"
+
+    @api.model
+    def _usl_managed_agent(self):
+        if self.env.uid == SUPERUSER_ID or not self._usl_actor_is_agent():
+            return self.env["usl.agent"]
+        return self.env["usl.agent"].sudo().with_context(active_test=False).search(
+            [("user_id", "=", self.env.uid)],
+            limit=1,
+        )
+
+    @api.model
+    def _access_domain(self, operation):
+        domain = super()._access_domain(operation)
+        agent = self._usl_managed_agent()
+        if not agent:
+            return domain
+        if self._name in _AGENT_HIDDEN_MODELS:
+            return Domain.FALSE
+        owner_context = dict(self.env.context)
+        requested_companies = set(owner_context.get("allowed_company_ids") or agent.company_ids.ids)
+        owner_context["allowed_company_ids"] = list(
+            requested_companies & set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+        )
+        owner_env = self.env(user=agent.owner_id, context=owner_context)
+        owner_domain = self.with_env(owner_env)._access_domain(operation)
+        return Domain.AND([domain, owner_domain])
+
+    @api.model
+    def _usl_reject_agent_identity_mutation(self, operation):
+        if self._name in _AGENT_IDENTITY_MUTATION_MODELS and self._usl_managed_agent():
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "Agents cannot %(operation)s identities, access rights, Agents, or credentials.",
+                    operation=operation,
+                ),
+                "approval_required",
+            )
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -163,11 +230,12 @@ class Base(models.AbstractModel):
                 policy_digest=policy.qualified_policy_digest,
             )
             if self._usl_actor_is_agent():
-                raise AccessError(
+                raise AgentPolicyAccessError(
                     self.env._(
                         "AI Agents cannot perform irreversible actions. "
                         "Use a recoverable workflow or ask an authorized human.",
                     ),
+                    "agent_irreversible_action_denied",
                 )
             raise AccessError(
                 self.env._(
@@ -266,6 +334,7 @@ class Base(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
+        self._usl_reject_agent_identity_mutation("create")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
@@ -286,6 +355,7 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, values):
+        self._usl_reject_agent_identity_mutation("modify")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
@@ -308,6 +378,7 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
+        self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,

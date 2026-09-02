@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessDenied, AccessError, ValidationError
 
 
 class ResUsers(models.Model):
@@ -12,11 +12,43 @@ class ResUsers(models.Model):
     usl_is_ai_agent = fields.Boolean(
         string="AI Agent",
         compute="_compute_usl_access_summary",
+        search="_search_usl_is_ai_agent",
     )
     usl_has_irreversible_actions = fields.Boolean(
         string="Irreversible Actions",
         compute="_compute_usl_access_summary",
     )
+    usl_identity_classification = fields.Selection(
+        selection_add=[("agent", "Autonomous Agent")],
+        ondelete={"agent": "set null"},
+    )
+    usl_owned_agent_ids = fields.One2many(
+        "usl.agent",
+        "owner_id",
+        string="Agents",
+    )
+    usl_owned_agent_count = fields.Integer(compute="_compute_usl_owned_agent_count")
+    usl_managed_agent_id = fields.Many2one(
+        "usl.agent",
+        string="Managed Agent identity",
+        compute="_compute_usl_managed_agent_id",
+        compute_sudo=True,
+    )
+
+    @api.depends("usl_owned_agent_ids")
+    def _compute_usl_owned_agent_count(self):
+        for user in self:
+            user.usl_owned_agent_count = len(user.usl_owned_agent_ids)
+
+    def _compute_usl_managed_agent_id(self):
+        by_user = {
+            agent.user_id.id: agent
+            for agent in self.env["usl.agent"].sudo().with_context(active_test=False).search(
+                [("user_id", "in", self.ids)],
+            )
+        }
+        for user in self:
+            user.usl_managed_agent_id = by_user.get(user.id)
 
     @api.depends("all_group_ids")
     def _compute_usl_access_summary(self):
@@ -49,6 +81,16 @@ class ResUsers(models.Model):
                 labels.append(_("Irreversible Actions"))
             user.usl_access_summary = ", ".join(labels) or _("Application groups only")
 
+    @api.model
+    def _search_usl_is_ai_agent(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise NotImplementedError()
+        group = self.env.ref("usl_access_control.group_ai_agent", raise_if_not_found=False)
+        agent_user_ids = self.sudo().search(
+            [("all_group_ids", "in", group.id)],
+        ).ids if group else []
+        return [("id", "in" if (operator == "=") == value else "not in", agent_user_ids)]
+
     @api.constrains("group_ids")
     def _check_usl_agent_irreversible_incompatibility(self):
         agent_group = self.env.ref(
@@ -77,6 +119,38 @@ class ResUsers(models.Model):
     def _usl_validate_all_agent_capabilities(self):
         users = self.sudo().with_context(active_test=False).search([])
         users._check_usl_agent_irreversible_incompatibility()
+        self.env["usl.agent"]._reconcile_all()
+
+    @api.model
+    def _usl_pocketid_policy_exempt_users(self):
+        users = super()._usl_pocketid_policy_exempt_users()
+        agent_group = self.env.ref("usl_access_control.group_ai_agent", raise_if_not_found=False)
+        if agent_group:
+            users |= self.sudo().with_context(active_test=False).search(
+                [("all_group_ids", "in", agent_group.id)],
+            )
+        return users
+
+    def action_open_owned_agents(self):
+        self.ensure_one()
+        if self != self.env.user and not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("You can view only your own Agents."))
+        action = self.env["ir.actions.actions"]._for_xml_id("usl_access_control.action_usl_agent")
+        action["domain"] = [("owner_id", "=", self.id)]
+        action["context"] = {"default_owner_id": self.id}
+        return action
+
+    def _check_credentials(self, credential, env):
+        self.ensure_one()
+        if self.usl_is_ai_agent and env.get("interactive", True):
+            raise AccessDenied()
+        return super()._check_credentials(credential, env)
+
+    def _get_auth_methods(self):
+        self.ensure_one()
+        if self.usl_is_ai_agent:
+            return []
+        return super()._get_auth_methods()
 
     @api.model
     def _usl_pocketid_profile_definitions(self):
@@ -120,6 +194,12 @@ class ResUsers(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        creating_agent = any(
+            values.get("usl_identity_classification") == "agent"
+            for values in vals_list
+        )
+        if creating_agent and not self.env.context.get("usl_agent_provisioning"):
+            raise AccessError(_("Agent identities must be created from My Agents."))
         self._usl_require_irreversible_action(
             "authorization.user.create",
             "create a user identity",
@@ -129,6 +209,8 @@ class ResUsers(models.Model):
         return users
 
     def write(self, values):
+        if self.filtered("usl_managed_agent_id") and not self.env.context.get("usl_agent_provisioning"):
+            raise AccessError(_("Manage Agent identities from the Agent record."))
         sensitive_fields = {
             "active",
             "company_id",
@@ -150,9 +232,13 @@ class ResUsers(models.Model):
         result = super().write(values)
         if "group_ids" in values:
             self._check_usl_agent_irreversible_incompatibility()
+        if {"active", "company_id", "company_ids", "group_ids"} & set(values):
+            self.env["usl.agent"]._reconcile_for_owners(self)
         return result
 
     def unlink(self):
+        if self.filtered("usl_managed_agent_id"):
+            raise AccessError(_("Suspend Agent identities instead of deleting them."))
         self._usl_require_irreversible_action(
             "authorization.user.delete",
             "delete a user identity",
