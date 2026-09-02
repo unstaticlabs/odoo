@@ -4915,6 +4915,7 @@ class UslDocumentOperation(models.Model):
         "res.users", required=True, readonly=True, default=lambda self: self.env.user,
     )
     paperless_task_id = fields.Char(index=True, readonly=True)
+    processing_started_at = fields.Datetime(readonly=True, index=True)
     document_id = fields.Many2one("usl.document", readonly=True, ondelete="restrict")
     target_document_id = fields.Many2one(
         "usl.document",
@@ -4948,6 +4949,10 @@ class UslDocumentOperation(models.Model):
             raise AccessError(
                 _("Ingestion operations can only be created by the upload workflow."),
             )
+        now = fields.Datetime.now()
+        for values in values_list:
+            if values.get("state") == "processing":
+                values.setdefault("processing_started_at", now)
         return super().create(values_list)
 
     def write(self, values):
@@ -4955,7 +4960,42 @@ class UslDocumentOperation(models.Model):
             raise AccessError(
                 _("Ingestion state can only be changed by the archive workflow."),
             )
+        values = dict(values)
+        if values.get("state") == "processing":
+            values.setdefault("processing_started_at", fields.Datetime.now())
+        elif "state" in values:
+            values.setdefault("processing_started_at", False)
         return super().write(values)
+
+    def _processing_is_stale(self, *, now=None):
+        self.ensure_one()
+        timeout_minutes = max(
+            5,
+            self.env["ir.config_parameter"].sudo().get_int(
+                "usl_documents.processing_timeout_minutes",
+                360,
+            ),
+        )
+        started_at = self.processing_started_at or self.create_date
+        return bool(
+            started_at
+            and started_at
+            <= (now or fields.Datetime.now()) - timedelta(minutes=timeout_minutes)
+        )
+
+    def _fail_stale_processing(self):
+        self.ensure_one()
+        self.sudo().write(
+            {
+                "state": "failed",
+                "error_message": _(
+                    "Paperless did not return a final result before the processing "
+                    "deadline. This operation was stopped instead of remaining "
+                    "queued indefinitely. Check Paperless for the archived file "
+                    "before retrying.",
+                ),
+            },
+        )
 
     def _workspace_values(self):
         self.ensure_one()
@@ -5066,9 +5106,14 @@ class UslDocumentOperation(models.Model):
                     operation.paperless_task_id,
                 )
             except PaperlessError as error:
-                operation.sudo().write({"error_message": str(error)})
+                if operation._processing_is_stale():
+                    operation._fail_stale_processing()
+                else:
+                    operation.sudo().write({"error_message": str(error)})
                 continue
             if not task:
+                if operation._processing_is_stale():
+                    operation._fail_stale_processing()
                 continue
             status = str(task.get("status") or "").lower()
             if status in ("success", "successful"):
@@ -5254,9 +5299,10 @@ class UslDocumentOperation(models.Model):
                     )
                     operation.sudo().write(
                         {
-                            "state": "failed",
+                            "state": "archived",
                             "document_id": document.id,
-                            "error_message": error_message,
+                            "error_message": False,
+                            "review_reason": "missing_source",
                         },
                     )
                     continue
@@ -5353,6 +5399,8 @@ class UslDocumentOperation(models.Model):
                     or task.get("message")
                     or _("Paperless processing failed."),
                 })
+            elif operation._processing_is_stale():
+                operation._fail_stale_processing()
         return {
             operation.id: {
                 "id": operation.id,

@@ -6017,3 +6017,15 @@ msgstr "L’enregistrement source %(model)s nº %(record_id)s a été supprimé 
 #: code:addons/usl_documents/models/document.py:0
 msgid "Documents could not finish this file safely. Retry the operation or ask a Documents administrator to review it."
 msgstr "Documents n’a pas pu terminer le traitement de ce fichier en toute sécurité. Relancez l’opération ou demandez à un administrateur Documents de la vérifier."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Source business record was deleted"
+msgstr "L’enregistrement métier source a été supprimé"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless did not return a final result before the processing deadline. This operation was stopped instead of remaining queued indefinitely. Check Paperless for the archived file before retrying."
+msgstr "Paperless n’a pas renvoyé de résultat final avant l’échéance de traitement. Cette opération a été arrêtée plutôt que de rester indéfiniment dans la file. Vérifiez si le fichier est archivé dans Paperless avant de relancer l’opération."

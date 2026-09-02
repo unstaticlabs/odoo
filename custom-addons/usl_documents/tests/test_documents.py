@@ -3,6 +3,7 @@ import inspect
 import io
 import json
 import urllib.error
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -3903,7 +3904,7 @@ class TestDocuments(TransactionCase):
             change_users=[],
         )
 
-    def test_deleted_source_fails_one_operation_and_keeps_archive_for_review(self):
+    def test_deleted_source_settles_operation_and_keeps_archive_for_review(self):
         employee = self.env["hr.employee"].create(
             {"name": "Deleted expense owner", "company_id": self.company_a.id},
         )
@@ -3964,11 +3965,66 @@ class TestDocuments(TransactionCase):
         ):
             operation.poll()
 
-        self.assertEqual(operation.state, "failed")
+        self.assertEqual(operation.state, "archived")
         self.assertEqual(operation.document_id, document)
+        self.assertEqual(operation.review_reason, "missing_source")
         self.assertEqual(document.review_state, "needs_attention")
         self.assertFalse(document.link_ids)
-        self.assertIn("was deleted before Documents finished", operation.error_message)
+        self.assertFalse(operation.error_message)
+        self.assertIn("was deleted before Documents finished", document.last_error)
+
+        with patch.object(PaperlessClient, "task") as task_call:
+            operation.poll()
+        task_call.assert_not_called()
+        self.assertEqual(operation.state, "archived")
+
+    def test_processing_operation_without_task_result_fails_after_deadline(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "lost-task.pdf",
+                "state": "processing",
+                "checksum": "8" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-no-longer-reported",
+                "user_id": self.user.id,
+            },
+        )
+        operation.sudo().write(
+            {
+                "processing_started_at": fields.Datetime.now()
+                - timedelta(hours=7),
+            },
+        )
+
+        with patch.object(PaperlessClient, "task", return_value=None):
+            operation.poll()
+
+        self.assertEqual(operation.state, "failed")
+        self.assertFalse(operation.processing_started_at)
+        self.assertIn(
+            "instead of remaining queued indefinitely",
+            operation.error_message,
+        )
+
+    def test_processing_operation_waits_for_task_within_deadline(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "active-task.pdf",
+                "state": "processing",
+                "checksum": "7" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-still-starting",
+                "user_id": self.user.id,
+            },
+        )
+
+        with patch.object(PaperlessClient, "task", return_value=None):
+            operation.poll()
+
+        self.assertEqual(operation.state, "processing")
+        self.assertTrue(operation.processing_started_at)
 
     def test_unnamed_draft_expense_uses_document_filename_as_link_name(self):
         employee = self.env["hr.employee"].create(

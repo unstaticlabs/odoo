@@ -1091,7 +1091,10 @@ class UslDocumentOperation(models.Model):
     next_attempt_at = fields.Datetime(readonly=True, index=True)
     attempt_count = fields.Integer(readonly=True)
     review_reason = fields.Selection(
-        [("paperless_trash", "Matching archive document is in Trash")],
+        [
+            ("paperless_trash", "Matching archive document is in Trash"),
+            ("missing_source", "Source business record was deleted"),
+        ],
         readonly=True,
         index=True,
     )

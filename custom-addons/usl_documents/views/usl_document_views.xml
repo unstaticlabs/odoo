@@ -370,6 +370,7 @@
                   decoration-danger="state == 'failed'"
                   decoration-warning="state == 'duplicate'">
                 <field name="create_date"/>
+                <field name="processing_started_at" optional="hide"/>
                 <field name="name"/>
                 <field name="state"/>
                 <field name="user_id"/>
