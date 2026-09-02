@@ -51,7 +51,7 @@
     "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable"}
   },
   "paths": {
-    "sign_ca": {"path": "/opt/usl-odoo/staging/secrets/sign/step-ca", "class": "durable", "required": true},
+    "sign_secrets": {"path": "/opt/usl-odoo/staging/secrets/sign", "class": "durable", "required": true},
     "sign_evidence": {"path": "/srv/usl/sign/staging-evidence", "class": "durable", "required": false}
   },
   "external_networks": {

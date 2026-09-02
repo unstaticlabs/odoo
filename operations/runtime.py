@@ -229,7 +229,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             raise RuntimeError(f"volumes.{role}.name is required")
 
     paths = root["paths"]
-    required_paths = {"sign_ca", "sign_evidence"}
+    required_paths = {"sign_secrets", "sign_evidence"}
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
@@ -240,6 +240,10 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             raise RuntimeError(f"paths.{role}.path must be absolute")
         if not isinstance(definition["required"], bool):
             raise RuntimeError(f"paths.{role}.required must be boolean")
+    sign_root = Path(paths["sign_secrets"]["path"])
+    evidence_root = Path(paths["sign_evidence"]["path"])
+    if sign_root == evidence_root or sign_root in evidence_root.parents or evidence_root in sign_root.parents:
+        raise RuntimeError("Sign secrets and evidence paths must not overlap")
 
     if not isinstance(root["external_networks"], dict) or not all(
         isinstance(key, str) and isinstance(value, str) and key and value

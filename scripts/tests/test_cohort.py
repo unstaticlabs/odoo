@@ -11,6 +11,7 @@ from unittest import mock
 from operations import cohort
 from operations.runtime import load_target
 from operations.stack import (
+    BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
     _generation_overlay,
@@ -61,13 +62,33 @@ def manifest(durable: dict, cache: dict) -> dict:
                 "class": "durable",
                 "path": "durable/odoo-filestore",
                 "identity": durable,
-            }
+            },
+            "sign_secrets": {
+                "class": "durable",
+                "path": "durable/sign-secrets",
+                "identity": durable,
+            },
         },
         "cache_snapshot_id": None,
     }
 
 
 class CohortContractTests(unittest.TestCase):
+    def _sign_secrets(self, root: Path) -> Path:
+        for relative in cohort.SIGN_SECRET_FILES:
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            value = '{"key":"value"}' if relative.endswith(("ca.json", "provisioner.jwk")) else "material"
+            path.write_text(value, encoding="utf-8")
+        database = root / "step-ca/db"
+        database.mkdir(parents=True, exist_ok=True)
+        (database / "MANIFEST").write_text("state", encoding="utf-8")
+        for directory in [root, *(path for path in root.rglob("*") if path.is_dir())]:
+            directory.chmod(0o700)
+        for relative in cohort.PRIVATE_SIGN_SECRET_FILES:
+            (root / relative).chmod(0o600)
+        return root
+
     def test_repository_initialization_refuses_authentication_or_network_failure(self) -> None:
         probe = subprocess.CompletedProcess(
             ["restic", "cat", "config"],
@@ -102,6 +123,20 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "differs from the cohort"):
             _validate_materialized_release(materialized, release, "b" * 64)
 
+    def test_production_restore_requires_complete_sign_secrets(self) -> None:
+        release = {"source": {"commit": "a" * 40}}
+        materialized = {
+            "release": {"commit": "a" * 40, "manifest_sha256": "b" * 64},
+            "sign_secrets_restored": False,
+        }
+        with self.assertRaisesRegex(RuntimeError, "lacks complete Sign"):
+            _validate_materialized_release(
+                materialized,
+                release,
+                "b" * 64,
+                require_sign_secrets=True,
+            )
+
     def test_tree_identity_detects_content_change(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -121,6 +156,52 @@ class CohortContractTests(unittest.TestCase):
         value["ollama"]["dimension"] = 768
         with self.assertRaisesRegex(cohort.CohortError, "1024"):
             cohort.validate_manifest(value)
+
+    def test_complete_sign_secret_validation_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = self._sign_secrets(Path(temporary) / "sign")
+            self.assertGreater(cohort.validate_sign_secrets(root)["files"], 1)
+            (root / "odoo/provisioner.jwk").unlink()
+            with self.assertRaisesRegex(cohort.CohortError, "provisioner.jwk"):
+                cohort.validate_sign_secrets(root)
+
+    def test_complete_sign_secret_validation_rejects_unsafe_permissions(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = self._sign_secrets(Path(temporary) / "sign")
+            (root / "offline-root/root_ca_key").chmod(0o640)
+            with self.assertRaisesRegex(cohort.CohortError, "unsafe permissions"):
+                cohort.validate_sign_secrets(root)
+
+    def test_complete_sign_secret_validation_rejects_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = self._sign_secrets(Path(temporary) / "sign")
+            (root / "unsafe-link").symlink_to(root / "odoo/client.key")
+            with self.assertRaisesRegex(cohort.CohortError, "symlink"):
+                cohort.validate_sign_secrets(root)
+
+    def test_legacy_manifest_can_be_verified_but_not_newly_qualified_for_production(self) -> None:
+        empty = cohort.tree_identity(Path("/missing"))
+        value = manifest(empty, empty)
+        value["schema"] = cohort.LEGACY_SCHEMA
+        value["resources"].pop("sign_secrets")
+        self.assertEqual(cohort.validate_manifest(value)["schema"], cohort.LEGACY_SCHEMA)
+        with (
+            mock.patch.object(
+                cohort,
+                "verify",
+                return_value={
+                    "schema": cohort.STATE_SCHEMA,
+                    "cohort_schema": cohort.LEGACY_SCHEMA,
+                    "run_id": "legacy-run",
+                    "target": "production",
+                    "durable_snapshot_id": "1" * 64,
+                    "cache_snapshot_id": "2" * 64,
+                    "status": "verified",
+                },
+            ),
+            self.assertRaisesRegex(cohort.CohortError, "legacy production snapshot"),
+        ):
+            cohort.qualify(argparse.Namespace(root="/cohort", durable_snapshot="1" * 64))
 
     def test_push_uploads_cache_first_and_excludes_it_from_durable_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -187,6 +268,7 @@ class CohortContractTests(unittest.TestCase):
                 "verify",
                 return_value={
                     "schema": cohort.STATE_SCHEMA,
+                    "cohort_schema": cohort.SCHEMA,
                     "run_id": "run-id",
                     "target": "production",
                     "durable_snapshot_id": "1" * 64,
@@ -247,6 +329,9 @@ class CohortContractTests(unittest.TestCase):
         self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging"))
         self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local"))
         self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "staging"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "local"))
+        self.assertTrue(cohort.should_restore_resource("sign_secrets", "production"))
         self.assertTrue(cohort.should_restore_resource("paperless_originals", "staging"))
 
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
@@ -262,7 +347,14 @@ class CohortContractTests(unittest.TestCase):
             "mcp_oauth",
         ):
             self.assertIn(target.value["volumes"][role]["name"], joined)
+        self.assertIn(target.value["paths"]["sign_secrets"]["path"] + ":/source/sign-secrets:ro", joined)
         self.assertGreaterEqual(joined.count(":ro"), 7)
+
+    def test_backup_pause_perimeter_includes_step_ca(self) -> None:
+        target = load_target("production", TARGETS)
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        self.assertIn("usl-sign-step-ca", services)
+        self.assertIn("usl-sign-dss", services)
 
     def test_writer_start_is_attempted_after_capture_failure(self) -> None:
         identity = {
@@ -432,6 +524,34 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "activation failed \\(original failure\\).*disk full"):
             _rollback_after_failure(FailedRunner(), identity, RuntimeError("original failure"))
 
+    def test_rollback_reactivates_the_previous_generation_overlay(self) -> None:
+        identity = {
+            "project": "safe-project",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": [
+                "/release/compose.yaml",
+                "/runtime/generations/g-previous/compose.generation.json",
+            ],
+        }
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        _rollback_after_failure(runner, identity, RuntimeError("new generation failed"))
+        command = runner.commands[0]
+        self.assertIn(
+            "/runtime/generations/g-previous/compose.generation.json",
+            command,
+        )
+        self.assertEqual(command[-4:], ["up", "--detach", "--wait", "--force-recreate"])
+
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
 
@@ -505,6 +625,25 @@ class CohortContractTests(unittest.TestCase):
             },
         )
 
+    def test_production_generation_activates_restored_sign_secrets(self) -> None:
+        target = load_target("production", TARGETS)
+        names = generation_volume_names(target, "g20260902-a1b2c3d4")
+        root = "/var/lib/usl-odoo/runtime/production/generations/g20260902-a1b2c3d4/sign-secrets"
+        overlay = json.loads(
+            _generation_overlay(
+                names,
+                sign_secret_root=root,
+                service_names=target.value["services"],
+            ),
+        )
+        services = overlay["services"]
+        self.assertIn(root + "/step-ca:/home/step", services["usl-sign-step-ca"]["volumes"])
+        self.assertIn(root + "/dss:/run/usl-sign-dss:ro", services["usl-sign-dss"]["volumes"])
+        self.assertIn(root + "/odoo:/run/usl-sign:ro", services["odoo"]["volumes"])
+        self.assertTrue(services["usl-sign-step-ca"]["env_file"][0]["required"])
+        self.assertTrue(services["usl-sign-dss"]["env_file"][0]["required"])
+        self.assertTrue(services["odoo"]["env_file"][0]["required"])
+
     def test_materialization_uses_source_repositories_and_fresh_target_volumes(self) -> None:
         source = load_target("production", TARGETS)
         target = load_target("staging", TARGETS)
@@ -522,6 +661,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn(source.value["backup"]["durable_repository"], joined)
         self.assertIn(source.value["backup"]["cache_repository"], joined)
         self.assertIn(names["odoo_filestore"] + ":/target/odoo-data", joined)
+        self.assertIn("/sign-secrets:/target/sign-secrets", joined)
         self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
 

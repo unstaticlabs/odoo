@@ -11,6 +11,7 @@ from operations.runtime import (
     compose_identity,
     inspect_runtime,
     load_target,
+    validate_target,
     validate_secret_text,
 )
 
@@ -100,6 +101,13 @@ class RuntimeContractTests(unittest.TestCase):
                 "RESTIC_PASSWORD=secret\nCOMPOSE_PROJECT_NAME=foreign\n",
                 ["RESTIC_PASSWORD"],
             )
+
+    def test_target_rejects_overlapping_sign_secrets_and_evidence(self) -> None:
+        target = load_target("local", TARGETS)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        value["paths"]["sign_evidence"]["path"] = value["paths"]["sign_secrets"]["path"] + "/evidence"
+        with self.assertRaisesRegex(RuntimeError, "must not overlap"):
+            validate_target(value)
 
     def test_secret_file_rejects_unapproved_secret(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "not allowlisted"):
