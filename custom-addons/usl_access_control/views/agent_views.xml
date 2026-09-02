@@ -84,8 +84,8 @@
                             <div class="alert alert-info" role="status">
                                 This Agent can use only access delegated by its owner. Settings is allowed when delegated; identity administration and irreversible actions remain blocked.
                             </div>
-                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3" invisible="not id">
-                                <span class="text-muted me-auto">Replace the current application access with an owner-limited profile.</span>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                <span class="text-muted me-auto">Apply an owner-limited access profile.</span>
                                 <button name="action_grant_all_read"
                                         type="object"
                                         string="Grant all read access"

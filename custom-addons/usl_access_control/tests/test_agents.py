@@ -1,5 +1,7 @@
 import datetime
 
+from lxml import etree
+
 from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
@@ -199,6 +201,23 @@ class TestAutonomousAgents(TransactionCase):
         )
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
+
+    def test_bulk_access_profile_actions_are_visible_on_new_agent_form(self):
+        architecture = etree.fromstring(
+            self.env.ref("usl_access_control.view_usl_agent_form").arch_db.encode(),
+        )
+        for action_name in (
+            "action_grant_all_read",
+            "action_grant_all_read_write",
+        ):
+            with self.subTest(action_name=action_name):
+                buttons = architecture.xpath(
+                    f"//button[@name='{action_name}' and @type='object']",
+                )
+                self.assertEqual(len(buttons), 1)
+                self.assertFalse(
+                    buttons[0].xpath("ancestor-or-self::*[@invisible='not id']"),
+                )
 
     def test_bulk_read_write_selects_highest_safe_owner_levels_and_settings(self):
         agent = self._create_agent()

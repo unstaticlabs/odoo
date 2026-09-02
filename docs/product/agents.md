@@ -17,8 +17,9 @@ ordinary applications through the API. It never lets the Agent manage users,
 authentication, access-control groups, ACLs, record rules, other Agents, API
 credentials or its own lifecycle. Irreversible Actions are never delegable.
 
-The Access tab provides two owner-limited bulk profiles. **Grant all read
-access** replaces the current delegation with qualified native read-only roles;
+The Access tab provides two owner-limited bulk profiles while creating or
+editing an Agent. **Grant all read access** replaces the current delegation with
+qualified native read-only roles;
 applications without a genuine reader role remain unselected. Normal Chatter
 collaboration remains available on records the Agent can read. **Grant all
 read/write access** selects the highest safe application level the owner can
