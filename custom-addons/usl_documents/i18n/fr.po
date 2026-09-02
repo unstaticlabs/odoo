@@ -5316,6 +5316,16 @@ msgstr "Facette de recherche sémantique non prise en charge."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"Unexpected archive error (%(error_type)s). Review the server log before "
+"retrying."
+msgstr ""
+"Erreur d’archivage inattendue (%(error_type)s). Consultez le journal du "
+"serveur avant de réessayer."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/document_mcp.py:0
 msgid "Exact archive search reached its bounded result window."
 msgstr "La recherche exacte dans l’archive a atteint la limite de sa fenêtre de résultats."

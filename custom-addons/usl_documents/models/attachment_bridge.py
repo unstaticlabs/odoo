@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import logging
 import re
 from datetime import timedelta
 
@@ -9,6 +10,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .document import ARCHIVE_MODES, ATTACHMENT_ORIGINS, DOCUMENT_ROLES
 from .paperless_client import PaperlessError, PaperlessUnavailable
+
+_logger = logging.getLogger(__name__)
 
 ORIGIN_CAPTURE_TOKEN = object()
 
@@ -1293,20 +1296,31 @@ class UslDocumentOperation(models.Model):
         try:
             content = bytes(attachment.raw)
             content_base64 = base64.b64encode(content).decode()
+            # Mail processing may detach inline files from their direct business
+            # record while preserving them on the original chatter message. The
+            # operation target is the immutable archival contract; attachment
+            # fields only support operations created before that target existed.
+            source_model = self.res_model or attachment.res_model
+            source_id = self.res_id or attachment.res_id
+            source_record = (
+                self.env[source_model].browse(source_id).exists()
+                if source_model and source_model in self.env and source_id
+                else self.env["ir.model"].browse()
+            )
+            if not source_record:
+                self.sudo().write(
+                    {
+                        "state": "failed",
+                        "attempt_count": self.attempt_count + 1,
+                        "next_attempt_at": False,
+                        "review_reason": "missing_source",
+                        "error_message": _(
+                            "The Odoo record was removed before archival.",
+                        ),
+                    },
+                )
+                return False
             if self.target_document_id:
-                source_record = self.env[attachment.res_model].browse(
-                    attachment.res_id,
-                ).exists()
-                if not source_record:
-                    self.sudo().write(
-                        {
-                            "state": "failed",
-                            "error_message": _(
-                                "The Odoo record was removed before archival.",
-                            ),
-                        },
-                    )
-                    return False
                 raw_context = self.context_json or source_record._document_archive_context(
                     attachment,
                 )
@@ -1340,22 +1354,6 @@ class UslDocumentOperation(models.Model):
                 )
                 return True
             checksum = hashlib.sha256(content).hexdigest()
-            source_record = self.env[attachment.res_model].browse(
-                attachment.res_id,
-            ).exists()
-            if not source_record:
-                self.sudo().write(
-                    {
-                        "state": "failed",
-                        "attempt_count": self.attempt_count + 1,
-                        "next_attempt_at": False,
-                        "review_reason": False,
-                        "error_message": _(
-                            "The Odoo record was removed before archival.",
-                        ),
-                    },
-                )
-                return False
             raw_context = self.context_json or source_record._document_archive_context(
                 attachment,
             )
@@ -1405,8 +1403,8 @@ class UslDocumentOperation(models.Model):
                 attachment.name,
                 content_base64,
                 attachment.mimetype,
-                res_model=attachment.res_model,
-                res_id=attachment.res_id,
+                res_model=source_model,
+                res_id=source_id,
                 company_id=self.company_id.id,
                 source=self.source or "odoo_attachment",
             )
@@ -1461,7 +1459,27 @@ class UslDocumentOperation(models.Model):
             limit=20,
         )
         for operation in operations:
-            operation._process_native_attachment()
+            try:
+                with self.env.cr.savepoint():
+                    operation._process_native_attachment()
+            except Exception as error:  # noqa: BLE001 - cron must isolate bad items
+                _logger.exception(
+                    "Unexpected Documents attachment operation failure for %s",
+                    operation.id,
+                )
+                operation.sudo().write(
+                    {
+                        "state": "failed",
+                        "attempt_count": operation.attempt_count + 1,
+                        "next_attempt_at": False,
+                        "review_reason": False,
+                        "error_message": _(
+                            "Unexpected archive error (%(error_type)s). "
+                            "Review the server log before retrying.",
+                            error_type=type(error).__name__,
+                        ),
+                    },
+                )
         return len(operations)
 
     @api.model

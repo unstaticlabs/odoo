@@ -760,6 +760,82 @@ class TestDocuments(TransactionCase):
         self.assertTrue(operation.next_attempt_at)
         self.assertEqual(bytes(attachment.raw), b"still usable in Odoo")
 
+    def test_archive_uses_queued_target_after_mail_detaches_attachment(self):
+        task = self.env["project.task"].create({"name": "Mail evidence target"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "mail-evidence.pdf",
+                "raw": b"evidence retained on a chatter message",
+                "mimetype": "application/pdf",
+                "res_model": task._name,
+                "res_id": task.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        attachment.with_context(usl_documents_skip_attachment_queue=True).write(
+            {"res_model": False, "res_id": 0},
+        )
+
+        with patch.object(
+            type(self.env["usl.document"]),
+            "upload_from_odoo",
+            autospec=True,
+            return_value={"state": "processing"},
+        ) as upload:
+            result = operation._process_native_attachment()
+
+        self.assertTrue(result)
+        self.assertEqual(upload.call_args.kwargs["res_model"], task._name)
+        self.assertEqual(upload.call_args.kwargs["res_id"], task.id)
+
+    def test_unexpected_attachment_failure_does_not_block_following_item(self):
+        tasks = self.env["project.task"].create(
+            [{"name": "Broken evidence"}, {"name": "Following evidence"}],
+        )
+        attachments = self.env["ir.attachment"].create(
+            [
+                {
+                    "name": "broken.pdf",
+                    "raw": b"broken",
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": tasks[0].id,
+                },
+                {
+                    "name": "following.pdf",
+                    "raw": b"following",
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": tasks[1].id,
+                },
+            ],
+        )
+        operations = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "in", attachments.ids)],
+            order="id",
+        )
+
+        def process(operation):
+            if operation == operations[0]:
+                raise KeyError("detached attachment")
+            operation.sudo().write({"state": "archived"})
+            return True
+
+        with patch.object(
+            type(operations),
+            "_process_native_attachment",
+            autospec=True,
+            side_effect=process,
+        ):
+            processed = operations.cron_process_attachment_queue()
+
+        self.assertGreaterEqual(processed, 2)
+        self.assertEqual(operations[0].state, "failed")
+        self.assertIn("KeyError", operations[0].error_message)
+        self.assertEqual(operations[1].state, "archived")
+
     def test_native_attachment_links_trashed_match_without_restoring_it(self):
         task = self.env["project.task"].create({"name": "Preserved Trash intent"})
         content = b"native evidence whose archive root is in Trash"
