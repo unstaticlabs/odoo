@@ -91,6 +91,11 @@
 }
 
 .o_usl_expense_batch_list {
+    .o_list_table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
     thead th {
         padding-block: 0.65rem;
         white-space: nowrap;
@@ -107,45 +112,39 @@
 
     th[data-name="name"],
     td[name="name"] {
-        width: 15rem;
-        max-width: 15rem;
+        width: 21%;
     }
 
     th[data-name="context_type"],
     td[name="context_type"] {
-        width: 7rem;
-        max-width: 7rem;
+        width: 8%;
     }
 
     th[data-name="employee_id"],
     td[name="employee_id"] {
-        width: 9rem;
-        max-width: 9rem;
+        width: 8%;
     }
 
     th[data-name="period_summary"],
     td[name="period_summary"] {
-        width: 10.5rem;
-        max-width: 10.5rem;
+        width: 16%;
     }
 
     td[name="period_summary"] {
         line-height: 1.25;
-        white-space: normal;
+        white-space: nowrap;
     }
 
     td[name="total_amount"],
     th[data-name="total_amount"] {
-        width: 7.5rem;
-        min-width: 7.5rem;
+        width: 7%;
         font-variant-numeric: tabular-nums;
         text-align: end;
     }
 
     th[data-name="expense_progress_summary"],
     td[name="expense_progress_summary"] {
-        width: clamp(9rem, 17vw, 13rem);
-        max-width: 13rem;
+        width: 18%;
     }
 
     td[name="expense_progress_summary"] .o_usl_progress_summary {
@@ -155,14 +154,21 @@
 
     th[data-name="readiness_summary"],
     td[name="readiness_summary"] {
-        width: 10.5rem;
-        max-width: 10.5rem;
+        width: 13%;
     }
 
     th[data-name="batch_state"],
     td[name="batch_state"] {
-        width: 6rem;
-        max-width: 6rem;
+        width: 6%;
+    }
+
+    td[name="name"],
+    td[name="context_type"],
+    td[name="employee_id"],
+    td[name="period_summary"] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
 }
@@ -279,10 +285,45 @@ body:has(.o_usl_expense_batch_list, .o_usl_expense_batch_form, .o_usl_expense_wo
         td[name="context_type"] {
             display: none !important;
         }
+
+        th[data-name="name"],
+        td[name="name"] {
+            width: 19%;
+        }
+
+        th[data-name="employee_id"],
+        td[name="employee_id"] {
+            width: 12%;
+        }
+
+        th[data-name="period_summary"],
+        td[name="period_summary"] {
+            width: 14%;
+        }
+
+        th[data-name="total_amount"],
+        td[name="total_amount"] {
+            width: 9%;
+        }
+
+        th[data-name="expense_progress_summary"],
+        td[name="expense_progress_summary"] {
+            width: 22%;
+        }
+
+        th[data-name="readiness_summary"],
+        td[name="readiness_summary"] {
+            width: 11%;
+        }
+
+        th[data-name="batch_state"],
+        td[name="batch_state"] {
+            width: 6%;
+        }
     }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
     .o_usl_batch_summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         margin-block: 0.65rem 0.85rem !important;

@@ -1,7 +1,7 @@
 {
     "name": "USL Expense Batches",
     "summary": "Review related expenses with shared business and accounting context",
-    "version": "saas~19.3.1.3.8",
+    "version": "saas~19.3.1.3.11",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
