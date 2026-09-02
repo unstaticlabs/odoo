@@ -104,6 +104,13 @@
                                 Read-only mode uses native roles for visibility, while the platform blocks business and configuration changes. Collaboration on readable records remains available.
                             </p>
                             <field name="access_mode" widget="badge" readonly="1"/>
+                            <group string="Administration" class="mt-3">
+                                <field name="settings_access"
+                                       readonly="1"
+                                       widget="badge"
+                                       decoration-success="settings_access in ('read_only', 'read_write')"
+                                       decoration-muted="settings_access == 'no_access'"/>
+                            </group>
                             <field name="read_profile_update_available" invisible="1"/>
                             <field name="view_group_hierarchy" invisible="1"/>
                             <field name="approved_effective_group_ids" invisible="1"/>

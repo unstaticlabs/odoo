@@ -121,6 +121,15 @@ class UslAgent(models.Model):
     read_profile_update_available = fields.Boolean(
         compute="_compute_read_profile_update_available",
     )
+    settings_access = fields.Selection(
+        [
+            ("no_access", "No access"),
+            ("read_only", "Read-only"),
+            ("read_write", "Read/write"),
+        ],
+        string="Settings",
+        compute="_compute_settings_access",
+    )
     credential_ids = fields.One2many(
         "usl.agent.credential",
         "agent_id",
@@ -167,6 +176,25 @@ class UslAgent(models.Model):
             agent.read_profile_update_available = bool(
                 available - (agent.approved_effective_group_ids & delegated),
             )
+
+    @api.depends(
+        "access_mode",
+        "delegated_group_ids",
+        "owner_id.all_group_ids",
+    )
+    def _compute_settings_access(self):
+        settings_group = self.env.ref("base.group_system", raise_if_not_found=False)
+        for agent in self:
+            if (
+                not settings_group
+                or settings_group not in agent.owner_id.all_group_ids
+                or settings_group not in agent._effective_groups(
+                    agent.delegated_group_ids,
+                )
+            ):
+                agent.settings_access = "no_access"
+            else:
+                agent.settings_access = agent.access_mode
 
     @api.depends(
         "credential_ids.status",
@@ -689,6 +717,14 @@ class UslAgent(models.Model):
             for privilege_id, definition in hierarchy.get("privileges", {}).items()
             if definition.get("group_ids")
         ]
+        if agent.settings_access != "no_access":
+            effective_applications.append(
+                {
+                    "id": "settings",
+                    "name": _("Settings"),
+                    "access": agent.settings_access,
+                },
+            )
         return {
             "schema_version": 2,
             "principal_kind": "agent",

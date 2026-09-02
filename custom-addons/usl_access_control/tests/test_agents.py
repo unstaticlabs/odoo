@@ -206,6 +206,7 @@ class TestAutonomousAgents(TransactionCase):
         self.assertIn(str(len(expected)), result["params"]["message"])
         self.assertEqual(result["params"]["next"]["tag"], "soft_reload")
         self.assertIn(self.group_settings, agent.delegated_group_ids)
+        self.assertEqual(agent.settings_access, "read_only")
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
 
@@ -266,6 +267,7 @@ class TestAutonomousAgents(TransactionCase):
                 self.assertIn(candidates[-1], agent.delegated_group_ids)
         self.assertIn(self.group_settings, agent.delegated_group_ids)
         self.assertEqual(agent.access_mode, "read_write")
+        self.assertEqual(agent.settings_access, "read_write")
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
         self.assertEqual(result["tag"], "display_notification")
@@ -692,6 +694,10 @@ class TestAutonomousAgents(TransactionCase):
         identity = self.env["usl.agent"].with_user(agent.user_id).current_identity()
         self.assertEqual(identity["principal_kind"], "agent")
         self.assertEqual(identity["agent"]["id"], agent.id)
+        self.assertIn(
+            {"id": "settings", "name": "Settings", "access": "read_write"},
+            identity["effective_applications"],
+        )
 
         replacement_action = first.with_user(self.owner).action_create_replacement()
         self.assertEqual(replacement_action["context"]["default_duration"], "365")
