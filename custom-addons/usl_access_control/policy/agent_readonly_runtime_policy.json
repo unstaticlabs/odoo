@@ -276,7 +276,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "87fd2a771627910008bc3932be57531d39ea1398f9a31466705df619d36e2dc2",
+  "qualified_policy_digest": "44a3fb055755e9aecdadd37ddd2a26d0165e48b0705bf815d82347e3f5021d0d",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -11315,7 +11315,6 @@
     "rpc:usl.expense.batch.get_external_id",
     "rpc:usl.expense.batch.get_field_translations",
     "rpc:usl.expense.batch.get_metadata",
-    "rpc:usl.expense.batch.get_review_summary",
     "rpc:usl.expense.batch.has_access",
     "rpc:usl.expense.batch.has_field_access",
     "rpc:usl.expense.batch.hierarchy_read",
@@ -12335,6 +12334,6 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "74a98022309676df1e950cccb9a68ac0e3d4b226a96d0d3a4f4b9b6fe9c3154b",
+  "runtime_policy_sha256": "0d1a539c9a3ac58f107aa7fa1a8bc1bd006ea918c5edd8a900613564c866ec02",
   "schema": "usl-agent-read-only-runtime-v1"
 }
