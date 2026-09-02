@@ -1,4 +1,7 @@
+import hashlib
+
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class UslTesePayslip(models.Model):
@@ -80,6 +83,22 @@ class UslTesePayslip(models.Model):
         classified = 0
         queued = 0
         for payslip in self.sudo().filtered("attachment_id"):
+            attachment_checksum = hashlib.sha256(
+                bytes(payslip.attachment_id.raw or b""),
+            ).hexdigest()
+            linked_documents = self.env["usl.document.link"].sudo().search(
+                [
+                    ("res_model", "=", payslip._name),
+                    ("res_id", "=", payslip.id),
+                    ("active", "=", True),
+                ],
+            ).mapped("document_id")
+            document = linked_documents.filtered(
+                lambda candidate: (
+                    candidate.checksum == attachment_checksum
+                    or attachment_checksum in candidate.version_ids.mapped("checksum")
+                ),
+            )[:1]
             operation = operation_model.search(
                 [
                     ("source_attachment_id", "=", payslip.attachment_id.id),
@@ -91,7 +110,7 @@ class UslTesePayslip(models.Model):
                 order="id desc",
                 limit=1,
             )
-            document = operation.document_id or operation.target_document_id
+            document = document or operation.document_id or operation.target_document_id
             if not document:
                 payslip.attachment_id._queue_usl_documents_archive()
                 queued += 1
@@ -112,6 +131,36 @@ class UslTesePayslip(models.Model):
         if touched_documents:
             self.env["usl.document"].reconcile_linked_classification(limit=1000)
         return {"reconciled": classified, "queued": queued}
+
+    def action_choose_archived_pdf(self):
+        self.ensure_one()
+        self._check_workflow_access()
+        if self.state in {"to_reconcile", "paid"} or (
+            self.move_id and self.move_id.state == "posted"
+        ):
+            raise UserError(_(
+                "The provider document cannot be changed after the payroll "
+                "journal entry has been posted.",
+            ))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Choose the official TESE PDF"),
+            "res_model": "usl.tese.document.link.wizard",
+            "view_mode": "form",
+            "views": [
+                (
+                    self.env.ref(
+                        "usl_tese_payroll.view_tese_document_link_wizard_form",
+                    ).id,
+                    "form",
+                ),
+            ],
+            "target": "new",
+            "context": {
+                "default_payslip_id": self.id,
+                "allowed_company_ids": self.company_id.ids,
+            },
+        }
 
     @api.model
     def cron_reconcile_archived_documents(self):
@@ -228,3 +277,142 @@ class UslDocumentOperation(models.Model):
                 usl_tese_skip_immediate_document_reconciliation=True,
             )._reconcile_archived_payslip_document()
         return result
+
+
+class UslTeseDocumentLinkWizard(models.TransientModel):
+    _name = "usl.tese.document.link.wizard"
+    _description = "Choose an Archived TESE Payroll PDF"
+
+    payslip_id = fields.Many2one(
+        "usl.tese.payslip",
+        required=True,
+        readonly=True,
+        ondelete="cascade",
+    )
+    company_id = fields.Many2one(
+        "res.company",
+        related="payslip_id.company_id",
+        readonly=True,
+    )
+    document_id = fields.Many2one(
+        "usl.document",
+        string="Official TESE PDF",
+        required=True,
+        domain=(
+            "[('company_id', '=', company_id), "
+            "('availability_state', '=', 'available'), "
+            "('permission_sync_state', '=', 'synchronized'), "
+            "('mime_type', '=', 'application/pdf')]"
+        ),
+    )
+
+    def _validated_records(self):
+        self.ensure_one()
+        payslip = self.payslip_id.exists()
+        document = self.document_id.exists()
+        if not payslip or not document:
+            raise UserError(_(
+                "The payroll record or archived document no longer exists.",
+            ))
+        payslip.check_access("read")
+        payslip.check_access("write")
+        payslip._check_workflow_access()
+        document.check_access("read")
+        document.check_access("write")
+        if payslip.state in {"to_reconcile", "paid"} or (
+            payslip.move_id and payslip.move_id.state == "posted"
+        ):
+            raise UserError(_(
+                "The provider document cannot be changed after the payroll "
+                "journal entry has been posted.",
+            ))
+        if payslip.attachment_id:
+            raise UserError(_(
+                "An official TESE PDF is already linked. Remove it before "
+                "choosing another archived document.",
+            ))
+        if document.company_id != payslip.company_id:
+            raise ValidationError(_(
+                "The archived document and payroll record must belong to the "
+                "same company.",
+            ))
+        if (
+            document.availability_state != "available"
+            or document.permission_sync_state != "synchronized"
+        ):
+            raise UserError(_(
+                "The archived document is not ready for secure use. Wait for "
+                "Documents access synchronization, then try again.",
+            ))
+        if document.mime_type != "application/pdf":
+            raise ValidationError(_("Choose a PDF document."))
+        version = document.version_ids.filtered("is_current")[:1]
+        if not version or not version.checksum:
+            raise UserError(_(
+                "Documents has not synchronized the current file version yet. "
+                "Try again after the next Documents refresh.",
+            ))
+        document._check_archive_binary_access()
+        return payslip, document, version
+
+    def action_link_document(self):
+        payslip, document, version = self._validated_records()
+        content, headers = document._paperless().download(
+            document.paperless_id,
+            version_id=version.paperless_version_id,
+            original=True,
+        )
+        checksum = hashlib.sha256(content).hexdigest()
+        if checksum != version.checksum:
+            raise ValidationError(_(
+                "The archived PDF no longer matches its verified Documents "
+                "checksum. Nothing was linked.",
+            ))
+        content_type = (
+            headers.get("Content-Type")
+            or headers.get("content-type")
+            or version.mime_type
+            or document.mime_type
+            or ""
+        ).split(";", 1)[0].strip().casefold()
+        if content_type != "application/pdf" or b"%PDF-" not in content[:1024]:
+            raise ValidationError(_("The archived file is not a valid PDF."))
+
+        filename = (
+            version.original_filename
+            or document.original_filename
+            or document.name
+            or _("TESE payroll.pdf")
+        )
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            {
+                "name": filename,
+                "type": "binary",
+                "raw": content,
+                "mimetype": "application/pdf",
+                "res_model": payslip._name,
+                "res_id": payslip.id,
+                "company_id": payslip.company_id.id,
+            },
+        )
+        payslip.with_context(
+            usl_tese_skip_immediate_document_reconciliation=True,
+        ).write({"attachment_id": attachment.id})
+        raw_context = payslip._document_archive_context(attachment)
+        raw_context["attachment_origin"] = "documents_workspace"
+        archive_context = self.env["usl.document"]._prepare_archive_context(
+            payslip,
+            attachment,
+            context=raw_context,
+        )
+        document._apply_archive_context(
+            archive_context,
+            submitted_by=self.env.user,
+            access_user=self.env.user,
+        )
+        return payslip._notify(_(
+            "The archived PDF is now the official TESE document. The existing "
+            "Paperless original was reused without creating a duplicate.",
+        ))

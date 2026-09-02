@@ -354,6 +354,14 @@
                             <field name="attachment_id"
                                    string="Official TESE PDF"
                                    readonly="state in ('to_reconcile', 'paid')"/>
+                            <button name="action_choose_archived_pdf"
+                                    type="object"
+                                    string="Choose from Documents"
+                                    class="btn-link p-0"
+                                    icon="fa-folder-open-o"
+                                    groups="usl_documents.group_documents_hr,usl_documents.group_documents_manager"
+                                    invisible="attachment_id or state in ('to_reconcile', 'paid')"
+                                    help="Choose an accessible archived PDF and reuse its verified original as the official TESE evidence."/>
                             <field name="document_status"
                                    widget="badge"
                                    decoration-success="document_status == 'ok'"
@@ -578,6 +586,32 @@
                     </notebook>
                 </sheet>
                 <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tese_document_link_wizard_form" model="ir.ui.view">
+        <field name="name">usl.tese.document.link.wizard.form</field>
+        <field name="model">usl.tese.document.link.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Choose the official TESE PDF">
+                <group>
+                    <field name="payslip_id"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="document_id"
+                           options="{'no_create': True, 'no_create_edit': True}"/>
+                </group>
+                <div class="alert alert-info" role="status">
+                    The verified archived original will be reused. Documents will
+                    not upload a second copy to Paperless.
+                </div>
+                <footer>
+                    <button name="action_link_document"
+                            type="object"
+                            string="Use this PDF"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
             </form>
         </field>
     </record>

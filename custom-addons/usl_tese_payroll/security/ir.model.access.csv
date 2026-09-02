@@ -20,3 +20,4 @@ access_tese_settings_revision_line_account_manager,usl.tese.settings.revision.li
 access_tese_diagnostic_hr_manager,usl.tese.diagnostic.hr.manager,model_usl_tese_diagnostic_issue,hr.group_hr_manager,1,0,0,0
 access_tese_diagnostic_account_readonly,usl.tese.diagnostic.account.readonly,model_usl_tese_diagnostic_issue,account.group_account_readonly,1,0,0,0
 access_tese_diagnostic_account_manager,usl.tese.diagnostic.account.manager,model_usl_tese_diagnostic_issue,account.group_account_manager,1,0,0,0
+access_tese_document_link_wizard_hr_manager,usl.tese.document.link.wizard.hr.manager,model_usl_tese_document_link_wizard,hr.group_hr_manager,1,1,1,1

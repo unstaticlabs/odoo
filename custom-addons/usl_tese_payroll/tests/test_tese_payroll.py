@@ -1,4 +1,6 @@
+import hashlib
 from datetime import date
+from unittest.mock import ANY, patch
 
 from dateutil.relativedelta import relativedelta
 
@@ -7,9 +9,10 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 from odoo.tools.safe_eval import safe_eval
 
-from ..models.constants import TESE_COMPONENTS
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.addons.usl_documents.models.paperless_client import PaperlessClient
+from odoo.addons.usl_tese_payroll.models.constants import TESE_COMPONENTS
 
 
 @tagged("post_install", "-at_install", "usl_tese_payroll")
@@ -131,7 +134,8 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             login="tese_accountant",
             groups=(
                 "base.group_user,hr.group_hr_manager,"
-                "account.group_account_user"
+                "account.group_account_user,"
+                "usl_documents.group_documents_hr"
             ),
             company_ids=company_commands,
         )
@@ -176,6 +180,65 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         })
         payslip.with_user(self.workflow_user).attachment_id = attachment
         return attachment
+
+    def _archived_pdf(self, content=b"%PDF-1.7 archived TESE payroll"):
+        checksum = hashlib.sha256(content).hexdigest()
+        document = self.env["usl.document"].sudo().create({
+            "name": "Archived TESE payroll",
+            "paperless_id": 96001,
+            "company_id": self.company.id,
+            "confidentiality": "internal",
+            "access_scope": "company",
+            "review_state": "classified",
+            "availability_state": "available",
+            "permission_sync_state": "synchronized",
+            "mime_type": "application/pdf",
+            "original_filename": "2608 - Alice - TESE.pdf",
+            "checksum": checksum,
+            "source": "odoo_upload",
+        })
+        version = self.env["usl.document.version"].sudo().create({
+            "document_id": document.id,
+            "paperless_version_id": "96001",
+            "label": "Original",
+            "original_filename": document.original_filename,
+            "mime_type": "application/pdf",
+            "checksum": checksum,
+            "is_current": True,
+            "is_received_original": True,
+            "source": "odoo_upload",
+        })
+        return document, version, content
+
+    def _archive_context_for_payslip(self, payslip):
+        return {
+            "company_id": payslip.company_id.id,
+            "confidentiality": "hr",
+            "accounting_evidence": True,
+            "access_scope": "linked_record",
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "attachment_origin": "documents_workspace",
+            "policy_reason": "tese_payroll_evidence",
+            "related_records": [
+                {
+                    "model": payslip._name,
+                    "id": payslip.id,
+                    "document_role": "evidence",
+                },
+                {
+                    "model": "hr.employee",
+                    "id": payslip.employee_id.id,
+                    "document_role": "library",
+                },
+            ],
+            "tag_record_ids": [],
+            "tag_paperless_ids": [],
+            "document_type_record_id": False,
+            "document_type_paperless_id": False,
+            "correspondent_record_id": False,
+            "correspondent_paperless_id": False,
+        }
 
     def _bank_line(self, amount, payment_date, partner, label):
         statement = self.env["account.bank.statement"].create({
@@ -255,6 +318,115 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertNotIn(foreign_pdf.id, {result["id"] for result in results})
         with self.assertRaises(UserError), self.cr.savepoint():
             payslip.sudo().attachment_id = foreign_pdf
+
+    def test_archived_pdf_chooser_reuses_verified_original_without_reingestion(self):
+        payslip = self._new_payslip()
+        document, version, content = self._archived_pdf()
+        wizard = (
+            self.env["usl.tese.document.link.wizard"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .create({
+                "payslip_id": payslip.id,
+                "document_id": document.id,
+            })
+        )
+        archive_context = self._archive_context_for_payslip(payslip)
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "download",
+                autospec=True,
+                return_value=(content, {"Content-Type": "application/pdf"}),
+            ) as download,
+            patch.object(
+                type(self.env["usl.document"]),
+                "_prepare_archive_context",
+                autospec=True,
+                return_value=archive_context,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "_recompute_linked_record_access",
+                autospec=True,
+                return_value=True,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "reconcile_linked_classification",
+                autospec=True,
+                return_value={"considered": 0},
+            ),
+        ):
+            action = wizard.action_link_document()
+            reconciliation = payslip.sudo()._reconcile_archived_payslip_document()
+
+        payslip.invalidate_recordset()
+        attachment = payslip.attachment_id
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(bytes(attachment.raw), content)
+        self.assertEqual(attachment.company_id, payslip.company_id)
+        self.assertEqual(attachment.res_model, payslip._name)
+        self.assertEqual(attachment.res_id, payslip.id)
+        self.assertEqual(reconciliation, {"reconciled": 1, "queued": 0})
+        self.assertEqual(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+            0,
+        )
+        self.assertEqual(
+            document.link_ids.filtered(
+                lambda link: (
+                    link.active
+                    and link.res_model == payslip._name
+                    and link.res_id == payslip.id
+                ),
+            ).document_id,
+            document,
+        )
+        self.assertEqual(document.paperless_id, 96001)
+        download.assert_called_once_with(
+            ANY,
+            document.paperless_id,
+            version_id=version.paperless_version_id,
+            original=True,
+        )
+
+    def test_archived_pdf_chooser_rejects_checksum_mismatch_without_side_effects(self):
+        payslip = self._new_payslip()
+        document, _version, _content = self._archived_pdf()
+        wizard = (
+            self.env["usl.tese.document.link.wizard"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .create({
+                "payslip_id": payslip.id,
+                "document_id": document.id,
+            })
+        )
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "download",
+                autospec=True,
+                return_value=(
+                    b"%PDF-1.7 different bytes",
+                    {"Content-Type": "application/pdf"},
+                ),
+            ),
+            self.assertRaises(ValidationError),
+            self.cr.savepoint(),
+        ):
+            wizard.action_link_document()
+
+        payslip.invalidate_recordset()
+        self.assertFalse(payslip.attachment_id)
+        self.assertFalse(document.link_ids.filtered(
+            lambda link: link.res_model == payslip._name and link.res_id == payslip.id,
+        ))
 
     def _posted_payslip(self):
         payslip = self._new_payslip()
