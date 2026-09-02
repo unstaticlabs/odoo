@@ -278,13 +278,19 @@ def _validate_runtime_release_images(target, runner, runtime: dict, release: dic
         if not container:
             raise RuntimeError(f"release service is not running: {service}")
         expected = _release_image(release, component)
-        expected_id = runner.run(
-            ["docker", "image", "inspect", expected, "--format", "{{.Id}}"],
-        ).stdout.strip()
         actual_id = runner.run(
             ["docker", "inspect", container, "--format", "{{.Image}}"],
         ).stdout.strip()
-        if not expected_id or actual_id != expected_id:
+        expected_probe = runner.run(
+            ["docker", "image", "inspect", expected, "--format", "{{.Id}}"],
+            check=False,
+        )
+        if expected_probe.returncode:
+            runner.run(["docker", "pull", expected])
+            expected_probe = runner.run(
+                ["docker", "image", "inspect", expected, "--format", "{{.Id}}"],
+            )
+        if actual_id != expected_probe.stdout.strip():
             raise RuntimeError(
                 f"running {component} image differs from the selected release",
             )
