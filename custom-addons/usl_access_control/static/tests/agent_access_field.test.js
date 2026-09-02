@@ -23,6 +23,12 @@ class ResGroups extends models.Model {
     ];
 }
 
+class SignOcaTemplate extends models.Model {
+    _name = "sign.oca.template";
+
+    model = fields.Char();
+}
+
 function makeAgentRecords() {
     return [
         {
@@ -62,7 +68,7 @@ class UslAgent extends models.Model {
 }
 
 defineMailModels();
-defineModels([ResGroups, UslAgent]);
+defineModels([ResGroups, SignOcaTemplate, UslAgent]);
 
 beforeEach(() => {
     UslAgent._records = makeAgentRecords();
