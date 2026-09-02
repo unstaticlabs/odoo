@@ -119,7 +119,13 @@ class DocController(http.Controller):
         # Server cache, use an attachment because the index gets very
         # large (>1MiB) when there are many modules installed.
         filename = f'odoo-doc-index-{db_registry_sequence}-{unique}.json'
-        index_attach = self.env['ir.attachment'].sudo().search([('name', '=', filename)], limit=1)
+        # The document is server-generated cache state, not a caller mutation.
+        # Use the actual superuser identity so distributions that deliberately
+        # retain an Agent actor through sudo() do not reject this internal write.
+        index_attach = self.env['ir.attachment'].with_user(odoo.SUPERUSER_ID).search(
+            [('name', '=', filename)],
+            limit=1,
+        )
         if not index_attach:
             modules, models = self._doc_index()
             index_attach = index_attach.create({
