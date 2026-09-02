@@ -1417,8 +1417,19 @@ msgstr "%s dépense(s) ajoutée(s) à cette note de frais."
 
 #. module: usl_expense_batch
 #. odoo-javascript
-msgid "%s total"
-msgstr "%s au total"
+msgid "%s: %s"
+msgstr "%s : %s"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "%s expenses: %s"
+msgstr "%s notes de frais : %s"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Apply context to %(count)s expenses"
+msgstr "Appliquer le contexte à %(count)s notes de frais"
 
 #. module: usl_expense_batch
 #. odoo-javascript

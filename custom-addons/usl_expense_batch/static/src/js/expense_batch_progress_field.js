@@ -55,12 +55,12 @@ export class ExpenseBatchProgressField extends Component {
         return this.segments.reduce((sum, segment) => sum + segment.count, 0);
     }
 
-    get totalLabel() {
-        return _t("%s total", this.total);
+    get visibleSummary() {
+        return _t("%s: %s", this.total, this.summary);
     }
 
     get accessibleSummary() {
-        return `${this.totalLabel}: ${this.summary}`;
+        return _t("%s expenses: %s", this.total, this.summary);
     }
 }
 

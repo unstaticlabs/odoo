@@ -6,18 +6,15 @@
              tabindex="0"
              t-att-title="summary"
              t-att-aria-label="accessibleSummary">
-            <div class="o_usl_progress_overview">
-                <div class="o_usl_progress_track" aria-hidden="true">
-                    <span t-foreach="segments"
-                          t-as="segment"
-                          t-key="segment.key"
-                          t-att-class="'o_usl_progress_segment ' + segment.colorClass"
-                          t-att-style="'flex-grow: ' + segment.count"
-                          t-att-title="segment.count + ' ' + segment.label"/>
-                </div>
-                <span class="o_usl_progress_total" t-out="totalLabel"/>
+            <div class="o_usl_progress_track" aria-hidden="true">
+                <span t-foreach="segments"
+                      t-as="segment"
+                      t-key="segment.key"
+                      t-att-class="'o_usl_progress_segment ' + segment.colorClass"
+                      t-att-style="'flex-grow: ' + segment.count"
+                      t-att-title="segment.count + ' ' + segment.label"/>
             </div>
-            <span class="o_usl_progress_label" t-out="summary"/>
+            <span class="o_usl_progress_label" t-out="visibleSummary"/>
         </div>
     </t>
 </templates>

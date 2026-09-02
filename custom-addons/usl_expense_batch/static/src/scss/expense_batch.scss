@@ -182,18 +182,10 @@
         outline-offset: 2px;
     }
 
-    .o_usl_progress_overview {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-        width: 100%;
-        min-width: 0;
-    }
-
     .o_usl_progress_track {
         display: flex;
-        flex: 1 1 auto;
-        min-width: 2.5rem;
+        width: 100%;
+        min-width: 0;
         height: 0.45rem;
         overflow: hidden;
         border-radius: 999px;
@@ -202,16 +194,6 @@
 
     .o_usl_progress_segment {
         min-width: 2px;
-    }
-
-    .o_usl_progress_total {
-        flex: 0 0 auto;
-        color: var(--o-gray-700, #495057);
-        font-size: 0.75rem;
-        font-variant-numeric: tabular-nums;
-        font-weight: 600;
-        line-height: 1;
-        white-space: nowrap;
     }
 
     .o_usl_progress_label {

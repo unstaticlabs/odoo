@@ -80,11 +80,12 @@
             <form string="Expense Batch" js_class="usl_expense_batch_form">
                 <header>
                     <button name="action_open_context_wizard"
-                            string="Apply context"
                             type="object"
                             class="oe_highlight"
                             title="Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
-                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
+                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)">
+                        <field name="apply_context_button_label" readonly="1"/>
+                    </button>
                     <button name="action_open_add_expenses_wizard"
                             string="Add expenses"
                             type="object"

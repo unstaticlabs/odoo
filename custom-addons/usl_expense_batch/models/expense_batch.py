@@ -177,6 +177,9 @@ class UslExpenseBatch(models.Model):
     employee_paid_open_count = fields.Integer(compute="_compute_review_context")
     company_paid_open_count = fields.Integer(compute="_compute_review_context")
     draft_expense_count = fields.Integer(compute="_compute_review_context")
+    apply_context_button_label = fields.Char(
+        compute="_compute_apply_context_button_label",
+    )
     submitted_expense_count = fields.Integer(compute="_compute_review_context")
     approved_expense_count = fields.Integer(compute="_compute_review_context")
     accounted_expense_count = fields.Integer(compute="_compute_accounting_reconciliation")
@@ -198,6 +201,14 @@ class UslExpenseBatch(models.Model):
         string="Journal Entries",
     )
     move_count = fields.Integer(compute="_compute_moves")
+
+    @api.depends("draft_expense_count")
+    def _compute_apply_context_button_label(self):
+        for batch in self:
+            batch.apply_context_button_label = _(
+                "Apply context to %(count)s expenses",
+                count=batch.draft_expense_count,
+            )
 
     @api.depends("active")
     def _compute_batch_state(self):
