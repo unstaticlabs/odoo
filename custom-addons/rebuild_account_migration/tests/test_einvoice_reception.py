@@ -2,7 +2,7 @@ import io
 import os
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import HttpCase, TransactionCase, tagged
 from odoo.tools import file_open
@@ -1294,6 +1294,48 @@ class TestFrenchEinvoiceReception(
         self.assertEqual(self.company.account_peppol_proxy_state, "receiver")
         self.assertTrue(all(cron.active for cron in active_crons))
         self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+
+    def test_upgrade_with_runtime_guard_disabled_preserves_onboarding_state(self):
+        prepared_at = fields.Datetime.now()
+        approved_at = fields.Datetime.now()
+        self.company.write({
+            "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_production_prepared_by_id": self.manager.id,
+            "rebuild_einvoice_production_prepared_at": prepared_at,
+            "rebuild_einvoice_activation_approved": True,
+            "rebuild_einvoice_approved_by_id": self.manager.id,
+            "rebuild_einvoice_approved_at": approved_at,
+            "rebuild_einvoice_exchange_enabled": True,
+            "account_peppol_proxy_state": "smp_registration",
+            "pdp_kyc_status": "success",
+            "l10n_fr_pdp_send_to_ppf": True,
+            "l10n_fr_pdp_pilot_phase": True,
+        })
+
+        with patch.dict(
+            os.environ,
+            {"USL_EINVOICE_LIVE_ENABLED": "0"},
+            clear=False,
+        ):
+            self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+
+        self.assertEqual(self.company.rebuild_einvoice_environment, "production")
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_by_id,
+            self.manager,
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_at,
+            prepared_at,
+        )
+        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+        self.assertEqual(self.company.rebuild_einvoice_approved_by_id, self.manager)
+        self.assertEqual(self.company.rebuild_einvoice_approved_at, approved_at)
+        self.assertTrue(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertEqual(self.company.account_peppol_proxy_state, "smp_registration")
+        self.assertEqual(self.company.pdp_kyc_status, "success")
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
 
     def test_upgrade_initialization_preserves_current_offline_self_check(self):
         self.company.with_user(
