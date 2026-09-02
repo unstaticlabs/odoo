@@ -85,13 +85,24 @@ class ResUsers(models.Model):
             **definitions["administrator"],
             "groups": (
                 "usl_access_control.group_distribution_administrator",
+                "usl_access_control.group_irreversible_actions",
                 "base.group_system",
             ),
+        }
+        definitions["product_administrator"] = {
+            "classification": "active",
+            "active": True,
+            "groups": (
+                "usl_access_control.group_distribution_administrator",
+                "base.group_system",
+            ),
+            "pocketid": True,
         }
         definitions["break_glass"] = {
             **definitions["break_glass"],
             "groups": (
                 "usl_access_control.group_distribution_administrator",
+                "usl_access_control.group_irreversible_actions",
                 "base.group_system",
             ),
         }

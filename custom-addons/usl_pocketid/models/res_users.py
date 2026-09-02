@@ -70,6 +70,7 @@ _CONFIGURATION_KEYS = {
     "email",
     "profile",
     "companies",
+    "default_company",
     "create_if_missing",
     "optional_if_missing",
     "subject",
@@ -514,6 +515,30 @@ class ResUsers(models.Model):
                 if definition["active"]
                 else self.env["res.company"].browse()
             )
+            default_company_name = configuration.get("default_company")
+            if definition["active"]:
+                if default_company_name is not None and (
+                    not isinstance(default_company_name, str)
+                    or not default_company_name.strip()
+                ):
+                    self._usl_pocketid_configuration_error(
+                        _("The default company must be a non-empty company name."),
+                        login=login,
+                    )
+                default_company = (
+                    companies.filtered(
+                        lambda company: company.name == default_company_name.strip(),
+                    )
+                    if default_company_name
+                    else companies[:1]
+                )
+                if len(default_company) != 1:
+                    self._usl_pocketid_configuration_error(
+                        _("The default company must be one of the allowed companies."),
+                        login=login,
+                    )
+            else:
+                default_company = self.env["res.company"].browse()
             groups = (
                 self._usl_pocketid_resolve_groups(
                     definition["groups"],
@@ -531,6 +556,7 @@ class ResUsers(models.Model):
                 "profile": profile,
                 "definition": definition,
                 "companies_recordset": companies,
+                "default_company_recordset": default_company,
                 "groups_recordset": groups,
             }
             normalized["user_recordset"] = self._usl_pocketid_find_configured_user(
@@ -581,7 +607,7 @@ class ResUsers(models.Model):
             "name": configuration["name"],
             "email": configuration["email"],
             "active": True,
-            "company_id": configuration["companies_recordset"][0].id,
+            "company_id": configuration["default_company_recordset"].id,
             "company_ids": [Command.set(configuration["companies_recordset"].ids)],
             "group_ids": [Command.set(configuration["groups_recordset"].ids)],
             "password": secrets.token_urlsafe(48),
@@ -700,8 +726,9 @@ class ResUsers(models.Model):
             if definition["active"]:
                 companies = configuration["companies_recordset"]
                 groups = configuration["groups_recordset"]
-                if user.company_id != companies[0]:
-                    values["company_id"] = companies[0].id
+                default_company = configuration["default_company_recordset"]
+                if user.company_id != default_company:
+                    values["company_id"] = default_company.id
                 if set(user.company_ids.ids) != set(companies.ids):
                     values["company_ids"] = [Command.set(companies.ids)]
                 if set(user.group_ids.ids) != set(groups.ids):

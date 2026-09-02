@@ -19,8 +19,10 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         # The native accounting harness creates an isolated company as its
         # fixture user. Give that bootstrap identity the same explicit product
         # administration capability production requires for company creation.
-        return super().get_default_groups() | cls.env.ref(
-            "usl_access_control.group_distribution_administrator",
+        return (
+            super().get_default_groups()
+            | cls.env.ref("usl_access_control.group_distribution_administrator")
+            | cls.env.ref("usl_access_control.group_irreversible_actions")
         )
 
     @classmethod
@@ -41,6 +43,12 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         }
         cls.valentin = cls._create_user(
             "access.valentin",
+            cls.groups["distribution_administrator"],
+            cls.groups["irreversible_actions"],
+            companies=cls.company | cls.other_company,
+        )
+        cls.product_admin = cls._create_user(
+            "access.product.admin",
             cls.groups["distribution_administrator"],
             companies=cls.company | cls.other_company,
         )
@@ -92,6 +100,18 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         self.assertTrue(self.valentin.has_group("api_doc.group_allow_doc"))
         self.assertTrue(
             self.valentin.has_group(
+                "usl_access_control.group_irreversible_actions",
+            ),
+        )
+        self.assertTrue(self.product_admin.has_group("base.group_system"))
+        self.assertTrue(
+            self.product_admin.has_group("account.group_account_manager"),
+        )
+        self.assertTrue(
+            self.product_admin.has_group("usl_sign.group_sign_admin"),
+        )
+        self.assertFalse(
+            self.product_admin.has_group(
                 "usl_access_control.group_irreversible_actions",
             ),
         )
@@ -182,6 +202,14 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             definitions["administrator"]["groups"],
             (
                 "usl_access_control.group_distribution_administrator",
+                "usl_access_control.group_irreversible_actions",
+                "base.group_system",
+            ),
+        )
+        self.assertEqual(
+            definitions["product_administrator"]["groups"],
+            (
+                "usl_access_control.group_distribution_administrator",
                 "base.group_system",
             ),
         )
@@ -189,6 +217,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             definitions["break_glass"]["groups"],
             (
                 "usl_access_control.group_distribution_administrator",
+                "usl_access_control.group_irreversible_actions",
                 "base.group_system",
             ),
         )
@@ -323,7 +352,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         self.assertIn('delete="false"', form_arch)
 
     def test_lock_dates_and_security_changes_require_irreversible_actions(self):
-        for user in (self.roger, self.prosper, self.agent):
+        for user in (self.roger, self.prosper, self.agent, self.product_admin):
             with self.subTest(user=user.login), self.assertRaisesRegex(
                 AccessError,
                 "Irreversible Actions|AI Agents",
@@ -625,6 +654,14 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         other_invoice = self._draft_invoice(self.env.user, company=self.other_company)
         with self.assertRaises(AccessError):
             other_invoice.with_user(self.prosper).read(["name"])
+        product_admin_invoice = other_invoice.with_user(
+            self.product_admin,
+        ).with_company(self.other_company)
+        product_admin_invoice.write({"ref": "Product administrator update"})
+        self.assertEqual(
+            product_admin_invoice.ref,
+            "Product administrator update",
+        )
         self.assertEqual(
             other_invoice.with_user(self.roger).with_company(self.other_company).read(["name"])[0]["name"],
             other_invoice.name,

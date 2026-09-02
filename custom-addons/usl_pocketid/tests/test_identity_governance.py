@@ -527,6 +527,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 "email": self.user.email,
                 "profile": "collaborator",
                 "companies": [self.env.company.name],
+                "default_company": self.env.company.name,
                 "subject": "configured-collaborator-subject",
             },
             {
@@ -535,6 +536,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 "email": "local.break.glass@example.invalid",
                 "profile": "break_glass",
                 "companies": "all",
+                "default_company": self.env.company.name,
                 "create_if_missing": True,
             },
         ]
@@ -599,6 +601,37 @@ class TestPocketIDIdentityGovernance(TransactionCase):
             self.env["mail.notification"].sudo().search_count([]),
             notifications_before,
         )
+
+    def test_default_company_is_explicit_and_must_be_allowed(self):
+        other_company = self.env["res.company"].create({
+            "name": "Governed default company",
+            "currency_id": self.env.company.currency_id.id,
+        })
+        configuration = self._governed_user_configuration()
+        configuration[0].update({
+            "companies": [self.env.company.name, other_company.name],
+            "default_company": other_company.name,
+        })
+
+        self.env["res.users"]._usl_pocketid_apply_user_configuration(
+            configuration,
+            break_glass_password="safe-local-password-12345",
+            strict=False,
+        )
+
+        self.assertEqual(self.user.company_id, other_company)
+        self.assertEqual(self.user.company_ids, self.env.company | other_company)
+
+        configuration[0]["default_company"] = "Not an allowed company"
+        with self.assertRaisesRegex(
+            ValidationError,
+            "default company must be one of the allowed companies",
+        ):
+            self.env["res.users"]._usl_pocketid_apply_user_configuration(
+                configuration,
+                break_glass_password="safe-local-password-12345",
+                strict=False,
+            )
 
     def test_optional_historical_profile_does_not_create_a_clean_install_user(self):
         prepared = self.env["res.users"]._usl_pocketid_prepare_user_configuration(

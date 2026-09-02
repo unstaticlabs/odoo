@@ -114,10 +114,11 @@ Odoo's native group graph.
 
 | Profile | Odoo groups | Company rule | Local password |
 | --- | --- | --- | --- |
-| `administrator` | Settings, Accounting, HR, Expenses and Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
+| `administrator` | Product administration plus Irreversible Actions | Explicit list or `all` | Randomized and denied while SSO-managed |
+| `product_administrator` | Settings, Accounting, HR, Expenses and Project administration without Irreversible Actions | Explicit list or `all` | Randomized and denied while SSO-managed |
 | `collaborator` | Internal user and Project user | Explicit list | Randomized and denied while SSO-managed |
 | `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit approved company list | Randomized and denied while SSO-managed |
-| `break_glass` | Settings administrator only | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
+| `break_glass` | Product administration plus Irreversible Actions | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
 | `portal` | Portal only | Explicit list | Pocket ID identity link or approved one-time verified-email link |
 | `historical` | Existing groups retained for attribution | Existing scope retained | User archived; identity disabled |
 | `decision` | Existing groups retained pending owner decision | Existing scope retained | User archived; identity disabled |
@@ -134,7 +135,7 @@ The read-only Odoo Online source inspection on 2026-07-29 found:
 | Source identity | State | Target decision |
 | --- | --- | --- |
 | Valentin | Active internal; Unstatic Labs; system, accounting, HR, expense, project, sales, documents and signing administration | Active `administrator`; preserve the canonical imported partner and employee links |
-| Roger | Active internal; Unstatic Labs; currently system, accounting, project-manager, sales-manager, documents and signing access | Active `collaborator`; remove system, accounting and unrelated manager/private-data groups |
+| Roger | Active internal; all approved companies; Unstatic Labs remains the default company | Active `administrator` during initial configuration, then `product_administrator` |
 | Yoshi SAS / Roger external address | Inactive shared/public-style user | `historical` if this user is present in the target; do not create it for SSO |
 | Prosper | Not present in the source snapshot; the reconstruction workflow creates login `prosper` | Active `accountant_reviewer`; exact Pocket ID subject must be supplied by the owner |
 | Public user and Portal User Template | Framework accounts | Protected framework records; never SSO-linked |

@@ -124,7 +124,7 @@ class PocketIdClientProvisioningTest(unittest.TestCase):
 
 
 class PocketIdOdooPolicyTest(unittest.TestCase):
-    def _policy(self, **environment):
+    def _policy(self, *, roger_profile=None, **environment):
         values = {
             "POCKET_ID_APP_URL": "http://pocket-id.localhost:1411",
             "POCKET_ID_VALENTIN_ID": "valentin-subject",
@@ -132,6 +132,8 @@ class PocketIdOdooPolicyTest(unittest.TestCase):
             "POCKET_ID_PROSPER_ID": "prosper-subject",
             "POCKET_ID_PROSPER_EMAIL": "prosper@example.test",
         }
+        if roger_profile:
+            values["POCKET_ID_ROGER_PROFILE"] = roger_profile
         output = io.StringIO()
         with mock.patch.dict(os.environ, environment, clear=False):
             with contextlib.redirect_stdout(output):
@@ -169,6 +171,35 @@ class PocketIdOdooPolicyTest(unittest.TestCase):
                 },
             ],
         )
+
+    def test_roger_profile_and_default_company_are_governed(self):
+        policy = self._policy(
+            roger_profile="administrator",
+            USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY="0",
+        )
+        users = {row["login"]: row for row in policy}
+
+        self.assertEqual(users["roger@unstaticlabs.com"]["profile"], "administrator")
+        self.assertEqual(
+            users["roger@unstaticlabs.com"]["default_company"],
+            "Unstatic Labs",
+        )
+        self.assertEqual(users["valentin"]["default_company"], "Unstatic Labs")
+
+    def test_roger_profile_defaults_to_non_destructive_administrator(self):
+        policy = self._policy(USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY="0")
+        roger = next(
+            row for row in policy if row["login"] == "roger@unstaticlabs.com"
+        )
+
+        self.assertEqual(roger["profile"], "product_administrator")
+
+    def test_roger_profile_rejects_unknown_roles(self):
+        with self.assertRaisesRegex(
+            pocket_id_dev.PocketIDError,
+            "POCKET_ID_ROGER_PROFILE",
+        ):
+            self._policy(roger_profile="unreviewed-role")
 
 
 if __name__ == "__main__":

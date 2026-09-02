@@ -1511,3 +1511,15 @@ msgstr "Vous pouvez ouvrir Pocket ID uniquement pour votre propre compte."
 #: code:addons/usl_pocketid/models/res_users.py:0
 msgid "Pocket ID is not available. Contact an administrator."
 msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The default company must be a non-empty company name."
+msgstr "La société par défaut doit être désignée par un nom de société non vide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The default company must be one of the allowed companies."
+msgstr "La société par défaut doit faire partie des sociétés autorisées."

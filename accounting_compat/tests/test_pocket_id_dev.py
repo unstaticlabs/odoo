@@ -282,8 +282,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         users_by_profile = {entry["profile"]: entry for entry in policy}
 
         self.assertEqual(
-            users_by_profile["technical_operator"]["login"],
+            users_by_profile["product_administrator"]["login"],
             "roger@unstaticlabs.com",
+        )
+        self.assertEqual(
+            users_by_profile["product_administrator"]["default_company"],
+            "Unstatic Labs",
         )
         self.assertEqual(
             users_by_profile["accountant_reviewer"]["login"],

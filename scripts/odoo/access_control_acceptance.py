@@ -3,11 +3,18 @@
 """Read-only named-user and capability evidence for Distribution access QA."""
 
 import json
+import os
 
 from odoo.exceptions import ValidationError
 
 
 Users = env["res.users"].sudo().with_context(active_test=False)  # noqa: F821
+roger_profile = os.getenv(
+    "USL_EXPECT_ROGER_PROFILE",
+    "product_administrator",
+)
+if roger_profile not in {"administrator", "product_administrator"}:
+    raise ValidationError("USL_EXPECT_ROGER_PROFILE is invalid.")
 expected = {
     "admin": {
         "role": "usl_access_control.group_distribution_administrator",
@@ -22,10 +29,10 @@ expected = {
         "irreversible": True,
     },
     "roger@unstaticlabs.com": {
-        "role": "usl_access_control.group_technical_administrator",
+        "role": "usl_access_control.group_distribution_administrator",
         "companies": "all",
         "pocketid": True,
-        "irreversible": False,
+        "irreversible": roger_profile == "administrator",
     },
     "prosper": {
         "role": "usl_access_control.group_accounting_reviewer",

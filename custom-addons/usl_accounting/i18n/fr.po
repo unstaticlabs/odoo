@@ -5383,3 +5383,19 @@ msgstr "Un responsable a lié la transaction à une écriture bancaire existante
 #: code:addons/usl_accounting/migrations/saas~19.3.2.1.8/post-migrate.py:0
 msgid "Retained file processing was completed by an accounting decision."
 msgstr "Le traitement du fichier conservé a été finalisé par une décision comptable."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_users__usl_expense_excluded_company_ids
+msgid "Companies without an employee profile"
+msgstr "Sociétés sans profil employé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_users__usl_expense_excluded_company_ids
+msgid "Keep access to these companies without creating an employee profile for expense submission. Existing employee records are never archived automatically."
+msgstr "Conserver l’accès à ces sociétés sans créer de profil employé pour soumettre des notes de frais. Les fiches employé existantes ne sont jamais archivées automatiquement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/multi_company_expenses.py:0
+msgid "Each selected company has its own employee profile. Switch the active company before creating an expense."
+msgstr "Chaque société sélectionnée possède son propre profil employé. Changez de société active avant de créer une note de frais."

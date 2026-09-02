@@ -72,6 +72,11 @@ administrator enables **Expenses in all allowed companies** on the user. The
 Distribution maintains one minimal native employee profile per company and
 Odoo automatically selects the profile for the active company.
 
+An administrator may exclude an allowed company from employee provisioning.
+The user keeps access to that company, but Odoo does not create or reactivate an
+employee profile there. Existing employee records are archived only through an
+explicit reviewed action.
+
 The profiles share only the login, person and work contact. Contracts,
 departments, approvers, payroll, private HR data and expense accounting remain
 company-specific. Removing company access never deletes the employee or its

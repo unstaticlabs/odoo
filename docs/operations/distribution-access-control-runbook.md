@@ -23,13 +23,16 @@ new record. Immutable Pocket ID subjects remain attached to the same users.
 | --- | --- | --- |
 | `admin` | sealed local `break_glass` / Full Product Administrator | all approved companies |
 | `valentin` | Full Product Administrator | all approved companies |
-| `roger@unstaticlabs.com` | Technical Administrator | all approved companies |
+| `roger@unstaticlabs.com` | Product Administrator | all approved companies |
 | `prosper` | Accounting Reviewer | Unstatic Labs and USL MEDIA |
 
 The historical `roger@xaic.cat` record remains inactive/historical and is not
 reused as the active Roger identity. It is marked optional: migrated databases
 classify the existing record, while clean installations do not manufacture a
 historical user.
+
+The policy explicitly keeps **Unstatic Labs** as Valentin's and Roger's default
+company even though both users may switch to every approved company.
 
 Apply the normal target-finalization workflow documented in the Pocket ID SSO
 runbook. Run it twice during rehearsal. The second run must report the same
@@ -39,9 +42,9 @@ must not create another user or identity link.
 After reconciliation, verify on each user form under **Access Rights**:
 
 - the Distribution access summary names the intended role;
-- only Valentin and the sealed administrator show Irreversible Actions;
+- only explicitly approved human administrators and the sealed administrator show Irreversible Actions;
 - no AI Agent shows Irreversible Actions;
-- Roger shows Accounting read-only and can reach B2C, Projects and Documents;
+- Roger reaches all product applications and Accounting management;
 - Prosper reaches Accounting and its evidence, but not unrelated applications;
 - allowed companies match the table above.
 
@@ -55,12 +58,11 @@ After reconciliation, verify on each user form under **Access Rights**:
 5. Re-run the named-user policy after an approved profile change and capture
    the before/after user IDs, companies and effective groups.
 
-Roger's Technical Administrator role deliberately uses Odoo's technical
-inspection surfaces while backend guards refuse security mutation, module
-maintenance and unreviewed automation. Fixed reviewed operational server
-actions remain usable when their native application access permits them. Do not
-work around a refusal with a temporary native manager group. Escalate the
-individual protected action to Valentin or the sealed administrator instead.
+Roger uses the Product Administrator role for full application, Accounting and
+technical configuration. During initial company setup he may also receive the
+separate Irreversible Actions capability. After setup, change his governed
+Pocket ID profile to `product_administrator`; this removes only protected
+destructive and security-changing actions.
 
 Prosper may create or adjust annual-review accounting records, post, reset and
 reconcile in unlocked periods for both Unstatic Labs and USL MEDIA. A lock

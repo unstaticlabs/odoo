@@ -8,8 +8,10 @@ arbitrary server actions and external e-invoice registration changes require
 the separate capability. The product hides high-risk controls when practical,
 and the server enforces the rule for every RPC call.
 
-- **Full Product Administrator:** all applications and protected actions under
-  an attributable human identity.
+- **Full Product Administrator:** all applications, including Accounting and
+  Sign management, plus technical configuration under an attributable human
+  identity. Protected actions still require the separate **Irreversible
+  Actions** capability.
 - **Technical Administrator:** full B2C operations, Projects and Documents,
   Accounting read-only, and safe technical inspection. Cannot change security,
   locks, Accounting records or perform permanent deletion.
