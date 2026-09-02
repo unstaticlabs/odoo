@@ -900,6 +900,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             "button_immediate_install",
             "import_data",
             "run",
+            "web_read",
             "write",
         )
         actions = [self.action(f"rpc:x.thing.{name}", "rpc") for name in denied_names]
@@ -950,6 +951,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             ".activity_unlink",
             ".button_immediate_install",
             ".import_data",
+            ".web_read",
             ".write",
         ):
             self.assertFalse(
