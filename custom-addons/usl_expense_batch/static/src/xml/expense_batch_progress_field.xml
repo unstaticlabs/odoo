@@ -14,7 +14,11 @@
                       t-att-style="'flex-grow: ' + segment.count"
                       t-att-title="segment.count + ' ' + segment.label"/>
             </div>
-            <span class="o_usl_progress_label" t-out="visibleSummary"/>
+            <span class="o_usl_progress_label">
+                <strong t-if="hasMixedStates"
+                        class="o_usl_progress_count">(<t t-out="total"/>)</strong>
+                <span class="o_usl_progress_breakdown" t-out="summary"/>
+            </span>
         </div>
     </t>
 </templates>

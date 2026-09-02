@@ -55,8 +55,8 @@ export class ExpenseBatchProgressField extends Component {
         return this.segments.reduce((sum, segment) => sum + segment.count, 0);
     }
 
-    get visibleSummary() {
-        return _t("%s: %s", this.total, this.summary);
+    get hasMixedStates() {
+        return this.segments.length > 1;
     }
 
     get accessibleSummary() {

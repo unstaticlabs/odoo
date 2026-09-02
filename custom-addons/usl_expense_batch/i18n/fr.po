@@ -1417,11 +1417,6 @@ msgstr "%s dépense(s) ajoutée(s) à cette note de frais."
 
 #. module: usl_expense_batch
 #. odoo-javascript
-msgid "%s: %s"
-msgstr "%s : %s"
-
-#. module: usl_expense_batch
-#. odoo-javascript
 msgid "%s expenses: %s"
 msgstr "%s notes de frais : %s"
 

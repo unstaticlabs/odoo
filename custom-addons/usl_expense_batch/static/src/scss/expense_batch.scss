@@ -197,11 +197,23 @@
     }
 
     .o_usl_progress_label {
-        display: block;
-        overflow: hidden;
+        display: flex;
+        gap: 0.3rem;
+        min-width: 0;
         color: var(--o-gray-700, #495057);
         font-size: 0.8125rem;
         line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .o_usl_progress_count {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .o_usl_progress_breakdown {
+        min-width: 0;
+        overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
