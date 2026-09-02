@@ -198,7 +198,7 @@
 
     .o_usl_progress_label {
         display: flex;
-        gap: 0.5rem;
+        align-items: baseline;
         min-width: 0;
         color: var(--o-gray-700, #495057);
         font-size: 0.8125rem;
@@ -209,6 +209,7 @@
     .o_usl_progress_count {
         flex: 0 0 auto;
         font-variant-numeric: tabular-nums;
+        margin-inline-end: 0.5rem;
     }
 
     .o_usl_progress_breakdown {
