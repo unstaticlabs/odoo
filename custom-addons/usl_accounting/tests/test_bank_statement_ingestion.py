@@ -108,6 +108,52 @@ class TestBankStatementIngestion(TransactionCase):
             )
         return ingestion
 
+    @staticmethod
+    def _shine_october_ofx2():
+        amounts = [100.0, *(-float(ordinal) for ordinal in range(1, 23))]
+        fitids = [f"shine-october-{ordinal:03d}" for ordinal in range(1, 24)]
+        transactions = []
+        for ordinal, (amount, fitid) in enumerate(zip(amounts, fitids), start=1):
+            transactions.append(
+                "".join(
+                    (
+                        "<STMTTRN>",
+                        f"<TRNTYPE>{'CREDIT' if amount > 0 else 'DEBIT'}</TRNTYPE>",
+                        f"<DTPOSTED>202610{ordinal:02d}120000</DTPOSTED>",
+                        f"<TRNAMT>{amount:.2f}</TRNAMT>",
+                        f"<FITID>{fitid}</FITID>",
+                        f"<NAME>Paiement café numéro {ordinal:02d}</NAME>",
+                        f"<MEMO>Référence été {ordinal:02d}</MEMO>",
+                        "</STMTTRN>",
+                    ),
+                ),
+            )
+        document = "".join(
+            (
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<?OFX OFXHEADER="200" VERSION="220" SECURITY="NONE" '
+                'OLDFILEUID="NONE" NEWFILEUID="NONE" ENCODING="UTF-8" '
+                'CHARSET="NONE" COMPRESSION="NONE"?>',
+                "<OFX><SIGNONMSGSRSV1><SONRS>",
+                "<STATUS><CODE>0</CODE><SEVERITY>INFO</SEVERITY></STATUS>",
+                "<DTSERVER>20261031235959.000[0:GMT]</DTSERVER>",
+                "<LANGUAGE>FRA</LANGUAGE></SONRS></SIGNONMSGSRSV1>",
+                "<BANKMSGSRSV1><STMTTRNRS><TRNUID>shine-october-2026</TRNUID>",
+                "<STATUS><CODE>0</CODE><SEVERITY>INFO</SEVERITY></STATUS>",
+                "<STMTRS><CURDEF>EUR</CURDEF><BANKACCTFROM>",
+                "<BANKID>00001</BANKID>",
+                "<ACCTID>FR7630001007941234567890185</ACCTID>",
+                "<ACCTTYPE>CHECKING</ACCTTYPE></BANKACCTFROM><BANKTRANLIST>",
+                "<DTSTART>20261001000000</DTSTART>",
+                "<DTEND>20261031235959</DTEND>",
+                *transactions,
+                "</BANKTRANLIST><LEDGERBAL><BALAMT>4847.00</BALAMT>",
+                "<DTASOF>20261031235959</DTASOF></LEDGERBAL>",
+                "</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>",
+            ),
+        )
+        return document.encode("utf-8"), fitids, amounts
+
     def _process_complete_month(self):
         ingestion = self._ingestion(
             "<synthetic-complete@example.invalid>",
@@ -289,6 +335,115 @@ class TestBankStatementIngestion(TransactionCase):
             ingestion.exception_ids.filtered(
                 lambda item: item.kind == "account" and item.state == "open",
             ),
+        )
+
+    def test_utf8_ofx2_imports_october_unchanged_and_retries_idempotently(self):
+        original, fitids, amounts = self._shine_october_ofx2()
+        original_checksum = hashlib.sha256(original).hexdigest()
+        ingestion = self._ingestion(
+            "<shine-october-ofx2@example.invalid>",
+            ofx=original,
+            subject="Export Shine - du 01/10/2026 au 31/10/2026",
+        )
+        ingestion._retain_message_attachments()
+        source = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        source._ensure_exception(
+            "import",
+            "Former OFX XML parser failure",
+            "The former parser incorrectly attempted ASCII decoding.",
+        )
+
+        ingestion.action_process_now()
+
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
+        self.assertEqual(source._content(), original)
+        self.assertEqual(source.sha256, original_checksum)
+        statement = ingestion.statement_ids
+        self.assertEqual(len(statement), 1)
+        self.assertEqual(statement.period_start, dt.date(2026, 10, 1))
+        self.assertEqual(statement.period_end, dt.date(2026, 10, 31))
+        self.assertEqual(len(statement.line_ids), 23)
+        self.assertEqual(statement.balance_start, 4847 - sum(amounts))
+        self.assertEqual(statement.balance_end_real, 4847)
+        self.assertEqual(
+            set(statement.line_ids.mapped("provider_account_id")),
+            {"FR7630001007941234567890185"},
+        )
+        self.assertEqual(
+            set(statement.line_ids.mapped("provider_transaction_id")),
+            set(fitids),
+        )
+        self.assertEqual(
+            set(statement.line_ids.mapped("date")),
+            {dt.date(2026, 10, day) for day in range(1, 24)},
+        )
+        self.assertTrue(
+            all(
+                "café" in reference
+                for reference in statement.line_ids.mapped("payment_ref")
+            ),
+        )
+        self.assertFalse(
+            source.exception_ids.filtered(
+                lambda item: item.kind == "import" and item.state == "open",
+            ),
+        )
+        original_line_ids = set(statement.line_ids.ids)
+
+        ingestion.action_retry()
+
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(set(statement.line_ids.ids), original_line_ids)
+        self.assertEqual(len(statement.line_ids), 23)
+        self.assertEqual(source._content(), original)
+        self.assertEqual(source.sha256, original_checksum)
+
+    def test_ofx2_rejects_invalid_encoding_and_malformed_xml_unchanged(self):
+        invalid_sources = (
+            (
+                b'<?xml version="1.0"?><?OFX OFXHEADER="200" '
+                b'ENCODING="NOT-A-CODEC"?><OFX></OFX>',
+                "unsupported encoding",
+            ),
+            (
+                b'<?xml version="1.0" encoding="UTF-8"?>'
+                b'<OFX><BANKMSGSRSV1></OFX>',
+                "malformed",
+            ),
+        )
+        for ordinal, (original, expected_error) in enumerate(
+            invalid_sources,
+            start=1,
+        ):
+            ingestion = self._ingestion(
+                f"<invalid-ofx2-{ordinal}@example.invalid>",
+                ofx=original,
+            )
+
+            ingestion.action_process_now()
+
+            source = ingestion.file_ids.filtered(
+                lambda item: item.classification == "ofx",
+            )
+            self.assertEqual(source.processing_state, "failed")
+            self.assertIn(expected_error, source.processing_detail.lower())
+            self.assertEqual(source._content(), original)
+            self.assertEqual(source.sha256, hashlib.sha256(original).hexdigest())
+
+    def test_legacy_sgml_parser_input_is_not_normalized(self):
+        legacy = (
+            b"OFXHEADER:100\nDATA:OFXSGML\nVERSION:102\n"
+            b"SECURITY:NONE\nENCODING:USASCII\nCHARSET:1252\n\n"
+            b"<OFX><SIGNONMSGSRSV1><SONRS><STATUS><CODE>0"
+        )
+        self.assertEqual(
+            self.env["account.bank.ingestion.file"]._normalize_ofx_parser_content(
+                legacy,
+            ),
+            legacy,
         )
 
     def test_french_ofx_components_must_all_match_the_configured_iban(self):
