@@ -189,7 +189,20 @@ class TestAutonomousAgents(TransactionCase):
             )
 
     def test_composite_role_cannot_imply_irreversible_access(self):
-        owner = self._create_user("agent.distribution.owner", self.group_distribution_admin)
+        unsafe_composite = self.env["res.groups"].create(
+            {
+                "name": "Unsafe Agent delegation probe",
+                "implied_ids": [
+                    Command.set(
+                        [
+                            self.group_distribution_admin.id,
+                            self.group_irreversible.id,
+                        ],
+                    ),
+                ],
+            },
+        )
+        owner = self._create_user("agent.distribution.owner", unsafe_composite)
         with self.assertRaises(ValidationError):
             self.env["usl.agent"].with_user(owner).create(
                 {
@@ -197,7 +210,7 @@ class TestAutonomousAgents(TransactionCase):
                     "purpose": "Must be rejected.",
                     "company_id": self.company.id,
                     "company_ids": [Command.set([self.company.id])],
-                    "delegated_group_ids": [Command.set([self.group_distribution_admin.id])],
+                    "delegated_group_ids": [Command.set([unsafe_composite.id])],
                 },
             )
 
