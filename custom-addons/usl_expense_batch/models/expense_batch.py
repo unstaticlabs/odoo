@@ -142,6 +142,10 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         string="Expenses needing information",
     )
+    attention_count = fields.Integer(
+        compute="_compute_review_context",
+        string="Expenses needing attention",
+    )
     has_incomplete_expenses = fields.Boolean(
         compute="_compute_review_context",
         search="_search_has_incomplete_expenses",
@@ -154,6 +158,7 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         string="Batch readiness",
     )
+    readiness_summary = fields.Char(compute="_compute_review_context")
     main_analytic_activity = fields.Char(compute="_compute_review_context")
     analytic_context_summary = fields.Char(compute="_compute_review_context")
     product_summary = fields.Char(compute="_compute_review_context")
@@ -289,6 +294,7 @@ class UslExpenseBatch(models.Model):
         "expense_ids.payment_mode",
         "expense_ids.state",
         "expense_ids.batch_context_status",
+        "expense_ids.batch_attention_level",
         "expense_ids.batch_warning_reason",
         "analytic_distribution",
     )
@@ -361,6 +367,24 @@ class UslExpenseBatch(models.Model):
             )
             batch.warning_count = len(
                 batch.expense_ids.filtered("batch_warning_reason"),
+            )
+            batch.attention_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.batch_attention_level == "warning",
+                ),
+            )
+            batch.readiness_summary = (
+                _(
+                    "Needs attention · %(count)s issue",
+                    count=batch.attention_count,
+                )
+                if batch.attention_count == 1
+                else _(
+                    "Needs attention · %(count)s issues",
+                    count=batch.attention_count,
+                )
+                if batch.attention_count
+                else _("Ready")
             )
             batch.employee_paid_open_count = len(
                 batch.expense_ids.filtered(

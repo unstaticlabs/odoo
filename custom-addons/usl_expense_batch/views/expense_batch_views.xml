@@ -19,6 +19,7 @@
                 <field name="total_amount" string="Total" sum="Total"/>
                 <field name="expense_progress_summary"
                        string="Expense Progress"
+                       class="o_usl_progress_summary"
                        widget="badge"
                        decoration-info="expense_progress == 'draft'"
                        decoration-warning="expense_progress == 'submitted'"
@@ -85,22 +86,22 @@
         <field name="arch" type="xml">
             <form string="Expense Batch">
                 <header>
+                    <button name="action_open_context_wizard"
+                            string="Apply context"
+                            type="object"
+                            class="oe_highlight"
+                            title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
+                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_open_add_expenses_wizard"
                             string="Add expenses"
                             type="object"
                             class="btn-secondary"
                             icon="fa-plus"
                             invisible="not active"/>
-                    <button name="action_open_context_wizard"
-                            string="Apply context"
-                            type="object"
-                            class="btn-secondary"
-                            title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
-                            class="oe_highlight"
+                            class="btn-secondary"
                             title="Send only the draft expenses in this batch for manager approval. This does not post or pay them."
                             invisible="not active or draft_expense_count == 0"/>
                     <button name="action_approve"
@@ -147,14 +148,9 @@
                         </button>
                     </div>
                     <div class="oe_title o_usl_expense_batch_title">
-                        <h1 class="d-flex flex-wrap align-items-center gap-2">
+                        <label for="name"/>
+                        <h1>
                             <field name="name" readonly="not active"/>
-                            <field name="batch_state"
-                                   nolabel="1"
-                                   widget="badge"
-                                   class="fs-6"
-                                   decoration-info="batch_state == 'open'"
-                                   decoration-muted="batch_state == 'archived'"/>
                         </h1>
                         <field name="purpose"
                                class="text-muted"
@@ -163,7 +159,7 @@
                                readonly="not active"/>
                     </div>
                     <field name="currency_id" invisible="1"/>
-                    <div class="o_usl_batch_summary mt-3 mb-4" role="group" aria-label="Batch summary">
+                    <div class="o_usl_batch_summary mt-3 mb-2" role="group" aria-label="Batch summary">
                         <div class="o_usl_batch_metric">
                             <div class="o_usl_batch_metric_label small">Total</div>
                             <field name="total_amount" nolabel="1" class="fw-semibold"/>
@@ -171,9 +167,6 @@
                         <div class="o_usl_batch_metric">
                             <div class="o_usl_batch_metric_label small">Expenses</div>
                             <field name="expense_count" nolabel="1" class="oe_inline"/>
-                            <div class="o_usl_batch_metric_detail small">
-                                <field name="expense_progress_summary" nolabel="1"/>
-                            </div>
                         </div>
                         <div class="o_usl_batch_metric">
                             <div class="o_usl_batch_metric_label small">Expense period</div>
@@ -189,52 +182,49 @@
                         </div>
                         <div class="o_usl_batch_metric">
                             <div class="o_usl_batch_metric_label small">Readiness</div>
-                            <field name="readiness_state"
+                            <field name="readiness_summary"
                                    nolabel="1"
                                    widget="badge"
-                                   decoration-success="readiness_state == 'ready'"
-                                   decoration-warning="readiness_state == 'incomplete'"/>
-                            <div class="o_usl_batch_metric_detail small"
-                                 invisible="not incomplete_count and not exception_count and not stale_context_count and not warning_count">
-                                <field name="incomplete_count" nolabel="1" class="oe_inline"/> incomplete ·
-                                <field name="exception_count" nolabel="1" class="oe_inline"/> exceptions
-                            </div>
+                                   decoration-success="not attention_count"
+                                   decoration-warning="attention_count &gt; 0"/>
                         </div>
                     </div>
 
-                    <group string="Shared context" col="4" class="o_usl_batch_context">
-                        <field name="employee_id" readonly="not active or expense_count != 0"/>
-                        <field name="company_id"
-                               groups="base.group_multi_company"
-                               readonly="not active or expense_count != 0"/>
-                        <field name="context_type" readonly="not active"/>
-                        <newline/>
-                        <label for="context_date_from" string="Context period"/>
-                        <div name="context_period" class="o_row">
-                            <field name="context_date_from"
-                                   nolabel="1"
+                    <group string="Shared context" col="2" class="o_usl_batch_context">
+                        <group>
+                            <field name="employee_id" readonly="not active or expense_count != 0"/>
+                            <field name="context_type" readonly="not active"/>
+                            <field name="analytic_distribution"
+                                   widget="analytic_distribution"
                                    readonly="not active"/>
-                            <i class="fa fa-long-arrow-right mx-2"
-                               aria-label="To"
-                               title="To"/>
-                            <field name="context_date_to"
-                                   nolabel="1"
-                                   readonly="not active"/>
-                        </div>
-                        <field name="analytic_distribution"
-                               widget="analytic_distribution"
-                               readonly="not active"
-                               colspan="4"/>
+                        </group>
+                        <group>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="not active or expense_count != 0"/>
+                            <label for="context_date_from" string="Context period"/>
+                            <div name="context_period" class="o_row">
+                                <field name="context_date_from"
+                                       nolabel="1"
+                                       readonly="not active"/>
+                                <i class="fa fa-long-arrow-right mx-2"
+                                   aria-label="To"
+                                   title="To"/>
+                                <field name="context_date_to"
+                                       nolabel="1"
+                                       readonly="not active"/>
+                            </div>
+                        </group>
                     </group>
 
-                    <div class="alert alert-warning py-2 mb-2"
+                    <div class="o_usl_batch_attention_summary text-warning small mb-2"
                          role="status"
-                         invisible="not incomplete_count and not exception_count and not stale_context_count and not warning_count">
+                         invisible="not attention_count">
                         <i class="fa fa-exclamation-triangle me-1"
                            title="Needs attention"
                            aria-hidden="true"/>
-                        <strong>Some expenses need attention.</strong>
-                        Point to a line warning for details.
+                        <strong><field name="attention_count" nolabel="1" class="oe_inline"/> issues require attention.</strong>
+                        Review the marked expense lines for details.
                     </div>
                     <div class="text-muted small mb-3" invisible="not product_summary">
                         <span class="fw-semibold">Expense types:</span>

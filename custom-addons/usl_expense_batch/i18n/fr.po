@@ -1370,6 +1370,26 @@ msgid "Readiness"
 msgstr "État de préparation"
 
 #. module: usl_expense_batch
+msgid "Expenses needing attention"
+msgstr "Dépenses à vérifier"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Needs attention · %(count)s issue"
+msgstr "Attention requise · %(count)s anomalie"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Needs attention · %(count)s issues"
+msgstr "Attention requise · %(count)s anomalies"
+
+#. module: usl_expense_batch
+msgid "Review the marked expense lines for details."
+msgstr "Consultez les dépenses signalées pour plus de détails."
+
+#. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "Exception filtering expects a true or false value."

@@ -723,6 +723,8 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(batch.batch_state, "open")
         self.assertEqual(batch.expense_progress, "draft")
         self.assertEqual(batch.expense_progress_summary, "2 draft · 1 approved")
+        self.assertEqual(batch.attention_count, 3)
+        self.assertEqual(batch.readiness_summary, "Needs attention · 3 issues")
         self.assertEqual(
             batch.period_summary,
             format_date(self.env, batch.date_from),
@@ -986,9 +988,19 @@ class TestExpenseBatch(TestExpenseCommon):
             missing_information[0].get("string"),
             "Missing information",
         )
-        self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
-        self.assertTrue(
+        self.assertFalse(batch_form.xpath("//field[@name='readiness_state']"))
+        self.assertFalse(
             batch_form.xpath("//field[@name='expense_progress_summary']"),
+        )
+        self.assertTrue(batch_form.xpath("//field[@name='readiness_summary']"))
+        self.assertFalse(
+            batch_form.xpath("//div[contains(@class, 'alert-warning')]"),
+        )
+        self.assertTrue(
+            batch_form.xpath(
+                "//div[contains(@class, 'o_usl_batch_attention_summary')]"
+                "//field[@name='attention_count']",
+            ),
         )
         self.assertTrue(
             batch_form.xpath(
@@ -1002,13 +1014,13 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertFalse(batch_form.xpath("//page[@name='review']"))
         self.assertTrue(batch_form.xpath("//page[@name='accounting_history']"))
         analytic_fields = batch_form.xpath(
-            "//group[@string='Shared context']/field[@name='analytic_distribution']",
+            "//group[@string='Shared context']//field[@name='analytic_distribution']",
         )
         self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
         self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
         self.assertEqual(analytic_fields[0].get("readonly"), "not active")
         context_period = batch_form.xpath(
-            "//group[@string='Shared context']/div[@name='context_period']",
+            "//group[@string='Shared context']//div[@name='context_period']",
         )
         self.assertEqual(
             context_period[0].xpath("./field/@name"),
@@ -1057,6 +1069,10 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(
             batch_list.xpath("//field[@name='expense_progress_summary']"),
         )
+        progress_summary = batch_list.xpath(
+            "//field[@name='expense_progress_summary']",
+        )[0]
+        self.assertIn("o_usl_progress_summary", progress_summary.get("class"))
         self.assertTrue(batch_list.xpath("//field[@name='batch_state']"))
 
         context_wizard = self.env.ref(
