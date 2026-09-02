@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_expense_batch.ExpenseBatchListRenderer"
+       t-inherit="web.ListRenderer"
+       t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_list_renderer')]" position="before">
+            <ExpenseBatchQuickFilters/>
+        </xpath>
+    </t>
+
+    <t t-name="usl_expense_batch.ExpenseBatchQuickFilters">
+        <nav class="o_usl_batch_quick_filters"
+             aria-label="Expense Batch filters">
+            <t t-foreach="filters" t-as="filter" t-key="filter.name">
+                <button type="button"
+                        t-att-class="{
+                            'btn-primary': isActive(filter.name),
+                            'btn-light': !isActive(filter.name),
+                        }"
+                        class="btn btn-sm rounded-pill text-nowrap"
+                        t-att-aria-pressed="isActive(filter.name)"
+                        t-on-click="() => this.applyFilter(filter.name)">
+                    <span t-out="filter.label"/>
+                    <span class="o_usl_batch_filter_count rounded-pill ms-1"
+                          t-out="state.counts[filter.name] ?? '–'"/>
+                </button>
+            </t>
+        </nav>
+    </t>
+</templates>
