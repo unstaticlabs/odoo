@@ -1156,7 +1156,14 @@ class UslDocument(models.Model):
             )
         if self.availability_state not in ("available", "permission_error"):
             return False
-        if self.permission_sync_state != "synchronized":
+        if self.permission_sync_state == "pending":
+            raise AccessError(
+                _(
+                    "Documents is still securing access to this file. Try again "
+                    "in a moment.",
+                ),
+            )
+        if self.permission_sync_state == "failed":
             raise AccessError(
                 _(
                     "The file is blocked until an administrator synchronizes "
@@ -2322,14 +2329,27 @@ class UslDocument(models.Model):
             "confidentiality": item.confidentiality,
             "review_state": item.review_state,
             "availability_state": item.availability_state,
-            "access_error": (
+            "permission_sync_state": item.permission_sync_state,
+            "access_pending": (
                 _(
-                    "The file is blocked until an administrator synchronizes "
-                    "its archive permissions.",
+                    "Documents is securing access to this file. Preview and "
+                    "download will become available automatically when the "
+                    "check finishes.",
                 )
                 if (
                     item.availability_state in ("available", "permission_error")
-                    and item.permission_sync_state != "synchronized"
+                    and item.permission_sync_state == "pending"
+                )
+                else False
+            ),
+            "access_error": (
+                _(
+                    "Archive access could not be verified. A Documents "
+                    "administrator can retry synchronization.",
+                )
+                if (
+                    item.availability_state in ("available", "permission_error")
+                    and item.permission_sync_state == "failed"
                 )
                 else False
             ),
@@ -4749,6 +4769,18 @@ class UslDocumentLink(models.Model):
                     "review_state": "classified",
                 },
             )
+        record_name = (record.display_name or "").strip()
+        if not record_name:
+            record_name = (
+                document.original_filename or document.name or ""
+            ).strip()
+        if not record_name:
+            model = self.env["ir.model"]._get(res_model)
+            record_name = _(
+                "%(model)s #%(record_id)s",
+                model=model.name or record._description,
+                record_id=record.id,
+            )
         link = self.sudo().with_context(
             usl_documents_link_policy_write=True,
         ).create(
@@ -4756,7 +4788,7 @@ class UslDocumentLink(models.Model):
                 "document_id": document.id,
                 "res_model": res_model,
                 "res_id": res_id,
-                "record_name": record.display_name,
+                "record_name": record_name,
                 "company_id": company.id,
                 "linked_by_id": (
                     int(self.env.context.get("usl_documents_linked_by_id"))
@@ -4990,6 +5022,41 @@ class UslDocumentOperation(models.Model):
         )
         return True
 
+    def _missing_related_record(self, archive_context):
+        """Return the first deleted relationship required by this operation."""
+        self.ensure_one()
+        targets = list(archive_context.get("related_records") or [])
+        if not targets and self.res_model and self.res_id:
+            targets = [{"model": self.res_model, "id": self.res_id}]
+        for target in targets:
+            model_name = target.get("model")
+            record_id = int(target.get("id") or 0)
+            if (
+                not model_name
+                or model_name not in self.env
+                or not record_id
+                or not self.env[model_name].sudo().browse(record_id).exists()
+            ):
+                return model_name, record_id
+        return False
+
+    def _source_record_missing_message(self, missing):
+        self.ensure_one()
+        model_name, record_id = missing
+        model = (
+            self.env["ir.model"]._get(model_name)
+            if model_name and model_name in self.env
+            else False
+        )
+        label = model.name if model else model_name or _("business record")
+        return _(
+            "The source %(model)s #%(record_id)s was deleted before Documents "
+            "finished linking the file. The archived file was kept for review; "
+            "later uploads continue normally.",
+            model=label,
+            record_id=record_id,
+        )
+
     def poll(self):
         for operation in self.filtered(
             lambda item: item.state == "processing" and item.paperless_task_id,
@@ -5024,6 +5091,8 @@ class UslDocumentOperation(models.Model):
                     # as root resources by /api/documents/{id}/, so refresh the
                     # root from the endpoint that created this task.
                     paperless_id = operation.target_document_id.paperless_id
+                archive_context = getattr(operation, "context_json", False) or {}
+                missing = operation._missing_related_record(archive_context)
                 client = self.env["usl.document"]._paperless()
                 try:
                     payload = client.get_document(paperless_id)
@@ -5159,7 +5228,38 @@ class UslDocumentOperation(models.Model):
                             "metadata_hash": operation.metadata_hash,
                         },
                     )
-                archive_context = getattr(operation, "context_json", False) or {}
+                if missing:
+                    error_message = operation._source_record_missing_message(missing)
+                    orphan_context = {
+                        **archive_context,
+                        "related_records": [],
+                    }
+                    if orphan_context:
+                        document._apply_archive_context(
+                            orphan_context,
+                            submitted_by=operation.user_id,
+                            access_user=operation._archive_context_access_user(),
+                        )
+                    if document.permission_sync_state != "synchronized":
+                        document.with_user(
+                            self.env.ref("base.user_root"),
+                        ).action_sync_permissions()
+                    document.sudo().with_context(
+                        usl_documents_cache_write=True,
+                    ).write(
+                        {
+                            "review_state": "needs_attention",
+                            "last_error": error_message,
+                        },
+                    )
+                    operation.sudo().write(
+                        {
+                            "state": "failed",
+                            "document_id": document.id,
+                            "error_message": error_message,
+                        },
+                    )
+                    continue
                 if archive_context:
                     document._apply_archive_context(
                         archive_context,
@@ -5184,10 +5284,7 @@ class UslDocumentOperation(models.Model):
                         usl_documents_defer_access_sync=True,
                     ).link_to_record(operation.res_model, operation.res_id)
                     document._recompute_linked_record_access(sync_permissions=True)
-                if (
-                    document.permission_sync_state != "synchronized"
-                    and not archive_context
-                ):
+                if document.permission_sync_state != "synchronized":
                     document.with_user(
                         self.env.ref("base.user_root"),
                     ).action_sync_permissions()
@@ -5297,13 +5394,47 @@ class UslDocumentOperation(models.Model):
             lambda item: item.attachment_origin == "backfill",
         )
         live = operations - backfill
-        result = live.poll()
-        if backfill:
-            result.update(
-                backfill.with_context(
-                    usl_documents_trusted_backfill_access=True,
-                ).poll(),
-            )
+        result = {}
+        partitions = (
+            (live, {}),
+            (backfill, {"usl_documents_trusted_backfill_access": True}),
+        )
+        for operations, context in partitions:
+            for operation in operations:
+                scoped = operation.with_context(**context)
+                try:
+                    with self.env.cr.savepoint():
+                        result.update(scoped.poll())
+                except UserError as error:
+                    _logger.warning(
+                        "Document ingestion operation %s failed safely: %s",
+                        operation.id,
+                        error,
+                    )
+                    operation.sudo().write(
+                        {
+                            "state": "failed",
+                            "error_message": str(error),
+                        },
+                    )
+                    result[operation.id] = operation._workspace_values()
+                except Exception:  # noqa: BLE001 - isolate independent queue items
+                    _logger.warning(
+                        "Document ingestion operation %s failed unexpectedly",
+                        operation.id,
+                        exc_info=True,
+                    )
+                    operation.sudo().write(
+                        {
+                            "state": "failed",
+                            "error_message": _(
+                                "Documents could not finish this file safely. "
+                                "Retry the operation or ask a Documents "
+                                "administrator to review it.",
+                            ),
+                        },
+                    )
+                    result[operation.id] = operation._workspace_values()
         return result
 
 

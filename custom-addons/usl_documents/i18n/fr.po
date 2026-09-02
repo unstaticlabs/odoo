@@ -5975,3 +5975,45 @@ msgstr "Date de création enregistrée par le système d’origine du document."
 #. module: usl_documents
 msgid "Last modification timestamp recorded by the system that supplied the document."
 msgstr "Date de dernière modification enregistrée par le système d’origine du document."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents is still securing access to this file. Try again in a moment."
+msgstr "Documents sécurise encore l’accès à ce fichier. Réessayez dans un instant."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents is securing access to this file. Preview and download will become available automatically when the check finishes."
+msgstr "Documents sécurise l’accès à ce fichier. L’aperçu et le téléchargement seront automatiquement disponibles à la fin de la vérification."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Archive access could not be verified. A Documents administrator can retry synchronization."
+msgstr "L’accès à l’archive n’a pas pu être vérifié. Un administrateur Documents peut relancer la synchronisation."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "%(model)s #%(record_id)s"
+msgstr "%(model)s nº %(record_id)s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Securing document access…"
+msgstr "Sécurisation de l’accès au document…"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "The source %(model)s #%(record_id)s was deleted before Documents finished linking the file. The archived file was kept for review; later uploads continue normally."
+msgstr "L’enregistrement source %(model)s nº %(record_id)s a été supprimé avant que Documents ait terminé de lier le fichier. Le fichier archivé a été conservé pour vérification ; les importations suivantes continuent normalement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents could not finish this file safely. Retry the operation or ask a Documents administrator to review it."
+msgstr "Documents n’a pas pu terminer le traitement de ce fichier en toute sécurité. Relancez l’opération ou demandez à un administrateur Documents de la vérifier."

@@ -803,12 +803,17 @@
                             <i class="fa fa-refresh me-1"/>Try again
                         </button>
                     </div>
+                    <div t-if="state.selected.access_pending"
+                         class="alert alert-info m-3 mb-0">
+                        <strong>Securing document access…</strong>
+                        <div t-esc="state.selected.access_pending"/>
+                    </div>
                     <div t-if="state.selected.access_error"
                          class="alert alert-danger m-3 mb-0">
                         <strong>Document access needs attention.</strong>
-                        <div>The file is blocked until an administrator synchronizes its archive permissions.</div>
+                        <div t-esc="state.selected.access_error"/>
                     </div>
-                    <DocumentPreview t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
+                    <DocumentPreview t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_pending &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
                                      url="state.selected.preview_url"
                                      versionId="state.selected.selected_version_id || currentVersion?.paperless_version_id || ''"/>
                     <div t-elif="state.selected.availability_state === 'trashed'"

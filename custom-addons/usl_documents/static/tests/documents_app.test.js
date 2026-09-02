@@ -352,6 +352,92 @@ test("document details stay useful and actionable during an archive outage", asy
     );
 });
 
+test("pending access synchronization is shown as normal progress", async () => {
+    const document = {
+        id: 63,
+        name: "New payroll document",
+        availability_state: "available",
+        permission_sync_state: "pending",
+        access_pending:
+            "Documents is securing access to this file. Preview and download will become available automatically when the check finishes.",
+        access_error: false,
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        archive_available: true,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        versions: [],
+        links: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(
+        ".o_usl_documents_detail .alert-info:not(.o_usl_review_banner)"
+    ).toHaveText(
+        /Securing document access/
+    );
+    expect(".o_usl_documents_detail .alert-danger").toHaveCount(0);
+    expect(".o_usl_document_preview").toHaveCount(0);
+});
+
+test("failed access synchronization asks for administrator action", async () => {
+    const document = {
+        id: 64,
+        name: "Restricted payroll document",
+        availability_state: "permission_error",
+        permission_sync_state: "failed",
+        access_pending: false,
+        access_error:
+            "Archive access could not be verified. A Documents administrator can retry synchronization.",
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        archive_available: true,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        versions: [],
+        links: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_documents_detail .alert-danger").toHaveText(
+        /Document access needs attention/
+    );
+    expect(".o_usl_documents_detail .alert-danger").toHaveText(
+        /administrator can retry synchronization/
+    );
+    expect(
+        ".o_usl_documents_detail .alert-info:not(.o_usl_review_banner)"
+    ).toHaveCount(0);
+});
+
 test("read-only evidence users do not see upload controls", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
