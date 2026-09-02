@@ -28,6 +28,9 @@
                 <div class="alert alert-warning" role="alert" invisible="not duplicate_batch_warning">
                     <field name="duplicate_batch_warning" nolabel="1"/>
                 </div>
+                <div class="alert alert-warning" role="alert" invisible="not outside_date_warning">
+                    <field name="outside_date_warning" nolabel="1"/>
+                </div>
                 <group>
                     <group string="Claim">
                         <field name="mode" widget="radio"/>

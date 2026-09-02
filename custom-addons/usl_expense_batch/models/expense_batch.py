@@ -13,6 +13,7 @@ class UslExpenseBatch(models.Model):
     _order = "date_from desc, id desc"
     _check_company_auto = True
 
+    active = fields.Boolean(default=True, tracking=True)
     name = fields.Char(required=True, tracking=True)
     purpose = fields.Text(required=True, tracking=True)
     context_type = fields.Selection(
@@ -67,19 +68,20 @@ class UslExpenseBatch(models.Model):
         string="Expenses",
         copy=False,
     )
-    state = fields.Selection(
+    expense_progress = fields.Selection(
         selection=[
-            ("draft", "Draft"),
-            ("submitted", "Submitted"),
-            ("approved", "Approved"),
-            ("posted", "Posted"),
-            ("paid", "Paid"),
-            ("refused", "Returned"),
+            ("empty", "No expenses"),
+            ("draft", "Has drafts"),
+            ("submitted", "Waiting approval"),
+            ("approved", "Ready to post"),
+            ("posted", "All posted"),
+            ("paid", "All paid"),
+            ("refused", "Returned only"),
         ],
-        compute="_compute_state",
+        compute="_compute_expense_progress",
         store=True,
-        tracking=True,
         index=True,
+        string="Expense progress",
     )
     submitted_by_id = fields.Many2one(
         "res.users",
@@ -143,6 +145,9 @@ class UslExpenseBatch(models.Model):
     warning_count = fields.Integer(compute="_compute_review_context")
     employee_paid_open_count = fields.Integer(compute="_compute_review_context")
     company_paid_open_count = fields.Integer(compute="_compute_review_context")
+    draft_expense_count = fields.Integer(compute="_compute_review_context")
+    submitted_expense_count = fields.Integer(compute="_compute_review_context")
+    approved_expense_count = fields.Integer(compute="_compute_review_context")
     accounted_expense_count = fields.Integer(compute="_compute_accounting_reconciliation")
     accounting_reconciliation_state = fields.Selection(
         selection=[
@@ -164,7 +169,7 @@ class UslExpenseBatch(models.Model):
     move_count = fields.Integer(compute="_compute_moves")
 
     @api.depends("expense_ids.state")
-    def _compute_state(self):
+    def _compute_expense_progress(self):
         state_rank = {
             "draft": 0,
             "submitted": 1,
@@ -185,12 +190,14 @@ class UslExpenseBatch(models.Model):
                 lambda expense: expense.state != "refused",
             )
             if not active_expenses:
-                batch.state = "refused" if batch.expense_ids else "draft"
+                batch.expense_progress = (
+                    "refused" if batch.expense_ids else "empty"
+                )
                 continue
             lowest_rank = min(
                 state_rank.get(expense.state, 0) for expense in active_expenses
             )
-            batch.state = rank_state[lowest_rank]
+            batch.expense_progress = rank_state[lowest_rank]
 
     @api.depends(
         "expense_ids",
@@ -308,6 +315,19 @@ class UslExpenseBatch(models.Model):
                 batch.expense_ids.filtered(
                     lambda expense: expense.payment_mode == "company_account"
                     and expense.state not in ("paid", "refused"),
+                ),
+            )
+            batch.draft_expense_count = len(
+                batch.expense_ids.filtered(lambda expense: expense.state == "draft"),
+            )
+            batch.submitted_expense_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.state == "submitted",
+                ),
+            )
+            batch.approved_expense_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.state == "approved",
                 ),
             )
 
@@ -455,8 +475,7 @@ class UslExpenseBatch(models.Model):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
         self.check_access("write")
-        if self.state != "draft":
-            raise UserError(_("Expenses can only be added to a draft Batch."))
+        self._ensure_active()
         expenses = self.env["hr.expense"].browse(expense_ids).exists()
         if len(expenses) != len(set(expense_ids)):
             raise ValidationError(_("Every selected expense must still exist."))
@@ -464,7 +483,10 @@ class UslExpenseBatch(models.Model):
         invalid = expenses.filtered(
             lambda expense: (
                 expense.state not in ("draft", "approved", "posted")
-                or expense.expense_batch_id
+                or (
+                    expense.expense_batch_id
+                    and expense.expense_batch_id != self
+                )
             ),
         )
         if invalid:
@@ -482,13 +504,18 @@ class UslExpenseBatch(models.Model):
             raise ValidationError(
                 _("A batch cannot contain expenses from different employees."),
             )
-        if expenses:
+        new_expenses = expenses.filtered(lambda expense: not expense.expense_batch_id)
+        if new_expenses:
             # Native expense rules deliberately make approved and posted
             # records read-only for their employee. Linking the optional
             # grouping context is safe after the explicit access and
             # compatibility checks above.
-            expenses.sudo().write({"expense_batch_id": self.id})
-        return {"batch_id": self.id, "added": len(expenses)}
+            new_expenses.sudo().write({"expense_batch_id": self.id})
+        return {
+            "batch_id": self.id,
+            "added": len(new_expenses),
+            "unchanged": len(expenses - new_expenses),
+        }
 
     @api.model
     def _expense_ids_from_create_commands(self, commands):
@@ -524,6 +551,40 @@ class UslExpenseBatch(models.Model):
     def write(self, values):
         self._check_readonly_accountant_mutation()
         self._check_account_override_access(values)
+        editable_fields = {
+            "name",
+            "purpose",
+            "context_type",
+            "context_date_from",
+            "context_date_to",
+            "notes",
+            "account_override_id",
+            "analytic_distribution",
+            "employee_id",
+            "company_id",
+        }
+        if editable_fields.intersection(values):
+            archived = self.filtered(lambda batch: not batch.active)
+            if archived:
+                raise UserError(
+                    _("Reopen this Expense Batch before changing its information."),
+                )
+        structural_fields = {"employee_id", "company_id"}.intersection(values)
+        if structural_fields:
+            changed_structural_batch = self.filtered(
+                lambda batch: batch.expense_ids
+                and any(
+                    values[field_name] != batch[field_name].id
+                    for field_name in structural_fields
+                ),
+            )
+            if changed_structural_batch:
+                raise UserError(
+                    _(
+                        "The employee and company cannot change after expenses "
+                        "have been added to a Batch.",
+                    ),
+                )
         context_fields = {
             "context_type",
             "context_date_from",
@@ -548,9 +609,19 @@ class UslExpenseBatch(models.Model):
 
     @api.ondelete(at_uninstall=False)
     def _unlink_only_draft(self):
-        if any(batch.state != "draft" for batch in self):
+        if any(
+            expense.state != "draft"
+            for batch in self
+            for expense in batch.expense_ids
+        ):
             raise UserError(
                 _("A submitted expense batch must be preserved for auditability."),
+            )
+
+    def _ensure_active(self):
+        if any(not batch.active for batch in self):
+            raise UserError(
+                _("Reopen this Expense Batch before changing or processing it."),
             )
 
     def _get_actionable_expenses(self, expected_state):
@@ -587,6 +658,7 @@ class UslExpenseBatch(models.Model):
     def preview_context_application(self, expense_ids=None, force_expense_ids=None):
         """Return an RPC-safe, side-effect-free application preview."""
         self.ensure_one()
+        self._ensure_active()
         expenses = self._context_expenses(expense_ids)
         force_ids = set(force_expense_ids or [])
         unknown_force_ids = force_ids - set(expenses.ids)
@@ -684,6 +756,7 @@ class UslExpenseBatch(models.Model):
         """Apply shared context atomically while preserving explicit choices."""
         self.ensure_one()
         self._check_readonly_accountant_mutation()
+        self._ensure_active()
         if expected_revision is not None and expected_revision != self.context_revision:
             raise UserError(
                 _("The batch context changed. Refresh the preview before applying it."),
@@ -788,6 +861,7 @@ class UslExpenseBatch(models.Model):
             products[key]["total"] += expense.total_amount
         return {
             "id": self.id,
+            "active": self.active,
             "name": self.name,
             "purpose": self.purpose,
             "context_type": self.context_type,
@@ -806,6 +880,7 @@ class UslExpenseBatch(models.Model):
             "exception_count": self.exception_count,
             "stale_context_count": self.stale_context_count,
             "warning_count": self.warning_count,
+            "expense_progress": self.expense_progress,
             "attention": [
                 {
                     "expense_id": expense.id,
@@ -835,6 +910,7 @@ class UslExpenseBatch(models.Model):
 
     def action_open_context_wizard(self):
         self.ensure_one()
+        self._ensure_active()
         wizard = self.env["usl.expense.batch.context.apply.wizard"].create({
             "batch_id": self.id,
             "expected_revision": self.context_revision,
@@ -852,6 +928,7 @@ class UslExpenseBatch(models.Model):
     def action_submit(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
+        self._ensure_active()
         expenses = self._get_actionable_expenses("draft")
         incomplete = expenses.filtered(
             lambda expense: bool(expense.batch_incomplete_reason),
@@ -880,6 +957,7 @@ class UslExpenseBatch(models.Model):
     def action_approve(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
+        self._ensure_active()
         expenses = self._get_actionable_expenses("submitted")
         result = expenses.with_context(validate_analytic=True).action_approve()
         if not result and all(expense.state == "approved" for expense in expenses):
@@ -899,6 +977,7 @@ class UslExpenseBatch(models.Model):
     def action_post(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
+        self._ensure_active()
         expenses = self._get_actionable_expenses("approved")
         result = expenses.action_post()
         if not result:

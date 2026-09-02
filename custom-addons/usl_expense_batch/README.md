@@ -9,6 +9,10 @@ manager-controlled account override. Per-expense provenance, explicit
 exceptions, revision checks and baseline restoration make application
 predictable and idempotent.
 
+Batches stay open until manually archived. Expense progress is informational:
+later draft, approved or posted expenses can join an open compatible Batch
+without changing posted accounting.
+
 The Expenses app title opens **My Expenses** directly. Its navbar keeps only
 the operational **Expenses to Process** and **Expense Batches** entries before
 the native **Reporting** and **Configuration** sections; it does not add a

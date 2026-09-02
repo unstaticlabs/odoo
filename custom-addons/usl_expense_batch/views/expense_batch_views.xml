@@ -5,9 +5,10 @@
         <field name="model">usl.expense.batch</field>
         <field name="arch" type="xml">
             <list string="Expense Batches"
-                  decoration-info="state == 'draft'"
-                  decoration-warning="state == 'submitted'"
-                  decoration-success="state in ('approved', 'posted', 'paid')">
+                  decoration-info="expense_progress == 'draft'"
+                  decoration-warning="expense_progress == 'submitted'"
+                  decoration-success="expense_progress in ('approved', 'posted', 'paid')">
+                <field name="active" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
                 <field name="name"/>
                 <field name="context_type" optional="show"/>
@@ -23,11 +24,11 @@
                        decoration-warning="readiness_state == 'incomplete'"/>
                 <field name="exception_count" optional="show"/>
                 <field name="warning_count" optional="hide"/>
-                <field name="state" widget="badge"
-                       decoration-info="state == 'draft'"
-                       decoration-warning="state == 'submitted'"
-                       decoration-success="state in ('approved', 'posted', 'paid')"
-                       decoration-danger="state == 'refused'"/>
+                <field name="expense_progress" widget="badge"
+                       decoration-info="expense_progress == 'draft'"
+                       decoration-warning="expense_progress == 'submitted'"
+                       decoration-success="expense_progress in ('approved', 'posted', 'paid')"
+                       decoration-danger="expense_progress == 'refused'"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
             </list>
         </field>
@@ -46,13 +47,14 @@
                         string="My expense batches"
                         domain="[('employee_id.user_id', '=', uid)]"/>
                 <separator/>
-                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
-                <filter name="submitted" string="Waiting approval" domain="[('state', '=', 'submitted')]"/>
-                <filter name="approved" string="Ready to post" domain="[('state', '=', 'approved')]"/>
+                <filter name="draft" string="Has drafts" domain="[('expense_progress', '=', 'draft')]"/>
+                <filter name="submitted" string="Waiting approval" domain="[('expense_progress', '=', 'submitted')]"/>
+                <filter name="approved" string="Ready to post" domain="[('expense_progress', '=', 'approved')]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
                 <filter name="date" string="Expense period" date="date_from"/>
                 <group>
                     <filter name="employee" string="Employee" domain="[]" context="{'group_by': 'employee_id'}"/>
-                    <filter name="state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="expense_progress" string="Expense progress" domain="[]" context="{'group_by': 'expense_progress'}"/>
                     <filter name="group_context_type" string="Context" domain="[]" context="{'group_by': 'context_type'}"/>
                     <filter name="company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
@@ -72,32 +74,34 @@
                             type="object"
                             class="btn-secondary"
                             title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-                            invisible="state != 'draft' or expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
+                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
                             class="oe_highlight"
                             title="Send only the draft expenses in this batch for manager approval. This does not post or pay them."
-                            invisible="state != 'draft' or expense_count == 0"/>
+                            invisible="not active or draft_expense_count == 0"/>
                     <button name="action_approve"
                             string="Approve batch"
                             type="object"
                             class="oe_highlight"
                             title="Approve the submitted expenses in this batch. Nothing is posted or paid."
                             groups="hr_expense.group_hr_expense_team_approver"
-                            invisible="state != 'submitted'"/>
+                            invisible="not active or draft_expense_count != 0 or submitted_expense_count == 0"/>
                     <button name="action_post"
                             string="Post batch"
                             type="object"
                             class="oe_highlight"
                             title="Post the approved expenses in this batch to Accounting."
                             groups="account.group_account_invoice"
-                            invisible="state != 'approved'"/>
-                    <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,submitted,approved,posted,paid"/>
+                            invisible="not active or draft_expense_count != 0 or submitted_expense_count != 0 or approved_expense_count == 0"/>
                 </header>
                 <sheet>
+                    <field name="active" invisible="1"/>
+                    <field name="draft_expense_count" invisible="1"/>
+                    <field name="submitted_expense_count" invisible="1"/>
+                    <field name="approved_expense_count" invisible="1"/>
+                    <widget name="web_ribbon" text="Archived" bg_color="text-bg-secondary" invisible="active"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_documents_workspace"
                                 type="object" class="oe_stat_button"
@@ -123,16 +127,25 @@
                     <div class="oe_title">
                         <label for="name"/>
                         <h1>
-                            <field name="name" readonly="state != 'draft'"/>
+                            <field name="name" readonly="not active"/>
                         </h1>
                         <field name="purpose"
                                class="text-muted"
                                nolabel="1"
                                placeholder="What are these expenses for?"
-                               readonly="state != 'draft'"/>
+                               readonly="not active"/>
                     </div>
                     <field name="currency_id" invisible="1"/>
                     <div class="o_usl_batch_summary d-flex flex-wrap gap-3 py-3 my-3">
+                        <div class="o_usl_batch_metric">
+                            <div class="text-muted small">Batch</div>
+                            <span class="badge rounded-pill text-bg-success" invisible="not active">Open</span>
+                            <span class="badge rounded-pill text-bg-secondary" invisible="active">Archived</span>
+                        </div>
+                        <div class="o_usl_batch_metric">
+                            <div class="text-muted small">Expense progress</div>
+                            <field name="expense_progress" nolabel="1" widget="badge"/>
+                        </div>
                         <div class="o_usl_batch_metric">
                             <div class="text-muted small">Total</div>
                             <field name="total_amount" nolabel="1" class="fw-semibold"/>
@@ -166,27 +179,27 @@
                     </div>
 
                     <group string="Shared context" col="4">
-                        <field name="employee_id" readonly="state != 'draft'"/>
+                        <field name="employee_id" readonly="not active or expense_count != 0"/>
                         <field name="company_id"
                                groups="base.group_multi_company"
-                               readonly="state != 'draft'"/>
-                        <field name="context_type" readonly="state != 'draft'"/>
+                               readonly="not active or expense_count != 0"/>
+                        <field name="context_type" readonly="not active"/>
                         <newline/>
                         <label for="context_date_from" string="Context period"/>
                         <div name="context_period" class="o_row">
                             <field name="context_date_from"
                                    nolabel="1"
-                                   readonly="state != 'draft'"/>
+                                   readonly="not active"/>
                             <i class="fa fa-long-arrow-right mx-2"
                                aria-label="To"
                                title="To"/>
                             <field name="context_date_to"
                                    nolabel="1"
-                                   readonly="state != 'draft'"/>
+                                   readonly="not active"/>
                         </div>
                         <field name="analytic_distribution"
                                widget="analytic_distribution"
-                               readonly="state != 'draft'"
+                               readonly="not active"
                                colspan="4"/>
                     </group>
 
@@ -203,7 +216,7 @@
 
                     <notebook>
                         <page name="expenses" string="Expenses">
-                            <field name="expense_ids" readonly="state not in ('draft', 'submitted', 'approved')">
+                            <field name="expense_ids" readonly="not active">
                                 <list create="false" edit="false" delete="false" open_form_view="true"
                                       decoration-warning="batch_incomplete_reason">
                                     <field name="company_currency_id" column_invisible="True"/>
@@ -251,9 +264,9 @@
                               groups="account.group_account_readonly,hr_expense.group_hr_expense_manager">
                             <group string="Accounting treatment">
                                 <field name="account_override_id"
-                                       readonly="state != 'draft'"
+                                       readonly="not active"
                                        groups="hr_expense.group_hr_expense_manager,account.group_account_manager"/>
-                                <field name="notes" readonly="state != 'draft'"/>
+                                <field name="notes" readonly="not active"/>
                                 <field name="accounting_reconciliation_state" widget="badge"
                                        decoration-success="accounting_reconciliation_state == 'matched'"
                                        decoration-warning="accounting_reconciliation_state == 'pending'"

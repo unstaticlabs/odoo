@@ -37,7 +37,6 @@ class UslExpenseBatch(models.Model):
     def _document_access_trigger_fields(self):
         return super()._document_access_trigger_fields() | {
             "employee_id",
-            "state",
         }
 
 

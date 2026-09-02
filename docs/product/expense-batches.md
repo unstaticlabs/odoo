@@ -24,6 +24,11 @@ claims, but an isolated expense can use the native unbatched workflow. A Batch
 is always limited to one employee and one company. It may contain both
 employee-paid and company-paid expenses.
 
+A Batch is a documentary grouping, not a second accounting workflow. It stays
+open when its expenses are posted or paid and accepts later draft, approved or
+posted expenses. Users close it only by archiving it. The Batch shows the
+expenses' current processing progress separately from its open/archive state.
+
 An SBFH travel is an Epic, not a new Trip record. For example,
 `SBFH — Canada 2026` combines the native `Projet: SBFH prod` and
 `Epic: Canada 2026` analytic accounts. Travel Batches may deliberately apply
@@ -46,7 +51,7 @@ and reporting, and let a line vary from the Batch. The Batch stores one native
 
 ## Context and precedence
 
-A draft Batch can define:
+An open Batch can define:
 
 - context type, purpose, intended date window and shared notes;
 - a native analytic distribution;
@@ -68,15 +73,16 @@ effective precedence is:
 
 Initial assignment changes only missing or Product-derived draft values.
 Explicit line values survive. Only effective values that differ from the Batch
-appear as exceptions; equivalent values do not inflate the review count. Approved and posted
-lines can retain a Batch link for review, but their accounting context is
-never rewritten.
+appear as exceptions; equivalent values do not inflate the review count.
+Approved and posted lines can retain or receive a Batch link for review, but
+their accounting context is never rewritten.
 
-Changing Batch context increments a tracked revision. Previously inherited
-lines become stale until a user previews and applies the new revision. The
-preview counts changed, unchanged, exceptional and skipped lines. Expense or
-Accounting Managers may deliberately select exceptions to replace; ordinary
-submitters cannot. Reapplying the same revision is idempotent.
+Batch context remains editable while the Batch is open. Changing it increments
+a tracked revision. Previously inherited draft lines become stale until a user
+previews and applies the new revision. Approved and posted lines are skipped.
+The preview counts changed, unchanged, exceptional and skipped lines. Expense
+or Accounting Managers may deliberately select draft exceptions to replace;
+ordinary submitters cannot. Reapplying the same revision is idempotent.
 
 Before first inheritance, the line stores its Product/default baseline.
 Removing a line restores that baseline only when its current value still
@@ -91,7 +97,7 @@ is the primary grouping action while native actions remain available.
 
 The create-or-select preview:
 
-- ranks compatible draft Batches using employee, company, overlapping dates
+- ranks compatible open Batches using employee, company, overlapping dates
   and analytic affinity;
 - warns before creating an overlapping or likely duplicate Batch;
 - shows total, payer split, readiness and context impact;
@@ -99,10 +105,12 @@ The create-or-select preview:
 - adds records without changing their native state, unless the user chooses
   the explicit create-and-submit action.
 
-Duplicate evidence is a warning, never an automatic rejection. It combines
-the native duplicate-candidate signal with matching receipt checksums. Missing
-receipts, required fields, out-of-window dates, stale context and explicit
-exceptions remain visible on the Batch.
+Duplicate evidence and an expense outside the intended Batch dates are
+warnings, never automatic rejections. They do not block adding, submitting,
+approving or posting. Duplicate detection combines the native
+duplicate-candidate signal with matching receipt checksums. Missing receipts,
+required fields, out-of-window dates, stale context and explicit exceptions
+remain visible on the Batch.
 
 The Batch form leads with purpose, one compact summary, payer split, readiness,
 interactive shared analytics and the expense list. A narrow attention indicator
@@ -114,7 +122,9 @@ disclosed to accounting roles.
 ## Native workflow and mixed payers
 
 Submit, approve and post operate on only the actionable native subset and
-never regress later lines. Incomplete draft lines block submission atomically.
+never regress later lines. Their availability follows the expenses requiring
+each action, not a Batch lifecycle state. Incomplete draft lines block
+submission atomically.
 A problematic draft, submitted or approved line can be removed and returned
 for correction without rejecting the rest of the Batch.
 

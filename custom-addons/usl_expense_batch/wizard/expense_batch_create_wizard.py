@@ -27,7 +27,7 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
     batch_id = fields.Many2one(
         "usl.expense.batch",
         string="Existing Batch",
-        domain="[('employee_id', '=', employee_id), ('company_id', '=', company_id), ('state', '=', 'draft')]",
+        domain="[('employee_id', '=', employee_id), ('company_id', '=', company_id), ('active', '=', True)]",
     )
     context_type = fields.Selection(
         selection=[
@@ -113,6 +113,7 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
     main_analytic_activity = fields.Char(compute="_compute_preview")
     candidate_count = fields.Integer(compute="_compute_preview")
     duplicate_batch_warning = fields.Char(compute="_compute_preview")
+    outside_date_warning = fields.Char(compute="_compute_preview")
     context_change_count = fields.Integer(compute="_compute_preview")
     context_exception_count = fields.Integer(compute="_compute_preview")
     context_skipped_count = fields.Integer(compute="_compute_preview")
@@ -154,6 +155,8 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         "expense_ids.analytic_context_source",
         "mode",
         "batch_id",
+        "batch_id.context_date_from",
+        "batch_id.context_date_to",
         "analytic_distribution",
         "account_override_id",
     )
@@ -228,6 +231,32 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
                     batch=overlap["name"],
                 )
                 if overlap and wizard.mode == "new"
+                else False
+            )
+            outside_dates = (
+                expenses.filtered(
+                    lambda expense: expense.date
+                    and (
+                        (
+                            wizard.batch_id.context_date_from
+                            and expense.date < wizard.batch_id.context_date_from
+                        )
+                        or (
+                            wizard.batch_id.context_date_to
+                            and expense.date > wizard.batch_id.context_date_to
+                        )
+                    ),
+                )
+                if wizard.mode == "existing" and wizard.batch_id
+                else self.env["hr.expense"]
+            )
+            wizard.outside_date_warning = (
+                _(
+                    "%(count)s selected expense(s) fall outside this Batch's intended "
+                    "dates. You can still add and process them.",
+                    count=len(outside_dates),
+                )
+                if outside_dates
                 else False
             )
             context_configured = bool(
@@ -333,7 +362,7 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
             if (
                 self.batch_id.company_id != self.company_id
                 or self.batch_id.employee_id != self.employee_id
-                or self.batch_id.state != "draft"
+                or not self.batch_id.active
             ):
                 raise UserError(
                     _("The selected Batch is no longer compatible with these expenses."),
