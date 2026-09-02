@@ -13,7 +13,7 @@ class MailThread(models.AbstractModel):
 
     def _usl_readonly_agent_collaboration(self):
         agent = self._usl_managed_agent()
-        if not agent or agent.access_mode != "read_only":
+        if not agent or not agent._model_is_read_only(self._name):
             return self
         self.check_access("read")
         return self.with_context(
@@ -23,7 +23,7 @@ class MailThread(models.AbstractModel):
     def message_post(self, *args, **kwargs):
         records = self._usl_readonly_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent.access_mode == "read_only":
+        if agent and agent._model_is_read_only(self._name):
             message_type = kwargs.get("message_type", "notification")
             subtype_xmlid = kwargs.get("subtype_xmlid")
             subtype_id = kwargs.get("subtype_id")
@@ -44,7 +44,7 @@ class MailThread(models.AbstractModel):
     def message_subscribe(self, partner_ids=None, subtype_ids=None):
         records = self._usl_readonly_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent.access_mode == "read_only":
+        if agent and agent._model_is_read_only(self._name):
             requested = set(partner_ids or ())
             if requested - {agent.user_id.partner_id.id}:
                 raise AccessError(self.env._("A read-only Agent may follow only itself."))
@@ -56,7 +56,7 @@ class MailThread(models.AbstractModel):
     def message_unsubscribe(self, partner_ids=None):
         records = self._usl_readonly_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent.access_mode == "read_only":
+        if agent and agent._model_is_read_only(self._name):
             requested = set(partner_ids or ())
             if requested - {agent.user_id.partner_id.id}:
                 raise AccessError(self.env._("A read-only Agent may unfollow only itself."))
@@ -69,7 +69,7 @@ class MailActivityMixin(models.AbstractModel):
     def activity_schedule(self, *args, **kwargs):
         agent = self._usl_managed_agent()
         records = self
-        if agent and agent.access_mode == "read_only":
+        if agent and agent._model_is_read_only(self._name):
             self.check_access("read")
             records = self.with_context(
                 **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
@@ -82,7 +82,7 @@ class UslDocument(models.Model):
 
     def _usl_readonly_agent_download_context(self):
         agent = self._usl_managed_agent()
-        if not agent or agent.access_mode != "read_only":
+        if not agent or not agent._model_is_read_only(self._name):
             return self
         return self.with_context(
             **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
@@ -94,7 +94,7 @@ class UslDocument(models.Model):
 
     def mcp_revoke_download_grant(self, *args, **kwargs):
         agent = self._usl_managed_agent()
-        if agent and agent.access_mode == "read_only":
+        if agent and agent._model_is_read_only(self._name):
             grant_id = args[0] if args else kwargs.get("grant_id")
             grant = self.env["usl.document.download.grant"].sudo().search(
                 [("public_id", "=", str(grant_id or ""))],

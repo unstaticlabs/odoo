@@ -81,40 +81,16 @@
                     </group>
                     <notebook>
                         <page name="access" string="Access">
-                            <div class="alert alert-info" role="status">
-                                This Agent is limited to its owner's current permissions and selected companies. Identity administration, credentials, secrets and irreversible actions remain blocked.
-                            </div>
                             <div class="alert alert-warning" role="status" invisible="not read_profile_update_available">
-                                The owner can now access applications that are not in this Agent's approved read-only profile. Reapply the profile to review and add them.
+                                New owner access is available. Use a batch shortcut or configure it below.
                             </div>
-                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                                <span class="text-muted me-auto">Apply an owner-limited access profile.</span>
-                                <button name="action_grant_all_read"
-                                        type="object"
-                                        string="Apply read-only profile"
-                                        class="btn-secondary"
-                                        confirm="Replace this Agent's current application access with read-only visibility for everything its owner can access?"/>
-                                <button name="action_grant_all_read_write"
-                                        type="object"
-                                        string="Apply read/write profile"
-                                        class="btn-secondary"
-                                        confirm="Replace this Agent's current application access with the highest safe level available to its owner in every application?"/>
-                            </div>
-                            <p class="text-muted mb-3">
-                                Read-only mode uses native roles for visibility, while the platform blocks business and configuration changes. Collaboration on readable records remains available.
-                            </p>
-                            <field name="access_mode" widget="badge" readonly="1"/>
-                            <group string="Administration" class="mt-3">
-                                <field name="settings_access"
-                                       readonly="1"
-                                       widget="badge"
-                                       decoration-success="settings_access in ('read_only', 'read_write')"
-                                       decoration-muted="settings_access == 'no_access'"/>
-                            </group>
+                            <field name="access_mode" invisible="1"/>
+                            <field name="settings_access" invisible="1"/>
                             <field name="read_profile_update_available" invisible="1"/>
                             <field name="view_group_hierarchy" invisible="1"/>
                             <field name="approved_effective_group_ids" invisible="1"/>
-                            <field name="delegated_group_ids" widget="res_user_group_ids" nolabel="1" colspan="2" readonly="access_mode == 'read_only'"/>
+                            <field name="read_only_group_ids" invisible="1"/>
+                            <field name="delegated_group_ids" widget="usl_agent_access" nolabel="1" colspan="2"/>
                         </page>
                         <page name="credentials" string="Credentials" invisible="not id">
                             <button name="action_new_credential" type="object" string="New API Key" class="btn-primary mb-3" invisible="state != 'active'"/>

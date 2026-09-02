@@ -50,7 +50,7 @@ SURFACE_SCHEMA = "usl-action-risk-surface-v1"
 POLICY_SCHEMA = "usl-action-risk-policy-v1"
 RUNTIME_SCHEMA = "usl-action-risk-runtime-v1"
 RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
-AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-read-only-runtime-v1"
+AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v2"
 MAX_RUNTIME_POLICY_BYTES = 512 * 1024
 MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES = 4 * 1024 * 1024
 CLASSIFICATIONS = frozenset(
@@ -361,6 +361,7 @@ def build_agent_readonly_runtime_policy(
         )
     read_only_actions = []
     collaboration_actions = []
+    write_actions = []
     for action_key, entry in sorted(reviewed.items()):
         if not action_key.startswith("rpc:"):
             continue
@@ -373,11 +374,15 @@ def build_agent_readonly_runtime_policy(
             continue
         if method_name in AGENT_COLLABORATION_METHODS:
             collaboration_actions.append(action_key)
+            continue
+        if entry.get("classification") in {"operational", "recoverable"}:
+            write_actions.append(action_key)
     result: dict[str, object] = {
         "collaboration_actions": collaboration_actions,
         "qualified_policy_digest": qualified_policy_digest(surface, policy),
         "read_only_actions": read_only_actions,
         "schema": AGENT_READONLY_RUNTIME_POLICY_SCHEMA,
+        "write_actions": write_actions,
     }
     result["runtime_policy_sha256"] = runtime_policy_digest(result)
     return result

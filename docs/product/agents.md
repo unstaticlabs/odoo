@@ -17,20 +17,16 @@ ordinary applications through the API. It never lets the Agent manage users,
 authentication, access-control groups, ACLs, record rules, other Agents, API
 credentials or its own lifecycle. Irreversible Actions are never delegable.
 
-The Access tab provides two owner-limited profiles. **Apply read-only profile**
-makes every application and configuration area available to the owner visible
-to the Agent, while the platform blocks mutation before any side effect. The
-form presents this as **Read-only** instead of exposing the native User or
-Administrator group that supplies menu and field visibility. **No access**
-means the owner lacks that access or the platform forbids delegation.
+Each application can be set independently to **No access**, **Read-only**, or
+one of the owner's native Odoo access levels. The two shortcuts prefill every
+row with read-only or the highest safe owner level; they do not save or lock a
+profile. Adjust individual rows, then use the normal Save or Discard controls.
 
-Read-only is the default for new Agents. Existing Agents keep their current
-read/write mode during upgrade. **Apply read/write profile** selects the
-highest safe application level the owner can delegate, including Settings when
-available. Neither profile changes company scope or grants identity
-administration or Irreversible Actions. A newly installed application never
-expands an existing Agent silently: the form reports that broader owner access
-is available and the owner must reapply the chosen profile.
+New Agents start with owner-scoped read-only access. Existing read-only and
+read/write assignments retain their meaning during upgrade. Settings is
+delegable when available, but identity administration, credentials, secrets
+and Irreversible Actions are never offered—even by the highest-access shortcut.
+A newly installed application never expands an existing Agent silently.
 
 Read access is the intersection of the Agent's delegated applications and
 companies, the owner's current ACLs and record rules in the same company
@@ -41,10 +37,11 @@ does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
 
-Read-only enforcement applies at both the ORM and JSON-2 boundaries, including
-code that retains the Agent actor through `sudo()`. Create, write, delete,
-archive, workflow, import, module, server-action and unknown public methods are
-denied. Agent keys work only with JSON-2 and the qualified API-document
+Read-only enforcement applies per application at both the ORM and JSON-2
+boundaries, including code that retains the Agent actor through `sudo()`.
+Create, write, delete, archive, workflow, import, module, server-action and
+unknown public methods are denied outside explicitly write-enabled scopes.
+Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
 generated from the audited Agent-eligible subset of `read_only` action-risk
 entries and fails closed if code or policy identity drifts. A general low-risk

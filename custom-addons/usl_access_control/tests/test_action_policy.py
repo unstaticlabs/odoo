@@ -72,13 +72,15 @@ class TestActionPolicyLoader(BaseCase):
         *,
         reads=None,
         collaboration=None,
+        writes=None,
         qualified_policy_digest="a" * 64,
     ):
         policy = {
             "collaboration_actions": collaboration or [],
             "qualified_policy_digest": qualified_policy_digest,
             "read_only_actions": reads or [],
-            "schema": "usl-agent-read-only-runtime-v1",
+            "schema": "usl-agent-access-runtime-v2",
+            "write_actions": writes or [],
         }
         policy["runtime_policy_sha256"] = action_policy._runtime_policy_digest(policy)
         self.agent_runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
@@ -95,6 +97,11 @@ class TestActionPolicyLoader(BaseCase):
         self.assertEqual(policy.access_for("res.partner", "search_read"), "read_only")
         self.assertEqual(policy.access_for("project.task", "message_post"), "collaboration")
         self.assertIsNone(policy.access_for("project.task", "write"))
+
+        action_policy.load_agent_readonly_policy.cache_clear()
+        self._write_agent_policy(writes=["rpc:project.task.write"])
+        policy = action_policy.load_agent_readonly_policy()
+        self.assertEqual(policy.access_for("project.task", "write"), "write")
 
     def test_rejects_stale_or_ambiguous_agent_readonly_policy(self):
         policy = self._write_agent_policy(

@@ -12,10 +12,6 @@ from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
 
-_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS = (
-    "base.group_system",
-)
-
 _AGENT_VISIBLE_STANDALONE_READER_PRIVILEGES = (
     ("account.group_account_readonly", "account.res_groups_privilege_accounting"),
 )
@@ -63,13 +59,13 @@ class UslAgent(models.Model):
         [
             ("read_only", "Read-only"),
             ("read_write", "Read/write"),
+            ("mixed", "Mixed"),
         ],
         required=True,
         default="read_only",
         index=True,
         help=(
-            "Read-only Agents can inspect their owner's delegated scope and use "
-            "approved collaboration actions. Read/write Agents use normal Odoo permissions."
+            "Summarizes whether delegated applications are read-only, read/write, or mixed."
         ),
     )
     suspension_reason = fields.Char(readonly=True, copy=False)
@@ -96,6 +92,14 @@ class UslAgent(models.Model):
         "agent_id",
         "group_id",
         string="Application access",
+    )
+    read_only_group_ids = fields.Many2many(
+        "res.groups",
+        "usl_agent_read_only_group_rel",
+        "agent_id",
+        "group_id",
+        string="Read-only application access",
+        help="Explicit delegated application roles whose mutations are blocked by Agent policy.",
     )
     approved_effective_group_ids = fields.Many2many(
         "res.groups",
@@ -163,12 +167,13 @@ class UslAgent(models.Model):
     @api.depends(
         "access_mode",
         "delegated_group_ids",
+        "read_only_group_ids",
         "approved_effective_group_ids",
         "owner_id.all_group_ids",
     )
     def _compute_read_profile_update_available(self):
         for agent in self:
-            if agent.access_mode != "read_only" or not agent.owner_id:
+            if not agent.owner_id:
                 agent.read_profile_update_available = False
                 continue
             available = agent._all_read_groups().all_implied_ids
@@ -178,8 +183,8 @@ class UslAgent(models.Model):
             )
 
     @api.depends(
-        "access_mode",
         "delegated_group_ids",
+        "read_only_group_ids",
         "owner_id.all_group_ids",
     )
     def _compute_settings_access(self):
@@ -194,7 +199,11 @@ class UslAgent(models.Model):
             ):
                 agent.settings_access = "no_access"
             else:
-                agent.settings_access = agent.access_mode
+                agent.settings_access = (
+                    "read_only"
+                    if settings_group in agent.read_only_group_ids
+                    else "read_write"
+                )
 
     @api.depends(
         "credential_ids.status",
@@ -286,24 +295,26 @@ class UslAgent(models.Model):
                     and group.id not in value["privileges"][privilege.id]["group_ids"]
                 ):
                     value["privileges"][privilege.id]["group_ids"].insert(0, group.id)
-            if agent.access_mode == "read_only":
-                delegated_ids = set(agent.delegated_group_ids.ids)
-                for definition in value["privileges"].values():
-                    selected = [
-                        group_id
-                        for group_id in definition["group_ids"]
-                        if group_id in delegated_ids
-                    ]
-                    if not selected:
-                        definition["group_ids"] = []
-                        continue
-                    selected_group_id = selected[-1]
-                    definition["group_ids"] = [selected_group_id]
-                    value["groups"][selected_group_id]["name"] = _("Read-only")
-                    value["groups"][selected_group_id]["comment"] = _(
-                        "This application is visible within the owner's scope. "
-                        "The server blocks business and configuration mutations."
-                    )
+            settings_group = self.env.ref("base.group_system", raise_if_not_found=False)
+            if settings_group and settings_group.id in allowed_ids:
+                settings_scope_id = "usl_agent_settings"
+                value["privileges"][settings_scope_id] = {
+                    "id": settings_scope_id,
+                    "name": _("Settings"),
+                    "description": _("Ordinary product configuration; identities and secrets stay blocked."),
+                    "placeholder": _("No access"),
+                    "category_id": "usl_agent_administration",
+                    "sequence": 1000,
+                    "group_ids": [settings_group.id],
+                }
+                value["categories"].append(
+                    {
+                        "id": "usl_agent_administration",
+                        "name": _("Administration"),
+                        "sequence": 1000,
+                        "privilege_ids": [settings_scope_id],
+                    },
+                )
             privilege_ids = set(value["privileges"])
             value["categories"] = [
                 {
@@ -342,7 +353,14 @@ class UslAgent(models.Model):
                 raise AccessError(_("You can manage only Agents you own."))
 
     @api.model
-    def _validate_authority_values(self, owner, companies, groups, default_company):
+    def _validate_authority_values(
+        self,
+        owner,
+        companies,
+        groups,
+        default_company,
+        read_only_groups=None,
+    ):
         if not owner or not owner.active or owner.share or owner.usl_is_ai_agent:
             raise ValidationError(_("An Agent requires one active internal human owner."))
         if not companies or not companies <= owner.company_ids:
@@ -351,14 +369,69 @@ class UslAgent(models.Model):
             raise ValidationError(_("The default company must be one of the Agent's companies."))
         forbidden = self._forbidden_delegated_groups()
         if groups.filtered(lambda group: group.all_implied_ids & forbidden):
-            raise ValidationError(_("Agent and Irreversible Actions access cannot be delegated."))
+            raise ValidationError(
+                _("Agents can never receive Irreversible Actions access."),
+            )
         if not groups <= owner.all_group_ids:
             raise ValidationError(_("Agent access cannot exceed the owner's effective access."))
+        read_only_groups = read_only_groups or self.env["res.groups"]
+        if not read_only_groups <= groups:
+            raise ValidationError(_("Read-only access must be part of the Agent's delegated access."))
+
+    @api.model
+    def _access_mode_from_groups(self, groups, read_only_groups):
+        if not groups or groups <= read_only_groups:
+            return "read_only"
+        if not read_only_groups:
+            return "read_write"
+        return "mixed"
 
     @api.model
     def _effective_groups(self, delegated_groups):
         agent_group = self.env.ref("usl_access_control.group_ai_agent")
         return (delegated_groups | agent_group).all_implied_ids
+
+    def _groups_for_operation(self, operation):
+        self.ensure_one()
+        roots = self.delegated_group_ids
+        if operation != "read":
+            roots -= self.read_only_group_ids
+        return roots.all_implied_ids
+
+    def _allows_model_operation(self, model_name, operation):
+        self.ensure_one()
+        if operation not in {"read", "create", "write", "unlink"}:
+            return False
+        roots = self.delegated_group_ids
+        if operation != "read":
+            roots -= self.read_only_group_ids
+        if not roots:
+            return False
+        effective_groups = roots.all_implied_ids
+        permission_field = f"perm_{operation}"
+        access_rows = self.env["ir.model.access"].sudo().search(
+            [
+                ("model_id.model", "=", model_name),
+                ("active", "=", True),
+                (permission_field, "=", True),
+            ],
+        )
+        generic_groups = self._groups_from_xmlids(
+            ("base.group_public", "base.group_portal", "base.group_user"),
+        )
+        return any(
+            access.group_id
+            and access.group_id in effective_groups
+            and (operation == "read" or access.group_id not in generic_groups)
+            for access in access_rows
+        )
+
+    def _model_is_read_only(self, model_name):
+        self.ensure_one()
+        return self._allows_model_operation(model_name, "read") and not any(
+            self._allows_model_operation(model_name, operation)
+            for operation in ("create", "write", "unlink")
+        )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -375,14 +448,23 @@ class UslAgent(models.Model):
             ).exists()
             access_mode = values.get("access_mode", "read_only")
             if access_mode == "read_only" and not groups:
-                forbidden = self._forbidden_delegated_groups()
-                groups = owner.all_group_ids.filtered(
-                    lambda group: not group.all_implied_ids & forbidden,
-                )
+                groups = self._profile_groups_for_owner(owner)
+            read_only_groups = self.env["res.groups"].browse(
+                self._ids_from_commands(
+                    values.get("read_only_group_ids"),
+                    groups.ids if access_mode == "read_only" else [],
+                ),
+            ).exists()
             default_company = self.env["res.company"].browse(
                 values.get("company_id") or owner.company_id.id,
             ).exists()
-            self._validate_authority_values(owner, companies, groups, default_company)
+            self._validate_authority_values(
+                owner,
+                companies,
+                groups,
+                default_company,
+                read_only_groups,
+            )
             technical_login = f"agent+{uuid.uuid4().hex}@usl.invalid"
             agent_group = self.env.ref("usl_access_control.group_ai_agent")
             backing_user = self.env["res.users"].with_user(SUPERUSER_ID).with_context(
@@ -411,8 +493,9 @@ class UslAgent(models.Model):
                 company_id=default_company.id,
                 company_ids=[Command.set(companies.ids)],
                 delegated_group_ids=[Command.set(groups.ids)],
+                read_only_group_ids=[Command.set(read_only_groups.ids)],
                 approved_effective_group_ids=[Command.set(self._effective_groups(groups).ids)],
-                access_mode=access_mode,
+                access_mode=self._access_mode_from_groups(groups, read_only_groups),
             )
             records |= super().create(clean)
         return records
@@ -446,9 +529,18 @@ class UslAgent(models.Model):
             raise ValidationError(
                 _("Use an access-profile action to change the Agent access mode."),
             )
+        authority_fields = {
+            "company_ids",
+            "company_id",
+            "delegated_group_ids",
+            "read_only_group_ids",
+        }
+        if len(self) > 1 and authority_fields & values.keys():
+            return all(agent.write(dict(values)) for agent in self)
         for agent in self:
             companies = agent.company_ids
             groups = agent.delegated_group_ids
+            read_only_groups = agent.read_only_group_ids
             default_company = agent.company_id
             if "company_ids" in values:
                 companies = self.env["res.company"].browse(
@@ -458,9 +550,30 @@ class UslAgent(models.Model):
                 groups = self.env["res.groups"].browse(
                     self._ids_from_commands(values["delegated_group_ids"], groups.ids),
                 ).exists()
+            if "read_only_group_ids" in values:
+                read_only_groups = self.env["res.groups"].browse(
+                    self._ids_from_commands(
+                        values["read_only_group_ids"],
+                        read_only_groups.ids,
+                    ),
+                ).exists()
             if "company_id" in values:
                 default_company = self.env["res.company"].browse(values["company_id"]).exists()
-            self._validate_authority_values(agent.owner_id, companies, groups, default_company)
+            self._validate_authority_values(
+                agent.owner_id,
+                companies,
+                groups,
+                default_company,
+                read_only_groups,
+            )
+            if "delegated_group_ids" in values or "read_only_group_ids" in values:
+                values = {
+                    **values,
+                    "access_mode": self._access_mode_from_groups(
+                        groups,
+                        read_only_groups,
+                    ),
+                }
         result = super().write(values)
         for agent in self:
             if "delegated_group_ids" in values:
@@ -521,12 +634,18 @@ class UslAgent(models.Model):
             )
             companies = agent.company_ids & agent.owner_id.company_ids
             updates = {}
+            read_only = agent.read_only_group_ids & delegated
             if delegated != agent.delegated_group_ids:
                 updates["delegated_group_ids"] = [Command.set(delegated.ids)]
                 updates.update(
                     authority_reduced_at=fields.Datetime.now(),
                     authority_reduction_reason=_("Owner authority was reduced; review Agent access."),
                 )
+            if read_only != agent.read_only_group_ids:
+                updates["read_only_group_ids"] = [Command.set(read_only.ids)]
+            effective_mode = agent._access_mode_from_groups(delegated, read_only)
+            if effective_mode != agent.access_mode:
+                updates["access_mode"] = effective_mode
             if companies != agent.company_ids:
                 updates["company_ids"] = [Command.set(companies.ids)]
                 updates.update(
@@ -591,22 +710,30 @@ class UslAgent(models.Model):
 
     def _all_read_groups(self):
         self.ensure_one()
-        return self._owner_delegable_groups(self.owner_id.all_group_ids)
+        return self._profile_groups_for_owner(self.owner_id)
 
-    def _all_read_write_groups(self):
-        self.ensure_one()
+    @api.model
+    def _profile_groups_for_owner(self, owner):
         hierarchy = self.env["res.groups"]._get_view_group_hierarchy()
-        groups = self.env["res.groups"]
-        owner_group_ids = set(self.owner_id.all_group_ids.ids)
+        owner_group_ids = set(owner.all_group_ids.ids)
         forbidden = self._forbidden_delegated_groups()
+        groups = self.env["res.groups"]
         for privilege in hierarchy["privileges"].values():
             candidates = self.env["res.groups"].browse(
                 [group_id for group_id in privilege["group_ids"] if group_id in owner_group_ids],
             ).filtered(lambda group: not group.all_implied_ids & forbidden)
             if candidates:
                 groups |= candidates[-1]
-        groups |= self._groups_from_xmlids(_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS)
-        return self._owner_delegable_groups(groups)
+        settings_group = self.env.ref("base.group_system", raise_if_not_found=False)
+        if settings_group and settings_group in owner.all_group_ids:
+            groups |= settings_group
+        return (groups & owner.all_group_ids).filtered(
+            lambda group: not group.all_implied_ids & forbidden,
+        )
+
+    def _all_read_write_groups(self):
+        self.ensure_one()
+        return self._profile_groups_for_owner(self.owner_id)
 
     def _replace_delegated_access(self, group_resolver, *, access_mode, title, message):
         self._check_caller_can_manage()
@@ -620,6 +747,9 @@ class UslAgent(models.Model):
                 {
                     "access_mode": access_mode,
                     "delegated_group_ids": [Command.set(groups.ids)],
+                    "read_only_group_ids": [
+                        Command.set(groups.ids if access_mode == "read_only" else [])
+                    ],
                 },
             )
         return {
@@ -712,10 +842,15 @@ class UslAgent(models.Model):
             {
                 "id": int(privilege_id),
                 "name": definition["name"],
-                "access": agent.access_mode,
+                "access": (
+                    "read_only"
+                    if set(definition["group_ids"]) & set(agent.read_only_group_ids.ids)
+                    else "read_write"
+                ),
             }
             for privilege_id, definition in hierarchy.get("privileges", {}).items()
-            if definition.get("group_ids")
+            if str(privilege_id).isdigit()
+            and set(definition.get("group_ids", ())) & set(agent.delegated_group_ids.ids)
         ]
         if agent.settings_access != "no_access":
             effective_applications.append(
@@ -726,7 +861,7 @@ class UslAgent(models.Model):
                 },
             )
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "principal_kind": "agent",
             "user_id": agent.user_id.id,
             "agent": {

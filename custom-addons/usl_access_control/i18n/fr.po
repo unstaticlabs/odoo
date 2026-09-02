@@ -264,3 +264,27 @@ msgstr "Profil de lecture/écriture appliqué"
 #. module: usl_access_control
 msgid "%(count)s owner-approved application roles granted."
 msgstr "%(count)s rôles d’application approuvés par le propriétaire accordés."
+
+#. module: usl_access_control
+msgid "No access"
+msgstr "Aucun accès"
+
+#. module: usl_access_control
+msgid "Read-only"
+msgstr "Lecture seule"
+
+#. module: usl_access_control
+msgid "Mixed"
+msgstr "Mixte"
+
+#. module: usl_access_control
+msgid "Set all to read-only"
+msgstr "Tout définir en lecture seule"
+
+#. module: usl_access_control
+msgid "Set all to highest access"
+msgstr "Tout définir au niveau maximal"
+
+#. module: usl_access_control
+msgid "Irreversible actions are always blocked."
+msgstr "Les actions irréversibles sont toujours bloquées."

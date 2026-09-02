@@ -874,6 +874,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             runtime_policy["collaboration_actions"],
             [collaboration_action["key"]],
         )
+        self.assertEqual(runtime_policy["write_actions"], [write_action["key"]])
         self.assertEqual(
             inventory.validate_agent_readonly_runtime_policy(
                 surface,

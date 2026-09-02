@@ -41,12 +41,12 @@ class UslAgentJson2Controller(WebJson2Controller):
         )
         outcome = "succeeded"
         try:
-            if agent.access_mode == "read_only":
-                self._check_readonly_agent_call(
-                    model_name=__model__,
-                    method_name=__method__,
-                    kwargs=kwargs,
-                )
+            self._check_agent_call(
+                agent=agent,
+                model_name=__model__,
+                method_name=__method__,
+                kwargs=kwargs,
+            )
             result = super().web_json_2_rpc(
                 __model__,
                 __method__,
@@ -75,7 +75,7 @@ class UslAgentJson2Controller(WebJson2Controller):
                 )
 
     @staticmethod
-    def _check_readonly_agent_call(*, model_name, method_name, kwargs):
+    def _check_agent_call(*, agent, model_name, method_name, kwargs):
         if model_name in AGENT_HIDDEN_API_MODELS:
             raise AgentPolicyAccessError(
                 _("Agent credentials and secrets are not exposed through the API."),
@@ -104,9 +104,12 @@ class UslAgentJson2Controller(WebJson2Controller):
                 "agent_read_only_action_denied",
             ) from error
         if access not in {"read_only", "collaboration"}:
+            operation = method_name if method_name in {"create", "write", "unlink"} else "write"
+            if access == "write" and agent._allows_model_operation(model_name, operation):
+                return
             raise AgentPolicyAccessError(
                 _(
-                    "This method is not approved for a read-only Agent: %(model)s.%(method)s.",
+                    "This Agent has no approved application access for %(model)s.%(method)s.",
                     model=model_name,
                     method=method_name,
                 ),

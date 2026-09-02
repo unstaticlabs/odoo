@@ -63,7 +63,8 @@ the Distribution safety policy jointly determine what MCP tools may read or
 change. Agents cannot manage identities or credentials and cannot perform
 protected irreversible actions, even when Settings is delegated.
 
-New Agents default to universal owner-scoped read-only access. In that mode MCP
+New Agents default to universal owner-scoped read-only access. Agents may mix
+read-only and read/write application scopes. In read-only scopes MCP
 publishes only tools backed by exact `read_only` action-policy entries, plus the
 guarded message, activity, self-follow and Documents download-grant tools.
 Generic create, update, archive, delete and arbitrary-action tools are absent.

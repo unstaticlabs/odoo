@@ -85,9 +85,11 @@ class Base(models.AbstractModel):
             return Domain.FALSE
         if (
             operation != "read"
-            and agent.access_mode == "read_only"
+            and not agent._allows_model_operation(self._name, operation)
             and not has_agent_collaboration_token(self.env.context)
         ):
+            return Domain.FALSE
+        if operation == "read" and not agent._allows_model_operation(self._name, "read"):
             return Domain.FALSE
         owner_context = dict(self.env.context)
         requested_companies = set(owner_context.get("allowed_company_ids") or agent.company_ids.ids)
@@ -101,14 +103,20 @@ class Base(models.AbstractModel):
         owner_context["allowed_company_ids"] = list(allowed_companies)
         owner_env = self.env(user=agent.owner_id, context=owner_context)
         owner_domain = self.with_env(owner_env)._access_domain(operation)
-        if operation == "read" and agent.access_mode == "read_only":
-            if self._name not in self.env["ir.model.access"]._get_allowed_models(
-                operation,
-            ):
-                return Domain.FALSE
-            return owner_domain
-        domain = super()._access_domain(operation)
-        return Domain.AND([domain, owner_domain])
+        # The owner is the record-rule authority ceiling. Applying the backing
+        # technical user's personal follower/assignment rules as well would
+        # incorrectly hide records that the owner can read. Company scope is
+        # still intersected explicitly here and in the owner context.
+        if "company_id" in self._fields:
+            company_domain = Domain(
+                [
+                    "|",
+                    ("company_id", "=", False),
+                    ("company_id", "in", sorted(allowed_companies)),
+                ],
+            )
+            return Domain.AND([owner_domain, company_domain])
+        return owner_domain
 
     @api.model
     def _has_field_access(self, field, operation):
@@ -137,12 +145,13 @@ class Base(models.AbstractModel):
         agent = self._usl_managed_agent()
         if (
             agent
-            and agent.access_mode == "read_only"
+            and not agent._allows_model_operation(self._name, operation)
             and not has_agent_collaboration_token(self.env.context)
         ):
             raise AgentPolicyAccessError(
                 self.env._(
-                    "This Agent has read-only access and cannot %(operation)s records.",
+                    "This Agent has no read/write access for %(model)s and cannot %(operation)s records.",
+                    model=self._name,
                     operation=operation,
                 ),
                 "agent_read_only_action_denied",

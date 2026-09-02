@@ -16,7 +16,7 @@ _AGENT_READONLY_RUNTIME_POLICY_FILE = (
     _POLICY_DIRECTORY / "agent_readonly_runtime_policy.json"
 )
 _RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
-_AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-read-only-runtime-v1"
+_AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v2"
 _RUNTIME_POLICY_MAX_BYTES = 512 * 1024
 _AGENT_READONLY_RUNTIME_POLICY_MAX_BYTES = 4 * 1024 * 1024
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -69,6 +69,7 @@ class ActionPolicy:
 class AgentReadonlyPolicy:
     read_only_actions: frozenset[str]
     collaboration_actions: frozenset[str]
+    write_actions: frozenset[str]
     qualified_policy_digest: str
 
     def access_for(self, model_name, method_name):
@@ -77,6 +78,8 @@ class AgentReadonlyPolicy:
             return "read_only"
         if action_key in self.collaboration_actions:
             return "collaboration"
+        if action_key in self.write_actions:
+            return "write"
         return None
 
 
@@ -344,12 +347,18 @@ def load_agent_readonly_policy():
         runtime_policy,
         "collaboration_actions",
     )
-    if read_only_actions & collaboration_actions:
+    write_actions = _load_sorted_action_keys(runtime_policy, "write_actions")
+    if (
+        read_only_actions & collaboration_actions
+        or read_only_actions & write_actions
+        or collaboration_actions & write_actions
+    ):
         raise ActionPolicyConfigurationError(
-            "Agent read-only and collaboration action allowlists overlap.",
+            "Agent read-only, collaboration, and write action allowlists overlap.",
         )
     return AgentReadonlyPolicy(
         read_only_actions=read_only_actions,
         collaboration_actions=collaboration_actions,
+        write_actions=write_actions,
         qualified_policy_digest=qualified_digest,
     )

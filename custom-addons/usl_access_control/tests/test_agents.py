@@ -118,6 +118,14 @@ class TestAutonomousAgents(TransactionCase):
         with self.assertRaises(AccessError):
             user.get_reset_password_link()
 
+    def test_agent_identity_is_exempt_from_human_pocketid_classification(self):
+        agent = self._create_agent()
+
+        exempt = self.env["res.users"]._usl_pocketid_policy_exempt_users()
+
+        self.assertIn(agent.user_id, exempt)
+        self.assertNotIn(self.other_user, exempt)
+
     def test_only_internal_humans_create_owned_agents(self):
         owned = self.env["usl.agent"].with_user(self.other_user).create(
             {
@@ -195,11 +203,12 @@ class TestAutonomousAgents(TransactionCase):
 
     def test_bulk_read_access_uses_every_safe_owner_group_with_runtime_readonly_mode(self):
         agent = self._create_agent()
-        expected = agent._owner_delegable_groups(self.owner.all_group_ids)
+        expected = agent._profile_groups_for_owner(self.owner)
 
         result = agent.with_user(self.owner).action_grant_all_read()
 
         self.assertEqual(agent.delegated_group_ids, expected)
+        self.assertEqual(agent.read_only_group_ids, expected)
         self.assertEqual(agent.access_mode, "read_only")
         self.assertEqual(result["tag"], "display_notification")
         self.assertEqual(result["params"]["type"], "success")
@@ -210,14 +219,7 @@ class TestAutonomousAgents(TransactionCase):
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
 
-        accounting_privilege = self.env.ref("account.res_groups_privilege_accounting")
-        hierarchy = agent.view_group_hierarchy
-        privilege = hierarchy["privileges"][str(accounting_privilege.id)]
-        selected_group_id = privilege["group_ids"][0]
-        self.assertEqual(
-            hierarchy["groups"][str(selected_group_id)]["name"],
-            "Read-only",
-        )
+        self.assertIn("usl_agent_settings", agent.view_group_hierarchy["privileges"])
 
     def test_new_agent_defaults_to_universal_readonly_profile(self):
         agent = self.env["usl.agent"].with_user(self.owner).create(
@@ -231,25 +233,20 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(agent.access_mode, "read_only")
         self.assertEqual(
             agent.delegated_group_ids,
-            agent._owner_delegable_groups(self.owner.all_group_ids),
+            agent._profile_groups_for_owner(self.owner),
         )
+        self.assertEqual(agent.read_only_group_ids, agent.delegated_group_ids)
 
-    def test_bulk_access_profile_actions_are_visible_on_new_agent_form(self):
+    def test_access_editor_owns_unsaved_bulk_shortcuts(self):
         architecture = etree.fromstring(
             self.env.ref("usl_access_control.view_usl_agent_form").arch_db.encode(),
         )
-        for action_name in (
-            "action_grant_all_read",
-            "action_grant_all_read_write",
-        ):
-            with self.subTest(action_name=action_name):
-                buttons = architecture.xpath(
-                    f"//button[@name='{action_name}' and @type='object']",
-                )
-                self.assertEqual(len(buttons), 1)
-                self.assertFalse(
-                    buttons[0].xpath("ancestor-or-self::*[@invisible='not id']"),
-                )
+        fields = architecture.xpath(
+            "//field[@name='delegated_group_ids' and @widget='usl_agent_access']",
+        )
+        self.assertEqual(len(fields), 1)
+        self.assertFalse(architecture.xpath("//button[@name='action_grant_all_read']"))
+        self.assertFalse(architecture.xpath("//button[@name='action_grant_all_read_write']"))
 
     def test_bulk_read_write_selects_highest_safe_owner_levels_and_settings(self):
         agent = self._create_agent()
@@ -267,6 +264,7 @@ class TestAutonomousAgents(TransactionCase):
                 self.assertIn(candidates[-1], agent.delegated_group_ids)
         self.assertIn(self.group_settings, agent.delegated_group_ids)
         self.assertEqual(agent.access_mode, "read_write")
+        self.assertFalse(agent.read_only_group_ids)
         self.assertEqual(agent.settings_access, "read_write")
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
@@ -287,6 +285,55 @@ class TestAutonomousAgents(TransactionCase):
             agent.with_user(agent.user_id).action_grant_all_read_write()
         with self.assertRaises(ValidationError):
             agent.with_user(self.owner).write({"access_mode": "read_only"})
+
+    def test_application_access_can_mix_read_only_and_read_write(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        accounting_manager = self.env.ref("account.group_account_manager")
+        groups = project_manager | accounting_manager
+
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(groups.ids)],
+                "read_only_group_ids": [Command.set(project_manager.ids)],
+            },
+        )
+
+        self.assertEqual(agent.access_mode, "mixed")
+        self.assertTrue(agent._allows_model_operation("project.task", "read"))
+        self.assertFalse(agent._allows_model_operation("project.task", "write"))
+        self.assertTrue(agent._allows_model_operation("account.move", "write"))
+        with self.assertRaises(AccessError):
+            self.env["project.task"].with_user(agent.user_id).create({"name": "Denied"})
+
+    def test_highest_access_still_excludes_irreversible_actions(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read_write()
+
+        self.assertNotIn(self.group_irreversible, agent.delegated_group_ids)
+        self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
+        self.assertFalse(
+            agent.user_id.with_user(agent.user_id)._usl_actor_may_perform_irreversible_actions(),
+        )
+        hierarchy_group_ids = {
+            group_id
+            for privilege in agent.view_group_hierarchy["privileges"].values()
+            for group_id in privilege["group_ids"]
+        }
+        self.assertNotIn(self.group_irreversible.id, hierarchy_group_ids)
+        with self.assertRaises(ValidationError):
+            agent.with_user(self.owner).write(
+                {
+                    "delegated_group_ids": [
+                        Command.link(self.group_irreversible.id),
+                    ],
+                },
+            )
+        with self.assertRaises(ValidationError):
+            agent.user_id.with_user(SUPERUSER_ID).with_context(
+                usl_agent_provisioning=True,
+                usl_governed_identity_provisioning=True,
+            ).write({"group_ids": [Command.link(self.group_irreversible.id)]})
 
     def test_new_owner_access_requires_explicit_read_profile_reapplication(self):
         project_manager = self.env.ref("project.group_project_manager")
@@ -540,7 +587,10 @@ class TestAutonomousAgents(TransactionCase):
             self.assertFalse(_agent_key_path_allowed(path))
 
     def test_readonly_json2_policy_denies_unknown_mutations_and_secrets(self):
-        UslAgentJson2Controller._check_readonly_agent_call(
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        UslAgentJson2Controller._check_agent_call(
+            agent=agent,
             model_name="res.partner",
             method_name="search_read",
             kwargs={"fields": ["name", "email"]},
@@ -556,7 +606,8 @@ class TestAutonomousAgents(TransactionCase):
             ),
         ):
             with self.assertRaises(AgentPolicyAccessError) as denied:
-                UslAgentJson2Controller._check_readonly_agent_call(
+                UslAgentJson2Controller._check_agent_call(
+                    agent=agent,
                     model_name=model_name,
                     method_name=method_name,
                     kwargs=kwargs,
