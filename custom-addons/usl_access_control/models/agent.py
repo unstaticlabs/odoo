@@ -494,19 +494,43 @@ class UslAgent(models.Model):
         groups |= self._groups_from_xmlids(_AGENT_FULL_ACCESS_EXTRA_GROUP_XMLIDS)
         return self._owner_delegable_groups(groups)
 
-    def _replace_delegated_access(self, group_resolver):
+    def _replace_delegated_access(self, group_resolver, *, title, message):
         self._check_caller_can_manage()
+        granted_group_count = 0
         for agent in self:
+            groups = group_resolver(agent)
+            granted_group_count += len(groups)
             agent.write(
-                {"delegated_group_ids": [Command.set(group_resolver(agent).ids)]},
+                {"delegated_group_ids": [Command.set(groups.ids)]},
             )
-        return True
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": title,
+                "message": message % {"count": granted_group_count},
+                "type": "success",
+                "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+            },
+        }
 
     def action_grant_all_read(self):
-        return self._replace_delegated_access(lambda agent: agent._all_read_groups())
+        return self._replace_delegated_access(
+            lambda agent: agent._all_read_groups(),
+            title=_("Read-only profile applied"),
+            message=_(
+                "%(count)s qualified reader roles granted. Applications without "
+                "a safe read-only role remain set to No."
+            ),
+        )
 
     def action_grant_all_read_write(self):
-        return self._replace_delegated_access(lambda agent: agent._all_read_write_groups())
+        return self._replace_delegated_access(
+            lambda agent: agent._all_read_write_groups(),
+            title=_("Read/write profile applied"),
+            message=_("%(count)s owner-approved application roles granted."),
+        )
 
     def action_new_credential(self):
         self.ensure_one()

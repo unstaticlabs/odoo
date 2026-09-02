@@ -191,9 +191,13 @@ class TestAutonomousAgents(TransactionCase):
             expected |= self.env.ref(xmlid)
         expected &= self.owner.all_group_ids
 
-        agent.with_user(self.owner).action_grant_all_read()
+        result = agent.with_user(self.owner).action_grant_all_read()
 
         self.assertEqual(agent.delegated_group_ids, expected)
+        self.assertEqual(result["tag"], "display_notification")
+        self.assertEqual(result["params"]["type"], "success")
+        self.assertIn(str(len(expected)), result["params"]["message"])
+        self.assertEqual(result["params"]["next"]["tag"], "soft_reload")
         self.assertNotIn(self.group_settings, agent.delegated_group_ids)
         self.assertNotIn(
             self.env.ref("usl_documents.group_documents_hr"),
@@ -222,7 +226,7 @@ class TestAutonomousAgents(TransactionCase):
     def test_bulk_read_write_selects_highest_safe_owner_levels_and_settings(self):
         agent = self._create_agent()
 
-        agent.with_user(self.owner).action_grant_all_read_write()
+        result = agent.with_user(self.owner).action_grant_all_read_write()
 
         hierarchy = self.env["res.groups"]._get_view_group_hierarchy()
         forbidden = agent._forbidden_delegated_groups()
@@ -236,6 +240,8 @@ class TestAutonomousAgents(TransactionCase):
         self.assertIn(self.group_settings, agent.delegated_group_ids)
         self.assertNotIn(self.group_irreversible, agent.user_id.all_group_ids)
         self.assertEqual(agent.company_ids, self.company | self.other_company)
+        self.assertEqual(result["tag"], "display_notification")
+        self.assertEqual(result["params"]["next"]["tag"], "soft_reload")
 
     def test_bulk_access_is_idempotent_and_owner_only(self):
         agent = self._create_agent()

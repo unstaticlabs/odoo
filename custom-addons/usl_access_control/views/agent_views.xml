@@ -88,15 +88,18 @@
                                 <span class="text-muted me-auto">Apply an owner-limited access profile.</span>
                                 <button name="action_grant_all_read"
                                         type="object"
-                                        string="Grant all read access"
+                                        string="Apply read-only profile"
                                         class="btn-secondary"
                                         confirm="Replace this Agent's current application access with every qualified read-only role available to its owner?"/>
                                 <button name="action_grant_all_read_write"
                                         type="object"
-                                        string="Grant all read/write access"
+                                        string="Apply read/write profile"
                                         class="btn-secondary"
                                         confirm="Replace this Agent's current application access with the highest safe level available to its owner in every application?"/>
                             </div>
+                            <p class="text-muted mb-3">
+                                The read-only profile uses only qualified reader roles. Applications without a safe read-only role remain set to No; their standard User roles would permit changes.
+                            </p>
                             <field name="view_group_hierarchy" invisible="1"/>
                             <field name="approved_effective_group_ids" invisible="1"/>
                             <field name="delegated_group_ids" widget="res_user_group_ids" nolabel="1" colspan="2"/>
