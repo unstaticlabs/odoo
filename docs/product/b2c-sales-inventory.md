@@ -96,13 +96,35 @@ sessions, and manage access. Users outside the B2C groups have no model access.
 
 ## Inventory position
 
-The restored catalog contains 46 templates and variants, including the archived
-capability-test product, and 45 native cost-history rows. Own-stock and
-Printful/POD fulfilment are distinct product dimensions. Future own-stock COGS
-comes from native valued deliveries where available; provider-evidenced COGS
-remains on fulfilment events.
+The lossless restore initially contains 46 source templates, each with one
+technical variant, including the archived capability-test product, and 45
+native cost-history rows. A reviewed post-restore normalization then turns
+defensible product families into native variants. It uses exact internal
+references, Etsy listing identities, Medusa SKUs, or—when no provider ID
+exists—the exact provider product name and variation. Similar names across
+providers are not merged without stronger evidence.
+
+The permanent product foundation enables native Variants, Storage Locations,
+Lots and Serial Numbers, Units of Measure and Packagings, and Landed Costs.
+Feature visibility does not grant Stock Manager or Accounting rights. These
+settings are applied on first installation and once during the corresponding
+module upgrade; later module updates do not override an administrator's choice.
+
+Own-stock and Printful/POD fulfilment remain distinct product dimensions.
+Printful products are non-storable unless reviewed evidence says otherwise.
+Padlocks, raw chain and finished stocked products remain storable, but tracking
+stays disabled until a product-level traceability policy exists. Future
+own-stock COGS comes from native valued deliveries where available;
+provider-evidenced COGS remains on fulfilment events.
 
 The exact source stock history is zero, but physical opening stock is not
 evidenced. Until an approved dated count exists, current quantity and opening
 valuation are blocking unknowns. No historical stock operation may be created
 to make that gap disappear.
+
+The normalization preserves raw provider rows, original titles, variations,
+SKUs, linked documents and cost-history row identity. It may advance a reviewed
+alias from `not_applicable` to `verified`, but never rewrites the source fields.
+Unallocated physical-unit records remain separate until a dated physical count
+supports allocation. Products with conflicting provider identity remain
+unchanged and appear in the normalization report.

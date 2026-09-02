@@ -1,5 +1,10 @@
 from datetime import datetime
+from pathlib import Path
+from runpy import run_path
 
+from psycopg2 import IntegrityError
+
+from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
@@ -103,6 +108,221 @@ class TestB2cFoundation(TransactionCase):
     def test_delivery_does_not_activate_cash_on_delivery(self):
         provider = self.env.ref("delivery.payment_provider_cod")
         self.assertEqual(provider.state, "disabled")
+
+    def test_native_inventory_foundations_are_enabled_without_role_escalation(self):
+        internal_user = self.env.ref("base.group_user")
+        for xmlid in (
+            "product.group_product_variant",
+            "stock.group_stock_multi_locations",
+            "stock.group_production_lot",
+            "uom.group_uom",
+        ):
+            self.assertIn(self.env.ref(xmlid), internal_user.implied_ids)
+        self.assertTrue(self.env["stock.warehouse"].search([]).mapped("int_type_id.active"))
+        self.assertEqual(
+            self.env["ir.module.module"].search(
+                [("name", "=", "stock_landed_costs")],
+                limit=1,
+            ).state,
+            "installed",
+        )
+        self.assertFalse(self.unauthorized.has_group("stock.group_stock_manager"))
+
+    def test_source_name_variation_aliases_are_distinct_without_a_sku(self):
+        base_values = {
+            "company_id": self.company.id,
+            "channel_id": self.channel.id,
+            "source_provider": "medusa",
+            "original_name": "Ankle Chains",
+        }
+        small = self.env["b2c.product.alias"].create(
+            {
+                **base_values,
+                "original_variation": "S / 3 mm / One chain",
+            },
+        )
+        medium = self.env["b2c.product.alias"].create(
+            {
+                **base_values,
+                "original_variation": "M / 3 mm / One chain",
+            },
+        )
+        self.assertNotEqual(small.alias_key, medium.alias_key)
+        with self.assertRaises(IntegrityError):
+            self.env["b2c.product.alias"].create(
+                {
+                    **base_values,
+                    "original_variation": "S / 3 mm / One chain",
+                },
+            )
+            self.env.flush_all()
+
+    def test_listing_variations_without_skus_keep_distinct_aliases(self):
+        base_values = {
+            "company_id": self.company.id,
+            "channel_id": self.channel.id,
+            "source_provider": "etsy",
+            "external_listing_id": "listing-42",
+            "original_name": "POD cap",
+        }
+        red = self.env["b2c.product.alias"].create(
+            {**base_values, "original_variation": "Color:Red"},
+        )
+        blue = self.env["b2c.product.alias"].create(
+            {**base_values, "original_variation": "Color:Blue"},
+        )
+        self.assertNotEqual(red.alias_key, blue.alias_key)
+
+    def test_catalog_variation_parser_preserves_real_attributes(self):
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.1.0"
+            / "catalog_normalization.py",
+        )
+        self.assertEqual(
+            migration["parse_etsy_variation"](
+                "Color:French Navy,Men's chest size:L US letter",
+            ),
+            (("colour", "French Navy"), ("size", "L US letter")),
+        )
+        self.assertEqual(
+            migration["parse_medusa_variation"](
+                "ankle chains",
+                "M (26cm) / 4mm (14x21mm links) / Two Chains With Padlocks",
+            ),
+            (
+                ("size", "M (26cm)"),
+                ("diameter", "4mm (14x21mm links)"),
+                ("configuration", "Two Chains With Padlocks"),
+            ),
+        )
+        self.assertEqual(
+            migration["parse_medusa_variation"](
+                "master padlock 20mm",
+                "Blue - One",
+            ),
+            (("colour", "Blue"), ("package", "One")),
+        )
+
+    def test_synthetic_lot_transfer_and_draft_landed_cost(self):
+        category = self.env.ref("product.product_category_goods").copy(
+            {
+                "name": "Synthetic average-cost category",
+                "property_cost_method": "average",
+                "property_valuation": "real_time",
+            },
+        )
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.company.id)],
+            limit=1,
+        )
+        supplier_location = self.env.ref("stock.stock_location_suppliers")
+        expense_journal = self.env["account.journal"].search(
+            [("company_id", "=", self.company.id), ("type", "=", "purchase")],
+            limit=1,
+        )
+        product = self.env["product.product"].create(
+            {
+                "name": "Synthetic inventory-foundations product",
+                "is_storable": True,
+                "tracking": "lot",
+                "categ_id": category.id,
+                "standard_price": 10,
+                "weight": 2,
+                "volume": 0.5,
+            },
+        )
+        lot = self.env["stock.lot"].create(
+            {"name": "SYNTHETIC-LOT-001", "product_id": product.id},
+        )
+        receipt = self.env["stock.picking"].create(
+            {
+                "picking_type_id": warehouse.in_type_id.id,
+                "location_id": supplier_location.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "move_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 5,
+                            "uom_id": product.uom_id.id,
+                            "location_id": supplier_location.id,
+                            "location_dest_id": warehouse.lot_stock_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        receipt.action_confirm()
+        receipt.move_ids.quantity = 5
+        receipt.move_ids.move_line_ids.lot_id = lot
+        receipt.button_validate()
+
+        secondary = self.env["stock.location"].create(
+            {
+                "name": "Synthetic secondary storage",
+                "location_id": warehouse.view_location_id.id,
+                "usage": "internal",
+            },
+        )
+        transfer = self.env["stock.picking"].create(
+            {
+                "picking_type_id": warehouse.int_type_id.id,
+                "location_id": warehouse.lot_stock_id.id,
+                "location_dest_id": secondary.id,
+                "move_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 2,
+                            "uom_id": product.uom_id.id,
+                            "location_id": warehouse.lot_stock_id.id,
+                            "location_dest_id": secondary.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        transfer.action_confirm()
+        transfer.action_assign()
+        transfer.move_ids.quantity = 2
+        transfer.move_ids.move_line_ids.lot_id = lot
+        transfer.button_validate()
+
+        freight = self.env["product.product"].create(
+            {
+                "name": "Synthetic freight",
+                "type": "service",
+                "landed_cost_ok": True,
+                "categ_id": category.id,
+            },
+        )
+        landed_cost = self.env["stock.landed.cost"].create(
+            {
+                "picking_ids": [Command.set(receipt.ids)],
+                "account_journal_id": expense_journal.id,
+                "cost_lines": [
+                    Command.create(
+                        {
+                            "name": "Synthetic freight",
+                            "product_id": freight.id,
+                            "price_unit": 25,
+                            "split_method": "by_quantity",
+                        },
+                    ),
+                ],
+            },
+        )
+        landed_cost.compute_landed_cost()
+
+        self.assertEqual(landed_cost.state, "draft")
+        self.assertEqual(sum(landed_cost.valuation_adjustment_lines.mapped("additional_landed_cost")), 25)
+        self.assertFalse(landed_cost.account_move_id)
+        self.assertEqual(
+            self.env["stock.quant"]._get_available_quantity(product, secondary, lot_id=lot),
+            2,
+        )
 
     def test_coverage_fields_keep_zero_to_one_hundred_display_contract(self):
         self.assertEqual(
