@@ -1374,3 +1374,27 @@ msgstr "État de préparation"
 #: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "Exception filtering expects a true or false value."
 msgstr "Le filtre des exceptions attend une valeur vraie ou fausse."
+
+#. module: usl_expense_batch
+msgid "All"
+msgstr "Tous"
+
+#. module: usl_expense_batch
+msgid "Period"
+msgstr "Période"
+
+#. module: usl_expense_batch
+msgid "Issues"
+msgstr "Anomalies"
+
+#. module: usl_expense_batch
+msgid "Add expenses"
+msgstr "Ajouter des dépenses"
+
+#. module: usl_expense_batch
+msgid "Select at least one expense to add."
+msgstr "Sélectionnez au moins une dépense à ajouter."
+
+#. module: usl_expense_batch
+msgid "Add Expenses to Batch"
+msgstr "Ajouter des dépenses au lot"

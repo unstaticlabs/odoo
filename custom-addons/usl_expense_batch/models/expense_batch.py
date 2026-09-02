@@ -4,6 +4,7 @@ from lxml import etree
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import format_date
 
 
 class UslExpenseBatch(models.Model):
@@ -157,6 +158,7 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         search="_search_has_exceptions",
     )
+    period_summary = fields.Char(string="Period", compute="_compute_period_summary")
     stale_context_count = fields.Integer(compute="_compute_review_context")
     warning_count = fields.Integer(compute="_compute_review_context")
     employee_paid_open_count = fields.Integer(compute="_compute_review_context")
@@ -389,6 +391,35 @@ class UslExpenseBatch(models.Model):
         include_matches = (operator == "=") == value
         return [("id", "in" if include_matches else "not in", matching_ids)]
 
+    @api.depends("date_from", "date_to")
+    def _compute_period_summary(self):
+        for batch in self:
+            if not batch.date_from:
+                batch.period_summary = False
+            elif not batch.date_to or batch.date_from == batch.date_to:
+                batch.period_summary = format_date(self.env, batch.date_from)
+            else:
+                batch.period_summary = _(
+                    "%(start)s → %(end)s",
+                    start=format_date(self.env, batch.date_from),
+                    end=format_date(self.env, batch.date_to),
+                )
+
+    @api.model
+    def get_batch_dashboard_counts(self):
+        """Return record-rule-aware counts for the operational quick filters."""
+        return {
+            "all": self.search_count([]),
+            "open_batches": self.search_count([("active", "=", True)]),
+            "needs_information": self.search_count(
+                [("expense_ids.batch_readiness", "=", "incomplete")],
+            ),
+            "my_batches": self.search_count(
+                [("employee_id.user_id", "=", self.env.uid)],
+            ),
+            "exceptions": self.search_count([("has_exceptions", "=", True)]),
+        }
+
     @api.depends("expense_ids.account_move_id")
     def _compute_moves(self):
         for batch in self:
@@ -573,6 +604,22 @@ class UslExpenseBatch(models.Model):
             "batch_id": self.id,
             "added": len(new_expenses),
             "unchanged": len(expenses - new_expenses),
+        }
+
+    def action_open_add_expenses_wizard(self):
+        self.ensure_one()
+        self._ensure_active()
+        wizard = self.env["usl.expense.batch.add.wizard"].create({
+            "batch_id": self.id,
+        })
+        return {
+            "name": _("Add expenses"),
+            "type": "ir.actions.act_window",
+            "res_model": "usl.expense.batch.add.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "res_id": wizard.id,
+            "target": "new",
         }
 
     @api.model

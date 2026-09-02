@@ -6,6 +6,10 @@ import {
     refreshExpenseList,
 } from "../src/js/expense_batch_list";
 import { attentionIconClass } from "../src/js/expense_batch_attention_field";
+import {
+    activeQuickFilterName,
+    quickFilterItemIds,
+} from "../src/js/expense_batch_workspace";
 
 function record(state, expenseBatchId = false) {
     return {
@@ -67,4 +71,20 @@ test("closing the batch wizard reloads and renders the expense list", async () =
 test("attention indicator stays compact and distinguishes warnings from locks", () => {
     expect(attentionIconClass("warning")).toInclude("text-warning");
     expect(attentionIconClass("info")).toInclude("fa-lock");
+});
+
+test("batch quick filters expose one clear active workspace", () => {
+    const searchItems = {
+        1: { id: 1, name: "open_batches" },
+        2: { id: 2, name: "needs_information" },
+        3: { id: 3, name: "my_batches" },
+        4: { id: 4, name: "exceptions" },
+        5: { id: 5, name: "unrelated" },
+    };
+
+    expect(activeQuickFilterName(searchItems, [])).toBe("all");
+    expect(activeQuickFilterName(searchItems, [{ searchItemId: 2 }])).toBe(
+        "needs_information",
+    );
+    expect(quickFilterItemIds(searchItems)).toEqual([1, 2, 3, 4]);
 });

@@ -1,6 +1,7 @@
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
+from odoo.tools import format_date
 
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -721,9 +722,35 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(batch.batch_state, "open")
         self.assertEqual(batch.expense_progress, "draft")
         self.assertEqual(batch.expense_progress_summary, "1 draft · 1 approved")
+        self.assertEqual(
+            batch.period_summary,
+            format_date(self.env, batch.date_from),
+        )
+
+        dashboard = self.env["usl.expense.batch"].get_batch_dashboard_counts()
+        self.assertGreaterEqual(dashboard["all"], 1)
+        self.assertGreaterEqual(dashboard["open_batches"], 1)
+        self.assertEqual(
+            set(dashboard),
+            {"all", "open_batches", "needs_information", "my_batches", "exceptions"},
+        )
 
         batch.active = False
         self.assertEqual(batch.batch_state, "archived")
+
+    def test_add_expenses_action_uses_eligible_same_employee_records(self):
+        batch = self._batch(self._expense("Existing expense"), "Open batch")
+        candidate = self._expense("Later expense")
+
+        action = batch.action_open_add_expenses_wizard()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(wizard.batch_id, batch)
+        wizard.expense_ids = candidate
+        self.assertEqual(
+            wizard.action_add(),
+            {"type": "ir.actions.act_window_close"},
+        )
+        self.assertEqual(candidate.expense_batch_id, batch)
 
     def test_mixed_payer_posting_keeps_one_batch_and_remaining_action(self):
         employee_paid = self._expense("Canada hotel", amount=215)
@@ -955,6 +982,11 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(
             batch_form.xpath("//field[@name='expense_progress_summary']"),
         )
+        self.assertTrue(
+            batch_form.xpath(
+                "//button[@name='action_open_add_expenses_wizard']",
+            ),
+        )
         self.assertFalse(batch_form.xpath("/form/header/field[@name='state']"))
         self.assertTrue(
             batch_form.xpath("//widget[@name='web_ribbon'][@text='Archived']"),
@@ -1010,6 +1042,10 @@ class TestExpenseBatch(TestExpenseCommon):
             "usl_expense_batch.view_expense_batch_list",
         )._get_combined_arch()
         self.assertFalse(batch_list.xpath("/list[@decoration-info]"))
+        self.assertEqual(batch_list.get("js_class"), "usl_expense_batch_list")
+        self.assertTrue(batch_list.xpath("//field[@name='period_summary']"))
+        self.assertFalse(batch_list.xpath("//field[@name='date_from']"))
+        self.assertFalse(batch_list.xpath("//field[@name='date_to']"))
         self.assertTrue(
             batch_list.xpath("//field[@name='expense_progress_summary']"),
         )

@@ -6,7 +6,7 @@
 
     .o_usl_batch_metric {
         min-width: 0;
-        padding: 0.85rem 1rem;
+        padding: 1rem 1.15rem;
 
         &:not(:last-child) {
             border-inline-end: 1px solid var(--border-color, #dee2e6);
@@ -16,15 +16,18 @@
     .o_usl_batch_metric_label {
         margin-bottom: 0.2rem;
         color: var(--body-color, #5f6b76);
-        font-size: 0.75rem;
         font-weight: 600;
         line-height: 1.2;
+    }
+
+    .o_usl_batch_metric > .o_field_widget {
+        font-weight: 600;
+        line-height: 1.35;
     }
 
     .o_usl_batch_metric_detail {
         margin-top: 0.15rem;
         color: var(--body-color, #5f6b76);
-        font-size: 0.75rem;
         line-height: 1.25;
     }
 
@@ -57,13 +60,63 @@
 }
 
 .o_usl_expense_batch_list {
+    thead th {
+        padding-block: 0.65rem;
+        white-space: nowrap;
+    }
+
+    tbody td {
+        padding-block: 0.65rem;
+        vertical-align: middle;
+    }
+
+    td[name="name"] {
+        font-weight: 500;
+    }
+
     td[name="total_amount"],
     th[data-name="total_amount"] {
+        width: 7.5rem;
+        min-width: 7.5rem;
         font-variant-numeric: tabular-nums;
+        text-align: end;
     }
 
     td[name="exception_count"]:not(:empty) {
         font-weight: 600;
+    }
+}
+
+.o_usl_batch_quick_filters {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    background: var(--o-view-background-color, #fff);
+    scrollbar-width: thin;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2rem;
+        padding-inline: 0.85rem;
+        border-color: transparent;
+        font-weight: 500;
+    }
+
+    .btn-light {
+        color: var(--body-color, #5f6b76);
+        background: var(--o-gray-100, #f3f4f6);
+    }
+
+    .o_usl_batch_filter_count {
+        min-width: 1.25rem;
+        padding-inline: 0.35rem;
+        color: inherit;
+        background: color-mix(in srgb, currentColor 10%, transparent);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
     }
 }
 
@@ -85,8 +138,6 @@
     .o_usl_expense_batch_list {
         th[data-name="context_type"],
         td[name="context_type"],
-        th[data-name="date_to"],
-        td[name="date_to"],
         th[data-name="exception_count"],
         td[name="exception_count"] {
             display: none !important;
@@ -109,10 +160,16 @@
     }
 
     .o_usl_expense_batch_list {
+        th[data-name="total_amount"],
+        td[name="total_amount"] {
+            width: 8rem !important;
+            min-width: 8rem !important;
+        }
+
         th[data-name="employee_id"],
         td[name="employee_id"],
-        th[data-name="date_from"],
-        td[name="date_from"],
+        th[data-name="period_summary"],
+        td[name="period_summary"],
         th[data-name="expense_count"],
         td[name="expense_count"],
         th[data-name="expense_progress_summary"],
@@ -152,6 +209,10 @@
         .o_row {
             max-width: 100%;
         }
+    }
+
+    .o_usl_batch_quick_filters {
+        padding-inline: 0.75rem;
     }
 }
 
