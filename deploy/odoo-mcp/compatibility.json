@@ -10,6 +10,7 @@
     "project",
     "rebuild_account_migration",
     "stock",
+    "usl_access_control",
     "usl_b2c",
     "usl_documents",
     "usl_expense_batch",
