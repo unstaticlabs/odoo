@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
 import re
+import subprocess
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from operations.component_build import COMPONENTS, resolve
@@ -54,6 +57,39 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
+
+    def test_renderer_revision_is_consistent_across_release_inputs(self) -> None:
+        release = json.loads(
+            (ROOT / "deploy/document-renderer/release.json").read_text(
+                encoding="utf-8",
+            )
+        )
+        expected = release["commit"]
+        gitlink = subprocess.check_output(
+            ["git", "ls-files", "--stage", "services/usl-document-renderer"],
+            cwd=ROOT,
+            text=True,
+        ).split()[1]
+        self.assertEqual(gitlink, expected)
+
+        pin_check = (ROOT / "scripts/check-document-renderer-submodule").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(f'EXPECTED="{expected}"', pin_check)
+
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        self.assertIn(f"USL_TEMPLATE_REVISION: {expected}", compose)
+        self.assertIn(f"usl-document-renderer:{expected[:12]}", compose)
+
+        data = ET.parse(
+            ROOT
+            / "custom-addons/usl_document_templates/data/document_template_data.xml"
+        )
+        revision = data.find(
+            ".//record[@id='renderer_expected_revision']/field[@name='value']"
+        )
+        self.assertIsNotNone(revision)
+        self.assertEqual(revision.text, expected)
 
     def test_production_compose_never_builds_from_checkout(self) -> None:
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")

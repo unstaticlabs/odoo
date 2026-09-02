@@ -166,7 +166,7 @@ def _pyhanko_valid(count=1):
 def _renderer_result(pdf):
     return {
         "pdf": pdf,
-        "template_revision": "5ab496f8d8f9ce0c38a1ca87cbd3116de2facad6",
+        "template_revision": "a01385982eb406947bd1e312a1cefd7fe4636943",
         "payload_sha256": "a" * 64,
         "renderer_version": "1.3.0",
     }
