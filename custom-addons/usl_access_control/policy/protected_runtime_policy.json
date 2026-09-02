@@ -116,6 +116,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:inventory.landed_cost.validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:module.install",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -1581,6 +1586,21 @@
       }
     },
     {
+      "action_key": "rpc:stock.landed.cost.button_validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:stock.landed.cost.unlink",
+      "action_name": "permanently delete stock.landed.cost",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.landed.cost",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:stock.location.unlink",
       "action_name": "permanently delete stock.location",
       "classification": "protected",
@@ -1951,8 +1971,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "af031359df43a80d851e85d58a83e35875cf6714c1b2e019908b593ac3746f97",
-  "runtime_policy_sha256": "fd9a2e739a4631641344f483dae76b234e70161b8212adb471e47f9899819982",
+  "qualified_policy_digest": "dafc88bef8b68e2b06e016c2be3912ca346e33a4d07cdcb62744a1ecb75ac61a",
+  "runtime_policy_sha256": "34ff3544ef940d3cdce4698702822212358567c48f64a786c22df0031ab37f8a",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {

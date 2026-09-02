@@ -25,7 +25,7 @@ production-admission work.
 | Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational locally; production certificate and ingress configuration remain |
 | Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational locally; production issuer configuration remains |
 | Company-scoped roles, irreversible-action controls and immutable audit events | `usl_access_control` | Access rights and protected actions | Operational |
-| Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Historical operations available; physical opening inventory and advanced automation remain |
+| Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
 | Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | MCP service endpoint | Operational locally; production ingress and credentials remain |

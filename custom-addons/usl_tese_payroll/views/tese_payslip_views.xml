@@ -609,7 +609,8 @@
                     <button name="action_link_document"
                             type="object"
                             string="Use this PDF"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            help="Link the verified archived PDF to this TESE payroll record without creating another Paperless copy."/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>

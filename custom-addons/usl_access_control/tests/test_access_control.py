@@ -322,6 +322,57 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
                 ):
                     invoice.unlink()
 
+    def test_landed_cost_actions_require_irreversible_actions(self):
+        journal = self.env["account.journal"].search(
+            [("company_id", "=", self.company.id), ("type", "=", "general")],
+            limit=1,
+        )
+        landed_cost = self.env["stock.landed.cost"].create(
+            {"account_journal_id": journal.id},
+        )
+        for user in (self.product_admin, self.agent):
+            with self.subTest(user=user.login), self.assertRaisesRegex(
+                AccessError,
+                "Irreversible Actions|AI Agents",
+            ):
+                landed_cost.with_user(user).sudo().button_validate()
+        with patch.object(
+            type(landed_cost),
+            "_check_can_validate",
+            autospec=True,
+        ):
+            landed_cost.with_user(self.valentin).sudo().button_validate()
+        self.assertEqual(landed_cost.state, "done")
+        event = self.env["usl.audit.event"].sudo().search(
+            [
+                ("actor_id", "=", self.valentin.id),
+                ("action_key", "=", "guard:inventory.landed_cost.validate"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(event)
+
+        removable_cost = self.env["stock.landed.cost"].create(
+            {"account_journal_id": journal.id},
+        )
+        for user in (self.product_admin, self.agent):
+            with self.subTest(user=user.login), self.assertRaisesRegex(
+                AccessError,
+                "Irreversible Actions|AI Agents",
+            ):
+                removable_cost.with_user(user).sudo().unlink()
+        self.assertTrue(removable_cost.exists())
+        removable_cost.with_user(self.valentin).sudo().unlink()
+        self.assertFalse(removable_cost.exists())
+        deletion_event = self.env["usl.audit.event"].sudo().search(
+            [
+                ("actor_id", "=", self.valentin.id),
+                ("action_key", "=", "rpc:stock.landed.cost.unlink"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(deletion_event)
+
     def test_roger_accounting_is_read_only_in_backend(self):
         invoice = self._draft_invoice(self.env.user)
         self.assertEqual(invoice.with_user(self.roger).read(["name"])[0]["name"], invoice.name)
