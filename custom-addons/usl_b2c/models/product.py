@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import FULFILMENT_MODES
 
@@ -87,6 +87,18 @@ class ProductTemplate(models.Model):
                     self.env._("B2C product classification fields may not be empty."),
                 )
 
+    def action_usl_unpack_supplier_pack(self):
+        self.ensure_one()
+        variants = self.with_context(active_test=True).product_variant_ids
+        if len(variants) != 1:
+            raise UserError(
+                self.env._(
+                    "Select the exact supplier-pack variant to unpack when a "
+                    "purchasing product has more than one variant."
+                ),
+            )
+        return variants.action_usl_unpack_supplier_pack()
+
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
@@ -97,6 +109,10 @@ class ProductProduct(models.Model):
 
     def action_usl_unpack_supplier_pack(self):
         self.ensure_one()
+        if not self.env.user.has_group("usl_b2c.group_b2c_pack_unpacker"):
+            raise AccessError(
+                self.env._("You are not authorized to unpack supplier packs."),
+            )
         if self.b2c_inventory_role != "supplier_pack":
             raise UserError(self.env._("Only a configured supplier pack can be unpacked."))
         company = self.company_id or self.env.company

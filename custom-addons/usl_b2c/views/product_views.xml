@@ -5,6 +5,19 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="b2c_inventory_role" invisible="1"/>
+                <button name="action_usl_unpack_supplier_pack"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-dropbox"
+                        invisible="b2c_inventory_role != 'supplier_pack'"
+                        groups="usl_b2c.group_b2c_pack_unpacker">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Unpack supplier pack</span>
+                    </div>
+                </button>
+            </xpath>
             <xpath expr="//page[@name='general_information']" position="after">
                 <page name="b2c_operations" string="B2C Operations" groups="usl_b2c.group_b2c_reader">
                     <group>
@@ -17,7 +30,7 @@
                         The source has no stock moves or quants. Physical opening stock remains a blocking, not-evidenced release item until an approved dated count is entered through a native inventory adjustment.
                     </div>
                     <div class="alert alert-info" role="status" invisible="b2c_inventory_role != 'supplier_pack'">
-                        This is a purchasing pack, not a saleable unit. Receive it as purchased, then open the exact variant and use <strong>Unpack supplier pack</strong> to create its individual inventory units.
+                        This is a purchasing pack, not a saleable unit. Receive it as purchased, then use <strong>Unpack supplier pack</strong> above to create its individual inventory units.
                     </div>
                     <div class="alert alert-warning" role="status" invisible="b2c_inventory_role != 'pending_allocation'">
                         This is an internal holding identity for units whose exact colour is not yet evidenced. Do not sell it. Allocate only from a reviewed physical count; never infer current stock from gross purchases.
@@ -51,9 +64,12 @@
                         type="object"
                         class="oe_stat_button"
                         icon="fa-dropbox"
-                        string="Unpack supplier pack"
                         invisible="b2c_inventory_role != 'supplier_pack'"
-                        groups="usl_b2c.group_b2c_pack_unpacker"/>
+                        groups="usl_b2c.group_b2c_pack_unpacker">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Unpack supplier pack</span>
+                    </div>
+                </button>
             </xpath>
         </field>
     </record>

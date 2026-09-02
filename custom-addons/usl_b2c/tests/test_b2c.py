@@ -55,6 +55,11 @@ class TestB2cFoundation(TransactionCase):
             login="b2c_manager",
             groups="usl_b2c.group_b2c_manager",
         )
+        cls.pack_unpacker = new_test_user(
+            cls.env,
+            login="b2c_pack_unpacker",
+            groups="usl_b2c.group_b2c_pack_unpacker",
+        )
         cls.unauthorized = new_test_user(
             cls.env,
             login="b2c_unauthorized",
@@ -270,11 +275,17 @@ class TestB2cFoundation(TransactionCase):
                 ],
             },
         )
-        action = pack.action_usl_unpack_supplier_pack()
+        action = pack.with_user(self.pack_unpacker).action_usl_unpack_supplier_pack()
         self.assertEqual(action["res_model"], "mrp.unbuild")
         self.assertEqual(action["context"]["default_product_id"], pack.id)
         self.assertEqual(action["context"]["default_bom_id"], bom.id)
         self.assertEqual(bom.bom_line_ids.product_qty, 2)
+        template_action = pack.product_tmpl_id.with_user(
+            self.pack_unpacker,
+        ).action_usl_unpack_supplier_pack()
+        self.assertEqual(template_action["context"], action["context"])
+        with self.assertRaises(AccessError):
+            pack.with_user(self.unauthorized).action_usl_unpack_supplier_pack()
 
         location = self.env["stock.warehouse"].search(
             [("company_id", "=", self.company.id)],
@@ -334,6 +345,53 @@ class TestB2cFoundation(TransactionCase):
             ),
             (("colour", "Blue"), ("package", "One")),
         )
+        self.assertEqual(
+            migration["MASTER_UNIT_CODES"],
+            {
+                "PADLOCK_MASTER_9120EUR_BLACK": "Black",
+                "PADLOCK_MASTER_9120EUR_BLUE": "Blue",
+                "PADLOCK_MASTER_9120EUR_GREEN": "Green",
+                "PADLOCK_MASTER_9120EUR_PINK": "Pink",
+                "PADLOCK_MASTER_9120EUR_PURPLE": "Purple",
+            },
+        )
+        self.assertEqual(
+            migration["LEGACY_UNALLOCATED_CODES"],
+            {"PADLOCK_QD40_UNALLOCATED_2026-05"},
+        )
+
+    def test_catalog_variant_matrix_extends_but_never_rewrites(self):
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.1.0"
+            / "catalog_normalization.py",
+        )
+        normalizer = migration["CatalogNormalizer"](self.env, "apply")
+        colour = normalizer._attribute("colour")
+        black = normalizer._attribute_value(colour, "Black")
+        blue = normalizer._attribute_value(colour, "Blue")
+        template = self.env["product.template"].create(
+            {
+                "name": "Synthetic expandable variant family",
+                "attribute_line_ids": [
+                    Command.create(
+                        {
+                            "attribute_id": colour.id,
+                            "value_ids": [Command.set([black.id, blue.id])],
+                        },
+                    ),
+                ],
+            },
+        )
+        variants = normalizer._ensure_variant_matrix(
+            template,
+            [(('colour', value),) for value in ("Black", "Blue", "Purple")],
+        )
+        self.assertEqual(len(variants), 3)
+        self.assertEqual(template.product_variant_count, 3)
+        with self.assertRaises(migration["CatalogNormalizationError"]):
+            normalizer._ensure_variant_matrix(template, [(('colour', "Black"),)])
 
     def test_synthetic_lot_transfer_and_draft_landed_cost(self):
         category = self.env.ref("product.product_category_goods").copy(

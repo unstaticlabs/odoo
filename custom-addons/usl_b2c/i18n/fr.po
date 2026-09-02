@@ -2902,19 +2902,21 @@ msgstr "Le SKU source identifie une variante de manière unique"
 
 #. module: usl_b2c
 #: model:res.groups,name:usl_b2c.group_b2c_pack_unpacker
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.product_product_form_b2c_unpack
 msgid "Unpack supplier packs"
 msgstr "Déconditionner les lots fournisseur"
 
 #. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.product_product_form_b2c_unpack
 msgid "Unpack supplier pack"
 msgstr "Déconditionner le lot fournisseur"
 
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
-msgid "This is a purchasing pack, not a saleable unit. Receive it as purchased, then open the exact variant and use Unpack supplier pack to create its individual inventory units."
-msgstr "Il s’agit d’un lot d’achat, et non d’une unité vendable. Réceptionnez-le tel qu’acheté, puis ouvrez la variante exacte et utilisez Déconditionner le lot fournisseur pour créer les unités individuelles en stock."
+msgid "This is a purchasing pack, not a saleable unit. Receive it as purchased, then use Unpack supplier pack above to create its individual inventory units."
+msgstr "Il s’agit d’un lot d’achat, et non d’une unité vendable. Réceptionnez-le tel qu’acheté, puis utilisez le bouton Déconditionner le lot fournisseur ci-dessus pour créer les unités individuelles en stock."
 
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c

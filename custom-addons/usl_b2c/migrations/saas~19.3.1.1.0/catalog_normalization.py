@@ -94,10 +94,14 @@ MASTER_PACK_CODES = {
 MASTER_UNIT_CODES = {
     "PADLOCK_MASTER_9120EUR_BLACK": "Black",
     "PADLOCK_MASTER_9120EUR_BLUE": "Blue",
+    "PADLOCK_MASTER_9120EUR_GREEN": "Green",
     "PADLOCK_MASTER_9120EUR_PINK": "Pink",
+    "PADLOCK_MASTER_9120EUR_PURPLE": "Purple",
 }
 PENDING_ALLOCATION_CODES = {
     "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+}
+LEGACY_UNALLOCATED_CODES = {
     "PADLOCK_QD40_UNALLOCATED_2026-05",
 }
 MASTER_PACK_CONTENTS = {
@@ -436,6 +440,7 @@ class CatalogNormalizer:
             for attribute_name, value_name in combination:
                 by_attribute[attribute_name].add(value_name)
         desired_lines = {}
+        desired_values = {}
         lines = []
         for attribute_name in sorted(by_attribute):
             attribute = self._attribute(attribute_name)
@@ -446,6 +451,7 @@ class CatalogNormalizer:
             desired_lines[canonical_attribute_name(attribute.name)] = {
                 normalized_text(value.name) for value in values
             }
+            desired_values[canonical_attribute_name(attribute.name)] = values
             lines.append(
                 Command.create(
                     {
@@ -465,10 +471,24 @@ class CatalogNormalizer:
                 normalized_text(value.name) for value in line.value_ids
             }
         if current_lines and current_lines != desired_lines:
-            raise CatalogNormalizationError(
-                f"Template {template.display_name!r} has a different existing "
-                "variant matrix; the one-off normalizer will not rewrite it.",
+            can_extend = (
+                current_lines.keys() == desired_lines.keys()
+                and all(current_lines[key] <= desired_lines[key] for key in current_lines)
+                and any(current_lines[key] < desired_lines[key] for key in current_lines)
             )
+            if not can_extend:
+                raise CatalogNormalizationError(
+                    f"Template {template.display_name!r} has a different existing "
+                    "variant matrix; the one-off normalizer will not rewrite it.",
+                )
+            if self.mode == "apply":
+                for line in template.attribute_line_ids:
+                    key = canonical_attribute_name(line.attribute_id.name)
+                    line.write(
+                        {"value_ids": [Command.set([value.id for value in desired_values[key]])]},
+                    )
+                template._create_variant_ids()
+                self.changes["variant_matrices_extended"] += 1
         if not current_lines:
             template.write({"attribute_line_ids": lines})
             template._create_variant_ids()
@@ -964,6 +984,10 @@ class CatalogNormalizer:
             code: self._unique_product_by_code(code)
             for code in PENDING_ALLOCATION_CODES
         }
+        legacy_unallocated = {
+            code: self._unique_product_by_code(code)
+            for code in LEGACY_UNALLOCATED_CODES
+        }
         if self.mode == "apply":
             pack_records = sum(pack_products.values(), self.env["product.product"])
             pack_records.product_tmpl_id.write(
@@ -997,6 +1021,18 @@ class CatalogNormalizer:
                         "b2c_opening_stock_state": "not_evidenced",
                     },
                 )
+            for product in legacy_unallocated.values():
+                product.product_tmpl_id.write(
+                    {
+                        "active": False,
+                        "sale_ok": False,
+                        "purchase_ok": False,
+                        "b2c_catalog_classification": "legacy",
+                        "b2c_inventory_role": "pending_allocation",
+                        "b2c_opening_stock_state": "not_evidenced",
+                    },
+                )
+                self.changes["resolved_unallocated_templates_archived"] += 1
         all_products = {**pack_products, **unit_products, **pending}
         for pack_code, (component_code, quantity) in MASTER_PACK_CONTENTS.items():
             self._ensure_unpack_bom(
@@ -1042,26 +1078,52 @@ class CatalogNormalizer:
                 found[code] = products
             else:
                 missing.append(code)
-        if not missing:
+        if found and len(sum(found.values(), self.env["product.product"]).product_tmpl_id) == 1:
             templates = sum(found.values(), self.env["product.product"]).product_tmpl_id
-            if len(templates) != 1:
+            if "PADLOCK_MASTER_9120EUR_BLACK" not in found:
                 raise CatalogNormalizationError(
-                    "Master Lock physical-unit variants span multiple active templates.",
+                    "Master Lock physical-unit family is missing its black source identity.",
                 )
-            if self.mode == "apply":
-                variants = self._family_variants("medusa", "master padlock 20mm", lines)
-                by_colour = {
-                    normalized_text(colour): found[code]
-                    for code, colour in MASTER_UNIT_CODES.items()
-                }
-                for combination, item in variants.items():
-                    product = by_colour.get(normalized_text(combination[0][1]))
-                    if not product or item["sku"] != product.default_code:
-                        raise CatalogNormalizationError(
-                            f"Master Lock unit identity mismatch for {combination!r}",
-                        )
-                    self._verify_alias_and_lines(product, item["lines"])
-            return templates, found
+            if self.mode == "dry-run":
+                if missing:
+                    self.changes["master_unit_variants_planned"] += len(missing)
+                return templates, found
+            combinations = [(("colour", colour),) for colour in MASTER_UNIT_CODES.values()]
+            matrix = self._ensure_variant_matrix(templates, combinations)
+            result = {}
+            for code, colour in MASTER_UNIT_CODES.items():
+                product = matrix[(("colour", normalized_text(colour)),)]
+                if product.default_code and product.default_code != code:
+                    raise CatalogNormalizationError(
+                        f"Master Lock {colour} variant already has internal reference "
+                        f"{product.default_code!r} instead of {code!r}.",
+                    )
+                product.default_code = code
+                result[code] = product
+            variants = self._family_variants("medusa", "master padlock 20mm", lines)
+            by_colour = {
+                normalized_text(colour): result[code]
+                for code, colour in MASTER_UNIT_CODES.items()
+            }
+            for combination, item in variants.items():
+                if len(combination) < 1 or combination[0][0] != "colour":
+                    raise CatalogNormalizationError(
+                        f"Unexpected Master Lock variation {combination!r}.",
+                    )
+                product = by_colour.get(normalized_text(combination[0][1]))
+                if not product or item["sku"] != product.default_code:
+                    raise CatalogNormalizationError(
+                        f"Master Lock unit identity mismatch for {combination!r}",
+                    )
+                self._verify_alias_and_lines(product, item["lines"])
+            if missing:
+                self.changes["master_unit_variants_created"] += len(missing)
+            return templates, result
+        if found and set(found) != {"PADLOCK_MASTER_9120EUR_BLACK"}:
+            raise CatalogNormalizationError(
+                f"Master Lock physical-unit variants span multiple templates: "
+                f"found={sorted(found)}, missing={sorted(missing)}",
+            )
         if set(found) != {"PADLOCK_MASTER_9120EUR_BLACK"}:
             raise CatalogNormalizationError(
                 f"Master Lock physical-unit family is partially materialized: "

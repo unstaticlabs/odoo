@@ -48,15 +48,23 @@ known pack has one exact native unpacking recipe:
 - `QBLKNOP` produces four black individual locks;
 - `QCOLNOP` produces four internal units awaiting colour allocation.
 
-The product-variant form exposes **Unpack supplier pack**, which opens Odoo's
+The supplier-pack product form exposes **Unpack supplier pack**, which opens Odoo's
 native Unbuild Order with the exact pack recipe. It creates inventory movements
 only when an authorized operator validates the order; the migration itself
 creates no quantities or movements.
 
-The two old “unallocated” records remain as historical identities, but their
-operational role is now explicit: they are internal, non-saleable,
-non-purchasable holding products for units whose colours are not yet evidenced.
-They are not variants and do not appear in the customer catalog.
+The newer provider inventory export identifies all eight Quandun colours and
+five Master Lock colours (Black, Blue, Green, Pink and Purple). It is accepted
+as product-identity evidence, but not as an approved physical opening count.
+The old Quandun “colours unallocated” template is therefore archived as a
+historical source identity; it is not deleted and its cost history is preserved.
+
+The Master Lock assorted-pack holding product remains active, internal,
+non-saleable and non-purchasable. The source proves that `QCOLNOP` contains four
+locks, but does not prove their colour mix. Its exact native unpacking recipe
+therefore produces four pending-allocation units. Those units must be allocated
+to the five real colour variants from a reviewed count. Removing this remaining
+holding identity without that evidence would invent inventory composition.
 
 ## Opening inventory and future configuration
 
