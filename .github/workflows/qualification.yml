@@ -58,6 +58,7 @@ jobs:
           python3 -m unittest \
             scripts.tests.test_cohort \
             scripts.tests.test_component_build \
+            scripts.tests.test_control_manifest \
             scripts.tests.test_distribution_release \
             scripts.tests.test_module_release \
             scripts.tests.test_odoo_mcp_release \
