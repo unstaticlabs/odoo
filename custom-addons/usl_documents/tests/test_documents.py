@@ -2302,6 +2302,46 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(document.tag_ids, child)
 
+    def test_tag_catalog_sync_uses_one_consistent_remote_snapshot(self):
+        payloads = [
+            {
+                "id": 307,
+                "name": "Parent",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": None,
+            },
+            {
+                "id": 308,
+                "name": "Child",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": 307,
+            },
+        ]
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        with patch.object(
+            client,
+            "list_metadata",
+            side_effect=[payloads, payloads[:1]],
+        ) as list_metadata:
+            count = self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+
+        self.assertEqual(count, 2)
+        self.assertEqual(list_metadata.call_count, 1)
+        parent = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 307)],
+        )
+        child = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 308)],
+        )
+        self.assertTrue(parent.active)
+        self.assertTrue(child.active)
+        self.assertEqual(child.parent_id, parent)
+
     def test_catalog_sync_reactivates_cached_identity_after_archive_reset(self):
         tag = self.env["usl.paperless.tag"].sudo().with_context(
             usl_documents_cache_write=True,
