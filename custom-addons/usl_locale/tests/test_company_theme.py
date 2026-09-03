@@ -165,7 +165,9 @@ class TestCompanyTheme(HttpCase):
         native_color = company_arch.xpath("//field[@name='color']")
         self.assertEqual(len(native_color), 1)
         self.assertEqual(native_color[0].get("invisible"), "1")
-        self.assertTrue(company_arch.xpath("//field[@name='usl_ui_theme_color']"))
+        company_color = company_arch.xpath("//field[@name='usl_ui_theme_color']")
+        self.assertEqual(len(company_color), 1)
+        self.assertEqual(company_color[0].get("widget"), "usl_company_color")
 
         user_arch = self.env.ref("base.view_users_form")._get_combined_arch()
         company_tags = user_arch.xpath("//field[@name='company_ids']")

@@ -45,13 +45,13 @@ msgstr "Supprime la couleur personnalisée pour hériter de la société parente
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
-msgid "Inherited from parent company"
+msgid "Inherited from parent"
 msgstr "Héritée de la société parente"
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
-msgid "Assigned automatically from the approved palette"
-msgstr "Attribuée automatiquement depuis la palette approuvée"
+msgid "Automatic from approved palette"
+msgstr "Automatique depuis la palette approuvée"
 
 #. module: usl_locale
 #. odoo-javascript
