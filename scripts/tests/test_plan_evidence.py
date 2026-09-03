@@ -59,6 +59,33 @@ class PlanEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(PlanEvidenceError, "fields"):
             verify(copy.deepcopy(plan()), self.public)
 
+    def test_attestation_requires_passing_gates(self):
+        with self.assertRaisesRegex(PlanEvidenceError, "must pass"):
+            sign(
+                plan(),
+                self.private,
+                snapshot="d" * 64,
+                generation="g-qualified",
+                health={"status": "failed"},
+                smoke={"status": "passed"},
+            )
+
+    def test_attestation_rejects_unsafe_private_key_permissions(self):
+        self.private.chmod(0o644)
+        with self.assertRaisesRegex(PlanEvidenceError, "permissions"):
+            self.evidence()
+
+    def test_attestation_rejects_invalid_snapshot_identity(self):
+        with self.assertRaisesRegex(PlanEvidenceError, "snapshot"):
+            sign(
+                plan(),
+                self.private,
+                snapshot="not-a-snapshot",
+                generation="g-qualified",
+                health={"status": "passed"},
+                smoke={"status": "passed"},
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
