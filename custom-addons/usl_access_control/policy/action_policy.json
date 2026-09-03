@@ -25762,6 +25762,110 @@
     },
     {
       "action_keys": [
+        "rpc:b2c.partner.identity.action_archive",
+        "rpc:b2c.partner.identity.action_unarchive",
+        "rpc:b2c.partner.identity.check_field_access",
+        "rpc:b2c.partner.identity.copy",
+        "rpc:b2c.partner.identity.copy_data",
+        "rpc:b2c.partner.identity.copy_translations",
+        "rpc:b2c.partner.identity.default_get",
+        "rpc:b2c.partner.identity.export_data",
+        "rpc:b2c.partner.identity.fields_get",
+        "rpc:b2c.partner.identity.formatted_read_group",
+        "rpc:b2c.partner.identity.formatted_read_grouping_sets",
+        "rpc:b2c.partner.identity.get_base_url",
+        "rpc:b2c.partner.identity.get_empty_list_help",
+        "rpc:b2c.partner.identity.get_external_id",
+        "rpc:b2c.partner.identity.get_field_translations",
+        "rpc:b2c.partner.identity.get_formview_action",
+        "rpc:b2c.partner.identity.get_formview_id",
+        "rpc:b2c.partner.identity.get_import_templates",
+        "rpc:b2c.partner.identity.get_metadata",
+        "rpc:b2c.partner.identity.get_property_definition",
+        "rpc:b2c.partner.identity.get_view",
+        "rpc:b2c.partner.identity.get_views",
+        "rpc:b2c.partner.identity.has_access",
+        "rpc:b2c.partner.identity.has_field_access",
+        "rpc:b2c.partner.identity.hierarchy_read",
+        "rpc:b2c.partner.identity.load",
+        "rpc:b2c.partner.identity.name_create",
+        "rpc:b2c.partner.identity.name_search",
+        "rpc:b2c.partner.identity.onchange",
+        "rpc:b2c.partner.identity.read",
+        "rpc:b2c.partner.identity.read_progress_bar",
+        "rpc:b2c.partner.identity.search",
+        "rpc:b2c.partner.identity.search_count",
+        "rpc:b2c.partner.identity.search_panel_select_multi_range",
+        "rpc:b2c.partner.identity.search_panel_select_range",
+        "rpc:b2c.partner.identity.search_read",
+        "rpc:b2c.partner.identity.update_field_translations",
+        "rpc:b2c.partner.identity.view_header_get",
+        "rpc:b2c.partner.identity.web_name_search",
+        "rpc:b2c.partner.identity.web_override_translations",
+        "rpc:b2c.partner.identity.web_read",
+        "rpc:b2c.partner.identity.web_read_group",
+        "rpc:b2c.partner.identity.web_resequence",
+        "rpc:b2c.partner.identity.web_save",
+        "rpc:b2c.partner.identity.web_save_multi",
+        "rpc:b2c.partner.identity.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.commerce_and_fulfilment.native_b2c_identity",
+      "rationale": "Provider contact identities are immutable provenance. Their public runtime surface contains only metadata and read helpers; private create, write, and unlink methods are absent from RPC.",
+      "reviewed_digests": {
+        "rpc:b2c.partner.identity.action_archive": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+        "rpc:b2c.partner.identity.action_unarchive": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+        "rpc:b2c.partner.identity.check_field_access": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+        "rpc:b2c.partner.identity.copy": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+        "rpc:b2c.partner.identity.copy_data": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+        "rpc:b2c.partner.identity.copy_translations": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+        "rpc:b2c.partner.identity.default_get": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+        "rpc:b2c.partner.identity.export_data": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+        "rpc:b2c.partner.identity.fields_get": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+        "rpc:b2c.partner.identity.formatted_read_group": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+        "rpc:b2c.partner.identity.formatted_read_grouping_sets": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+        "rpc:b2c.partner.identity.get_base_url": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+        "rpc:b2c.partner.identity.get_empty_list_help": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+        "rpc:b2c.partner.identity.get_external_id": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+        "rpc:b2c.partner.identity.get_field_translations": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+        "rpc:b2c.partner.identity.get_formview_action": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+        "rpc:b2c.partner.identity.get_formview_id": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+        "rpc:b2c.partner.identity.get_import_templates": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+        "rpc:b2c.partner.identity.get_metadata": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+        "rpc:b2c.partner.identity.get_property_definition": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+        "rpc:b2c.partner.identity.get_view": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+        "rpc:b2c.partner.identity.get_views": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+        "rpc:b2c.partner.identity.has_access": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+        "rpc:b2c.partner.identity.has_field_access": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+        "rpc:b2c.partner.identity.hierarchy_read": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+        "rpc:b2c.partner.identity.load": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+        "rpc:b2c.partner.identity.name_create": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+        "rpc:b2c.partner.identity.name_search": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+        "rpc:b2c.partner.identity.onchange": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+        "rpc:b2c.partner.identity.read": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+        "rpc:b2c.partner.identity.read_progress_bar": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+        "rpc:b2c.partner.identity.search": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+        "rpc:b2c.partner.identity.search_count": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+        "rpc:b2c.partner.identity.search_panel_select_multi_range": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+        "rpc:b2c.partner.identity.search_panel_select_range": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+        "rpc:b2c.partner.identity.search_read": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+        "rpc:b2c.partner.identity.update_field_translations": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+        "rpc:b2c.partner.identity.view_header_get": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+        "rpc:b2c.partner.identity.web_name_search": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+        "rpc:b2c.partner.identity.web_override_translations": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+        "rpc:b2c.partner.identity.web_read": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+        "rpc:b2c.partner.identity.web_read_group": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+        "rpc:b2c.partner.identity.web_resequence": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+        "rpc:b2c.partner.identity.web_save": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+        "rpc:b2c.partner.identity.web_save_multi": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+        "rpc:b2c.partner.identity.web_search_read": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018"
+      }
+    },
+    {
+      "action_keys": [
         "client:sign_oca:oca-addons/sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js:_onClickSign:route:1",
         "route:http:ANY:/mail/font_to_img/<icon>",
         "route:http:ANY:/mail/font_to_img/<icon>/<color>",
@@ -33620,6 +33724,22 @@
         "ui:usl_document_templates.action_document_templates": "2735f6f893fae12516ce5dd3dc4e30c82cf7014fa81615de7593282070aad991",
         "ui:usl_document_templates.action_report_document_letter": "ec31bb66cd7dccb6cc6db889afc57a24bab2bbc934e52a9d6a2bb5793512939c",
         "ui:usl_document_templates.action_report_output_inventory": "016e960701b213e40c3b46aac6b846878747cb74cce93d5f1097c171a24f7b2f"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions",
+        "rpc:b2c.partner.identity.mail_get_partner_fields"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
+      "domain": "documents_and_communications",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.documents_and_communications.native_b2c_identity",
+      "rationale": "Mail metadata helpers expose no customer communication or mutation path on immutable provider contact identities.",
+      "reviewed_digests": {
+        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+        "rpc:b2c.partner.identity.mail_get_partner_fields": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e"
       }
     },
     {
@@ -145774,6 +145894,330 @@
     },
     {
       "action_keys": [
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._create_invoices:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._historical_communication_allowed:sudo:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_confirmation_mail:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_notification_mail:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_payment_succeeded_for_order_mail:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.unlink:orm_unlink:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.unlink:orm_unlink:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.commerce_and_fulfilment.native_b2c_history_sinks",
+      "overrides": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.partner.identity.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.partner.identity.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.partner.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._create_invoices:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._historical_communication_allowed:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_confirmation_mail:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_notification_mail:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_payment_succeeded_for_order_mail:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.unlink"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.message_post"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.unlink"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.write"
+        }
+      },
+      "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
+      "reviewed_digests": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.create:orm_create:1": "83df3bd5c9059b9c6c20e559f9c309b4a8a2a0cdb325b61273fd2b81a7b6034d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.write:orm_write:1": "2e51f4876d7bef03ce773fc6d08524fe43129f739747a7e7375a1d786dde8e60",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._create_invoices:orm_write:1": "c80f44bb2c52e6f1a89db440b10efc53dda965fa090f6f1452fc9ed23767ce29",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._historical_communication_allowed:sudo:1": "febf30c3786151f41a7daabbe381e54c2d448b78244512c48e61808cac44c626",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_confirmation_mail:orm_write:1": "d783271db3644351c9e70ea5515290c194c5492f26f808e684000efd029e877b",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_order_notification_mail:orm_write:1": "90aae0abeb6bba712bc0c511f6ddfa311e4423e9e710ca583e45c79d898b4f07",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_payment_succeeded_for_order_mail:orm_write:1": "2488aa924e4e97f358c11c9a00dcb15554e4283271f0e87c23daa2a5333660f9",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.unlink:orm_unlink:1": "7aa92c9482b5ece31de86d478e8a55d0114248f1148b06ff03e313de282ae2b1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1": "d7097192d953c348ed424040e438c5a9388975987d3a0e4827e8c22da2c49afe",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2": "f9066f4646605ad7660bf3deb2216db50f522f688b80bd312ddaaadee0887907",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1": "97f6bbeff4c9c5510221f8ec8174803d86f784c18b36d8de6cce5e1c1da45f2d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.unlink:orm_unlink:1": "ac30811a922edfc0f65fcdbd9dcc20185891b9441d422d11a93ad4fc82ef86d7",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1": "995dd45ab37998e01f342ddaaddbe2262132d7e9ce6e471b5b9bde7853bd8d16",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2": "cea2041c3f3d8142b497f918811c446a7c61d23a0dd54318f4e34fd74c4e32e9",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d"
+      }
+    },
+    {
+      "action_keys": [
         "sink:delivery:addons/delivery/models/delivery_carrier.py:delivery.carrier._get_price_available:sudo:1",
         "sink:delivery:addons/delivery/models/delivery_carrier.py:delivery.carrier._get_price_available:sudo:2",
         "sink:delivery:addons/delivery/models/delivery_carrier.py:delivery.carrier._match:orm_write:1",
@@ -186083,6 +186527,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "3af974567c95528b4feaad54f75fa69693c61e00e7b8cd0f89646e5cbf59fa81",
+  "qualified_policy_digest": "21926cd11292c57e1f194e0b8c8680dc7ea363b25485ace604ba7ee8f67ef17e",
   "schema": "usl-action-risk-policy-v1"
 }

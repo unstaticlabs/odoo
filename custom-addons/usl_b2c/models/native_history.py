@@ -90,17 +90,20 @@ class B2cPartnerIdentity(models.Model):
         "A provider contact identity must be unique per company.",
     )
 
+    @api.private
     @api.model_create_multi
     def create(self, values_list):
         if not self.env.su:
             raise AccessError(self.env._("Provider identities are maintained by the audited B2C importer."))
         return super().create(values_list)
 
+    @api.private
     def write(self, values):
         if not self.env.su:
             raise AccessError(self.env._("Provider identities are immutable."))
         return super().write(values)
 
+    @api.private
     def unlink(self):
         raise AccessError(self.env._("Provider identities are immutable."))
 
