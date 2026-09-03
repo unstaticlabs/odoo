@@ -304,6 +304,13 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         allocation = self._allocation(payout, bank_line)
         session.action_cancel()
 
+        irreversible = self.env.ref(
+            "usl_access_control.group_irreversible_actions",
+            raise_if_not_found=False,
+        )
+        if irreversible:
+            self.manager.group_ids += irreversible
+
         session.with_user(self.manager).unlink()
 
         self.assertFalse(session.exists())

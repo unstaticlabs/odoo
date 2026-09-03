@@ -91,11 +91,13 @@ class TestCompanyTheme(HttpCase):
 
         # Odoo freezes company hierarchies after creation. Simulate a controlled
         # reconstruction changing the parent to verify that the color stays dynamic.
+        branch.flush_recordset(["parent_id"])
         self.env.cr.execute(
             "UPDATE res_company SET parent_id = %s WHERE id = %s",
             (other_parent.id, branch.id),
         )
-        branch.invalidate_recordset(["parent_id", "usl_resolved_ui_theme_color"])
+        self.env.invalidate_all()
+        branch = self.env["res.company"].browse(branch.id)
         self.assertEqual(branch._get_usl_ui_theme_color(), "#B07A2A")
 
     def test_native_company_color_does_not_change_interface_color(self):

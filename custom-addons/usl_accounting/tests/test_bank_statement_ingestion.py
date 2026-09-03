@@ -191,6 +191,26 @@ class TestBankStatementIngestion(TransactionCase):
             banking_view.sudo().with_context(
                 usl_documents_archive_view_sync=True,
             ).write({"tag_ids": [Command.set(banking_tags.ids)]})
+        statement_tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .search([("name", "=ilike", "Bank statement")], limit=1)
+        )
+        if not statement_tag:
+            statement_tag = (
+                self.env["usl.paperless.tag"]
+                .sudo()
+                .with_context(usl_documents_cache_write=True)
+                .create(
+                    {
+                        "name": "Bank statement",
+                        "paperless_id": 975_000_000 + evidence.id,
+                        "matching_algorithm": "6",
+                        "active": True,
+                    },
+                )
+            )
+        required_tags = banking_tags | statement_tag
 
         Link = self.env["usl.document.link"].sudo()
         link = Link.search([
@@ -211,7 +231,7 @@ class TestBankStatementIngestion(TransactionCase):
                 "availability_state": "available",
                 "permission_sync_state": "synchronized",
                 "checksum": evidence.sha256,
-                "tag_ids": [Command.set(banking_tags.ids)],
+                "tag_ids": [Command.set(required_tags.ids)],
             })
         else:
             document.version_ids.sudo().write({"is_current": False})
@@ -220,7 +240,7 @@ class TestBankStatementIngestion(TransactionCase):
             ).write({
                 "checksum": evidence.sha256,
                 "permission_sync_state": "synchronized",
-                "tag_ids": [Command.set(banking_tags.ids)],
+                "tag_ids": [Command.set(required_tags.ids)],
             })
             document.sudo().write({"review_state": "reviewed"})
 
