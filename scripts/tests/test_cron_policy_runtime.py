@@ -8,6 +8,7 @@ from operations.cron_policy import (
     CronPolicyError,
     desired_active,
     load,
+    parse,
     render_odoo_apply_script,
     validate_runtime,
 )
@@ -29,6 +30,9 @@ def policy():
 
 
 class CronPolicyRuntimeTests(unittest.TestCase):
+    def test_parse_accepts_policy_text_from_remote_transport(self):
+        self.assertEqual(parse(json.dumps(policy())), policy())
+
     def test_repository_production_policy_accepts_declared_target(self):
         target = json.loads((ROOT / "operations/targets/production.json").read_text())
         declared = target["cron_policy"]

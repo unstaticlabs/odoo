@@ -23,7 +23,7 @@ from operations.control_manifest import (
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
     CronPolicyError,
-    load as load_cron_policy,
+    parse as parse_cron_policy,
     render_odoo_apply_script,
     validate_runtime as validate_cron_runtime,
 )
@@ -247,10 +247,19 @@ def _storage_status(target, runner, runtime: dict) -> dict:
     }
 
 
-def _write_adopt_generation(target, runner, identity: dict, generation: str, volumes: dict[str, str], network: str, snapshot: str) -> str:
+def _write_adopt_generation(
+    target,
+    runner,
+    identity: dict,
+    generation: str,
+    volumes: dict[str, str],
+    network: str,
+    snapshot: str,
+    source_release_manifest: str,
+) -> str:
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     runner.run(["install", "-d", "-m", "0700", "--", generation_root])
-    release_raw = runner.run(["cat", target.value["release_manifest"]]).stdout
+    release_raw = runner.run(["cat", source_release_manifest]).stdout
     try:
         release = json.loads(release_raw)
     except json.JSONDecodeError as error:
@@ -329,6 +338,10 @@ def storage_command(arguments: argparse.Namespace) -> int:
     if running:
         raise RuntimeError(f"storage adoption requires stopped cohort services: {running}")
     identity = runtime["compose"]
+    source_release_manifest = (
+        (runtime.get("active_state") or {}).get("release_manifest")
+        or target.value["release_manifest"]
+    )
     created = {}
     releases = {}
     networks = {}
@@ -354,7 +367,14 @@ def storage_command(arguments: argparse.Namespace) -> int:
             if verified.stdout.strip():
                 raise RuntimeError(f"storage adoption copy differs: {generation}/{role}")
         releases[generation] = _write_adopt_generation(
-            target, runner, identity, generation, volumes, network, arguments.snapshot,
+            target,
+            runner,
+            identity,
+            generation,
+            volumes,
+            network,
+            arguments.snapshot,
+            source_release_manifest,
         )
     previous = {
         "generation": arguments.rollback_generation,
@@ -1263,7 +1283,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         cron_policy = (
             None
             if cron_target["mode"] == "unmanaged"
-            else load_cron_policy(Path(cron_target["path"]))
+            else parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
         )
         cron_status = validate_cron_runtime(
             cron_policy,
@@ -1900,7 +1920,7 @@ def _apply_generation_cron_policy(target, runner, release, network, volumes) -> 
     mode = cron_target["mode"]
     if mode == "unmanaged":
         return {"schema": "usl-cron-policy-application/v1", "status": "unmanaged"}
-    policy = load_cron_policy(Path(cron_target["path"]))
+    policy = parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
     program = render_odoo_apply_script(policy, mode=mode, gates=cron_target["gates"])
     database = target.value["databases"]["odoo"]
     result = runner.run(

@@ -31,6 +31,7 @@ from operations.stack import (
     _notify_release,
     _rollback_after_failure,
     _restore_unlocked,
+    _write_adopt_generation,
     _validate_materialized_release,
     _validate_runtime_release_images,
     generation_volume_names,
@@ -83,6 +84,37 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_adoption_reads_the_recorded_active_release_manifest(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/staging",
+            "compose": {"resource_overlay": None},
+            "ingress": {},
+        })
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps({"schema": "usl-release/v3"}), "",
+        )
+        with mock.patch("operations.stack._write_remote"), mock.patch(
+            "operations.stack._runtime_images", return_value={}
+        ), mock.patch("operations.stack._generation_overlay", return_value="{}"):
+            _write_adopt_generation(
+                target,
+                runner,
+                {"compose_files": ["/compose.yaml"]},
+                "gstorage-active",
+                {},
+                "generation-network",
+                "a" * 64,
+                "/var/lib/usl-odoo/runtime/staging/generations/glegacy/usl-release.json",
+            )
+        self.assertIn(
+            mock.call([
+                "cat",
+                "/var/lib/usl-odoo/runtime/staging/generations/glegacy/usl-release.json",
+            ]),
+            runner.run.call_args_list,
+        )
+
     def test_active_generation_identity_uses_recorded_overlays_after_adoption(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/production",
@@ -309,9 +341,8 @@ class CohortContractTests(unittest.TestCase):
         )
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            policy_path = Path(directory) / "cron-policy.json"
-            policy_path.write_text(json.dumps({
+        policy_path = "/opt/usl/deploy/production.cron-policy.json"
+        policy_raw = json.dumps({
                 "schema": "usl-production-cron-policy-v1",
                 "gates": ["always"],
                 "crons": {
@@ -320,11 +351,11 @@ class CohortContractTests(unittest.TestCase):
                         "reason": "maintenance",
                     },
                 },
-            }), encoding="utf-8")
-            target = mock.Mock(value={
+            })
+        target = mock.Mock(value={
                 "cron_policy": {
                     "mode": "managed",
-                    "path": str(policy_path),
+                    "path": policy_path,
                     "gates": {"always": True},
                 },
                 "databases": {
@@ -335,34 +366,38 @@ class CohortContractTests(unittest.TestCase):
                     },
                 },
                 "secrets": {"env_file": "/run/secrets/operations.env"},
-            })
+        })
 
-            class Runner:
-                command = None
-                input_text = None
+        class Runner:
+            command = None
+            input_text = None
 
-                def run(self, command, *, check=True, input_text=None):
-                    self.command = command
-                    self.input_text = input_text
+            def run(self, command, *, check=True, input_text=None):
+                if command == ["cat", policy_path]:
                     return subprocess.CompletedProcess(
-                        command,
-                        0,
-                        'USL_CRON_POLICY_RESULT={"schema":"usl-cron-policy-application/v1","status":"applied"}\n',
-                        "",
+                        command, 0, policy_raw, "",
                     )
+                self.command = command
+                self.input_text = input_text
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    'USL_CRON_POLICY_RESULT={"schema":"usl-cron-policy-application/v1","status":"applied"}\n',
+                    "",
+                )
 
-            runner = Runner()
-            result = _apply_generation_cron_policy(
-                target,
-                runner,
-                {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "a" * 64}}},
-                "candidate-network",
-                {"odoo_filestore": "candidate-filestore"},
-            )
-            self.assertEqual(result["status"], "applied")
-            self.assertIn("--interactive", runner.command)
-            self.assertIn("odoo", runner.command)
-            self.assertIn("base.autovacuum_job", runner.input_text)
+        runner = Runner()
+        result = _apply_generation_cron_policy(
+            target,
+            runner,
+            {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "a" * 64}}},
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+        )
+        self.assertEqual(result["status"], "applied")
+        self.assertIn("--interactive", runner.command)
+        self.assertIn("odoo", runner.command)
+        self.assertIn("base.autovacuum_job", runner.input_text)
 
     def _sign_secrets(self, root: Path) -> Path:
         for relative in cohort.SIGN_SECRET_FILES:

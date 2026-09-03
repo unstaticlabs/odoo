@@ -34,11 +34,12 @@ class CronPolicyError(ValueError):
     """A cron policy or observed inventory is incomplete or unsafe."""
 
 
-def load(path: Path) -> dict[str, Any]:
+def parse(raw: str) -> dict[str, Any]:
+    """Parse and validate a cron policy obtained from any transport."""
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise CronPolicyError(f"cannot read cron policy: {path}") from error
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise CronPolicyError("cannot parse cron policy") from error
     if not isinstance(value, dict) or set(value) != {"schema", "gates", "crons"}:
         raise CronPolicyError("cron policy fields differ")
     if value.get("schema") != SCHEMA:
@@ -66,6 +67,14 @@ def load(path: Path) -> dict[str, Any]:
         ):
             raise CronPolicyError(f"invalid cron policy entry: {xmlid!r}")
     return value
+
+
+def load(path: Path) -> dict[str, Any]:
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise CronPolicyError(f"cannot read cron policy: {path}") from error
+    return parse(raw)
 
 
 def validate_runtime(
