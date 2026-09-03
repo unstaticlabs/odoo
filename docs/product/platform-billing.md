@@ -21,9 +21,10 @@ currencies, journal entries, attachments and reconciliation.
   commission amounts using the platform currency's rounding.
 - One customer invoice is generated per platform/session. Commission bills are
   grouped per session or per payout.
-- An optional balanced entry compensates platform payables against
-  receivables. The vendor bill is fully reconciled and the customer invoice
-  retains the payout net as its residual.
+- An optional balanced entry per payout compensates platform payables against
+  receivables. Keeping the entries separate preserves each payout's effective
+  bank rate. The vendor bill is fully reconciled and the customer invoice
+  retains the exact payout net as its residual.
 - Posting does not require a bank receipt. Delayed payouts remain open customer
   receivables in native Accounting.
 - Incoming bank transactions settle the remaining receivable through the
@@ -81,6 +82,13 @@ delayed-settlement FX.
 - A company-currency bank receipt that creates a foreign payout values its
   draft invoice, commission bill and compensation at the effective bank rate.
   The bank amount and global currency-rate table remain unchanged.
+- Matching or unmatching a transaction on a certified statement may change
+  reconciliation metadata and counterpart lines. It cannot change the
+  certified source amount, date, account, statement identity or liquidity
+  balance.
+- The maintenance repair for older pooled compensation reverses the former
+  entry and any resulting exchange differences through Odoo's accounting
+  trail. It never deletes posted accounting history.
 - Posting warns when the monthly session has no payout for an active platform.
   An operator may confirm the documented exception.
 - Auto-posting is configurable and disabled by default.

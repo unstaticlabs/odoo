@@ -1053,12 +1053,33 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             bank_amount=40.0,
             payout_amount=80.0,
         )
+        bank_line.statement_id.sudo().with_context(
+            bank_review_internal=True,
+        ).write({"certification_state": "certified"})
+        certified_fingerprint = bank_line._certified_reconciliation_fingerprint()
 
         session.action_reconcile_bank()
 
         self.assertEqual(bank_line.amount, 40.0)
         self.assertEqual(bank_line.foreign_currency_id, foreign_currency)
         self.assertEqual(bank_line.amount_currency, 80.0)
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(session.state, "paid")
+        self.assertEqual(bank_line.statement_id.certification_state, "certified")
+        self.assertEqual(
+            bank_line._certified_reconciliation_fingerprint(),
+            certified_fingerprint,
+        )
+
+        bank_line.unreconcile_bank_line()
+
+        self.assertFalse(bank_line.is_reconciled)
+        self.assertEqual(bank_line.statement_id.certification_state, "certified")
+        self.assertEqual(
+            bank_line._certified_reconciliation_fingerprint(),
+            certified_fingerprint,
+        )
+        session.action_reconcile_bank()
         self.assertTrue(bank_line.is_reconciled)
         self.assertEqual(session.state, "paid")
 
@@ -1149,3 +1170,217 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
         )
         self.assertEqual(current_exchange_moves, previous_exchange_moves)
+
+    def test_certified_foreign_receipts_keep_compensation_per_payout(self):
+        usd = self.env["res.currency"].create(
+            {
+                "name": "PCP",
+                "symbol": "$P",
+                "rounding": 0.01,
+            },
+        )
+        platform = self.platform.copy(
+            {
+                "name": "Pooled foreign platform",
+                "currency_id": usd.id,
+            },
+        )
+        session = self._session(name="Pooled certified receipts — July 2026")
+        first = self._payout(
+            session,
+            platform=platform,
+            reference="POOL-001",
+            amount=1000.0,
+        )
+        second = self._payout(
+            session,
+            platform=platform,
+            reference="POOL-002",
+            amount=1000.0,
+        )
+        first_bank = self._bank_line(700.0, label="Pooled receipt POOL-001")
+        second_bank = self._bank_line(800.0, label="Pooled receipt POOL-002")
+        self._allocation(
+            first,
+            first_bank,
+            bank_amount=700.0,
+            payout_amount=1000.0,
+        )
+        self._allocation(
+            second,
+            second_bank,
+            bank_amount=800.0,
+            payout_amount=1000.0,
+        )
+        (first | second)._workflow_write({"currency_valuation_method": "bank"})
+
+        previous_exchange_moves = set(
+            self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
+        )
+        self._generate_and_post(session)
+
+        self.assertEqual(len(session.customer_invoice_ids), 2)
+        self.assertEqual(len(session.compensation_move_ids), 2)
+        self.assertNotEqual(first.compensation_move_id, second.compensation_move_id)
+        self.assertEqual(
+            first.customer_invoice_id.amount_residual,
+            first.net_platform_amount,
+        )
+        self.assertEqual(
+            second.customer_invoice_id.amount_residual,
+            second.net_platform_amount,
+        )
+        self.assertEqual(
+            set(
+                self.env["account.partial.reconcile"]
+                .search([])
+                .exchange_move_id.ids
+            ),
+            previous_exchange_moves,
+        )
+        bank_lines = first_bank | second_bank
+        bank_lines.statement_id.sudo().with_context(
+            bank_review_internal=True,
+        ).write({"certification_state": "certified"})
+        certified_fingerprints = {
+            bank_line.id: bank_line._certified_reconciliation_fingerprint()
+            for bank_line in bank_lines
+        }
+
+        session.action_reconcile_bank()
+
+        self.assertTrue(all(bank_lines.mapped("is_reconciled")))
+        self.assertTrue(
+            all(
+                invoice.currency_id.is_zero(invoice.amount_residual)
+                for invoice in session.customer_invoice_ids
+            ),
+        )
+        self.assertEqual(session.state, "paid")
+        self.assertEqual(set(session.payout_ids.mapped("bank_match_status")), {"reconciled"})
+        self.assertEqual(
+            set(bank_lines.statement_id.mapped("certification_state")),
+            {"certified"},
+        )
+        self.assertEqual(
+            set(
+                self.env["account.partial.reconcile"]
+                .search([])
+                .exchange_move_id.ids
+            ),
+            previous_exchange_moves,
+        )
+        for bank_line in bank_lines:
+            self.assertEqual(
+                bank_line._certified_reconciliation_fingerprint(),
+                certified_fingerprints[bank_line.id],
+            )
+
+    def test_legacy_pooled_compensation_is_reversed_and_rebuilt(self):
+        usd = self.env["res.currency"].create(
+            {
+                "name": "LCP",
+                "symbol": "$L",
+                "rounding": 0.01,
+            },
+        )
+        platform = self.platform.copy(
+            {
+                "name": "Legacy pooled platform",
+                "currency_id": usd.id,
+            },
+        )
+        session = self._session(name="Legacy pooled compensation — July 2026")
+        first = self._payout(
+            session,
+            platform=platform,
+            reference="LEGACY-001",
+            amount=1000.0,
+        )
+        second = self._payout(
+            session,
+            platform=platform,
+            reference="LEGACY-002",
+            amount=1000.0,
+        )
+        first_bank = self._bank_line(700.0, label="Legacy receipt LEGACY-001")
+        second_bank = self._bank_line(800.0, label="Legacy receipt LEGACY-002")
+        self._allocation(first, first_bank, bank_amount=700.0, payout_amount=1000.0)
+        self._allocation(second, second_bank, bank_amount=800.0, payout_amount=1000.0)
+        payouts = first | second
+        payouts._workflow_write({"currency_valuation_method": "bank"})
+
+        session.action_check()
+        session.action_generate_documents()
+        (session.customer_invoice_ids | session.vendor_bill_ids).action_post()
+        company_currency = session.company_id.currency_id
+        commission_amount = sum(payouts.mapped("commission_platform_amount"))
+        company_amount = sum(
+            company_currency.round(
+                payout.commission_platform_amount * payout.effective_bank_rate,
+            )
+            for payout in payouts
+        )
+        legacy = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "company_id": session.company_id.id,
+                "currency_id": usd.id,
+                "journal_id": platform.compensation_journal_id.id,
+                "date": session.invoice_date,
+                "ref": "Legacy pooled compensation",
+                "platform_billing_session_id": session.id,
+                "platform_billing_platform_id": platform.id,
+                "platform_billing_payout_ids": [Command.set(payouts.ids)],
+                "line_ids": [
+                    Command.create(
+                        {
+                            "name": "Legacy payable compensation",
+                            "partner_id": platform.supplier_partner.id,
+                            "account_id": platform.supplier_partner.property_account_payable_id.id,
+                            "debit": company_amount,
+                            "currency_id": usd.id,
+                            "amount_currency": commission_amount,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "name": "Legacy receivable compensation",
+                            "partner_id": platform.customer_partner.id,
+                            "account_id": (
+                                platform.customer_partner
+                                .property_account_receivable_id.id
+                            ),
+                            "credit": company_amount,
+                            "currency_id": usd.id,
+                            "amount_currency": -commission_amount,
+                        },
+                    ),
+                ],
+            },
+        )
+        payouts._workflow_write(
+            {"compensation_move_id": legacy.id, "state": "posted"},
+        )
+        legacy.action_post()
+        session._reconcile_compensation(platform, payouts, legacy)
+        session._workflow_write({"state": "posted"})
+
+        repaired = session._repair_legacy_grouped_compensations()
+
+        self.assertEqual(len(repaired), 2)
+        self.assertTrue(legacy.reversal_move_ids)
+        self.assertEqual(len(payouts.compensation_move_id), 2)
+        self.assertNotIn(legacy, payouts.compensation_move_id)
+        self.assertEqual(first.customer_invoice_id.amount_residual, 1000.0)
+        self.assertEqual(second.customer_invoice_id.amount_residual, 1000.0)
+        self.assertFalse(first_bank.is_reconciled)
+        self.assertFalse(second_bank.is_reconciled)
+        self.assertFalse(session._repair_legacy_grouped_compensations())
+
+        session.action_reconcile_bank()
+
+        self.assertTrue(first_bank.is_reconciled)
+        self.assertTrue(second_bank.is_reconciled)
+        self.assertEqual(first.customer_invoice_id.payment_state, "paid")
+        self.assertEqual(second.customer_invoice_id.payment_state, "paid")

@@ -1261,6 +1261,44 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(len(statement.certification_ids), 2)
         self.assertEqual(statement.certification_ids[0].event_type, "reopen")
 
+    def test_certified_statement_accepts_only_invariant_reconciliation_metadata(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids.filtered(lambda line: line.amount > 0)[:1]
+        foreign_currency = self.env["res.currency"].create(
+            {"name": "CRM", "symbol": "$C", "rounding": 0.01},
+        )
+        foreign_amount = foreign_currency.round(bank_line.amount * 1.2)
+        certified_fingerprint = bank_line._certified_reconciliation_fingerprint()
+
+        with self.assertRaises(UserError):
+            bank_line.write(
+                {
+                    "foreign_currency_id": foreign_currency.id,
+                    "amount_currency": foreign_amount,
+                },
+            )
+
+        bank_line._write_reconciliation_metadata(
+            {
+                "partner_id": self.company.partner_id.id,
+                "foreign_currency_id": foreign_currency.id,
+                "amount_currency": foreign_amount,
+            },
+        )
+
+        self.assertEqual(statement.certification_state, "certified")
+        self.assertEqual(bank_line.foreign_currency_id, foreign_currency)
+        self.assertEqual(bank_line.amount_currency, foreign_amount)
+        self.assertEqual(
+            bank_line._certified_reconciliation_fingerprint(),
+            certified_fingerprint,
+        )
+        with self.assertRaises(ValidationError):
+            bank_line._write_reconciliation_metadata(
+                {"amount": bank_line.amount + 1},
+            )
+
     def test_balance_mismatch_is_saved_and_blocks_certification(self):
         _ingestion, statement = self._process_complete_month()
         self.env["account.bank.statement.confirm"].create(

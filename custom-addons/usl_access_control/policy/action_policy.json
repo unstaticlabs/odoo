@@ -136594,6 +136594,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.action_resolve:sudo:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.create:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line._write_reconciliation_metadata:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.create:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.unlink:orm_unlink:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.write:orm_write:1",
@@ -142910,6 +142911,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line._write_reconciliation_metadata:orm_write:1": {
+          "reachability_proof": "Private reconciliation helper reached only through reviewed Accounting workflows; it has no independent RPC, controller, UI, server-action, or cron entry point."
+        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.create:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -145536,14 +145540,15 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.action_resolve:sudo:2": "ae1b9d54673b6ed03786587e28582a21c8db1ce3e63efd0dc8843904862bfc23",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.create:orm_create:1": "8a22409ce1c99244327249cd7adbd7b0ec9ded3d782d7cd71558e1e039e1224d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.write:orm_write:1": "8e3331c3194821c8064441de958605c2657adea08d024ed2b976b50ea04a30f5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line._write_reconciliation_metadata:orm_write:1": "a3d2dff0ee334e104ead3b63f039d4aa9370d8ac27e4d4c34546d2da160a73d3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.create:orm_create:1": "ea5f9cfedc3fb42befc4623a947ec2b0784b38405cc325bef0860e2f93ce9f71",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.unlink:orm_unlink:1": "2dd3f250c70ffd7e3dc7dc2fff2f25663b7a9ff5abaf60c74ed97f40f531e27a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.write:orm_write:1": "6cba95240143a37f387ffd96f848cd3d25576fa68ce52fd7146c1dff700cc848",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.unlink:orm_unlink:1": "1a633ffc29cd43d32f68026413442e25f9af81e058c19373db6e8c1e573ec3c2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.write:orm_write:1": "33aad2bd575df5eb863f68941859e2234ddaeddc75c82bbd00f88d7dac7635cc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.create:orm_create:1": "6f8ca395da98ca9ceb7972527aab6e1a49b1a51b28d6e41a3d8c929b2cd596ba",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.unlink:orm_unlink:1": "b15df01950890041fc4729a9091ceb13b7f89baea3f979e55f66c303f40e44bd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "1d82f61316f6fe62699ed0b94848ed1ede60f944c44edfb4ae90cb5bd3772d6e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.create:orm_create:1": "79e2c351d99cd4ea82f6a175e50a89702347ffdbc2839aec96f1babe0bf7b10a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.unlink:orm_unlink:1": "8612c88d96c3f12d994b33690675226a53afed6aba9da3ab4da2cec61dc7ad01",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "05360629ffcdfb6a37c63cd0c5cadf18492dbf3f32395d1ef3f96080178d9793",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.unlink:orm_unlink:1": "28690d1852b7a48584d62d923fc9f1c9520b65366a274dbde6eb32fea72456a9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": "de10c9768b8e326314577fe71436a928c53948a80e58c14c6a55b7caee358e5a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
@@ -145566,7 +145571,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:2": "b5437c82dd911bc25b124f2873a8f3a3a039268bf8b81f33ae1cfa35bb417a61",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "669db424fb2044bbb6dba0d5d90e8f512f64b9b007cee536901085ae1bf11f3a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2": "f062255fec7c9e27bdfc87a75b625f6975ef39c4b8ba12b14bb159ff3e553ea3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_bank_statement_settlement:orm_write:1": "2924bbcae7e4fc150617b6d8e924b33497005b87bed52ec38f2e123bf6e70bcb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_bank_statement_settlement:orm_write:1": "57569656e76f2e40229c7936ec0c8200ea532728d5ac2bb659799277cc86e291",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_legacy_settlement:orm_write:1": "d0fb46d6d0abbdb3d3210abbda9bf5febbafc5d5db5d22f34692a4d90d2df3e9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_legacy_settlement:orm_write:2": "69209f167bef1060adb3b9734b0d25d49d6ce2021fdea7b1d7c8f91ff3918230",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.action_reverse:message_send:1": "dbecbb732e35a350dcdfae5be7291627f8f664f617b8e91f17550cb1cfb4eba0",
@@ -145587,28 +145592,28 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": "f34f2a34aaeab49f1bde7d59b4c4471f229bb08c86c70011a627712cf731bc21",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": "147225cc51868706b3c0f204e3bafe378d1a11b0c7e02eac7a433a6cc0fe814b",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": "93dd7f7668943b2efe904bc5f4947cb2fdf8eab5b9daa36f350db4e8a5a6801c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:1": "e31d654085346aafc2f76102fcd820cbedf670cb9aebda421bcc0f46d8426a99",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:2": "c91bc15e52c06535b669ca4b03978c7b01e1886695ce1241852efcac19b3ec71",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:3": "c54c0f3ed8cd7297a995911e5216154e197c6c1736cd374ac89748b96cd67ecc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_create:1": "d2c38b29651e1c2ca14e74f233cbfb330abb5913c17de13b4690244a376f2497",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:1": "8b228d5b06b7891ad84b4593d12960feef15de7fd45a1681ade931232510c0d9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:10": "0095ff45eff9784af0a485118135322809bca352098e27d38196dff2793255d2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:11": "04d736430440e858844c184505640cc5883c5ac74586f98b123ccc38aa9a03bf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:12": "9b600aa4d929bd6417d0a7b3b2ab4cd2e73a00d283a634b9c5bd8b42115aff94",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:13": "f60caef9011828b4a474a545390153ec5b2a8777b5eff0b4a2fb15f949c4698b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:14": "cc9d70b93b4652c046faa1277d919809734711137de1bf0f6efd63957d3f5c96",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:15": "f28de4c2efbfdb1d8ad336da069a281b966b7a5f3e1d69597af5764dcd8cd36a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:16": "f795a369e71531b880c9c80d812886a25055ac76a19e16e652f42194f557187e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:17": "d221c688c8b6683b432b8a544e46d55eacdefb3f7c4d880ce984cce0f59bd65b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:18": "ead5d3dc5156eca6e5736afc991810191380acf76eb04d5f477c40a971225ec4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:2": "db5fabf8780c1d0e5e338f7b3d876b141a4c472f2f9913f2fa4567fb63218067",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:3": "e1a5d600ac58f9b8ef28fb977ae1478c688949a9b5de7783b101fa8807c322df",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:4": "abed07558fdff80c500826eafb1be086fd96764b9e21ece1ae5eeced8647ff63",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:5": "83b027a1911aa98e555ee91e91ec24a5693a4b0e88c5a2e91f53350db9109d8b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:6": "49b06155e9927bf67d390b4111eda1fae901e11da5aaa13f45777de68f87ba03",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:7": "5adfd0813e87f7a677adeaceee5197a70b5f2db9ec0ea508dd223a92a20ceda2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:8": "9b7c55094724ed3e9635394255da3b5446a436e182a2a7fc53c7a1b246fa3803",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:9": "6b5b671e6ac01c3f73346874cd355660d463099af40d2bf6957546fe2528e3fd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:1": "9e93b1186038af2678b0facbf7b98f9547c4509fc0721573c3e7d68e7f6ab9e7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:2": "df0c5ef2cd9c9ae3cdf406d9c1e4b8e626d51895d828d8f980516d1c210a9f8e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:3": "4f9efeee8e1895de51b2fb17a82a1b6ebe2d1504ded08d65548cbab899bb743a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_create:1": "3ca4ede9604e4d23cf0bfcc797ccbd7d8fa995737e7282d0451dae82545cb1d0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:1": "2977e1e7ebc82b3ab4008717a30783dab820b0725f01117e22a0745d33072e00",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:10": "41437c3dc7dcf91dcc05b4fccbd3229a5bbdaad9a81d60d396b97e4df213f4a6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:11": "079f65342d1d24b97c487e40af8c4ba1870889a54e3619c6f3c2a385122f8471",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:12": "ba2c66231a08b8a055094d5dc968a5733563b34c7fd4dfcb573f9ad683f15eb3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:13": "871d0264379aaa8ad92a965abfe158f60af6c1f11efda7b16d9574724eaaa918",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:14": "00909c26f7b39ba44f6ac9d912e7c14fe26de1d009b8d297a261c11f01e1a540",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:15": "c72ab1e3f1e97591fead89afc1cf709241a792b1ba73ff5942265466f356f476",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:16": "48f125e3a1e4278b2f823250c81e213a58f0651b421351b7144d74a86379790e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:17": "fa2fa6b673ee593365d7042646440006e8d66ed8ee2554cf2e09bf48f2f33182",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:18": "3cd96ed8f7318fcbe9b4da363b335f74f4a7377dfd10e0c12bb6b9011cecf1af",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:2": "00b84ac95581d8b382368301efa4763a16f687c9276ffff9a4ccea8a7e71d382",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:3": "5ee90136404010953634420c990600323c494272da70adc1b0bbfae4e03de22c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:4": "929271671634860cb5c8121b08ae4edd353fe4430b353d221b762d5b978a2cfe",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:5": "a9ab7b73d32dff56121862ce1c6564140932fa1be4063bbebcdfd660bedc97c2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:6": "ad521029415f926be699914c6ad1d1404807b210ed5371d7ed8320a8230d8005",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:7": "e7f8b966f2e15bbdb85d191dce8690aa0eeaa8d02c01c66c82080b12aff1f8a8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:8": "74a1731021905b69d1f2ea0d842dc4b3670c36561ffca0985689457bc8177c7b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:9": "bf1edb95a0d3b99db344ee9538705b9327579101f9f2a1d0629126cd1e5dd7c6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:1": "0e908cd19b37549110df8992f68efdbefbd2183558ac76fed3b2c0731d863826",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
@@ -154258,9 +154263,14 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:3",
@@ -154268,9 +154278,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_open_in_documents:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers._refresh_linked_document_access:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.create:orm_create:1",
@@ -158127,6 +158141,18 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": {
+          "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": {
+          "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": {
+          "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": {
+          "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -158135,6 +158161,9 @@
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1": {
+          "reachability_proof": "Private Documents archive lookup helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -158157,14 +158186,26 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_open_in_documents:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.get_keep_in_documents_details"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -161260,9 +161301,14 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2": "6635f06b6bda38d05d73867f6cda5c52d1770394167d86d8cc44eb3f0881c7bc",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "c9c9a4af71d8e9501f4dcddabd0eb3fdf8d85eadaa79ca2ca716f56fac94bbdd",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "eb490ad678507077804cdf80da57cbefffe46e5a2fccfc53d435b4baebc43b98",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "9f3eef326828945bee973fc27478dc75912e8e0f6ae28152918e37e4b0a075df",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": "20ed432037a986b8d81805940ae049a6a9337fa5695bba8eb5f3f7635e4c5753",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": "bf6891576b7c69ddbb053176692631d7af0a83087993642fb6128dc24be2faaf",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1": "b8cde4275ab038015d097d7cc347140e7579ab664fbdd174c21863335dd50300",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1": "b68e0116a22344cc63d9bbf49f1fc850d5e10ee9e161fe68125002f1ce84767c",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2": "2ff21f953adae7018eae2d19bdde8025a5a7603c933eb5e9189b6423a743a2cd",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:3": "1fb048306c49f360067df3191202ac9d24127acfde4630443d0b3f600650b043",
@@ -161270,9 +161316,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2": "2d7139a7094f20796fce2fa1d4cd244c76459e04029e22428ef3e3b66d4ebe39",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3": "4dcbd543821c21fc236c9e48bf7b796d713595294e81d1b8c1e109a0b1935605",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1": "d16650e32ab32275f601d791405fc235356a56d986814798d33cd5dc037ccdf5",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_open_in_documents:sudo:1": "20d83ab0760f903f5aaa0e80e0402bd4e9b06340e08aff34debfe4e73752c414",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": "38a412c6cde7e81441a516f165b420c0cc9133e694baeced925b64d521c7df50",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": "b82c4dcc72b281934d2a66697bfb0312402b0e5fc59dcbeaf4b3ace3748d630b",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": "652bfd8312c3a427f3e7c9978f46b08c5af32134931c0c7b3e981017d6787367",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3": "a45857445fd3dd2ddaa4b7b9920598edcfeb02907df1dc58dc5f7613f8d62ec5",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": "5aec8ce1db9494ffa58694b99a81b92fcd861224e9187a675ad374b91728ef52",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": "d5c9fe74cc2f63bd577774ebdb32145b543e98ef97f3df19bb8a4fdf1338da57",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": "ce0b121b414d84a5d821102e5db3e69453220ad62d393987b335de5d4ca36dad",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2": "0e1285b8216b12cafb558169d3c6b2fb6f7c010a29a12fd24abbb9cc5687b2fc",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1": "047af96ec38be9bad4a94b442a5a45a2250a2633f6255a9bf97b9a1f0ba1896f",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers._refresh_linked_document_access:sudo:1": "4120bd54a60c2dd21dc7bee9ea880bbf9dcafafd68009fdb57e5178affa55707",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.create:orm_create:1": "f98d4fa375b1cbaef55cff7d9164e88244c22bbaaa9c95b2caf65e368fdaad06",
@@ -161508,7 +161558,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:5": "736814f9218f7bb6809b6e403f1ae13887feacaf146a8cecefe8c63b64af2e06",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:6": "a8a5195aac2e7127c70ba74e29ea3973bbc8483f588e5b764f54af782a48b348",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:7": "a6b00df87f3ae88f7e7638753a8cb223a94646dc0014269090ce6652f3b269d9",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.unlink_from_record:sudo:1": "411cee9132b3b30c22713c5f44b3fc4a4f973312ba845b2441d145ab209f4ef0",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.unlink_from_record:sudo:1": "0714a051180fdf8940f7c6a7ae1d3baf3c38f4294d3e10ec3d26ea608b0bf98d",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
@@ -163388,7 +163438,6 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:3",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:4",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:5",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.create:orm_create:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.unlink:orm_unlink:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.write:orm_write:1",
@@ -163413,6 +163462,9 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._workflow_write:orm_write:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_cancel:orm_write:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_cancel:orm_write:2",
@@ -163473,9 +163525,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:5": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.create:orm_create:1": {
@@ -163549,6 +163598,15 @@
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1": {
+          "reachability_proof": "Private payout-compensation maintenance helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:1": {
+          "reachability_proof": "Private payout-compensation maintenance helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:2": {
+          "reachability_proof": "Private payout-compensation maintenance helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._workflow_write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -163658,11 +163716,10 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_create:orm_create:1": "887ff88b35428917495261521ef3d5d705382c765022a0a755280c5f8d209ab0",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_unlink:orm_unlink:1": "11d1012dcccd6194d26f09d35554d5aa00c7a554b7ad5f1165b0b77fc5269024",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_write:orm_write:1": "9e91e35ce771911749108704e7ec7f159b69c34ea970334096533d0c96d47827",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:1": "37ccb9363ec64065f487b36e564bff879c30a21005274724340d05b4760a1709",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:2": "ad5d05207840cd6879edae39360ac4a3a802d2b27238d567dc74f87afecae7a9",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:3": "f98eab44b586c2ff47d1155af615f60e6b340348933fb0e64b3ea8f4372a4fbd",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:4": "a640670aa4b625b8919f5b393c76bc5dd4b857cff10c449d10ea2c63f2b7cedf",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:5": "1a09b8681f218085c298d04fecad2432a4404571d91643b4d815dbaf192ed864",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:1": "ca2ae1c8eea8f1ecedb407112f9d53c75669555788f4e65822e32550947fc29c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:2": "7b6ecfb2d10f4b465dd6137ca854355be1c90509c58d618b4be4654675be8e01",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:3": "ad7a80d65cd6dc4dfaf19f9b7a3b1f65f126b9da7140da628e51a80420b97371",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._reconcile_bank_transaction:orm_write:4": "b27e44152aa6779974c90db21196a876624309ea0ec562cb8bbdc2750605e6bb",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.create:orm_create:1": "49844339e926ff08b68c8d4b711456cb6f091380a65628f50ffd50b541fa516d",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.unlink:orm_unlink:1": "8b6a0d5a62ab1a5396324365a05d2ec1b9e353717a4fc8f854fb59117880c792",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation.write:orm_write:1": "c27cf6af8ae5930cbc203c319811e02b41a317559ca944b534ab91953055a8f6",
@@ -163674,10 +163731,10 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/payout.py:usl.platform.billing.payout.write:orm_write:1": "bc6e6b59f4e6f09afc0f7b07e6943ffbb7bbb71c69ad148d9b96b96bfd78c9c5",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/payout.py:usl.platform.billing.payout.write:orm_write:2": "1d85e27ddd5569c4f5fb8c39a2b991c649296534b61555ebfdc1dc615cc2b5a2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/payout.py:usl.platform.billing.payout.write:orm_write:3": "f652fb93e43fafcb182f9c9a4fe399a9d48b16483ba340357640d330c3f19461",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:1": "4c9880ffe333fa628c1bbc1f3aa7181451740bf96817b8b83b6bb17fdba33b2a",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:2": "f780f9d807d6c46ad313f10384f96282f7d3073e103db4cea72890c55a1848ef",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:3": "cccd826cfbda9a8f2b46c9008fd13da72adb3c6a1e55cea41087958cb211cde4",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_write:1": "278b74f215928f7bba68b2a2c957a10f30d6fac4e2d151a68b6883743c7db2a6",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:1": "9e2e67371a82069633d87d45d0e6be9e9eec2f6350b22cdc1cdf1366ff2f24bd",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:2": "7e4e4f99952f61088f72cba74b9816d41952c5c404d50b3efc5be0cde8f9ac9c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:3": "7c4a21d08072e4724f11b709ef5ee38ac353e5643f358f88b0c9684080a7aef0",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_write:1": "7fb2e9dd3df2dbce17070bbeea74280ce6ce976bd8079962f0103b5cf935691a",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:1": "5ff7771499b2aa78ca0bcfa16d1aaa7c1961c1824152ee93f3eb64111c702211",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:2": "3c4116713e4ef309ffd20eea7961540e6f41dc7d6e2b4d707e37b49438d340ce",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:3": "0b6d277a4f670b2f6d5099f11c6e73cd1fb277918cc0f4c176a72a7fffab867c",
@@ -163687,6 +163744,9 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2": "a3a8052273047d892e94e6b86906c896141b6798b32f9246953c3a08efb6290c",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3": "8344940628c145f1288321cae0de36f9bd3ecf132dea94ba7d92e3fb0547a709",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4": "40f949ce61ea67447b7f0b6c58a4c7b135280af026a51c68d76f8d835bbdfb8c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1": "2136f0c370f7d4fe3f1d1f73e258040f55a94e4e1ea75eddbedeea5710bcf418",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:1": "c0cb49ba73a946916f868d4890fc814f50a07176cb6a3a1b00ee2950c9f73915",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:2": "acc80cedd406103c5f61548f5026a5a1e865fc2bdc74a6c9fa577659e22e2ce6",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._workflow_write:orm_write:1": "f579f1ad059d2132feb0f327501ef24e3bd49e6ea9bcf40bb0f3191477fec944",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_cancel:orm_write:1": "e3a41489de563be0a79adc4e99f5b50a1684e83b6860619bec743ac46ee6a1b4",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_cancel:orm_write:2": "76b80c208c0744408ee6bb542614cd160647e140f037cd6bb6d0feea03747386",
@@ -163696,11 +163756,11 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_generate_documents:message_send:1": "04b3b5a76ec1f17ce9abc3b10d26c0f13c925e7a0fe4f467b1ad5bb2ce8e0440",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_generate_documents:orm_write:1": "94974ca9907854d1e98a60267c53d1ba109be1e0bc23e75db19acb910de8367b",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_open_bank_import:orm_create:1": "4918a8ccb54a610237fef84cb7bbbc501d31676ac8289ff253f9cb4dfbcb919a",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:message_send:1": "a874187484aee5908482ed3bf495ec3ee3e29094d5ecb9c754ba3cfb08a40d06",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_create:1": "129682338c3c9c411eafb5a05e00685d2240fd9074fcb1bd10699057d07c78ba",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:1": "5e5eb198be8204ef8227be3d7d25ccc2e0d17cfea4e48705eebf8d836c3f74b9",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:2": "518612064248caa63ab9dec36738149276726d92e2785b28f45f3b9557c014ae",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:3": "fd29a652d2889ba796c61e594b43357822b1b25800c3f55c839c8c8d9adb67a0",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:message_send:1": "7d0a8ff2290fdcebe7aa77631d29a28ca2c04cab0a21b268fa7886683e577cba",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_create:1": "9d2955eac179cd36bd820e842dab2bad2c09422e6af17f0f63a0915d743d0e25",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:1": "2803171716fc6ea532e439743ab098824b4f8c8b29552b27372e26b0b5e9614e",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:2": "66ecb386b6730f19383de4d79356b58dc4e3cb33802aca45afd20d3b3ba1b725",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:3": "ea9d55ea6cf554d1d95a601693e2c95f32aff0b7c92aa10ff445c3373f661da2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:1": "70ac4524abf2411ac66d12bba70559cd781e52944adcbc74f647be01145f79bd",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2": "55d4b92cb3d4049b89ddd052c92a188a0b5714b1da48068cb067dfb25eed0349",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1": "1bc3ac514afadbc7bb8fe6733d8667383ef29698d20fd3caffc6b2931cfe4ea6",
@@ -165560,21 +165620,21 @@
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:res.partner.find_or_create:orm_write:1": "ecf59f9dae2af826947abd01f02bd91c2f61e7ff5f88e3eaea455b0da71736bc",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._check_email_identity:sudo:1": "6cb9d1faf3e38bb34353c7bbbde364bfc1f262ca73efa8c13e7400b22d79b5c9",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._check_email_identity:sudo:2": "f5eb203b4a96940a8a27703089e42ddf98ef9e8195c592badc8686a570bd1858",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:message_send:1": "f4318a9f5c03cc02b11d8663f83bb4fc97b05b533eaa3f7b142355f83443da4f",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:orm_create:1": "ae290beeeba9ccc02b96220b7377f1be886eb39d3439bc88f4e6376fd0737880",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:orm_write:1": "2f0b63687a1693acb6e7659b681f9083230d34c15c7d933682276a4df4951182",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:sudo:1": "cfd4cdde8818bb5d1ff93de8a366f65b4213375ab112d3fd1761c5e0debec895",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:sudo:2": "c7ee8fe584df83156ecbdc9616de1da069e2dda1223e58206b42f23a886ddaa1",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:message_send:1": "a6328b6a92459f99057e4e3fa980e9e8f0dc552edb6f50796a2d73842da73a19",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:orm_create:1": "0f4241919b5881d2d19972dec4435499c2a24096b9e2b5e3661e55ab44dc6d65",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:orm_write:1": "2c4941f9f8f0e0d404df5ea97cc257a72e8057f21851a342e901b63871d44509",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:sudo:1": "c217848d82463a74dde2c620f78f50b8d33f328f6e5ce22b561040ac55e7c408",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._issue_verification:sudo:2": "89aaeebe1490d9d7461b1a9ff5d0ac93ab49a0248e055dd2b30d673cd647d20b",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._verification_base_url:sudo:1": "3dc0086ceccdcba2c91ecb988c76740b7c61ffe3b83bb5ae00786cd19dda5522",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._verify_token:orm_write:1": "d60247812b8c9336f8b769ddf7c3670868ae4aa86addcac01462b949d7f99a15",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias._verify_token:sudo:1": "e1f3e3814e499f0861870c5ac959f37e1815b1d6d24b0aec97352b77e1a11e25",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.create:orm_create:1": "46cf51e2aee181e9bbcab63ae98a5abf8c367e49050922ebe10a81fcc9d205f3",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.create:orm_write:1": "9fa4544ffe14c6cf33d7166eeb9297c6a8a8fd87b2578968766a757dfe9afd0b",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.unlink:orm_unlink:1": "a6965d57aeae0160ede62e312263b8a477dbea2b26e9358aec096fa1a9760a86",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:1": "3d2e9fd47b795556112480b2ee4ced0d654b2921f5acc5b5ffdf138f1f4ffd92",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:2": "f2b2f09d88331b2fe195046ca7dd53b6ea2f0990ae0b28d1ce7f97e13e5a86d8",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:3": "d36297a4ad491b252dd3355ad716270860dc50da629fb4916f7c9d44d83ea482",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:sudo:1": "5610e7ac4836598abc858206df45b923520474a360572b13a6013b00277b681c"
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:1": "a9548dd0c6f8924e52276cbb6323ef1dfcf761e549e79fc809503b7e1ec1876a",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:2": "df4e1d6ffca19650c21c2c1042ad4c41b0d4ed1fd4ec39b8679730fd92144bba",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:orm_write:3": "9924c53f1a9e5dfa9c0e078e8bab8c4cd594a084e18d8b44523bde9b6ad4f0f8",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:usl.mail.sender.alias.write:sudo:1": "342aa3bd0b37262d1b43a0f7d13c659b7bb61f6af98e1670407d185e81445032"
       }
     },
     {
@@ -186023,6 +186083,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "6ef8c0a77eec286cbb791f02cf9eaf3bd0b6816aba56bda8c6718425839e164e",
+  "qualified_policy_digest": "3af974567c95528b4feaad54f75fa69693c61e00e7b8cd0f89646e5cbf59fa81",
   "schema": "usl-action-risk-policy-v1"
 }
