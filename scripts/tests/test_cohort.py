@@ -31,6 +31,7 @@ from operations.stack import (
     _notify_release,
     _rollback_after_failure,
     _restore_unlocked,
+    _storage_status,
     _write_adopt_generation,
     _validate_materialized_release,
     _validate_runtime_release_images,
@@ -84,6 +85,78 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_storage_status_rejects_running_service_on_legacy_volume(self) -> None:
+        target = mock.Mock(
+            name="production",
+            value={
+                "environment": "local",
+                "services": {"odoo_db": "db"},
+                "storage": {
+                    "tiers": {
+                        "bulk": {"path": "/srv/storage"},
+                        "database": {"path": "/srv/db"},
+                    },
+                },
+                "volumes": {
+                    "odoo_postgres": {"tier": "database"},
+                },
+            },
+        )
+        target.name = "production"
+        expected = "/srv/db/usl-odoo/production/generations/g20260903-a/odoo_postgres"
+
+        class StatusRunner:
+            def run(self, command, *, check=True):
+                if command[0] == "findmnt":
+                    source = "/dev/volume" if command[2] == "/srv/storage" else "/dev/root"
+                    return subprocess.CompletedProcess(
+                        command, 0, f"{source} ext4 uuid {command[2]}\n", "",
+                    )
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps(
+                            {
+                                "Options": {"device": expected, "o": "bind", "type": "none"},
+                                "Mountpoint": "/srv/storage/docker/volumes/active/_data",
+                            },
+                        ),
+                        "",
+                    )
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps(
+                            [
+                                {
+                                    "Type": "volume",
+                                    "Name": "usl-odoo-production-main-postgres",
+                                },
+                            ],
+                        ),
+                        "",
+                    )
+                if command[:2] == ["docker", "info"]:
+                    return subprocess.CompletedProcess(command, 0, "/var/lib/docker\n", "")
+                raise AssertionError(command)
+
+        result = _storage_status(
+            target,
+            StatusRunner(),
+            {
+                "generation": "g20260903-a",
+                "containers": [{"Service": "db", "Name": "db-1", "State": "running"}],
+                "volumes": {
+                    "odoo_postgres": {"name": "active", "tier": "database"},
+                },
+            },
+        )
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["volumes"]["odoo_postgres"]["runtime_status"], "wrong-runtime-volume")
+        self.assertIn("running service does not mount the active volume: db/odoo_postgres", result["failures"])
+
     def test_adoption_reads_the_recorded_active_release_manifest(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/staging",

@@ -65,6 +65,18 @@ VOLUME_LOGICAL_NAMES = {
     "paperless_export": "paperless-export",
     "mcp_oauth": "odoo-mcp-oauth-data",
 }
+VOLUME_RUNTIME_SERVICE_KEYS = {
+    "odoo_postgres": "odoo_db",
+    "odoo_filestore": "odoo",
+    "paperless_postgres": "paperless_db",
+    "paperless_broker": "paperless_broker",
+    "paperless_media": "paperless",
+    "paperless_data": "paperless",
+    "paperless_trash": "paperless",
+    "paperless_consume": "paperless",
+    "paperless_export": "paperless",
+    "mcp_oauth": "mcp",
+}
 RELEASE_IMAGE_SERVICES = {
     "distribution": ("odoo", "init-db"),
     "paperless": (
@@ -203,6 +215,11 @@ def _storage_status(target, runner, runtime: dict) -> dict:
     if tiers.get("bulk", {}).get("source") == tiers.get("database", {}).get("source"):
         failures.append("bulk and database tiers resolve to the same filesystem")
     generation = runtime["generation"]
+    running = {
+        item.get("Service"): item
+        for item in runtime.get("containers", [])
+        if item.get("State") == "running" and item.get("Service") and item.get("Name")
+    }
     volumes = {}
     for role, definition in sorted(runtime["volumes"].items()):
         value = _volume_inspect(runner, definition["name"])
@@ -218,11 +235,41 @@ def _storage_status(target, runner, runtime: dict) -> dict:
                 if options != {"device": expected, "o": "bind", "type": "none"}:
                     status = "wrong-device"
                     failures.append(f"database volume is not bound to its generation path: {role}")
+        service_key = VOLUME_RUNTIME_SERVICE_KEYS[role]
+        service = target.value["services"][service_key]
+        container = running.get(service)
+        runtime_status = "not-running"
+        if container is not None:
+            inspected = runner.run(
+                ["docker", "inspect", container["Name"], "--format", "{{json .Mounts}}"],
+                check=False,
+            )
+            try:
+                mounts = json.loads(inspected.stdout) if inspected.returncode == 0 else None
+            except json.JSONDecodeError:
+                mounts = None
+            mounted_names = {
+                item.get("Name")
+                for item in mounts or []
+                if isinstance(item, dict) and item.get("Type") == "volume"
+            }
+            if not isinstance(mounts, list):
+                runtime_status = "inspect-failed"
+                failures.append(f"running service mount inspection failed: {service}")
+            elif definition["name"] not in mounted_names:
+                runtime_status = "wrong-runtime-volume"
+                failures.append(
+                    f"running service does not mount the active volume: {service}/{role}",
+                )
+            else:
+                runtime_status = "valid"
         volumes[role] = {
             "name": definition["name"],
             "tier": definition["tier"],
             "source": actual,
             "status": status,
+            "runtime_service": service,
+            "runtime_status": runtime_status,
         }
     docker_root = runner.run(["docker", "info", "--format", "{{.DockerRootDir}}"], check=False).stdout.strip()
     containerd_root = ""
