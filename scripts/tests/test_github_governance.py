@@ -10,6 +10,7 @@ from operations.github_governance import GovernanceError, load, validate, valida
 ROOT = Path(__file__).resolve().parents[2]
 RULESET = ROOT / "operations/contracts/github-usl-distribution-ruleset.json"
 PRODUCTION_RULESET = ROOT / "operations/contracts/github-usl-production-ruleset.json"
+URGENT_MIRROR = ROOT / ".github/workflows/urgent-staging-mirror.yml"
 
 
 class GithubGovernanceTests(unittest.TestCase):
@@ -40,3 +41,10 @@ class GithubGovernanceTests(unittest.TestCase):
                 rule["parameters"]["required_deployment_environments"] = []
         with self.assertRaisesRegex(GovernanceError, "staging-release"):
             validate_production(value)
+
+    def test_rejected_urgent_fix_closes_its_staging_mirror(self):
+        workflow = URGENT_MIRROR.read_text(encoding="utf-8")
+        self.assertIn("SOURCE_MERGED: ${{ github.event.pull_request.merged }}", workflow)
+        self.assertIn('if [ "$EVENT_ACTION" = closed ] && [ "$SOURCE_MERGED" != true ]', workflow)
+        self.assertIn('gh pr close "$number"', workflow)
+        self.assertIn('gh pr reopen "$number"', workflow)
