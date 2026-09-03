@@ -2692,7 +2692,7 @@
         "rpc:project.project.unlink": "034d1b73fc46f78d00d8ab8e8f3580a3f0162e35056735140cd740c010d1fce7",
         "rpc:project.role.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:project.task.type.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:project.task.unlink": "ed4bae13d87c990a25e639ede95fadda6f5521b760da42a443f15a38ae2fcd4d",
+        "rpc:project.task.unlink": "35364e976544829faa624c61c6e3229b4d96baa62668c497b5751249be14b487",
         "rpc:purchase.order.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:quotation.document.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -112589,7 +112589,7 @@
         "rpc:project.task.type.delete.wizard.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
         "rpc:project.task.type.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.type.write": "0ad380ecaeab599ee29d10d9f0f4593c5d9b0acb277ae934c1b1eade4b2f2052",
-        "rpc:project.task.write": "c23c691c5afc14ad637e34a52f12c5415855f2972e335ba35d4f0b066ce41a32",
+        "rpc:project.task.write": "4afcd454bc34c4cf0c0c3b8e71a2961affaca7d27085a60d685bc4430e1f47d5",
         "rpc:project.template.create.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:project.template.create.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.template.create.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -163696,7 +163696,8 @@
     },
     {
       "action_keys": [
-        "cron:project.ir_cron_rating_project"
+        "cron:project.ir_cron_rating_project",
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -163706,17 +163707,40 @@
       "overrides": {
         "cron:project.ir_cron_rating_project": {
           "reachability_proof": "The scheduler owns automatic execution; ordinary actors can only request manual execution through guarded rpc:ir.cron.method_direct_trigger."
+        },
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks": {
+          "reachability_proof": "The scheduler owns automatic execution; ordinary actors can only request manual execution through guarded rpc:ir.cron.method_direct_trigger."
         }
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:project.ir_cron_rating_project": "8e3fc58bb68de250b19b91679981f8aba7208a44aec80689810db76895cedc38"
+        "cron:project.ir_cron_rating_project": "8e3fc58bb68de250b19b91679981f8aba7208a44aec80689810db76895cedc38",
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks": "2c06d1a0ff7075d54b44b85a840ed96a40ce0372414d00e6954e1c9f330a6550"
       }
     },
     {
       "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1"
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6",
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
@@ -163724,17 +163748,93 @@
       "evidence_id": "internal-reachability-v1",
       "id": "system_internal.projects.qualified_changes_20260902",
       "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1": {
+          "reachability_proof": "Static detection covers assignment into default-value dictionaries; this helper does not independently write an Odoo record."
+        },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": {
+          "reachability_proof": "Internal implementation sink reached through the protected project.task deletion operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": {
+          "reachability_proof": "Internal implementation sink reached through the protected project.task deletion operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1": {
+          "reachability_proof": "Private post-install and upgrade initializer with no independent RPC, controller, UI, or scheduled entry point."
         }
       },
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1": "454e7596a0bb0056c35e7822225b11c297a698265cd8dbc5ae0781d592882089",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1": "49c38c6517ac1f748e4a5154f74735c3b61dfe4ff47ee9f6dc7c3fd33394ffca",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1": "64227d34d9bed192dd58288fc5c76f5a1f45d0af90fef023117a15f044ee6958",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b"
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1": "559c5cd77be93857fe3970518172d0e255ca364c4e516aec3698b242cc45676b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1": "549a50472243f170c1da92581589b10327324dac6bf2ce07c0e00fa880d59ee3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": "ed009dc95ab11a2addc39a44572b527aff26024a265a4cf4ebcd06d22365a3fd",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": "0954df52d6f3402a5da29ab9ddf015730efb2a72e1d5c714aaa8e4ce25ba0059",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": "c70e201431d8ab8876ace268804dca8a16aeb9d6455187d5b96419db46456211",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": "901bf2005834da32c498b97096bdc4ac4ff1332ab3fb4d740129a9dd6dd5123b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": "a4f416e9c24d6022c00de94dcd17d941c1d4ea9cf0c769ad4f3a462f309e117d",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "f1a983114c4417c9011f1ecbbfa85ff3f72a40b3977eb263085e7ffb173bde29",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": "4bb61b8f7d67c3105261cb24e995f859397f58682f44a9a070540618801fdda0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": "174e0fa7252d0fc794f043b604ef825216a5c78962c9381441dc2b7d590b1220",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": "b2b0b09412f5a5b60f50fa4f67f1fa2ea68ae38ffe85e2df288737fbc5880ad0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": "a3021d40b310c1df8512076e0059b4ac549198615dce85b9c5620080f244cfa9",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": "5d40ede026dcf9fe1ce6cf98081cb4bc27dcfe0f25cca74c870610f869800ac9",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": "d1c160a5d82c4bd737c8c389c5748bf38efe870a277bfab2928b36539c1d012d",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": "40b5e734cd1d4c5d3dce7581b80eb7c14d0fdfc177a2daee8241f4959c7cb1a0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": "b0c96a66c3927dcd6c03975f23ab861871b3d51b986a0134cf1b3297f27ed0e0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1": "a6e5eaef072d4d9edae33028e5a54eb0eaaacf89141f783ddbc6238908495a4d"
       }
     },
     {
@@ -185866,6 +185966,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "954c10cc7c7aa96a25374cb3e563bdd051a3d98b5abb2431483366db00b499d7",
+  "qualified_policy_digest": "0be3fc7d2abc427fb7fa3c8c234a918d5ebd542d202480d4d45482f79e4969f2",
   "schema": "usl-action-risk-policy-v1"
 }

@@ -1,12 +1,13 @@
 {
     "name": "USL Project",
     "summary": "Focused project workflow compatibility for Community Odoo",
-    "version": "saas~19.3.1.0.7",
+    "version": "saas~19.3.1.0.8",
     "category": "Services/Project",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": ["mail_tracking", "project"],
     "data": [
+        "data/project_task_cron.xml",
         "views/project_project_views.xml",
         "views/project_task_views.xml",
     ],
@@ -20,4 +21,5 @@
     },
     "application": False,
     "installable": True,
+    "post_init_hook": "post_init_hook",
 }
