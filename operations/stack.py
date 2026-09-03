@@ -98,6 +98,7 @@ RESOURCE_FIELDS = {
     "pids_limit",
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
+GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -127,6 +128,260 @@ def runtime_command(arguments: argparse.Namespace) -> int:
         else:
             runner.run(compose_command(identity, ["stop"]))
         result = inspect_runtime(target, runner)
+    print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
+    return 0
+
+
+def _volume_inspect(runner, name: str) -> dict:
+    raw = runner.run(
+        ["docker", "volume", "inspect", name, "--format", "{{json .}}"],
+    ).stdout
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"volume inspection is invalid: {name}") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"volume inspection is invalid: {name}")
+    return value
+
+
+def _volume_source_path(runner, name: str) -> str:
+    value = _volume_inspect(runner, name)
+    options = value.get("Options") or {}
+    path = options.get("device") if options.get("type") == "none" and options.get("o") == "bind" else value.get("Mountpoint")
+    if not isinstance(path, str) or not path.startswith("/"):
+        raise RuntimeError(f"volume source path is invalid: {name}")
+    return path
+
+
+def _storage_inventory(target, runner, runtime: dict) -> tuple[list[dict], dict[str, int]]:
+    inventory = []
+    totals = {tier: 0 for tier in target.value["storage"]["tiers"]}
+    for role, definition in sorted(runtime["volumes"].items()):
+        source = _volume_source_path(runner, definition["name"])
+        measured = runner.run(["du", "-sb", "--", source]).stdout.split()
+        try:
+            size = int(measured[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent volume: {definition['name']}") from error
+        totals[definition["tier"]] += size
+        inventory.append(
+            {
+                "role": role,
+                "name": definition["name"],
+                "tier": definition["tier"],
+                "source": source,
+                "bytes": size,
+            },
+        )
+    return inventory, totals
+
+
+def _storage_status(target, runner, runtime: dict) -> dict:
+    failures = []
+    tiers = {}
+    for tier, definition in sorted(target.value["storage"]["tiers"].items()):
+        probe = runner.run(
+            ["findmnt", "--target", definition["path"], "--noheadings", "--output", "SOURCE,FSTYPE,UUID,TARGET"],
+            check=False,
+        )
+        fields = probe.stdout.split()
+        if probe.returncode or len(fields) < 4:
+            failures.append(f"storage tier is not mounted: {tier} ({definition['path']})")
+            tiers[tier] = {"path": definition["path"], "status": "missing"}
+            continue
+        tiers[tier] = {
+            "path": definition["path"],
+            "source": fields[0],
+            "fstype": fields[1],
+            "uuid": fields[2],
+            "mountpoint": fields[3],
+            "status": "mounted",
+        }
+    if tiers.get("bulk", {}).get("source") == tiers.get("database", {}).get("source"):
+        failures.append("bulk and database tiers resolve to the same filesystem")
+    generation = runtime["generation"]
+    volumes = {}
+    for role, definition in sorted(runtime["volumes"].items()):
+        value = _volume_inspect(runner, definition["name"])
+        options = value.get("Options") or {}
+        actual = _volume_source_path(runner, definition["name"])
+        status = "valid"
+        if definition["tier"] == "database":
+            if generation == "adopted":
+                status = "legacy"
+                failures.append(f"database volume is not generation-backed: {role}")
+            else:
+                expected = generation_volume_path(target, generation, role)
+                if options != {"device": expected, "o": "bind", "type": "none"}:
+                    status = "wrong-device"
+                    failures.append(f"database volume is not bound to its generation path: {role}")
+        volumes[role] = {
+            "name": definition["name"],
+            "tier": definition["tier"],
+            "source": actual,
+            "status": status,
+        }
+    docker_root = runner.run(["docker", "info", "--format", "{{.DockerRootDir}}"], check=False).stdout.strip()
+    containerd_root = ""
+    if target.value["environment"] != "local":
+        containerd_config = runner.run(["containerd", "config", "dump"], check=False)
+        match = re.search(r"(?m)^root\s*=\s*['\"]([^'\"]+)['\"]\s*$", containerd_config.stdout)
+        containerd_root = match.group(1) if match else ""
+        if containerd_config.returncode or containerd_root != "/srv/storage/containerd":
+            failures.append(f"containerd root differs: {containerd_root or 'unavailable'}")
+    if target.value["environment"] != "local" and docker_root != "/srv/storage/docker":
+        failures.append(f"Docker root differs: {docker_root or 'unavailable'}")
+    return {
+        "schema": "usl-storage-status/v1",
+        "target": target.name,
+        "generation": generation,
+        "docker_root": docker_root,
+        "containerd_root": containerd_root,
+        "tiers": tiers,
+        "volumes": volumes,
+        "failures": failures,
+        "status": "passed" if not failures else "failed",
+    }
+
+
+def _write_adopt_generation(target, runner, identity: dict, generation: str, volumes: dict[str, str], network: str, snapshot: str) -> str:
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    runner.run(["install", "-d", "-m", "0700", "--", generation_root])
+    release_raw = runner.run(["cat", target.value["release_manifest"]]).stdout
+    try:
+        release = json.loads(release_raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("adopted release manifest is invalid JSON") from error
+    release_path = f"{generation_root}/usl-release.json"
+    _write_remote(target, runner, release_path, json.dumps(release, indent=2, sort_keys=True) + "\n")
+    resource_path = None
+    resource = _resource_overlay(target)
+    if resource is not None:
+        resource_path = f"{generation_root}/compose.resources.json"
+        _write_remote(target, runner, resource_path, resource, "0644")
+    services = set(_runtime_images(runner, identity))
+    overlay_path = f"{generation_root}/compose.generation.json"
+    _write_remote(
+        target,
+        runner,
+        overlay_path,
+        _generation_overlay(volumes, release, services, target.value["ingress"]),
+        "0644",
+    )
+    return release_path
+
+
+def storage_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    runner = target.runner()
+    runtime = inspect_runtime(target, runner)
+    if arguments.action == "status":
+        result = _storage_status(target, runner, runtime)
+        print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
+        return 0 if result["status"] == "passed" else 2
+    inventory, totals = _storage_inventory(target, runner, runtime)
+    capacity = _require_restore_capacity(
+        target,
+        runner,
+        "storage-adoption",
+        candidate_bytes={tier: size * 2 for tier, size in totals.items()},
+    )
+    plan = {
+        "schema": "usl-storage-adoption-plan/v1",
+        "target": target.name,
+        "source_generation": runtime["generation"],
+        "active_generation": arguments.generation,
+        "rollback_generation": arguments.rollback_generation,
+        "snapshot": arguments.snapshot,
+        "volumes": inventory,
+        "candidate_bytes": totals,
+        "materialization_bytes": {tier: size * 2 for tier, size in totals.items()},
+        "capacity": capacity,
+        "confirmation": (
+            f"{target.name}:{arguments.generation}:{arguments.rollback_generation}:{arguments.snapshot}"
+            if arguments.generation and arguments.rollback_generation and arguments.snapshot
+            else None
+        ),
+        "status": "planned",
+    }
+    if arguments.action == "plan":
+        print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if not all((arguments.generation, arguments.rollback_generation, arguments.snapshot)):
+        raise RuntimeError("storage adopt requires both generations and a snapshot")
+    if arguments.generation == arguments.rollback_generation:
+        raise RuntimeError("active and rollback generations must differ")
+    if not re.fullmatch(r"[0-9a-f]{64}", arguments.snapshot):
+        raise RuntimeError("storage adoption snapshot is invalid")
+    if arguments.confirm != plan["confirmation"]:
+        raise RuntimeError("storage adopt requires the exact target/generations/snapshot confirmation")
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("storage adoption requires the persistent maintenance marker")
+    cohort = set(target.value["services"].values())
+    running = sorted(
+        item.get("Service") for item in runtime["containers"]
+        if item.get("Service") in cohort and item.get("State") == "running"
+    )
+    if running:
+        raise RuntimeError(f"storage adoption requires stopped cohort services: {running}")
+    identity = runtime["compose"]
+    created = {}
+    releases = {}
+    networks = {}
+    for generation in (arguments.rollback_generation, arguments.generation):
+        volumes, network = _create_generation_resources(target, runner, generation)
+        created[generation] = volumes
+        networks[generation] = network
+        for role, source in runtime["volumes"].items():
+            source_path = _volume_source_path(runner, source["name"])
+            destination_path = _volume_source_path(runner, volumes[role])
+            runner.run(
+                [
+                    "rsync", "-aHAXS", "--numeric-ids", "--sparse", "--",
+                    source_path.rstrip("/") + "/", destination_path.rstrip("/") + "/",
+                ],
+            )
+            verified = runner.run(
+                [
+                    "rsync", "-aHAXScn", "--numeric-ids", "--sparse", "--itemize-changes", "--",
+                    source_path.rstrip("/") + "/", destination_path.rstrip("/") + "/",
+                ],
+            )
+            if verified.stdout.strip():
+                raise RuntimeError(f"storage adoption copy differs: {generation}/{role}")
+        releases[generation] = _write_adopt_generation(
+            target, runner, identity, generation, volumes, network, arguments.snapshot,
+        )
+    previous = {
+        "generation": arguments.rollback_generation,
+        "volumes": created[arguments.rollback_generation],
+        "network": networks[arguments.rollback_generation],
+        "release_manifest": releases[arguments.rollback_generation],
+        "snapshot": arguments.snapshot,
+    }
+    active_path = f"{target.value['state_directory']}/active.json"
+    _write_remote(
+        target,
+        runner,
+        active_path,
+        _active_generation_state(
+            target,
+            arguments.generation,
+            created[arguments.generation],
+            networks[arguments.generation],
+            arguments.snapshot,
+            releases[arguments.generation],
+            previous,
+        ),
+    )
+    result = {
+        **plan,
+        "active_volumes": created[arguments.generation],
+        "rollback_volumes": created[arguments.rollback_generation],
+        "status": "adopted",
+    }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -336,10 +591,11 @@ def _validate_runtime_release_images(target, runner, runtime: dict, release: dic
     return verified
 
 
-def _available_bytes(runner, path: str) -> int:
-    result = runner.run(["df", "--output=avail", "--block-size=1", path])
+def _filesystem_capacity(runner, path: str) -> tuple[str, int]:
+    result = runner.run(["df", "--output=source,avail", "--block-size=1", path])
     try:
-        return int(result.stdout.splitlines()[-1].strip())
+        fields = result.stdout.splitlines()[-1].split()
+        return fields[0], int(fields[-1])
     except (IndexError, ValueError) as error:
         raise RuntimeError(f"disk capacity probe returned invalid output for {path}") from error
 
@@ -349,44 +605,70 @@ def _require_restore_capacity(
     runner,
     phase: str,
     *,
-    candidate_bytes: int | None = None,
+    candidate_bytes: dict[str, int] | None = None,
 ) -> dict:
-    available = _available_bytes(runner, target.value["state_directory"])
-    if available < MINIMUM_FREE_BYTES:
-        raise RuntimeError(
-            f"restore {phase} refused: {_capacity_detail(available)}",
+    candidate_bytes = candidate_bytes or {}
+    filesystems: dict[str, dict] = {}
+    for tier, definition in target.value["storage"]["tiers"].items():
+        source, available = _filesystem_capacity(runner, definition["path"])
+        item = filesystems.setdefault(
+            source,
+            {
+                "source": source,
+                "tiers": [],
+                "paths": [],
+                "available_bytes": available,
+                "candidate_bytes": 0,
+                "reserve_bytes": 0,
+            },
         )
-    result = {
-        "available_bytes": available,
-        "warning": available < CAPACITY_WARNING_BYTES,
-    }
-    if candidate_bytes is not None:
-        required = candidate_bytes + RESTORE_SAFETY_RESERVE_BYTES
+        item["tiers"].append(tier)
+        item["paths"].append(definition["path"])
+        item["available_bytes"] = min(item["available_bytes"], available)
+        item["candidate_bytes"] += candidate_bytes.get(tier, 0)
+        item["reserve_bytes"] = max(item["reserve_bytes"], definition["reserve_bytes"])
+    warning = False
+    for source, item in filesystems.items():
+        available = item["available_bytes"]
+        warning = warning or available < CAPACITY_WARNING_BYTES
+        if available < MINIMUM_FREE_BYTES:
+            raise RuntimeError(
+                f"restore {phase} refused on {source}: {_capacity_detail(available)}",
+            )
+        required = item["candidate_bytes"] + item["reserve_bytes"]
+        item["required_bytes"] = required
+        item["tiers"].sort()
+        item["paths"].sort()
         if available < required:
             deficit = required - available
             raise RuntimeError(
-                "restore capacity refused: "
-                f"{available / 1024**3:.1f} GiB free, "
-                f"{candidate_bytes / 1024**3:.1f} GiB measured candidate, "
-                f"15.0 GiB reserve, {deficit / 1024**3:.1f} GiB deficit",
+                "restore capacity refused on "
+                f"{source}: {available / 1024**3:.1f} GiB free, "
+                f"{item['candidate_bytes'] / 1024**3:.1f} GiB measured candidate, "
+                f"{item['reserve_bytes'] / 1024**3:.1f} GiB reserve, "
+                f"{deficit / 1024**3:.1f} GiB deficit",
             )
-        result.update(
-            candidate_bytes=candidate_bytes,
-            safety_reserve_bytes=RESTORE_SAFETY_RESERVE_BYTES,
-            required_bytes=required,
+        _report(
+            "restore",
+            phase,
+            "capacity checked",
+            f"{source} ({', '.join(item['tiers'])}): {_capacity_detail(available)}",
         )
-    _report("restore", phase, "capacity checked", _capacity_detail(available))
-    return result
+    return {
+        "schema": "usl-storage-capacity/v2",
+        "filesystems": {source: filesystems[source] for source in sorted(filesystems)},
+        "warning": warning,
+    }
 
 
-def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> int:
+def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> dict[str, int]:
     """Measure the additional persistent state a fresh generation must hold.
 
     Existing active and rollback generations are already reflected in free
     space, so they must not be added again. The estimate intentionally sums
     allocated file bytes rather than Docker volume metadata.
     """
-    total = 0
+    totals = {tier: 0 for tier in target.value["storage"]["tiers"]}
     seen: set[str] = set()
     for item in runtime["volumes"].values():
         name = item["name"]
@@ -398,7 +680,7 @@ def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> 
             "--entrypoint", "du", tool_image, "-sb", "/source",
         ]).stdout.split()
         try:
-            total += int(measured[0])
+            totals[item["tier"]] += int(measured[0])
         except (IndexError, ValueError) as error:
             raise RuntimeError(f"cannot measure persistent volume: {name}") from error
     for item in target.value["paths"].values():
@@ -410,10 +692,10 @@ def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> 
                 raise RuntimeError(f"cannot measure required persistent path: {item['path']}")
             continue
         try:
-            total += int(result.stdout.split()[0])
+            totals[item["tier"]] += int(result.stdout.split()[0])
         except (IndexError, ValueError) as error:
             raise RuntimeError(f"cannot measure persistent path: {item['path']}") from error
-    return total
+    return totals
 
 
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
@@ -1041,6 +1323,22 @@ def generation_volume_names(target, generation: str) -> dict[str, str]:
     }
 
 
+def generation_volume_path(target, generation: str, role: str) -> str:
+    if not GENERATION_NAME.fullmatch(str(generation)):
+        raise RuntimeError("generation name is invalid")
+    if role not in target.value["volumes"]:
+        raise RuntimeError("generation volume role is invalid")
+    definition = target.value["volumes"][role]
+    if definition["tier"] != "database":
+        raise RuntimeError("only database-tier volumes have host paths")
+    root = Path(target.value["storage"]["tiers"]["database"]["path"])
+    generation_root = root / "usl-odoo" / target.name / "generations" / generation
+    candidate = generation_root / role
+    if candidate.parent != generation_root:
+        raise RuntimeError("generation volume path escaped its generation root")
+    return str(candidate)
+
+
 def _create_generation_resources(target, runner, generation: str) -> tuple[dict[str, str], str]:
     volumes = generation_volume_names(target, generation)
     network = f"{target.project}-{generation}-recovery"
@@ -1048,22 +1346,39 @@ def _create_generation_resources(target, runner, generation: str) -> tuple[dict[
         probe = runner.run(["docker", "volume", "inspect", name], check=False)
         if probe.returncode == 0:
             raise RuntimeError(f"generation volume already exists: {name}")
-        runner.run(
-            [
-                "docker",
-                "volume",
-                "create",
-                "--label",
-                f"com.unstaticlabs.runtime.project={target.project}",
-                "--label",
-                f"com.unstaticlabs.runtime.target={target.name}",
-                "--label",
-                f"com.unstaticlabs.runtime.generation={generation}",
-                "--label",
-                f"com.unstaticlabs.runtime.role={role}",
-                name,
-            ],
-        )
+        tier = target.value["volumes"][role]["tier"]
+        command = [
+            "docker",
+            "volume",
+            "create",
+            "--label",
+            f"com.unstaticlabs.runtime.project={target.project}",
+            "--label",
+            f"com.unstaticlabs.runtime.target={target.name}",
+            "--label",
+            f"com.unstaticlabs.runtime.generation={generation}",
+            "--label",
+            f"com.unstaticlabs.runtime.role={role}",
+            "--label",
+            f"com.unstaticlabs.runtime.storage-tier={tier}",
+        ]
+        if tier == "database":
+            device = generation_volume_path(target, generation, role)
+            runner.run(["install", "-d", "-m", "0700", "--", device])
+            command.extend(
+                [
+                    "--driver",
+                    "local",
+                    "--opt",
+                    "type=none",
+                    "--opt",
+                    "o=bind",
+                    "--opt",
+                    f"device={device}",
+                ],
+            )
+        command.append(name)
+        runner.run(command)
     probe = runner.run(["docker", "network", "inspect", network], check=False)
     if probe.returncode == 0:
         raise RuntimeError(f"generation network already exists: {network}")
@@ -2123,14 +2438,41 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
             for name in candidates:
-                labels = json.loads(
+                volume = json.loads(
                     runner.run(
-                        ["docker", "volume", "inspect", name, "--format", "{{json .Labels}}"],
+                        ["docker", "volume", "inspect", name, "--format", "{{json .}}"],
                     ).stdout,
                 )
+                labels = volume.get("Labels") or {}
                 if labels.get("com.unstaticlabs.runtime.target") != target.name:
                     raise RuntimeError(f"cleanup candidate became foreign: {name}")
+                role = labels.get("com.unstaticlabs.runtime.role")
+                generation = labels.get("com.unstaticlabs.runtime.generation")
+                if role not in target.value["volumes"]:
+                    raise RuntimeError(f"cleanup candidate has an invalid role: {name}")
+                tier = target.value["volumes"][role]["tier"]
+                database_path = None
+                if tier == "database":
+                    database_path = generation_volume_path(target, generation, role)
+                    options = volume.get("Options") or {}
+                    if options != {"device": database_path, "o": "bind", "type": "none"}:
+                        raise RuntimeError(f"cleanup database volume path differs: {name}")
+                    database_source, _available = _filesystem_capacity(
+                        runner,
+                        target.value["storage"]["tiers"]["database"]["path"],
+                    )
+                    bulk_source, _available = _filesystem_capacity(
+                        runner,
+                        target.value["storage"]["tiers"]["bulk"]["path"],
+                    )
+                    if database_source == bulk_source:
+                        raise RuntimeError("cleanup database tier is not local NVMe")
                 runner.run(["docker", "volume", "rm", name])
+                if database_path is not None:
+                    runner.run(
+                        ["find", database_path, "-xdev", "-mindepth", "1", "-delete"],
+                    )
+                    runner.run(["rmdir", "--", database_path])
             for name in network_candidates:
                 labels = json.loads(
                     runner.run(
@@ -2300,6 +2642,15 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--target", dest="command_target")
     runtime.add_argument("--json", action="store_true")
     runtime.set_defaults(handler=runtime_command)
+    storage = commands.add_parser("storage")
+    storage.add_argument("action", choices=("plan", "adopt", "status"))
+    storage.add_argument("--target", dest="command_target")
+    storage.add_argument("--generation")
+    storage.add_argument("--rollback-generation")
+    storage.add_argument("--snapshot")
+    storage.add_argument("--confirm")
+    storage.add_argument("--json", action="store_true")
+    storage.set_defaults(handler=storage_command)
     backup = commands.add_parser("backup")
     backup.add_argument("action", choices=("create", "list", "verify"))
     backup.add_argument("--target", dest="command_target")
