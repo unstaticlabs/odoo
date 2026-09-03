@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from operations.github_governance import load, validate
+from operations.github_governance import load, validate, validate_production
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,4 +14,5 @@ ROOT = Path(__file__).resolve().parents[1]
 
 if __name__ == "__main__":
     validate(load(ROOT / "operations/contracts/github-usl-distribution-ruleset.json"))
-    print("GitHub USL Distribution ruleset: valid")
+    validate_production(load(ROOT / "operations/contracts/github-usl-production-ruleset.json"))
+    print("GitHub USL Distribution and production-admission rulesets: valid")

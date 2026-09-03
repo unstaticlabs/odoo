@@ -75,6 +75,18 @@ jobs:
           scripts/check-github-governance
           git diff --check
 
+  compatibility:
+    name: USL compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify coordinated release contracts
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_odoo_mcp_release \
+            scripts.tests.test_release_manifest \
+            scripts.tests.test_module_release
+
   database:
     name: Clean install and repeated upgrade
     runs-on: ubuntu-latest
@@ -124,12 +136,13 @@ jobs:
   result:
     name: USL qualification
     if: always()
-    needs: [source-policy, changes, static, database, accounting, security, ui]
+    needs: [source-policy, changes, static, compatibility, database, accounting, security, ui]
     runs-on: ubuntu-latest
     steps:
       - name: Enforce required child results
         env:
           CHANGES: ${{ needs.changes.result }}
+          COMPATIBILITY: ${{ needs.compatibility.result }}
           SOURCE_POLICY: ${{ needs.source-policy.result }}
           STATIC: ${{ needs.static.result }}
           DATABASE: ${{ needs.database.result }}
@@ -141,6 +154,7 @@ jobs:
           NEED_UI: ${{ needs.changes.outputs.ui }}
         run: |
           test "$CHANGES" = success
+          test "$COMPATIBILITY" = success
           test "$SOURCE_POLICY" = success
           test "$STATIC" = success
           test "$DATABASE" = success

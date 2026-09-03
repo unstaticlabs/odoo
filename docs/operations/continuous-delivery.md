@@ -122,20 +122,31 @@ production remains running and no candidate resources are created.
 ## Activation boundary
 
 The workflows and GitOps procedures are intentionally shipped disabled first.
-The desired GitHub branch protection is versioned at
-`operations/contracts/github-usl-distribution-ruleset.json`. A repository
-administrator applies it after both permanent branches exist:
+The desired GitHub branch protection is versioned in two payloads. The common
+`USL Distribution` ruleset protects both permanent branches and requires the
+aggregate qualification. The additional `USL Production Admission` ruleset
+targets only `19-usl`; it separately requires the source-policy and Odoo–MCP
+compatibility jobs plus a successful `staging-release` deployment for the
+exact candidate commit. A repository administrator applies them after both
+permanent branches and the `staging-release` environment exist:
 
 ```bash
 GH_CONFIG_DIR=/path/to/authorized/gh \
   gh api --method PUT \
   repos/unstaticlabs/odoo/rulesets/21452332 \
   --input operations/contracts/github-usl-distribution-ruleset.json
+
+GH_CONFIG_DIR=/path/to/authorized/gh \
+  gh api --method POST \
+  repos/unstaticlabs/odoo/rulesets \
+  --input operations/contracts/github-usl-production-ruleset.json
 ```
 
-The payload preserves merge commits, resolved conversations and the existing
-all-green merge queue while targeting exactly `19-usl` and `19-usl-staging`
-and requiring the stable `USL qualification` context.
+If `USL Production Admission` already exists, look up its ID and use `PUT` on
+`repos/unstaticlabs/odoo/rulesets/<id>` instead of creating a duplicate. The
+payloads preserve merge commits, resolved conversations and the all-green
+merge queue while preventing an untested staging commit from reaching
+production.
 
 Enable them only after the GitHub/GitLab protection and credentials are in
 place, the fixed Komodo launcher is installed, and all of these drills pass:

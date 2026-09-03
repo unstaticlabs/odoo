@@ -4,11 +4,12 @@ import copy
 import unittest
 from pathlib import Path
 
-from operations.github_governance import GovernanceError, load, validate
+from operations.github_governance import GovernanceError, load, validate, validate_production
 
 
 ROOT = Path(__file__).resolve().parents[2]
 RULESET = ROOT / "operations/contracts/github-usl-distribution-ruleset.json"
+PRODUCTION_RULESET = ROOT / "operations/contracts/github-usl-production-ruleset.json"
 
 
 class GithubGovernanceTests(unittest.TestCase):
@@ -28,3 +29,14 @@ class GithubGovernanceTests(unittest.TestCase):
                 rule["parameters"]["required_status_checks"] = []
         with self.assertRaisesRegex(GovernanceError, "qualification"):
             validate(value)
+
+    def test_production_admission_ruleset_is_valid(self):
+        validate_production(load(PRODUCTION_RULESET))
+
+    def test_production_requires_staging_deployment(self):
+        value = copy.deepcopy(load(PRODUCTION_RULESET))
+        for rule in value["rules"]:
+            if rule["type"] == "required_deployments":
+                rule["parameters"]["required_deployment_environments"] = []
+        with self.assertRaisesRegex(GovernanceError, "staging-release"):
+            validate_production(value)

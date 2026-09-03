@@ -11,6 +11,7 @@ PERMANENT_BRANCHES = {
     "refs/heads/19-usl",
     "refs/heads/19-usl-staging",
 }
+PRODUCTION_BRANCH = {"refs/heads/19-usl"}
 
 
 class GovernanceError(ValueError):
@@ -53,4 +54,27 @@ def validate(value: dict[str, Any]) -> dict[str, Any]:
     contexts = {item.get("context") for item in checks.get("required_status_checks", [])}
     if contexts != {"USL qualification"}:
         raise GovernanceError("stable qualification check is not the sole required context")
+    return value
+
+
+def validate_production(value: dict[str, Any]) -> dict[str, Any]:
+    if value.get("name") != "USL Production Admission":
+        raise GovernanceError("production ruleset name differs")
+    if value.get("target") != "branch" or value.get("enforcement") != "active":
+        raise GovernanceError("production ruleset is not an active branch contract")
+    included = set(value.get("conditions", {}).get("ref_name", {}).get("include", []))
+    if included != PRODUCTION_BRANCH:
+        raise GovernanceError("production admission must target only 19-usl")
+    rules = {item.get("type"): item for item in value.get("rules", []) if isinstance(item, dict)}
+    if set(rules) != {"required_status_checks", "required_deployments"}:
+        raise GovernanceError("production admission rule inventory differs")
+    checks = rules["required_status_checks"].get("parameters", {})
+    if checks.get("strict_required_status_checks_policy") is not True:
+        raise GovernanceError("production required checks must be strict")
+    contexts = {item.get("context") for item in checks.get("required_status_checks", [])}
+    if contexts != {"USL source policy", "USL compatibility"}:
+        raise GovernanceError("production source and compatibility checks differ")
+    deployments = rules["required_deployments"].get("parameters", {})
+    if deployments.get("required_deployment_environments") != ["staging-release"]:
+        raise GovernanceError("production must require the staging-release deployment")
     return value
