@@ -107,6 +107,13 @@ def manifest() -> dict[str, object]:
             "manifest_sha256": "f" * 64,
             "dimension": 1024,
         },
+        "release_notes": {
+            "schema": "usl-release-notes/v1",
+            "title": "Safer releases",
+            "summary": "The release is ready.",
+            "changes": ["Recovery is more reliable."],
+            "action_required": None,
+        },
         "qualification": {"evidence": {"unit-tests": "4" * 64}},
         "build": {
             "workflow_run_id": 123,
@@ -170,6 +177,12 @@ class ReleaseManifestTests(unittest.TestCase):
         value = copy.deepcopy(manifest())
         value["ollama"]["dimension"] = 768
         with self.assertRaisesRegex(ReleaseManifestError, "1024"):
+            validate(value)
+
+    def test_rejects_empty_or_unreviewed_release_notes(self) -> None:
+        value = copy.deepcopy(manifest())
+        value["release_notes"]["changes"] = []
+        with self.assertRaisesRegex(ReleaseManifestError, "release_notes.changes"):
             validate(value)
 
     def test_accepts_legacy_v2_only_for_historical_verification(self) -> None:

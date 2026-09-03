@@ -80,7 +80,7 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
-    def test_release_notification_is_bound_to_active_release_and_human_users(self) -> None:
+    def test_release_notification_is_bound_to_active_release_and_persistent_channel(self) -> None:
         release_id = "a" * 64
         target = mock.Mock(value={
             "environment": "production",
@@ -91,7 +91,7 @@ class CohortContractTests(unittest.TestCase):
         runner = mock.Mock()
         runner.run.return_value = subprocess.CompletedProcess(
             [], 0,
-            'USL_RELEASE_NOTIFICATION_RESULT={"recipients": 2, "release": "' + release_id + '", "status": "sent"}\n',
+            'USL_RELEASE_NOTIFICATION_RESULT={"channel": "mail.channel_all_employees", "message_id": 42, "release": "' + release_id + '", "status": "posted"}\n',
             "",
         )
         runtime = {
@@ -100,15 +100,26 @@ class CohortContractTests(unittest.TestCase):
         }
         release = {
             "identity": release_id,
+            "build": {"workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/1"},
             "components": {"distribution": {"digest_reference": "odoo@sha256:" + "b" * 64}},
+            "release_notes": {
+                "schema": "usl-release-notes/v1",
+                "title": "Safer releases",
+                "summary": "The release is active.",
+                "changes": ["Improved recovery."],
+                "action_required": None,
+            },
         }
         with mock.patch("operations.stack.inspect_runtime", return_value=runtime), mock.patch(
             "operations.stack._release", return_value=(release, "c" * 64, "{}")
         ):
             result = _notify_release(target, runner, release_id)
-        self.assertEqual(result["recipients"], 2)
-        self.assertIn("usl_managed_agent_id", runner.run.call_args.kwargs["input_text"])
-        self.assertIn("_bus_send", runner.run.call_args.kwargs["input_text"])
+        self.assertEqual(result["message_id"], 42)
+        program = runner.run.call_args.kwargs["input_text"]
+        self.assertIn("mail.channel_all_employees", program)
+        self.assertIn("base.partner_root", program)
+        self.assertIn("message_post", program)
+        self.assertNotIn("_bus_send", program)
 
     def test_release_notification_rejects_untrusted_identity(self) -> None:
         target = mock.Mock(value={"environment": "production"})
