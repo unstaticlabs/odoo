@@ -70,8 +70,34 @@ odoo_shell < scripts/odoo/enforce_product_module_scope.py
 odoo_run --update="$modules"
 odoo_run --update="$modules"
 
+test_modules="${USL_TEST_MODULES:-}"
+if [[ -n "$test_modules" ]]; then
+  if [[ ! "$test_modules" =~ ^[A-Za-z0-9_]+(,[A-Za-z0-9_]+)*$ ]]; then
+    printf 'Invalid USL_TEST_MODULES value: %s\n' "$test_modules" >&2
+    exit 2
+  fi
+  test_tags="$(printf '%s' "$test_modules" | sed 's/[^,][^,]*/\/&/g')"
+  printf 'Running affected module suites: %s\n' "$test_modules"
+  "${compose[@]}" --profile test run --rm -T \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    -e ACTION_RISK_MODE=check \
+    test odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --workers=0 \
+    --max-cron-threads=0 \
+    --stop-after-init \
+    --test-enable \
+    --test-tags="$test_tags" \
+    --update="$test_modules" \
+    --log-level=test
+fi
+
 USL_PRODUCT_BOUNDARY_PREPROD=0 odoo_shell < scripts/odoo/product_database_boundary.py
 
 ACTION_RISK_MODE=check odoo_shell < scripts/odoo/action_risk_inventory.py
 
-printf 'Clean install, repeated upgrade and runtime boundaries passed.\n'
+printf 'Clean install, repeated upgrade, affected tests and runtime boundaries passed.\n'

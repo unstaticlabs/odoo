@@ -76,7 +76,11 @@ jobs:
       - name: Restore Docker build cache
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
       - name: Qualify the canonical product database
-        run: scripts/ci-product-database
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          test_modules="$(scripts/qualification-test-plan --base "$BASE_SHA" --head "$GITHUB_SHA")"
+          USL_TEST_MODULES="$test_modules" scripts/ci-product-database
 
   accounting:
     needs: changes
