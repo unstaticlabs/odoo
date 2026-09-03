@@ -104,13 +104,17 @@ classes:
 - known pending queues may drain while writers are stopped, but may not grow,
   and every failed queue or cron count must remain zero.
 
-Unknown or missing control fields fail closed. The current manifest also
-checks attachments and filestore coverage, Documents/Paperless state,
-Projects, Platform Billing and TESE. Extending it with semantic Pocket ID
-mappings, per-account/currency balances, journal/lock-date controls, detailed
-Paperless permissions and Trash, Sign identities, MCP OAuth state, and the
-complete cron identity/lag policy remains an activation gate. Production
-admission is read-only; mutation journeys belong in CI and staging.
+Unknown or missing control fields fail closed. Control manifest v2 adds
+fingerprints for company structure, user/company/group authority, Pocket ID
+links, Agent ownership and delegated access, balances per company/account/
+currency, journal controls, lock dates, group implications, cron policy, and
+Paperless document identities, tags, permissions, and Trash. Historical v1
+snapshots remain restorable into a v2 runtime, but a v2 snapshot may not
+regress to the weaker v1 controls. Counts and fingerprints also cover
+attachments and filestore coverage, Projects, Platform Billing, and TESE.
+Sign service identities, semantic MCP OAuth-vault controls, and complete
+runtime cron lag evidence remain activation gates. Production admission is
+read-only; mutation journeys belong in CI and staging.
 
 One operation lock is held per exact target. Backup stages already persist
 checksummed evidence and support bounded resume. The release state-machine
