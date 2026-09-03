@@ -55,22 +55,7 @@ jobs:
       - name: Validate source, contracts and translations
         run: |
           python3 -m compileall -q operations scripts custom-addons
-          python3 -m unittest \
-            scripts.tests.test_cohort \
-            scripts.tests.test_component_build \
-            scripts.tests.test_control_manifest \
-            scripts.tests.test_distribution_release \
-            scripts.tests.test_module_release \
-            scripts.tests.test_odoo_mcp_release \
-            scripts.tests.test_plan_evidence \
-            scripts.tests.test_production_runtime_validation \
-            scripts.tests.test_qualification_plan \
-            scripts.tests.test_release_controller \
-            scripts.tests.test_release_manifest \
-            scripts.tests.test_runtime_resources \
-            scripts.tests.test_usl_stack_health \
-            scripts.tests.test_usl_stack_runtime \
-            scripts.tests.test_source_policy
+          python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           make product-migration-source-boundary
           make action-risk-inventory
           scripts/check-github-governance
