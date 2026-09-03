@@ -1108,6 +1108,16 @@ msgid "Pocket ID is not ready. Contact an administrator."
 msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Pocket ID sign-in does not currently return to the Odoo Android app. You can still try it, or use Odoo in your browser."
+msgstr "La connexion Pocket ID ne revient actuellement pas dans l’application Odoo pour Android. Vous pouvez tout de même essayer ou utiliser Odoo dans votre navigateur."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Open Odoo in your browser"
+msgstr "Ouvrir Odoo dans votre navigateur"
+
+#. module: usl_pocketid
 #: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__break_glass
 #: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_local_break_glass
 msgid "Sealed emergency administrator"
