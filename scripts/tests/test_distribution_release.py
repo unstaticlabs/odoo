@@ -88,6 +88,16 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("scripts/ci-product-database", qualification)
         self.assertIn("test \"$DATABASE\" = success", qualification)
 
+    def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
+        database_gate = (ROOT / "scripts/ci-product-database").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("static/tests", database_gate)
+        self.assertIn("*.test.js", database_gate)
+        self.assertIn("WebSuite.test_unit_desktop", database_gate)
+        self.assertIn("MobileWebSuite.test_unit_mobile", database_gate)
+        self.assertIn('--update="$module"', database_gate)
+
     def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
         self.assertIn(
             "ref: ${{ needs.resolve.outputs.mcp_commit }}",
