@@ -22,6 +22,8 @@
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
     "sign": "usl-sign-dss",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign_ca": "usl-sign-step-ca"
   },
   "databases": {
@@ -48,7 +50,8 @@
     "paperless_trash": {"name": "usl-odoo-production-main-paperless-trash", "class": "durable"},
     "paperless_consume": {"name": "usl-odoo-production-main-paperless-consume", "class": "durable"},
     "paperless_export": {"name": "usl-odoo-production-main-paperless-export", "class": "transient"},
-    "mcp_oauth": {"name": "usl-odoo-production-main-odoo-mcp-oauth", "class": "durable"}
+    "mcp_oauth": {"name": "usl-odoo-production-main-odoo-mcp-oauth", "class": "durable"},
+    "receipt_control": {"name": "usl-odoo-production-main-receipt-control", "class": "transient"}
   },
   "paths": {
     "sign_secrets": {"path": "/opt/usl-odoo/secrets/sign", "class": "durable", "required": true},

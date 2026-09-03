@@ -10,7 +10,16 @@ COMMIT = "a" * 40
 
 
 def component(name: str) -> dict[str, object]:
-    input_sha = ({"distribution": "1", "backup-tool": "2", "paperless": "3", "sign-dss": "4"}[name]) * 64
+    input_sha = (
+        {
+            "distribution": "1",
+            "backup-tool": "2",
+            "paperless": "3",
+            "sign-dss": "4",
+            "receipt-fetcher": "5",
+            "receipt-egress": "6",
+        }[name]
+    ) * 64
     image = f"ghcr.io/unstaticlabs/{name}"
     digest = "sha256:" + "a" * 64
     return {
@@ -26,7 +35,17 @@ def manifest() -> dict[str, object]:
     return {
         "schema": "usl-release/v2",
         "source": {"repository": "unstaticlabs/odoo", "commit": COMMIT},
-        "components": {name: component(name) for name in ("distribution", "backup-tool", "paperless", "sign-dss")},
+        "components": {
+            name: component(name)
+            for name in (
+                "distribution",
+                "backup-tool",
+                "paperless",
+                "sign-dss",
+                "receipt-fetcher",
+                "receipt-egress",
+            )
+        },
         "mcp": {
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
             "ref": "b" * 40,

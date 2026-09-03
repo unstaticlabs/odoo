@@ -52,6 +52,16 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertIn("docker buildx imagetools inspect", self.workflow)
 
+    def test_receipt_images_are_qualified_before_attestation(self) -> None:
+        self.assertIn("Qualify isolated receipt component", self.workflow)
+        self.assertIn("-m unittest -v /app/test_app.py", self.workflow)
+        self.assertIn("chromium_sandbox=True", self.workflow)
+        self.assertIn("page.expect_download()", self.workflow)
+        self.assertIn(
+            "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json",
+            self.workflow,
+        )
+
     def test_release_binds_external_services_and_ollama(self) -> None:
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
         self.assertIn("deploy/document-renderer/release.json", self.workflow)

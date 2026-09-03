@@ -40,8 +40,31 @@ class HealthRunner:
                 "proxy_mode": self.proxy_mode,
                 "list_db": False,
                 "dbfilter": "^odoo_production$",
+                "workers": 4,
+                "server_wide_modules": "web,queue_job",
+                "queue_channels": "root:4,root.receipt_fetch:2",
             }
             return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+        if "client_certificate_required" in joined:
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                json.dumps({"healthy": True, "client_certificate_required": True}),
+                "",
+            )
+        if "direct_egress_blocked" in joined:
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                json.dumps(
+                    {
+                        "business_names_blocked": True,
+                        "direct_egress_blocked": True,
+                        "private_proxy_blocked": True,
+                    }
+                ),
+                "",
+            )
         if "USL health" in joined:
             value = {
                 "digest": self.target.value["ollama"]["manifest_sha256"],
@@ -70,10 +93,22 @@ class HealthContractTests(unittest.TestCase):
         target = load_target("production", TARGETS)
         runner = HealthRunner(target, proxy_mode=proxy_mode)
         wrapped = TargetWithRunner(target, runner)
-        containers = [
-            {"Service": service, "State": "running", "Health": "healthy"}
-            for service in target.value["services"].values()
-        ]
+        containers = []
+        project = target.project
+        for service in target.value["services"].values():
+            networks = f"{project}_default"
+            if service == target.value["services"]["receipt_fetcher"]:
+                networks = f"{project}_receipt-proxy"
+            elif service == target.value["services"]["receipt_egress"]:
+                networks = f"{project}_receipt-proxy,{project}_receipt-public"
+            containers.append(
+                {
+                    "Service": service,
+                    "State": "running",
+                    "Health": "healthy",
+                    "Networks": networks,
+                }
+            )
         status = {
             "containers": containers,
             "compose": {
@@ -101,6 +136,8 @@ class HealthContractTests(unittest.TestCase):
         self.assertEqual(report["status"], "passed")
         self.assertTrue(report["odoo_config"]["proxy_mode"])
         self.assertEqual(report["websocket"]["status_code"], 101)
+        self.assertTrue(report["receipt_mtls"]["client_certificate_required"])
+        self.assertTrue(report["receipt_containment"]["direct_egress_blocked"])
 
     def test_health_rejects_false_proxy_mode(self) -> None:
         result, report = self.run_health(proxy_mode=False)

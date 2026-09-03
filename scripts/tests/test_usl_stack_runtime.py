@@ -67,6 +67,33 @@ class FakeRunner:
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_receipt_fetcher_keeps_chromium_sandbox_and_non_root_tmpfs(self) -> None:
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        fetcher = compose.split("  usl-receipt-fetcher:", 1)[1].split("\n  odoo:", 1)[0]
+        self.assertIn("read_only: true", fetcher)
+        self.assertIn("cap_drop: [\"ALL\"]", fetcher)
+        self.assertIn("cap_add: [\"SYS_CHROOT\"]", fetcher)
+        self.assertIn("no-new-privileges:true", fetcher)
+        self.assertIn("seccomp=services/usl-receipt-fetcher/seccomp_profile.json", fetcher)
+        self.assertIn("uid=1001,gid=1001", fetcher)
+        self.assertIn("noexec,nosuid,nodev", fetcher)
+        self.assertNotIn("- default", fetcher)
+        dockerfile = (ROOT / "services/usl-receipt-fetcher/Dockerfile").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("USER pwuser", dockerfile)
+        app = (ROOT / "services/usl-receipt-fetcher/app.py").read_text(encoding="utf-8")
+        self.assertIn("chromium_sandbox=True", app)
+        self.assertIn(
+            "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+            app,
+        )
+        self.assertIn("FETCH_SLOTS = asyncio.Semaphore(2)", app)
+        self.assertLess(
+            app.index("page = await context.new_page()"),
+            app.index('context.on("page", capture_popup)'),
+        )
+
     def test_all_versioned_targets_validate(self) -> None:
         for name in ("production", "staging", "local"):
             target = load_target(name, TARGETS)
@@ -74,6 +101,10 @@ class RuntimeContractTests(unittest.TestCase):
             self.assertEqual(
                 set(target.value["compose"]["profiles"]),
                 {"document-renderer", "mcp", "paperless", "sign"},
+            )
+            self.assertEqual(
+                {target.value["services"][key] for key in ("receipt_fetcher", "receipt_egress")},
+                {"usl-receipt-fetcher", "usl-receipt-egress"},
             )
         self.assertEqual(
             load_target("production", TARGETS).value["compose"]["resource_overlay"],

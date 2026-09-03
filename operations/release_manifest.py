@@ -16,7 +16,14 @@ from operations.mcp_release import load_release
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release/v2"
-COMPONENTS = {"distribution", "backup-tool", "paperless", "sign-dss"}
+COMPONENTS = {
+    "backup-tool",
+    "distribution",
+    "paperless",
+    "receipt-egress",
+    "receipt-fetcher",
+    "sign-dss",
+}
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")

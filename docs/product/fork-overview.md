@@ -17,6 +17,7 @@ production-admission work.
 | Customer invoices, supplier bills, expenses, payments, assets, deferrals, bank matching, reconciliation and analytics | native Accounting, `usl_accounting` | **Accounting**, **Expenses** | Operational |
 | Company-aware personal Home and attention summaries | `usl_home` | **Home** | Operational |
 | Expense Batches with shared business and analytic context | `usl_expense_batch`, `usl_accounting` | **Expenses > Expense Batches** | Operational |
+| Learned linked-PDF receipt retrieval from expense emails | `usl_accounting`, OCA `queue_job`, receipt fetcher and egress proxy | Expense receipt guidance; **Accounting > Configuration > Linked Receipts** | Delivered; production remains gated pending release admission |
 | Content-platform payout billing and settlement | `usl_platform_billing`, `usl_platform_billing_pocketid` | **Platform Billing** | Operational |
 | TESE payroll evidence, entries and settlement controls | `usl_tese_payroll`, `usl_tese_accounting` | **Paie TESE** | Operational; TESE remains the legal payroll calculator |
 | Projects and tasks with dependencies, chatter, attachments and stage history | native Projects, `usl_project` | **Projects** | Operational |
@@ -64,7 +65,7 @@ The detailed dependency policy is in
 
 ## Maintained OCA functionality
 
-Reviewed OCA modules provide OIDC, financial and partner statements, bank
+Reviewed OCA modules provide OIDC, durable background jobs, financial and partner statements, bank
 reconciliation, statement imports, assets, tax balances, XLSX reports and
 selected server UX helpers. Exact pins live in `scripts/sync-oca-addons`.
 Compatibility patches are applied deterministically from
@@ -90,7 +91,8 @@ architecture decision, upgrade analysis and regression evidence.
 ## Runtime and release cohort
 
 Odoo, PostgreSQL, Paperless, its broker and archive state, Ollama/BGE, the
-document renderer, Sign services and the separately built MCP image form one
+document renderer, Sign services, isolated receipt-fetcher and receipt-egress
+images, and the separately built MCP image form one
 coordinated release and recovery cohort. A release records exact source
 commits, image digests, modules, configuration identity and backup identity.
 Tags alone are not deployment authority.
