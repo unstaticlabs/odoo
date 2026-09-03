@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+AUTHOR_NAME = "Coding Agent"
+AUTHOR_EMAIL = "318050048+elio-usl@users.noreply.github.com"
+COAUTHOR = "ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>"
+COMMIT_TYPES = {
+    "build", "chore", "ci", "docs", "feat", "fix", "perf", "refactor",
+    "revert", "style", "test",
+}
+PRIVATE_PREFIXES = (
+    ".agent/",
+    "accounting_compat/private/",
+    "artifacts/migration/private/",
+    "private/",
+    "usl-online-dump/",
+)
+
+
+class CommitError(RuntimeError):
+    pass
+
+
+def run(*arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    process = subprocess.run(
+        arguments,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    if check and process.returncode:
+        raise CommitError(process.stderr.strip() or process.stdout.strip())
+    return process
+
+
+def clean_text(value: str, label: str) -> str:
+    value = value.strip()
+    if not value:
+        raise CommitError(f"{label} cannot be empty.")
+    if "\\n" in value or "\r" in value or "\n" in value:
+        raise CommitError(
+            f"{label} must be one argument without escaped or embedded newlines."
+        )
+    return value
+
+
+def validate_author() -> None:
+    name = run("git", "config", "--worktree", "--get", "user.name").stdout.strip()
+    email = run("git", "config", "--worktree", "--get", "user.email").stdout.strip()
+    if (name, email) != (AUTHOR_NAME, AUTHOR_EMAIL):
+        raise CommitError(
+            "Configure the worktree author as "
+            f"{AUTHOR_NAME} <{AUTHOR_EMAIL}> before committing."
+        )
+
+
+def staged_paths() -> list[str]:
+    output = run("git", "diff", "--cached", "--name-only", "-z").stdout
+    paths = [item for item in output.split("\0") if item]
+    if not paths:
+        raise CommitError("The staged index is empty.")
+    private = [
+        path for path in paths
+        if any(path == prefix.rstrip("/") or path.startswith(prefix) for prefix in PRIVATE_PREFIXES)
+    ]
+    if private:
+        raise CommitError(f"Refusing private staged paths: {', '.join(private)}")
+    run("git", "diff", "--cached", "--check")
+    return paths
+
+
+def build_message(arguments: argparse.Namespace) -> str:
+    if arguments.type not in COMMIT_TYPES:
+        raise CommitError(f"Unsupported Conventional Commit type: {arguments.type}")
+    scope = clean_text(arguments.scope, "Scope")
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._/-]*", scope):
+        raise CommitError("Scope must use lowercase Conventional Commit characters.")
+    summary = clean_text(arguments.summary, "Summary")
+    if summary.endswith("."):
+        raise CommitError("Summary must not end with a period.")
+    body = [clean_text(item, "Body paragraph") for item in arguments.body]
+    validation = [clean_text(item, "Validation result") for item in arguments.validation]
+    supplied = [*body, *validation]
+    if any(marker in item for item in supplied for marker in ("AI-generated commit", "Co-authored-by:")):
+        raise CommitError("Attribution is generated automatically.")
+
+    sections = [f"{arguments.type}({scope}): {summary}", *body]
+    if validation:
+        sections.append("Validation:\n" + "\n".join(f"- {item}" for item in validation))
+    sections.extend(("AI-generated commit", f"Co-authored-by: {COAUTHOR}"))
+    return "\n\n".join(sections) + "\n"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Commit the staged changes with USL attribution.")
+    parser.add_argument("--type", required=True, choices=sorted(COMMIT_TYPES))
+    parser.add_argument("--scope", required=True)
+    parser.add_argument("--summary", required=True)
+    parser.add_argument("--body", action="append", required=True)
+    parser.add_argument("--validation", action="append", default=[])
+    parser.add_argument("--dry-run", action="store_true")
+    arguments = parser.parse_args()
+
+    try:
+        validate_author()
+        paths = staged_paths()
+        message = build_message(arguments)
+        print("Staged files:", *[f"  {path}" for path in paths], sep="\n")
+        if arguments.dry_run:
+            print("\nCommit message:\n")
+            print(message, end="")
+            return 0
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as stream:
+            stream.write(message)
+            message_path = Path(stream.name)
+        message_path.chmod(0o600)
+        try:
+            process = run("git", "commit", "--file", str(message_path))
+        finally:
+            message_path.unlink(missing_ok=True)
+        committed = run("git", "show", "-s", "--format=%B", "HEAD").stdout
+        if committed.rstrip() != message.rstrip():
+            raise CommitError("Committed message differs from the generated message.")
+        print(process.stdout, end="")
+        return 0
+    except CommitError as error:
+        print(f"Commit blocked: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

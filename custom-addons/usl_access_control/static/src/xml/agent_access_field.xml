@@ -1,0 +1,44 @@
+<templates xml:space="preserve">
+    <t t-name="usl_access_control.AgentAccessField">
+        <div class="o_usl_agent_access">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="text-muted me-auto">Irreversible actions are always blocked.</span>
+                <button type="button" class="btn btn-secondary" t-att-disabled="props.readonly" t-on-click="() => this.setAll('read')">
+                    Set all to read-only
+                </button>
+                <button type="button" class="btn btn-secondary" t-att-disabled="props.readonly" t-on-click="() => this.setAll('write')">
+                    Set all to highest access
+                </button>
+            </div>
+            <div class="row g-4">
+                <t t-foreach="categories" t-as="category" t-key="category.id">
+                    <section class="col-12 col-xl-6" t-att-aria-label="category.name">
+                        <h6 class="text-uppercase text-muted border-bottom pb-2 mb-2" t-out="category.name"/>
+                        <t t-foreach="category.privileges" t-as="privilege" t-key="privilege.id">
+                            <div class="row align-items-center py-1 g-2">
+                                <label class="col-12 col-sm-5 mb-0" t-att-for="`usl_agent_access_${privilege.id}`">
+                                    <t t-out="privilege.name"/>
+                                </label>
+                                <div class="col-12 col-sm-7">
+                                    <select class="form-select form-select-sm"
+                                            t-att-id="`usl_agent_access_${privilege.id}`"
+                                            t-att-disabled="props.readonly"
+                                            t-on-change="(event) => this.onAccessChanged(privilege, event)">
+                                        <option value="none" t-att-selected="selectedValue(privilege) === 'none'">No access</option>
+                                        <option t-att-value="`read:${privilege.group_ids.at(-1)}`"
+                                                t-att-selected="selectedValue(privilege) === `read:${privilege.group_ids.at(-1)}`">Read-only</option>
+                                        <t t-foreach="privilege.group_ids" t-as="groupId" t-key="groupId">
+                                            <option t-att-value="`write:${groupId}`"
+                                                    t-att-selected="selectedValue(privilege) === `write:${groupId}`"
+                                                    t-out="groupName(groupId)"/>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                        </t>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

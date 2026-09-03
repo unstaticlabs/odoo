@@ -1,0 +1,15 @@
+{
+  "services": {
+    "db": {"cpus": 1.5, "cpu_shares": 1024, "mem_limit": "1g", "mem_reservation": "256m", "memswap_limit": "1536m", "mem_swappiness": 20, "oom_score_adj": -500, "pids_limit": 256},
+    "odoo": {"cpus": 3.0, "cpu_shares": 2048, "mem_limit": "2g", "mem_reservation": "768m", "memswap_limit": "3g", "mem_swappiness": 20, "oom_score_adj": -500, "pids_limit": 512},
+    "odoo-mcp": {"cpus": 1.0, "cpu_shares": 768, "mem_limit": "512m", "mem_reservation": "128m", "memswap_limit": "768m", "mem_swappiness": 20, "oom_score_adj": -300, "pids_limit": 256},
+    "paperless-broker": {"cpus": 0.5, "cpu_shares": 512, "mem_limit": "256m", "mem_reservation": "32m", "memswap_limit": "320m", "mem_swappiness": 10, "oom_score_adj": -200, "pids_limit": 128},
+    "paperless-db": {"cpus": 1.0, "cpu_shares": 1024, "mem_limit": "768m", "mem_reservation": "192m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -400, "pids_limit": 256},
+    "paperless-gotenberg": {"cpus": 1.0, "cpu_shares": 512, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": 0, "pids_limit": 256},
+    "paperless-tika": {"cpus": 1.0, "cpu_shares": 512, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": 0, "pids_limit": 256},
+    "paperless-webserver": {"cpus": 2.0, "cpu_shares": 1024, "mem_limit": "1536m", "mem_reservation": "512m", "memswap_limit": "2g", "mem_swappiness": 20, "oom_score_adj": -300, "pids_limit": 512},
+    "usl-document-renderer": {"cpus": 1.5, "cpu_shares": 768, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -100, "pids_limit": 128},
+    "usl-sign-dss": {"cpus": 1.0, "cpu_shares": 512, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -100, "pids_limit": 256},
+    "usl-sign-step-ca": {"cpus": 0.5, "cpu_shares": 512, "mem_limit": "256m", "mem_reservation": "32m", "memswap_limit": "320m", "mem_swappiness": 10, "oom_score_adj": -200, "pids_limit": 128}
+  }
+}

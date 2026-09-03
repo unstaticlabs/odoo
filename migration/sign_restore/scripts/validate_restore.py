@@ -7,16 +7,21 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from odoo import fields
-
 sys.path.insert(0, "/mnt/sign-restore-migration")
-from source import SourceReader, match_exports, sha256, source_options  # noqa: E402
+from source import (  # noqa: E402
+    SourceReader,
+    match_exports,
+    sha256,
+    source_datetime,
+    source_options,
+)
 
 from odoo.addons.usl_sign.services import field_content
 
 XMLID_MODULE = "usl_sign_restore"
 SOURCE_SNAPSHOT = os.environ["SIGN_SOURCE_SNAPSHOT"]
-source = SourceReader(source_options()).read()
+reader = SourceReader(source_options())
+source = reader.read()
 matches = match_exports(
     source,
     Path(os.getenv("SIGN_EXPORT_DIRECTORY", "/mnt/accounting-source/sign")),
@@ -85,9 +90,7 @@ for request_row in source["requests"]:
         assert target_signer.authentication_method == "external_record"
         assert not target_signer.signature_hash
         assert not target_signer.certificate_serial
-        assert target_signer.signed_on == fields.Datetime.to_datetime(
-            str(source_signer["signing_date"]),
-        )
+        assert target_signer.signed_on == source_datetime(source_signer["signing_date"])
 
     messages = request_record.message_ids
     expected_message_ids = {
@@ -147,16 +150,35 @@ assert len(external_tag) == 1
 external_documents = env["usl.document"].sudo().search(  # noqa: F821
     [("tag_ids", "in", external_tag.ids), ("availability_state", "=", "available")],
 )
-assert len(external_documents) == 41
+used_original_ids = {row["original_attachment_id"] for row in source["requests"]}
+inactive_template_checksums = {
+    sha256(reader.binary(row))
+    for row in source["attachment_inventory"]
+    if row["res_model"] == "sign.document" and row["id"] not in used_original_ids
+}
+inactive_template_documents = external_documents - all_linked_documents
+assert len(inactive_template_documents) == len(inactive_template_checksums)
+assert set(inactive_template_documents.mapped("checksum")) == inactive_template_checksums
+assert len(external_documents) == (
+    len(all_linked_documents) + len(inactive_template_documents)
+)
 
 bindings = env["ir.model.data"].sudo().search([("module", "=", XMLID_MODULE)])  # noqa: F821
 counts = Counter(bindings.mapped("model"))
 assert counts["sign.oca.request"] == 8
 assert counts["sign.oca.request.signer"] == 11
-assert counts["mail.message"] == 86
+assert counts["mail.message"] == (
+    len(source["requests"]) + len(source["messages"]) + len(source["logs"])
+)
 assert env["sign.oca.request"].sudo().search_count(  # noqa: F821
     [("record_kind", "=", "external_archive"), ("state", "!=", "external_archived")],
 ) == 0
+assert env["sign.oca.request"].sudo().search_count(  # noqa: F821
+    [("record_kind", "=", "external_archive")],
+) == len(source["requests"])
+assert env["sign.oca.request.signer"].sudo().search_count(  # noqa: F821
+    [("state", "=", "external_recorded")],
+) == len(source["signers"])
 
 result = {
     "source_snapshot": SOURCE_SNAPSHOT,

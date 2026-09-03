@@ -199,6 +199,17 @@ class B2cAccountingSession(models.Model):
         return super().action_unlock()
 
 
+class StockLandedCost(models.Model):
+    _inherit = "stock.landed.cost"
+
+    def button_validate(self):
+        self._usl_require_irreversible_action(
+            "inventory.landed_cost.validate",
+            "post a landed cost and its resulting inventory valuation",
+        )
+        return super().button_validate()
+
+
 class RebuildAccountClosingPeriod(models.Model):
     _inherit = "rebuild.account.closing.period"
 

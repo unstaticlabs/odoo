@@ -11,8 +11,8 @@ from odoo.tools import BinaryBytes
 RESTORE_REVISION = 2
 EXPECTED_NATIVE_BASELINE = {
     "account_full_reconcile": 1467,
-    "account_move": 5425,
-    "account_move_line": 12991,
+    "account_move": 5434,
+    "account_move_line": 13024,
     "account_partial_reconcile": 2861,
     "active_product_templates": 45,
     "archived_product_templates": 1,

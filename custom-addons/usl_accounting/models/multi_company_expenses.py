@@ -15,6 +15,19 @@ class ResUsers(models.Model):
             "accounting records between legal entities."
         ),
     )
+    usl_expense_excluded_company_ids = fields.Many2many(
+        "res.company",
+        "res_users_expense_company_exclusion_rel",
+        "user_id",
+        "company_id",
+        string="Companies without an employee profile",
+        groups="base.group_system",
+        help=(
+            "Keep access to these companies without creating an employee "
+            "profile for expense submission. Existing employee records are "
+            "never archived automatically."
+        ),
+    )
     usl_expense_company_profile_status = fields.Selection(
         [
             ("disabled", "Not enabled"),
@@ -34,6 +47,7 @@ class ResUsers(models.Model):
         "active",
         "share",
         "company_ids",
+        "usl_expense_excluded_company_ids",
         "all_employee_ids.active",
         "all_employee_ids.company_id",
         "all_employee_ids.user_id",
@@ -51,14 +65,15 @@ class ResUsers(models.Model):
                     "company.",
                 )
                 continue
+            expense_companies = user.company_ids - user.usl_expense_excluded_company_ids
             profiles = Employee.search([
                 ("user_id", "=", user.id),
-                ("company_id", "in", user.company_ids.ids),
+                ("company_id", "in", expense_companies.ids),
             ])
             ready_company_ids = set(
                 profiles.filtered("active").company_id.ids,
             )
-            missing = user.company_ids.filtered(
+            missing = expense_companies.filtered(
                 lambda company: company.id not in ready_company_ids,
             )
             if user.share or not user.active or missing:
@@ -77,7 +92,7 @@ class ResUsers(models.Model):
                 user.usl_expense_company_profile_status = "ready"
                 user.usl_expense_company_profile_message = _(
                     "Expense submission is ready in %(count)s companies.",
-                    count=len(user.company_ids),
+                    count=len(expense_companies),
                 )
 
     def _usl_expense_profile_candidates(self, company):
@@ -113,7 +128,8 @@ class ResUsers(models.Model):
                     _("%(user)s is not an active internal user.", user=user.name),
                 )
                 continue
-            for company in user.company_ids:
+            expense_companies = user.company_ids - user.usl_expense_excluded_company_ids
+            for company in expense_companies:
                 existing = Employee.search([
                     ("user_id", "=", user.id),
                     ("company_id", "=", company.id),
@@ -171,7 +187,7 @@ class ResUsers(models.Model):
             "params": {
                 "title": _("Multi-company expenses are ready"),
                 "message": _(
-                    "Each allowed company has its own employee profile. "
+                    "Each selected company has its own employee profile. "
                     "Switch the active company before creating an expense.",
                 ),
                 "type": "success",
@@ -187,6 +203,12 @@ class ResUsers(models.Model):
 
     def write(self, vals):
         result = super().write(vals)
-        if {"company_ids", "active", "share", "usl_expense_multi_company"} & vals.keys():
+        if {
+            "company_ids",
+            "active",
+            "share",
+            "usl_expense_multi_company",
+            "usl_expense_excluded_company_ids",
+        } & vals.keys():
             self.filtered("usl_expense_multi_company")._usl_ensure_expense_company_profiles()
         return result

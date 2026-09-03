@@ -485,6 +485,20 @@ export class DocumentsWorkspaceView extends Component {
         });
     }
 
+    rpc(model, method, args = [], kwargs = {}) {
+        const actionContext = this.props.action.context || {};
+        const callContext = {
+            ...actionContext,
+            ...(kwargs.context || {}),
+        };
+        return this.orm.call(model, method, args, {
+            ...kwargs,
+            ...(Object.keys(callContext).length
+                ? { context: callContext }
+                : {}),
+        });
+    }
+
     readUrlState() {
         try {
             const url = new URL(browser.location.href);
@@ -1236,18 +1250,13 @@ export class DocumentsWorkspaceView extends Component {
             for (const key of ["domain", "groupBy", "orderBy"]) {
                 url.searchParams.delete(key);
             }
-            // SearchModel intentionally serializes its shareable state with
-            // encodeURIComponent, matching Odoo's router. Do not pass this
-            // encoded query through URLSearchParams: it rewrites spaces as
-            // "+", while Odoo's router only decodes percent escapes. Repeated
-            // reloads would otherwise turn a valid domain into one containing
-            // accumulating unary "+" tokens.
-            const nativeSearch = this.searchModel.generateQueryString();
-            const navigationUrl = new URL(
-                nativeSearch
-                    ? `${url.href}${url.search ? "&" : "?"}${nativeSearch}`
-                    : url.href
-            );
+            // Keep Documents search state under its own URL key. Generic
+            // Odoo domain/groupBy/orderBy parameters are global to the route:
+            // leaving a document domain there makes nested selection dialogs
+            // apply it to unrelated models (for example review_state on tags).
+            // Old shared URLs remain supported because the host SearchModel
+            // reads them before this method canonicalizes the route.
+            const navigationUrl = url;
             const routeFromUrl = router.urlToState(navigationUrl);
             const hostRoute =
                 browser.history.state?.nextState || router.current || {};
@@ -1821,7 +1830,7 @@ export class DocumentsWorkspaceView extends Component {
         this.state.semanticRefining = false;
         this.state.error = "";
         try {
-            const result = await this.orm.call(
+            const result = await this.rpc(
                 "usl.document",
                 "workspace_data",
                 [],
@@ -1838,7 +1847,7 @@ export class DocumentsWorkspaceView extends Component {
             if (progressive && !result.degraded && !result.error) {
                 this.state.semanticRefining = true;
                 try {
-                    const refined = await this.orm.call(
+                    const refined = await this.rpc(
                         "usl.document",
                         "workspace_data",
                         [],
@@ -2140,7 +2149,36 @@ export class DocumentsWorkspaceView extends Component {
         } else {
             selected.add(tag.id);
         }
+        if (this.state.workspace !== "archive_search") {
+            // Tag counts describe the complete archive visible to the current
+            // user. Apply their filters in the same scope instead of silently
+            // intersecting them with Home or another smart-view domain.
+            this.state.workspace = "archive_search";
+            this.state.page = 1;
+            this.state.selected = null;
+        }
         this.replaceTagSearchFilters([...selected]);
+    }
+
+    onMoreTagsToggle(event) {
+        const details = event.currentTarget;
+        if (!details.open) {
+            this.state.tagShortcutQuery = "";
+            return;
+        }
+        browser.requestAnimationFrame(() => {
+            details.querySelector("input[type='search']")?.focus();
+        });
+    }
+
+    selectTagShortcut(tag, event) {
+        const details = event.currentTarget.closest("details");
+        this.toggleTagFilter(tag);
+        this.state.tagShortcutQuery = "";
+        if (details) {
+            details.open = false;
+            details.querySelector("summary")?.focus();
+        }
     }
 
     onTagShortcutSearch(event) {
@@ -2364,7 +2402,7 @@ export class DocumentsWorkspaceView extends Component {
         };
         this.state.selectedLoading = true;
         try {
-            const detail = await this.orm.call(
+            const detail = await this.rpc(
                 "usl.document",
                 "document_detail",
                 [document.id],
@@ -3119,7 +3157,7 @@ export class DocumentsWorkspaceView extends Component {
         }
         const documentName = this.state.selected.name;
         try {
-            await this.orm.call("usl.document", "link_to_record", [
+            await this.rpc("usl.document", "link_to_record", [
                 [this.state.selected.id],
                 this.recordContext.resModel,
                 this.recordContext.resId,
@@ -3145,7 +3183,7 @@ export class DocumentsWorkspaceView extends Component {
         }
         const documentName = this.state.selected.name;
         try {
-            await this.orm.call("usl.document", "unlink_from_record", [
+            await this.rpc("usl.document", "unlink_from_record", [
                 [this.state.selected.id],
                 this.recordContext.resModel,
                 this.recordContext.resId,
@@ -3168,7 +3206,7 @@ export class DocumentsWorkspaceView extends Component {
 
     async openLink(link) {
         this.persistState();
-        const action = await this.orm.call(
+        const action = await this.rpc(
             "usl.document",
             "action_open_linked_record",
             [[this.state.selected.id], link.id]

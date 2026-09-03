@@ -23,12 +23,19 @@ prod` et l’Epic du voyage ; ne créez plus de catégorie propre au voyage.
 Un lot concerne toujours un employé et une société. Il peut mélanger les
 dépenses payées par l’employé et celles payées par la société.
 
+Le lot reste ouvert lorsque toutes ses dépenses sont comptabilisées ou payées.
+Vous pouvez donc y ajouter plus tard une dépense brouillon, approuvée ou déjà
+comptabilisée. Archivez manuellement le lot lorsqu’il ne doit plus recevoir de
+dépenses ; vous pourrez le rouvrir si nécessaire.
+
 ## Appliquer le contexte commun
 
-L’analytique du lot est modifiable directement dans **Contexte commun** tant que
-le lot est en brouillon. Un responsable peut aussi définir un compte de charge
-commun. Sélectionnez **Appliquer le contexte commun** pour prévisualiser les
-changements avant de les confirmer.
+L’analytique et les informations du lot restent modifiables dans **Contexte
+commun** tant que le lot est ouvert. Un responsable peut aussi définir un
+compte de charge commun. Sélectionnez **Appliquer le contexte commun** pour
+prévisualiser les changements avant de les confirmer. Seules les dépenses
+brouillon peuvent recevoir ce contexte : les dépenses approuvées ou
+comptabilisées restent inchangées.
 
 L’ordre de priorité est le suivant :
 
@@ -59,6 +66,8 @@ chaque dépense.
   brouillon et la détache ;
 - un justificatif manquant ou un doublon possible apparaît dans l’aide de la
   ligne ;
+- une date en dehors de la période prévue déclenche un avertissement, sans
+  empêcher l’ajout, la soumission, l’approbation ou la comptabilisation ;
 - les détails de rapprochement et l’historique sont dans **Comptabilité et
   historique**.
 
@@ -68,6 +77,8 @@ Les actions du lot utilisent les étapes Odoo natives : **Soumettre** agit sur
 les brouillons, **Approuver** sur les lignes soumises et **Comptabiliser** sur
 les lignes approuvées. Une information requise manquante bloque la soumission
 avant toute modification partielle.
+
+L’indicateur **Progression des dépenses** résume ces états sans fermer le lot.
 
 Dans un lot mixte, les dépenses personnelles suivent le remboursement et les
 dépenses société suivent la comptabilisation puis le rapprochement bancaire.

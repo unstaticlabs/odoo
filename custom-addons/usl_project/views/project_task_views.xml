@@ -1,4 +1,17 @@
 <odoo>
+    <record id="project_task_type_form_reactivation_role" model="ir.ui.view">
+        <field name="name">project.task.type.form.reactivation.role</field>
+        <field name="model">project.task.type</field>
+        <field name="inherit_id" ref="project.task_type_edit"/>
+        <field name="arch" type="xml">
+            <field name="fold" position="after">
+                <field name="usl_reactivation_role"
+                       invisible="not user_id"
+                       placeholder="No automatic reactivation role"/>
+            </field>
+        </field>
+    </record>
+
     <record id="project_task_form_planning" model="ir.ui.view">
         <field name="name">project.task.form.planning.compatibility</field>
         <field name="model">project.task</field>

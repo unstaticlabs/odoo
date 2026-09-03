@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_platform_billing.BankRecordPreviewField"
+       t-inherit="web.Many2ManyTagsField" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_field_tags')]" position="inside">
+            <span class="d-none" t-ref="previewAnchor"/>
+        </xpath>
+    </t>
+
+    <t t-name="usl_platform_billing.BankRecordPreviewTooltip">
+        <div class="o_usl_platform_billing_bank_preview">
+            <div class="fw-semibold mb-2">
+                <i class="fa fa-bank me-1"/>
+                <t t-if="transactions.length == 1">Linked bank transaction</t>
+                <t t-else="">Linked bank transactions</t>
+            </div>
+            <t t-foreach="transactions" t-as="transaction" t-key="transaction.id">
+                <div t-att-class="transaction_index ? 'border-top pt-2 mt-2' : ''">
+                    <div class="fw-semibold" t-out="transaction.display_name"/>
+                    <div class="small">
+                        <span t-out="transaction.date"/>
+                        <span t-if="transaction.journal"> · <t t-out="transaction.journal"/></span>
+                    </div>
+                    <div t-if="transaction.label" class="small text-wrap"
+                         t-out="transaction.label"/>
+                    <div t-if="transaction.partner" class="small text-muted"
+                         t-out="transaction.partner"/>
+                    <div class="d-flex justify-content-between gap-3 mt-1">
+                        <strong t-out="transaction.amount"/>
+                        <span t-att-class="transaction.reconciled ? 'text-success' : 'text-warning'">
+                            <t t-if="transaction.reconciled">Reconciled</t>
+                            <t t-else="">Open</t>
+                        </span>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

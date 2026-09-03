@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from psycopg2 import IntegrityError
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools import BinaryBytes, file_open, mute_logger
@@ -108,6 +108,52 @@ class TestBankStatementIngestion(TransactionCase):
             )
         return ingestion
 
+    @staticmethod
+    def _shine_october_ofx2():
+        amounts = [100.0, *(-float(ordinal) for ordinal in range(1, 23))]
+        fitids = [f"shine-october-{ordinal:03d}" for ordinal in range(1, 24)]
+        transactions = []
+        for ordinal, (amount, fitid) in enumerate(zip(amounts, fitids), start=1):
+            transactions.append(
+                "".join(
+                    (
+                        "<STMTTRN>",
+                        f"<TRNTYPE>{'CREDIT' if amount > 0 else 'DEBIT'}</TRNTYPE>",
+                        f"<DTPOSTED>202610{ordinal:02d}120000</DTPOSTED>",
+                        f"<TRNAMT>{amount:.2f}</TRNAMT>",
+                        f"<FITID>{fitid}</FITID>",
+                        f"<NAME>Paiement café numéro {ordinal:02d}</NAME>",
+                        f"<MEMO>Référence été {ordinal:02d}</MEMO>",
+                        "</STMTTRN>",
+                    ),
+                ),
+            )
+        document = "".join(
+            (
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<?OFX OFXHEADER="200" VERSION="220" SECURITY="NONE" '
+                'OLDFILEUID="NONE" NEWFILEUID="NONE" ENCODING="UTF-8" '
+                'CHARSET="NONE" COMPRESSION="NONE"?>',
+                "<OFX><SIGNONMSGSRSV1><SONRS>",
+                "<STATUS><CODE>0</CODE><SEVERITY>INFO</SEVERITY></STATUS>",
+                "<DTSERVER>20261031235959.000[0:GMT]</DTSERVER>",
+                "<LANGUAGE>FRA</LANGUAGE></SONRS></SIGNONMSGSRSV1>",
+                "<BANKMSGSRSV1><STMTTRNRS><TRNUID>shine-october-2026</TRNUID>",
+                "<STATUS><CODE>0</CODE><SEVERITY>INFO</SEVERITY></STATUS>",
+                "<STMTRS><CURDEF>EUR</CURDEF><BANKACCTFROM>",
+                "<BANKID>00001</BANKID>",
+                "<ACCTID>FR7630001007941234567890185</ACCTID>",
+                "<ACCTTYPE>CHECKING</ACCTTYPE></BANKACCTFROM><BANKTRANLIST>",
+                "<DTSTART>20261001000000</DTSTART>",
+                "<DTEND>20261031235959</DTEND>",
+                *transactions,
+                "</BANKTRANLIST><LEDGERBAL><BALAMT>4847.00</BALAMT>",
+                "<DTASOF>20261031235959</DTASOF></LEDGERBAL>",
+                "</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>",
+            ),
+        )
+        return document.encode("utf-8"), fitids, amounts
+
     def _process_complete_month(self):
         ingestion = self._ingestion(
             "<synthetic-complete@example.invalid>",
@@ -119,7 +165,115 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
         statement = ingestion.statement_ids
         self.assertEqual(len(statement), 1)
+        self._complete_documents_archive(statement)
         return ingestion, statement
+
+    def _complete_documents_archive(self, statement):
+        """Model the external Documents worker when that integration is installed."""
+        evidence = statement.accepted_evidence_id
+        if not evidence or "paperless_archive_state" not in evidence._fields:
+            return
+
+        banking_view = self.env.ref("usl_documents.smart_view_banking")
+        banking_tags = banking_view.tag_ids
+        if not banking_tags:
+            banking_tags = (
+                self.env["usl.paperless.tag"]
+                .sudo()
+                .with_context(usl_documents_cache_write=True)
+                .create({
+                    "name": "Banking",
+                    "paperless_id": 970_000_000 + evidence.id,
+                    "matching_algorithm": "6",
+                    "active": True,
+                })
+            )
+            banking_view.sudo().with_context(
+                usl_documents_archive_view_sync=True,
+            ).write({"tag_ids": [Command.set(banking_tags.ids)]})
+        statement_tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .search([("name", "=ilike", "Bank statement")], limit=1)
+        )
+        if not statement_tag:
+            statement_tag = (
+                self.env["usl.paperless.tag"]
+                .sudo()
+                .with_context(usl_documents_cache_write=True)
+                .create(
+                    {
+                        "name": "Bank statement",
+                        "paperless_id": 975_000_000 + evidence.id,
+                        "matching_algorithm": "6",
+                        "active": True,
+                    },
+                )
+            )
+        required_tags = banking_tags | statement_tag
+
+        Link = self.env["usl.document.link"].sudo()
+        link = Link.search([
+            ("res_model", "=", statement._name),
+            ("res_id", "=", statement.id),
+            ("active", "=", True),
+        ], limit=1)
+        document = link.document_id
+        if not document:
+            document = self.env["usl.document"].sudo().create({
+                "name": f"Archived bank statement {statement.display_name}",
+                "paperless_id": 980_000_000 + evidence.id,
+                "company_id": evidence.company_id.id,
+                "confidentiality": "accounting",
+                "accounting_evidence": True,
+                "retention_hold": True,
+                "review_state": "reviewed",
+                "availability_state": "available",
+                "permission_sync_state": "synchronized",
+                "checksum": evidence.sha256,
+                "tag_ids": [Command.set(required_tags.ids)],
+            })
+        else:
+            document.version_ids.sudo().write({"is_current": False})
+            document.sudo().with_context(
+                usl_documents_cache_write=True,
+            ).write({
+                "checksum": evidence.sha256,
+                "permission_sync_state": "synchronized",
+                "tag_ids": [Command.set(required_tags.ids)],
+            })
+            document.sudo().write({"review_state": "reviewed"})
+
+        version_id = f"bank-evidence-{evidence.id}"
+        self.env["usl.document.version"].sudo().create({
+            "document_id": document.id,
+            "paperless_version_id": version_id,
+            "label": "Received original",
+            "checksum": evidence.sha256,
+            "is_current": True,
+            "is_received_original": True,
+            "source": "odoo_attachment",
+        })
+        if link:
+            link.write({"version_id": version_id})
+        else:
+            Link.create({
+                "document_id": document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": evidence.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": version_id,
+            })
+        evidence.sudo().write({
+            "paperless_archive_state": "archived",
+            "paperless_document_id": document.id,
+            "paperless_version": version_id,
+            "paperless_archive_error": False,
+            "paperless_archived_at": fields.Datetime.now(),
+        })
+        statement.invalidate_recordset()
 
     def _confirm_and_certify(self, statement, balance_start, balance_end):
         self.env["account.bank.statement.confirm"].create(
@@ -167,6 +321,174 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(
             action["view_id"],
             self.env.ref("usl_accounting.view_bank_statement_form_review").id,
+        )
+
+    def test_french_ofx_components_match_the_configured_iban(self):
+        split_account_ofx = self.ofx.replace(
+            b"<BANKID>00001</BANKID>\n          <ACCTID>FR7630001007941234567890185</ACCTID>",
+            b"<BANKID>30001</BANKID>\n          <BRANCHID>00794</BRANCHID>\n          <ACCTID>12345678901</ACCTID>",
+        )
+        ingestion = self._ingestion(
+            "<synthetic-french-components@example.invalid>",
+            ofx=split_account_ofx,
+            pdf=self.pdf,
+        )
+        ingestion._retain_message_attachments()
+        ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )._ensure_exception(
+            "account",
+            "Prior account mismatch",
+            "Created by the former complete-IBAN-only matcher.",
+        )
+
+        ingestion.action_process_now()
+
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
+        self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
+        self.assertEqual(
+            set(ingestion.statement_ids.line_ids.mapped("provider_account_id")),
+            {"FR7630001007941234567890185"},
+        )
+        self.assertFalse(
+            ingestion.exception_ids.filtered(
+                lambda item: item.kind == "account" and item.state == "open",
+            ),
+        )
+
+    def test_utf8_ofx2_imports_october_unchanged_and_retries_idempotently(self):
+        original, fitids, amounts = self._shine_october_ofx2()
+        original_checksum = hashlib.sha256(original).hexdigest()
+        ingestion = self._ingestion(
+            "<shine-october-ofx2@example.invalid>",
+            ofx=original,
+            subject="Export Shine - du 01/10/2026 au 31/10/2026",
+        )
+        ingestion._retain_message_attachments()
+        source = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        source._ensure_exception(
+            "import",
+            "Former OFX XML parser failure",
+            "The former parser incorrectly attempted ASCII decoding.",
+        )
+
+        ingestion.action_process_now()
+
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
+        self.assertEqual(source._content(), original)
+        self.assertEqual(source.sha256, original_checksum)
+        statement = ingestion.statement_ids
+        self.assertEqual(len(statement), 1)
+        self.assertEqual(statement.period_start, dt.date(2026, 10, 1))
+        self.assertEqual(statement.period_end, dt.date(2026, 10, 31))
+        self.assertEqual(len(statement.line_ids), 23)
+        self.assertEqual(statement.balance_start, 4847 - sum(amounts))
+        self.assertEqual(statement.balance_end_real, 4847)
+        self.assertEqual(
+            set(statement.line_ids.mapped("provider_account_id")),
+            {"FR7630001007941234567890185"},
+        )
+        self.assertEqual(
+            set(statement.line_ids.mapped("provider_transaction_id")),
+            set(fitids),
+        )
+        self.assertEqual(
+            set(statement.line_ids.mapped("date")),
+            {dt.date(2026, 10, day) for day in range(1, 24)},
+        )
+        self.assertTrue(
+            all(
+                "café" in reference
+                for reference in statement.line_ids.mapped("payment_ref")
+            ),
+        )
+        self.assertFalse(
+            source.exception_ids.filtered(
+                lambda item: item.kind == "import" and item.state == "open",
+            ),
+        )
+        original_line_ids = set(statement.line_ids.ids)
+
+        ingestion.action_retry()
+
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(set(statement.line_ids.ids), original_line_ids)
+        self.assertEqual(len(statement.line_ids), 23)
+        self.assertEqual(source._content(), original)
+        self.assertEqual(source.sha256, original_checksum)
+
+    def test_ofx2_rejects_invalid_encoding_and_malformed_xml_unchanged(self):
+        invalid_sources = (
+            (
+                b'<?xml version="1.0"?><?OFX OFXHEADER="200" '
+                b'ENCODING="NOT-A-CODEC"?><OFX></OFX>',
+                "unsupported encoding",
+            ),
+            (
+                b'<?xml version="1.0" encoding="UTF-8"?>'
+                b'<OFX><BANKMSGSRSV1></OFX>',
+                "malformed",
+            ),
+        )
+        for ordinal, (original, expected_error) in enumerate(
+            invalid_sources,
+            start=1,
+        ):
+            ingestion = self._ingestion(
+                f"<invalid-ofx2-{ordinal}@example.invalid>",
+                ofx=original,
+            )
+
+            ingestion.action_process_now()
+
+            source = ingestion.file_ids.filtered(
+                lambda item: item.classification == "ofx",
+            )
+            self.assertEqual(source.processing_state, "failed")
+            self.assertIn(expected_error, source.processing_detail.lower())
+            self.assertEqual(source._content(), original)
+            self.assertEqual(source.sha256, hashlib.sha256(original).hexdigest())
+
+    def test_legacy_sgml_parser_input_is_not_normalized(self):
+        legacy = (
+            b"OFXHEADER:100\nDATA:OFXSGML\nVERSION:102\n"
+            b"SECURITY:NONE\nENCODING:USASCII\nCHARSET:1252\n\n"
+            b"<OFX><SIGNONMSGSRSV1><SONRS><STATUS><CODE>0"
+        )
+        self.assertEqual(
+            self.env["account.bank.ingestion.file"]._normalize_ofx_parser_content(
+                legacy,
+            ),
+            legacy,
+        )
+
+    def test_french_ofx_components_must_all_match_the_configured_iban(self):
+        mismatched_ofx = self.ofx.replace(
+            b"<BANKID>00001</BANKID>\n          <ACCTID>FR7630001007941234567890185</ACCTID>",
+            b"<BANKID>30001</BANKID>\n          <BRANCHID>00795</BRANCHID>\n          <ACCTID>12345678901</ACCTID>",
+        )
+        ingestion = self._ingestion(
+            "<synthetic-french-mismatch@example.invalid>",
+            ofx=mismatched_ofx,
+        )
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids)
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file.processing_state, "failed")
+        self.assertTrue(ofx_file.processing_detail)
+        self.assertTrue(
+            ingestion.exception_ids.filtered(
+                lambda item: item.kind == "account" and item.state == "open",
+            ),
         )
 
     def test_unmanaged_manual_statement_remains_outside_scheduled_review(self):
@@ -228,6 +550,25 @@ class TestBankStatementIngestion(TransactionCase):
             ),
         )
 
+    def test_retry_preserves_the_accepted_official_pdf(self):
+        ingestion = self._ingestion(
+            "<synthetic-retry-evidence@example.invalid>",
+            ofx=self.ofx,
+            pdf=self.pdf,
+        )
+        ingestion.action_process_now()
+        statement = ingestion.statement_ids
+        evidence = statement.accepted_evidence_id
+
+        self.assertTrue(evidence)
+        self.assertEqual(evidence.evidence_status, "accepted")
+
+        ingestion.action_retry()
+
+        self.assertEqual(statement.accepted_evidence_id, evidence)
+        self.assertEqual(evidence.evidence_status, "accepted")
+        self.assertEqual(evidence.processing_state, "processed")
+
     def test_partially_overlapping_export_adds_only_the_missing_identity(self):
         _first, statement = self._process_complete_month()
         additional_transaction = b"""
@@ -261,6 +602,69 @@ class TestBankStatementIngestion(TransactionCase):
                 ),
             ),
             1,
+        )
+
+    def test_migrated_split_fee_identity_is_recovered_without_duplicates(self):
+        migrated_statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Migrated July history",
+                "journal_id": self.journal.id,
+                "date": dt.date(2026, 7, 31),
+                "balance_start": 1000,
+                "balance_end_real": 1249,
+            },
+        )
+        existing = self.env["account.bank.statement.line"].sudo().create(
+            [
+                {
+                    "name": "Synthetic client receipt",
+                    "payment_ref": "Synthetic client receipt",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 5),
+                    "amount": 300,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-001"}},
+                },
+                {
+                    "name": "Card payment",
+                    "payment_ref": "Card payment",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 10),
+                    "amount": -50,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-002"}},
+                },
+                {
+                    "name": "Card fee",
+                    "payment_ref": "Card fee",
+                    "journal_id": self.journal.id,
+                    "statement_id": migrated_statement.id,
+                    "date": dt.date(2026, 7, 10),
+                    "amount": -1,
+                    "transaction_details": {"extra": {"id": "shine-synthetic-002"}},
+                },
+            ],
+        )
+        split_fee_ofx = self.ofx.replace(
+            b"<TRNAMT>-50.00</TRNAMT>\n            <FITID>shine-synthetic-003</FITID>",
+            b"<TRNAMT>-1.00</TRNAMT>\n            <FITID>shine-fee-003</FITID>",
+        ).replace(b"<BALAMT>1200.00", b"<BALAMT>1249.00")
+        self.assertIn(b"<FITID>shine-fee-003</FITID>", split_fee_ofx)
+        ingestion = self._ingestion(
+            "<synthetic-split-fee@example.invalid>",
+            ofx=split_fee_ofx,
+            pdf=self.pdf,
+        )
+
+        ingestion.action_process_now()
+
+        detail = " | ".join(ingestion.exception_ids.mapped("detail"))
+        self.assertEqual(ingestion.state, "done", ingestion.last_error or detail)
+        self.assertEqual(ingestion.statement_ids, migrated_statement)
+        self.assertEqual(ingestion.statement_ids.line_ids, existing)
+        self.assertEqual(
+            set(existing.mapped("provider_transaction_id")),
+            {"shine-synthetic-001", "shine-synthetic-002", "shine-fee-003"},
         )
 
     def test_provider_identity_constraint_is_the_concurrency_backstop(self):
@@ -374,13 +778,18 @@ class TestBankStatementIngestion(TransactionCase):
             None,
             message.as_bytes(),
         )
-        self.assertEqual(ingestion.state, "received")
-
-        self.env["account.bank.ingestion"]._cron_process_pending()
-
         self.assertEqual(ingestion.state, "done", ingestion.last_error)
         self.assertTrue(ingestion.statement_ids.line_ids)
         self.assertTrue(ingestion.statement_ids.accepted_evidence_id)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        source_email = ingestion.file_ids.filtered(
+            lambda item: item.classification == "email",
+        )
+        self.assertEqual(source_email.processing_state, "processed")
 
     def test_email_processing_requires_a_complete_route(self):
         self.config.allowed_senders = False
@@ -393,6 +802,7 @@ class TestBankStatementIngestion(TransactionCase):
             archive.writestr("transactions.ofx", self.ofx)
             archive.writestr("statement.pdf", self.pdf)
             archive.writestr("transactions.csv", "Date,Amount\n2026-07-05,300\n")
+            archive.writestr("copies/transactions.csv", "Date,Amount\n2026-07-05,300\n")
             archive.writestr("transactions.qif", "!Type:Bank\nD07/05/2026\nT300\n^")
         ingestion = self._ingestion("<synthetic-zip@example.invalid>")
         self.env["ir.attachment"].sudo().create(
@@ -417,6 +827,43 @@ class TestBankStatementIngestion(TransactionCase):
             set(archive_file.extracted_file_ids.mapped("classification")),
             {"ofx", "pdf", "csv", "qif"},
         )
+        csv_files = archive_file.extracted_file_ids.filtered(
+            lambda item: item.classification == "csv",
+        )
+        self.assertEqual(
+            csv_files.mapped("processing_state"),
+            ["ignored", "duplicate"],
+        )
+        qif_file = archive_file.extracted_file_ids.filtered(
+            lambda item: item.classification == "qif",
+        )
+        self.assertEqual(qif_file.processing_state, "ignored")
+        self.assertTrue(all(csv_files.mapped("processing_detail")))
+        self.assertTrue(qif_file.processing_detail)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
+
+        retained = {
+            source_file.id: (source_file.sha256, source_file._content())
+            for source_file in ingestion.file_ids
+        }
+        ingestion._process()
+
+        self.assertEqual(set(ingestion.file_ids.ids), set(retained))
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state in ("pending", "attention"),
+            ),
+        )
+        for source_file in ingestion.file_ids:
+            self.assertEqual(
+                (source_file.sha256, source_file._content()),
+                retained[source_file.id],
+            )
         self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
 
     def test_allowlisted_shine_link_download_is_retained_and_processed(self):
@@ -508,21 +955,29 @@ class TestBankStatementIngestion(TransactionCase):
         archive_file = ingestion.file_ids.filtered(
             lambda item: item.classification == "zip",
         )
+        self.assertEqual(archive_file.processing_state, "failed")
+        self.assertIn("unsafe path", archive_file.processing_detail)
         self.assertFalse(archive_file.extracted_file_ids)
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
         self.assertTrue(
             ingestion.exception_ids.filtered(lambda item: item.state == "open"),
         )
 
-    def test_unsupported_attachment_is_visible_and_blocks_certification(self):
+    def test_unsupported_attachment_is_retained_and_intentionally_ignored(self):
         ingestion = self._ingestion(
             "<synthetic-unsupported@example.invalid>",
             ofx=self.ofx,
             pdf=self.pdf,
         )
-        self.env["ir.attachment"].sudo().create(
+        original = b"unexpected accounting export"
+        attachment = self.env["ir.attachment"].sudo().create(
             {
                 "name": "unexpected.bin",
-                "raw": b"unexpected accounting export",
+                "raw": original,
                 "mimetype": "application/octet-stream",
                 "res_model": ingestion._name,
                 "res_id": ingestion.id,
@@ -533,9 +988,19 @@ class TestBankStatementIngestion(TransactionCase):
         ingestion.action_process_now()
 
         statement = ingestion.statement_ids
-        self.assertEqual(ingestion.state, "attention")
-        self.assertTrue(
-            statement.exception_ids.filtered(lambda item: item.kind == "unsupported"),
+        self._complete_documents_archive(statement)
+        source_file = ingestion.file_ids.filtered(
+            lambda item: item.attachment_id == attachment,
+        )
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(source_file.processing_state, "ignored")
+        self.assertTrue(source_file.processing_detail)
+        self.assertEqual(source_file._content(), original)
+        self.assertEqual(bytes(attachment.raw), original)
+        self.assertFalse(
+            statement.exception_ids.filtered(
+                lambda item: item.kind == "unsupported" and item.state == "open",
+            ),
         )
         self.env["account.bank.statement.confirm"].create(
             {
@@ -545,15 +1010,30 @@ class TestBankStatementIngestion(TransactionCase):
             },
         ).action_confirm()
         statement.action_confirm_cutover_baseline()
-        self.assertFalse(statement.can_certify)
-        open_issue = statement.exception_ids.filtered(
-            lambda item: item.kind == "unsupported" and item.state == "open",
+        self.assertTrue(statement.can_certify, statement.review_blocking_reason)
+
+    def test_unapproved_sender_fails_every_retained_file_with_guidance(self):
+        ingestion = self._ingestion(
+            "<synthetic-unapproved@example.invalid>",
+            ofx=self.ofx,
+            pdf=self.pdf,
+            sender="Unknown <unknown@example.invalid>",
         )
-        self.assertEqual(len(open_issue), 1)
-        self.assertIn(open_issue.name, statement.review_blocking_reason)
-        self.assertEqual(statement.transaction_check_status, "attention")
-        action = open_issue.action_open_resolution()
-        self.assertEqual(action["res_id"], open_issue.id)
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "failed")
+        self.assertFalse(
+            ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ),
+        )
+        self.assertEqual(set(ingestion.file_ids.mapped("processing_state")), {"failed"})
+        self.assertTrue(all(ingestion.file_ids.mapped("processing_detail")))
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file._content(), self.ofx)
 
     def test_accounting_manager_can_resolve_issue_without_ingestion_write_access(self):
         ingestion = self._ingestion(
@@ -572,9 +1052,13 @@ class TestBankStatementIngestion(TransactionCase):
             },
         )
         ingestion.action_process_now()
-        issue = ingestion.exception_ids.filtered(
-            lambda item: item.kind == "unsupported" and item.state == "open",
+        issue = ingestion._ensure_exception(
+            "import",
+            "Synthetic manager decision",
+            "A focused fixture for the exception-resolution access workflow.",
+            statement=ingestion.statement_ids,
         )
+        ingestion._refresh_processing_state()
         manager = new_test_user(
             self.env,
             login="bank-ingestion-issue-manager",
@@ -589,7 +1073,7 @@ class TestBankStatementIngestion(TransactionCase):
         issue.with_user(manager).write(
             {
                 "resolution": "not_relevant",
-                "resolution_reason": "This text file is not part of the bank statement.",
+                "resolution_reason": "The source was reviewed and needs no correction.",
             },
         )
         issue.with_user(manager).action_resolve()
@@ -657,6 +1141,28 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(setup_menu.parent_id, matching_menu.parent_id)
         self.assertEqual(setup_menu.sequence, matching_menu.sequence + 1)
 
+    def test_bank_identifier_is_readable_but_credentials_remain_masked(self):
+        config_architecture = self.env.ref(
+            "usl_accounting.view_bank_ingestion_config_form",
+        )._get_combined_arch()
+        account_identifiers = config_architecture.xpath(
+            "//field[@name='source_account_identifier']",
+        )
+        self.assertEqual(len(account_identifiers), 1)
+        self.assertIsNone(account_identifiers[0].get("password"))
+        self.assertNotEqual(account_identifiers[0].get("widget"), "password")
+
+        incoming_mail_architecture = self.env.ref(
+            "mail.view_email_server_form",
+        )._get_combined_arch()
+        credential_fields = incoming_mail_architecture.xpath(
+            "//field[@name='password']",
+        )
+        self.assertTrue(credential_fields)
+        self.assertTrue(
+            all(field.get("password") == "True" for field in credential_fields),
+        )
+
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion("<synthetic-no-pdf@example.invalid>", ofx=self.ofx)
         ingestion.action_process_now()
@@ -692,6 +1198,11 @@ class TestBankStatementIngestion(TransactionCase):
 
         self.assertEqual(ingestion.state, "attention")
         self.assertFalse(ingestion.statement_ids)
+        ofx_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "ofx",
+        )
+        self.assertEqual(ofx_file.processing_state, "failed")
+        self.assertTrue(ofx_file.processing_detail)
         exceptions = ingestion.exception_ids.filtered(
             lambda item: item.kind == "identity" and item.state == "open",
         )
@@ -721,6 +1232,7 @@ class TestBankStatementIngestion(TransactionCase):
             set(statement.line_ids.mapped("provider_identity_kind")),
             {"approved_fallback"},
         )
+        self.assertEqual(ofx_file.processing_state, "processed")
         self.assertEqual(ingestion.state, "done")
         ingestion.action_retry()
         self.assertEqual(len(statement.line_ids), 3)
@@ -769,6 +1281,44 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(len(statement.certification_ids), 2)
         self.assertEqual(statement.certification_ids[0].event_type, "reopen")
 
+    def test_certified_statement_accepts_only_invariant_reconciliation_metadata(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids.filtered(lambda line: line.amount > 0)[:1]
+        foreign_currency = self.env["res.currency"].create(
+            {"name": "CRM", "symbol": "$C", "rounding": 0.01},
+        )
+        foreign_amount = foreign_currency.round(bank_line.amount * 1.2)
+        certified_fingerprint = bank_line._certified_reconciliation_fingerprint()
+
+        with self.assertRaises(UserError):
+            bank_line.write(
+                {
+                    "foreign_currency_id": foreign_currency.id,
+                    "amount_currency": foreign_amount,
+                },
+            )
+
+        bank_line._write_reconciliation_metadata(
+            {
+                "partner_id": self.company.partner_id.id,
+                "foreign_currency_id": foreign_currency.id,
+                "amount_currency": foreign_amount,
+            },
+        )
+
+        self.assertEqual(statement.certification_state, "certified")
+        self.assertEqual(bank_line.foreign_currency_id, foreign_currency)
+        self.assertEqual(bank_line.amount_currency, foreign_amount)
+        self.assertEqual(
+            bank_line._certified_reconciliation_fingerprint(),
+            certified_fingerprint,
+        )
+        with self.assertRaises(ValidationError):
+            bank_line._write_reconciliation_metadata(
+                {"amount": bank_line.amount + 1},
+            )
+
     def test_balance_mismatch_is_saved_and_blocks_certification(self):
         _ingestion, statement = self._process_complete_month()
         self.env["account.bank.statement.confirm"].create(
@@ -799,6 +1349,7 @@ class TestBankStatementIngestion(TransactionCase):
         )
         august.action_process_now()
         statement = august.statement_ids
+        self._complete_documents_archive(statement)
 
         self.env["account.bank.statement.confirm"].create(
             {
@@ -847,6 +1398,7 @@ class TestBankStatementIngestion(TransactionCase):
             },
         ).action_reopen()
         replacement.action_accept_evidence()
+        self._complete_documents_archive(statement)
         self.assertEqual(original.evidence_status, "superseded")
         self.assertEqual(statement.accepted_evidence_id, replacement)
         self.assertEqual(

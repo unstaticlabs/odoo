@@ -3646,3 +3646,42 @@ msgstr "Le PDF de paie est archivé et sa dernière mise à jour est encore en c
 #: code:addons/usl_tese_payroll/models/documents.py:0
 msgid "The official payroll PDF is archived in Documents and linked to this payroll record and the employee library."
 msgstr "Le PDF de paie officiel est archivé dans Documents et lié à cet enregistrement de paie ainsi qu’à la bibliothèque de l’employé."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Choose from Documents"
+msgstr "Choisir dans Documents"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_document_link_wizard_form
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "Choose the official TESE PDF"
+msgstr "Choisir le PDF TESE officiel"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_document_link_wizard_form
+msgid "The verified archived original will be reused. Documents will not upload a second copy to Paperless."
+msgstr "L’original archivé et vérifié sera réutilisé. Documents ne téléversera pas une seconde copie dans Paperless."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_document_link_wizard_form
+msgid "Use this PDF"
+msgstr "Utiliser ce PDF"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The archived PDF is now the official TESE document. The existing Paperless original was reused without creating a duplicate."
+msgstr "Le PDF archivé est maintenant le document TESE officiel. L’original Paperless existant a été réutilisé sans créer de doublon."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/documents.py:0
+msgid "The archived PDF no longer matches its verified Documents checksum. Nothing was linked."
+msgstr "Le PDF archivé ne correspond plus à son empreinte Documents vérifiée. Aucun document n’a été lié."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_document_link_wizard_form
+msgid "The initial list shows only unlinked Payroll matches from Paperless. Search by name to find another eligible PDF."
+msgstr "La liste initiale affiche uniquement les documents de paie non liés reconnus par Paperless. Recherchez par nom pour trouver un autre PDF éligible."

@@ -11,6 +11,9 @@
         <xpath expr="//form[@data-captcha='login']" position="after">
             <div t-if="usl_sso_only" class="oe_login_form text-center">
                 <p class="mb-3">Use your USL identity to continue.</p>
+                <p class="alert alert-warning text-start" t-if="usl_odoo_android_app" role="status">
+                    Pocket ID sign-in does not currently return to the Odoo Android app. You can still try it, or use Odoo in your browser.
+                </p>
                 <p class="alert alert-danger text-start" t-if="error" role="alert">
                     <t t-out="error"/>
                 </p>
@@ -20,7 +23,15 @@
                     class="btn btn-primary w-100">
                     Continue with Pocket ID
                 </a>
-                <p t-else="" class="alert alert-warning text-start" role="alert">
+                <a
+                    t-if="usl_odoo_android_app and usl_pwa_login_url"
+                    t-att-href="usl_pwa_login_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-link mt-2">
+                    Open Odoo in your browser
+                </a>
+                <p t-if="not usl_pocketid_provider" class="alert alert-warning text-start" role="alert">
                     Pocket ID is not ready. Contact an administrator.
                 </p>
             </div>

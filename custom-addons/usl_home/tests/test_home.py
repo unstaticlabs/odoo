@@ -2,8 +2,10 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import Command, fields
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
+
+from ..hooks import ensure_distribution_update_channel, post_init_hook
 
 
 @tagged("post_install", "-at_install", "usl_home")
@@ -56,6 +58,47 @@ class TestUslHome(TransactionCase):
             action_id=explicit_action.id,
         )
         self.assertEqual(explicitly_configured.action_id.id, explicit_action.id)
+
+    def test_distribution_update_channel_is_internal_and_group_subscribed(self):
+        channel = self.env.ref("usl_home.channel_distribution_updates")
+        self.assertEqual(channel.name, "USL Distribution Updates")
+        self.assertIn(self.env.ref("base.group_user"), channel.group_ids)
+        self.assertNotIn(self.env.ref("base.group_portal"), channel.group_ids)
+
+    def test_distribution_update_channel_upgrade_is_idempotent(self):
+        channel = self.env.ref("usl_home.channel_distribution_updates")
+        internal_group = self.env.ref("base.group_user")
+        portal_group = self.env.ref("base.group_portal")
+        channel.group_ids = [
+            Command.unlink(internal_group.id),
+            Command.link(portal_group.id),
+        ]
+
+        ensure_distribution_update_channel(self.env)
+        ensure_distribution_update_channel(self.env)
+
+        self.assertIn(internal_group, channel.group_ids)
+        self.assertNotIn(portal_group, channel.group_ids)
+
+    def test_agent_identity_never_receives_interactive_home_action(self):
+        if "usl.agent" not in self.env.registry:
+            self.skipTest("Agent identities are not installed in this registry")
+
+        owner = self.project_user
+        agent = self.env["usl.agent"].with_user(owner).create(
+            {
+                "name": "Home hook test Agent",
+                "purpose": "Verify non-interactive Home defaults.",
+                "owner_id": owner.id,
+                "company_id": owner.company_id.id,
+                "company_ids": [Command.set(owner.company_ids.ids)],
+            },
+        )
+        self.assertFalse(agent.user_id.action_id)
+
+        post_init_hook(self.env)
+
+        self.assertFalse(agent.user_id.action_id)
 
     def test_layout_is_validated_and_isolated(self):
         Settings = self.env["res.users.settings"]
@@ -116,6 +159,49 @@ class TestUslHome(TransactionCase):
         self.assertGreaterEqual(result["signals"]["due_soon"], 1)
         self.assertGreaterEqual(result["signals"]["waiting"], 1)
         self.assertGreaterEqual(result["signals"]["changes_requested"], 1)
+
+    def test_my_task_metric_actions_match_the_displayed_counts(self):
+        today = fields.Date.today()
+        self._task("Overdue", date_deadline=today - timedelta(days=1))
+        self._task("Due soon", date_deadline=today + timedelta(days=2))
+        self._task("Waiting", state="04_waiting_normal")
+        self._task("Changes", state="02_changes_requested")
+        service = self.env["usl.home.service"].with_user(self.project_user)
+        summary = service.get_my_tasks()
+        Task = self.env["project.task"].with_user(self.project_user)
+
+        for signal, expected_count in summary["signals"].items():
+            with self.subTest(signal=signal):
+                action = service.get_my_tasks_action("signal", signal)
+                self.assertEqual(action["res_model"], "project.task")
+                metric_filter = action["usl_home_filter"]
+                self.assertTrue(metric_filter["is_default"])
+                self.assertEqual(
+                    Task.search_count(metric_filter["domain"]),
+                    expected_count,
+                )
+
+        stage = next(item for item in summary["stages"] if item["id"] == self.stage.id)
+        action = service.get_my_tasks_action("stage", self.stage.id)
+        self.assertEqual(
+            Task.search_count(action["usl_home_filter"]["domain"]),
+            stage["count"],
+        )
+        self.assertIn(self.stage.display_name, action["name"])
+        self.assertEqual(
+            action["usl_home_filter"]["description"],
+            self.stage.display_name,
+        )
+
+        for filter_type, filter_value in (
+            ("signal", "unknown"),
+            ("stage", False),
+            ("stage", 0),
+            ("unknown", "overdue"),
+        ):
+            with self.subTest(filter_type=filter_type, filter_value=filter_value):
+                with self.assertRaises(UserError):
+                    service.get_my_tasks_action(filter_type, filter_value)
 
     def test_project_widget_and_aggregate_are_omitted_without_access(self):
         service = self.env["usl.home.service"].with_user(self.other_user)
@@ -242,7 +328,7 @@ class TestUslHome(TransactionCase):
             )["available"],
         )
 
-    def test_accounting_widget_uses_only_the_active_company_and_hides_from_restricted_user(self):
+    def test_accounting_widget_aggregates_selected_companies_and_preserves_scope(self):
         if "rebuild.account.overview" not in self.env.registry:
             self.skipTest("Accounting overview is not installed in the minimal dependency graph")
         other_company = self.env["res.company"].create({"name": "Home accounting company"})
@@ -254,12 +340,65 @@ class TestUslHome(TransactionCase):
             company_ids=[Command.set((self.env.company | other_company).ids)],
         )
         service = self.env["usl.home.service"].with_user(accounting_user)
-        first = service.with_company(self.env.company).get_accounting_alerts()
-        second = service.with_company(other_company).get_accounting_alerts()
-        self.assertEqual(first["company"]["id"], self.env.company.id)
-        self.assertEqual(second["company"]["id"], other_company.id)
-        self.assertNotEqual(first["company"]["id"], second["company"]["id"])
+        single = service.with_context(
+            allowed_company_ids=[self.env.company.id],
+        ).get_accounting_alerts()
+        combined_service = service.with_context(
+            allowed_company_ids=[self.env.company.id, other_company.id],
+        )
+        combined = combined_service.get_accounting_alerts()
+        self.assertEqual(single["company"]["id"], self.env.company.id)
+        self.assertEqual(single["scope"]["mode"], "single")
+        self.assertFalse(combined["company"])
+        self.assertEqual(combined["scope"]["mode"], "multi")
+        self.assertEqual(
+            {company["id"] for company in combined["scope"]["companies"]},
+            {self.env.company.id, other_company.id},
+        )
 
+        declaration_action = combined_service.get_accounting_alert_action(
+            "declarations",
+        )
+        company_domain = next(
+            condition
+            for condition in declaration_action["domain"]
+            if condition[:2] == ("company_id", "in")
+        )
+        self.assertEqual(
+            set(company_domain[2]),
+            {self.env.company.id, other_company.id},
+        )
+
+        bank_action = combined_service.get_accounting_alert_action("bank")
+        self.assertEqual(bank_action["res_model"], "account.bank.statement.line")
+        self.assertIn(("is_reconciled", "=", False), bank_action["domain"])
+        self.assertIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_action["domain"],
+        )
+
+        vendor_evidence_action = combined_service.get_accounting_alert_action(
+            "vendor_evidence",
+        )
+        self.assertEqual(vendor_evidence_action["res_model"], "account.move")
+        self.assertIn(
+            ("message_main_attachment_id", "=", False),
+            vendor_evidence_action["domain"],
+        )
+        expense_evidence_action = combined_service.get_accounting_alert_action(
+            "expense_evidence",
+        )
+        self.assertEqual(expense_evidence_action["res_model"], "hr.expense")
+        self.assertIn(
+            ("message_main_attachment_id", "=", False),
+            expense_evidence_action["domain"],
+        )
+        self.assertNotIn(
+            "searchpanel_default_state",
+            expense_evidence_action["context"],
+        )
+
+    def test_accounting_widget_hides_from_restricted_user(self):
         restricted_service = self.env["usl.home.service"].with_user(self.other_user)
         self.assertNotIn("accounting", restricted_service._available_widgets())
         with self.assertRaises(AccessError):

@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/ollama-runtime.sh"
 
 # Secrets and immutable subjects belong to the Compose project owned by this
 # checkout. Linked worktrees must not silently reuse the main checkout's key.
@@ -135,7 +136,42 @@ start_idp() {
   "${COMPOSE[@]}" up -d --wait pocket-id
 }
 
+ensure_idp_available() {
+  local container_id running health attempt
+  load_environment
+  container_id="$("${COMPOSE[@]}" ps -a -q pocket-id 2>/dev/null || true)"
+  if [[ -z "$container_id" ]]; then
+    "${COMPOSE[@]}" up -d --wait pocket-id
+    return
+  fi
+
+  running="$(docker inspect "$container_id" --format '{{.State.Running}}')"
+  if [[ "$running" != "true" ]]; then
+    # Preserve the exact overlays, ports and networks used to create an
+    # existing review runtime. Re-running `compose up` with a helper's subset
+    # of files can otherwise reinterpret and disrupt that topology.
+    docker start "$container_id" >/dev/null
+  fi
+  for attempt in {1..120}; do
+    health="$(docker inspect "$container_id" --format '{{.State.Health.Status}}')"
+    if [[ "$health" == "healthy" ]]; then
+      return
+    fi
+    if [[ "$health" == "unhealthy" ]]; then
+      printf 'Existing Pocket ID container is unhealthy; it was not recreated.\n' >&2
+      return 2
+    fi
+    sleep 0.5
+  done
+  printf 'Existing Pocket ID container did not become healthy within 60 seconds.\n' >&2
+  return 2
+}
+
 start_paperless_runtime() {
+  usl_prepare_ollama_runtime "$ROOT"
+  if [[ -n "$USL_OLLAMA_COMPOSE_OVERRIDE" ]]; then
+    COMPOSE+=(-f "$USL_OLLAMA_COMPOSE_OVERRIDE")
+  fi
   "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-access-init
 }
@@ -154,8 +190,7 @@ require_target_database() {
       usl_cli_blocked \
         "Target database $ODOO_INIT_DB does not exist in Compose project $COMPOSE_PROJECT_NAME." \
         "Deploy updates an existing reconstructed target; it cannot recreate source accounting data." \
-        "Run: make target-reconstruct-product" \
-        "For unchanged Paperless inputs, run: make target-reconstruct-reuse-documents"
+        "Run a fresh target reconstruction with migration/manage."
     return 2
   fi
   USL_CLI_NO_CHANGES_MESSAGE='The database service was checked, but no Odoo modules or business data were changed.' \
@@ -168,12 +203,12 @@ require_target_database() {
 }
 
 provision() {
-  start_idp
+  ensure_idp_available
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
 }
 
 ensure_unlinked() {
-  start_idp
+  ensure_idp_available
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" ensure-unlinked
 }
 
@@ -263,13 +298,17 @@ configure_documents_runtime() {
 
 import_french_catalogues() {
   local modules_csv="$1"
-  local module
+  local module catalogue_root
   local -a catalogues=()
   local -a modules=()
+  catalogue_root=/mnt/custom-addons
+  if [[ "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" == */compose.production.yaml ]]; then
+    catalogue_root=/opt/odoo/custom-addons
+  fi
   IFS=',' read -r -a modules <<< "$modules_csv"
   for module in "${modules[@]}"; do
     if [[ -f "$ROOT/custom-addons/$module/i18n/fr.po" ]]; then
-      catalogues+=("/mnt/custom-addons/$module/i18n/fr.po")
+      catalogues+=("$catalogue_root/$module/i18n/fr.po")
     fi
   done
   if ((${#catalogues[@]} == 0)); then
@@ -478,7 +517,7 @@ verify_odoo_runtime() {
 one_time_link() {
   local username="${1:?Usage: scripts/pocket-id-dev one-time-link USER}"
   POCKET_ID_LOGIN_HINT_USER="$username"
-  start_idp
+  ensure_idp_available
   if ! verify_odoo_runtime; then
     printf '\nA sign-in link would lead to an Odoo runtime without working Pocket ID.\n' >&2
     printf 'Repair this isolated environment with:\n' >&2
@@ -492,7 +531,7 @@ one_time_link() {
 set_disabled() {
   local username="${1:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
   local state="${2:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
-  start_idp
+  ensure_idp_available
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-disabled "$username" "$state"
 }
 
@@ -500,7 +539,7 @@ set_profile() {
   local username="${1:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
   local email="${2:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
   local display_name="${3:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
-  start_idp
+  ensure_idp_available
   python3 "$PYTHON_HELPER" \
     --env-file "$ENV_FILE" \
     set-profile "$username" "$email" "$display_name"
@@ -509,7 +548,7 @@ set_profile() {
 set_group() {
   local username="${1:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
   local state="${2:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
-  start_idp
+  ensure_idp_available
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-group "$username" "$state"
 }
 

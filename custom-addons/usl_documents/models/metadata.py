@@ -296,10 +296,11 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         return super().unlink()
 
     @api.model
-    def synchronize_catalog(self, client=None):
+    def synchronize_catalog(self, client=None, payloads=None):
         self._require_manager()
         client = client or self._paperless()
-        payloads = client.list_metadata(self._paperless_kind)
+        if payloads is None:
+            payloads = client.list_metadata(self._paperless_kind)
         seen = set()
         for payload in payloads:
             paperless_id = int(payload["id"])
@@ -439,7 +440,7 @@ class UslPaperlessTag(models.Model):
         self._require_manager()
         client = client or self._paperless()
         payloads = client.list_metadata(self._paperless_kind)
-        result = super().synchronize_catalog(client=client)
+        result = super().synchronize_catalog(client=client, payloads=payloads)
         by_remote_id = {
             record.paperless_id: record
             for record in self.sudo().search(

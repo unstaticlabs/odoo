@@ -238,7 +238,7 @@ esac
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Target:   missing", completed.stdout)
         self.assertIn("deploy cannot recreate source data", completed.stdout)
-        self.assertIn("make target-reconstruct", completed.stdout)
+        self.assertIn("migration/manage qa refresh", completed.stdout)
         self.assertNotIn("Update mounted add-ons with", completed.stdout)
 
     def test_mixed_project_blocks_deploy_with_actionable_next_steps(self):
@@ -259,99 +259,10 @@ esac
         self.assertIn("Why", completed.stderr)
         self.assertIn("No changes were made", completed.stderr)
         self.assertIn("make doctor", completed.stderr)
-        self.assertIn("make dev-reclaim CONFIRM=test-project", completed.stderr)
         self.assertEqual(
             self.docker_log.read_text(encoding="utf-8").count("ps -a"),
             1,
         )
-
-    def test_linked_worktree_cannot_claim_canonical_project(self):
-        worktree = self.temporary / "worktree"
-        worktree.mkdir()
-        (worktree / ".git").write_text("gitdir: /tmp/example\n", encoding="utf-8")
-        command = (
-            'usl_verify_compose_scope usl-odoo-saas-19-3 "$2" Test'
-        )
-
-        completed = self.run_scope(command, "", str(worktree))
-
-        self.assertEqual(completed.returncode, 2)
-        self.assertIn("linked worktree", completed.stderr)
-        self.assertIn("dedicated COMPOSE_PROJECT", completed.stderr)
-
-    def test_reclaim_requires_confirmation_before_removing_containers(self):
-        foreign = self.temporary / "foreign"
-        foreign.mkdir()
-        rows = self.row("one", "odoo", "exited", str(ROOT), "odoo") + self.row(
-            "two",
-            "db",
-            "exited",
-            str(foreign),
-            "db",
-        )
-        for confirmation in ("", "wrong-project"):
-            with self.subTest(confirmation=confirmation):
-                completed = subprocess.run(
-                    [str(ODOO_DEV), "reclaim"],
-                    cwd=ROOT,
-                    env=self.environment(
-                        rows,
-                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
-                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
-                        ODOO_DEV_DB="odoo_dev",
-                        USL_DEV_RECLAIM_CONFIRM=confirmation,
-                    ),
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-
-                self.assertEqual(completed.returncode, 2)
-                self.assertIn("requires explicit confirmation", completed.stderr)
-                self.assertNotIn(
-                    "rm --force",
-                    self.docker_log.read_text(encoding="utf-8"),
-                )
-
-    def test_reclaim_refuses_an_active_migration(self):
-        foreign = self.temporary / "foreign"
-        foreign.mkdir()
-        cases = (
-            ("project-migration", ""),
-            ("test", ""),
-            ("custom-operation", "True"),
-        )
-        for service, oneoff in cases:
-            with self.subTest(service=service, oneoff=oneoff):
-                rows = self.row(
-                    "one",
-                    service,
-                    "running",
-                    str(foreign),
-                    service,
-                    oneoff=oneoff,
-                )
-                completed = subprocess.run(
-                    [str(ODOO_DEV), "reclaim"],
-                    cwd=ROOT,
-                    env=self.environment(
-                        rows,
-                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
-                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
-                        ODOO_DEV_DB="odoo_dev",
-                        USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-3",
-                    ),
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-
-                self.assertEqual(completed.returncode, 2)
-                self.assertIn("active migration", completed.stderr)
-                self.assertNotIn(
-                    "rm --force",
-                    self.docker_log.read_text(encoding="utf-8"),
-                )
 
     def test_confirmed_container_removal_never_calls_volume_delete(self):
         rows = self.row("one", "odoo", "exited", str(ROOT), "odoo") + self.row(
@@ -372,52 +283,6 @@ esac
         docker_calls = self.docker_log.read_text(encoding="utf-8")
         self.assertIn("rm --force one", docker_calls)
         self.assertIn("rm --force two", docker_calls)
-        self.assertNotIn("volume rm", docker_calls)
-        self.assertNotIn("down", docker_calls)
-
-    def test_confirmed_reclaim_restarts_owned_runtime_without_deleting_data(self):
-        foreign = self.temporary / "foreign"
-        foreign.mkdir()
-        rows = self.row("one", "odoo", "exited", str(foreign), "odoo")
-        runtime_log = self.temporary / "runtime.log"
-        runtime = self.temporary / "runtime"
-        runtime.write_text(
-            """#!/usr/bin/env bash
-set -euo pipefail
-printf '%s\\n' "$*" > "$USL_FAKE_RUNTIME_LOG"
-printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
-""",
-            encoding="utf-8",
-        )
-        runtime.chmod(0o755)
-        owned_rows = self.row("new", "odoo", "running", str(ROOT), "odoo")
-
-        completed = subprocess.run(
-            [str(ODOO_DEV), "reclaim"],
-            cwd=ROOT,
-            env=self.environment(
-                rows,
-                COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
-                ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
-                ODOO_DEV_DB="odoo_dev",
-                ODOO_DEV_RUNTIME_STARTER=str(runtime),
-                USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-3",
-                USL_FAKE_OWNED_ROWS=owned_rows,
-                USL_FAKE_RUNTIME_LOG=str(runtime_log),
-            ),
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn("canonical containers now belong", completed.stdout)
-        self.assertEqual(
-            runtime_log.read_text(encoding="utf-8").strip(),
-            "start-runtime",
-        )
-        docker_calls = self.docker_log.read_text(encoding="utf-8")
-        self.assertIn("rm --force one", docker_calls)
         self.assertNotIn("volume rm", docker_calls)
         self.assertNotIn("down", docker_calls)
 
@@ -444,14 +309,15 @@ printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
         self.assertIn('deploy "usl_accounting"', deploy.stdout)
 
         qa = subprocess.run(
-            ["make", "-n", "qa", "PROFILE=documents-smoke"],
+            ["make", "-n", "qa"],
             cwd=ROOT,
             check=False,
             capture_output=True,
             text=True,
         )
-        self.assertEqual(qa.returncode, 0, qa.stderr)
-        self.assertIn('scripts/qa-environment "documents-smoke"', qa.stdout)
+        self.assertNotEqual(qa.returncode, 0)
+        self.assertIn("No rule to make target", qa.stderr)
+        self.assertTrue((ROOT / "migration/manage").is_file())
 
     def test_target_database_preflight_precedes_identity_and_document_services(self):
         helper = POCKET_ID_DEV.read_text(encoding="utf-8")

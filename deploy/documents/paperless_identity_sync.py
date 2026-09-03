@@ -84,6 +84,33 @@ def _exactly_one_candidate(values):
             f"Paperless username/email disagree for {values['username']!r}",
         )
     user = next(iter(candidates.values()), None)
+    if user is None:
+        # Older release cohorts sanitized the Django user row but accidentally
+        # retained its allauth email row. Reclaim only that exact, sealed
+        # placeholder. Any active, privileged, or otherwise named owner remains
+        # an ambiguity and fails closed below.
+        email_candidates = {
+            item.user_id: item.user
+            for item in EmailAddress.objects.filter(
+                email__iexact=values["email"],
+            ).select_related("user")
+        }
+        if len(email_candidates) > 1:
+            raise RuntimeError(
+                f"Paperless email {values['email']!r} has multiple owners",
+            )
+        candidate = next(iter(email_candidates.values()), None)
+        if candidate is not None:
+            expected_username = f"release-disabled-{candidate.pk}"
+            if (
+                candidate.username != expected_username
+                or candidate.is_active
+                or candidate.is_staff
+                or candidate.is_superuser
+                or candidate.has_usable_password()
+            ):
+                raise RuntimeError("Paperless identity ownership is ambiguous")
+            user = candidate
     return user, None
 
 

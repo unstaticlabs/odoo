@@ -5311,3 +5311,109 @@ msgstr "rapprochement sélectionnée"
 #: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
 msgid "unknown"
 msgstr "inconnu"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "Intentionally ignored"
+msgstr "Ignoré intentionnellement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "Original source email retained unchanged."
+msgstr "E-mail source original conservé sans modification."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "CSV copy retained unchanged. OFX is the authoritative transaction import for this route."
+msgstr "Copie CSV conservée sans modification. Le fichier OFX est la source de référence pour l’import des transactions de cette configuration."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "QIF copy retained unchanged. OFX is the authoritative transaction import for this route."
+msgstr "Copie QIF conservée sans modification. Le fichier OFX est la source de référence pour l’import des transactions de cette configuration."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "File retained unchanged and intentionally ignored because this file type is not used by automated bank import."
+msgstr "Fichier conservé sans modification et ignoré intentionnellement, car ce type de fichier n’est pas utilisé par l’import bancaire automatisé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "An identical retained file already has a final disposition on this bank import route."
+msgstr "Un fichier identique conservé sur cette configuration d’import bancaire dispose déjà d’un statut final."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "The retained supplemental file is not an input to automated bank import."
+msgstr "Le fichier complémentaire conservé n’est pas une entrée de l’import bancaire automatisé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "Retained file was not fully processed"
+msgstr "Le fichier conservé n’a pas été entièrement traité"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "The retained file has no completed processing result. Retry the bank export; if it fails again, replace the file with a fresh bank export."
+msgstr "Le fichier conservé n’a pas de résultat de traitement final. Relancez l’import bancaire ; si l’échec se reproduit, remplacez le fichier par un nouvel export bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+msgid "The bank email could not be fully processed: %(error)s Retry after correcting the reported problem."
+msgstr "L’e-mail bancaire n’a pas pu être entièrement traité : %(error)s Relancez le traitement après avoir corrigé le problème signalé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "A manager linked the transaction to an existing bank entry."
+msgstr "Un responsable a lié la transaction à une écriture bancaire existante."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/migrations/saas~19.3.2.1.8/post-migrate.py:0
+msgid "Retained file processing was completed by an accounting decision."
+msgstr "Le traitement du fichier conservé a été finalisé par une décision comptable."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_users__usl_expense_excluded_company_ids
+msgid "Companies without an employee profile"
+msgstr "Sociétés sans profil employé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_users__usl_expense_excluded_company_ids
+msgid "Keep access to these companies without creating an employee profile for expense submission. Existing employee records are never archived automatically."
+msgstr "Conserver l’accès à ces sociétés sans créer de profil employé pour soumettre des notes de frais. Les fiches employé existantes ne sont jamais archivées automatiquement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/multi_company_expenses.py:0
+msgid "Each selected company has its own employee profile. Switch the active company before creating an expense."
+msgstr "Chaque société sélectionnée possède son propre profil employé. Changez de société active avant de créer une note de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Certified reconciliation metadata cannot update: %(fields)s"
+msgstr "Les métadonnées de rapprochement certifiées ne peuvent pas modifier : %(fields)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Reconciliation attempted to change certified bank-statement facts. No changes were saved."
+msgstr "Le rapprochement a tenté de modifier les données certifiées du relevé bancaire. Aucune modification n’a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Bank matching attempted to change certified bank-statement facts. No changes were saved."
+msgstr "Le rapprochement bancaire a tenté de modifier les données certifiées du relevé bancaire. Aucune modification n’a été enregistrée."

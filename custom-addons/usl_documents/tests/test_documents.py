@@ -1,5 +1,9 @@
 import base64
+import inspect
+import io
 import json
+import urllib.error
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +12,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from ..controllers import documents as documents_controller_module
+from ..controllers import attachment as attachment_controller_module
+from ..controllers.attachment import DocumentsAttachmentController
 from ..controllers.documents import DocumentsController
 from ..models.document import UslDocument
 from ..models.paperless_client import (
@@ -18,6 +24,7 @@ from ..models.paperless_client import (
     PaperlessUnavailable,
 )
 from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.addons.mail.tools.discuss import Store
 from odoo.addons.usl_documents.models.attachment_bridge import ORIGIN_CAPTURE_TOKEN
 
 
@@ -36,6 +43,14 @@ class TestDocuments(TransactionCase):
             company_id=cls.company_a.id,
             company_ids=[Command.set(cls.company_a.ids)],
             groups="usl_documents.group_documents_user",
+        )
+        cls.record_editor = mail_new_test_user(
+            cls.env,
+            login="documents-record-editor",
+            name="Documents Record Editor",
+            company_id=cls.company_a.id,
+            company_ids=[Command.set(cls.company_a.ids)],
+            groups="usl_documents.group_documents_user,base.group_partner_manager",
         )
         cls.accountant = mail_new_test_user(
             cls.env,
@@ -75,6 +90,165 @@ class TestDocuments(TransactionCase):
                 raise_if_not_found=False,
             ),
         )
+
+    def test_attachment_store_exposes_real_thumbnail_write_access(self):
+        attachment = (
+            self.env["ir.attachment"]
+            .with_context(usl_documents_skip_attachment_queue=True)
+            .create(
+                {
+                    "name": "immutable-evidence.pdf",
+                    "raw": b"%PDF-1.4 immutable evidence",
+                    "mimetype": "application/pdf",
+                    "res_model": "res.company",
+                    "res_id": self.company_a.id,
+                },
+            )
+        )
+        readonly_attachment = attachment.with_user(self.user)
+        self.assertTrue(readonly_attachment.has_access("read"))
+        self.assertFalse(readonly_attachment.has_access("write"))
+
+        values = (
+            Store()
+            .add(readonly_attachment, "_store_attachment_fields")
+            ._build_result()["ir.attachment"][0]
+        )
+
+        self.assertFalse(values["uslCanUpdateThumbnail"])
+
+    def test_readonly_thumbnail_update_is_a_noop_for_existing_clients(self):
+        attachment = MagicMock()
+        attachment.has_access.side_effect = lambda operation: operation == "read"
+        attachment._has_attachments_ownership.return_value = False
+        attachment_model = MagicMock()
+        attachment_model.browse.return_value.exists.return_value = attachment
+        mock_request = SimpleNamespace(env={"ir.attachment": attachment_model})
+
+        with patch.object(attachment_controller_module, "request", mock_request):
+            route_method = inspect.unwrap(
+                DocumentsAttachmentController.mail_attachement_update_thumbnail,
+            )
+            result = route_method(
+                DocumentsAttachmentController(),
+                42,
+                thumbnail="ignored",
+            )
+
+        self.assertFalse(result)
+        attachment._has_attachments_ownership.assert_called_once_with([None])
+
+    def _archived_record_attachment(self, record, paperless_id):
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": f"record-{paperless_id}.pdf",
+                "raw": b"%PDF-1.4 durable record evidence",
+                "mimetype": "application/pdf",
+                "res_model": record._name,
+                "res_id": record.id,
+            },
+        )
+        document = self._document(paperless_id)
+        document.link_to_record(record._name, record.id)
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+            limit=1,
+        )
+        operation.sudo().write(
+            {"state": "archived", "document_id": document.id},
+        )
+        message = self.env["mail.message"].sudo().create(
+            {
+                "model": record._name,
+                "res_id": record.id,
+                "message_type": "notification",
+                "body": "A system notification carries this attachment.",
+                "attachment_ids": [Command.link(attachment.id)],
+            },
+        )
+        return attachment, document, message
+
+    def test_record_attachment_unlink_bypasses_notification_message_edit(self):
+        attachment, document, message = self._archived_record_attachment(
+            self.partner_a,
+            15101,
+        )
+
+        result = attachment.with_user(
+            self.record_editor,
+        ).action_remove_archived_from_record(
+            "unlink",
+        )
+
+        self.assertTrue(result["removed"])
+        self.assertIn("remains in Documents", result["message"])
+        self.assertFalse(attachment.exists())
+        self.assertTrue(document.exists())
+        self.assertEqual(document.availability_state, "available")
+        self.assertFalse(
+            document.sudo().link_ids.filtered(
+                lambda link: (
+                    link.active
+                    and link.res_model == self.partner_a._name
+                    and link.res_id == self.partner_a.id
+                ),
+            ),
+        )
+        self.assertTrue(message.exists())
+        self.assertFalse(message.attachment_ids)
+
+    def test_record_attachment_can_unlink_and_move_archive_to_trash(self):
+        attachment, document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15102,
+        )
+
+        with patch.object(PaperlessClient, "trash_document", return_value={}):
+            result = attachment.with_user(
+                self.record_editor,
+            ).action_remove_archived_from_record(
+                "trash",
+            )
+
+        self.assertTrue(result["removed"])
+        self.assertFalse(attachment.exists())
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertFalse(document.sudo().link_ids.filtered("active"))
+
+    def test_shared_archive_cannot_be_trashed_from_one_record(self):
+        attachment, document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15103,
+        )
+        document.link_to_record("res.partner", self.partner_b.id)
+
+        with self.assertRaisesRegex(UserError, "supports another Odoo record"):
+            attachment.with_user(
+                self.record_editor,
+            ).action_remove_archived_from_record(
+                "trash",
+            )
+
+        self.assertTrue(attachment.exists())
+        self.assertEqual(document.availability_state, "available")
+        details = self.env["ir.attachment"].with_user(
+            self.record_editor,
+        ).get_keep_in_documents_details([attachment.id])[str(attachment.id)]
+        self.assertTrue(details["can_remove_from_record"])
+        self.assertFalse(details["can_move_to_trash"])
+
+    def test_readonly_accountant_cannot_remove_record_attachment(self):
+        attachment, _document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15104,
+        )
+
+        with self.assertRaises(AccessError):
+            attachment.with_user(self.accountant).action_remove_archived_from_record(
+                "unlink",
+            )
+
+        self.assertTrue(attachment.exists())
 
     def test_french_navigation_and_matching_terms_are_contextual(self):
         smart_view = self.env.ref(
@@ -190,6 +364,42 @@ class TestDocuments(TransactionCase):
         self.assertEqual(attachment.usl_documents_document_role, "background")
         self.assertEqual(attachment.usl_documents_ledger_state, "pending")
         request.assert_not_called()
+
+    def test_backfill_captures_attachment_audit_timestamps_before_queue_writes(self):
+        task = self.env["project.task"].create({"name": "Historical evidence"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            {
+                "name": "historical.pdf",
+                "raw": b"historical timestamps",
+                "mimetype": "application/pdf",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        self.env.cr.execute(
+            "UPDATE ir_attachment SET create_date=%s, write_date=%s WHERE id=%s",
+            ["2025-04-03 09:15:00", "2025-07-08 17:45:00", attachment.id],
+        )
+        attachment.invalidate_recordset(["create_date", "write_date"])
+
+        operation = attachment.with_context(
+            usl_documents_skip_attachment_queue=False,
+        )._queue_usl_documents_archive()
+
+        self.assertEqual(
+            operation.original_created_at,
+            fields.Datetime.to_datetime("2025-04-03 09:15:00"),
+        )
+        self.assertEqual(
+            operation.original_modified_at,
+            fields.Datetime.to_datetime("2025-07-08 17:45:00"),
+        )
+        self.assertEqual(
+            operation.context_json["original_created_at"],
+            "2025-04-03 09:15:00",
+        )
 
     def test_project_chatter_attachment_waits_for_keep_in_documents(self):
         project = self.env["project.project"].create({"name": "Chatter policy"})
@@ -670,6 +880,82 @@ class TestDocuments(TransactionCase):
         self.assertTrue(operation.next_attempt_at)
         self.assertEqual(bytes(attachment.raw), b"still usable in Odoo")
 
+    def test_archive_uses_queued_target_after_mail_detaches_attachment(self):
+        task = self.env["project.task"].create({"name": "Mail evidence target"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "mail-evidence.pdf",
+                "raw": b"evidence retained on a chatter message",
+                "mimetype": "application/pdf",
+                "res_model": task._name,
+                "res_id": task.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        attachment.with_context(usl_documents_skip_attachment_queue=True).write(
+            {"res_model": False, "res_id": 0},
+        )
+
+        with patch.object(
+            type(self.env["usl.document"]),
+            "upload_from_odoo",
+            autospec=True,
+            return_value={"state": "processing"},
+        ) as upload:
+            result = operation._process_native_attachment()
+
+        self.assertTrue(result)
+        self.assertEqual(upload.call_args.kwargs["res_model"], task._name)
+        self.assertEqual(upload.call_args.kwargs["res_id"], task.id)
+
+    def test_unexpected_attachment_failure_does_not_block_following_item(self):
+        tasks = self.env["project.task"].create(
+            [{"name": "Broken evidence"}, {"name": "Following evidence"}],
+        )
+        attachments = self.env["ir.attachment"].create(
+            [
+                {
+                    "name": "broken.pdf",
+                    "raw": b"broken",
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": tasks[0].id,
+                },
+                {
+                    "name": "following.pdf",
+                    "raw": b"following",
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": tasks[1].id,
+                },
+            ],
+        )
+        operations = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "in", attachments.ids)],
+            order="id",
+        )
+
+        def process(operation):
+            if operation == operations[0]:
+                raise KeyError("detached attachment")
+            operation.sudo().write({"state": "archived"})
+            return True
+
+        with patch.object(
+            type(operations),
+            "_process_native_attachment",
+            autospec=True,
+            side_effect=process,
+        ):
+            processed = operations.cron_process_attachment_queue()
+
+        self.assertGreaterEqual(processed, 2)
+        self.assertEqual(operations[0].state, "failed")
+        self.assertIn("KeyError", operations[0].error_message)
+        self.assertEqual(operations[1].state, "archived")
+
     def test_native_attachment_links_trashed_match_without_restoring_it(self):
         task = self.env["project.task"].create({"name": "Preserved Trash intent"})
         content = b"native evidence whose archive root is in Trash"
@@ -1057,13 +1343,14 @@ class TestDocuments(TransactionCase):
             100,
             paperless_created="2026-08-04 12:00:00",
             submitted_at="2025-12-06 13:05:28",
+            original_created_at="2025-11-04 09:30:00",
         )
         self.assertEqual(
             document.archive_added_at,
-            fields.Datetime.to_datetime("2025-12-06 13:05:28"),
+            fields.Datetime.to_datetime("2025-11-04 09:30:00"),
         )
         document.sudo().with_context(usl_documents_cache_write=True).write(
-            {"submitted_at": False},
+            {"original_created_at": False, "submitted_at": False},
         )
         self.assertEqual(
             document.archive_added_at,
@@ -2015,6 +2302,46 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(document.tag_ids, child)
 
+    def test_tag_catalog_sync_uses_one_consistent_remote_snapshot(self):
+        payloads = [
+            {
+                "id": 307,
+                "name": "Parent",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": None,
+            },
+            {
+                "id": 308,
+                "name": "Child",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": 307,
+            },
+        ]
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        with patch.object(
+            client,
+            "list_metadata",
+            side_effect=[payloads, payloads[:1]],
+        ) as list_metadata:
+            count = self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+
+        self.assertEqual(count, 2)
+        self.assertEqual(list_metadata.call_count, 1)
+        parent = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 307)],
+        )
+        child = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 308)],
+        )
+        self.assertTrue(parent.active)
+        self.assertTrue(child.active)
+        self.assertEqual(child.parent_id, parent)
+
     def test_catalog_sync_reactivates_cached_identity_after_archive_reset(self):
         tag = self.env["usl.paperless.tag"].sudo().with_context(
             usl_documents_cache_write=True,
@@ -2200,6 +2527,37 @@ class TestDocuments(TransactionCase):
             action["context"]["search_default_tag_ids"],
             tag.ids,
         )
+
+    def test_tag_count_matches_archive_search_not_home_subset(self):
+        tag = self._tag(1310, "Payroll")
+        self._document(
+            1311,
+            intake_role="library",
+            original_created_at="2025-01-01 10:00:00",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        self._document(
+            1312,
+            intake_role="library",
+            original_created_at=fields.Datetime.now(),
+            tag_ids=[Command.set(tag.ids)],
+        )
+        user_tag = tag.with_user(self.user)
+
+        self.assertEqual(user_tag.accessible_document_count, 2)
+        archive = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="archive_search",
+            search_domain=[["tag_ids", "in", tag.ids]],
+            include_workspace_metadata=False,
+        )
+        home = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="home",
+            search_domain=[["tag_ids", "in", tag.ids]],
+            include_workspace_metadata=False,
+        )
+
+        self.assertEqual(archive["count"], user_tag.accessible_document_count)
+        self.assertEqual(home["count"], 1)
 
     def test_document_metadata_updates_paperless_then_refreshes_cache(self):
         tag = self._tag(305, "Reviewed")
@@ -2551,6 +2909,27 @@ class TestDocuments(TransactionCase):
             {item["id"] for item in result["documents"]},
             {mapped.id, explicitly_linked.id},
         )
+
+    def test_record_workspace_activates_its_authorized_company(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Company B document target",
+                "company_id": self.company_b.id,
+            },
+        )
+        record = partner.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id],
+        )
+
+        action = record.action_open_documents_workspace()
+
+        self.assertEqual(
+            action["context"]["allowed_company_ids"],
+            [self.company_a.id, self.company_b.id],
+        )
+        self.assertEqual(action["params"]["res_model"], "res.partner")
+        self.assertEqual(action["params"]["res_id"], partner.id)
 
     def test_company_smart_button_and_linked_workspace_include_trash(self):
         available = self._document(337, name="Available company evidence")
@@ -3658,6 +4037,8 @@ class TestDocuments(TransactionCase):
             "res_id": self.partner_a.id,
             "source": "odoo_upload",
             "user_id": self.user.id,
+            "original_created_at": "2025-02-03 09:15:00",
+            "original_modified_at": "2025-06-07 18:30:00",
         })
         payload = {
             "id": 109,
@@ -3690,6 +4071,266 @@ class TestDocuments(TransactionCase):
         self.assertEqual(operation.document_id.confidentiality, "accounting")
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
+        self.assertEqual(
+            operation.document_id.original_created_at,
+            fields.Datetime.to_datetime("2025-02-03 09:15:00"),
+        )
+        self.assertEqual(
+            operation.document_id.original_modified_at,
+            fields.Datetime.to_datetime("2025-06-07 18:30:00"),
+        )
+
+    def test_async_workspace_upload_synchronizes_permissions_before_completion(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "workspace-upload.pdf",
+                "state": "processing",
+                "checksum": "7" * 64,
+                "metadata_hash": "8" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-workspace-upload",
+                "source": "odoo_upload",
+                "context_json": {
+                    "company_id": self.company_a.id,
+                    "confidentiality": "internal",
+                    "access_scope": "company",
+                    "archive_mode": "automatic",
+                    "document_role": "library",
+                    "attachment_origin": "documents_workspace",
+                    "policy_reason": "generic_documents_upload",
+                    "related_records": [],
+                },
+                "user_id": self.user.id,
+            },
+        )
+        payload = {
+            "id": 1514,
+            "title": "Workspace upload",
+            "created": "2026-09-02",
+            "added": "2026-09-02T03:07:40Z",
+            "modified": "2026-09-02T03:07:43Z",
+            "original_file_name": "workspace-upload.pdf",
+            "mime_type": "application/pdf",
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={"status": "success", "related_document_ids": [1514]},
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+            patch.object(
+                PaperlessClient,
+                "set_document_permissions",
+                return_value={},
+            ) as permission_call,
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id.permission_sync_state, "synchronized")
+        self.assertTrue(operation.document_id.permission_checked_at)
+        permission_call.assert_called_once_with(
+            1514,
+            view_users=[],
+            change_users=[],
+        )
+
+    def test_deleted_source_settles_operation_and_keeps_archive_for_review(self):
+        employee = self.env["hr.employee"].create(
+            {"name": "Deleted expense owner", "company_id": self.company_a.id},
+        )
+        expense = self.env["hr.expense"].create({"employee_id": employee.id})
+        expense_id = expense.id
+        expense.unlink()
+        document = self._document(
+            1515,
+            checksum="9" * 64,
+            metadata_hash="a" * 64,
+        )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "orphaned-expense.pdf",
+                "state": "processing",
+                "checksum": "9" * 64,
+                "metadata_hash": "a" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-orphaned-expense",
+                "res_model": "hr.expense",
+                "res_id": expense_id,
+                "source": "odoo_upload",
+                "context_json": {
+                    "company_id": self.company_a.id,
+                    "confidentiality": "accounting",
+                    "access_scope": "linked_record",
+                    "archive_mode": "mandatory",
+                    "document_role": "evidence",
+                    "attachment_origin": "direct_record",
+                    "policy_reason": "expense_evidence",
+                    "related_records": [
+                        {"model": "hr.expense", "id": expense_id},
+                    ],
+                },
+                "user_id": self.user.id,
+            },
+        )
+        payload = {
+            "id": 1515,
+            "title": document.name,
+            "created": "2026-09-02",
+            "added": "2026-09-02T03:07:40Z",
+            "modified": "2026-09-02T03:07:43Z",
+            "original_file_name": "orphaned-expense.pdf",
+            "mime_type": "application/pdf",
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={"status": "success", "related_document_ids": [1515]},
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id, document)
+        self.assertEqual(operation.review_reason, "missing_source")
+        self.assertEqual(document.review_state, "needs_attention")
+        self.assertFalse(document.link_ids)
+        self.assertFalse(operation.error_message)
+        self.assertIn("was deleted before Documents finished", document.last_error)
+
+        with patch.object(PaperlessClient, "task") as task_call:
+            operation.poll()
+        task_call.assert_not_called()
+        self.assertEqual(operation.state, "archived")
+
+    def test_processing_operation_without_task_result_fails_after_deadline(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "lost-task.pdf",
+                "state": "processing",
+                "checksum": "8" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-no-longer-reported",
+                "user_id": self.user.id,
+            },
+        )
+        operation.sudo().write(
+            {
+                "processing_started_at": fields.Datetime.now()
+                - timedelta(hours=7),
+            },
+        )
+
+        with patch.object(PaperlessClient, "task", return_value=None):
+            operation.poll()
+
+        self.assertEqual(operation.state, "failed")
+        self.assertFalse(operation.processing_started_at)
+        self.assertIn(
+            "instead of remaining queued indefinitely",
+            operation.error_message,
+        )
+
+    def test_processing_operation_waits_for_task_within_deadline(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "active-task.pdf",
+                "state": "processing",
+                "checksum": "7" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-still-starting",
+                "user_id": self.user.id,
+            },
+        )
+
+        with patch.object(PaperlessClient, "task", return_value=None):
+            operation.poll()
+
+        self.assertEqual(operation.state, "processing")
+        self.assertTrue(operation.processing_started_at)
+
+    def test_unnamed_draft_expense_uses_document_filename_as_link_name(self):
+        employee = self.env["hr.employee"].create(
+            {"name": "Expense owner", "company_id": self.company_a.id},
+        )
+        expense = self.env["hr.expense"].create({"employee_id": employee.id})
+        self.assertFalse(expense.display_name)
+        document = self._document(
+            1516,
+            name="2608 - Valentin VIENNOT - TESE.pdf",
+            original_filename="2608 - Valentin VIENNOT - TESE.pdf",
+        )
+
+        link = document.link_to_record("hr.expense", expense.id)
+
+        self.assertEqual(link.record_name, "2608 - Valentin VIENNOT - TESE.pdf")
+
+    def test_poll_cron_isolates_user_errors_and_continues(self):
+        operations = self.env["usl.document.operation"].sudo().create(
+            [
+                {
+                    "name": "invalid-source.pdf",
+                    "state": "processing",
+                    "checksum": "b" * 64,
+                    "mime_type": "application/pdf",
+                    "company_id": self.company_a.id,
+                    "paperless_task_id": "task-invalid-source",
+                    "user_id": self.user.id,
+                },
+                {
+                    "name": "valid-source.pdf",
+                    "state": "processing",
+                    "checksum": "c" * 64,
+                    "mime_type": "application/pdf",
+                    "company_id": self.company_a.id,
+                    "paperless_task_id": "task-valid-source",
+                    "user_id": self.user.id,
+                },
+                {
+                    "name": "unexpected-failure.pdf",
+                    "state": "processing",
+                    "checksum": "d" * 64,
+                    "mime_type": "application/pdf",
+                    "company_id": self.company_a.id,
+                    "paperless_task_id": "task-unexpected-failure",
+                    "user_id": self.user.id,
+                },
+            ],
+        )
+
+        def poll(operation):
+            if operation == operations[0]:
+                raise UserError("The source record is incomplete.")
+            if operation == operations[2]:
+                raise RuntimeError("internal implementation detail")
+            operation.sudo().write({"state": "archived"})
+            return {operation.id: operation._workspace_values()}
+
+        with patch.object(type(operations), "poll", autospec=True, side_effect=poll):
+            result = self.env["usl.document.operation"].with_user(
+                self.manager,
+            ).cron_poll_operations()
+
+        self.assertEqual(operations[0].state, "failed")
+        self.assertIn("source record is incomplete", operations[0].error_message)
+        self.assertEqual(operations[1].state, "archived")
+        self.assertEqual(operations[2].state, "failed")
+        self.assertNotIn("internal implementation detail", operations[2].error_message)
+        self.assertIn("could not finish this file safely", operations[2].error_message)
+        self.assertEqual(set(result), set(operations.ids))
 
     def test_async_success_with_inaccessible_document_needs_review(self):
         operation = self.env["usl.document.operation"].sudo().create(
@@ -4862,12 +5503,13 @@ class TestDocuments(TransactionCase):
         self.assertTrue(
             synchronized.with_user(self.user)._check_archive_binary_access(),
         )
-        for document in (pending, failed):
-            with self.assertRaisesRegex(
-                AccessError,
-                "blocked until an administrator synchronizes",
-            ):
-                document.with_user(self.user)._check_archive_binary_access()
+        with self.assertRaisesRegex(AccessError, "still securing access"):
+            pending.with_user(self.user)._check_archive_binary_access()
+        with self.assertRaisesRegex(
+            AccessError,
+            "blocked until an administrator synchronizes",
+        ):
+            failed.with_user(self.user)._check_archive_binary_access()
         self.assertFalse(
             trashed.with_user(self.user)._check_archive_binary_access(),
         )
@@ -4879,8 +5521,11 @@ class TestDocuments(TransactionCase):
             )
             for document in (pending, failed, trashed)
         }
-        self.assertTrue(by_id[pending.id]["access_error"])
+        self.assertTrue(by_id[pending.id]["access_pending"])
+        self.assertFalse(by_id[pending.id]["access_error"])
+        self.assertFalse(by_id[failed.id]["access_pending"])
         self.assertTrue(by_id[failed.id]["access_error"])
+        self.assertFalse(by_id[trashed.id]["access_pending"])
         self.assertFalse(by_id[trashed.id]["access_error"])
 
         controller = DocumentsController()
@@ -5310,6 +5955,34 @@ class TestPaperlessClientContract(TransactionCase):
         self.assertIn(b'name="correspondent"\r\n\r\n12', body)
         self.assertIn(b'name="document_type"\r\n\r\n34', body)
         self.assertEqual(body.count(b'name="tags"'), 2)
+
+    def test_multipart_upload_reports_bounded_paperless_error_detail(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_str("usl_documents.paperless_url", "https://paperless.test")
+        params.set_str("usl_documents.paperless_token", "test-token")
+        error = urllib.error.HTTPError(
+            "https://paperless.test/api/documents/post_document/",
+            400,
+            "Bad Request",
+            {},
+            io.BytesIO(b'{"document_type":["Invalid pk 15."]}'),
+        )
+
+        with (
+            patch(
+                "odoo.addons.usl_documents.models.paperless_client.urllib.request.urlopen",
+                side_effect=error,
+            ),
+            self.assertRaisesRegex(
+                PaperlessError,
+                r'400.*"document_type".*Invalid pk 15',
+            ),
+        ):
+            PaperlessClient(self.env).upload_multipart(
+                b"invoice",
+                "invoice.pdf",
+                "application/pdf",
+            )
 
     def test_invalid_json_response_fails_as_api_compatibility_error(self):
         with self.assertRaises(PaperlessCompatibilityError):

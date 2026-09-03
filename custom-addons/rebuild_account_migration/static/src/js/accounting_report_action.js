@@ -361,6 +361,33 @@ export class AccountingReportAction extends Component {
         await this.actionService.doAction(action);
     }
 
+    async onTaxAdjustmentChange(line, event) {
+        const value = event.target.value;
+        this.state.loading = true;
+        try {
+            const data = await this.orm.call(
+                "rebuild.account.report.export.wizard",
+                "report_client_set_tax_adjustment",
+                [
+                    this.state.data.wizard_id,
+                    line.line_code,
+                    value,
+                    line.company_id,
+                ],
+            );
+            this.state.data = data;
+            this.state.filters = { ...data.filters };
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message || error?.message ||
+                    "L'ajustement de TVA n'a pas pu être enregistré.",
+                { type: "danger" },
+            );
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
     formatAmount(value) {
         const decimalPlaces = this.amountDecimalPlaces;
         return new Intl.NumberFormat(this.state.data.locale || undefined, {

@@ -8,7 +8,7 @@ class TestUslBootstrap(TransactionCase):
         self.assertEqual(company.name, "Unstatic Labs")
         self.assertEqual(company.country_id.code, "FR")
         self.assertEqual(company.currency_id.name, "EUR")
-        self.assertEqual(company.chart_template, "fr")
+        self.assertEqual(company.chart_template, "fr_comp")
 
         installed = self.env["ir.module.module"].search([
             ("name", "in", ["contacts", "mail", "account", "l10n_fr", "l10n_fr_account", "hr", "hr_expense", "project", "sale_management"]),

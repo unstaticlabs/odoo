@@ -548,6 +548,50 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
             "\n".join(run.issue_ids.mapped("description")),
         )
 
+    def test_reconciled_same_currency_payout_preserves_full_settlement(self):
+        payload = self._payload()
+        bank_source_id = 999904
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Synthetic fee-adjusted payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Synthetic fee-adjusted payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 72.52,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        self._trace(bank_line, "account.bank.statement.line", bank_source_id)
+        source_payout = payload["payouts"][0]
+        source_payout.update(
+            {
+                "x_bank_statement_line_id": bank_source_id,
+                "x_bank_received_amount": 72.52,
+                "x_bank_match_status": "reconciled",
+            },
+        )
+
+        first, _stats = self._restore(payload)
+
+        self.assertEqual(first.status, "passed")
+        payout = self.env["usl.platform.billing.payout"].search(
+            [("rebuild_source_id", "=", self.source["payout"])],
+        )
+        self.assertEqual(payout.bank_allocation_ids.bank_amount, 72.52)
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 80.0)
+
+        payout.bank_allocation_ids.sudo().write({"payout_amount": 72.52})
+        second, _stats = self._restore(payload)
+
+        self.assertEqual(second.status, "passed")
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 80.0)
+
     def test_missing_legacy_due_date_uses_native_payment_terms(self):
         payload = self._payload()
         payload["sessions"][0]["x_due_date"] = None

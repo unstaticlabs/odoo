@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.2.1.1",
+    "version": "saas~19.3.2.1.10",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -29,6 +29,8 @@
         "wizard/bank_statement_review_wizard_views.xml",
         "views/bank_statement_ingestion_views.xml",
         "views/bank_statement_review_views.xml",
+        "views/account_journal_dashboard_views.xml",
+        "views/account_resequence_views.xml",
         "views/hr_expense_bank_matching_views.xml",
         "views/expense_batch_reporting_views.xml",
         "views/immediate_settlement_views.xml",

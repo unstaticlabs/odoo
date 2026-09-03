@@ -7,18 +7,12 @@ records. An authorized user can select several allowed companies for combined
 reading, but creates and changes Accounting records in one active company at a
 time.
 
-The one-off Online migration restores both in-scope legal companies with their
-complete charts of accounts, journals, taxes and fiscal settings, including
-inactive configuration required to understand history. Every imported move,
-payment, reconciliation, control result and declaration remains company
-scoped.
-
-The canonical Online dump currently contains two EUR companies. The verified
-reconstruction restores **Unstatic Labs** with its source expense journal and
-creates an idempotent native expense journal for **USL MEDIA**, whose source
-has none. All payment-method lines used by source payments and expenses map to
-native Community methods. Unused Enterprise-only batch, ISO 20022 and SEPA
-methods are classified and not imitated by inert custom configuration.
+The working database contains two EUR legal companies, **Unstatic Labs** and
+**USL MEDIA**, with company-scoped charts, journals, taxes, fiscal settings and
+operational records. Historical configuration needed to understand posted
+records remains available even when inactive. Payment methods used by real
+payments and expenses map to native Community behavior; unsupported, unused
+Enterprise transports are not imitated with inert custom configuration.
 
 ## Reports
 
@@ -39,9 +33,15 @@ global selector.
 - FEC, French tax packages and closing packages remain one-company outputs.
 - Companies with different company currencies must be reported separately.
 
-The Accounting Overview, Hygiene, Declarations and Closing workspaces remain
-focused on the active company. This keeps operational actions, deadlines and
-readiness decisions unambiguous; combined reading belongs in the reports.
+The Accounting Overview follows the global company selector. With one company
+selected it opens that company's complete cockpit directly. With several
+companies selected it shows one clearly labelled cockpit card per company,
+because cash projections, closing readiness, declarations and remediation
+actions are legal-company states that must not be presented as one synthetic
+state. Additive alert counts on Home are combined across the selected
+companies and retain a visible per-company contribution; their drill-downs use
+the exact same selected-company domain. Hygiene, Declarations and Closing
+records remain company-scoped inside those combined lists.
 
 These combined views are management totals, not legal consolidation. The
 Distribution does not currently implement consolidation account mapping,
@@ -72,6 +72,11 @@ administrator enables **Expenses in all allowed companies** on the user. The
 Distribution maintains one minimal native employee profile per company and
 Odoo automatically selects the profile for the active company.
 
+An administrator may exclude an allowed company from employee provisioning.
+The user keeps access to that company, but Odoo does not create or reactivate an
+employee profile there. Existing employee records are archived only through an
+explicit reviewed action.
+
 The profiles share only the login, person and work contact. Contracts,
 departments, approvers, payroll, private HR data and expense accounting remain
 company-specific. Removing company access never deletes the employee or its
@@ -101,6 +106,12 @@ historical move or sharing accounting records between legal entities.
   for new accounting records and company-dependent configuration.
 - Selecting several companies broadens permitted reading; it does not make a
   write operation cross-company.
+- Home labels combined widgets explicitly. Activities, assigned tasks and AI
+  attention use the selected-company record-rule scope; Accounting alert
+  counts aggregate that same scope and show the contributing companies.
+- Company-state Accounting cards never manufacture a consolidated readiness,
+  deadline, cash projection or closing status. They are duplicated and
+  labelled per company in multi-company mode.
 - Each company has a dedicated **Interface color** under **Settings > Users &
   Companies > Companies**. With one company selected, its color is applied to
   the top navigation bar and remains visible inside the company selector.
@@ -124,23 +135,15 @@ historical move or sharing accounting records between legal entities.
 
 ## Regression evidence
 
-Automated coverage protects company-scoped SQL report models, reviewer record
-rules, same-currency aggregation and ECB synchronization, company-specific
-expense profiles, contribution evidence, multi-company drill-down,
-different-currency rejection, complete source configuration replay and
-repeated migration idempotence.
+Automated coverage protects company-scoped report models, reviewer record
+rules, same-currency aggregation, currency synchronization, company-specific
+expense profiles, contribution evidence, multi-company drill-down and
+different-currency rejection. Acceptance exercises invoices, credit notes,
+bills, refunds, entries, payments, bank transactions and employee expenses in
+each company on an isolated clone. It also proves that a scoped reviewer cannot
+read an unauthorized company's Accounting or operational records.
 
-The 24 August 2026 full-dump proof reconstructed 5,425 moves and 12,991 lines,
-including 5,258 posted moves, with no unbalanced posted move, source identity
-gap or configuration mismatch. Per-company acceptance also
-posts invoices, credit notes, bills, refunds, a general entry, a payment, a
-bank transaction and an employee expense for USL MEDIA, then deliberately
-rolls those temporary records back. It verifies that the scoped reviewer
-cannot read the second company's Accounting or custom operational records. It
-also requires each opted-in EUR company to expose the same 1,949 provider-owned
-ECB rows while preserving manual exceptions. Target finalization performs this
-alignment from existing imported rates only; it makes no network request.
-Run it against a reconstructed disposable target with:
+Run it against an isolated current-release database with:
 
 ```bash
 make accounting-multicompany-acceptance COMPOSE_PROJECT=<project>

@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import Command, fields, models
 from odoo.tools import float_compare, float_is_zero
 
-RESTORE_REVISION = 2
+RESTORE_REVISION = 3
 BOOTSTRAP_SHA256 = (
     "a7617a282cb812ae051f41b5a6c15047c950bf3e8b85ef3a4014757345053791"
 )
@@ -1064,6 +1064,15 @@ class UslPlatformBillingRestoreRun(models.Model):
             )
             if record:
                 if bank_line:
+                    payout_amount = (
+                        row["x_net_platform_amount"]
+                        if row.get("x_bank_match_status") == "reconciled"
+                        else (
+                            row["x_bank_received_amount"]
+                            if currency == session.bank_currency_id
+                            else row["x_net_platform_amount"]
+                        )
+                    )
                     allocation = self.env[
                         "usl.platform.billing.bank.allocation"
                     ].sudo().search(
@@ -1073,32 +1082,30 @@ class UslPlatformBillingRestoreRun(models.Model):
                         ],
                         limit=1,
                     )
-                    if not allocation:
-                        payout_amount = (
-                            row["x_bank_received_amount"]
-                            if currency == session.bank_currency_id
-                            else row["x_net_platform_amount"]
-                        )
+                    allocation_values = {
+                        "bank_amount": row["x_bank_received_amount"],
+                        "payout_amount": payout_amount,
+                        "score": int(row["x_bank_match_score"] or 0),
+                        "amount_difference": row[
+                            "x_bank_amount_difference"
+                        ],
+                        "date_difference": row[
+                            "x_bank_date_difference"
+                        ],
+                        "detection_reason": row[
+                            "x_bank_detection_reason"
+                        ],
+                    }
+                    if allocation:
+                        allocation.sudo().write(allocation_values)
+                    else:
                         self.env[
                             "usl.platform.billing.bank.allocation"
                         ].sudo()._action_create(
                             {
                                 "payout_id": record.id,
                                 "bank_statement_line_id": bank_line.id,
-                                "bank_amount": row["x_bank_received_amount"],
-                                "payout_amount": payout_amount,
-                                "score": int(
-                                    row["x_bank_match_score"] or 0,
-                                ),
-                                "amount_difference": row[
-                                    "x_bank_amount_difference"
-                                ],
-                                "date_difference": row[
-                                    "x_bank_date_difference"
-                                ],
-                                "detection_reason": row[
-                                    "x_bank_detection_reason"
-                                ],
+                                **allocation_values,
                             },
                         )
                 restored[row["id"]] = record
@@ -1256,8 +1263,15 @@ class UslPlatformBillingRestoreRun(models.Model):
                 row.get("x_bank_match_status"),
                 row.get("x_validation_status"),
             }
-            permanent_states = {"draft", "generated", "posted", "paid", "cancelled"}
-            for value in sorted(legacy_context - permanent_states - {None, ""}):
+            recognized_states = {
+                "draft",
+                "generated",
+                "posted",
+                "paid",
+                "cancelled",
+                "reconciled",
+            }
+            for value in sorted(legacy_context - recognized_states - {None, ""}):
                 self._issue(
                     "x_content_payout_line",
                     source_id,
@@ -1286,6 +1300,39 @@ class UslPlatformBillingRestoreRun(models.Model):
             else:
                 state = "draft"
             payout.with_context(tracking_disable=True).write({"state": state})
+            bank_lines_reconciled = bool(payout.bank_allocation_ids) and all(
+                payout.bank_allocation_ids.bank_statement_line_id.mapped(
+                    "is_reconciled",
+                ),
+            )
+            if (
+                row.get("x_bank_match_status") == "reconciled"
+                and bank_lines_reconciled
+                and payout.bank_match_status != "reconciled"
+            ):
+                self._issue(
+                    "x_content_payout_line",
+                    source_id,
+                    (
+                        "The source payout is reconciled but the restored bank "
+                        f"status is {payout.bank_match_status!r}."
+                    ),
+                )
+            if (
+                row.get("x_state") == "reconciled"
+                and bank_lines_reconciled
+                and self._document_paid(payout.customer_invoice_id)
+                and self._document_paid(payout.vendor_bill_id)
+                and state != "paid"
+            ):
+                self._issue(
+                    "x_content_payout_line",
+                    source_id,
+                    (
+                        "The source payout is reconciled but the restored "
+                        f"workflow state is {state!r}."
+                    ),
+                )
         for source_id, session in sessions.items():
             row = session_rows[source_id]
             documents = session.generated_move_ids
@@ -1490,6 +1537,17 @@ class UslPlatformBillingRestoreRun(models.Model):
                             record.platform_reference,
                             record.net_platform_amount,
                             record.state,
+                            record.bank_match_status,
+                            tuple(
+                                sorted(
+                                    (
+                                        allocation.bank_statement_line_id.id,
+                                        allocation.bank_amount,
+                                        allocation.payout_amount,
+                                    )
+                                    for allocation in record.bank_allocation_ids
+                                ),
+                            ),
                             record.customer_invoice_id.id,
                             record.vendor_bill_id.id,
                             record.compensation_move_id.id,

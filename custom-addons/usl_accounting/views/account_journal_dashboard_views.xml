@@ -1,0 +1,12 @@
+<odoo>
+    <record id="view_account_journal_dashboard_company_label" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.company.label</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='JournalTop']//t[@t-if='dashboard.show_company']" position="attributes">
+                <attribute name="groups"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

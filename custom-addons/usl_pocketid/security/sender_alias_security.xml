@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_usl_mail_sender_alias_own" model="ir.rule">
+        <field name="name">Personal sender addresses: own contact</field>
+        <field name="model_id" ref="model_usl_mail_sender_alias"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="rule_usl_mail_sender_alias_hr" model="ir.rule">
+        <field name="name">Personal sender addresses: HR administration</field>
+        <field name="model_id" ref="model_usl_mail_sender_alias"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
+</odoo>

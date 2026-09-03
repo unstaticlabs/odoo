@@ -28,9 +28,10 @@
                     <strong>Official statement is not safely stored in Documents.</strong>
                     <div><field name="bank_evidence_archive_error" readonly="1" nolabel="1"/></div>
                     <div class="mt-1">
-                        Use <em>Retry Documents</em> after a temporary outage. If the PDF is
-                        damaged or incomplete, use <em>Replace statement PDF</em> and choose
-                        the original downloaded from the bank.
+                        Use <em>Retry Documents</em> after a temporary outage. If the message
+                        reports conflicting Documents records, keep the accepted PDF and ask
+                        a Documents administrator to resolve the links. Replace the PDF only
+                        when the accepted file is damaged or incomplete.
                     </div>
                 </div>
             </xpath>

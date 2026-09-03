@@ -1,0 +1,102 @@
+{
+  "schema": "usl-runtime/v1",
+  "name": "local",
+  "environment": "local",
+  "protected": false,
+  "transport": {"type": "local"},
+  "compose": {
+    "project": "usl-odoo-local",
+    "anchor_service": "odoo",
+    "profiles": ["document-renderer", "mcp", "paperless", "sign"],
+    "default_network": "usl-odoo-local_default",
+    "resource_overlay": null
+  },
+  "services": {
+    "odoo": "odoo",
+    "odoo_db": "db",
+    "paperless": "paperless-webserver",
+    "paperless_db": "paperless-db",
+    "paperless_broker": "paperless-broker",
+    "paperless_gotenberg": "paperless-gotenberg",
+    "paperless_tika": "paperless-tika",
+    "mcp": "odoo-mcp",
+    "renderer": "usl-document-renderer",
+    "sign": "usl-sign-dss",
+    "sign_ca": "usl-sign-step-ca"
+  },
+  "databases": {
+    "odoo": {
+      "service": "db",
+      "name": "odoo_local",
+      "user": "odoo",
+      "password_key": "ODOO_DB_PASSWORD"
+    },
+    "paperless": {
+      "service": "paperless-db",
+      "name": "paperless_local",
+      "user": "paperless",
+      "password_key": "PAPERLESS_DB_PASSWORD"
+    }
+  },
+  "storage": {"tiers": {
+    "bulk": {"path": "/tmp/usl-odoo-local/bulk", "reserve_bytes": 16106127360},
+    "database": {"path": "/tmp/usl-odoo-local/db", "reserve_bytes": 2147483648},
+    "local": {"path": "/tmp/usl-odoo-local/runtime", "reserve_bytes": 2147483648}
+  }},
+  "volumes": {
+    "odoo_postgres": {"name": "usl-odoo-local_postgres-data", "class": "transient", "tier": "database"},
+    "odoo_filestore": {"name": "usl-odoo-local_odoo-data", "class": "durable", "tier": "bulk"},
+    "paperless_postgres": {"name": "usl-odoo-local_paperless-postgres-data", "class": "transient", "tier": "database"},
+    "paperless_broker": {"name": "usl-odoo-local_paperless-broker-data", "class": "transient", "tier": "database"},
+    "paperless_media": {"name": "usl-odoo-local_paperless-media", "class": "durable", "tier": "bulk"},
+    "paperless_data": {"name": "usl-odoo-local_paperless-data", "class": "cache", "tier": "bulk"},
+    "paperless_trash": {"name": "usl-odoo-local_paperless-trash", "class": "durable", "tier": "bulk"},
+    "paperless_consume": {"name": "usl-odoo-local_paperless-consume", "class": "durable", "tier": "bulk"},
+    "paperless_export": {"name": "usl-odoo-local_paperless-export", "class": "transient", "tier": "bulk"},
+    "mcp_oauth": {"name": "usl-odoo-local_odoo-mcp-oauth-data", "class": "durable", "tier": "database"}
+  },
+  "paths": {
+    "sign_secrets": {"path": "/tmp/usl-odoo-local/sign", "class": "durable", "required": true, "tier": "local"},
+    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign-evidence", "class": "durable", "required": false, "tier": "local"}
+  },
+  "external_networks": {},
+  "endpoints": {
+    "odoo": "http://odoo.localhost:28669",
+    "paperless": "http://papers.localhost:28671",
+    "mcp": "http://mcp.localhost:28672"
+  },
+  "ingress": {
+    "proxy_mode": false,
+    "list_db": true,
+    "dbfilter": "^odoo_local$",
+    "websocket": false
+  },
+  "ollama": {
+    "mode": "native",
+    "container": "",
+    "network": "host",
+    "url": "http://host.docker.internal:11434",
+    "model": "bge-m3:latest",
+    "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "dimension": 1024
+  },
+  "backup": {
+    "durable_repository": "rest:/tmp/usl-odoo-local/restic/durable",
+    "cache_repository": "rest:/tmp/usl-odoo-local/restic/cache"
+  },
+  "release_manifest": "/tmp/usl-odoo-local/usl-release.json",
+  "plan_signing": {"private_key": null, "public_key": null},
+  "cron_policy": {"mode": "unmanaged", "path": null, "gates": {}},
+  "secrets": {
+    "env_file": "/tmp/usl-odoo-local/operations.env",
+    "allowed_keys": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "ODOO_DB_PASSWORD",
+      "PAPERLESS_DB_PASSWORD",
+      "RESTIC_PASSWORD",
+      "USL_BACKUP_CACHE_PASSWORD"
+    ]
+  },
+  "state_directory": "/tmp/usl-odoo-local/runtime"
+}

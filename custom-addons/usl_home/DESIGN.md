@@ -237,7 +237,7 @@ The form language is gently rounded but still native and workmanlike. Main widge
 
 ### Task Signals
 
-- **Style:** Four equal cells divided by one-pixel rules, collapsing to a two-by-two matrix on small screens.
+- **Style:** Four equal clickable cells divided by one-pixel rules, collapsing to a two-by-two matrix on small screens. Every signal and stage row opens the exact represented task population through a visible hover and keyboard-focus target.
 - **Content:** A tabular numeric value sits above a small muted label on a soft operational fill; semantic color appears only when a count is active.
 
 ### Accounting Alert Tiles

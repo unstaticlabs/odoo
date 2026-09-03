@@ -29,7 +29,8 @@
                 <field name="bank_currency_id" column_invisible="True"/>
                 <field name="bank_received_amount" sum="Bank total"/>
                 <field name="bank_statement_line_ids"
-                       widget="many2many_tags" optional="show"/>
+                       widget="platform_billing_bank_record_preview"
+                       optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'generated'"

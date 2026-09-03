@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_agent_list" model="ir.ui.view">
+        <field name="name">usl.agent.list</field>
+        <field name="model">usl.agent</field>
+        <field name="arch" type="xml">
+            <list string="Agents" create="1" edit="1" delete="0" default_order="state,name">
+                <field name="name"/>
+                <field name="owner_id"/>
+                <field name="company_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="access_summary" string="Access"/>
+                <field name="active_credential_count" string="Keys"/>
+                <field name="last_used_at" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-muted="state == 'suspended'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_agent_search" model="ir.ui.view">
+        <field name="name">usl.agent.search</field>
+        <field name="model">usl.agent</field>
+        <field name="arch" type="xml">
+            <search string="Agents">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('purpose', 'ilike', self)]"/>
+                <field name="owner_id"/>
+                <field name="company_ids"/>
+                <filter name="active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="needs_attention" string="Needs attention" domain="[('needs_attention', '=', True)]"/>
+                <filter name="suspended" string="Suspended" domain="[('state', '=', 'suspended')]"/>
+                <filter name="my_agents" string="My Agents" domain="[('owner_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_usl_agent_form" model="ir.ui.view">
+        <field name="name">usl.agent.form</field>
+        <field name="model">usl.agent</field>
+        <field name="arch" type="xml">
+            <form string="Agent" create="1" edit="1" delete="0">
+                <header>
+                    <button name="action_suspend" type="object" string="Suspend" class="btn-secondary" invisible="state != 'active' or not id" title="Immediately block this Agent and all of its API keys."/>
+                    <button name="action_reactivate" type="object" string="Reactivate" class="btn-primary" invisible="state != 'suspended' or not id"/>
+                    <button name="action_transfer_owner" type="object" string="Transfer ownership" class="btn-secondary" invisible="not id or not can_admin_agents"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,suspended"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_new_credential" type="object" class="oe_stat_button" icon="fa-key" invisible="not id or state != 'active'">
+                            <field name="active_credential_count" widget="statinfo" string="Active keys"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Suspended" bg_color="text-bg-secondary" invisible="state != 'suspended'"/>
+                    <div class="alert alert-warning d-flex align-items-center justify-content-between gap-3" role="status" invisible="not authority_reduced_at">
+                        <div>
+                            <strong>Access was reduced.</strong>
+                            <span><field name="authority_reduction_reason" readonly="1" nolabel="1"/></span>
+                        </div>
+                        <button name="action_acknowledge_authority_reduction" type="object" string="Review complete" class="btn-secondary"/>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. ChatGPT – USL Agent"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="owner_id" readonly="not can_admin_agents" domain="[('active', '=', True), ('share', '=', False), ('usl_is_ai_agent', '=', False)]" options="{'no_create': True}"/>
+                            <field name="company_ids" widget="many2many_tags" domain="[('id', 'in', owner_company_ids)]" options="{'no_create': True}"/>
+                            <field name="company_id" domain="[('id', 'in', company_ids)]" options="{'no_create': True}"/>
+                            <field name="owner_company_ids" invisible="1"/>
+                            <field name="can_admin_agents" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Created" readonly="1" invisible="not id"/>
+                            <field name="last_used_at" readonly="1" invisible="not id"/>
+                            <field name="suspension_reason" readonly="1" invisible="not suspension_reason"/>
+                            <field name="authority_reduced_at" readonly="1" invisible="not authority_reduced_at"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="purpose" placeholder="What this Agent is responsible for and which integration uses it."/>
+                    </group>
+                    <notebook>
+                        <page name="access" string="Access">
+                            <field name="access_mode" invisible="1"/>
+                            <field name="settings_access" invisible="1"/>
+                            <field name="read_profile_update_available" invisible="1"/>
+                            <field name="view_group_hierarchy" invisible="1"/>
+                            <field name="approved_effective_group_ids" invisible="1"/>
+                            <field name="read_only_group_ids" invisible="1"/>
+                            <field name="delegated_group_ids" widget="usl_agent_access" nolabel="1" colspan="2"/>
+                        </page>
+                        <page name="credentials" string="Credentials" invisible="not id">
+                            <button name="action_new_credential" type="object" string="New API Key" class="btn-primary mb-3" invisible="state != 'active'"/>
+                            <field name="credential_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="create_date"/>
+                                    <field name="expiration_date"/>
+                                    <field name="last_used_at" optional="show"/>
+                                    <field name="status" widget="badge" decoration-success="status == 'active'" decoration-warning="status == 'expired'" decoration-muted="status == 'revoked'"/>
+                                    <button name="action_create_replacement" type="object" string="Create replacement" invisible="status != 'active'" title="Create another key before revoking this one, so integrations can rotate credentials without interruption."/>
+                                    <button name="action_revoke" type="object" string="Revoke" class="text-danger" invisible="status != 'active'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="activity" string="Activity" invisible="not id">
+                            <field name="audit_event_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="0" default_order="occurred_at desc">
+                                    <field name="occurred_at"/>
+                                    <field name="credential_id" optional="show"/>
+                                    <field name="company_id" optional="show"/>
+                                    <field name="action_name"/>
+                                    <field name="outcome" widget="badge" decoration-success="outcome == 'succeeded'" decoration-danger="outcome == 'denied'" decoration-warning="outcome == 'failed'"/>
+                                    <field name="correlation_id" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_agent_key_wizard_form" model="ir.ui.view">
+        <field name="name">usl.agent.key.wizard.form</field>
+        <field name="model">usl.agent.key.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New Agent API Key">
+                <group>
+                    <field name="agent_id"/>
+                    <field name="name"/>
+                    <field name="duration" widget="radio" options="{'horizontal': True}"/>
+                    <field name="expiration_date" invisible="duration != 'custom'" required="duration == 'custom'"/>
+                </group>
+                <footer>
+                    <button name="action_generate" type="object" string="Generate" class="btn-primary" title="Create the API key and display its secret once."/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_agent_transfer_wizard_form" model="ir.ui.view">
+        <field name="name">usl.agent.transfer.wizard.form</field>
+        <field name="model">usl.agent.transfer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Transfer Agent ownership">
+                <group>
+                    <field name="agent_id"/>
+                    <field name="new_owner_id" options="{'no_create': True}"/>
+                    <field name="consequence" readonly="1" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_transfer" type="object" string="Transfer and restrict" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_usl_agent" model="ir.actions.act_window">
+        <field name="name">Agents</field>
+        <field name="res_model">usl.agent</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_usl_agent_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="base.action_res_users" model="ir.actions.act_window">
+        <field name="domain">[('usl_is_ai_agent', '=', False)]</field>
+    </record>
+
+    <menuitem id="menu_usl_agents"
+              name="Agents"
+              parent="base.menu_users"
+              action="action_usl_agent"
+              sequence="35"
+              groups="base.group_system"/>
+</odoo>

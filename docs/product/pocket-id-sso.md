@@ -114,36 +114,37 @@ Odoo's native group graph.
 
 | Profile | Odoo groups | Company rule | Local password |
 | --- | --- | --- | --- |
-| `administrator` | Settings, Accounting, HR, Expenses and Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
+| `administrator` | Product administration plus Irreversible Actions | Explicit list or `all` | Randomized and denied while SSO-managed |
+| `product_administrator` | Settings, Accounting, HR, Expenses and Project administration without Irreversible Actions | Explicit list or `all` | Randomized and denied while SSO-managed |
 | `collaborator` | Internal user and Project user | Explicit list | Randomized and denied while SSO-managed |
 | `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit approved company list | Randomized and denied while SSO-managed |
-| `break_glass` | Settings administrator only | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
+| `break_glass` | Product administration plus Irreversible Actions | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
 | `portal` | Portal only | Explicit list | Pocket ID identity link or approved one-time verified-email link |
 | `historical` | Existing groups retained for attribution | Existing scope retained | User archived; identity disabled |
 | `decision` | Existing groups retained pending owner decision | Existing scope retained | User archived; identity disabled |
 
 The external-accountant profile deliberately reuses
 `rebuild_account_migration.group_rebuild_accountant_reviewer`. That role has
-the existing company-scoped, tested read-only accounting surface. It does not
-receive Accounting administrator or ordinary Accounting write access.
+the existing company-scoped review surface and is composed with the
+Distribution Accounting Reviewer role. The resulting profile may perform
+reversible Accounting work in unlocked periods, but it does not receive
+Accounting administration, lock management or permanent-deletion authority.
 
-## Source identity classification
+## Historical identity decisions
 
 The read-only Odoo Online source inspection on 2026-07-29 found:
 
 | Source identity | State | Target decision |
 | --- | --- | --- |
 | Valentin | Active internal; Unstatic Labs; system, accounting, HR, expense, project, sales, documents and signing administration | Active `administrator`; preserve the canonical imported partner and employee links |
-| Roger | Active internal; Unstatic Labs; currently system, accounting, project-manager, sales-manager, documents and signing access | Active `collaborator`; remove system, accounting and unrelated manager/private-data groups |
+| Roger | Active internal; all approved companies; Unstatic Labs remains the default company | Active `administrator` during initial configuration, then `product_administrator` |
 | Yoshi SAS / Roger external address | Inactive shared/public-style user | `historical` if this user is present in the target; do not create it for SSO |
 | Prosper | Not present in the source snapshot; the reconstruction workflow creates login `prosper` | Active `accountant_reviewer`; exact Pocket ID subject must be supplied by the owner |
 | Public user and Portal User Template | Framework accounts | Protected framework records; never SSO-linked |
 | OdooBot | Technical system account | Protected framework record; never SSO-linked |
 
-Pocket ID target configuration is downstream of reconstruction. The local
-helper applies named-user policy to canonical `odoo_dev` only after imported
-users, companies and business data pass source-parity controls. SSO is an
-explicit target enrichment and never weakens or mutates source evidence to
+Pocket ID policy applies only after users, companies and business data pass
+access and release controls. SSO never weakens or mutates business records to
 make authentication tests pass.
 
 ## Lifecycle and session policy
@@ -192,18 +193,11 @@ credentials.
 
 ## Activation state
 
-The repository now supplies an isolated, digest-pinned Pocket ID tenant,
-generated uncommitted credentials, stable local immutable subjects, a
-restricted OIDC client and an idempotent policy over canonical `odoo_dev`.
-That database is the disposable production-shaped target: the Online dump
-supplies business truth, then target finalization adds SSO without weakening
-source parity. The named users and cross-application journeys have been
-validated with administrator one-time Pocket ID links;
-passkey-ceremony validation is intentionally outside the Odoo integration
-acceptance scope.
-
-This unblocks local preproduction. A future non-local deployment still needs
-owner-confirmed production issuer and subjects, an owner-confirmed Prosper
-email, HTTPS routing, approved secret storage, passkey enrollment and the
-production activation runbook. Local synthetic identifiers and
+The local runtime uses a digest-pinned Pocket ID tenant, uncommitted
+credentials, stable immutable subjects, a restricted OIDC client and an
+idempotent named-user policy. The local working database is authoritative and
+must not be reset by identity tooling. Cross-application journeys have been
+validated with administrator one-time links; production still requires the
+approved HTTPS issuer, subjects, secret storage, passkey enrollment and
+callback configuration. Local synthetic identifiers and
 `preproduction.invalid` addresses must not be promoted.

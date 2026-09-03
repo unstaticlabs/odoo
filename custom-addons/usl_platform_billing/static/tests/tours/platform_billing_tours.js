@@ -83,8 +83,17 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
         },
         {
             content: "Confirm the configured platform",
-            trigger: ".dropdown-item:contains('Browser CreatorHub')",
+            trigger:
+                ".o_selected_row .o_field_widget[name='platform_id'] " +
+                ".o-autocomplete--dropdown-item:contains('Browser CreatorHub')",
             run: "click",
+        },
+        {
+            content: "The configured platform is selected",
+            trigger:
+                ".o_selected_row .o_field_widget[name='platform_id']" +
+                ":not(:has(.o-autocomplete--dropdown-menu)) " +
+                "input:value('Browser CreatorHub')",
         },
         {
             content: "Open the payout date picker",
@@ -93,16 +102,29 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
             run: "click",
         },
         {
-            content: "Move the payout date picker to August",
-            trigger: ".o_datetime_picker_header .o_next",
+            content: "Open the payout month selector",
+            trigger: ".o_datetime_picker .o_zoom_out",
             run: "click",
         },
         {
-            content: "The payout date picker shows August",
-            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+            content: "Open the payout year selector",
+            trigger: ".o_datetime_picker .o_zoom_out",
+            run: "click",
         },
         {
-            content: "Enter the payout date",
+            content: "Select the payout year",
+            trigger:
+                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^2026$/")',
+            run: "click",
+        },
+        {
+            content: "Select the payout month",
+            trigger:
+                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^Aug$/")',
+            run: "click",
+        },
+        {
+            content: "Select the payout day",
             trigger:
                 '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^15$/")',
             run: "click",
@@ -258,7 +280,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journe
         {
             content: "The matching transaction is available",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) [name='selected'] button",
             run: "click",
         },
         {
@@ -318,7 +340,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_rate_journey"
         {
             content: "Select the EUR 700 bank transaction",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser FX payout BROWSER-FX-1000')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser FX payout BROWSER-FX-1000')) [name='selected'] button",
             run: "click",
         },
         {
@@ -397,7 +419,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_pooled_link_journe
         {
             content: "Select the pooled receipt",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser pooled receipt 160')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser pooled receipt 160')) [name='selected'] button",
             run: "click",
         },
         {

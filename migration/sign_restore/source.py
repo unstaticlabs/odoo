@@ -8,6 +8,7 @@ import os
 import re
 import unicodedata
 from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -19,6 +20,20 @@ def text(value):
 
 def normalized_name(value):
     return unicodedata.normalize("NFC", (value or "").strip()).casefold()
+
+
+def source_datetime(value):
+    """Parse a source timestamp without discarding PostgreSQL microseconds."""
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        normalized = str(value).strip()
+        if normalized.endswith("Z"):
+            normalized = f"{normalized[:-1]}+00:00"
+        parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed
 
 
 def redact_historical_links(value):
@@ -106,7 +121,9 @@ class SourceReader:
                            original.store_fname AS original_store_fname,
                            original.checksum AS original_checksum,
                            original.file_size AS original_file_size,
-                           original.mimetype AS original_mimetype
+                           original.mimetype AS original_mimetype,
+                           original.create_date AS original_create_date,
+                           original.write_date AS original_write_date
                       FROM sign_request request
                       JOIN res_users creator ON creator.id = request.create_uid
                       JOIN res_partner creator_partner
@@ -197,7 +214,8 @@ class SourceReader:
                     SELECT relation.sign_request_id, attachment.id,
                            attachment.name, attachment.store_fname,
                            attachment.checksum, attachment.file_size,
-                           attachment.mimetype,
+                           attachment.mimetype, attachment.create_date,
+                           attachment.write_date,
                            CASE WHEN attachment.checksum = generated.signed_checksum
                                 THEN 'signed' ELSE 'source_certificate' END AS kind
                       FROM sign_request_completed_document_rel relation
@@ -226,7 +244,8 @@ class SourceReader:
                     SELECT attachment.id, attachment.name, attachment.res_model,
                            attachment.res_id, attachment.res_field,
                            attachment.store_fname, attachment.checksum,
-                           attachment.file_size, attachment.mimetype
+                           attachment.file_size, attachment.mimetype,
+                           attachment.create_date, attachment.write_date
                       FROM ir_attachment attachment
                      WHERE attachment.res_model LIKE 'sign.%'
                         OR attachment.res_field LIKE 'sign_%'
@@ -237,7 +256,7 @@ class SourceReader:
         expected = {
             "requests": 8,
             "signers": 11,
-            "logs": 53,
+            "logs": 61,
             "messages": 25,
             "field_values": 87,
             "attachments": 16,

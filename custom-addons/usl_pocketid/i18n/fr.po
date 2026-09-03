@@ -1108,6 +1108,16 @@ msgid "Pocket ID is not ready. Contact an administrator."
 msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Pocket ID sign-in does not currently return to the Odoo Android app. You can still try it, or use Odoo in your browser."
+msgstr "La connexion Pocket ID ne revient actuellement pas dans l’application Odoo pour Android. Vous pouvez tout de même essayer ou utiliser Odoo dans votre navigateur."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Open Odoo in your browser"
+msgstr "Ouvrir Odoo dans votre navigateur"
+
+#. module: usl_pocketid
 #: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__break_glass
 #: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_local_break_glass
 msgid "Sealed emergency administrator"
@@ -1149,6 +1159,16 @@ msgid "Confirm with Pocket ID"
 msgstr "Confirmer avec Pocket ID"
 
 #. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.res_users_identitycheck_view_form_pocketid
+msgid "Confirm your identity with Pocket ID"
+msgstr "Confirmez votre identité avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.res_users_identitycheck_view_form_pocketid
+msgid "A secure Pocket ID window will open for this sensitive action."
+msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir pour cette action sensible."
+
+#. module: usl_pocketid
 #: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityLink
 msgid "Use Pocket ID"
 msgstr "Utiliser Pocket ID"
@@ -1164,6 +1184,12 @@ msgstr "Autorisez la fenêtre de confirmation Pocket ID, puis réessayez."
 #: code:addons/usl_pocketid/static/src/js/check_identity.js:0
 msgid "Pocket ID confirmation was not completed."
 msgstr "La confirmation Pocket ID n’a pas abouti."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users_identitycheck.py:0
+msgid "Pocket ID confirmation expired. Confirm your identity again."
+msgstr "La confirmation Pocket ID a expiré. Confirmez à nouveau votre identité."
 
 #. module: usl_pocketid
 #: model:mail.template,body_html:usl_pocketid.portal_sso_invitation
@@ -1309,3 +1335,206 @@ msgstr "optional_if_missing doit valoir true ou false."
 #: code:addons/usl_pocketid/models/res_users.py:0
 msgid "optional_if_missing is only supported for inactive historical or decision profiles."
 msgstr "optional_if_missing est réservé aux profils historiques ou de décision inactifs."
+
+#. module: usl_pocketid
+msgid "Email Addresses"
+msgstr "Adresses e-mail"
+
+#. module: usl_pocketid
+msgid "Personal Sender Address"
+msgstr "Adresse d’envoi personnelle"
+
+#. module: usl_pocketid
+msgid "Personal Sender Addresses"
+msgstr "Adresses d’envoi personnelles"
+
+#. module: usl_pocketid
+msgid "Pending verification"
+msgstr "Vérification en attente"
+
+#. module: usl_pocketid
+msgid "Verified"
+msgstr "Vérifiée"
+
+#. module: usl_pocketid
+#. odoo-python
+msgid "This email address is already verified."
+msgstr "Cette adresse e-mail est déjà vérifiée."
+
+#. module: usl_pocketid
+msgid "Send verification"
+msgstr "Envoyer la vérification"
+
+#. module: usl_pocketid
+msgid "Verification email sent"
+msgstr "E-mail de vérification envoyé"
+
+#. module: usl_pocketid
+#. odoo-javascript
+msgid "We sent a verification link to each new or changed address. Check your inbox within 24 hours."
+msgstr "Nous avons envoyé un lien de vérification à chaque adresse nouvelle ou modifiée. Consultez votre boîte de réception dans les 24 heures."
+
+#. module: usl_pocketid
+msgid "Verify your personal email address"
+msgstr "Vérifiez votre adresse e-mail personnelle"
+
+#. module: usl_pocketid
+msgid "Email address verified"
+msgstr "Adresse e-mail vérifiée"
+
+#. module: usl_pocketid
+msgid "Verification link unavailable"
+msgstr "Lien de vérification indisponible"
+
+#. module: usl_pocketid
+msgid "Open Odoo"
+msgstr "Ouvrir Odoo"
+
+#. module: usl_pocketid
+msgid "Add personal addresses you use to email Odoo. Odoo recognizes an address only after you verify it."
+msgstr "Ajoutez les adresses personnelles utilisées pour écrire à Odoo. Odoo ne reconnaît une adresse qu’après sa vérification."
+
+#. module: usl_pocketid
+msgid "Verified addresses identify this user when messages enter Odoo."
+msgstr "Les adresses vérifiées identifient cet utilisateur à la réception des messages."
+
+#. module: usl_pocketid
+msgid "Verified personal addresses resolve to this employee's work contact."
+msgstr "Les adresses personnelles vérifiées sont rattachées au contact professionnel de cet employé."
+
+#. module: usl_pocketid
+msgid "Verified personal addresses resolve incoming messages to this contact."
+msgstr "Les adresses personnelles vérifiées rattachent les messages entrants à ce contact."
+
+#. module: usl_pocketid
+msgid "Odoo will now recognize messages sent from"
+msgstr "Odoo reconnaîtra désormais les messages envoyés depuis"
+
+#. module: usl_pocketid
+msgid "This link is invalid, expired, or already used. Request a new verification email from your Odoo preferences."
+msgstr "Ce lien est invalide, expiré ou déjà utilisé. Demandez un nouvel e-mail de vérification dans vos préférences Odoo."
+
+#. module: usl_pocketid
+msgid "This personal email address is already registered."
+msgstr "Cette adresse e-mail personnelle est déjà enregistrée."
+
+#. module: usl_pocketid
+msgid "Enter a valid email address."
+msgstr "Saisissez une adresse e-mail valide."
+
+#. module: usl_pocketid
+msgid "This is already the contact's primary email address."
+msgstr "Il s’agit déjà de l’adresse e-mail principale du contact."
+
+#. module: usl_pocketid
+msgid "An Odoo destination alias cannot be a personal sender address."
+msgstr "Un alias de destination Odoo ne peut pas servir d’adresse d’envoi personnelle."
+
+#. module: usl_pocketid
+msgid "This address belongs to another Odoo user or employee."
+msgstr "Cette adresse appartient à un autre utilisateur ou employé Odoo."
+
+#. module: usl_pocketid
+msgid "You can manage only your own personal email addresses."
+msgstr "Vous pouvez gérer uniquement vos propres adresses e-mail personnelles."
+
+#. module: usl_pocketid
+msgid "Verification state is managed by Odoo."
+msgstr "L’état de vérification est géré par Odoo."
+
+#. module: usl_pocketid
+msgid "The public Odoo URL is not configured safely."
+msgstr "L’URL publique d’Odoo n’est pas configurée de manière sûre."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_security_state
+msgid "Pocket ID status"
+msgstr "État Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_security_email
+msgid "Pocket ID email"
+msgstr "Adresse e-mail Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_last_login_at
+msgid "Last Pocket ID sign-in"
+msgstr "Dernière connexion Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__connected
+msgid "Connected"
+msgstr "Connecté"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__ready
+msgid "Ready for first sign-in"
+msgstr "Prêt pour la première connexion"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_pocketid_security_state__unavailable
+msgid "Not enabled"
+msgstr "Non activé"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid ""
+"<span class=\"o_form_label\">Pocket ID</span>\n"
+"                        <span class=\"text-muted\">\n"
+"                            Manages your sign-in and multi-factor security.\n"
+"                        </span>"
+msgstr ""
+"<span class=\"o_form_label\">Pocket ID</span>\n"
+"                        <span class=\"text-muted\">\n"
+"                            Gère votre connexion et votre authentification multifacteur.\n"
+"                        </span>"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid "Manage in Pocket ID"
+msgstr "Gérer dans Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid "Account:"
+msgstr "Compte :"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid "Last sign-in:"
+msgstr "Dernière connexion :"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_preferences_pocketid
+msgid ""
+"<span class=\"text-muted\">\n"
+"                            Change your password, passkeys, and second factor in Pocket ID.\n"
+"                        </span>"
+msgstr ""
+"<span class=\"text-muted\">\n"
+"                            Modifiez votre mot de passe, vos clés d’accès et votre second facteur dans Pocket ID.\n"
+"                        </span>"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "You can only open Pocket ID for your own account."
+msgstr "Vous pouvez ouvrir Pocket ID uniquement pour votre propre compte."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID is not available. Contact an administrator."
+msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The default company must be a non-empty company name."
+msgstr "La société par défaut doit être désignée par un nom de société non vide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The default company must be one of the allowed companies."
+msgstr "La société par défaut doit faire partie des sociétés autorisées."

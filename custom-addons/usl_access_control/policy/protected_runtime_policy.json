@@ -116,6 +116,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:inventory.landed_cost.validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:module.install",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -1581,6 +1586,21 @@
       }
     },
     {
+      "action_key": "rpc:stock.landed.cost.button_validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:stock.landed.cost.unlink",
+      "action_name": "permanently delete stock.landed.cost",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.landed.cost",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:stock.location.unlink",
       "action_name": "permanently delete stock.location",
       "classification": "protected",
@@ -1921,6 +1941,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "action_name": "reconcile delegated Agent authority",
+      "classification": "protected"
+    },
+    {
       "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1",
       "action_name": "permanently delete attachment evidence from a business record",
       "classification": "protected"
@@ -1951,8 +1976,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "43a8c511f8570b70222904257fb3612fda4ee04fe37ab7b84c9aa94abeb3dded",
-  "runtime_policy_sha256": "148a7b53e77e3f0a7573c094297dee7d5bfff269b5050b8dcdb89c56ea50e34f",
+  "qualified_policy_digest": "b9e70375e3dac31b8ac4b53c04df67dc32b7fd9658e425e8367f56869b0791a6",
+  "runtime_policy_sha256": "a40a43d37d86f7c0ccc90603f915281f95a020b4e5868a8c90593f199f020cc8",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2112,14 +2137,6 @@
       "classification": "operational"
     },
     {
-      "action_key": "server_action:gamification.ir_cron_check_challenge_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:gamification.ir_cron_consolidate_ir_actions_server",
-      "classification": "operational"
-    },
-    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "classification": "protected"
     },
@@ -2217,18 +2234,6 @@
     },
     {
       "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_ab_testing_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_queue_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.mailing_list_merge_action",
       "classification": "operational"
     },
     {
@@ -2536,8 +2541,8 @@
       "classification": "operational"
     },
     {
-      "action_key": "server_action:survey.action_survey_print",
-      "classification": "operational"
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "classification": "protected"
     },
     {
       "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
@@ -2549,6 +2554,10 @@
     },
     {
       "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_document_download_grants_cleanup_ir_actions_server",
       "classification": "operational"
     },
     {
@@ -2569,6 +2578,10 @@
     },
     {
       "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server",
       "classification": "operational"
     },
     {

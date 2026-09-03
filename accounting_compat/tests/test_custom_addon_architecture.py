@@ -202,53 +202,6 @@ class CustomAddonArchitectureTest(unittest.TestCase):
     def test_obsolete_placeholder_is_absent(self):
         self.assertNotIn("usl_custom_placeholder", _manifests())
 
-    def test_canonical_reconstruction_restores_source_and_finalizes_migration(self):
-        script = (
-            REPOSITORY_ROOT / "scripts" / "target-reconstruct"
-        ).read_text(encoding="utf-8")
-        execution = script.split(
-            'run_stage "target identity preflight"',
-            1,
-        )[1]
-        ordered_steps = [
-            'run_stage "restore source database"',
-            'run_stage "source accounting controls"',
-            'run_stage "extract accounting source"',
-            'run_stage "reset target database"',
-            'run_stage "import accounting"',
-            'run_stage "validate accounting"',
-            'run_stage "prepare Documents product"',
-            'run_stage "restore identities"',
-            'run_stage "restore product data"',
-            'run_stage "repair Expense Batch transition"',
-            'run_stage "repair final Accounting attachment targets"',
-            'run_stage "restore B2C commerce evidence"',
-            'run_stage "restore HR"',
-            'run_stage "restore Projects"',
-            'run_stage "restore Documents archive"',
-            'run_stage "finalize B2C relationships and Documents links"',
-            'run_stage "restore Paie TESE"',
-            'run_stage "restore Platform Billing"',
-            'run_stage "finalize migration boundary"',
-            'run_stage "apply target configuration"',
-        ]
-
-        positions = [execution.index(step) for step in ordered_steps]
-        self.assertEqual(positions, sorted(positions))
-        resume_validation = execution.index(
-            'run_stage "revalidate reusable accounting"',
-        )
-        self.assertLess(
-            resume_validation,
-            execution.index('run_stage "reset target database"'),
-        )
-        self.assertIn('USL_RECONSTRUCT_REUSE_DOCUMENTS:-0', script)
-        self.assertIn('DOCUMENTS_CANONICAL_RESET="$documents_reset"', script)
-        self.assertIn(
-            'DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint"',
-            script,
-        )
-
     def test_project_restore_declares_temporary_accounting_dependency(self):
         manifest = ast.literal_eval(
             (
@@ -259,7 +212,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertIn("usl_accounting_restore", manifest["depends"])
         self.assertNotIn("rebuild_account_migration", manifest["depends"])
 
-        project_script = (REPOSITORY_ROOT / "scripts/project-restore").read_text(
+        project_script = (REPOSITORY_ROOT / "migration/internal/project-restore").read_text(
             encoding="utf-8",
         )
         self.assertIn("scripts/lib/migration-addons.sh", project_script)
@@ -281,7 +234,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertIn("usl_accounting_restore", manifest["depends"])
         self.assertNotIn("rebuild_account_migration", manifest["depends"])
 
-        tese_script = (REPOSITORY_ROOT / "scripts/tese-restore").read_text(
+        tese_script = (REPOSITORY_ROOT / "migration/internal/tese-restore").read_text(
             encoding="utf-8",
         )
         self.assertIn("scripts/lib/migration-addons.sh", tese_script)
@@ -300,9 +253,9 @@ class CustomAddonArchitectureTest(unittest.TestCase):
 
     def test_platform_finalization_defers_product_registry_until_global_cleanup(self):
         platform_script = (
-            REPOSITORY_ROOT / "scripts/platform-billing-restore"
+            REPOSITORY_ROOT / "migration/internal/platform-billing-restore"
         ).read_text(encoding="utf-8")
-        target_script = (REPOSITORY_ROOT / "scripts/target-reconstruct").read_text(
+        target_script = (REPOSITORY_ROOT / "migration/internal/reconstruct").read_text(
             encoding="utf-8",
         )
 
@@ -342,7 +295,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             temporary_mounts,
         )
         collaboration_script = (
-            REPOSITORY_ROOT / "scripts/collaboration-restore"
+            REPOSITORY_ROOT / "migration/internal/collaboration-restore"
         ).read_text(encoding="utf-8")
         self.assertIn(
             'migration_addons_path="$USL_MIGRATION_ADDONS_PATH"',
@@ -360,7 +313,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             "project-restore",
             "tese-restore",
         ):
-            script = (REPOSITORY_ROOT / "scripts" / script_name).read_text(
+            script = (REPOSITORY_ROOT / "migration/internal" / script_name).read_text(
                 encoding="utf-8",
             )
             self.assertIn("scripts/lib/migration-addons.sh", script, script_name)

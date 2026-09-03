@@ -39,6 +39,25 @@ _TRANSACTIONS_KEY = "usl_pocketid_transactions"
 _TRANSACTION_MAX_AGE = 300
 _TRANSACTION_LIMIT = 5
 _SSO_LOGOUT_BRIDGE_PATH = "/usl/pocketid/sso-logout"
+_ODOO_ANDROID_PACKAGE = "com.odoo.mobile"
+
+
+def _is_odoo_android_app_request():
+    """Identify the Android store app without misclassifying iOS clients."""
+    requested_with = request.httprequest.headers.get("X-Requested-With", "")
+    user_agent = request.httprequest.user_agent.string or ""
+    normalized_user_agent = " ".join(user_agent.lower().split())
+    compact_user_agent = normalized_user_agent.replace(" ", "")
+    return (
+        requested_with.strip().lower() == _ODOO_ANDROID_PACKAGE
+        or (
+            "android" in normalized_user_agent
+            and (
+                "odoo mobile" in normalized_user_agent
+                or "odoomobile" in compact_user_agent
+            )
+        )
+    )
 
 
 def _allowed_end_session_url(url, provider):
@@ -266,6 +285,14 @@ class PocketIDLogin(OpenIDLogin):
                 response.qcontext["usl_pocketid_provider"] = (
                     providers[0] if len(providers) == 1 else False
                 )
+                response.qcontext["usl_odoo_android_app"] = (
+                    _is_odoo_android_app_request()
+                )
+                response.qcontext["usl_pwa_login_url"] = (
+                    providers[0]["usl_public_base_url"].rstrip("/") + "/web/login"
+                    if len(providers) == 1
+                    else False
+                )
                 response.qcontext["disable_database_manager"] = True
             error_code = request.params.get("sso_error")
             if error_code:
@@ -359,6 +386,7 @@ class PocketIDLogin(OpenIDLogin):
                 purpose="reauth",
             ),
             303,
+            local=False,
         )
 
     @route(

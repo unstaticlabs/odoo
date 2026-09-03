@@ -723,18 +723,30 @@ all_groups = group_source(source)
 groups = select_groups(all_groups, SOURCE_PROFILE, SOURCE_LIMIT)
 if not groups:
     fail(f"source profile {SOURCE_PROFILE} selected no document groups")
+company_scopes = []
+for group in groups:
+    try:
+        company_scopes.append(resolve_company_scope(group))
+    except ValueError as error:
+        item = representative(group)
+        fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
 admin = env.ref("base.user_admin")
 documents_model = env["usl.document"]
 manager_group = env.ref("usl_documents.group_documents_manager")
 companies = source_map(
     "res.company",
-    [
+    {
         source_id
         for group in groups
         for item in group
         for source_id in (item.get("company_id"), item.get("folder_company_id"))
         if source_id
-    ],
+    }
+    | {
+        scope["company_id"]
+        for scope in company_scopes
+        if scope["company_id"]
+    },
 )
 users = source_map(
     "res.users",
@@ -782,6 +794,66 @@ expected_move_ids = {
 }
 if set(moves) != expected_move_ids:
     fail(f"Accounting move mappings are incomplete: {sorted(expected_move_ids - set(moves))}")
+projects = source_map(
+    "project.project",
+    [row["id"] for row in source["project_folder_mappings"]]
+    + [
+        item["res_id"]
+        for group in groups
+        for item in group
+        if item["res_model"] == "project.project" and item["res_id"]
+    ],
+)
+tasks = source_map(
+    "project.task",
+    [
+        item["res_id"]
+        for group in groups
+        for item in group
+        if item["res_model"] == "project.task" and item["res_id"]
+    ],
+)
+project_by_folder = {
+    row["documents_folder_id"]: projects[row["id"]]
+    for row in source["project_folder_mappings"]
+}
+
+
+def business_targets(group):
+    """Resolve every native record relationship carried by a checksum group."""
+    result = {}
+    mappings = {
+        "account.move": moves,
+        "project.project": projects,
+        "project.task": tasks,
+    }
+    for entry in group:
+        mapping = mappings.get(entry["res_model"])
+        if mapping and entry["res_id"]:
+            target = mapping[entry["res_id"]]
+            result[(target._name, target.id)] = target
+        project = project_by_folder.get(entry["folder_id"])
+        if project:
+            result[(project._name, project.id)] = project
+    return result
+
+
+def primary_business_target(targets):
+    """Choose the most specific deterministic target for archive policy context."""
+    for model_name in ("project.task", "project.project", "account.move"):
+        candidates = sorted(
+            (
+                target_id,
+                target,
+            )
+            for (candidate_model, target_id), target in targets.items()
+            if candidate_model == model_name
+        )
+        if candidates:
+            return candidates[0][1]
+    return None
+
+
 tese_payroll_by_move_id = {}
 if "usl.tese.payslip" in env:
     tese_payroll_by_move_id = {
@@ -803,13 +875,6 @@ for row in source["employee_folder_mappings"]:
     ):
         if folder_id:
             employee_by_folder[folder_id] = employee
-if any(
-    item["folder_id"] in {row["documents_folder_id"] for row in source["project_folder_mappings"]}
-    for group in groups
-    for item in group
-):
-    fail("the source contains direct Project-folder documents without a finalized mapping")
-
 for membership in source["document_groups"]:
     user = users.get(membership["user_id"])
     if user:
@@ -1098,18 +1163,11 @@ for index, group in enumerate(groups, start=1):
     if any(candidate != content for candidate in source_contents[1:]):
         fail(f"source SHA-1 group {item['checksum']} contains different binaries")
     source_sha256 = hashlib.sha256(content).hexdigest()
-    try:
-        company_scope = resolve_company_scope(group)
-    except ValueError as error:
-        fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
+    company_scope = company_scopes[index - 1]
     source_company_id = company_scope["company_id"]
     company = companies.get(source_company_id) or next(iter(companies.values()), env.company)
-    target_moves = [
-        moves[entry["res_id"]]
-        for entry in group
-        if entry["res_model"] == "account.move" and entry["res_id"]
-    ]
-    target = target_moves[0] if target_moves else None
+    target_records = business_targets(group)
+    target = primary_business_target(target_records)
     classification = classifications[item["checksum"]]
     confidentiality = (
         "private"
@@ -1166,11 +1224,17 @@ for index, group in enumerate(groups, start=1):
         metadata_hash,
         company,
     )
-    processing_operation = (
-        env["usl.document.operation"]
-        if existing
-        else existing_processing_operation_for(paperless_sha256, company, target)
-    )
+    try:
+        processing_operation = (
+            env["usl.document.operation"]
+            if existing
+            else existing_processing_operation_for(paperless_sha256, company, target)
+        )
+    except RuntimeError as error:
+        source_ids = [entry["document_id"] for entry in group]
+        raise RuntimeError(
+            f"{error} (source group {index}, Documents {source_ids})",
+        ) from error
     task = {
         "index": index,
         "group": group,
@@ -1287,10 +1351,11 @@ for item in completed:
     company = companies.get(source_company_id)
     if any(entry.get("operational_attachment_id") for entry in group):
         company = company or next(iter(companies.values()), env.company)
+    target_links = business_targets(group)
     target_moves = {
-        moves[entry["res_id"]].id: moves[entry["res_id"]]
-        for entry in group
-        if entry["res_model"] == "account.move" and entry["res_id"]
+        target_id: target
+        for (model_name, target_id), target in target_links.items()
+        if model_name == "account.move"
     }
     confidentiality = (
         "private"
@@ -1347,6 +1412,12 @@ for item in completed:
     provenance_values = {
         "submitted_by_id": submitted_user.id,
         "submitted_at": fields.Datetime.to_string(classification["added_at"]),
+        "original_created_at": fields.Datetime.to_string(
+            classification["added_at"],
+        ),
+        "original_modified_at": fields.Datetime.to_string(
+            classification["modified_at"],
+        ),
     }
     document.sudo().with_context(usl_documents_cache_write=True).write(
         provenance_values,
@@ -1354,10 +1425,6 @@ for item in completed:
     received_original = document.version_ids.filtered("is_received_original")[:1]
     if received_original:
         received_original.sudo().write(provenance_values)
-    target_links = {
-        ("account.move", target.id): target
-        for target in target_moves.values()
-    }
     for target in target_moves.values():
         payroll = tese_payroll_by_move_id.get(target.id)
         if payroll:
@@ -1501,6 +1568,17 @@ for item in completed:
     )
     if document.submitted_at != expected_submitted_at:
         fail(f"source added date differs for Paperless document {document.paperless_id}")
+    expected_modified_at = fields.Datetime.to_datetime(
+        fields.Datetime.to_string(classification["modified_at"]),
+    )
+    if (
+        document.original_created_at != expected_submitted_at
+        or document.original_modified_at != expected_modified_at
+    ):
+        fail(
+            f"source metadata timestamps differ for Paperless document "
+            f"{document.paperless_id}",
+        )
     if not document.version_ids.filtered(
         lambda version: version.checksum == item["paperless_original_sha256"],
     ):
@@ -1541,6 +1619,7 @@ for item in completed:
         "superseded_inactive_company_ids"
     ]
     item["source_added_at"] = classification["added_at"]
+    item["source_modified_at"] = classification["modified_at"]
     quarantine = env["ir.attachment"].sudo().search(
         [
             ("rebuild_source_model", "=", "ir.attachment"),
@@ -1978,6 +2057,7 @@ result = {
     "classification_type_counts": classification_type_counts,
     "classification_reconciliation": classification_reconciliation,
     "source_added_dates_preserved": len(completed),
+    "source_modified_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,
 }

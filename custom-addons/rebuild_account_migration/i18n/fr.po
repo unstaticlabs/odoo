@@ -522,7 +522,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "A blocking Hygiene or closing issue requires review."
 msgstr ""
-"Une anomalie bloquante de qualité comptable ou de clôture doit être traitée."
+"Une anomalie bloquante d’hygiène comptable ou de clôture doit être traitée."
 
 #. module: rebuild_account_migration
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_closing_control_definition_unique_clos_9ccfa9a8
@@ -889,24 +889,24 @@ msgstr "Cadre comptable"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Accounting Hygiene"
-msgstr "Qualité comptable"
+msgstr "Hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_hygiene_dismissal
 msgid "Accounting Hygiene Dismissal"
-msgstr "Masquage d’une anomalie de qualité comptable"
+msgstr "Masquage d’une anomalie d’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_hygiene_issue
 msgid "Accounting Hygiene Issue"
-msgstr "Anomalie de qualité comptable"
+msgstr "Anomalie d’hygiène comptable"
 
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/accounting_overview.py:0
 msgid "Accounting Hygiene is not available for the current company."
 msgstr ""
-"Le contrôle de qualité comptable n’est pas disponible pour la société "
+"Le contrôle d’hygiène comptable n’est pas disponible pour la société "
 "active."
 
 #. module: rebuild_account_migration
@@ -915,7 +915,7 @@ msgid ""
 "Accounting Hygiene has blocking issues.\n"
 "                        Review them before continuing normal accounting work."
 msgstr ""
-"La qualité comptable présente des anomalies bloquantes.\n"
+"L’hygiène comptable présente des anomalies bloquantes.\n"
 "                        Traitez-les avant de poursuivre les opérations comptables courantes."
 
 #. module: rebuild_account_migration
@@ -1097,8 +1097,8 @@ msgstr "Activation et diagnostic"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__activation_required
-msgid "Activation in progress"
-msgstr "Activation en cours"
+msgid "Activation required"
+msgstr "Activation requise"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_rule__active
@@ -1335,7 +1335,7 @@ msgstr "Condition de montant"
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_hygiene_issue_unique_hygiene_issue
 msgid "An Accounting Hygiene issue key must be unique within one company."
 msgstr ""
-"La clé d’une anomalie de qualité comptable doit être unique au sein d’une "
+"La clé d’une anomalie d’hygiène comptable doit être unique au sein d’une "
 "société."
 
 #. module: rebuild_account_migration
@@ -1516,6 +1516,36 @@ msgstr "Raison d’applicabilité"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
 msgid "Applicability and Deadline Basis"
 msgstr "Applicabilité et date limite"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Applicability and deadline"
+msgstr "Applicabilité et date limite"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "See why this obligation applies and how its filing date is determined."
+msgstr "Comprenez pourquoi cette obligation s’applique et comment sa date de dépôt est déterminée."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Why this applies"
+msgstr "Pourquoi cette obligation s’applique"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Rules relevant to this company and declaration period."
+msgstr "Règles applicables à cette société et à cette période déclarative."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "How the deadline is calculated"
+msgstr "Comment la date limite est calculée"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Statutory timing rule and any applicable filing window."
+msgstr "Règle de délai légale et éventuelle fenêtre de dépôt applicable."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_definition_form
@@ -2883,12 +2913,6 @@ msgstr "Activation complète de la plateforme"
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Complete platform registration"
-msgstr "Inscription complète à la plateforme"
-
-#. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Complete platform setup"
 msgstr "Terminer la configuration de la plateforme"
 
@@ -3210,7 +3234,7 @@ msgid ""
 "Automatic mode uses the account type and common French contra-account "
 "prefixes. This is a review signal, not an automatic accounting correction."
 msgstr ""
-"Détermine si la qualité comptable signale un solde global de sens anormal. "
+"Détermine si l’hygiène comptable signale un solde global de sens anormal. "
 "Le mode automatique utilise le type de compte et les préfixes usuels des "
 "comptes correcteurs français. Il s’agit d’un indicateur à vérifier, et non "
 "d’une correction comptable automatique."
@@ -5103,14 +5127,6 @@ msgid "Finding"
 msgstr "Trouver"
 
 #. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Finish registration and verify the French directory effective date."
-msgstr ""
-"Terminez l’inscription et vérifiez la date d’entrée en vigueur de l’annuaire"
-" français."
-
-#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__first_detected_at
 msgid "First Detected"
 msgstr "Détecté pour la première fois"
@@ -5498,7 +5514,7 @@ msgstr "Résultats des contrôles de qualité"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__hygiene_status
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_search
 msgid "Hygiene Status"
-msgstr "État de la qualité comptable"
+msgstr "État de l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_account_account__id
@@ -6369,8 +6385,8 @@ msgstr "Lignes à zéro masquées"
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__closing_period_scope
 msgid "Limits closing execution without changing daily Hygiene execution."
 msgstr ""
-"Limite l’exécution de la clôture sans modifier les contrôles quotidiens de "
-"qualité comptable."
+"Limite l’exécution de la clôture sans modifier les contrôles quotidiens "
+"d’hygiène comptable."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__line_code
@@ -6939,7 +6955,7 @@ msgstr "Aucune nouvelle suggestion"
 #. module: rebuild_account_migration
 #: model_terms:ir.actions.act_window,help:rebuild_account_migration.action_rebuild_account_hygiene
 msgid "No open Accounting Hygiene issue."
-msgstr "Aucune anomalie de qualité comptable à traiter."
+msgstr "Aucune anomalie d’hygiène comptable à traiter."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
@@ -7100,6 +7116,17 @@ msgstr "Ventes OSS"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_provider__odoo_pdp
 msgid "Odoo Approved Platform"
 msgstr "Plateforme agréée Odoo"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid ""
+"Odoo's Approved Platform is registering this company in the French "
+"directory. Reception can be enabled after the native status becomes "
+"Receiver."
+msgstr ""
+"La Plateforme Agréée d’Odoo inscrit cette société dans l’annuaire français. "
+"La réception pourra être activée lorsque l’état natif passera à « Récepteur »."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_origin__standard
@@ -8886,7 +8913,7 @@ msgid ""
 "Re-run deterministic Hygiene and closing controls from the current "
 "accounting records. No accounting entry is posted or changed."
 msgstr ""
-"Relancez les contrôles déterministes de qualité comptable et de clôture à "
+"Relancez les contrôles déterministes d’hygiène comptable et de clôture à "
 "partir des écritures actuelles. Aucune écriture n’est comptabilisée ni "
 "modifiée."
 
@@ -9015,7 +9042,7 @@ msgid ""
 "Recalculate every open closing workspace and Accounting Hygiene using the "
 "enabled controls and policies shown here."
 msgstr ""
-"Recalculez tous les espaces de clôture ouverts et la qualité comptable à "
+"Recalculez tous les espaces de clôture ouverts et l’hygiène comptable à "
 "partir des contrôles et règles activés ici."
 
 #. module: rebuild_account_migration
@@ -9033,8 +9060,8 @@ msgid ""
 "Recalculate open closing workspaces and daily Accounting Hygiene for this "
 "company using this configuration."
 msgstr ""
-"Recalculez les espaces de clôture ouverts et les contrôles quotidiens de "
-"qualité comptable de cette société avec cette configuration."
+"Recalculez les espaces de clôture ouverts et les contrôles quotidiens "
+"d’hygiène comptable de cette société avec cette configuration."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
@@ -9440,7 +9467,7 @@ msgstr "Actualiser les résultats actuels"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Refresh Hygiene"
-msgstr "Actualiser la qualité comptable"
+msgstr "Actualiser l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
@@ -9512,9 +9539,11 @@ msgid "Registration needs attention"
 msgstr "L'inscription nécessite une attention particulière"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__registration_in_progress
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_connection_status__registration_pending
-msgid "Registration pending"
-msgstr "Inscription en attente"
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Registration in progress"
+msgstr "Inscription en cours"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.client,name:rebuild_account_migration.action_rebuild_interactive_fixed_assets
@@ -9981,7 +10010,7 @@ msgstr "Vérifier"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Review Accounting Hygiene"
-msgstr "Vérifier la qualité comptable"
+msgstr "Vérifier l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_snapshot__review_decision_id
@@ -10241,7 +10270,7 @@ msgstr "Effectuer l'auto-contrôle de réception"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__applies_to_hygiene
 msgid "Run this control when Accounting Hygiene is refreshed."
-msgstr "Exécuter ce contrôle lors de l’actualisation de la qualité comptable."
+msgstr "Exécuter ce contrôle lors de l’actualisation de l’hygiène comptable."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__applies_to_closing
@@ -12263,7 +12292,7 @@ msgstr "Utiliser un partenaire"
 #: model_terms:ir.actions.act_window,help:rebuild_account_migration.action_rebuild_account_hygiene
 msgid "Accounting Managers refresh Hygiene automatically when this view opens."
 msgstr ""
-"La qualité comptable est actualisée automatiquement lorsqu’un responsable "
+"L’hygiène comptable est actualisée automatiquement lorsqu’un responsable "
 "comptable ouvre cette vue."
 
 #. module: rebuild_account_migration
@@ -12975,3 +13004,165 @@ msgstr "Le relevé bancaire atteste chaque mois qu’Odoo contient tous les mouv
 #. module: rebuild_account_migration
 msgid "This is a bank-completeness checkpoint; it does not imply that every movement is matched to an invoice or payment."
 msgstr "Il s’agit d’un contrôle d’exhaustivité bancaire ; il ne signifie pas que chaque mouvement est rapproché d’une facture ou d’un paiement."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting — %s"
+msgstr "Comptabilité — %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting — %s selected companies"
+msgstr "Comptabilité — %s sociétés sélectionnées"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "No selected company is available."
+msgstr "Aucune société sélectionnée n’est disponible."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting Hygiene is not available for the selected companies."
+msgstr "L’hygiène comptable n’est pas disponible pour les sociétés sélectionnées."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Company accounting"
+msgstr "Comptabilité de la société"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "issues"
+msgstr "anomalies"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Bank and cash balance"
+msgstr "Solde bancaire et de trésorerie"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Bank review"
+msgstr "Revue bancaire"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "To match"
+msgstr "À rapprocher"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Draft invoices"
+msgstr "Factures clients brouillon"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Draft bills"
+msgstr "Factures fournisseurs brouillon"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Closing blockers"
+msgstr "Blocages de clôture"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_kanban
+msgid "Open company overview"
+msgstr "Ouvrir la vue de la société"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_res_company__rebuild_einvoice_production_prepared_by_id
+msgid "Production Prepared By"
+msgstr "Production préparée par"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_res_company__rebuild_einvoice_production_prepared_at
+msgid "Production Prepared At"
+msgstr "Production préparée le"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Prepare production activation"
+msgstr "Préparer l’activation en production"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation already prepared"
+msgstr "Activation en production déjà préparée"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation prepared"
+msgstr "Activation en production préparée"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "You cannot govern electronic-invoice activation for a company outside your allowed companies."
+msgstr "Vous ne pouvez pas gérer l’activation de la facturation électronique pour une société à laquelle vous n’avez pas accès."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "No setting changed. Continue with the separate reception activation step when ready."
+msgstr "Aucun réglage n’a changé. Poursuivez avec l’étape distincte d’activation de la réception quand vous êtes prêt."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production activation cannot be prepared:\n%s"
+msgstr "L’activation en production ne peut pas être préparée :\n%s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "The company is eligible for production onboarding. No platform was contacted and invoice reception remains inactive."
+msgstr "La société peut désormais commencer son inscription en production. Aucune plateforme n’a été contactée et la réception des factures reste inactive."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Mark this company as eligible for production onboarding. This does not contact or register with the platform, start invoice reception, enable e-reporting, or send regulatory data."
+msgstr "Rendez cette société éligible à l’inscription en production. Cette action ne contacte ni n’inscrit la société auprès de la plateforme, ne lance pas la réception des factures, n’active pas l’e-reporting et n’envoie aucune donnée réglementaire."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Mark this company as eligible for production onboarding without contacting the platform or starting invoice reception."
+msgstr "Rendez cette société éligible à l’inscription en production sans contacter la plateforme ni lancer la réception des factures."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
+msgid "Prepare this company for production activation? This marks it as eligible for production onboarding. It does not contact or register with the platform, start invoice reception, enable e-reporting, or send regulatory data."
+msgstr "Préparer cette société pour l’activation en production ? Elle deviendra éligible à l’inscription en production. Cette action ne contacte ni n’inscrit la société auprès de la plateforme, ne lance pas la réception des factures, n’active pas l’e-reporting et n’envoie aucune donnée réglementaire."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "The deployment is configured for safe demo onboarding. Configure the native PDP mode for production before activation."
+msgstr "Le déploiement est configuré pour une inscription de démonstration sécurisée. Configurez le mode PDP natif pour la production avant l’activation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Missing scheduled action: %s"
+msgstr "Action planifiée manquante : %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Inactive scheduled action: %s"
+msgstr "Action planifiée inactive : %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid "Production reception scheduling is not ready. Ask a system administrator to apply the production cron policy:\n%s"
+msgstr "La planification de la réception en production n’est pas prête. Demandez à un administrateur système d’appliquer la politique de tâches planifiées de production :\n%s"

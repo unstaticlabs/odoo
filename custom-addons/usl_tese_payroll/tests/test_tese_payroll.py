@@ -1,4 +1,6 @@
+import hashlib
 from datetime import date
+from unittest.mock import ANY, MagicMock, patch
 
 from dateutil.relativedelta import relativedelta
 
@@ -7,9 +9,10 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 from odoo.tools.safe_eval import safe_eval
 
-from ..models.constants import TESE_COMPONENTS
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.addons.usl_documents.models.paperless_client import PaperlessClient
+from odoo.addons.usl_tese_payroll.models.constants import TESE_COMPONENTS
 
 
 @tagged("post_install", "-at_install", "usl_tese_payroll")
@@ -131,7 +134,8 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             login="tese_accountant",
             groups=(
                 "base.group_user,hr.group_hr_manager,"
-                "account.group_account_user"
+                "account.group_account_user,"
+                "usl_documents.group_documents_hr"
             ),
             company_ids=company_commands,
         )
@@ -177,6 +181,89 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         payslip.with_user(self.workflow_user).attachment_id = attachment
         return attachment
 
+    def _cached_metadata(self, model_name, paperless_id, name, **values):
+        values.setdefault("matching_algorithm", "0")
+        return (
+            self.env[model_name]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create({
+                "name": name,
+                "paperless_id": paperless_id,
+                **values,
+            })
+        )
+
+    def _archived_pdf(
+        self,
+        content=b"%PDF-1.7 archived TESE payroll",
+        *,
+        paperless_id=96001,
+        name="Archived TESE payroll",
+        document_type=None,
+        tags=None,
+    ):
+        checksum = hashlib.sha256(content).hexdigest()
+        tags = tags or self.env["usl.paperless.tag"]
+        document = self.env["usl.document"].sudo().create({
+            "name": name,
+            "paperless_id": paperless_id,
+            "company_id": self.company.id,
+            "confidentiality": "internal",
+            "access_scope": "company",
+            "review_state": "classified",
+            "availability_state": "available",
+            "permission_sync_state": "synchronized",
+            "mime_type": "application/pdf",
+            "original_filename": f"{name}.pdf",
+            "checksum": checksum,
+            "source": "odoo_upload",
+            "document_type_id": document_type.id if document_type else False,
+            "tag_ids": [Command.set(tags.ids)],
+        })
+        version = self.env["usl.document.version"].sudo().create({
+            "document_id": document.id,
+            "paperless_version_id": str(paperless_id),
+            "label": "Original",
+            "original_filename": document.original_filename,
+            "mime_type": "application/pdf",
+            "checksum": checksum,
+            "is_current": True,
+            "is_received_original": True,
+            "source": "odoo_upload",
+        })
+        return document, version, content
+
+    def _archive_context_for_payslip(self, payslip):
+        return {
+            "company_id": payslip.company_id.id,
+            "confidentiality": "hr",
+            "accounting_evidence": True,
+            "access_scope": "linked_record",
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "attachment_origin": "documents_workspace",
+            "policy_reason": "tese_payroll_evidence",
+            "related_records": [
+                {
+                    "model": payslip._name,
+                    "id": payslip.id,
+                    "document_role": "evidence",
+                },
+                {
+                    "model": "hr.employee",
+                    "id": payslip.employee_id.id,
+                    "document_role": "library",
+                },
+            ],
+            "tag_record_ids": [],
+            "tag_paperless_ids": [],
+            "document_type_record_id": False,
+            "document_type_paperless_id": False,
+            "correspondent_record_id": False,
+            "correspondent_paperless_id": False,
+        }
+
     def _bank_line(self, amount, payment_date, partner, label):
         statement = self.env["account.bank.statement"].create({
             "journal_id": self.bank_journal.id,
@@ -201,6 +288,310 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(len(candidate), 1)
         return candidate
+
+    def test_pdf_picker_is_limited_to_the_payslip_company(self):
+        payslip = self._new_payslip()
+        own_pdf = self.env["ir.attachment"].sudo().create({
+            "name": "same-company-payroll.pdf",
+            "type": "binary",
+            "mimetype": "application/pdf",
+            "raw": b"%PDF-1.4 same company",
+            "res_model": payslip._name,
+            "res_id": payslip.id,
+            "company_id": self.company.id,
+        })
+        other_company = self.env.ref("base.main_company")
+        self.assertNotEqual(other_company, self.company)
+        other_employee = self.env["hr.employee"].sudo().create({
+            "name": "Other company employee",
+            "company_id": other_company.id,
+        })
+        foreign_pdf = self.env["ir.attachment"].sudo().create({
+            "name": "other-company-payroll.pdf",
+            "type": "binary",
+            "mimetype": "application/pdf",
+            "raw": b"%PDF-1.4 other company",
+            "res_model": other_employee._name,
+            "res_id": other_employee.id,
+            "company_id": other_company.id,
+        })
+
+        field = self.env["usl.tese.payslip"]._fields["attachment_id"]
+        domain = safe_eval(field.domain, {"company_id": self.company.id})
+        results = (
+            self.env["ir.attachment"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .web_name_search(
+                "",
+                {
+                    "display_name": {},
+                    "name": {},
+                    "res_name": {},
+                    "res_model": {},
+                    "res_id": {},
+                    "mimetype": {},
+                    "company_id": {},
+                },
+                domain=domain,
+                limit=100,
+            )
+        )
+
+        self.assertIn(own_pdf.id, {result["id"] for result in results})
+        self.assertNotIn(foreign_pdf.id, {result["id"] for result in results})
+        with self.assertRaises(UserError), self.cr.savepoint():
+            payslip.sudo().attachment_id = foreign_pdf
+
+    def test_archived_pdf_picker_defaults_to_unlinked_payroll_matches(self):
+        payslip = self._new_payslip()
+        payroll_type = self._cached_metadata(
+            "usl.paperless.document.type",
+            97001,
+            "Payroll record",
+        )
+        payroll_tag = self._cached_metadata(
+            "usl.paperless.tag",
+            97002,
+            "Payroll",
+        )
+        declaration_tag = self._cached_metadata(
+            "usl.paperless.tag",
+            97003,
+            "Payroll declarations",
+        )
+        by_type, _version, _content = self._archived_pdf(
+            b"%PDF-1.7 suggested by type",
+            paperless_id=97011,
+            name="Suggested payroll type",
+            document_type=payroll_type,
+        )
+        by_tag, _version, _content = self._archived_pdf(
+            b"%PDF-1.7 suggested by tag",
+            paperless_id=97012,
+            name="Suggested payroll tag",
+            tags=payroll_tag,
+        )
+        linked, _version, _content = self._archived_pdf(
+            b"%PDF-1.7 already linked",
+            paperless_id=97013,
+            name="Linked payroll document",
+            document_type=payroll_type,
+        )
+        unrelated, _version, _content = self._archived_pdf(
+            b"%PDF-1.7 unrelated",
+            paperless_id=97014,
+            name="Unrelated archive PDF",
+        )
+        declaration, _version, _content = self._archived_pdf(
+            b"%PDF-1.7 payroll declaration",
+            paperless_id=97015,
+            name="Payroll declaration",
+            tags=declaration_tag,
+        )
+        self.env["usl.document.link"].sudo().with_context(
+            usl_documents_defer_access_sync=True,
+        ).create_for_record(
+            linked,
+            self.collector._name,
+            self.collector.id,
+        )
+
+        wizard_model = self.env["usl.tese.document.link.wizard"]
+        base_domain = safe_eval(
+            wizard_model._fields["document_id"].domain,
+            {"company_id": self.company.id},
+        )
+        documents = (
+            self.env["usl.document"]
+            .with_user(self.workflow_user)
+            .with_context(
+                allowed_company_ids=self.company.ids,
+                usl_tese_payroll_default_suggestions=True,
+            )
+        )
+
+        suggested_ids = {
+            record_id
+            for record_id, _display_name in documents.name_search(
+                "",
+                domain=base_domain,
+                limit=100,
+            )
+        }
+
+        self.assertEqual(suggested_ids, {by_type.id, by_tag.id})
+        self.assertNotIn(linked.id, suggested_ids)
+        self.assertNotIn(unrelated.id, suggested_ids)
+        self.assertNotIn(declaration.id, suggested_ids)
+        manual_ids = {
+            record_id
+            for record_id, _display_name in documents.name_search(
+                "Unrelated archive",
+                domain=base_domain,
+                limit=100,
+            )
+        }
+        self.assertIn(unrelated.id, manual_ids)
+        self.assertIn(
+            "usl_tese_payroll_default_suggestions",
+            self.env.ref(
+                "usl_tese_payroll.view_tese_document_link_wizard_form",
+            ).arch_db,
+        )
+
+    def test_payroll_metadata_uses_paperless_automatic_learning(self):
+        payroll_type = self._cached_metadata(
+            "usl.paperless.document.type",
+            97101,
+            "Payroll record",
+            document_count=2,
+        )
+        payroll_tag = self._cached_metadata(
+            "usl.paperless.tag",
+            97102,
+            "Payroll",
+            document_count=2,
+        )
+        client = MagicMock()
+        model_by_kind = {
+            "tags": "usl.paperless.tag",
+            "correspondents": "usl.paperless.correspondent",
+            "document_types": "usl.paperless.document.type",
+        }
+
+        def automatic_payload(kind, paperless_id, _values):
+            record = self.env[model_by_kind[kind]].sudo().search(
+                [("paperless_id", "=", paperless_id)],
+                limit=1,
+            )
+            return {
+                "id": paperless_id,
+                "name": record.name,
+                "matching_algorithm": 6,
+                "match": "",
+                "is_insensitive": True,
+                "document_count": record.document_count,
+            }
+
+        client.update_metadata.side_effect = automatic_payload
+
+        self.env["usl.document"]._configure_archive_automation(client)
+
+        self.assertEqual(payroll_type.matching_algorithm, "6")
+        self.assertEqual(payroll_tag.matching_algorithm, "6")
+        calls = [call.args[:2] for call in client.update_metadata.call_args_list]
+        self.assertIn(("document_types", payroll_type.paperless_id), calls)
+        self.assertIn(("tags", payroll_tag.paperless_id), calls)
+
+    def test_archived_pdf_chooser_reuses_verified_original_without_reingestion(self):
+        payslip = self._new_payslip()
+        document, version, content = self._archived_pdf()
+        wizard = (
+            self.env["usl.tese.document.link.wizard"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .create({
+                "payslip_id": payslip.id,
+                "document_id": document.id,
+            })
+        )
+        archive_context = self._archive_context_for_payslip(payslip)
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "download",
+                autospec=True,
+                return_value=(content, {"Content-Type": "application/pdf"}),
+            ) as download,
+            patch.object(
+                type(self.env["usl.document"]),
+                "_prepare_archive_context",
+                autospec=True,
+                return_value=archive_context,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "_recompute_linked_record_access",
+                autospec=True,
+                return_value=True,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "reconcile_linked_classification",
+                autospec=True,
+                return_value={"considered": 0},
+            ),
+        ):
+            action = wizard.action_link_document()
+            reconciliation = payslip.sudo()._reconcile_archived_payslip_document()
+
+        payslip.invalidate_recordset()
+        attachment = payslip.attachment_id
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(bytes(attachment.raw), content)
+        self.assertEqual(attachment.company_id, payslip.company_id)
+        self.assertEqual(attachment.res_model, payslip._name)
+        self.assertEqual(attachment.res_id, payslip.id)
+        self.assertEqual(reconciliation, {"reconciled": 1, "queued": 0})
+        self.assertEqual(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+            0,
+        )
+        self.assertEqual(
+            document.link_ids.filtered(
+                lambda link: (
+                    link.active
+                    and link.res_model == payslip._name
+                    and link.res_id == payslip.id
+                ),
+            ).document_id,
+            document,
+        )
+        self.assertEqual(document.paperless_id, 96001)
+        download.assert_called_once_with(
+            ANY,
+            document.paperless_id,
+            version_id=version.paperless_version_id,
+            original=True,
+        )
+
+    def test_archived_pdf_chooser_rejects_checksum_mismatch_without_side_effects(self):
+        payslip = self._new_payslip()
+        document, _version, _content = self._archived_pdf()
+        wizard = (
+            self.env["usl.tese.document.link.wizard"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .create({
+                "payslip_id": payslip.id,
+                "document_id": document.id,
+            })
+        )
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "download",
+                autospec=True,
+                return_value=(
+                    b"%PDF-1.7 different bytes",
+                    {"Content-Type": "application/pdf"},
+                ),
+            ),
+            self.assertRaises(ValidationError),
+            self.cr.savepoint(),
+        ):
+            wizard.action_link_document()
+
+        payslip.invalidate_recordset()
+        self.assertFalse(payslip.attachment_id)
+        self.assertFalse(document.link_ids.filtered(
+            lambda link: link.res_model == payslip._name and link.res_id == payslip.id,
+        ))
 
     def _posted_payslip(self):
         payslip = self._new_payslip()

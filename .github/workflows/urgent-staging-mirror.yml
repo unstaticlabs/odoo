@@ -1,0 +1,44 @@
+name: Mirror urgent fixes to staging
+
+on:
+  pull_request:
+    branches: [19-usl]
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mirror:
+    if: >-
+      startsWith(github.event.pull_request.head.ref, 'urgent/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure matching staging PR exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          EVENT_ACTION: ${{ github.event.action }}
+          SOURCE_MERGED: ${{ github.event.pull_request.merged }}
+          SOURCE_PR: ${{ github.event.pull_request.number }}
+        run: |
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --base 19-usl-staging --head "$HEAD_BRANCH" --state all --json number,state --jq '.[0] // {}')"
+          number="$(jq -r '.number // empty' <<<"$existing")"
+          state="$(jq -r '.state // empty' <<<"$existing")"
+          if [ "$EVENT_ACTION" = closed ] && [ "$SOURCE_MERGED" != true ]; then
+            if [ "$state" = OPEN ]; then
+              gh pr close "$number" --repo "$GITHUB_REPOSITORY" \
+                --comment "Closed automatically because urgent production PR #$SOURCE_PR was closed without merging."
+            fi
+            exit 0
+          fi
+          if [ -z "$number" ]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --base 19-usl-staging --head "$HEAD_BRANCH" \
+              --title "chore(release): mirror urgent fix #$SOURCE_PR to staging" \
+              --body "Automatically mirrors urgent production PR #$SOURCE_PR so the integration branch cannot lose the fix."
+          elif [ "$state" = CLOSED ]; then
+            gh pr reopen "$number" --repo "$GITHUB_REPOSITORY" \
+              --comment "Reopened automatically because urgent production PR #$SOURCE_PR is active or was merged."
+          fi

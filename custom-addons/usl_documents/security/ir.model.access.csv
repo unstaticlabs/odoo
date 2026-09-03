@@ -26,3 +26,5 @@ access_usl_document_smart_view_manager,usl.document.smart.view.manager,model_usl
 access_usl_document_quick_filter_user,usl.document.quick.filter.user,model_usl_document_quick_filter,group_documents_user,1,0,0,0
 access_usl_document_quick_filter_accountant,usl.document.quick.filter.accountant,model_usl_document_quick_filter,group_documents_accountant,1,0,0,0
 access_usl_document_quick_filter_manager,usl.document.quick.filter.manager,model_usl_document_quick_filter,group_documents_manager,1,1,1,1
+access_usl_document_download_grant_manager,usl.document.download.grant.manager,model_usl_document_download_grant,group_documents_manager,1,0,0,0
+access_usl_document_download_grant_audit_manager,usl.document.download.grant.audit.manager,model_usl_document_download_grant_audit,group_documents_manager,1,0,0,0

@@ -50,10 +50,11 @@ upgrade-managed. An Accounting Manager uses **Customize for Company** to create
 a company override, then edits that override. Resolution prefers an effective
 company definition over the shared definition with the same code.
 
-Declaration seed records are `noupdate` data. Module upgrades add missing
-standard definitions and governance metadata but do not overwrite configured
-company definitions. Controls are already company-scoped; changing business
-policy marks their origin as Company-specific.
+Legacy declaration seed records remain provenance-bearing data. The governed
+French schedule upgrades shared localization definitions and reconciles open
+instances idempotently; it never overwrites company customizations or filed,
+paid or archived evidence. Controls are already company-scoped; changing
+business policy marks their origin as Company-specific.
 
 Material changes to applicability, calculations, hierarchy, filters, readiness
 policy or filing semantics require a new definition version. Deprecate an old
@@ -71,8 +72,9 @@ definition only after historical results have frozen its provenance.
 - Native analysis workspaces, including Analytic Reporting, resolve a visible
   Report definition for catalogue, provenance and navigation purposes while
   retaining Odoo's specialized pivot engine and native saved analysis state.
-- Declaration synchronization resolves current rules by country, company and
-  fiscal period. Company definitions override matching localization rules.
+- Declaration synchronization resolves current rules by country, company,
+  legal period basis and whitelisted trigger. Company definitions override
+  matching localization rules.
 - Disabled or deprecated definitions do not silently fall back around a
   company override.
 

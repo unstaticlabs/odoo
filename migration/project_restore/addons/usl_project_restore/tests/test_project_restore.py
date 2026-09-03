@@ -15,6 +15,8 @@ class TestProjectRestore(TransactionCase):
         cls.source_partner_id = 9002
         cls.source_user_id = 9003
         cls.source_stage_id = 9004
+        cls.source_historical_stage_id = 8999
+        cls.source_project_stage_id = 8998
         cls.source_project_id = 9005
         cls.source_blocker_id = 9006
         cls.source_task_id = 9007
@@ -56,7 +58,22 @@ class TestProjectRestore(TransactionCase):
                     "project_group_xmlids": ["project.group_project_user"],
                 },
             ],
-            "project_stages": [],
+            "project_stages": [
+                {
+                    "id": self.source_project_stage_id,
+                    "sequence": 10,
+                    "company_id": None,
+                    "color": 0,
+                    "name": {"en_US": "Restored Project Stage"},
+                    "active": True,
+                    "fold": False,
+                    "rotting_threshold_days": 0,
+                    "create_uid": self.source_user_id,
+                    "write_uid": self.source_user_id,
+                    "create_date": start,
+                    "write_date": start,
+                },
+            ],
             "task_stages": [
                 {
                     "id": self.source_stage_id,
@@ -74,6 +91,7 @@ class TestProjectRestore(TransactionCase):
                     "write_date": start,
                 },
             ],
+            "historical_task_stage_ids": [self.source_historical_stage_id],
             "tags": [],
             "projects": [
                 {
@@ -84,7 +102,7 @@ class TestProjectRestore(TransactionCase):
                     "company_id": self.source_company_id,
                     "color": 3,
                     "user_id": self.source_user_id,
-                    "stage_id": None,
+                    "stage_id": self.source_project_stage_id,
                     "last_update_id": self.source_update_id,
                     "access_token": "restored-project-token",
                     "privacy_visibility": "followers",
@@ -101,6 +119,10 @@ class TestProjectRestore(TransactionCase):
                     "allow_recurring_tasks": False,
                     "is_template": False,
                     "date_last_stage_update": start,
+                    "duration_tracking": {
+                        "d": "2026-08-10 09:00:00",
+                        "s": self.source_project_stage_id,
+                    },
                     "create_uid": self.source_user_id,
                     "write_uid": self.source_user_id,
                     "create_date": start,
@@ -305,6 +327,7 @@ class TestProjectRestore(TransactionCase):
             "project_sales_link_count": 0,
             "linked_expense_ids": [],
         }
+        rows["tasks"][1]["parent_id"] = self.source_blocker_id
         list_count_keys = {
             "companies": "companies",
             "partners": "partners",
@@ -339,12 +362,13 @@ class TestProjectRestore(TransactionCase):
         }
         rows["counts"].update(
             {
-                "task_parent_links": 0,
+                "task_parent_links": 1,
                 "task_milestone_links": 0,
                 "task_recurrence_links": 0,
                 "project_aliases": 1,
                 "project_alias_names": 1,
                 "project_analytic_links": 0,
+                "projects_with_duration_tracking": 1,
                 "linked_expenses": 0,
                 "message_parent_links": 0,
             },
@@ -371,6 +395,12 @@ class TestProjectRestore(TransactionCase):
             "state": "01_in_progress",
             "email_from": None,
             "html_field_history": {},
+            "duration_tracking": {
+                "d": audit_date.strftime("%Y-%m-%d %H:%M:%S"),
+                "s": self.source_stage_id,
+                str(self.source_historical_stage_id): 45,
+                str(self.source_stage_id): 120,
+            },
             "task_properties": {},
             "description": "<p>Restored task</p>",
             "active": True,
@@ -427,6 +457,20 @@ class TestProjectRestore(TransactionCase):
         self.assertTrue(edited.exists())
         self.assertEqual(edited.description, "<p>Kept by the user</p>")
 
+    def test_project_documents_are_delegated_to_documents_archive(self):
+        payload = self._payload()
+        payload["project_document_count"] = 1
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        exclusions = run.statistics_json["deliberate_exclusions"]
+        self.assertEqual(exclusions["source_project_documents"], 1)
+        self.assertIn(
+            "Documents archive after Projects restoration",
+            exclusions["source_project_documents_disposition"],
+        )
+
     def test_restore_preserves_relationships_and_is_idempotent(self):
         payload = self._payload()
         mail_count = self.env["mail.mail"].sudo().search_count([])
@@ -457,12 +501,32 @@ class TestProjectRestore(TransactionCase):
         )
         self.assertEqual(len(projects), 1)
         self.assertEqual(len(tasks), 2)
+        self.assertEqual(projects.id, self.source_project_id)
+        self.assertEqual(
+            set(tasks.ids),
+            {self.source_blocker_id, self.source_task_id},
+        )
+        restored_stage = self.env["project.task.type"].with_context(
+            active_test=False,
+        ).browse(self.source_stage_id)
+        historical_stage = self.env["project.task.type"].with_context(
+            active_test=False,
+        ).browse(self.source_historical_stage_id)
+        self.assertEqual(restored_stage.rebuild_source_id, self.source_stage_id)
+        self.assertEqual(restored_stage.id, self.source_stage_id)
+        self.assertTrue(historical_stage.exists())
+        self.assertFalse(historical_stage.active)
+        self.assertEqual(
+            historical_stage.rebuild_source_model,
+            "project.task.type.history",
+        )
         planned = tasks.filtered(
             lambda task: task.rebuild_source_id == self.source_task_id,
         )
         blocker = tasks.filtered(
             lambda task: task.rebuild_source_id == self.source_blocker_id,
         )
+        self.assertEqual(planned.parent_id, blocker)
         self.assertEqual(planned.depend_on_ids, blocker)
         self.assertTrue(planned.usl_dependency_date_warning)
         self.assertEqual(planned.project_id.last_update_status, "at_risk")
@@ -470,7 +534,32 @@ class TestProjectRestore(TransactionCase):
             planned.project_id.alias_id.alias_name,
             "restore-private",
         )
+        restored_project_stage = self.env["project.project.stage"].browse(
+            self.source_project_stage_id,
+        )
+        self.assertTrue(restored_project_stage.exists())
+        self.assertEqual(restored_project_stage.id, self.source_project_stage_id)
+        project_duration = payload["projects"][0]["duration_tracking"]
+        self.assertEqual(projects.duration_tracking, project_duration)
         self.assertFalse(planned.date_end)
+        source_duration = payload["tasks"][1]["duration_tracking"]
+        self.assertEqual(planned.duration_tracking, source_duration)
+        continuation_stage = self.env["project.task.type"].create(
+            {"name": "Post-restore stage", "user_id": False},
+        )
+        self.assertGreater(continuation_stage.id, self.source_stage_id)
+        planned.write({"stage_id": continuation_stage.id})
+        transitioned_duration = deepcopy(planned.duration_tracking)
+        self.assertEqual(transitioned_duration["s"], continuation_stage.id)
+        self.assertEqual(
+            transitioned_duration[str(self.source_historical_stage_id)],
+            source_duration[str(self.source_historical_stage_id)],
+        )
+        self.assertGreaterEqual(
+            transitioned_duration[str(self.source_stage_id)],
+            source_duration[str(self.source_stage_id)],
+        )
+        self.assertNotEqual(transitioned_duration["d"], source_duration["d"])
         planned.write(
             {
                 "state": "1_done",
@@ -479,6 +568,27 @@ class TestProjectRestore(TransactionCase):
             },
         )
         self.assertEqual(planned.state, "1_done")
+        continuation_project_stage = self.env["project.project.stage"].create(
+            {"name": "Post-restore project stage"},
+        )
+        self.assertGreater(
+            continuation_project_stage.id,
+            self.source_project_stage_id,
+        )
+        projects.write({"stage_id": continuation_project_stage.id})
+        transitioned_project_duration = deepcopy(projects.duration_tracking)
+        self.assertEqual(
+            transitioned_project_duration["s"],
+            continuation_project_stage.id,
+        )
+        self.assertGreaterEqual(
+            transitioned_project_duration[str(self.source_project_stage_id)],
+            0,
+        )
+        self.assertNotEqual(
+            transitioned_project_duration["d"],
+            project_duration["d"],
+        )
 
         message_domain = [
             ("rebuild_source_model", "=", "mail.message"),
@@ -522,11 +632,20 @@ class TestProjectRestore(TransactionCase):
         )
 
         second = self._run(deepcopy(payload))
-        self.assertEqual(second.status, "passed")
+        self.assertEqual(
+            second.status,
+            "passed",
+            second.issue_ids.mapped("description"),
+        )
+        projects.invalidate_recordset()
+        self.assertEqual(projects.stage_id, continuation_project_stage)
+        self.assertEqual(projects.duration_tracking, transitioned_project_duration)
         planned.invalidate_recordset()
         self.assertEqual(planned.state, "1_done")
         self.assertTrue(planned.date_end)
         self.assertIn("Target workflow continuation", planned.description)
+        self.assertEqual(planned.stage_id, continuation_stage)
+        self.assertEqual(planned.duration_tracking, transitioned_duration)
         self.assertEqual(
             self.env["project.project"].with_context(
                 active_test=False,
@@ -576,6 +695,173 @@ class TestProjectRestore(TransactionCase):
             self.env["mail.notification"].sudo().search_count([]),
             notification_count,
         )
+
+        next_project = self.env["project.project"].create(
+            {"name": "Post-restore project"},
+        )
+        next_task = self.env["project.task"].create(
+            {"name": "Post-restore task"},
+        )
+        self.assertGreater(next_project.id, self.source_project_id)
+        self.assertGreater(next_task.id, self.source_task_id)
+
+    def test_source_primary_id_collisions_fail_closed(self):
+        target_project = self.env["project.project"].create(
+            {"name": "Occupied project identity"},
+        )
+        target_task = self.env["project.task"].create(
+            {"name": "Occupied task identity"},
+        )
+        run = self.env["usl.project.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "target_database": self.env.cr.dbname,
+            },
+        )
+        with self.env.cr.savepoint(), self.assertRaisesRegex(
+            RuntimeError,
+            "Online ID.*is occupied",
+        ):
+            run._acquire_preserved_primary_id_control(
+                {
+                    "projects": [{"id": target_project.id}],
+                    "tasks": [{"id": target_task.id}],
+                    "task_stages": [],
+                    "historical_task_stage_ids": [],
+                },
+            )
+
+    def test_stage_less_task_preserves_zero_duration_stage_marker(self):
+        payload = self._payload()
+        source_id = 9017
+        task = self._task_row(
+            source_id,
+            "Stage-less archived task",
+            start=None,
+            deadline=None,
+        )
+        task.update({
+            "project_id": None,
+            "stage_id": None,
+            "duration_tracking": {
+                "d": "2026-01-28 14:21:09",
+                "s": 0,
+            },
+        })
+        payload["tasks"].append(task)
+        payload["counts"]["tasks"] += 1
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        restored = self.env["project.task"].browse(source_id)
+        self.assertTrue(restored.exists())
+        self.assertFalse(restored.project_id)
+        self.assertFalse(restored.stage_id)
+        self.assertEqual(restored.duration_tracking, task["duration_tracking"])
+
+    def test_task_stage_ids_replace_only_unowned_target_fixtures(self):
+        live_fixture, historical_fixture = self.env["project.task.type"].create(
+            [
+                {"name": "Generated live collision", "user_id": False},
+                {"name": "Generated history collision", "user_id": False},
+            ],
+        )
+        payload = self._payload()
+        payload["task_stages"][0]["id"] = live_fixture.id
+        payload["historical_task_stage_ids"] = [historical_fixture.id]
+        payload["project_task_stage_rel"][0]["type_id"] = live_fixture.id
+        for task in payload["tasks"]:
+            task["stage_id"] = live_fixture.id
+            task["duration_tracking"] = {
+                "d": task["duration_tracking"]["d"],
+                "s": live_fixture.id,
+                str(historical_fixture.id): 45,
+                str(live_fixture.id): 120,
+            }
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        restored_live = self.env["project.task.type"].with_context(
+            active_test=False,
+        ).browse(live_fixture.id)
+        restored_historical = self.env["project.task.type"].with_context(
+            active_test=False,
+        ).browse(historical_fixture.id)
+        self.assertEqual(restored_live.name, "Restored Stage")
+        self.assertEqual(restored_live.rebuild_source_id, live_fixture.id)
+        self.assertFalse(restored_historical.active)
+        self.assertEqual(
+            restored_historical.rebuild_source_model,
+            "project.task.type.history",
+        )
+
+    def test_project_stage_ids_adopt_compatible_native_fixtures(self):
+        fixture = self.env.ref(
+            "project.project_project_stage_0",
+            raise_if_not_found=False,
+        )
+        self.assertTrue(fixture)
+        payload = self._payload()
+        payload["project_stages"][0].update(
+            {
+                "id": fixture.id,
+                "name": {"en_US": fixture.name},
+                "sequence": fixture.sequence,
+                "color": fixture.color,
+                "active": fixture.active,
+                "fold": fixture.fold,
+                "rotting_threshold_days": fixture.rotting_threshold_days,
+            },
+        )
+        payload["projects"][0]["stage_id"] = fixture.id
+        payload["projects"][0]["duration_tracking"]["s"] = fixture.id
+
+        run = self._run(payload)
+
+        self.assertEqual(run.status, "passed", run.issue_ids.mapped("description"))
+        fixture.invalidate_recordset()
+        self.assertTrue(fixture.exists())
+        self.assertEqual(fixture.rebuild_source_id, fixture.id)
+        self.assertEqual(
+            self.env["project.project.stage"].with_context(
+                active_test=False,
+            ).search_count([("id", "=", fixture.id)]),
+            1,
+        )
+
+    def test_referenced_target_stage_collision_fails_closed(self):
+        project = self.env["project.project"].create(
+            {"name": "Target-owned project"},
+        )
+        stage = self.env["project.task.type"].create(
+            {
+                "name": "Occupied stage identity",
+                "user_id": False,
+                "project_ids": [Command.set(project.ids)],
+            },
+        )
+        run = self.env["usl.project.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "target_database": self.env.cr.dbname,
+            },
+        )
+        with self.env.cr.savepoint(), self.assertRaisesRegex(
+            RuntimeError,
+            "still own.*projects",
+        ):
+            run._acquire_preserved_primary_id_control(
+                {
+                    "projects": [],
+                    "tasks": [],
+                    "task_stages": [{"id": stage.id}],
+                    "historical_task_stage_ids": [],
+                },
+            )
 
     def test_closed_recurrence_does_not_generate_target_only_task(self):
         payload = self._payload()

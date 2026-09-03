@@ -67,6 +67,35 @@ test("breadcrumbs", async () => {
 });
 
 test.tags("desktop");
+test("breadcrumbs keep unknown history navigable without a placeholder", async () => {
+    await mountWithSearch(
+        ControlPanel,
+        { resModel: "foo" },
+        {
+            breadcrumbs: [
+                {
+                    jsId: "unknown_controller",
+                    name: undefined,
+                    onSelected: () => expect.step("unknown_controller"),
+                },
+                {
+                    jsId: "current_controller",
+                    name: "Current",
+                    onSelected: () => expect.step("current_controller"),
+                },
+            ],
+        }
+    );
+
+    expect(`.o_breadcrumb`).toHaveText("Current");
+    expect(`.o_breadcrumb .o_back_button`).toHaveCount(1);
+    expect(`.o_breadcrumb .text-warning`).toHaveCount(0);
+    expect(`.o_breadcrumb`).not.toHaveText(/Unnamed/);
+    await contains(`.o_breadcrumb .o_back_button`).click();
+    expect.verifySteps(["unknown_controller"]);
+});
+
+test.tags("desktop");
 test("view switcher", async () => {
     await mountWithSearch(
         ControlPanel,

@@ -12,6 +12,13 @@
                     invisible="share"
                     help="Create and maintain one company-specific employee profile for each allowed company. This shares the person and login, not contracts, payroll, approvals or accounting records."/>
                 <field
+                    name="usl_expense_excluded_company_ids"
+                    widget="many2many_tags"
+                    domain="[('id', 'in', company_ids)]"
+                    groups="base.group_system"
+                    invisible="not usl_expense_multi_company"
+                    options="{'no_create': True, 'no_open': True}"/>
+                <field
                     name="usl_expense_company_profile_status"
                     widget="badge"
                     readonly="1"
@@ -31,7 +38,7 @@
                     class="btn-secondary"
                     groups="base.group_system"
                     invisible="not usl_expense_multi_company"
-                    title="Ensure this user has one active employee profile in every allowed company. Existing expenses and company-specific HR information are not merged or removed."/>
+                    title="Ensure this user has one active employee profile in each allowed company that is not excluded. Existing expenses and company-specific HR information are not merged or removed."/>
             </xpath>
         </field>
     </record>

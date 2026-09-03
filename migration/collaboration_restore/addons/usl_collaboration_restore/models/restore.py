@@ -16,13 +16,15 @@ from odoo import Command, fields, models
 from odoo.addons.usl_collaboration_restore.routing import (
     DIRECT_MODELS,
     EXPECTED_COUNTS,
+    EXPECTED_MESSAGE_DISPOSITIONS,
     EXTERNAL_ARCHIVE_MODELS,
     TRANSLATED_MODELS,
+    legacy_declaration_workflow_values,
     route_model,
     route_technical_table,
 )
 
-SOURCE_SHA256 = "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+SOURCE_SHA256 = "ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1"
 SENSITIVE_FIELD_PATTERN = re.compile(r"(^|_)(ssn|ssnid|social_security)(_|$)", re.I)
 
 
@@ -543,10 +545,10 @@ class UslCollaborationRestoreRun(models.Model):
                 "status": "archived",
                 "validation_status": "not_run",
                 "review_status": "not_started",
-                "filing_status": "not_started",
                 "payment_status": "not_assessed",
                 "acceptance_status": "not_submitted",
                 "amount_due": row["total_amount_to_pay"] or row["period_amount_to_pay"] or 0,
+                **legacy_declaration_workflow_values(submitted_on=row["date_submission"]),
             }
             context = {"tracking_disable": True, "mail_create_nolog": True, "mail_create_nosubscribe": True}
             if existing:
@@ -811,7 +813,7 @@ class UslCollaborationRestoreRun(models.Model):
         if unclassified:
             raise RuntimeError(f"Unclassified source chatter models: {unclassified}")
 
-        # Accounting's first source-faithful expense pass contained 432 rows;
+        # Accounting's first source-faithful expense pass contained 434 rows;
         # the locked source now exposes nine additional draft business records
         # which own 77 messages.  Reuse the proven native Accounting
         # materializer rather than inventing partial expense records here.
@@ -1185,9 +1187,12 @@ class UslCollaborationRestoreRun(models.Model):
             "archives": len(archives),
         }
         if (
-            statistics["visible_messages"] != 49186
-            or statistics["external_messages"] != 0
-            or statistics["deliberately_not_copied_messages"] != 819
+            statistics["visible_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["visible"]
+            or statistics["external_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["external"]
+            or statistics["deliberately_not_copied_messages"]
+            != EXPECTED_MESSAGE_DISPOSITIONS["deliberately_not_copied"]
         ):
             raise RuntimeError(f"Collaboration disposition baseline changed: {statistics}")
         self.write({

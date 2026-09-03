@@ -211,6 +211,7 @@ test("execute a new action while loading a lazy-loaded controller", async () => 
     defineActions([
         {
             id: 77,
+            name: "Partner Calendar",
             type: "ir.actions.act_window",
             res_model: "partner",
             views: [

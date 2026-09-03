@@ -1,0 +1,15 @@
+*
+!services/
+services/*
+!services/usl-sign-dss/
+!services/usl-sign-dss/**
+!addons/
+addons/*
+!addons/web/
+addons/web/*
+!addons/web/static/
+addons/web/static/*
+!addons/web/static/fonts/
+addons/web/static/fonts/*
+!addons/web/static/fonts/sign/
+!addons/web/static/fonts/sign/NotoSans-Reg.ttf

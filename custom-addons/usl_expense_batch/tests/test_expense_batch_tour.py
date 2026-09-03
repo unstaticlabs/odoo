@@ -201,21 +201,21 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
             "usl_expense_batch_submitter_handoff",
             login=self.expense_user_employee.login,
         )
-        self.assertEqual(self.lifecycle_batch.state, "submitted")
+        self.assertEqual(self.lifecycle_batch.expense_progress, "submitted")
 
         self.start_tour(
             url,
             "usl_expense_batch_manager_handoff",
             login=self.expense_user_manager.login,
         )
-        self.assertEqual(self.lifecycle_batch.state, "approved")
+        self.assertEqual(self.lifecycle_batch.expense_progress, "approved")
 
         self.start_tour(
             url,
             "usl_expense_batch_accountant_handoff",
             login=self.env.user.login,
         )
-        self.assertEqual(self.lifecycle_batch.state, "posted")
+        self.assertEqual(self.lifecycle_batch.expense_progress, "posted")
         self.assertEqual(
             self.lifecycle_expenses.sudo().mapped(
                 "account_move_id.expense_batch_id",

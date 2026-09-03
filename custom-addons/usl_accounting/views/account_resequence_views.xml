@@ -1,0 +1,10 @@
+<odoo>
+    <!--
+        Community ships the statutory resequencing wizard but binds it only to
+        developer mode. Accounting managers already own the wizard ACL, so
+        expose the native action to that same narrowly scoped group.
+    -->
+    <record id="account.action_account_resequence" model="ir.actions.act_window">
+        <field name="group_ids" eval="[(6, 0, [ref('account.group_account_manager')])]"/>
+    </record>
+</odoo>

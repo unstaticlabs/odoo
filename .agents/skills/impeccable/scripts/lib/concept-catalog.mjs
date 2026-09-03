@@ -49,7 +49,6 @@ export function normalizeConceptForm(value) {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
-
 export function validateConceptEntry(concept, { existingForms = new Map(), axes = null } = {}) {
   const errors = [];
   const id = concept?.id || '(unknown)';
@@ -393,4 +392,3 @@ export function approvedPoolRevision(concepts) {
     .join('\n');
   return crypto.createHash('sha256').update(payload).digest('hex').slice(0, 12);
 }
-

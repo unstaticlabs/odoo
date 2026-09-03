@@ -21,7 +21,8 @@ Odoo does not need to own every source artefact. It must own the structured busi
 
 ## Business outcome
 
-The target must safely replace the Odoo Online capabilities USL actually uses while becoming a better foundation for:
+The Distribution has replaced the Odoo Online capabilities USL uses. It must
+preserve that production reality while remaining a better foundation for:
 
 - French SME accounting;
 - multi-company operations;
@@ -39,4 +40,5 @@ The target must safely replace the Odoo Online capabilities USL actually uses wh
 - Sensitive actions require authority defined by policy.
 - Failed automation leaves visible, actionable state.
 - Work is not complete until the required real-world state exists.
-- Production migration requires demonstrated parity and explicit approval.
+- Production changes require demonstrated integrity, recoverability and
+  explicit admission.

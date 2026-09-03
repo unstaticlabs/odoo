@@ -138,6 +138,11 @@ class UslTesePayslip(models.Model):
     attachment_id = fields.Many2one(
         "ir.attachment",
         string="Payroll PDF",
+        check_company=True,
+        domain=(
+            "[('mimetype', '=', 'application/pdf'), "
+            "('company_id', '=', company_id)]"
+        ),
         ondelete="restrict",
         copy=False,
         tracking=True,

@@ -24,8 +24,7 @@ environment is deliberately applied. `USL_POCKET_ID_LOGIN_POLICY=sso_only`
 removes every normal local credential path only after provider, user and
 identity validation succeeds. Client secrets never enter the database.
 
-Local validation uses canonical `odoo_dev`, the disposable production-shaped
-target:
+Local development validation uses an explicitly disposable database:
 
 ```bash
 scripts/pocket-id-dev bootstrap
@@ -33,10 +32,9 @@ scripts/pocket-id-dev configure-odoo
 scripts/pocket-id-dev one-time-link valentin
 ```
 
-Normal `make dev`, `make deploy` and `make rebuild` preserve this target
-configuration. `make target-reconstruct` rebuilds source business data first,
-finalizes migration infrastructure out of the database, and applies Pocket ID
-last.
+Normal `make dev`, `make deploy` and `make rebuild` preserve the selected
+development tenant. Never run bootstrap, reconstruction or test helpers
+against the protected production dataset.
 
 Run clean module tests with:
 

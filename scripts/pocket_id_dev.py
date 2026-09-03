@@ -76,6 +76,7 @@ USER_DEFINITIONS = {
         "display_name": "Prosper",
     },
 }
+ROGER_PROFILES = {"administrator", "product_administrator"}
 UNLINKED_TEST_USERNAME = "unlinked-test"
 SAFE_DATABASE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 SAFE_PROJECT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
@@ -873,23 +874,35 @@ def provision(values: dict[str, str]) -> None:
 
 
 def odoo_policy(values: dict[str, str]) -> None:
-    single_company = os.getenv("USL_POCKET_ID_POLICY_SINGLE_COMPANY", "") == "1"
     clean_database = os.getenv("USL_POCKET_ID_POLICY_CLEAN_DATABASE", "") == "1"
     base_profiles_only = (
         os.getenv("USL_POCKET_ID_POLICY_BASE_PROFILES_ONLY", "") == "1"
-    )
-    collaborator_companies: str | list[str] = (
-        "all" if single_company else ["Unstatic Labs"]
     )
     prosper_odoo_email = values.get(
         "POCKET_ID_PROSPER_ODOO_EMAIL",
         values["POCKET_ID_PROSPER_EMAIL"],
     )
+    roger_profile = values.get(
+        "POCKET_ID_ROGER_PROFILE",
+        "product_administrator",
+    )
+    if roger_profile not in ROGER_PROFILES:
+        raise PocketIDError(
+            "POCKET_ID_ROGER_PROFILE must be administrator or "
+            "product_administrator.",
+        )
+    historical_roger = {
+        "login": "roger@xaic.cat",
+        "profile": "historical",
+    }
+    if clean_database:
+        historical_roger["optional_if_missing"] = True
     policy = [
         {
             "login": "admin",
             "profile": "break_glass",
             "companies": "all",
+            "default_company": "Unstatic Labs",
         },
         {
             "login": "valentin",
@@ -897,6 +910,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "email": USER_DEFINITIONS["valentin"]["email"],
             "profile": "administrator",
             "companies": "all",
+            "default_company": "Unstatic Labs",
             "subject": values["POCKET_ID_VALENTIN_ID"],
             "create_if_missing": True,
         },
@@ -904,35 +918,25 @@ def odoo_policy(values: dict[str, str]) -> None:
             "login": "roger@unstaticlabs.com",
             "name": "Roger",
             "email": USER_DEFINITIONS["roger"]["email"],
-            "profile": "collaborator" if base_profiles_only else "technical_operator",
+            "profile": "collaborator" if base_profiles_only else roger_profile,
             "companies": "all",
+            "default_company": "Unstatic Labs",
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
         },
-        {
-            "login": "roger@xaic.cat",
-            "profile": "historical",
-            "optional_if_missing": True,
-        },
+        historical_roger,
         {
             "login": "prosper",
             "name": "Prosper",
             "profile": "collaborator" if base_profiles_only else "accountant_reviewer",
             "companies": ["Unstatic Labs", "USL MEDIA"],
+            "default_company": "Unstatic Labs",
             "subject": values["POCKET_ID_PROSPER_ID"],
             "create_if_missing": bool(prosper_odoo_email),
         },
     ]
     if clean_database and not prosper_odoo_email:
         policy.pop()
-    if not clean_database:
-        policy.insert(
-            -1,
-            {
-                "login": "roger@xaic.cat",
-                "profile": "historical",
-            },
-        )
     if prosper_odoo_email:
         policy[-1]["email"] = prosper_odoo_email
     print(json.dumps(policy, separators=(",", ":")))

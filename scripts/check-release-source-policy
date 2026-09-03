@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Validate a protected-branch pull request or merge-group source."""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.source_policy import SourcePolicyError, validate
+
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--event", required=True)
+parser.add_argument("--base", required=True)
+parser.add_argument("--head")
+arguments = parser.parse_args()
+try:
+    validate(event=arguments.event, base=arguments.base, head=arguments.head)
+except SourcePolicyError as error:
+    parser.error(str(error))

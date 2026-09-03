@@ -53,6 +53,7 @@ payouts = (
     .sudo()
     .search([("rebuild_source_model", "=", "x_content_payout_line")])
 )
+source_payouts = {row["id"]: row for row in source["payouts"]}
 moves = (
     env["account.move"]
     .sudo()
@@ -86,6 +87,19 @@ duplicate_refs = env["usl.platform.billing.payout"].sudo()._read_group(
     having=[("__count", ">", 1)],
 )
 assert not duplicate_refs
+for payout in payouts:
+    source_payout = source_payouts[payout.rebuild_source_id]
+    if source_payout.get("x_bank_match_status") == "reconciled":
+        assert payout.bank_match_status == "reconciled", (
+            payout.platform_reference,
+            payout.bank_match_status,
+        )
+        assert payout.platform_currency_id.compare_amounts(
+            sum(payout.bank_allocation_ids.mapped("payout_amount")),
+            payout.net_platform_amount,
+        ) >= 0, payout.platform_reference
+    if source_payout.get("x_state") == "reconciled":
+        assert payout.state == "paid", (payout.platform_reference, payout.state)
 application_digest = canonical_digest(
     {
         "platforms": [
@@ -112,6 +126,17 @@ application_digest = canonical_digest(
                 record.platform_reference,
                 record.net_platform_amount,
                 record.state,
+                record.bank_match_status,
+                tuple(
+                    sorted(
+                        (
+                            allocation.bank_statement_line_id.id,
+                            allocation.bank_amount,
+                            allocation.payout_amount,
+                        )
+                        for allocation in record.bank_allocation_ids
+                    ),
+                ),
                 record.customer_invoice_id.id,
                 record.vendor_bill_id.id,
                 record.compensation_move_id.id,

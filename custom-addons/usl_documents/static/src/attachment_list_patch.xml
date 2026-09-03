@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.AttachmentRemovalDialog">
+        <Dialog title="this.title" size="'md'">
+            <p class="mb-2" t-esc="this.intro"/>
+            <p class="text-muted mb-0">
+                <t t-esc="this.explanation"/>
+            </p>
+            <div t-if="!props.canMoveToTrash"
+                 class="alert alert-info d-flex gap-2 align-items-start mt-3 mb-0"
+                 role="status">
+                <i class="fa fa-link mt-1" aria-hidden="true"/>
+                <span t-esc="this.trashUnavailableMessage"/>
+            </div>
+            <t t-set-slot="footer">
+                <button type="button"
+                        class="btn btn-primary o_usl_unlink_document"
+                        t-att-disabled="state.busy"
+                        t-on-click="() => this.choose('unlink')">
+                    <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
+                    <t t-esc="this.unlinkLabel"/>
+                </button>
+                <button type="button"
+                        class="btn btn-outline-danger o_usl_unlink_trash_document"
+                        t-att-disabled="state.busy || !props.canMoveToTrash"
+                        t-on-click="() => this.choose('trash')">
+                    <t t-esc="this.trashLabel"/>
+                </button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        t-att-disabled="state.busy"
+                        t-on-click="props.close">
+                    <t t-esc="this.cancelLabel"/>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
     <t t-inherit="mail.AttachmentList" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('o-mail-AttachmentButtons')]/button[1]" position="before">
             <button t-if="this.canKeepInDocuments(attachment)"

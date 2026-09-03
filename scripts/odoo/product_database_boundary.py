@@ -29,11 +29,11 @@ PRODUCT_MODULES = {
     "usl_platform_billing_pocketid",
     "usl_pocketid",
     "usl_project",
+    "usl_sign",
     "usl_tese_accounting",
     "usl_tese_payroll",
 }
 EXCLUDED_AUTO_INSTALL_MODULES = {
-    "contacts",
     "gamification",
     "hr_gamification",
     "hr_skills_survey",

@@ -100,6 +100,51 @@ class TestPocketIDHttpLogin(HttpCase):
         self.assertEqual(parameters["code_challenge_method"], ["S256"])
         return parameters
 
+    def _rpc(self, model, method, *args, **kwargs):
+        return self.url_open(
+            "/web/dataset/call_kw",
+            json={
+                "params": {
+                    "model": model,
+                    "method": method,
+                    "args": args,
+                    "kwargs": kwargs,
+                },
+            },
+        ).json()
+
+    def _authenticate_with_pocket_id(self):
+        parameters = self._login_transaction()
+        callback_query = urlencode(
+            {
+                "state": parameters["state"][0],
+                "code": "one-time-code",
+            },
+        )
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_CLIENT_SECRET": "http-test-secret"},
+                clear=False,
+            ),
+            patch(
+                "odoo.addons.usl_pocketid.models."
+                "auth_oauth_provider.requests.post",
+                return_value=self._token_response(parameters["nonce"][0]),
+            ),
+            patch(
+                "odoo.addons.usl_pocketid.models."
+                "auth_oauth_provider.requests.get",
+                return_value=self._jwks_response(),
+            ),
+        ):
+            callback = self.url_open(
+                f"/auth_oauth/signin?{callback_query}",
+                allow_redirects=False,
+            )
+        self.assertEqual(callback.status_code, 303)
+        self.session = callback.session
+
     @contextmanager
     def _sso_only(self):
         parameters = self.env["ir.config_parameter"].sudo()
@@ -167,6 +212,179 @@ class TestPocketIDHttpLogin(HttpCase):
                     self.url_open("/web/database/manager").status_code,
                     404,
                 )
+
+    def test_android_store_app_keeps_sso_with_a_browser_advisory(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={"X-Requested-With": "com.odoo.mobile"},
+            )
+        document = html.fromstring(response.content)
+        self.assertEqual(
+            len(document.xpath(
+                "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+            )),
+            1,
+        )
+        pwa_links = document.xpath(
+            "//a[contains(normalize-space(.), 'Open Odoo in your browser')]/@href",
+        )
+        self.assertEqual(pwa_links, [self.base_url() + "/web/login"])
+        self.assertIn(
+            "does not currently return to the Odoo Android app",
+            document.text_content(),
+        )
+
+    def test_android_browser_keeps_the_pocket_id_login(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 "
+                        "Chrome/140.0 Mobile Safari/537.36"
+                    ),
+                },
+            )
+        document = html.fromstring(response.content)
+        buttons = document.xpath(
+            "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+        )
+        self.assertEqual(len(buttons), 1)
+        self.assertFalse(
+            document.xpath(
+                "//a[contains(normalize-space(.), 'Open Odoo in your browser')]",
+            ),
+        )
+
+    def test_ios_store_app_keeps_pocket_id_without_android_advisory(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={
+                    "User-Agent": (
+                        "OdooMobile/5.1 (iPhone; CPU iPhone OS 18_6 like Mac OS X)"
+                    ),
+                },
+            )
+        document = html.fromstring(response.content)
+        self.assertEqual(
+            len(document.xpath(
+                "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+            )),
+            1,
+        )
+        self.assertNotIn(
+            "does not currently return to the Odoo Android app",
+            document.text_content(),
+        )
+        self.assertFalse(
+            document.xpath(
+                "//a[contains(normalize-space(.), 'Open Odoo in your browser')]",
+            ),
+        )
+
+    def test_api_key_identity_check_uses_fresh_pocket_id_proof(self):
+        self._authenticate_with_pocket_id()
+        self.update_session(**{"identity-check-last": 0})
+
+        with self._sso_only():
+            description_id = self._rpc(
+                "res.users.apikeys.description",
+                "create",
+                {"name": "Pocket ID test key", "duration": "1"},
+            )["result"]
+            identity_action = self._rpc(
+                "res.users.apikeys.description",
+                "make_key",
+                description_id,
+            )["result"]
+            self.assertEqual(
+                identity_action["res_model"],
+                "res.users.identitycheck",
+            )
+            identity_id = identity_action["res_id"]
+            identity_values = self._rpc(
+                "res.users.identitycheck",
+                "read",
+                [identity_id],
+                ["auth_method"],
+            )["result"][0]
+            self.assertEqual(identity_values["auth_method"], "usl_pocketid")
+
+            missing_proof = self._rpc(
+                "res.users.identitycheck",
+                "run_check",
+                identity_id,
+            )
+            self.assertFalse(missing_proof.get("result"))
+            self.assertEqual(
+                missing_proof["error"]["data"]["name"],
+                "odoo.exceptions.UserError",
+            )
+
+            key_count = self.user.api_key_ids.search_count(
+                [("user_id", "=", self.user.id)],
+            )
+            reauthentication = self.url_open(
+                "/usl/pocketid/reauth/start",
+                allow_redirects=False,
+            )
+            self.assertEqual(reauthentication.status_code, 303)
+            reauthentication_url = urlsplit(
+                reauthentication.headers["Location"],
+            )
+            self.assertEqual(reauthentication_url.scheme, "https")
+            self.assertEqual(reauthentication_url.netloc, "id.example.test")
+            self.assertEqual(reauthentication_url.path, "/authorize")
+            parameters = parse_qs(reauthentication_url.query)
+            with (
+                patch.dict(
+                    os.environ,
+                    {"USL_POCKET_ID_CLIENT_SECRET": "http-test-secret"},
+                    clear=False,
+                ),
+                patch(
+                    "odoo.addons.usl_pocketid.models."
+                    "auth_oauth_provider.requests.post",
+                    return_value=self._token_response(parameters["nonce"][0]),
+                ),
+                patch(
+                    "odoo.addons.usl_pocketid.models."
+                    "auth_oauth_provider.requests.get",
+                    return_value=self._jwks_response(),
+                ),
+            ):
+                callback = self.url_open(
+                    "/auth_oauth/signin?"
+                    + urlencode(
+                        {
+                            "state": parameters["state"][0],
+                            "code": "reauthentication-code",
+                        },
+                    ),
+                    allow_redirects=False,
+                )
+            self.assertEqual(callback.status_code, 303)
+            self.assertEqual(
+                urlsplit(callback.headers["Location"]).path,
+                "/usl/pocketid/reauth/complete",
+            )
+            completed = self._rpc(
+                "res.users.identitycheck",
+                "run_check",
+                identity_id,
+            )
+            self.assertEqual(
+                completed["result"]["res_model"],
+                "res.users.apikeys.show",
+            )
+            self.assertEqual(
+                self.user.api_key_ids.search_count(
+                    [("user_id", "=", self.user.id)],
+                ),
+                key_count + 1,
+            )
 
     def test_logout_uses_the_external_provider_endpoint(self):
         self.authenticate(None, None)
