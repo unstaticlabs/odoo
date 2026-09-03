@@ -20,6 +20,18 @@ EXPECTED_NATIVE_COUNTS = {
     "printful_events": 261,
 }
 
+
+def accepted_finalization_run(*, restore_status=None, native_mode=None, native_state=None):
+    """Return the independently passed reconstruction that permits finalization."""
+    if native_mode == "apply" and native_state == "passed":
+        return "native_history"
+    if restore_status == "passed":
+        return "source_restore"
+    raise RuntimeError(
+        "B2C finalization requires either a passed source restoration or a "
+        "passed native-history materialization.",
+    )
+
 EXPECTED_THEORETICAL_STOCK = {
     "CHAIN_CM_3MM_AISI404_CNCHO10CHO": (Decimal("32.24"), Decimal("3.06")),
     "CHAIN_CM_4MM_AISI404_CNCHO10CHO": (Decimal("43.98"), Decimal("2.34")),

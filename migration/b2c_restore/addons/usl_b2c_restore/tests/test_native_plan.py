@@ -7,6 +7,7 @@ from odoo.addons.usl_b2c_restore.native_plan import (
     ACQUISITIONS,
     EXPECTED_THEORETICAL_STOCK,
     PACK_COMPONENTS,
+    accepted_finalization_run,
     source_line_components,
     stock_disposition,
 )
@@ -14,6 +15,18 @@ from odoo.addons.usl_b2c_restore.native_plan import (
 
 @tagged("post_install", "-at_install")
 class TestNativeHistoryPlan(BaseCase):
+    def test_finalization_accepts_source_or_applied_native_history(self):
+        self.assertEqual(
+            accepted_finalization_run(restore_status="passed"),
+            "source_restore",
+        )
+        self.assertEqual(
+            accepted_finalization_run(native_mode="apply", native_state="passed"),
+            "native_history",
+        )
+        with self.assertRaises(RuntimeError):
+            accepted_finalization_run(native_mode="dry_run", native_state="passed")
+
     def test_documented_acquisitions_have_the_reviewed_physical_totals(self):
         acquired = defaultdict(Decimal)
         samples = Decimal()

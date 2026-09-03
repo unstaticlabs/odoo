@@ -2,8 +2,19 @@
 
 import json
 
-run = env["usl.b2c.restore.run"].sudo().search([], order="id desc", limit=1)
-assert run and run.status == "passed"
+from odoo.addons.usl_b2c_restore.native_plan import accepted_finalization_run
+
+restore_run = env["usl.b2c.restore.run"].sudo().search([], order="id desc", limit=1)
+native_run = env["usl.b2c.native.history.run"].sudo().search(
+    [("mode", "=", "apply")],
+    order="id desc",
+    limit=1,
+)
+accepted_run = accepted_finalization_run(
+    restore_status=restore_run.status if restore_run else None,
+    native_mode=native_run.mode if native_run else None,
+    native_state=native_run.state if native_run else None,
+)
 models = (
     "b2c.channel",
     "b2c.order",
@@ -27,7 +38,12 @@ after = {model: env[model].sudo().search_count([]) for model in models}
 assert before == after
 print(
     json.dumps(
-        {"migration_module": "uninstalled", "before": before, "after": after},
+        {
+            "accepted_run": accepted_run,
+            "migration_module": "uninstalled",
+            "before": before,
+            "after": after,
+        },
         indent=2,
         sort_keys=True,
     ),
