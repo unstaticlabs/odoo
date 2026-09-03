@@ -93,6 +93,9 @@ class TestDoc(HttpCaseWithUserDemo):
             doc_str.startswith("Foundational model for all people and companies (customers, vendors, employees, etc.). Used for identifying individuals or organizations."),
             f"Unexpected doc content: {doc_str}"
         )
+        access = res_partner.pop('access')
+        self.assertEqual(set(access), {'read', 'create', 'write', 'unlink'})
+        self.assertTrue(access['read'])
         self.assertEqual(res_partner, {'name': "Contact", 'model': 'res.partner'})
         self.assertGreater(set(res_partner_methods), {'search'})
         self.assertGreater(set(res_partner_fields), {'id', 'create_uid', 'lang', 'tz'})
@@ -115,6 +118,7 @@ class TestDoc(HttpCaseWithUserDemo):
         json = res.json()
         fields = json.pop('fields', None)
         methods = json.pop('methods', None)
+        access = json.pop('access', None)
         doc_str = json.pop('doc', '')
         # In CI environment other modules (like hr, mail) might be installed and append their own explanations to the base explaination, hence startswith
         self.assertTrue(
@@ -147,6 +151,8 @@ class TestDoc(HttpCaseWithUserDemo):
             'type': 'integer',
         })
         self.assertGreater(set(methods), {'search'})
+        self.assertEqual(set(access), {'read', 'create', 'write', 'unlink'})
+        self.assertTrue(access['read'])
         self.assertEqual(methods['search'], {
             'model': 'core',
             'module': 'core',

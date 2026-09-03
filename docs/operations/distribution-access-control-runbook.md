@@ -48,15 +48,45 @@ After reconciliation, verify on each user form under **Access Rights**:
 - Prosper reaches Accounting and its evidence, but not unrelated applications;
 - allowed companies match the table above.
 
-## Grant and change procedure
+## Agent ownership and delegation
 
-1. Decide the application access and allowed companies separately.
-2. Mark autonomous identities with **AI Agent**.
+Do not create an ordinary internal user and mark it as autonomous. An Agent is
+created by its accountable human owner from **My Agents**, or by an authorized
+administrator from **Settings > Users & Companies > Agents**. Odoo creates and
+governs the non-interactive backing user; it has no password, Pocket ID link,
+invitation flow or Home session.
+
+An Agent's effective authority is always the intersection of:
+
+- its owner's current authority and record rules;
+- the applications and access levels delegated on the Agent;
+- the Agent's selected companies;
+- the qualified action policy.
+
+New Agents receive owner-scoped read-only application access. The owner may
+grant a native write-capable level per application and may mix read-only and
+read/write access. Installing an application or later expanding the owner's
+rights never expands an existing Agent silently. An Agent can never receive
+Irreversible Actions, directly or through an implied or composite group.
+
+Create and rotate API credentials from the Agent record. Credentials identify
+the Agent, while permissions remain on the Agent itself. Suspending the Agent,
+reducing the owner's authority or transferring ownership is effective for all
+of its credentials. See [Autonomous Agents](../product/agents.md) and
+[Odoo MCP operations](odoo-mcp.md) for the complete operating contract.
+
+## Human and Agent access changes
+
+1. For a human, decide application access and allowed companies separately.
+2. For an Agent, select the owner, purpose, companies and each application
+   access level on the Agent record. Do not edit its backing user directly.
 3. Grant Irreversible Actions only to a named human with an approved need.
 4. Never grant Irreversible Actions to an Agent. The backend rejects both a
    direct grant and a group that implies both capabilities.
 5. Re-run the named-user policy after an approved profile change and capture
-   the before/after user IDs, companies and effective groups.
+   the before/after user IDs, companies and effective groups for human users.
+   For an Agent change, record its owner, companies, application summary and
+   credential status in Distribution Audit.
 
 Roger uses the Product Administrator role for full application, Accounting and
 technical configuration. During initial company setup he may also receive the
@@ -115,9 +145,10 @@ next finalization or release.
 
 ## Audit review
 
-Open **Settings > Distribution Audit**. Review by actor, time, action key,
-model, operation, origin and correlation ID. Agent events include submitted values and selected
-before-values; secrets and binary payloads are redacted. Protected human
+Open **Settings > Distribution Audit**. Review by actor, Agent, owner, company,
+time, action key, model, operation, origin and correlation ID. Agent events
+include submitted values and selected before-values; secrets and binary
+payloads are redacted. Protected human
 actions are recorded before their business operation in the same transaction,
 so only successful committed work remains in the database.
 

@@ -155,13 +155,23 @@ class UslMailSenderAlias(models.Model):
                 values.get("partner_id", alias.partner_id.id),
             )
             alias._check_actor_can_manage(partner)
-        reset_verification = bool({"email", "partner_id"} & values.keys())
+        aliases_to_reset = self.filtered(
+            lambda alias: (
+                "email" in values and values["email"] != alias.email
+            )
+            or (
+                "partner_id" in values
+                and values["partner_id"] != alias.partner_id.id
+            ),
+        )
         result = super(
             UslMailSenderAlias,
             self.with_context(usl_sender_alias_internal=True),
         ).write(values)
-        if reset_verification:
-            self.sudo().with_context(usl_sender_alias_internal=True).write(
+        if aliases_to_reset:
+            aliases_to_reset.sudo().with_context(
+                usl_sender_alias_internal=True,
+            ).write(
                 {
                     "state": "pending",
                     "verified_at": False,
@@ -173,7 +183,7 @@ class UslMailSenderAlias(models.Model):
             if not self.env.context.get(
                 "usl_sender_alias_skip_automatic_verification",
             ):
-                self._send_verification_for_pending_addresses()
+                aliases_to_reset._send_verification_for_pending_addresses()
         return result
 
     def unlink(self):
@@ -197,6 +207,8 @@ class UslMailSenderAlias(models.Model):
     def _issue_verification(self, *, send=True):
         self.ensure_one()
         self._check_actor_can_manage()
+        if self.state == "verified":
+            raise ValidationError(_("This email address is already verified."))
         raw_token = secrets.token_urlsafe(32)
         now = fields.Datetime.now()
         self.with_context(usl_sender_alias_internal=True).sudo().write(

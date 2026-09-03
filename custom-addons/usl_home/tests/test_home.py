@@ -5,6 +5,8 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
+from ..hooks import post_init_hook
+
 
 @tagged("post_install", "-at_install", "usl_home")
 class TestUslHome(TransactionCase):
@@ -56,6 +58,26 @@ class TestUslHome(TransactionCase):
             action_id=explicit_action.id,
         )
         self.assertEqual(explicitly_configured.action_id.id, explicit_action.id)
+
+    def test_agent_identity_never_receives_interactive_home_action(self):
+        if "usl.agent" not in self.env.registry:
+            self.skipTest("Agent identities are not installed in this registry")
+
+        owner = self.project_user
+        agent = self.env["usl.agent"].with_user(owner).create(
+            {
+                "name": "Home hook test Agent",
+                "purpose": "Verify non-interactive Home defaults.",
+                "owner_id": owner.id,
+                "company_id": owner.company_id.id,
+                "company_ids": [Command.set(owner.company_ids.ids)],
+            },
+        )
+        self.assertFalse(agent.user_id.action_id)
+
+        post_init_hook(self.env)
+
+        self.assertFalse(agent.user_id.action_id)
 
     def test_layout_is_validated_and_isolated(self):
         Settings = self.env["res.users.settings"]

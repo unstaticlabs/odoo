@@ -35,6 +35,13 @@
                         title="Test the complete reception and bill-creation path without contacting a provider or keeping test accounting data."
                         groups="account.group_account_manager"
                         invisible="rebuild_einvoice_readiness_status != 'not_verified'"/>
+                    <button name="action_rebuild_prepare_einvoice_activation"
+                        type="object" string="Prepare production activation"
+                        class="oe_highlight"
+                        title="Mark this company as eligible for production onboarding without contacting the platform or starting invoice reception."
+                        confirm="Prepare this company for production activation? This marks it as eligible for production onboarding. It does not contact or register with the platform, start invoice reception, enable e-reporting, or send regulatory data."
+                        groups="account.group_account_manager"
+                        invisible="rebuild_einvoice_readiness_status != 'ready_inactive'"/>
                     <button name="action_rebuild_begin_einvoice_activation"
                         type="object" string="Activate reception"
                         class="oe_highlight"
@@ -219,6 +226,8 @@
                         </group>
                         <group string="Activation and diagnostics">
                             <field name="rebuild_einvoice_environment"/>
+                            <field name="rebuild_einvoice_production_prepared_by_id"/>
+                            <field name="rebuild_einvoice_production_prepared_at"/>
                             <field name="rebuild_einvoice_activation_approved"/>
                             <field name="rebuild_einvoice_approved_by_id"/>
                             <field name="rebuild_einvoice_approved_at"/>

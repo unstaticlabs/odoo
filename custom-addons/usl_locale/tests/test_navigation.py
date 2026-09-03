@@ -48,6 +48,8 @@ class TestFocusedAppLauncher(TransactionCase):
                 "project_todo.menu_todo_todos",
                 "spreadsheet_dashboard.spreadsheet_dashboard_menu_root",
                 "base.menu_management",
+                "utm.menu_link_tracker_root",
+                "usl_document_templates.menu_official_documents_root",
             ),
         )
 

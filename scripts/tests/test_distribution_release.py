@@ -107,6 +107,10 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("build: !reset null", overlay)
         self.assertNotIn("./custom-addons", overlay)
 
+    def test_release_image_can_load_installed_oca_tests(self) -> None:
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+        self.assertRegex(requirements, r"(?m)^responses==0\.26\.2\b")
+
     def test_external_ingress_alias_is_explicit(self) -> None:
         overlay = (ROOT / "compose.odoo-ingress.yaml").read_text(encoding="utf-8")
         self.assertIn(

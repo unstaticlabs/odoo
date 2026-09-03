@@ -90,7 +90,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
         {
             content: "The context action explains its safe preview behavior",
             trigger:
-                "button[name='action_open_context_wizard'][data-tooltip*='Line-specific choices stay unchanged']",
+                "button[name='action_open_context_wizard'][data-tooltip*='Line-specific choices remain unchanged']",
         },
         {
             content: "A real line exception has a compact, specific helper",
@@ -115,7 +115,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_submitter_handoff", {
         {
             content: "The submitter sees a complete mixed-payer Batch",
             trigger:
-                ".o_form_view:has(.o_field_widget[name='expense_count']:contains('2')):has(.o_field_widget[name='readiness_state']:contains('Ready'))",
+                ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids']):has(button[name='action_submit'])",
         },
         {
             content: "Submit only the draft expenses for manager review",

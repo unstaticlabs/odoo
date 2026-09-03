@@ -2,7 +2,7 @@ import io
 import os
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import HttpCase, TransactionCase, tagged
 from odoo.tools import file_open
@@ -418,7 +418,7 @@ class TestFrenchEinvoiceReception(
         )
         self.assertEqual(
             self.company.rebuild_einvoice_next_action,
-            "Ready for production",
+            "Prepare production activation",
         )
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
 
@@ -449,6 +449,169 @@ class TestFrenchEinvoiceReception(
                 ),
             ).reconciled,
         )
+
+    def test_production_preparation_is_explicit_audited_and_side_effect_free(self):
+        self.assertEqual(
+            self.env["res.company"].default_get([
+                "rebuild_einvoice_environment",
+            ])["rebuild_einvoice_environment"],
+            "development",
+        )
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        before = {
+            "exchange_enabled": self.company.rebuild_einvoice_exchange_enabled,
+            "activation_approved": self.company.rebuild_einvoice_activation_approved,
+            "pdp_state": self.company.account_peppol_proxy_state,
+            "pdp_send": self.company.l10n_fr_pdp_send_to_ppf,
+        }
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        settings_model = self.env.registry["res.config.settings"]
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False), patch.object(
+            proxy_model,
+            "_call_peppol_proxy",
+            side_effect=AssertionError("Preparation must not contact the platform."),
+        ) as provider_call, patch.object(
+            settings_model,
+            "action_open_peppol_form",
+            side_effect=AssertionError("Preparation must not open registration."),
+        ) as registration_action:
+            action = self.company.with_user(
+                self.manager,
+            ).action_rebuild_prepare_einvoice_activation()
+
+        provider_call.assert_not_called()
+        registration_action.assert_not_called()
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(self.company.rebuild_einvoice_environment, "production")
+        self.assertEqual(
+            self.company.rebuild_einvoice_readiness_status,
+            "activation_required",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_by_id,
+            self.manager,
+        )
+        self.assertTrue(self.company.rebuild_einvoice_production_prepared_at)
+        self.assertEqual(
+            {
+                "exchange_enabled": self.company.rebuild_einvoice_exchange_enabled,
+                "activation_approved": self.company.rebuild_einvoice_activation_approved,
+                "pdp_state": self.company.account_peppol_proxy_state,
+                "pdp_send": self.company.l10n_fr_pdp_send_to_ppf,
+            },
+            before,
+        )
+
+        prepared_at = self.company.rebuild_einvoice_production_prepared_at
+        repeat = self.company.with_user(
+            self.manager,
+        ).action_rebuild_prepare_einvoice_activation()
+        self.assertEqual(repeat["params"]["type"], "info")
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_at,
+            prepared_at,
+        )
+
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_revoke_einvoice_activation()
+        self.assertEqual(self.company.rebuild_einvoice_environment, "development")
+        self.assertFalse(self.company.rebuild_einvoice_production_prepared_by_id)
+        self.assertFalse(self.company.rebuild_einvoice_production_prepared_at)
+        self.assertFalse(self.company.rebuild_einvoice_activation_approved)
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+
+    def test_production_preparation_enforces_role_company_and_single_record(self):
+        with self.assertRaises(AccessError):
+            self.company.with_user(
+                self.reviewer,
+            ).action_rebuild_prepare_einvoice_activation()
+
+        other_company = self.env["res.company"].create({
+            "name": "Unauthorized E-Invoice Company",
+        })
+        with self.assertRaises(AccessError):
+            other_company.with_user(
+                self.manager,
+            ).action_rebuild_prepare_einvoice_activation()
+        with self.assertRaises(ValueError):
+            (self.company | other_company).with_user(
+                self.manager,
+            ).action_rebuild_prepare_einvoice_activation()
+
+    def test_production_preparation_rejects_incomplete_stale_and_unguarded_state(self):
+        self.company.account_peppol_contact_email = False
+        with self.assertRaisesRegex(UserError, "Production activation cannot"):
+            self.company.with_user(
+                self.manager,
+            ).action_rebuild_prepare_einvoice_activation()
+
+        self.company.account_peppol_contact_email = "company@example.invalid"
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.account_peppol_contact_email = "changed@example.invalid"
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
+            with self.assertRaisesRegex(UserError, "offline reception test"):
+                self.company.with_user(
+                    self.manager,
+                ).action_rebuild_prepare_einvoice_activation()
+
+        self.company.account_peppol_contact_email = "company@example.invalid"
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.rebuild_einvoice_test_status = "failed"
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
+            with self.assertRaisesRegex(UserError, "offline reception test"):
+                self.company.with_user(
+                    self.manager,
+                ).action_rebuild_prepare_einvoice_activation()
+
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "demo",
+        )
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
+            with self.assertRaisesRegex(UserError, "safe demo onboarding"):
+                self.company.with_user(
+                    self.manager,
+                ).action_rebuild_prepare_einvoice_activation()
+
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "prod",
+        )
+        with patch.dict(
+            os.environ,
+            {"USL_EINVOICE_LIVE_ENABLED": "0"},
+            clear=False,
+        ):
+            with self.assertRaisesRegex(UserError, "has not authorized"):
+                self.company.with_user(
+                    self.manager,
+                ).action_rebuild_prepare_einvoice_activation()
+
+    def test_production_preparation_button_is_manager_only(self):
+        view_id = self.env.ref(
+            "rebuild_account_migration."
+            "view_company_rebuild_einvoice_readiness_form",
+        ).id
+        manager_arch = self.env["res.company"].with_user(self.manager).get_view(
+            view_id=view_id,
+            view_type="form",
+        )["arch"]
+        reviewer_arch = self.env["res.company"].with_user(self.reviewer).get_view(
+            view_id=view_id,
+            view_type="form",
+        )["arch"]
+        self.assertIn("action_rebuild_prepare_einvoice_activation", manager_arch)
+        self.assertNotIn("action_rebuild_prepare_einvoice_activation", reviewer_arch)
 
     def test_self_check_is_invalidated_by_material_configuration_change(self):
         self.company.write({
@@ -579,7 +742,7 @@ class TestFrenchEinvoiceReception(
         self.assertEqual(self.company.peppol_endpoint, "CUSTOM-IDENTIFIER")
 
         wizard = self.env["pdp.registration"].with_user(
-            self.manager,
+            self.env.ref("base.user_admin"),
         ).with_company(self.company).with_context(
             rebuild_einvoice_safe_demo=True,
         ).create({
@@ -601,6 +764,7 @@ class TestFrenchEinvoiceReception(
             wizard.button_trigger_authentication()
             self.assertEqual(self.company.pdp_kyc_status, "success")
             wizard.button_register_pdp_participant()
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
             demo_user = self.company.account_edi_proxy_client_ids.filtered(
                 lambda user: (
                     user.proxy_type == "pdp" and user.edi_mode == "demo"
@@ -656,6 +820,10 @@ class TestFrenchEinvoiceReception(
         self.company.with_user(
             self.manager,
         ).action_rebuild_run_einvoice_acceptance_test()
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "prod",
+        )
         self.company.rebuild_einvoice_environment = "production"
         with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
             self.company.with_user(
@@ -852,7 +1020,7 @@ class TestFrenchEinvoiceReception(
             "demo",
         )
         registration = self.env["pdp.registration"].with_user(
-            self.manager,
+            self.env.ref("base.user_admin"),
         ).with_company(self.company).with_context(
             rebuild_einvoice_safe_demo=True,
         ).create({
@@ -1061,6 +1229,17 @@ class TestFrenchEinvoiceReception(
                 for cron in restricted_crons
             }
             self.company.account_peppol_proxy_state = "receiver"
+            inactive_cron = reception_crons[0]
+            inactive_cron.sudo().active = False
+            with self.assertRaisesRegex(
+                UserError,
+                "Production reception scheduling is not ready",
+            ):
+                self.company.with_user(
+                    self.manager,
+                ).action_rebuild_enable_einvoice_exchange()
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            inactive_cron.sudo().active = True
             self.company.with_user(
                 self.manager,
             ).action_rebuild_enable_einvoice_exchange()
@@ -1115,6 +1294,48 @@ class TestFrenchEinvoiceReception(
         self.assertEqual(self.company.account_peppol_proxy_state, "receiver")
         self.assertTrue(all(cron.active for cron in active_crons))
         self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+
+    def test_upgrade_with_runtime_guard_disabled_preserves_onboarding_state(self):
+        prepared_at = fields.Datetime.now()
+        approved_at = fields.Datetime.now()
+        self.company.write({
+            "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_production_prepared_by_id": self.manager.id,
+            "rebuild_einvoice_production_prepared_at": prepared_at,
+            "rebuild_einvoice_activation_approved": True,
+            "rebuild_einvoice_approved_by_id": self.manager.id,
+            "rebuild_einvoice_approved_at": approved_at,
+            "rebuild_einvoice_exchange_enabled": True,
+            "account_peppol_proxy_state": "smp_registration",
+            "pdp_kyc_status": "success",
+            "l10n_fr_pdp_send_to_ppf": True,
+            "l10n_fr_pdp_pilot_phase": True,
+        })
+
+        with patch.dict(
+            os.environ,
+            {"USL_EINVOICE_LIVE_ENABLED": "0"},
+            clear=False,
+        ):
+            self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+
+        self.assertEqual(self.company.rebuild_einvoice_environment, "production")
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_by_id,
+            self.manager,
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_production_prepared_at,
+            prepared_at,
+        )
+        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+        self.assertEqual(self.company.rebuild_einvoice_approved_by_id, self.manager)
+        self.assertEqual(self.company.rebuild_einvoice_approved_at, approved_at)
+        self.assertTrue(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertEqual(self.company.account_peppol_proxy_state, "smp_registration")
+        self.assertEqual(self.company.pdp_kyc_status, "success")
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
 
     def test_upgrade_initialization_preserves_current_offline_self_check(self):
         self.company.with_user(

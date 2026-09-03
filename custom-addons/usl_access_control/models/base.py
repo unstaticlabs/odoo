@@ -6,8 +6,16 @@ from lxml import etree
 
 from odoo import SUPERUSER_ID, api, models
 from odoo.exceptions import AccessError
+from odoo.fields import Domain
 
-from .action_policy import ActionPolicyConfigurationError, load_action_policy
+from ..exceptions import AgentPolicyAccessError
+from .action_policy import (
+    ActionPolicyConfigurationError,
+    load_action_policy,
+    load_agent_readonly_policy,
+)
+from .agent_policy_tokens import has_agent_collaboration_token
+from .agent_secrets import is_agent_secret_field
 
 _logger = logging.getLogger(__name__)
 
@@ -30,9 +38,200 @@ _SENSITIVE_MARKERS = (
     "token",
 )
 
+_AGENT_HIDDEN_MODELS = frozenset(
+    {
+        "res.users.apikeys",
+        "res.users.apikeys.description",
+        "usl.agent",
+        "usl.agent.credential",
+        "usl.agent.key.wizard",
+        "usl.agent.transfer.wizard",
+        "ir.config_parameter",
+    },
+)
+
+_AGENT_IDENTITY_MUTATION_MODELS = frozenset(
+    {
+        "auth.oauth.provider",
+        "auth.passkey.key",
+        "ir.model.access",
+        "ir.rule",
+        "res.groups",
+        "res.groups.privilege",
+        "res.users",
+        "res.users.apikeys",
+        "res.users.identitycheck",
+        "usl.agent",
+        "usl.agent.credential",
+        "usl.oidc.identity",
+    },
+)
+
 
 class Base(models.AbstractModel):
     _inherit = "base"
+
+    @api.model
+    def _usl_managed_agent(self):
+        if self.env.uid == SUPERUSER_ID or not self._usl_actor_is_agent():
+            return self.env["usl.agent"]
+        return self.env["usl.agent"].sudo().with_context(active_test=False).search(
+            [("user_id", "=", self.env.uid)],
+            limit=1,
+        )
+
+    @api.model
+    def _api_doc_access(self):
+        access = super()._api_doc_access()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return access
+        return {
+            operation: bool(access[operation] and agent._api_method_access(self._name, operation))
+            for operation in access
+        }
+
+    @api.model
+    def _api_doc_public_method_allowed(self, method_name):
+        if not super()._api_doc_public_method_allowed(method_name):
+            return False
+        agent = self._usl_managed_agent()
+        return not agent or bool(agent._api_method_access(self._name, method_name))
+
+    @api.model
+    def _api_doc_cache_vary(self):
+        vary = super()._api_doc_cache_vary()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return vary
+        try:
+            policy_digest = load_agent_readonly_policy().qualified_policy_digest
+        except ActionPolicyConfigurationError:
+            policy_digest = "invalid"
+        return (*vary, {
+            "agent_policy": policy_digest,
+            "read_only_group_ids": sorted(agent.read_only_group_ids.ids),
+            "company_ids": sorted(
+                set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+            ),
+        })
+
+    @api.model
+    def _access_domain(self, operation):
+        agent = self._usl_managed_agent()
+        if not agent:
+            return super()._access_domain(operation)
+        if self._name in _AGENT_HIDDEN_MODELS:
+            return Domain.FALSE
+        if (
+            operation != "read"
+            and not agent._allows_model_operation(self._name, operation)
+            and not has_agent_collaboration_token(self.env.context)
+        ):
+            return Domain.FALSE
+        if operation == "read" and not agent._allows_model_operation(self._name, "read"):
+            return Domain.FALSE
+        owner_context = dict(self.env.context)
+        requested_companies = set(owner_context.get("allowed_company_ids") or agent.company_ids.ids)
+        allowed_companies = (
+            requested_companies
+            & set(agent.company_ids.ids)
+            & set(agent.owner_id.company_ids.ids)
+        )
+        if not allowed_companies:
+            return Domain.FALSE
+        owner_context["allowed_company_ids"] = list(allowed_companies)
+        owner_env = self.env(user=agent.owner_id, context=owner_context)
+        owner_domain = self.with_env(owner_env)._access_domain(operation)
+        # The owner is the record-rule authority ceiling. Applying the backing
+        # technical user's personal follower/assignment rules as well would
+        # incorrectly hide records that the owner can read. Company scope is
+        # still intersected explicitly here and in the owner context.
+        if "company_id" in self._fields:
+            company_domain = Domain(
+                [
+                    "|",
+                    ("company_id", "=", False),
+                    ("company_id", "in", sorted(allowed_companies)),
+                ],
+            )
+            return Domain.AND([owner_domain, company_domain])
+        return owner_domain
+
+    @api.model
+    def _has_field_access(self, field, operation):
+        if not super()._has_field_access(field, operation):
+            return False
+        agent = self._usl_managed_agent()
+        if not agent:
+            return True
+        owner_context = dict(self.env.context)
+        requested_companies = set(
+            owner_context.get("allowed_company_ids") or agent.company_ids.ids,
+        )
+        allowed_companies = (
+            requested_companies
+            & set(agent.company_ids.ids)
+            & set(agent.owner_id.company_ids.ids)
+        )
+        if not allowed_companies:
+            return False
+        owner_context["allowed_company_ids"] = list(allowed_companies)
+        owner_env = self.env(user=agent.owner_id, context=owner_context)
+        return self.with_env(owner_env)._has_field_access(field, operation)
+
+    @api.model
+    def _usl_reject_readonly_agent_mutation(self, operation):
+        operation_labels = {
+            "create": self.env._("create"),
+            "write": self.env._("modify"),
+            "unlink": self.env._("delete"),
+        }
+        agent = self._usl_managed_agent()
+        if (
+            agent
+            and not agent._allows_model_operation(self._name, operation)
+            and not has_agent_collaboration_token(self.env.context)
+        ):
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "This Agent has no read/write access for %(model)s and cannot %(operation)s records.",
+                    model=self._name,
+                    operation=operation_labels.get(operation, operation),
+                ),
+                "agent_read_only_action_denied",
+            )
+
+    @api.model
+    def _usl_reject_agent_identity_mutation(self, operation):
+        if self._name in _AGENT_IDENTITY_MUTATION_MODELS and self._usl_managed_agent():
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "Agents cannot %(operation)s identities, access rights, Agents, or credentials.",
+                    operation=operation,
+                ),
+                "approval_required",
+            )
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        result = super().fields_get(allfields=allfields, attributes=attributes)
+        agent = self._usl_managed_agent()
+        if agent:
+            owner_context = dict(self.env.context)
+            owner_context["allowed_company_ids"] = sorted(
+                set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+            )
+            owner_fields = self.with_env(
+                self.env(user=agent.owner_id, context=owner_context),
+            ).fields_get(allfields=allfields, attributes=attributes)
+            result = {
+                field_name: definition
+                for field_name, definition in result.items()
+                if field_name in owner_fields
+                and not is_agent_secret_field(field_name, model_name=self._name)
+            }
+        return result
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -163,11 +362,12 @@ class Base(models.AbstractModel):
                 policy_digest=policy.qualified_policy_digest,
             )
             if self._usl_actor_is_agent():
-                raise AccessError(
+                raise AgentPolicyAccessError(
                     self.env._(
                         "AI Agents cannot perform irreversible actions. "
                         "Use a recoverable workflow or ask an authorized human.",
                     ),
+                    "agent_irreversible_action_denied",
                 )
             raise AccessError(
                 self.env._(
@@ -242,30 +442,40 @@ class Base(models.AbstractModel):
     def _usl_record_agent_mutation(self, operation, values=None, before=None, ids=None):
         if not self._usl_agent_audit_enabled():
             return
+        agent = self._usl_managed_agent()
         record_ids = list(ids if ids is not None else self.ids)
         changes = {}
         if before:
             changes["before"] = before
         if values is not None:
             changes["submitted"] = self._usl_audit_json_value("values", values)
-        self.env["usl.audit.event"]._record_event(
-            {
-                "actor_id": self.env.uid,
-                "actor_is_agent": True,
-                "event_type": "mutation",
-                "model_name": self._name,
-                "record_ids": json.dumps(record_ids),
-                "record_count": len(record_ids),
-                "operation": operation,
-                "action_name": f"{self._name}.{operation}",
-                "changes_json": json.dumps(changes, sort_keys=True),
-                "origin": self._usl_audit_origin(),
-                "correlation_id": self._usl_audit_correlation_id(),
-            },
-        )
+        event_values = {
+            "actor_id": self.env.uid,
+            "actor_is_agent": True,
+            "event_type": "mutation",
+            "model_name": self._name,
+            "record_ids": json.dumps(record_ids),
+            "record_count": len(record_ids),
+            "operation": operation,
+            "action_name": f"{self._name}.{operation}",
+            "changes_json": json.dumps(changes, sort_keys=True),
+            "origin": self._usl_audit_origin(),
+            "correlation_id": self._usl_audit_correlation_id(),
+        }
+        if agent:
+            event_values.update(
+                {
+                    "agent_id": agent.id,
+                    "owner_id": agent.owner_id.id,
+                    "company_id": self.env.company.id,
+                },
+            )
+        self.env["usl.audit.event"]._record_event(event_values)
 
     @api.model_create_multi
     def create(self, vals_list):
+        self._usl_reject_readonly_agent_mutation("create")
+        self._usl_reject_agent_identity_mutation("create")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
@@ -286,6 +496,8 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, values):
+        self._usl_reject_readonly_agent_mutation("write")
+        self._usl_reject_agent_identity_mutation("modify")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
@@ -308,6 +520,8 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
+        self._usl_reject_readonly_agent_mutation("unlink")
+        self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,

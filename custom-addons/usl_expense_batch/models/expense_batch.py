@@ -1,9 +1,11 @@
+import json
 from collections import defaultdict
 
 from lxml import etree
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import format_date
 
 
 class UslExpenseBatch(models.Model):
@@ -83,6 +85,22 @@ class UslExpenseBatch(models.Model):
         index=True,
         string="Expense progress",
     )
+    expense_progress_summary = fields.Char(
+        compute="_compute_expense_progress_summary",
+        string="Progress breakdown",
+    )
+    expense_progress_breakdown = fields.Char(
+        compute="_compute_expense_progress_summary",
+        string="Progress segments",
+    )
+    batch_state = fields.Selection(
+        selection=[
+            ("open", "Open"),
+            ("archived", "Archived"),
+        ],
+        compute="_compute_batch_state",
+        string="Batch state",
+    )
     submitted_by_id = fields.Many2one(
         "res.users",
         readonly=True,
@@ -129,6 +147,14 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         string="Expenses needing information",
     )
+    attention_count = fields.Integer(
+        compute="_compute_review_context",
+        string="Expenses needing attention",
+    )
+    has_incomplete_expenses = fields.Boolean(
+        compute="_compute_review_context",
+        search="_search_has_incomplete_expenses",
+    )
     readiness_state = fields.Selection(
         selection=[
             ("ready", "Ready"),
@@ -137,15 +163,23 @@ class UslExpenseBatch(models.Model):
         compute="_compute_review_context",
         string="Batch readiness",
     )
+    readiness_summary = fields.Char(compute="_compute_review_context")
     main_analytic_activity = fields.Char(compute="_compute_review_context")
     analytic_context_summary = fields.Char(compute="_compute_review_context")
-    product_summary = fields.Char(compute="_compute_review_context")
     exception_count = fields.Integer(compute="_compute_review_context")
+    has_exceptions = fields.Boolean(
+        compute="_compute_review_context",
+        search="_search_has_exceptions",
+    )
+    period_summary = fields.Char(string="Period", compute="_compute_period_summary")
     stale_context_count = fields.Integer(compute="_compute_review_context")
     warning_count = fields.Integer(compute="_compute_review_context")
     employee_paid_open_count = fields.Integer(compute="_compute_review_context")
     company_paid_open_count = fields.Integer(compute="_compute_review_context")
     draft_expense_count = fields.Integer(compute="_compute_review_context")
+    apply_context_button_label = fields.Char(
+        compute="_compute_apply_context_button_label",
+    )
     submitted_expense_count = fields.Integer(compute="_compute_review_context")
     approved_expense_count = fields.Integer(compute="_compute_review_context")
     accounted_expense_count = fields.Integer(compute="_compute_accounting_reconciliation")
@@ -167,6 +201,51 @@ class UslExpenseBatch(models.Model):
         string="Journal Entries",
     )
     move_count = fields.Integer(compute="_compute_moves")
+
+    @api.depends("draft_expense_count")
+    def _compute_apply_context_button_label(self):
+        for batch in self:
+            batch.apply_context_button_label = _(
+                "Apply context to %(count)s expenses",
+                count=batch.draft_expense_count,
+            )
+
+    @api.depends("active")
+    def _compute_batch_state(self):
+        for batch in self:
+            batch.batch_state = "open" if batch.active else "archived"
+
+    @api.depends("expense_ids.state")
+    def _compute_expense_progress_summary(self):
+        labels = {
+            "draft": _("draft"),
+            "submitted": _("submitted"),
+            "approved": _("approved"),
+            "posted": _("posted"),
+            "in_payment": _("in payment"),
+            "paid": _("paid"),
+            "refused": _("refused"),
+        }
+        order = tuple(labels)
+        for batch in self:
+            counts = {
+                state: len(
+                    batch.expense_ids.filtered(
+                        lambda expense, state=state: expense.state == state,
+                    ),
+                )
+                for state in order
+            }
+            parts = [
+                _("%(count)s %(state)s", count=counts[state], state=labels[state])
+                for state in order
+                if counts[state]
+            ]
+            batch.expense_progress_summary = " · ".join(parts) or _("No expenses")
+            batch.expense_progress_breakdown = json.dumps(
+                {state: counts[state] for state in order if counts[state]},
+                separators=(",", ":"),
+            )
 
     @api.depends("expense_ids.state")
     def _compute_expense_progress(self):
@@ -234,6 +313,7 @@ class UslExpenseBatch(models.Model):
         "expense_ids.payment_mode",
         "expense_ids.state",
         "expense_ids.batch_context_status",
+        "expense_ids.batch_attention_level",
         "expense_ids.batch_warning_reason",
         "analytic_distribution",
     )
@@ -245,6 +325,7 @@ class UslExpenseBatch(models.Model):
             )
             batch.incomplete_expense_ids = incomplete
             batch.incomplete_count = len(incomplete)
+            batch.has_incomplete_expenses = bool(incomplete)
             batch.readiness_state = "incomplete" if incomplete else "ready"
 
             analytic_weights = defaultdict(float)
@@ -280,23 +361,12 @@ class UslExpenseBatch(models.Model):
                     for plan, names in by_plan.items()
                 )
 
-            product_totals = defaultdict(float)
-            for expense in batch.expense_ids:
-                product_totals[expense.product_id.display_name or _("Uncategorized")] += (
-                    expense.total_amount
-                )
-            batch.product_summary = " · ".join(
-                f"{name}: {amount:.2f}"
-                for name, amount in sorted(
-                    product_totals.items(),
-                    key=lambda item: (-item[1], item[0]),
-                )
-            ) or False
             batch.exception_count = len(
                 batch.expense_ids.filtered(
                     lambda expense: expense.batch_context_status == "exception",
                 ),
             )
+            batch.has_exceptions = batch.exception_count > 0
             batch.stale_context_count = len(
                 batch.expense_ids.filtered(
                     lambda expense: expense.batch_context_status == "stale",
@@ -304,6 +374,19 @@ class UslExpenseBatch(models.Model):
             )
             batch.warning_count = len(
                 batch.expense_ids.filtered("batch_warning_reason"),
+            )
+            batch.attention_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.batch_attention_level == "warning",
+                ),
+            )
+            batch.readiness_summary = (
+                _(
+                    "Needs attention · %(count)s",
+                    count=batch.attention_count,
+                )
+                if batch.attention_count
+                else _("Ready")
             )
             batch.employee_paid_open_count = len(
                 batch.expense_ids.filtered(
@@ -330,6 +413,51 @@ class UslExpenseBatch(models.Model):
                     lambda expense: expense.state == "approved",
                 ),
             )
+
+    @api.model
+    def _search_has_exceptions(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise UserError(_("Exception filtering expects a true or false value."))
+        matching_ids = self.search([]).filtered("has_exceptions").ids
+        include_matches = (operator == "=") == value
+        return [("id", "in" if include_matches else "not in", matching_ids)]
+
+    @api.model
+    def _search_has_incomplete_expenses(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise UserError(_("Readiness filtering expects a true or false value."))
+        matching_ids = self.search([]).filtered("has_incomplete_expenses").ids
+        include_matches = (operator == "=") == value
+        return [("id", "in" if include_matches else "not in", matching_ids)]
+
+    @api.depends("date_from", "date_to")
+    def _compute_period_summary(self):
+        for batch in self:
+            if not batch.date_from:
+                batch.period_summary = False
+            elif not batch.date_to or batch.date_from == batch.date_to:
+                batch.period_summary = format_date(self.env, batch.date_from)
+            else:
+                batch.period_summary = _(
+                    "%(start)s → %(end)s",
+                    start=format_date(self.env, batch.date_from),
+                    end=format_date(self.env, batch.date_to),
+                )
+
+    @api.model
+    def get_batch_dashboard_counts(self):
+        """Return record-rule-aware counts for the operational quick filters."""
+        return {
+            "all": self.search_count([]),
+            "open_batches": self.search_count([("active", "=", True)]),
+            "needs_information": self.search_count(
+                [("has_incomplete_expenses", "=", True)],
+            ),
+            "my_batches": self.search_count(
+                [("employee_id.user_id", "=", self.env.uid)],
+            ),
+            "exceptions": self.search_count([("has_exceptions", "=", True)]),
+        }
 
     @api.depends("expense_ids.account_move_id")
     def _compute_moves(self):
@@ -515,6 +643,22 @@ class UslExpenseBatch(models.Model):
             "batch_id": self.id,
             "added": len(new_expenses),
             "unchanged": len(expenses - new_expenses),
+        }
+
+    def action_open_add_expenses_wizard(self):
+        self.ensure_one()
+        self._ensure_active()
+        wizard = self.env["usl.expense.batch.add.wizard"].create({
+            "batch_id": self.id,
+        })
+        return {
+            "name": _("Add expenses"),
+            "type": "ir.actions.act_window",
+            "res_model": "usl.expense.batch.add.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "res_id": wizard.id,
+            "target": "new",
         }
 
     @api.model
