@@ -1539,6 +1539,85 @@ test("tags are searchable, removable, and creatable from document details", asyn
 });
 
 test.tags("desktop");
+test("Paperless suggestions stay reviewable and apply one at a time", async () => {
+    const suggestedTag = {
+        id: 42,
+        name: "Payroll",
+        color: "#2d7d68",
+        text_color: "#ffffff",
+    };
+    const document = {
+        id: 41,
+        name: "August payslip",
+        paperless_id: 141,
+        date: "2026-08-31",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "",
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    const suggestions = [
+        {
+            kind: "tag",
+            field: "tag_ids",
+            record_id: suggestedTag.id,
+            label: suggestedTag.name,
+        },
+        {
+            kind: "date",
+            field: "document_date",
+            value: "2026-08-30",
+            label: "2026-08-30",
+        },
+    ];
+    let detail = {
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: false,
+        versions: [],
+        links: [],
+        paperless_suggestions: suggestions,
+    };
+    const updates = [];
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        tags: [suggestedTag],
+        documents: [{ ...document, tags: detail.tags }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail);
+    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
+        updates.push(args[1]);
+        detail = {
+            ...detail,
+            tags: args[1].tag_ids ? [suggestedTag] : detail.tags,
+        };
+        return { ...detail, paperless_suggestions: [] };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_paperless_suggestion").toHaveCount(2);
+    await contains(".o_usl_paperless_suggestion", { text: "Tag: Payroll" }).click();
+    await animationFrame();
+
+    expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
+    expect(".o_usl_detail_tags").toHaveText(/Payroll/);
+    expect(".o_usl_paperless_suggestion").toHaveCount(1);
+    expect(".o_usl_paperless_suggestion").toHaveText(/Date: 2026-08-30/);
+});
+
+test.tags("desktop");
 test("Documents search domains stay namespaced away from tag dialogs", async () => {
     const documentDomain = '[("review_state", "=", "classified")]';
     const baseUrl = browser.location.href.split("?")[0];

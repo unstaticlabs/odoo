@@ -6135,3 +6135,27 @@ msgstr "Résolvez le problème d’archivage dans Documents avant de dissocier c
 #: code:addons/usl_documents/static/src/attachment_list_patch.js:0
 msgid "Keep this file in Documents before unlinking it from the record."
 msgstr "Conservez ce fichier dans Documents avant de le dissocier de l’enregistrement."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Suggested by Paperless"
+msgstr "Suggestions de Paperless"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Review before applying."
+msgstr "Vérifiez avant d’appliquer."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "From"
+msgstr "De"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Suggestion"
+msgstr "Suggestion"

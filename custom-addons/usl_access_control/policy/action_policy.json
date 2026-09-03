@@ -39741,7 +39741,7 @@
         "rpc:res.users.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:res.users.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:res.users.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:usl.document.document_detail": "6382585d37a834457f8b4521062a3e8bdf91751f446d0e3cf93f3338426862a4",
+        "rpc:usl.document.document_detail": "7b8cbef6cb2888086b9aead310755d6252fdd9bc445fa528a04e1850d030a5e4",
         "rpc:wizard.ir.model.menu.create.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:wizard.ir.model.menu.create.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:wizard.ir.model.menu.create.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -161646,8 +161646,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.diagnostics:sudo:2": "56aff9c113b61f192163eb5e483ad3208dd19d6c8e13c810db7358c81bf9976e",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.diagnostics:sudo:3": "577c4c17c58db2e85f105f3a9bbad80ebb92a2af7b06e062c3a1be832a6b3c21",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.diagnostics:sudo:4": "217841de0e5fce363dce05d0d7030e7f2969165c9c0d075607ebbef1fa5f27d2",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.document_detail:sudo:1": "3edb4a4dc6b15cf4c66f405b736908c7eb8dc664cba1b216a89afb340055509f",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.document_detail:sudo:2": "0e9e238b99a9a41dab6be0f71549ee1572e88206f2120c4e2a0469ab645d65af",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.integrity_manifest:sudo:1": "7e1473be333202248aba955ace68e3186ddcf87430d732d906c063ad030f7d6e",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.link.create:orm_create:1": "3194c499fbfbc14d5ff4301860b3f28d1c22e45feceada97c60400701ad77d51",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.link.create_for_record:orm_create:1": "6b5bb6e78a7504d0ec4a9ef59ea8a5a4fb198d8f67938cc62ee861f66d0243b8",
@@ -186321,6 +186321,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "b9e70375e3dac31b8ac4b53c04df67dc32b7fd9658e425e8367f56869b0791a6",
+  "qualified_policy_digest": "ca96cbaac4125f89b32e75fc88206e057fa8b04c0a08d54346f050f40cbf77e6",
   "schema": "usl-action-risk-policy-v1"
 }

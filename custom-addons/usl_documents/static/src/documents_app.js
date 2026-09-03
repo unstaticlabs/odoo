@@ -2615,6 +2615,8 @@ export class DocumentsWorkspaceView extends Component {
         this.state.savingFields[field] = true;
         const save = async () => {
             try {
+                const paperlessSuggestions =
+                    this.state.selected?.paperless_suggestions || [];
                 const value = await resolveValue();
                 const detail = await this.orm.call(
                     "usl.document",
@@ -2624,10 +2626,12 @@ export class DocumentsWorkspaceView extends Component {
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
+                        paperless_suggestions: paperlessSuggestions,
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
                 }
+                return true;
             } catch (error) {
                 this.notification.add(
                     error.data?.message ||
@@ -2635,12 +2639,45 @@ export class DocumentsWorkspaceView extends Component {
                         "The change could not be saved. The previous value was kept.",
                     { type: "danger", sticky: true }
                 );
+                return false;
             } finally {
                 this.state.savingFields[field] = false;
             }
         };
         this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
         return this.metadataSaveQueue;
+    }
+
+    async applyPaperlessSuggestion(suggestion) {
+        if (!suggestion || !this.state.selected?.can_edit) {
+            return;
+        }
+        let applied;
+        if (suggestion.kind === "tag") {
+            applied = await this.addSelectedTag({
+                id: suggestion.record_id,
+                display_name: suggestion.label,
+            });
+        } else {
+            applied = await this.saveMetadataField(
+                suggestion.field,
+                suggestion.record_id || suggestion.value
+            );
+        }
+        if (applied !== false && this.state.selected) {
+            this.state.selected.paperless_suggestions = (
+                this.state.selected.paperless_suggestions || []
+            ).filter((item) => item !== suggestion);
+        }
+    }
+
+    paperlessSuggestionKindLabel(kind) {
+        return {
+            document_type: _t("Type"),
+            correspondent: _t("From"),
+            tag: _t("Tag"),
+            date: _t("Date"),
+        }[kind] || _t("Suggestion");
     }
 
     selectCorrespondent(value) {
