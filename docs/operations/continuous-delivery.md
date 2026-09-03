@@ -80,9 +80,12 @@ scripts/usl-stack --target staging cleanup plan
 The fixed controller additionally uses a release-bound internal notification
 operation after production admission. It can announce only the exact active
 64-character release identity. OdooBot posts the reviewed user-facing notes
-from that signed release manifest in Odoo's native all-employees upgrade
-channel. The post is persistent, links to technical evidence, and is
-idempotent for the release identity; it is not a transient browser popup.
+from that signed release manifest in the dedicated internal **USL Distribution
+Updates** Discuss channel. Current and future internal users are subscribed;
+portal and public identities are excluded. The post is persistent, links to
+technical evidence, and is idempotent for the release identity; it is not a
+transient browser popup. Notification failure is retryable operational
+evidence and never rolls back a healthy release.
 Before promoting a user-visible release, update
 `operations/release-notes.json` in the reviewed release PR. The v3 builder
 rejects missing, empty, oversized, or structurally unknown notes and binds the

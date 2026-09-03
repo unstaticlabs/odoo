@@ -9,6 +9,7 @@
     "data": [
         "security/ir.model.access.csv",
         "security/usl_home_security.xml",
+        "data/discuss_channel.xml",
         "views/usl_home_views.xml",
     ],
     "assets": {

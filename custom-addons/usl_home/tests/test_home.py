@@ -59,6 +59,12 @@ class TestUslHome(TransactionCase):
         )
         self.assertEqual(explicitly_configured.action_id.id, explicit_action.id)
 
+    def test_distribution_update_channel_is_internal_and_group_subscribed(self):
+        channel = self.env.ref("usl_home.channel_distribution_updates")
+        self.assertEqual(channel.name, "USL Distribution Updates")
+        self.assertIn(self.env.ref("base.group_user"), channel.group_ids)
+        self.assertNotIn(self.env.ref("base.group_portal"), channel.group_ids)
+
     def test_agent_identity_never_receives_interactive_home_action(self):
         if "usl.agent" not in self.env.registry:
             self.skipTest("Agent identities are not installed in this registry")
