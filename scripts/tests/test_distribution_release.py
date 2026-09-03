@@ -74,7 +74,9 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
     def test_release_requires_exact_successful_qualification_or_recovery_tag(self) -> None:
         self.assertIn('.name == "USL qualification"', self.workflow)
         self.assertIn('.head_sha == env.GITHUB_SHA', self.workflow)
-        self.assertIn('.conclusion == "success"', self.workflow)
+        self.assertIn('if [ "$conclusion" = success ]', self.workflow)
+        self.assertIn("for attempt in $(seq 1 240)", self.workflow)
+        self.assertIn("timeout-minutes: 45", self.workflow)
         self.assertIn("workflow_dispatch:refs/tags/recovery-*", self.workflow)
         self.assertIn('test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"', self.workflow)
 
@@ -84,9 +86,14 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertIn("pull_request:", qualification)
         self.assertIn("merge_group:", qualification)
+        self.assertIn("push:", qualification)
+        self.assertIn("branches: [19-usl, 19-usl-staging]", qualification)
         self.assertIn("name: USL qualification", qualification)
         self.assertIn("scripts/ci-product-database", qualification)
         self.assertIn("test \"$DATABASE\" = success", qualification)
+        self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
+        database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
+        self.assertIn("fetch-depth: 0", database_job)
 
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(

@@ -10,6 +10,8 @@ class SourcePolicyError(ValueError):
 def validate(*, event: str, base: str, head: str | None) -> None:
     if base not in {"19-usl", "19-usl-staging"}:
         raise SourcePolicyError(f"unsupported protected base: {base}")
+    if event == "push":
+        return
     if event == "merge_group":
         return
     if event != "pull_request" or not head:
