@@ -7,6 +7,7 @@ import base64
 import hashlib
 import io
 import json
+import re
 import sys
 import time
 from contextlib import contextmanager, redirect_stdout
@@ -1299,6 +1300,114 @@ def _active_generation_state(
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _base_compose_identity(target, identity: dict) -> dict:
+    generated_prefix = target.value["state_directory"] + "/generations/"
+    compose_files = [
+        path
+        for path in identity["compose_files"]
+        if not (
+            path.startswith(generated_prefix)
+            and path.endswith(("/compose.generation.json", "/compose.resources.json"))
+        )
+    ]
+    if not compose_files:
+        raise RuntimeError("base Compose identity is unavailable")
+    return {**identity, "compose_files": compose_files}
+
+
+def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, str | None]:
+    """Resolve only the one rollback generation recorded by active state."""
+    identity = _base_compose_identity(target, current["compose"])
+    active = current["active_state"]
+    if active is None:
+        return identity, None
+    previous = active.get("previous")
+    if not isinstance(previous, dict) or set(previous) != {
+        "generation", "volumes", "network", "release_manifest", "snapshot",
+    }:
+        raise RuntimeError("rollback generation state is incomplete")
+    if previous["release_manifest"] is None:
+        if previous["network"] is not None or previous["snapshot"] is not None:
+            raise RuntimeError("adopted rollback state is inconsistent")
+        return identity, None
+    generation = previous["generation"]
+    if not isinstance(generation, str) or not generation.startswith("g") or len(generation) > 32:
+        raise RuntimeError("rollback generation name is invalid")
+    volumes = previous["volumes"]
+    if (
+        not isinstance(volumes, dict)
+        or set(volumes) != set(target.value["volumes"])
+        or not all(isinstance(value, str) and value for value in volumes.values())
+    ):
+        raise RuntimeError("rollback generation volume perimeter differs")
+    if not isinstance(previous["network"], str) or not previous["network"]:
+        raise RuntimeError("rollback generation network is invalid")
+    if not re.fullmatch(r"[0-9a-f]{64}", str(previous["snapshot"])):
+        raise RuntimeError("rollback generation snapshot is invalid")
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    release_manifest = f"{generation_root}/usl-release.json"
+    if previous["release_manifest"] != release_manifest:
+        raise RuntimeError("rollback release manifest path is invalid")
+    overlay = f"{generation_root}/compose.generation.json"
+    required = [release_manifest, overlay]
+    if target.value["compose"]["resource_overlay"] is not None:
+        resource = f"{generation_root}/compose.resources.json"
+        required.append(resource)
+        identity["compose_files"].append(resource)
+    identity["compose_files"].append(overlay)
+    for path in required:
+        if runner.run(["test", "-f", path], check=False).returncode:
+            raise RuntimeError(f"rollback generation file is missing: {path}")
+    state = _active_generation_state(
+        target,
+        generation,
+        volumes,
+        previous["network"],
+        previous["snapshot"],
+        release_manifest,
+        {},
+    )
+    return identity, state
+
+
+def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
+    """Restore and prove the untouched pre-reopen runtime generation."""
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("runtime rollback is allowed only while the gateway is in maintenance")
+    current = inspect_runtime(target, runner)
+    previous_identity, previous_state = _previous_generation_identity(target, runner, current)
+    cohort_services = sorted(set(target.value["services"].values()))
+    runner.run(
+        compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
+        check=False,
+    )
+    rollback = runner.run(
+        compose_command(previous_identity, ["up", "--detach", "--wait"]),
+        check=False,
+    )
+    if rollback.returncode:
+        detail = (rollback.stderr or rollback.stdout).strip()
+        raise RuntimeError(f"previous generation did not start: {detail}")
+    active_path = f"{target.value['state_directory']}/active.json"
+    if previous_state is None:
+        runner.run(["rm", "-f", active_path])
+        generation = "adopted"
+    else:
+        _write_remote(target, runner, active_path, previous_state)
+        generation = json.loads(previous_state)["generation"]
+    health = _gate(health_command, target, targets)
+    smoke = _gate(smoke_command, target, targets)
+    return {
+        "schema": "usl-release-abort/v1",
+        "target": target.name,
+        "generation": generation,
+        "health": health,
+        "smoke": smoke,
+        "status": "rolled-back",
+    }
+
+
 def _validate_materialized_release(
     materialized: dict,
     release: dict,
@@ -1825,13 +1934,22 @@ def release_command(arguments: argparse.Namespace) -> int:
         return 0
     if arguments.action == "abort":
         state = runner.run(["cat", state_path], check=False)
-        if state.returncode:
-            raise RuntimeError("there is no release run to abort")
-        try:
-            value = abort_release_state(parse_release_state(state.stdout))
-        except ReleaseControllerError as error:
-            raise RuntimeError(str(error)) from error
-        _write_remote(target, runner, state_path, json.dumps(value, indent=2, sort_keys=True) + "\n")
+        controller_state = None
+        if state.returncode == 0:
+            try:
+                controller_state = abort_release_state(parse_release_state(state.stdout))
+            except ReleaseControllerError as error:
+                raise RuntimeError(str(error)) from error
+            _write_remote(
+                target,
+                runner,
+                state_path,
+                json.dumps(controller_state, indent=2, sort_keys=True) + "\n",
+            )
+        run_id = f"abort-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+        with runtime_lock(target, runner, "release-abort", run_id):
+            rollback = _abort_to_previous_generation(target, runner, arguments.targets)
+        value = {**rollback, "controller_state": controller_state}
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":

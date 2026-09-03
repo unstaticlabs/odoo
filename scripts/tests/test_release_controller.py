@@ -4,7 +4,7 @@ import json
 import subprocess
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import nullcontext, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
@@ -157,6 +157,21 @@ class ReleaseControllerTests(unittest.TestCase):
                 side_effect=lambda _target, _runner, _path, text, *_args: written.setdefault(
                     "text", text
                 ),
+            ), patch.object(
+                stack,
+                "runtime_lock",
+                return_value=nullcontext(),
+            ), patch.object(
+                stack,
+                "_abort_to_previous_generation",
+                return_value={
+                    "schema": "usl-release-abort/v1",
+                    "target": "production",
+                    "generation": "previous",
+                    "health": {"status": "passed"},
+                    "smoke": {"status": "passed"},
+                    "status": "rolled-back",
+                },
             ), redirect_stdout(StringIO()):
                 self.assertEqual(stack.release_command(arguments), 0)
             self.assertEqual(parse(written["text"])["status"], "aborted")

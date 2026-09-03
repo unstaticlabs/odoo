@@ -140,10 +140,14 @@ materialized restore is not yet a supported unattended resume point.
 ## Failure boundary
 
 Before user access reopens, a failed candidate is stopped and the untouched
-previous generation is restored. The public gateway remains in maintenance
-mode until that previous runtime passes health checks. After access has
-reopened, automation must never discard current data by restoring an older
-database; recovery requires a forward fix or explicit incident approval.
+previous generation is restored. `release abort` is permitted only while the
+target gateway already has its maintenance marker. It reconstructs the one
+recorded rollback generation from validated state, starts it, and runs both
+health and read-only smoke admission. The fixed production launcher removes
+maintenance only after that proof; failed or ambiguous recovery leaves the
+HTTP 503 in place. After access has reopened, automation must never discard
+current data by restoring an older database; recovery requires a forward fix
+or explicit incident approval.
 
 Capacity admission measures the active generation's allocated persistent
 volume and required Sign-state bytes after candidate images are pulled, then

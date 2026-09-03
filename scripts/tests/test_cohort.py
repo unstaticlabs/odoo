@@ -15,10 +15,12 @@ from operations.stack import (
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
     _apply_generation_cron_policy,
+    _abort_to_previous_generation,
     _generation_overlay,
     _ensure_image,
     _materialize_command,
     _prepare_generation_volume_ownership,
+    _previous_generation_identity,
     _release_images,
     _remove_materialization_workspace,
     _require_restore_capacity,
@@ -76,6 +78,94 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"resource_overlay": None},
+            "volumes": {"odoo_postgres": {}},
+        })
+        active = {
+            "generation": "gcandidate",
+            "volumes": {"odoo_postgres": "candidate-db"},
+            "network": "candidate-network",
+            "release_manifest": "/var/lib/usl-odoo/runtime/production/generations/gcandidate/usl-release.json",
+            "snapshot": "a" * 64,
+            "previous": {
+                "generation": "gprevious",
+                "volumes": {"odoo_postgres": "previous-db"},
+                "network": "previous-network",
+                "release_manifest": "/tmp/untrusted.json",
+                "snapshot": "b" * 64,
+            },
+        }
+        current = {
+            "compose": {
+                "compose_files": [
+                    "/gitops/compose.yaml",
+                    "/var/lib/usl-odoo/runtime/production/generations/gcandidate/compose.generation.json",
+                ],
+            },
+            "active_state": active,
+        }
+        with self.assertRaisesRegex(RuntimeError, "manifest path"):
+            _previous_generation_identity(target, mock.Mock(), current)
+
+    def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {
+                "state_directory": "/var/lib/usl-odoo/runtime/production",
+                "compose": {"resource_overlay": None},
+                "volumes": {"odoo_postgres": {}},
+                "services": {"odoo": "odoo", "odoo_db": "db"},
+            }
+        candidate_file = "/var/lib/usl-odoo/runtime/production/generations/gcandidate/compose.generation.json"
+        current = {
+            "compose": {
+                "project": "usl-odoo-production-main",
+                "working_directory": "/gitops",
+                "environment_file": "/run/prod.env",
+                "profiles": [],
+                "compose_files": ["/gitops/compose.yaml", candidate_file],
+            },
+            "active_state": {
+                "generation": "gcandidate",
+                "volumes": {"odoo_postgres": "candidate-db"},
+                "network": "candidate-network",
+                "release_manifest": "/var/lib/usl-odoo/runtime/production/generations/gcandidate/usl-release.json",
+                "snapshot": "a" * 64,
+                "previous": {
+                    "generation": "adopted",
+                    "volumes": {"odoo_postgres": "legacy-db"},
+                    "network": None,
+                    "release_manifest": None,
+                    "snapshot": None,
+                },
+            },
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
+            "operations.stack._gate",
+            side_effect=[{"status": "passed"}, {"status": "passed"}],
+        ):
+            result = _abort_to_previous_generation(target, runner, TARGETS)
+        self.assertEqual(result["status"], "rolled-back")
+        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
+        self.assertNotIn(candidate_file, up)
+        self.assertIn(
+            ["rm", "-f", "/var/lib/usl-odoo/runtime/production/active.json"],
+            runner.commands,
+        )
+
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             policy_path = Path(directory) / "cron-policy.json"
