@@ -100,9 +100,12 @@ mode until that previous runtime passes health checks. After access has
 reopened, automation must never discard current data by restoring an older
 database; recovery requires a forward fix or explicit incident approval.
 
-Capacity admission uses measured candidate and rollback requirements plus a
-15 GiB safety reserve. If the host cannot satisfy it, production remains
-running and the candidate is not materialized.
+Capacity admission measures the active generation's allocated persistent
+volume and required Sign-state bytes after candidate images are pulled, then
+requires that candidate size plus a 15 GiB safety reserve. Existing active and
+rollback generations are already charged against measured filesystem free
+space and are not double-counted. If the host cannot satisfy the result,
+production remains running and no candidate resources are created.
 
 ## Activation boundary
 

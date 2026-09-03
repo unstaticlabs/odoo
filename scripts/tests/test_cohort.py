@@ -21,6 +21,7 @@ from operations.stack import (
     _release_images,
     _remove_materialization_workspace,
     _require_restore_capacity,
+    _measure_candidate_bytes,
     _rollback_after_failure,
     _restore_unlocked,
     _validate_materialized_release,
@@ -516,6 +517,57 @@ class CohortContractTests(unittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, "below the 2 GiB safety floor"):
             _require_restore_capacity(target, CapacityRunner(), "preflight")
+
+    def test_restore_capacity_uses_measured_candidate_and_reserve(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class CapacityRunner:
+            def __init__(self, available):
+                self.available = available
+
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(
+                    command, 0, f"Avail\n{self.available}\n", "",
+                )
+
+        gib = 1024**3
+        with self.assertRaisesRegex(RuntimeError, "2.0 GiB deficit"):
+            _require_restore_capacity(
+                target,
+                CapacityRunner(17 * gib),
+                "preflight",
+                candidate_bytes=4 * gib,
+            )
+        admitted = _require_restore_capacity(
+            target,
+            CapacityRunner(19 * gib),
+            "preflight",
+            candidate_bytes=4 * gib,
+        )
+        self.assertEqual(admitted["required_bytes"], 19 * gib)
+
+    def test_candidate_measurement_counts_unique_volumes_and_required_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+        runtime = {
+            "volumes": {
+                "one": {"name": "volume-a"},
+                "duplicate": {"name": "volume-a"},
+                "two": {"name": "volume-b"},
+            },
+        }
+
+        class MeasurementRunner:
+            def run(self, command, *, check=True):
+                if command[:2] == ["docker", "run"]:
+                    return subprocess.CompletedProcess(command, 0, "1024\t/source\n", "")
+                return subprocess.CompletedProcess(command, 0, "512\t/path\n", "")
+
+        # Two unique volumes plus both durable Sign paths. A missing optional
+        # path is ignored by the real runner; this fixture reports both.
+        self.assertEqual(
+            _measure_candidate_bytes(target, MeasurementRunner(), "tool@sha256:" + "a" * 64, runtime),
+            3072,
+        )
 
     def test_materialization_workspace_cleanup_is_exactly_scoped(self) -> None:
         target = load_target("staging", TARGETS)
