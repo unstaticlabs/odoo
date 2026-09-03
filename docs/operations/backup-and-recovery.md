@@ -111,7 +111,18 @@ scripts/usl-stack cleanup apply --target staging --confirm staging --json
 ```
 
 The active and immediately previous generations are protected. The command
-uses exact Docker labels and never deletes foreign projects or volumes.
+uses exact Docker labels and never deletes foreign projects or volumes. On
+production, the same plan also applies paired Restic retention: 14 daily, 8
+weekly, 24 monthly, and 10 yearly recovery points. A retained durable snapshot
+always protects its exact reusable-cache snapshot. Cache snapshots are also
+kept for at least 30 days and the two newest release identities are protected.
+Unqualified and historical application-data-only evidence is never silently
+promoted into, or deleted as though it were, a complete recovery point.
+
+The automated release controller runs runtime-only cleanup before retrying an
+interrupted candidate, then applies full backup retention only after production
+has reopened and staging has been refreshed. Both mutations are serialized by
+the target lock; pruning cannot overlap backup or deployment.
 
 ## Service-level objective
 

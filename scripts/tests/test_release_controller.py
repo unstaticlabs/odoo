@@ -55,7 +55,11 @@ class ReleaseControllerTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "injected"):
                     run(path, self.handlers(fail=failed_stage))
                 state = load(path)
-                expected = "forward-fix-only" if STAGES.index(failed_stage) >= STAGES.index("reopen") else "rollback-previous-generation"
+                expected = (
+                    "forward-fix-only"
+                    if STAGES.index(failed_stage) > STAGES.index("reopen")
+                    else "rollback-previous-generation"
+                )
                 self.assertEqual(state["recovery"], expected)
 
     def test_checksum_tampering_is_rejected(self):
@@ -91,7 +95,7 @@ class ReleaseControllerTests(unittest.TestCase):
             aborted = abort(state)
             self.assertEqual(parse(json.dumps(aborted))["status"], "aborted")
 
-    def test_abort_is_forbidden_at_the_reopen_boundary(self):
+    def test_abort_is_forbidden_only_after_reopen_completed(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "state.json"
             create(
@@ -100,11 +104,18 @@ class ReleaseControllerTests(unittest.TestCase):
                 target="production",
                 release="a" * 64,
             )
-            run(path, self.handlers(), stop_after="production-admission")
+            run(path, self.handlers(), stop_after="reopen")
             state = load(path)
-            state["phase"] = "reopen"
             with self.assertRaisesRegex(ReleaseControllerError, "forward fix"):
                 abort(state)
+
+    def test_failure_during_reopen_still_requires_rollback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            create(path, run_id="release-run", target="production", release="a" * 64)
+            with self.assertRaisesRegex(RuntimeError, "injected"):
+                run(path, self.handlers(fail="reopen"))
+            self.assertEqual(load(path)["recovery"], "rollback-previous-generation")
 
     def test_public_status_rejects_tampered_state(self):
         runner = SimpleNamespace(

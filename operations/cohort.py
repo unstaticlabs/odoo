@@ -12,9 +12,10 @@ import subprocess
 import sys
 import tempfile
 import time
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from operations.control_manifest import ODOO_CONTROL_SQL, PAPERLESS_CONTROL_SQL
 
@@ -28,6 +29,10 @@ RUN_ID = re.compile(r"[a-z0-9][a-z0-9._-]{7,95}\Z")
 SNAPSHOT = re.compile(r"[0-9a-f]{64}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
+RELEASE_TAG = re.compile(r"release-[0-9a-f]{64}\Z")
+RETENTION_TIMEZONE = ZoneInfo("Europe/Paris")
+RETENTION = {"daily": 14, "weekly": 8, "monthly": 24, "yearly": 10}
+CACHE_MINIMUM_DAYS = 30
 DATABASES = ("odoo", "paperless")
 SIGN_SECRET_FILES = (
     "dss.env",
@@ -311,6 +316,10 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
     if root.exists():
         raise CohortError(f"run already exists: {arguments.run_id}")
     partial = root.with_name(f".{arguments.run_id}.partial")
+    if partial.exists():
+        if partial.is_symlink() or not partial.is_dir() or partial.parent != root.parent:
+            raise CohortError(f"unsafe interrupted capture workspace: {partial}")
+        shutil.rmtree(partial)
     partial.mkdir(parents=True, mode=0o700)
     durable = partial / "durable"
     cache = partial / "cache"
@@ -497,6 +506,174 @@ def restic_backup(paths: list[Path], environment: dict[str, str], tags: list[str
     return snapshot
 
 
+def _snapshot_time(item: dict[str, Any]) -> datetime:
+    value = str(item.get("time", ""))
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise CohortError("Restic snapshot has an invalid timestamp") from error
+    if parsed.tzinfo is None:
+        raise CohortError("Restic snapshot timestamp has no timezone")
+    return parsed.astimezone(RETENTION_TIMEZONE)
+
+
+def _period_key(moment: datetime, kind: str) -> tuple[int, ...]:
+    if kind == "daily":
+        return moment.year, moment.month, moment.day
+    if kind == "weekly":
+        iso = moment.isocalendar()
+        return iso.year, iso.week
+    if kind == "monthly":
+        return moment.year, moment.month
+    if kind == "yearly":
+        return (moment.year,)
+    raise CohortError(f"unknown retention period: {kind}")
+
+
+def select_retained_snapshots(
+    snapshots: list[dict[str, Any]],
+    *,
+    counts: dict[str, int] | None = None,
+) -> set[str]:
+    """Keep the newest snapshot in each of the latest occupied time buckets."""
+    counts = counts or RETENTION
+    qualified = []
+    for item in snapshots:
+        identity = str(item.get("id", ""))
+        tags = set(item.get("tags", []))
+        if not SNAPSHOT.fullmatch(identity) or not {
+            "usl-cohort", "durable", "recovery-eligible",
+        } <= tags:
+            continue
+        qualified.append((_snapshot_time(item), identity))
+    qualified.sort(reverse=True)
+    keep: set[str] = set()
+    for kind, count in counts.items():
+        occupied: set[tuple[int, ...]] = set()
+        for moment, identity in qualified:
+            key = _period_key(moment, kind)
+            if key in occupied:
+                continue
+            occupied.add(key)
+            keep.add(identity)
+            if len(occupied) == count:
+                break
+    if qualified:
+        keep.add(qualified[0][1])
+    return keep
+
+
+def _inventory(environment: dict[str, str]) -> list[dict[str, Any]]:
+    result = retry_restic(["restic", "snapshots", "--json"], environment)
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise CohortError("Restic snapshot inventory is invalid") from error
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        raise CohortError("Restic snapshot inventory is invalid")
+    return value
+
+
+def _one_tag(tags: set[str], pattern: re.Pattern[str], label: str) -> str:
+    matches = sorted(tag for tag in tags if pattern.fullmatch(tag))
+    if len(matches) != 1:
+        raise CohortError(f"snapshot has no unique {label} tag")
+    return matches[0]
+
+
+def plan_retention(now: datetime | None = None) -> dict[str, Any]:
+    """Plan paired durable/cache retention without deleting unqualified evidence."""
+    now = (now or datetime.now(UTC)).astimezone(RETENTION_TIMEZONE)
+    durable_environment = restic_environment("RESTIC_REPOSITORY", "RESTIC_PASSWORD")
+    cache_environment = restic_environment(
+        "USL_BACKUP_CACHE_REPOSITORY",
+        "USL_BACKUP_CACHE_PASSWORD",
+    )
+    durable = _inventory(durable_environment)
+    cache = _inventory(cache_environment)
+    scoped_durable = [
+        item for item in durable
+        if {"usl-cohort", "durable", "target-production"} <= set(item.get("tags", []))
+    ]
+    if any(not SNAPSHOT.fullmatch(str(item.get("id", ""))) for item in scoped_durable):
+        raise CohortError("durable snapshot identity is invalid")
+    retained_durable = select_retained_snapshots(scoped_durable)
+    deletable_durable = sorted(
+        str(item["id"])
+        for item in scoped_durable
+        if "recovery-eligible" in set(item.get("tags", []))
+        and str(item.get("id", "")) not in retained_durable
+    )
+    retained_runs = {
+        _one_tag(set(item.get("tags", [])), re.compile(r"run-[a-z0-9][a-z0-9._-]{7,95}\Z"), "run")
+        for item in scoped_durable
+        if str(item.get("id", "")) in retained_durable
+    }
+    scoped_cache = [
+        item for item in cache
+        if {"usl-cohort", "cache", "target-production"} <= set(item.get("tags", []))
+    ]
+    if any(not SNAPSHOT.fullmatch(str(item.get("id", ""))) for item in scoped_cache):
+        raise CohortError("cache snapshot identity is invalid")
+    cache_by_run: dict[str, list[str]] = {}
+    latest_releases: list[str] = []
+    for item in sorted(scoped_cache, key=_snapshot_time, reverse=True):
+        tags = set(item.get("tags", []))
+        run_tag = _one_tag(tags, re.compile(r"run-[a-z0-9][a-z0-9._-]{7,95}\Z"), "run")
+        cache_by_run.setdefault(run_tag, []).append(str(item.get("id", "")))
+        releases = [tag for tag in tags if RELEASE_TAG.fullmatch(tag)]
+        if len(releases) > 1:
+            raise CohortError("cache snapshot has ambiguous release identity")
+        if releases and releases[0] not in latest_releases:
+            latest_releases.append(releases[0])
+    for run_tag in retained_runs:
+        if len(cache_by_run.get(run_tag, [])) != 1:
+            raise CohortError("retained durable snapshot has no unique cache snapshot")
+    retained_cache = {
+        identity
+        for run_tag in retained_runs
+        for identity in cache_by_run[run_tag]
+    }
+    cutoff = now - timedelta(days=CACHE_MINIMUM_DAYS)
+    latest_release_set = set(latest_releases[:2])
+    for item in scoped_cache:
+        tags = set(item.get("tags", []))
+        identity = str(item.get("id", ""))
+        if _snapshot_time(item) >= cutoff or latest_release_set & tags:
+            retained_cache.add(identity)
+    deletable_cache = sorted(
+        str(item["id"])
+        for item in scoped_cache
+        if str(item.get("id", "")) not in retained_cache
+    )
+    return {
+        "schema": "usl-retention-plan/v1",
+        "policy": {**RETENTION, "cache_minimum_days": CACHE_MINIMUM_DAYS},
+        "retain_durable": sorted(retained_durable),
+        "delete_durable": deletable_durable,
+        "retain_cache": sorted(retained_cache),
+        "delete_cache": deletable_cache,
+        "status": "planned",
+    }
+
+
+def apply_retention(now: datetime | None = None) -> dict[str, Any]:
+    plan = plan_retention(now)
+    for repository_key, password_key, field in (
+        ("RESTIC_REPOSITORY", "RESTIC_PASSWORD", "delete_durable"),
+        ("USL_BACKUP_CACHE_REPOSITORY", "USL_BACKUP_CACHE_PASSWORD", "delete_cache"),
+    ):
+        identities = plan[field]
+        if not identities:
+            continue
+        retry_restic(
+            ["restic", "forget", "--prune", *identities],
+            restic_environment(repository_key, password_key),
+            attempts=1,
+        )
+    return {**plan, "status": "applied"}
+
+
 def retry_restic(
     command: list[str],
     environment: dict[str, str],
@@ -562,12 +739,16 @@ def push(arguments: argparse.Namespace) -> dict[str, Any]:
         "USL_BACKUP_CACHE_REPOSITORY",
         "USL_BACKUP_CACHE_PASSWORD",
     )
+    release_tag = f"release-{manifest['release']['manifest_sha256']}"
     cache_snapshot = manifest["cache_snapshot_id"]
     if cache_snapshot is None:
         cache_snapshot = restic_backup(
             [root / "cache"],
             cache_environment,
-            ["usl-cohort", "cache", f"target-{manifest['target']}", f"run-{arguments.run_id}"],
+            [
+                "usl-cohort", "cache", f"target-{manifest['target']}",
+                f"run-{arguments.run_id}", release_tag,
+            ],
         )
         manifest["cache_snapshot_id"] = cache_snapshot
         manifest_path.write_text(
@@ -580,7 +761,10 @@ def push(arguments: argparse.Namespace) -> dict[str, Any]:
     durable_snapshot = restic_backup(
         [root / "durable", root / "manifest.json"],
         durable_environment,
-        ["usl-cohort", "durable", "pending-verification", f"target-{manifest['target']}", f"run-{arguments.run_id}"],
+        [
+            "usl-cohort", "durable", "pending-verification",
+            f"target-{manifest['target']}", f"run-{arguments.run_id}", release_tag,
+        ],
     )
     state = {
         "schema": STATE_SCHEMA,
@@ -889,7 +1073,10 @@ def parser() -> argparse.ArgumentParser:
     command = argparse.ArgumentParser(description=__doc__)
     command.add_argument(
         "action",
-        choices=("capture", "push", "verify", "qualify", "list", "materialize"),
+        choices=(
+            "capture", "push", "verify", "qualify", "list", "materialize",
+            "retention-plan", "retention-apply",
+        ),
     )
     command.add_argument("--root", default="/cohort")
     command.add_argument("--run-id")
@@ -904,7 +1091,14 @@ def main() -> int:
             raise CohortError(f"{arguments.action} requires --run-id")
         if arguments.action in {"verify", "qualify", "materialize"} and not arguments.durable_snapshot:
             raise CohortError(f"{arguments.action} requires --durable-snapshot")
-        handler = list_snapshots if arguments.action == "list" else globals()[arguments.action]
+        handlers = {
+            "list": list_snapshots,
+            "retention-plan": lambda _arguments: plan_retention(),
+            "retention-apply": lambda _arguments: apply_retention(),
+        }
+        handler = handlers.get(arguments.action, globals().get(arguments.action))
+        if handler is None:
+            raise CohortError(f"unsupported action: {arguments.action}")
         result = handler(arguments)
         print(json.dumps(result, sort_keys=True))
         return 0
