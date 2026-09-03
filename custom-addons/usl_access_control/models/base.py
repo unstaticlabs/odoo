@@ -14,7 +14,10 @@ from .action_policy import (
     load_action_policy,
     load_agent_readonly_policy,
 )
-from .agent_policy_tokens import has_agent_collaboration_token
+from .agent_policy_tokens import (
+    get_agent_operation_scope,
+    has_agent_collaboration_token,
+)
 from .agent_secrets import is_agent_secret_field
 
 _logger = logging.getLogger(__name__)
@@ -26,6 +29,18 @@ _AGENT_AUDIT_EXCLUDED_MODELS = frozenset(
         "mail.mail",
         "mail.notification",
         "usl.audit.event",
+    },
+)
+
+_AGENT_GOVERNED_SIDE_EFFECT_MODELS = frozenset(
+    {
+        "bus.bus",
+        "ir.attachment",
+        "mail.activity",
+        "mail.followers",
+        "mail.mail",
+        "mail.message",
+        "mail.notification",
     },
 )
 
@@ -117,12 +132,28 @@ class Base(models.AbstractModel):
         })
 
     @api.model
+    def _usl_agent_operation_scope(self, agent=None):
+        agent = agent or self._usl_managed_agent()
+        if not agent:
+            return None
+        return get_agent_operation_scope(
+            self.env.context,
+            agent_user_id=agent.user_id.id,
+        )
+
+    @api.model
+    def _usl_scoped_agent_sudo(self, agent=None):
+        return bool(self.env.su and self._usl_agent_operation_scope(agent))
+
+    @api.model
     def _access_domain(self, operation):
         agent = self._usl_managed_agent()
         if not agent:
             return super()._access_domain(operation)
         if self._name in _AGENT_HIDDEN_MODELS:
             return Domain.FALSE
+        if self._usl_scoped_agent_sudo(agent):
+            return super()._access_domain(operation)
         if (
             operation != "read"
             and not agent._allows_model_operation(self._name, operation)
@@ -165,6 +196,8 @@ class Base(models.AbstractModel):
         agent = self._usl_managed_agent()
         if not agent:
             return True
+        if self._usl_scoped_agent_sudo(agent):
+            return True
         owner_context = dict(self.env.context)
         requested_companies = set(
             owner_context.get("allowed_company_ids") or agent.company_ids.ids,
@@ -188,11 +221,29 @@ class Base(models.AbstractModel):
             "unlink": self.env._("delete"),
         }
         agent = self._usl_managed_agent()
+        scoped_sudo = self._usl_scoped_agent_sudo(agent)
         if (
             agent
-            and not agent._allows_model_operation(self._name, operation)
+            and (
+                self.env.su
+                or self._name in _AGENT_GOVERNED_SIDE_EFFECT_MODELS
+                or not agent._allows_model_operation(self._name, operation)
+            )
             and not has_agent_collaboration_token(self.env.context)
+            and not scoped_sudo
         ):
+            scope = self._usl_agent_operation_scope(agent)
+            _logger.warning(
+                "Agent policy denied mutation root=%s.%s access=%s "
+                "target=%s operation=%s scoped=%s sudo=%s",
+                scope.root_model if scope else "-",
+                scope.root_method if scope else "-",
+                scope.access if scope else "-",
+                self._name,
+                operation,
+                bool(scope),
+                self.env.su,
+            )
             raise AgentPolicyAccessError(
                 self.env._(
                     "This Agent has no read/write access for %(model)s and cannot %(operation)s records.",

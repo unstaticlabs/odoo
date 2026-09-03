@@ -6,6 +6,10 @@ from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
 
 from ..exceptions import AgentPolicyAccessError
+from ..models.agent_policy_tokens import (
+    AGENT_OPERATION_SCOPE_CONTEXT_KEY,
+    create_agent_operation_scope,
+)
 from ..models.agent_secrets import (
     AGENT_HIDDEN_API_MODELS,
     is_agent_secret_field,
@@ -38,17 +42,24 @@ class UslAgentJson2Controller(WebJson2Controller):
         )
         outcome = "succeeded"
         try:
-            self._check_agent_call(
+            access = self._check_agent_call(
                 agent=agent,
                 model_name=__model__,
                 method_name=__method__,
                 kwargs=kwargs,
             )
+            call_context = self._agent_call_context(
+                context=context,
+                agent=agent,
+                model_name=__model__,
+                method_name=__method__,
+                access=access,
+            )
             result = super().web_json_2_rpc(
                 __model__,
                 __method__,
                 ids=ids,
-                context=context or {},
+                context=call_context,
                 **kwargs,
             )
             return (
@@ -91,7 +102,8 @@ class UslAgentJson2Controller(WebJson2Controller):
                 _("Secret fields are not available to Agents."),
                 "agent_read_only_action_denied",
             )
-        if not agent._api_method_access(model_name, method_name):
+        access = agent._api_method_access(model_name, method_name)
+        if not access:
             raise AgentPolicyAccessError(
                 _(
                     "This Agent has no approved application access for %(model)s.%(method)s.",
@@ -100,6 +112,22 @@ class UslAgentJson2Controller(WebJson2Controller):
                 ),
                 "agent_read_only_action_denied",
             )
+        return access
+
+    @staticmethod
+    def _agent_call_context(*, context, agent, model_name, method_name, access):
+        call_context = dict(context or {})
+        call_context.pop(AGENT_OPERATION_SCOPE_CONTEXT_KEY, None)
+        if access in {"collaboration", "write"}:
+            call_context[AGENT_OPERATION_SCOPE_CONTEXT_KEY] = (
+                create_agent_operation_scope(
+                    agent_user_id=agent.user_id.id,
+                    root_model=model_name,
+                    root_method=method_name,
+                    access=access,
+                )
+            )
+        return call_context
 
     def _record_agent_api_call(
         self,
