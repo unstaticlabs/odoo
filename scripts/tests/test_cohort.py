@@ -17,6 +17,7 @@ from operations.stack import (
     _cohort_command,
     _create_generation_resources,
     _apply_generation_cron_policy,
+    _active_generation_identity,
     _abort_to_previous_generation,
     _generation_overlay,
     _ensure_image,
@@ -82,6 +83,38 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_active_generation_identity_uses_recorded_overlays_after_adoption(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"resource_overlay": "compose.resources.production.json"},
+        })
+        generation = "gstorage-active"
+        root = f"/var/lib/usl-odoo/runtime/production/generations/{generation}"
+        current = {
+            "compose": {
+                "compose_files": [
+                    "/gitops/compose.yaml",
+                    "/var/lib/usl-odoo/runtime/production/generations/glegacy/compose.generation.json",
+                ],
+            },
+            "active_state": {
+                "generation": generation,
+                "release_manifest": f"{root}/usl-release.json",
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        identity = _active_generation_identity(target, runner, current)
+        self.assertEqual(
+            identity["compose_files"],
+            [
+                "/gitops/compose.yaml",
+                f"{root}/compose.resources.json",
+                f"{root}/compose.generation.json",
+            ],
+        )
+        self.assertEqual(runner.run.call_count, 3)
+
     def test_release_notification_is_bound_to_active_release_and_persistent_channel(self) -> None:
         release_id = "a" * 64
         target = mock.Mock(value={
