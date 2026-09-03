@@ -1,6 +1,5 @@
-# Dependabot runs against the repository default branch (19-usl). Do not add a
-# target-branch here: GitHub only applies these settings to security updates
-# when the update entry targets the default branch.
+# Routine dependency candidates integrate through staging. GitHub security
+# updates for the default branch remain governed separately by its ruleset.
 version: 2
 
 updates:
@@ -9,6 +8,7 @@ updates:
   # arrive through an upstream Odoo update or an explicit qualification task.
   - package-ecosystem: "pip"
     directory: "/"
+    target-branch: "19-usl-staging"
     exclude-paths:
       - "addons/**"
       - "oca-addons/**"
@@ -47,6 +47,7 @@ updates:
   # rebuilt and diagnosed without an unrelated manifest rewrite.
   - package-ecosystem: "pip"
     directory: "/docker"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "monthly"
       time: "06:30"
@@ -83,6 +84,7 @@ updates:
   # generated assets can be reviewed with the package update.
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "monthly"
       time: "07:00"
@@ -102,6 +104,7 @@ updates:
   # updates stay separate so Python/runtime-generation changes are explicit.
   - package-ecosystem: "docker"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -129,6 +132,7 @@ updates:
   # discovered by the root Docker update entry.
   - package-ecosystem: "docker"
     directory: "/docker"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -149,6 +153,7 @@ updates:
   # images. Keep its candidates separate from the Odoo Distribution image.
   - package-ecosystem: "docker"
     directory: "/deploy/documents/paperless-ngx"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -171,6 +176,7 @@ updates:
   # qualification before merge.
   - package-ecosystem: "docker-compose"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "wednesday"
@@ -196,6 +202,7 @@ updates:
   # to publish images or bypass the normal pull-request qualification job.
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "monday"

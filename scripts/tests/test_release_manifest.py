@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import unittest
 
 from operations.release_manifest import ReleaseManifestError, validate
@@ -13,26 +15,59 @@ def component(name: str) -> dict[str, object]:
     input_sha = ({"distribution": "1", "backup-tool": "2", "paperless": "3", "sign-dss": "4"}[name]) * 64
     image = f"ghcr.io/unstaticlabs/{name}"
     digest = "sha256:" + "a" * 64
-    return {
+    value = {
         "input_sha256": input_sha,
         "image": image,
         "tag": f"content-{input_sha}",
         "digest": digest,
         "digest_reference": f"{image}@{digest}",
+        "attestations": {
+            "sbom": {"predicate_type": "https://spdx.dev/Document", "subject_digest": digest},
+            "provenance": {"predicate_type": "https://slsa.dev/provenance/v1", "subject_digest": digest},
+        },
     }
+    return value
+
+
+def inventory() -> dict[str, object]:
+    modules = {
+        "usl_test": {
+            "version": "19.3.1.0.0",
+            "dependencies": ["base"],
+            "source_sha256": "1" * 64,
+            "stored_model_sha256": "2" * 64,
+        },
+    }
+    digest = hashlib.sha256(json.dumps(modules, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return {"schema": "usl-module-inventory/v1", "modules": modules, "sha256": digest}
 
 
 def manifest() -> dict[str, object]:
-    return {
-        "schema": "usl-release/v2",
-        "source": {"repository": "unstaticlabs/odoo", "commit": COMMIT},
+    foundation = {
+        "odoo_series": "19.3",
+        "odoo_core_commit": "9" * 40,
+        "odoo_core_sha256": "8" * 64,
+        "oca_sha256": "8" * 64,
+        "python_constraints_sha256": "7" * 64,
+        "security_policy_sha256": "6" * 64,
+    }
+    foundation["digest"] = hashlib.sha256(
+        json.dumps(foundation, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    value = {
+        "schema": "usl-release/v3",
+        "source": {"repository": "unstaticlabs/odoo", "ref": "refs/heads/19-usl-staging", "commit": COMMIT},
         "components": {name: component(name) for name in ("distribution", "backup-tool", "paperless", "sign-dss")},
+        "modules": inventory(),
+        "foundation": foundation,
         "mcp": {
             "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
             "ref": "b" * 40,
             "commit": "b" * 40,
             "image": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64,
             "compatibility_sha256": "c" * 64,
+            "release_schema": "usl-odoo-mcp-oci-release/v2",
+            "release_manifest_sha256": "5" * 64,
         },
         "renderer": {
             "repository": "https://github.com/unstaticlabs/unstatic_latex_templates",
@@ -40,22 +75,26 @@ def manifest() -> dict[str, object]:
             "image": "ghcr.io/unstaticlabs/usl-document-renderer@sha256:" + "d" * 64,
         },
         "ollama": {
-            "image": "ollama/ollama@sha256:" + "e" * 64,
             "model": "bge-m3:latest",
             "manifest_sha256": "f" * 64,
             "dimension": 1024,
         },
+        "qualification": {"evidence": {"unit-tests": "4" * 64}},
         "build": {
             "workflow_run_id": 123,
             "workflow_run_attempt": 1,
             "workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/123",
         },
     }
+    value["identity"] = hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return value
 
 
 class ReleaseManifestTests(unittest.TestCase):
     def test_accepts_complete_content_addressed_release(self) -> None:
-        self.assertEqual(validate(manifest(), commit=COMMIT)["schema"], "usl-release/v2")
+        self.assertEqual(validate(manifest(), commit=COMMIT)["schema"], "usl-release/v3")
 
     def test_rejects_component_tag_not_bound_to_inputs(self) -> None:
         value = copy.deepcopy(manifest())
@@ -73,6 +112,27 @@ class ReleaseManifestTests(unittest.TestCase):
         value = copy.deepcopy(manifest())
         value["ollama"]["dimension"] = 768
         with self.assertRaisesRegex(ReleaseManifestError, "1024"):
+            validate(value)
+
+    def test_accepts_legacy_v2_only_for_historical_verification(self) -> None:
+        value = manifest()
+        for component_value in value["components"].values():
+            component_value.pop("attestations")
+        value = {
+            "schema": "usl-release/v2",
+            "source": {"repository": value["source"]["repository"], "commit": value["source"]["commit"]},
+            "components": value["components"],
+            "mcp": {key: value["mcp"][key] for key in ("repository", "ref", "commit", "image", "compatibility_sha256")},
+            "renderer": value["renderer"],
+            "ollama": {"image": "ollama/ollama@sha256:" + "e" * 64, **value["ollama"]},
+            "build": value["build"],
+        }
+        self.assertEqual(validate(value)["schema"], "usl-release/v2")
+
+    def test_rejects_release_from_non_release_branch(self) -> None:
+        value = manifest()
+        value["source"]["ref"] = "refs/heads/feature"
+        with self.assertRaisesRegex(ReleaseManifestError, "authorized ref"):
             validate(value)
 
 

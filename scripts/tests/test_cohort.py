@@ -114,7 +114,7 @@ class CohortContractTests(unittest.TestCase):
         initialize.assert_called_once_with(["restic", "init"], environment={}, capture=True)
 
     def test_restore_refuses_a_release_that_differs_from_the_cohort(self) -> None:
-        release = {"source": {"commit": "a" * 40}}
+        release = {"schema": "usl-release/v2", "source": {"commit": "a" * 40}}
         materialized = {
             "release": {"commit": "a" * 40, "manifest_sha256": "b" * 64},
         }
@@ -122,6 +122,13 @@ class CohortContractTests(unittest.TestCase):
         materialized["release"]["manifest_sha256"] = "c" * 64
         with self.assertRaisesRegex(RuntimeError, "differs from the cohort"):
             _validate_materialized_release(materialized, release, "b" * 64)
+
+    def test_v3_candidate_may_differ_from_verified_snapshot_release(self) -> None:
+        release = {"schema": "usl-release/v3", "source": {"commit": "b" * 40}}
+        materialized = {
+            "release": {"commit": "a" * 40, "manifest_sha256": "c" * 64},
+        }
+        _validate_materialized_release(materialized, release, "d" * 64)
 
     def test_production_restore_requires_complete_sign_secrets(self) -> None:
         release = {"source": {"commit": "a" * 40}}
@@ -597,7 +604,8 @@ class CohortContractTests(unittest.TestCase):
             "/runtime/generations/g-previous/compose.generation.json",
             command,
         )
-        self.assertEqual(command[-4:], ["up", "--detach", "--wait", "--force-recreate"])
+        self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
+        self.assertNotIn("--force-recreate", command)
 
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
