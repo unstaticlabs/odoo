@@ -205,14 +205,22 @@ class ResUsers(models.Model):
     @api.model
     def _usl_pocketid_profile_definitions(self):
         definitions = super()._usl_pocketid_profile_definitions()
-        definitions["administrator"] = {
-            **definitions["administrator"],
-            "groups": (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
-        }
+
+        def extend_groups(profile, *groups):
+            definition = definitions[profile]
+            definitions[profile] = {
+                **definition,
+                "groups": tuple(
+                    dict.fromkeys(tuple(definition.get("groups") or ()) + groups),
+                ),
+            }
+
+        extend_groups(
+            "administrator",
+            "usl_access_control.group_distribution_administrator",
+            "usl_access_control.group_irreversible_actions",
+            "base.group_system",
+        )
         definitions["product_administrator"] = {
             "classification": "active",
             "active": True,
@@ -222,24 +230,22 @@ class ResUsers(models.Model):
             ),
             "pocketid": True,
         }
-        definitions["break_glass"] = {
-            **definitions["break_glass"],
-            "groups": (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
-        }
+        extend_groups(
+            "break_glass",
+            "usl_access_control.group_distribution_administrator",
+            "usl_access_control.group_irreversible_actions",
+            "base.group_system",
+        )
         definitions["technical_operator"] = {
             "classification": "active",
             "active": True,
             "groups": ("usl_access_control.group_technical_administrator",),
             "pocketid": True,
         }
-        definitions["accountant_reviewer"] = {
-            **definitions["accountant_reviewer"],
-            "groups": ("usl_access_control.group_accounting_reviewer",),
-        }
+        extend_groups(
+            "accountant_reviewer",
+            "usl_access_control.group_accounting_reviewer",
+        )
         return definitions
 
     @api.model_create_multi

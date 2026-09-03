@@ -257,8 +257,13 @@ class Base(models.AbstractModel):
 
     @api.model
     def _usl_actor_is_agent(self):
-        group = self._usl_access_group("usl_access_control.group_ai_agent")
-        return bool(group and group in self.env.user.all_group_ids)
+        # ``has_group`` uses Odoo's membership cache without computing the
+        # complete Distribution access summary on every cold ORM read. API-key
+        # authentication begins before Odoo installs a request user, so that
+        # unauthenticated environment must remain an ordinary non-Agent actor.
+        if not self.env.uid:
+            return False
+        return self.env.user.has_group("usl_access_control.group_ai_agent")
 
     @api.model
     def _usl_actor_may_perform_irreversible_actions(self):

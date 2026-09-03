@@ -1158,43 +1158,62 @@ class ResUsersApikeys(models.Model):
         # returned actor remains ``uid`` and subsequent business calls still
         # execute with that Agent's ordinary ACLs and record rules.
         governance_env = api.Environment(self.env.cr, SUPERUSER_ID, {})
-        agent = governance_env["usl.agent"].search([("user_id", "=", uid)], limit=1)
-        user = governance_env["res.users"].browse(uid)
-        if not agent and not user.usl_is_ai_agent:
-            return uid
-        if not agent:
-            raise AgentAuthenticationError(
-                _("This Agent identity is not governed."),
-                "agent_principal_required",
-            )
-        agent._reconcile_authority()
-        if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
-            raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
-        governance_env.cr.execute(
-            "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
-            [uid, key[:8]],
-        )
-        row = governance_env.cr.fetchone()
-        credential = governance_env["usl.agent.credential"].search(
-            [("native_key_id", "=", row[0] if row else 0), ("agent_id", "=", agent.id)],
-            limit=1,
-        )
-        if not credential or credential.status != "active":
-            raise AccessDenied(_("This Agent credential is not active."))
-        if request:
-            path = request.httprequest.path or ""
-            if not _agent_key_path_allowed(path):
+        # ``Environment`` may return an already cached superuser environment;
+        # in that case it does not repopulate the transaction default that the
+        # relational-field engine uses for safe sudo command evaluation.
+        transaction = governance_env.transaction
+        previous_default_env = transaction.default_env
+        transaction.default_env = governance_env
+        try:
+            agent = governance_env["usl.agent"].search([("user_id", "=", uid)], limit=1)
+            user = governance_env["res.users"].browse(uid)
+            if not agent and not user.usl_is_ai_agent:
+                return uid
+            if not agent:
                 raise AgentAuthenticationError(
-                    _("Agent API keys may be used only with JSON-2 and API documentation."),
-                    "agent_transport_denied",
+                    _("This Agent identity is not governed."),
+                    "agent_principal_required",
                 )
-        now = fields.Datetime.now()
-        if not credential.last_used_at or credential.last_used_at < now - datetime.timedelta(minutes=1):
-            credential.with_context(usl_agent_credential_internal=True).write({"last_used_at": now})
-        if request:
-            request.usl_agent_reconciled_id = agent.id
-            request.usl_agent_credential_id = credential.id
-        return uid
+            agent._reconcile_authority()
+            if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
+                raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
+            governance_env.cr.execute(
+                "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
+                [uid, key[:8]],
+            )
+            row = governance_env.cr.fetchone()
+            credential = governance_env["usl.agent.credential"].search(
+                [
+                    ("native_key_id", "=", row[0] if row else 0),
+                    ("agent_id", "=", agent.id),
+                ],
+                limit=1,
+            )
+            if not credential or credential.status != "active":
+                raise AccessDenied(_("This Agent credential is not active."))
+            if request:
+                path = request.httprequest.path or ""
+                if not _agent_key_path_allowed(path):
+                    raise AgentAuthenticationError(
+                        _(
+                            "Agent API keys may be used only with JSON-2 and API documentation."
+                        ),
+                        "agent_transport_denied",
+                    )
+            now = fields.Datetime.now()
+            if (
+                not credential.last_used_at
+                or credential.last_used_at < now - datetime.timedelta(minutes=1)
+            ):
+                credential.with_context(usl_agent_credential_internal=True).write(
+                    {"last_used_at": now},
+                )
+            if request:
+                request.usl_agent_reconciled_id = agent.id
+                request.usl_agent_credential_id = credential.id
+            return uid
+        finally:
+            transaction.default_env = previous_default_env
 
     @api.model
     def generate(self, key, scope, name, expiration_date):

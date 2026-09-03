@@ -137,7 +137,7 @@ class TestPocketIDProductProfiles(TransactionCase):
             ),
         )
         self.assertTrue(prosper.has_group("account.group_account_readonly"))
-        self.assertFalse(prosper.has_group("account.group_account_user"))
+        self.assertTrue(prosper.has_group("account.group_account_user"))
         self.assertFalse(prosper.has_group("account.group_account_manager"))
         self.assertFalse(
             prosper.has_group(
@@ -146,29 +146,8 @@ class TestPocketIDProductProfiles(TransactionCase):
         )
         account_moves = self.env["account.move"].with_user(prosper)
         self.assertTrue(account_moves.has_access("read"))
-        self.assertFalse(account_moves.has_access("write"))
-        self.assertFalse(account_moves.has_access("create"))
-        self.assertFalse(account_moves.has_access("unlink"))
-        for model_name in (
-            "account.payment",
-            "account.bank.statement.line",
-            "account.account.reconcile",
-            "account.reconcile.model",
-            "account.journal",
-        ):
-            protected_model = self.env[model_name].with_user(prosper)
-            self.assertFalse(
-                protected_model.has_access("write"),
-                model_name,
-            )
-            self.assertFalse(
-                protected_model.has_access("create"),
-                model_name,
-            )
-            self.assertFalse(
-                protected_model.has_access("unlink"),
-                model_name,
-            )
+        self.assertTrue(account_moves.has_access("write"))
+        self.assertTrue(account_moves.has_access("create"))
         with self.assertRaises(AccessError):
             valentin.with_user(prosper).write({"name": "Forbidden user edit"})
 

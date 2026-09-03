@@ -743,6 +743,65 @@ class TestAutonomousAgents(TransactionCase):
         agent.with_user(self.owner).write({"company_ids": [Command.set([self.company.id])]})
         self.assertNotEqual(read_only, partner_model._api_doc_cache_vary())
 
+    def test_agent_and_audit_searches_respect_active_companies(self):
+        local_agent = self._create_agent()
+        foreign_agent = self.env["usl.agent"].with_user(self.owner).create(
+            {
+                "name": "Other-company Agent",
+                "purpose": "Prove the global company boundary.",
+                "owner_id": self.owner.id,
+                "company_id": self.other_company.id,
+                "company_ids": [Command.set([self.other_company.id])],
+            },
+        )
+        local_key = self._generate_key(local_agent)
+        foreign_key = self._generate_key(foreign_agent)
+        local_credential = local_agent.credential_ids
+        foreign_credential = foreign_agent.credential_ids
+        local_event = self.env["usl.audit.event"]._record_event(
+            {
+                "actor_id": self.owner.id,
+                "actor_is_agent": False,
+                "owner_id": self.owner.id,
+                "company_id": self.company.id,
+                "event_type": "api_call",
+                "model_name": "res.partner",
+                "operation": "read",
+                "action_name": "Local read",
+                "origin": "test",
+            },
+        )
+        foreign_event = self.env["usl.audit.event"]._record_event(
+            {
+                "actor_id": self.owner.id,
+                "actor_is_agent": False,
+                "owner_id": self.owner.id,
+                "company_id": self.other_company.id,
+                "event_type": "api_call",
+                "model_name": "res.partner",
+                "operation": "read",
+                "action_name": "Foreign read",
+                "origin": "test",
+            },
+        )
+        owner_env = self.env(user=self.owner, context={"allowed_company_ids": [self.company.id]})
+
+        visible_agents = owner_env["usl.agent"].search(
+            [("id", "in", (local_agent | foreign_agent).ids)],
+        )
+        visible_events = owner_env["usl.audit.event"].search(
+            [("id", "in", (local_event | foreign_event).ids)],
+        )
+        visible_credentials = owner_env["usl.agent.credential"].search(
+            [("id", "in", (local_credential | foreign_credential).ids)],
+        )
+
+        self.assertEqual(visible_agents, local_agent)
+        self.assertEqual(visible_events, local_event)
+        self.assertEqual(visible_credentials, local_credential)
+        self.assertTrue(local_key)
+        self.assertTrue(foreign_key)
+
     def test_new_owner_access_requires_read_profile_reapplication(self):
         owner = self._create_user("agent.profile.reapply.owner", self.group_user)
         agent = self.env["usl.agent"].with_user(owner).create(
@@ -871,6 +930,7 @@ class TestAutonomousAgents(TransactionCase):
                 scope="rpc",
                 key=key,
             )
+            self.assertIsNone(transaction.default_env)
         finally:
             transaction.default_env = previous_default_env
         self.assertEqual(uid, agent.user_id.id)
