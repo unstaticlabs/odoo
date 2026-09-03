@@ -75,6 +75,9 @@ scripts/usl-stack --target production backup verify --snapshot <snapshot>
 scripts/usl-stack --target staging health
 scripts/usl-stack --target staging smoke
 scripts/usl-stack --target staging cleanup plan
+scripts/usl-stack --target production storage plan \
+  --generation gactive --rollback-generation grollback --snapshot <snapshot>
+scripts/usl-stack --target production storage status
 ```
 
 The fixed controller additionally uses a release-bound internal notification
@@ -170,12 +173,36 @@ HTTP 503 in place. After access has reopened, automation must never discard
 current data by restoring an older database; recovery requires a forward fix
 or explicit incident approval.
 
-Capacity admission measures the active generation's allocated persistent
-volume and required Sign-state bytes after candidate images are pulled, then
-requires that candidate size plus a 15 GiB safety reserve. Existing active and
-rollback generations are already charged against measured filesystem free
-space and are not double-counted. If the host cannot satisfy the result,
-production remains running and no candidate resources are created.
+Persistent resources declare one of three storage tiers. On production hosts,
+`bulk` is the Hetzner EXT4 Volume mounted at `/srv/storage`, `database` is the
+local-NVMe `/srv/db`, and `local` covers small host security state. PostgreSQL,
+the Paperless broker and the MCP OAuth vault use generation-specific
+bind-backed Docker volumes below
+`/srv/db/usl-odoo/<target>/generations/<generation>/<role>`. Images, layers,
+filestores, Paperless content and ordinary named volumes remain Docker-managed
+on the bulk tier. Active, candidate and rollback database paths are therefore
+independent; a static singleton database bind is forbidden.
+
+`storage plan` is read-only and measures every adopted source, its tier and the
+two-copy requirement needed to create an initial active and retained rollback
+generation. `storage adopt` additionally requires persistent maintenance,
+stopped cohort writers, a 64-character recovery snapshot and an exact
+target/generation/snapshot confirmation. It copies with archive, ACL, xattr,
+hard-link, numeric-ID and sparse-file preservation, checksum-verifies each
+copy, and writes `active.json` only after both generations exist. `storage
+status` rejects legacy database volumes, wrong bind options, shared bulk/DB
+filesystems, or Docker/containerd roots outside `/srv/storage`.
+
+Capacity admission groups tiers by the filesystem device that actually backs
+their paths. `/srv/storage` must hold the measured candidate bulk delta plus
+the full 15 GiB reserve. Local NVMe must hold the transactional/local candidate
+delta plus its 2 GiB hard reserve; the existing 8 GiB warning remains. A single
+filesystem shared by multiple declared tiers receives its reserve once, and
+active/rollback bytes already represented by free space are never added again.
+Checks run before and after image pulls and again before activation. Cleanup
+removes a transactional directory only after its labelled Docker volume is
+removed, it is outside active/rollback, its exact generation-derived bind is
+verified, and the database and bulk devices are distinct.
 
 ## Activation boundary
 
