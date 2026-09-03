@@ -22,11 +22,12 @@ The system should infer or establish sensible policies rather than expose unnece
 ### Focused application launcher
 
 The Distribution launcher emphasizes the operational products USL expects
-people to enter directly. Discussion, To-do, generic Dashboards and Apps remain
-installed for framework compatibility and may still be reached from an
-intentional workflow, but they are not launcher destinations. This applies to
-administrators and debug mode as well as ordinary internal users; technical
-access must not silently turn the launcher back into a module catalogue.
+people to enter directly. Discussion, To-do, generic Dashboards, Apps, Link
+Tracker and Official Documents remain installed for framework compatibility
+and may still be reached from an intentional workflow, but they are not
+launcher destinations. This applies to administrators and debug mode as well
+as ordinary internal users; technical access must not silently turn the
+launcher back into a module catalogue.
 
 ## Sparse signals
 
