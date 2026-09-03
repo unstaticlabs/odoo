@@ -46,7 +46,13 @@ class RuntimeError(RuntimeError):
 
 
 class Runner(Protocol):
-    def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]: ...
+    def run(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]: ...
 
 
 @dataclass
@@ -58,6 +64,7 @@ class CommandRunner:
         command: list[str],
         *,
         check: bool = True,
+        input_text: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         invocation = [*self.prefix, *command]
         if self.prefix and self.prefix[0] == "ssh":
@@ -67,6 +74,7 @@ class CommandRunner:
             check=False,
             capture_output=True,
             text=True,
+            input=input_text,
         )
         if check and process.returncode:
             detail = (process.stderr or process.stdout).strip()
