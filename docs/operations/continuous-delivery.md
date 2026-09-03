@@ -110,6 +110,21 @@ production remains running and no candidate resources are created.
 ## Activation boundary
 
 The workflows and GitOps procedures are intentionally shipped disabled first.
+The desired GitHub branch protection is versioned at
+`operations/contracts/github-usl-distribution-ruleset.json`. A repository
+administrator applies it after both permanent branches exist:
+
+```bash
+GH_CONFIG_DIR=/path/to/authorized/gh \
+  gh api --method PUT \
+  repos/unstaticlabs/odoo/rulesets/21452332 \
+  --input operations/contracts/github-usl-distribution-ruleset.json
+```
+
+The payload preserves merge commits, resolved conversations and the existing
+all-green merge queue while targeting exactly `19-usl` and `19-usl-staging`
+and requiring the stable `USL qualification` context.
+
 Enable them only after the GitHub/GitLab protection and credentials are in
 place, the fixed Komodo launcher is installed, and all of these drills pass:
 

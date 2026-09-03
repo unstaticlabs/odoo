@@ -64,6 +64,7 @@ jobs:
             scripts.tests.test_source_policy
           make product-migration-source-boundary
           make action-risk-inventory
+          scripts/check-github-governance
           git diff --check
 
   database:
