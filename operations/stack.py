@@ -23,6 +23,7 @@ from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
     CronPolicyError,
     load as load_cron_policy,
+    render_odoo_apply_script,
     validate_runtime as validate_cron_runtime,
 )
 from operations.release_controller import (
@@ -1344,6 +1345,46 @@ def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> N
     )
 
 
+def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
+    """Converge the isolated candidate before any production worker can run."""
+    cron_target = target.value["cron_policy"]
+    mode = cron_target["mode"]
+    if mode == "unmanaged":
+        return {"schema": "usl-cron-policy-application/v1", "status": "unmanaged"}
+    policy = load_cron_policy(Path(cron_target["path"]))
+    program = render_odoo_apply_script(policy, mode=mode, gates=cron_target["gates"])
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=program,
+    )
+    prefix = "USL_CRON_POLICY_RESULT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                applied = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("candidate cron policy returned invalid evidence") from error
+            if applied.get("status") != "applied":
+                raise RuntimeError("candidate cron policy did not converge")
+            return applied
+    raise RuntimeError("candidate cron policy returned no evidence")
+
+
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
     source = load_target(arguments.source, arguments.targets)
     target = load_target(arguments.target, arguments.targets)
@@ -1360,6 +1401,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     release, release_sha, release_raw = _release(source, target_runner, release_override)
     upgrade_plan = None
     signed_plan_evidence = None
+    cron_policy_application = None
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
@@ -1467,6 +1509,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 raise RuntimeError("upgrade plan is not bound to the snapshot release")
             _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
+        cron_policy_application = _apply_generation_cron_policy(
+            target,
+            target_runner,
+            release,
+            network,
+            volumes,
+        )
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     finally:
         for container in database_containers:
@@ -1618,6 +1667,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "materialize": materialize_state,
         "health": health,
         "smoke": smoke,
+        "cron_policy_application": cron_policy_application,
         "control_validation": control_validation,
         "capacity": {
             "before_pull": capacity_before_pull,

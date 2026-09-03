@@ -14,6 +14,7 @@ from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
+    _apply_generation_cron_policy,
     _generation_overlay,
     _ensure_image,
     _materialize_command,
@@ -75,6 +76,62 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            policy_path = Path(directory) / "cron-policy.json"
+            policy_path.write_text(json.dumps({
+                "schema": "usl-production-cron-policy-v1",
+                "gates": ["always"],
+                "crons": {
+                    "base.autovacuum_job": {
+                        "gate": "always",
+                        "reason": "maintenance",
+                    },
+                },
+            }), encoding="utf-8")
+            target = mock.Mock(value={
+                "cron_policy": {
+                    "mode": "managed",
+                    "path": str(policy_path),
+                    "gates": {"always": True},
+                },
+                "databases": {
+                    "odoo": {
+                        "service": "candidate-db",
+                        "user": "odoo",
+                        "name": "candidate",
+                    },
+                },
+                "secrets": {"env_file": "/run/secrets/operations.env"},
+            })
+
+            class Runner:
+                command = None
+                input_text = None
+
+                def run(self, command, *, check=True, input_text=None):
+                    self.command = command
+                    self.input_text = input_text
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        'USL_CRON_POLICY_RESULT={"schema":"usl-cron-policy-application/v1","status":"applied"}\n',
+                        "",
+                    )
+
+            runner = Runner()
+            result = _apply_generation_cron_policy(
+                target,
+                runner,
+                {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "a" * 64}}},
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+            )
+            self.assertEqual(result["status"], "applied")
+            self.assertIn("--interactive", runner.command)
+            self.assertIn("odoo", runner.command)
+            self.assertIn("base.autovacuum_job", runner.input_text)
+
     def _sign_secrets(self, root: Path) -> Path:
         for relative in cohort.SIGN_SECRET_FILES:
             path = root / relative

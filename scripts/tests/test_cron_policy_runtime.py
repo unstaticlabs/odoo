@@ -4,7 +4,13 @@ import json
 import unittest
 from pathlib import Path
 
-from operations.cron_policy import CronPolicyError, load, validate_runtime
+from operations.cron_policy import (
+    CronPolicyError,
+    desired_active,
+    load,
+    render_odoo_apply_script,
+    validate_runtime,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -113,6 +119,27 @@ class CronPolicyRuntimeTests(unittest.TestCase):
             invalid_identity_count=0,
         )
         self.assertEqual(result["status"], "observed")
+
+    def test_candidate_apply_program_is_self_contained_and_exact(self):
+        gates = {"always": True, "smtp": False}
+        self.assertEqual(
+            desired_active(policy(), mode="managed", gates=gates),
+            ["base.autovacuum_job"],
+        )
+        program = render_odoo_apply_script(policy(), mode="managed", gates=gates)
+        compile(program, "<cron-policy>", "exec")
+        self.assertIn("USL_CRON_POLICY_RESULT=", program)
+        self.assertIn('"base.autovacuum_job"', program)
+
+    def test_neutralized_candidate_disables_every_known_cron(self):
+        self.assertEqual(
+            desired_active(
+                policy(),
+                mode="neutralized",
+                gates={"always": True, "smtp": True},
+            ),
+            [],
+        )
 
 
 if __name__ == "__main__":

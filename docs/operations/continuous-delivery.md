@@ -87,7 +87,12 @@ A restore creates labelled volumes and a private materialization network for a
 new generation. It verifies the source snapshot and original release, restores
 the databases and durable resources, reuses compatible OCR, previews, Tantivy
 and vectors, applies the exact candidate plan, neutralizes staging, and starts
-the candidate only after offline materialization succeeds.
+the candidate only after offline materialization succeeds. While the isolated
+candidate database is still attached to its temporary private PostgreSQL
+container, the controller applies the target's complete scheduled-action
+policy through Odoo's ORM. Production receives its explicitly gated set and
+staging receives no active jobs. Unknown, missing or ambiguously identified
+jobs stop the candidate before the active generation is touched.
 
 Production Sign secrets are restored only to a production generation. Staging
 keeps its own Pocket ID, Sign and runtime secrets and never mounts production
@@ -112,10 +117,11 @@ Paperless document identities, tags, permissions, and Trash. Historical v1
 snapshots remain restorable into a v2 runtime, but a v2 snapshot may not
 regress to the weaker v1 controls. Counts and fingerprints also cover
 attachments and filestore coverage, Projects, Platform Billing, and TESE.
-The immutable operations image carries the versioned 55-cron policy. Smoke
-admission rejects unknown, missing, ambiguously identified, unexpectedly
-active, failed, or overdue scheduled actions. Production's explicit gate
-decisions and staging's fully neutralized state are separate target policy.
+The immutable operations image carries the versioned 55-cron policy. After
+candidate convergence, read-only smoke admission independently rejects
+unknown, missing, ambiguously identified, unexpectedly active, failed, or
+overdue scheduled actions. Production's explicit gate decisions and staging's
+fully neutralized state are separate target policy.
 Sign service identities and semantic MCP OAuth-vault controls remain
 activation gates. Production admission is read-only; mutation journeys belong
 in CI and staging.

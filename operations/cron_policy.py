@@ -141,3 +141,83 @@ def validate_runtime(
         "gates": gates,
         "status": "passed",
     }
+
+
+def desired_active(
+    policy: dict[str, Any],
+    *,
+    mode: str,
+    gates: dict[str, bool],
+) -> list[str]:
+    """Return the exact desired cron set after validating every decision."""
+    installed = sorted(policy.get("crons", {}))
+    desired = (
+        sorted(
+            xmlid
+            for xmlid, rule in policy.get("crons", {}).items()
+            if rule.get("gate") is not None and gates.get(rule["gate"])
+        )
+        if mode == "managed"
+        else []
+    )
+    validate_runtime(
+        policy,
+        mode=mode,
+        gates=gates,
+        installed=installed,
+        active=desired,
+        invalid_identity_count=0,
+    )
+    return desired
+
+
+def render_odoo_apply_script(
+    policy: dict[str, Any],
+    *,
+    mode: str,
+    gates: dict[str, bool],
+) -> str:
+    """Render a self-contained Odoo-shell program for candidate convergence."""
+    desired = desired_active(policy, mode=mode, gates=gates)
+    policy_json = json.dumps(policy, sort_keys=True, separators=(",", ":"))
+    desired_json = json.dumps(desired, separators=(",", ":"))
+    return f'''\
+import json
+
+policy = json.loads({policy_json!r})
+desired = set(json.loads({desired_json!r}))
+Cron = env["ir.cron"].sudo().with_context(active_test=False)
+crons = Cron.search([])
+rows = env["ir.model.data"].sudo().search([
+    ("model", "=", "ir.cron"),
+    ("res_id", "in", crons.ids),
+])
+xmlids_by_id = {{}}
+for row in rows:
+    xmlids_by_id.setdefault(row.res_id, []).append(f"{{row.module}}.{{row.name}}")
+ambiguous = {{record_id: values for record_id, values in xmlids_by_id.items() if len(values) != 1}}
+missing_ids = sorted(set(crons.ids) - set(xmlids_by_id))
+if ambiguous or missing_ids:
+    raise RuntimeError("Every installed cron must have exactly one XML ID: " + json.dumps({{"ambiguous": ambiguous, "missing_ids": missing_ids}}, sort_keys=True))
+installed = {{values[0]: crons.browse(record_id) for record_id, values in xmlids_by_id.items()}}
+unknown = sorted(set(installed) - set(policy["crons"]))
+missing = sorted(set(policy["crons"]) - set(installed))
+if unknown or missing:
+    raise RuntimeError("Installed cron inventory differs from policy: " + json.dumps({{"unknown": unknown, "missing": missing}}, sort_keys=True))
+currently_active = {{xmlid for xmlid, cron in installed.items() if cron.active}}
+to_enable = sorted(desired - currently_active)
+to_disable = sorted(currently_active - desired)
+if to_disable:
+    Cron.browse([installed[xmlid].id for xmlid in to_disable]).write({{"active": False}})
+if to_enable:
+    Cron.browse([installed[xmlid].id for xmlid in to_enable]).write({{"active": True}})
+env.cr.commit()
+print("USL_CRON_POLICY_RESULT=" + json.dumps({{
+    "schema": "usl-cron-policy-application/v1",
+    "status": "applied",
+    "active_xmlids": sorted(desired),
+    "disabled_xmlids": sorted(set(installed) - desired),
+    "enabled": to_enable,
+    "disabled": to_disable,
+}}, sort_keys=True))
+'''
