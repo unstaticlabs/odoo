@@ -11,7 +11,9 @@ from odoo.tests import TransactionCase, new_test_user, tagged
 
 from odoo.addons.usl_b2c.models.constants import (
     HISTORICAL_B2C_COMMUNICATION_PARAMETER,
+    HISTORICAL_B2C_MATERIALIZATION_CONTEXT,
 )
+from odoo.addons.usl_b2c.models.native_history import MATERIALIZATION_TOKEN
 
 
 @tagged("post_install", "-at_install")
@@ -683,7 +685,12 @@ class TestB2cFoundation(TransactionCase):
         product = self.env["product.product"].create(
             {"name": "Historical product", "list_price": 12},
         )
-        sale = self.env["sale.order"].sudo().create(
+        materialization_context = {
+            HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
+        }
+        sale = self.env["sale.order"].sudo().with_context(
+            **materialization_context
+        ).create(
             {
                 "partner_id": partner.id,
                 "company_id": self.company.id,
@@ -692,7 +699,9 @@ class TestB2cFoundation(TransactionCase):
                 "usl_historical_b2c_completed": True,
             },
         )
-        line = self.env["sale.order.line"].sudo().create(
+        line = self.env["sale.order.line"].sudo().with_context(
+            **materialization_context
+        ).create(
             {
                 "order_id": sale.id,
                 "product_id": product.id,
@@ -707,12 +716,62 @@ class TestB2cFoundation(TransactionCase):
             sale.with_user(self.manager).action_quotation_send()
         with self.assertRaisesRegex(UserError, "cannot create invoices"):
             sale.with_user(self.manager)._create_invoices()
+        with self.assertRaisesRegex(UserError, "cannot create payment links"):
+            sale.with_user(self.manager)._get_default_payment_link_values()
         with self.assertRaisesRegex(UserError, "locked"):
             line.with_user(self.manager).write({"price_unit": 13})
+        with self.assertRaisesRegex(UserError, "order lines are locked"):
+            self.env["sale.order.line"].sudo().create(
+                {
+                    "order_id": sale.id,
+                    "product_id": product.id,
+                    "product_uom_qty": 1,
+                    "price_unit": 12,
+                },
+            )
+        with self.assertRaisesRegex(UserError, "locked"):
+            sale.with_user(self.manager).write({"pricelist_id": False})
+        with self.assertRaisesRegex(UserError, "locked"):
+            sale.with_user(self.manager).with_context(
+                **materialization_context
+            ).write({"pricelist_id": False})
+        with self.assertRaisesRegex(UserError, "locked"):
+            sale.sudo().with_context(
+                **{HISTORICAL_B2C_MATERIALIZATION_CONTEXT: True},
+            ).write({"pricelist_id": False})
         with self.assertRaisesRegex(AccessError, "provenance is immutable"):
             sale.with_user(self.manager).write({"usl_source_total": 99})
         with self.assertRaisesRegex(AccessError, "provenance is immutable"):
             source.with_user(self.manager).write({"sale_order_id": sale.id})
+
+        provider = self.env.ref("delivery.payment_provider_cod")
+        payment_method = self.env.ref("payment.payment_method_unknown")
+        transaction_values = {
+            "provider_id": provider.id,
+            "payment_method_id": payment_method.id,
+            "reference": "historical-payment-attempt",
+            "amount": sale.amount_total,
+            "currency_id": sale.currency_id.id,
+            "partner_id": sale.partner_invoice_id.id,
+        }
+        with self.assertRaisesRegex(UserError, "cannot create payment transactions"):
+            self.env["payment.transaction"].sudo().create(
+                {
+                    **transaction_values,
+                    # The portal payment controller uses SET, while ordinary
+                    # server-side code commonly uses LINK. Both must resolve
+                    # through the same historical-order guard.
+                    "sale_order_ids": [Command.set([sale.id])],
+                },
+            )
+        transaction = self.env["payment.transaction"].sudo().create(
+            transaction_values,
+        )
+        with self.assertRaisesRegex(UserError, "cannot be linked"):
+            transaction.write({"sale_order_ids": [Command.link(sale.id)]})
+        with self.assertRaisesRegex(UserError, "cannot be linked"):
+            sale.sudo().write({"transaction_ids": [Command.link(transaction.id)]})
+        self.assertFalse(transaction.sale_order_ids)
 
         mail_count = self.env["mail.mail"].sudo().search_count([])
         sale._send_order_notification_mail(self.env.ref("sale.email_template_edi_sale"))
@@ -723,15 +782,274 @@ class TestB2cFoundation(TransactionCase):
         )
         self.assertEqual(note.model, "sale.order")
 
+        sale.sudo().message_subscribe(
+            partner_ids=[partner.id, self.operator.partner_id.id],
+        )
+        comment = sale.with_user(self.manager).message_post(
+            body="Internal update without explicit recipients",
+            subtype_xmlid="mail.mt_comment",
+        )
+        recipient_ids = {
+            recipient["id"]
+            for recipient in sale._notify_get_recipients(comment)
+            if recipient["id"]
+        }
+        self.assertIn(self.operator.partner_id.id, recipient_ids)
+        self.assertNotIn(partner.id, recipient_ids)
+        with self.assertRaisesRegex(UserError, "Communication from historical"):
+            sale.with_user(self.manager).message_post(
+                body="Direct external attempt",
+                outgoing_email_to="external@example.invalid",
+                subtype_xmlid="mail.mt_comment",
+            )
+
+    def test_historical_purchase_is_locked_and_never_contacts_supplier(self):
+        supplier = self.env["res.partner"].create(
+            {"name": "Historical supplier", "email": "supplier@example.invalid"},
+        )
+        product = self.env["product.product"].create(
+            {"name": "Historical purchase product", "purchase_ok": True},
+        )
+        context = {
+            HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
+        }
+        purchase = self.env["purchase.order"].sudo().with_context(**context).create(
+            {
+                "partner_id": supplier.id,
+                "company_id": self.company.id,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": "test:historical-purchase",
+            },
+        )
+        line = self.env["purchase.order.line"].sudo().with_context(**context).create(
+            {
+                "order_id": purchase.id,
+                "product_id": product.id,
+                "product_qty": 2,
+                "price_unit": 5,
+                "date_planned": datetime(2026, 8, 4, 10, 0),
+            },
+        )
+
+        with self.assertRaisesRegex(UserError, "purchase orders are locked"):
+            purchase.with_user(self.manager).with_context({}).write(
+                {"partner_ref": "changed"},
+            )
+        with self.assertRaisesRegex(UserError, "order lines are locked"):
+            line.with_user(self.manager).with_context({}).write({"price_unit": 6})
+        with self.assertRaisesRegex(UserError, "order lines are locked"):
+            self.env["purchase.order.line"].sudo().create(
+                {
+                    "order_id": purchase.id,
+                    "product_id": product.id,
+                    "product_qty": 1,
+                    "price_unit": 5,
+                    "date_planned": datetime(2026, 8, 4, 10, 0),
+                },
+            )
+        with self.assertRaisesRegex(UserError, "purchase orders are locked"):
+            purchase.with_user(self.manager).with_context(**context).write(
+                {"partner_ref": "spoofed"},
+            )
+        with self.assertRaisesRegex(UserError, "cannot send supplier emails"):
+            purchase.with_user(self.manager).with_context({}).action_rfq_send()
+        with self.assertRaisesRegex(UserError, "cannot contact suppliers"):
+            purchase.with_user(self.manager).with_context({}).message_post(
+                body="Direct supplier attempt",
+                outgoing_email_to=supplier.email,
+                subtype_xmlid="mail.mt_comment",
+            )
+        with self.assertRaisesRegex(UserError, "cannot be deleted"):
+            purchase.with_user(self.manager).with_context({}).unlink()
+
+        purchase.sudo().message_subscribe(
+            partner_ids=[supplier.id, self.operator.partner_id.id],
+        )
+        comment = purchase.with_user(self.manager).message_post(
+            body="Internal acquisition review",
+            subtype_xmlid="mail.mt_comment",
+        )
+        recipient_ids = {
+            recipient["id"]
+            for recipient in purchase._notify_get_recipients(comment)
+            if recipient["id"]
+        }
+        self.assertIn(self.operator.partner_id.id, recipient_ids)
+        self.assertNotIn(supplier.id, recipient_ids)
+
+    def test_historical_inventory_records_resist_structural_edits_and_deletion(self):
+        context = {
+            HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
+        }
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.company.id)],
+            limit=1,
+        )
+        supplier_location = self.env.ref("stock.stock_location_suppliers")
+        product = self.env["product.product"].create(
+            {
+                "name": "Historical inventory guard product",
+                "is_storable": True,
+            },
+        )
+        picking = self.env["stock.picking"].sudo().with_context(**context).create(
+            {
+                "picking_type_id": warehouse.in_type_id.id,
+                "location_id": supplier_location.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": "test:historical-receipt",
+                "move_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                            "uom_id": product.uom_id.id,
+                            "location_id": supplier_location.id,
+                            "location_dest_id": warehouse.lot_stock_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        picking.action_confirm()
+        picking.move_ids.quantity = 1
+        picking.move_ids.picked = True
+        picking.button_validate()
+        picking = picking.sudo().with_context({})
+        move = picking.move_ids.sudo().with_context({})
+
+        with self.assertRaisesRegex(UserError, "stock operations are locked"):
+            picking.write({"scheduled_date": datetime(2026, 8, 5, 10, 0)})
+        with self.assertRaisesRegex(UserError, "stock moves are locked"):
+            move.write({"quantity": 2})
+        move_line = move.move_line_ids
+        self.assertTrue(move_line)
+        with self.assertRaisesRegex(UserError, "stock move lines are locked"):
+            move_line.write({"quantity": 2})
+        with self.assertRaisesRegex(UserError, "stock moves are locked"):
+            self.env["stock.move"].sudo().create(
+                {
+                    "picking_id": picking.id,
+                    "product_id": product.id,
+                    "product_uom_qty": 1,
+                    "uom_id": product.uom_id.id,
+                    "location_id": supplier_location.id,
+                    "location_dest_id": warehouse.lot_stock_id.id,
+                },
+            )
+        with self.assertRaisesRegex(UserError, "stock move lines are locked"):
+            self.env["stock.move.line"].sudo().create(
+                {
+                    "move_id": move.id,
+                    "product_id": product.id,
+                    "quantity": 1,
+                    "uom_id": product.uom_id.id,
+                    "location_id": supplier_location.id,
+                    "location_dest_id": warehouse.lot_stock_id.id,
+                },
+            )
+        with self.assertRaisesRegex(UserError, "move lines cannot be deleted"):
+            move_line.unlink()
+        with self.assertRaisesRegex(UserError, "stock moves cannot be deleted"):
+            move.unlink()
+        with self.assertRaisesRegex(UserError, "stock operations cannot be deleted"):
+            picking.unlink()
+
+        production = self.env["mrp.production"].sudo().with_context(**context).create(
+            {
+                "product_id": product.id,
+                "product_qty": 1,
+                "uom_id": product.uom_id.id,
+                "location_src_id": warehouse.lot_stock_id.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "usl_b2c_source_key": "test:historical-production",
+            },
+        )
+        with self.assertRaisesRegex(UserError, "production orders cannot be deleted"):
+            production.sudo().with_context({}).unlink()
+
+        unbuild = self.env["mrp.unbuild"].sudo().with_context(**context).create(
+            {
+                "product_id": product.id,
+                "product_qty": 1,
+                "uom_id": product.uom_id.id,
+                "company_id": self.company.id,
+                "location_id": warehouse.lot_stock_id.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": "test:historical-unbuild",
+            },
+        )
+        with self.assertRaisesRegex(UserError, "conversions cannot be deleted"):
+            unbuild.sudo().with_context({}).unlink()
+
+        landed_cost = self.env["stock.landed.cost"].sudo().with_context(**context).create(
+            {
+                "company_id": self.company.id,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": "test:historical-landed-cost",
+            },
+        )
+        cost_line = self.env["stock.landed.cost.lines"].sudo().with_context(
+            **context
+        ).create(
+            {
+                "name": "Historical freight",
+                "cost_id": landed_cost.id,
+                "product_id": product.id,
+                "price_unit": 4,
+                "split_method": "by_quantity",
+            },
+        )
+        adjustment_line = self.env["stock.valuation.adjustment.lines"].sudo().with_context(
+            **context
+        ).create(
+            {
+                "cost_id": landed_cost.id,
+                "cost_line_id": cost_line.id,
+                "move_id": move.id,
+                "product_id": product.id,
+                "quantity": 1,
+                "former_cost": 5,
+                "additional_landed_cost": 4,
+            },
+        )
+        landed_cost.sudo().with_context(**context).write({"state": "done"})
+        with self.assertRaisesRegex(UserError, "landed cost lines are locked"):
+            cost_line.sudo().with_context({}).write({"price_unit": 5})
+        with self.assertRaisesRegex(UserError, "landed cost lines cannot be deleted"):
+            cost_line.sudo().with_context({}).unlink()
+        with self.assertRaisesRegex(UserError, "valuation adjustments are locked"):
+            adjustment_line.sudo().with_context({}).write(
+                {"additional_landed_cost": 5},
+            )
+        with self.assertRaisesRegex(UserError, "valuation adjustments cannot be deleted"):
+            adjustment_line.sudo().with_context({}).unlink()
+        with self.assertRaisesRegex(UserError, "landed costs cannot be deleted"):
+            landed_cost.sudo().with_context({}).unlink()
+
+    def test_historical_customer_communication_setting_requires_system_admin(self):
+        field = self.env["res.config.settings"]._fields[
+            "allow_historical_b2c_customer_communication"
+        ]
+        self.assertEqual(field.groups, "base.group_system")
+        self.assertFalse(self.manager.has_group("base.group_system"))
+
     def test_provider_contact_identity_is_immutable_and_company_scoped(self):
-        partner = self.env["res.partner"].sudo().create(
+        context = {
+            HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
+        }
+        partner = self.env["res.partner"].sudo().with_context(**context).create(
             {
                 "name": "Other-company historical recipient",
                 "company_id": self.other_company.id,
                 "usl_historical_b2c_contact": True,
             },
         )
-        identity = self.env["b2c.partner.identity"].sudo().create(
+        identity = self.env["b2c.partner.identity"].sudo().with_context(
+            **context
+        ).create(
             {
                 "name": partner.name,
                 "company_id": self.other_company.id,

@@ -5,16 +5,39 @@ from odoo.tests import BaseCase, tagged
 
 from odoo.addons.usl_b2c_restore.native_plan import (
     ACQUISITIONS,
+    EXPECTED_SOURCE_FINGERPRINTS,
     EXPECTED_THEORETICAL_STOCK,
     PACK_COMPONENTS,
     accepted_finalization_run,
     source_line_components,
+    source_fingerprint_mismatches,
     stock_disposition,
 )
 
 
 @tagged("post_install", "-at_install")
 class TestNativeHistoryPlan(BaseCase):
+    def test_frozen_source_fingerprint_fails_closed_on_same_count_drift(self):
+        self.assertFalse(source_fingerprint_mismatches(EXPECTED_SOURCE_FINGERPRINTS))
+
+        drifted = {
+            key: dict(value)
+            for key, value in EXPECTED_SOURCE_FINGERPRINTS.items()
+        }
+        drifted["evidence"]["digest"] = "changed-with-the-same-count"
+        self.assertEqual(
+            source_fingerprint_mismatches(drifted),
+            {
+                "evidence": {
+                    "actual": {
+                        "count": 2893,
+                        "digest": "changed-with-the-same-count",
+                    },
+                    "expected": EXPECTED_SOURCE_FINGERPRINTS["evidence"],
+                },
+            },
+        )
+
     def test_finalization_accepts_source_or_applied_native_history(self):
         self.assertEqual(
             accepted_finalization_run(restore_status="passed"),

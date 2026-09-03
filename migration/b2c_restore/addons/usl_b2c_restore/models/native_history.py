@@ -10,13 +10,17 @@ from odoo import Command, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import float_compare
 
-from odoo.addons.usl_b2c.models.native_history import MATERIALIZATION_CONTEXT
+from odoo.addons.usl_b2c.models.native_history import (
+    MATERIALIZATION_CONTEXT,
+    MATERIALIZATION_TOKEN,
+)
 from odoo.addons.usl_b2c_restore.native_plan import (
     ACQUISITIONS,
     EXPECTED_NATIVE_COUNTS,
     EXPECTED_THEORETICAL_STOCK,
     PACK_COMPONENTS,
     source_line_components,
+    source_fingerprint_mismatches,
     stock_disposition,
 )
 from odoo.addons.usl_b2c_restore.parsers import (
@@ -65,7 +69,7 @@ class UslB2cNativeHistoryRun(models.Model):
 
     def _ctx(self):
         return {
-            MATERIALIZATION_CONTEXT: True,
+            MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
             "tracking_disable": True,
             "mail_create_nosubscribe": True,
             "mail_notrack": True,
@@ -114,16 +118,129 @@ class UslB2cNativeHistoryRun(models.Model):
         return result
 
     def _source_fingerprint(self, company):
-        models_and_domain = {
-            "orders": ("b2c.order", [("company_id", "=", company.id)]),
-            "lines": ("b2c.order.line", [("company_id", "=", company.id)]),
-            "aliases": ("b2c.product.alias", [("company_id", "=", company.id)]),
-            "evidence": ("b2c.provider.evidence", [("company_id", "=", company.id)]),
+        models_and_fields = {
+            "orders": (
+                "b2c.order",
+                [
+                    "canonical_key",
+                    "channel_id",
+                    "source_provider",
+                    "origin",
+                    "external_order_id",
+                    "external_display_id",
+                    "order_date",
+                ],
+            ),
+            "lines": (
+                "b2c.order.line",
+                [
+                    "order_id",
+                    "line_key",
+                    "sequence",
+                    "external_line_id",
+                    "external_transaction_id",
+                    "external_listing_id",
+                    "original_sku",
+                    "original_name",
+                    "original_variation",
+                    "quantity",
+                    "unit_price",
+                    "revenue_amount",
+                    "product_id",
+                    "alias_id",
+                    "mapping_state",
+                    "evidence_id",
+                ],
+            ),
+            "aliases": (
+                "b2c.product.alias",
+                [
+                    "channel_id",
+                    "source_provider",
+                    "original_sku",
+                    "source_sku_is_unique",
+                    "original_name",
+                    "original_variation",
+                    "external_listing_id",
+                    "alias_key",
+                    "mapping_state",
+                    "product_id",
+                    "evidence_id",
+                ],
+            ),
+            "order_sources": (
+                "b2c.order.source",
+                [
+                    "order_id",
+                    "source_provider",
+                    "origin",
+                    "source_record_key",
+                    "source_precedence",
+                    "is_primary",
+                    "provider_payload_digest",
+                    "evidence_id",
+                ],
+            ),
+            "fulfilment_events": (
+                "b2c.fulfilment.event",
+                [
+                    "name",
+                    "source_provider",
+                    "origin",
+                    "provider_event_key",
+                    "external_order_id",
+                    "external_fulfilment_id",
+                    "external_printful_id",
+                    "original_provider_state",
+                    "state",
+                    "fulfilment_mode",
+                    "event_date",
+                    "destination_country_id",
+                    "origin_country_codes",
+                    "currency_id",
+                    "product_cost_amount",
+                    "discount_amount",
+                    "shipping_cost_amount",
+                    "digitalization_cost_amount",
+                    "tax_amount",
+                    "vat_amount",
+                    "cogs_amount",
+                    "company_cogs_amount",
+                    "conversion_state",
+                    "evidenced_conversion_rate",
+                    "conversion_evidence",
+                    "completeness_state",
+                    "review_state",
+                    "evidence_id",
+                ],
+            ),
+            "evidence": (
+                "b2c.provider.evidence",
+                [
+                    "evidence_key",
+                    "source_provider",
+                    "source_name",
+                    "source_checksum",
+                    "schema_digest",
+                    "payload_digest",
+                    "payload_json",
+                    "contains_pii",
+                    "occurred_at",
+                    "attachment_id",
+                ],
+            ),
         }
         result = {}
-        for key, (model, domain) in models_and_domain.items():
-            records = self.env[model].sudo().with_context(active_test=False).search(domain)
-            result[key] = {"count": len(records), "ids": _digest(records.ids)}
+        domain = [("company_id", "=", company.id)]
+        for key, (model, field_names) in models_and_fields.items():
+            records = (
+                self.env[model]
+                .sudo()
+                .with_context(active_test=False)
+                .search(domain, order="id")
+            )
+            rows = records.read(["id", *field_names], load=False)
+            result[key] = {"count": len(records), "digest": _digest(rows)}
         documents = (
             self.env["b2c.provider.evidence"]
             .sudo()
@@ -167,6 +284,33 @@ class UslB2cNativeHistoryRun(models.Model):
         )
         if len(printful) != EXPECTED_NATIVE_COUNTS["printful_events"]:
             raise UserError(f"Printful source changed: {len(printful)} events, expected 261.")
+        source_counts = {
+            "aliases": self.env["b2c.product.alias"].sudo().search_count(
+                [("company_id", "=", company.id)],
+            ),
+            "provider_evidence": self.env["b2c.provider.evidence"].sudo().search_count(
+                [("company_id", "=", company.id)],
+            ),
+            "order_sources": self.env["b2c.order.source"].sudo().search_count(
+                [("company_id", "=", company.id)],
+            ),
+            "source_documents": len(
+                set(
+                    self.env["b2c.provider.evidence"].sudo().search(
+                        [("company_id", "=", company.id)],
+                    ).mapped("source_name")
+                ),
+            ),
+        }
+        source_mismatches = {
+            key: {"actual": value, "expected": EXPECTED_NATIVE_COUNTS[key]}
+            for key, value in source_counts.items()
+            if value != EXPECTED_NATIVE_COUNTS[key]
+        }
+        if source_mismatches:
+            raise UserError(
+                f"B2C source evidence counts changed: {source_mismatches!r}.",
+            )
         return orders.sorted(lambda order: (order.order_date, order.id))
 
     @staticmethod
@@ -222,11 +366,25 @@ class UslB2cNativeHistoryRun(models.Model):
                 ),
             }.get(normalized_fulfilment, "unknown")
             country_code = (header.get("Shipping Country Code") or "").strip().upper()
-            country = self.env["res.country"].sudo().search([("code", "=", country_code)], limit=1)
-            currency = self.env["res.currency"].sudo().with_context(active_test=False).search(
-                [("name", "=", (header.get("Currency Code") or "").strip().upper())],
-                limit=1,
+            country = self.env["res.country"].sudo().search(
+                [("code", "=", country_code)],
+                limit=2,
             )
+            if not country_code or len(country) != 1:
+                raise UserError(
+                    f"Medusa order {order.external_order_id} has no unique country "
+                    f"for {country_code!r}.",
+                )
+            currency_name = (header.get("Currency Code") or "").strip().upper()
+            currency = self.env["res.currency"].sudo().with_context(active_test=False).search(
+                [("name", "=", currency_name)],
+                limit=2,
+            )
+            if not currency_name or len(currency) != 1:
+                raise UserError(
+                    f"Medusa order {order.external_order_id} has no unique currency "
+                    f"for {currency_name!r}.",
+                )
             values = {
                 "state": state,
                 "source_payment_state": payment_state,
@@ -273,8 +431,13 @@ class UslB2cNativeHistoryRun(models.Model):
             currency_name = currencies.pop()
             country_name = countries.pop()
             currency = self.env["res.currency"].sudo().with_context(active_test=False).search(
-                [("name", "=", currency_name)], limit=1,
+                [("name", "=", currency_name)], limit=2,
             )
+            if not currency_name or len(currency) != 1:
+                raise UserError(
+                    f"Etsy order {order.external_order_id} has no unique currency "
+                    f"for {currency_name!r}.",
+                )
             country_domain = (
                 [("code", "=", "NL")]
                 if country_name.casefold() == "the netherlands"
@@ -282,7 +445,12 @@ class UslB2cNativeHistoryRun(models.Model):
                 if len(country_name) == 2
                 else [("name", "=", country_name)]
             )
-            country = self.env["res.country"].sudo().search(country_domain, limit=1)
+            country = self.env["res.country"].sudo().search(country_domain, limit=2)
+            if not country_name or len(country) != 1:
+                raise UserError(
+                    f"Etsy order {order.external_order_id} has no unique country "
+                    f"for {country_name!r}.",
+                )
             gross = sum(
                 (money(row.get("Price"), default=Decimal("0")) * quantity(row.get("Quantity")) for row in line_payloads),
                 Decimal("0"),
@@ -362,11 +530,50 @@ class UslB2cNativeHistoryRun(models.Model):
             values = self._order_metadata_from_evidence(company, order)
             metadata[order.id] = values
             if apply:
-                order.sudo().write(values)
+                drift = {}
+                for field_name, expected in values.items():
+                    actual = order[field_name]
+                    field_type = order._fields[field_name].type
+                    if field_type == "many2one":
+                        differs = actual.id != (expected or False)
+                    elif field_type == "monetary":
+                        currency_field = order._fields[field_name].get_currency_field(order)
+                        rounding = order[currency_field].rounding
+                        differs = float_compare(
+                            actual,
+                            float(expected or 0),
+                            precision_rounding=rounding,
+                        ) != 0
+                    elif field_type == "float":
+                        differs = float_compare(
+                            actual,
+                            float(expected or 0),
+                            precision_digits=6,
+                        ) != 0
+                    else:
+                        differs = actual != expected
+                    if differs:
+                        drift[field_name] = expected
+                if drift:
+                    order.sudo().with_context(**self._ctx()).write(drift)
         return metadata
 
     def _normalize_printful_links(self, company, orders, apply):
-        by_external = {order.external_order_id: order for order in orders}
+        external_counts = Counter(orders.mapped("external_order_id"))
+        duplicates = sorted(
+            external_id
+            for external_id, count in external_counts.items()
+            if external_id and count != 1
+        )
+        if duplicates:
+            raise UserError(
+                f"Canonical B2C external order IDs are not unique: {duplicates[:10]!r}.",
+            )
+        by_external = {
+            order.external_order_id: order
+            for order in orders
+            if order.external_order_id
+        }
         events = self.env["b2c.fulfilment.event"].sudo().search(
             [("company_id", "=", company.id), ("source_provider", "=", "printful")],
         )
@@ -378,9 +585,23 @@ class UslB2cNativeHistoryRun(models.Model):
             if not order:
                 unresolved.append(f"{event.id}:{raw_reference}")
                 continue
-            if apply and event.order_id != order:
-                event.sudo().write(
-                    {"order_id": order.id, "channel_id": order.channel_id.id, "order_link_state": "verified"},
+            link_values = {
+                "order_id": order.id,
+                "channel_id": order.channel_id.id,
+                "order_link_state": "verified",
+            }
+            link_drifted = any(
+                (
+                    event[field_name].id
+                    if event._fields[field_name].type == "many2one"
+                    else event[field_name]
+                )
+                != value
+                for field_name, value in link_values.items()
+            )
+            if apply and link_drifted:
+                event.sudo().with_context(**self._ctx()).write(
+                    link_values,
                 )
         if unresolved:
             raise UserError(f"Printful events remain unlinked: {', '.join(unresolved[:10])}")
@@ -396,6 +617,11 @@ class UslB2cNativeHistoryRun(models.Model):
             return order.country_id
         if (order.original_country or "").strip().casefold() == "the netherlands":
             return self.env.ref("base.nl")
+        if (order.original_country or order.shipping_address_raw or "").strip():
+            raise UserError(
+                f"Order {order.external_order_id} has no deterministic country "
+                f"mapping for {order.original_country!r}.",
+            )
         return self.env["res.country"]
 
     def _state(self, order, country):
@@ -583,9 +809,7 @@ class UslB2cNativeHistoryRun(models.Model):
     def _materialize_sale(self, company, order):
         existing = self.env["sale.order"].sudo().search([("usl_b2c_order_id", "=", order.id)], limit=1)
         if existing:
-            completed = self._historical_completed(order)
-            if existing.usl_historical_b2c_completed != completed:
-                existing.write({"usl_historical_b2c_completed": completed})
+            self._validate_existing_sale(company, order, existing)
             return existing
         if self.mode == "dry_run":
             return self.env["sale.order"]
@@ -651,6 +875,316 @@ class UslB2cNativeHistoryRun(models.Model):
             raise UserError(f"Historical Sales order {sale.name} unexpectedly has followers.")
         return sale
 
+    def _validate_existing_sale(self, company, order, sale):
+        """Prove an idempotent rerun found the exact accepted native order."""
+        currency = order.currency_id or company.currency_id
+        expected = {
+            "company_id": company,
+            "name": self._order_name(order),
+            "currency_id": currency,
+            "client_order_ref": order.external_order_id,
+            "origin": f"B2C evidence {order.canonical_key}",
+            "date_order": order.order_date,
+            "state": "cancel" if order.state == "cancelled" else "sale",
+            "usl_b2c_order_id": order,
+            "usl_historical_b2c": True,
+            "usl_historical_b2c_completed": self._historical_completed(order),
+            "usl_historical_source_warning": (
+                "Header-only historical source; item detail is unavailable."
+                if order.source_provider == "medusa_legacy"
+                else False
+            ),
+            "usl_source_payment_state": order.source_payment_state,
+            "usl_source_fulfilment_state": order.source_fulfilment_state,
+            "usl_source_total": order.total_amount,
+        }
+        if order.partner_id:
+            expected["partner_id"] = order.partner_id
+            expected["partner_invoice_id"] = order.partner_id
+        if order.shipping_partner_id:
+            expected["partner_shipping_id"] = order.shipping_partner_id
+        drift = {}
+        for field_name, expected_value in expected.items():
+            actual = sale[field_name]
+            field_type = sale._fields[field_name].type
+            if field_type == "many2one":
+                differs = actual != expected_value
+                actual = actual.id
+                expected_value = expected_value.id
+            elif field_type in {"float", "monetary"}:
+                differs = float_compare(
+                    actual,
+                    float(expected_value),
+                    precision_digits=6,
+                ) != 0
+            else:
+                differs = actual != expected_value
+            if differs:
+                drift[field_name] = {
+                    "actual": actual,
+                    "expected": expected_value,
+                }
+        if drift:
+            raise UserError(
+                f"Historical Sales order {sale.display_name} drifted from its source: {drift!r}.",
+            )
+        if sale.invoice_ids:
+            raise UserError(
+                f"Historical Sales order {sale.display_name} unexpectedly has invoices.",
+            )
+        if sale.message_follower_ids:
+            raise UserError(
+                f"Historical Sales order {sale.display_name} unexpectedly has followers.",
+            )
+        source_lines = order.line_ids
+        native_source_lines = sale.order_line.filtered("usl_b2c_order_line_id")
+        if len(native_source_lines) != len(source_lines):
+            raise UserError(
+                f"Historical Sales order {sale.display_name} has "
+                f"{len(native_source_lines)} mapped lines; expected {len(source_lines)}.",
+            )
+        if set(native_source_lines.usl_b2c_order_line_id.ids) != set(source_lines.ids):
+            raise UserError(
+                f"Historical Sales order {sale.display_name} has incorrect source-line links.",
+            )
+        native_by_source = {
+            line.usl_b2c_order_line_id.id: line
+            for line in native_source_lines
+        }
+        for source_line in source_lines:
+            native_line = native_by_source[source_line.id]
+            expected_values = self._sale_line_values(sale, source_line)
+            comparisons = {
+                "product_id": source_line.product_id,
+                "product_uom_id": source_line.product_id.uom_id,
+                "product_uom_qty": source_line.quantity,
+                "price_unit": source_line.unit_price,
+                "discount": expected_values["discount"],
+                "usl_provider_line_total": source_line.revenue_amount,
+            }
+            line_drift = {}
+            for field_name, expected_value in comparisons.items():
+                actual = native_line[field_name]
+                if native_line._fields[field_name].type == "many2one":
+                    differs = actual != expected_value
+                    actual = actual.id
+                    expected_value = expected_value.id
+                else:
+                    differs = float_compare(
+                        actual,
+                        float(expected_value),
+                        precision_digits=6,
+                    ) != 0
+                if differs:
+                    line_drift[field_name] = {
+                        "actual": actual,
+                        "expected": expected_value,
+                    }
+            if native_line.tax_ids:
+                line_drift["tax_ids"] = {"actual": native_line.tax_ids.ids, "expected": []}
+            if line_drift:
+                raise UserError(
+                    f"Historical Sales line {native_line.display_name} drifted: {line_drift!r}.",
+                )
+        extra_lines = sale.order_line - native_source_lines
+        expected_amounts = {}
+        if order.source_provider == "medusa_legacy":
+            if not currency.is_zero(order.total_amount):
+                expected_amounts["Historical order — item detail unavailable"] = (
+                    Decimal(str(order.total_amount)),
+                    False,
+                )
+        else:
+            source_net = sum(
+                (Decimal(str(line.revenue_amount)) for line in source_lines),
+                Decimal("0"),
+            )
+            for label, amount, adjustment in (
+                ("Provider shipping", order.shipping_amount, False),
+                ("Provider discount", order.discount_amount, False),
+                ("Provider tax", order.tax_amount, False),
+                (
+                    "Provider-level adjustment",
+                    Decimal(str(order.total_amount))
+                    - source_net
+                    - Decimal(str(order.shipping_amount))
+                    - Decimal(str(order.discount_amount))
+                    - Decimal(str(order.tax_amount)),
+                    True,
+                ),
+            ):
+                if not currency.is_zero(float(amount)):
+                    expected_amounts[label] = (Decimal(str(amount)), adjustment)
+        actual_amounts = {}
+        for line in extra_lines:
+            if line.name in actual_amounts:
+                raise UserError(
+                    f"Historical Sales order {sale.display_name} has duplicate "
+                    f"amount line {line.name!r}.",
+                )
+            actual_amounts[line.name] = line
+        if set(actual_amounts) != set(expected_amounts):
+            raise UserError(
+                f"Historical Sales order {sale.display_name} amount lines drifted: "
+                f"{sorted(actual_amounts)!r} != {sorted(expected_amounts)!r}.",
+            )
+        for label, (expected_amount, expected_adjustment) in expected_amounts.items():
+            line = actual_amounts[label]
+            if (
+                line.product_id
+                or line.tax_ids
+                or float_compare(line.product_uom_qty, 1, precision_digits=6)
+                or float_compare(
+                    line.price_unit,
+                    float(expected_amount),
+                    precision_digits=6,
+                )
+                or line.usl_provider_adjustment != expected_adjustment
+            ):
+                raise UserError(
+                    f"Historical Sales order {sale.display_name} amount line "
+                    f"{label!r} drifted from the accepted source representation.",
+                )
+        if order.sale_order_id != sale:
+            raise UserError(
+                f"Canonical B2C order {order.display_name} lost its native Sales back-reference.",
+            )
+        if float_compare(
+            sale.amount_total,
+            order.total_amount,
+            precision_rounding=currency.rounding,
+        ):
+            raise UserError(
+                f"Native Sales total mismatch for {order.external_order_id}: "
+                f"{sale.amount_total} != {order.total_amount}.",
+            )
+
+    def _validate_native_counts(self, company, sales_report, inventory_report):
+        expected = EXPECTED_NATIVE_COUNTS
+        actual = {
+            "orders": sales_report["orders"],
+            "sale_lines": sales_report["lines"],
+            "contacts": sales_report["contacts"],
+            "partner_identities": sales_report["identities"],
+            "purchases": inventory_report["purchases"],
+            "receipts": inventory_report["receipts"],
+            "unbuilds": inventory_report["unbuilds"],
+            "landed_costs": inventory_report["landed_costs"],
+            "productions": inventory_report["productions"],
+            "deliveries": inventory_report["deliveries"],
+            "internal_order_consumption": inventory_report["internal_order_consumption"],
+            "internal_pickings": self.env["stock.picking"].sudo().search_count(
+                [
+                    ("company_id", "=", company.id),
+                    ("usl_historical_b2c", "=", True),
+                    ("picking_type_id.code", "=", "internal"),
+                ],
+            ),
+        }
+        mismatches = {
+            key: {"actual": value, "expected": expected[key]}
+            for key, value in actual.items()
+            if value != expected[key]
+        }
+        production_states = Counter(
+            self.env["mrp.production"].sudo().search(
+                [("company_id", "=", company.id), ("usl_b2c_source_key", "!=", False)],
+            ).mapped("state"),
+        )
+        expected_production_states = {
+            "done": expected["productions_done"],
+            "confirmed": expected["productions_open"],
+        }
+        if dict(production_states) != expected_production_states:
+            mismatches["production_states"] = {
+                "actual": dict(production_states),
+                "expected": expected_production_states,
+            }
+        deliveries = self.env["stock.picking"].sudo().search(
+            [
+                ("company_id", "=", company.id),
+                ("usl_historical_b2c", "=", True),
+                ("picking_type_id.code", "=", "outgoing"),
+            ],
+        )
+        delivery_states = Counter(
+            "done" if picking.state == "done" else "open"
+            for picking in deliveries
+        )
+        expected_delivery_states = {
+            "done": expected["deliveries_done"],
+            "open": expected["deliveries_open"],
+        }
+        if dict(delivery_states) != expected_delivery_states:
+            mismatches["delivery_states"] = {
+                "actual": dict(delivery_states),
+                "expected": expected_delivery_states,
+            }
+        if mismatches:
+            raise UserError(f"Native B2C reconstruction counts drifted: {mismatches!r}.")
+
+    def _validate_native_relationships(self, company, orders):
+        productions = self.env["mrp.production"].sudo().search(
+            [("company_id", "=", company.id), ("usl_b2c_source_key", "!=", False)],
+        )
+        productions_by_line = defaultdict(lambda: self.env["mrp.production"])
+        for production in productions:
+            if not production.usl_b2c_order_line_id:
+                raise UserError(
+                    f"Historical production {production.display_name} has no source line.",
+                )
+            productions_by_line[production.usl_b2c_order_line_id.id] |= production
+        direct_moves = self.env["stock.move"].sudo().search(
+            [
+                ("company_id", "=", company.id),
+                ("usl_b2c_order_line_id", "!=", False),
+            ],
+        )
+        direct_moves_by_line = defaultdict(lambda: self.env["stock.move"])
+        for move in direct_moves:
+            direct_moves_by_line[move.usl_b2c_order_line_id.id] |= move
+        relationship_errors = []
+        for line in orders.line_ids:
+            expected_productions = productions_by_line[line.id]
+            if set(line.production_ids.ids) != set(expected_productions.ids):
+                relationship_errors.append(
+                    f"line {line.id} production links {line.production_ids.ids!r} "
+                    f"!= {expected_productions.ids!r}"
+                )
+            expected_moves = (
+                direct_moves_by_line[line.id]
+                | expected_productions.move_raw_ids
+                | expected_productions.move_finished_ids
+            )
+            if set(line.stock_move_ids.ids) != set(expected_moves.ids):
+                relationship_errors.append(
+                    f"line {line.id} stock-move links {line.stock_move_ids.ids!r} "
+                    f"!= {expected_moves.ids!r}"
+                )
+            if len(relationship_errors) >= 10:
+                break
+        if relationship_errors:
+            raise UserError(
+                "Native B2C evidence relationships drifted: "
+                + "; ".join(relationship_errors)
+            )
+        events = self.env["b2c.fulfilment.event"].sudo().search(
+            [("company_id", "=", company.id), ("source_provider", "=", "printful")],
+        )
+        for event in events:
+            expected_sale_lines = event.order_id.line_ids.filtered(
+                lambda line: line.product_id.product_tmpl_id.b2c_fulfilment_mode
+                == "printful"
+            ).sale_order_line_id
+            if (
+                event.order_link_state != "verified"
+                or event.channel_id != event.order_id.channel_id
+                or set(event.sale_order_line_ids.ids) != set(expected_sale_lines.ids)
+            ):
+                raise UserError(
+                    f"Printful event {event.display_name} has incomplete native links.",
+                )
+
     def _materialize_sales(self, company, orders, metadata):
         if self.mode == "dry_run":
             # Identity and total validation still runs without creating records.
@@ -678,6 +1212,12 @@ class UslB2cNativeHistoryRun(models.Model):
         self.ensure_one()
         company = self._company()
         source_before = self._source_fingerprint(company)
+        source_mismatches = source_fingerprint_mismatches(source_before)
+        if source_mismatches:
+            raise UserError(
+                "Frozen B2C source evidence differs from the qualified clone: "
+                f"{source_mismatches!r}.",
+            )
         accounting_before = self._accounting_fingerprint(company)
         mail_before = self.env["mail.mail"].sudo().search_count([])
         followers_before = self.env["mail.followers"].sudo().search_count([])
@@ -689,6 +1229,9 @@ class UslB2cNativeHistoryRun(models.Model):
         )
         sales_report = self._materialize_sales(company, orders, metadata)
         inventory_report = self._materialize_inventory(company, orders, metadata)
+        if self.mode == "apply":
+            self._validate_native_counts(company, sales_report, inventory_report)
+            self._validate_native_relationships(company, orders)
         source_after = self._source_fingerprint(company)
         accounting_after = self._accounting_fingerprint(company)
         mail_after = self.env["mail.mail"].sudo().search_count([])
@@ -746,12 +1289,136 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
 
     def _ctx(self):
         return {
-            MATERIALIZATION_CONTEXT: True,
+            MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN,
             "tracking_disable": True,
             "mail_create_nosubscribe": True,
             "mail_notrack": True,
             "mail_notify_force_send": False,
         }
+
+    @staticmethod
+    def _comparison_value(record, field_name):
+        value = record[field_name]
+        field = record._fields[field_name]
+        if field.type == "many2one":
+            return value.id or False
+        if field.type in {"many2many", "one2many"}:
+            return set(value.ids)
+        if field.type in {"date", "datetime"}:
+            return fields.Datetime.to_datetime(value) if value else False
+        return value
+
+    def _assert_values(self, record, expected, label):
+        drift = {}
+        for field_name, expected_value in expected.items():
+            field = record._fields[field_name]
+            actual_value = self._comparison_value(record, field_name)
+            if field.type == "many2one":
+                expected_value = expected_value.id if expected_value else False
+            elif field.type in {"many2many", "one2many"}:
+                expected_value = set(expected_value.ids)
+            elif field.type in {"date", "datetime"}:
+                expected_value = (
+                    fields.Datetime.to_datetime(expected_value)
+                    if expected_value
+                    else False
+                )
+            if field.type in {"float", "monetary"}:
+                differs = float_compare(
+                    actual_value,
+                    float(expected_value),
+                    precision_digits=6,
+                ) != 0
+            else:
+                differs = actual_value != expected_value
+            if differs:
+                drift[field_name] = {
+                    "actual": actual_value,
+                    "expected": expected_value,
+                }
+        if drift:
+            raise UserError(f"{label} drifted from reviewed evidence: {drift!r}.")
+
+    @staticmethod
+    def _move_signature(product, quantity, extra, source_key):
+        return (
+            product.id,
+            round(float(quantity), 6),
+            product.uom_id.id,
+            extra.get("purchase_line_id") or False,
+            extra.get("sale_line_id") or False,
+            extra.get("b2c_line_id") or False,
+            extra.get("source_key") or source_key,
+        )
+
+    @staticmethod
+    def _record_move_signature(move):
+        return (
+            move.product_id.id,
+            round(move.product_uom_qty, 6),
+            move.uom_id.id,
+            move.purchase_line_id.id or False,
+            move.sale_line_id.id or False,
+            move.usl_b2c_order_line_id.id or False,
+            move.usl_b2c_source_key or False,
+        )
+
+    def _validate_direct_picking(
+        self,
+        picking,
+        *,
+        company,
+        key,
+        date,
+        partner,
+        moves,
+        picking_type,
+        location,
+        location_dest,
+        completed,
+    ):
+        expected_states = (
+            {"done"} if completed else {"confirmed", "waiting", "assigned"}
+        )
+        self._assert_values(
+            picking,
+            {
+                "company_id": company,
+                "partner_id": partner,
+                "picking_type_id": picking_type,
+                "location_id": location,
+                "location_dest_id": location_dest,
+                "scheduled_date": date,
+                "origin": key,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": key,
+            },
+            f"Historical stock operation {key}",
+        )
+        if picking.state not in expected_states:
+            raise UserError(
+                f"Historical stock operation {key} has state {picking.state!r}; "
+                f"expected one of {sorted(expected_states)!r}.",
+            )
+        if completed:
+            self._assert_values(
+                picking,
+                {"date_done": date},
+                f"Historical stock operation {key}",
+            )
+        expected_moves = Counter(
+            self._move_signature(product, quantity, extra, key)
+            for product, quantity, extra in moves
+        )
+        actual_moves = Counter(
+            self._record_move_signature(move)
+            for move in picking.move_ids.filtered(lambda move: move.state != "cancel")
+        )
+        if actual_moves != expected_moves:
+            raise UserError(
+                f"Historical stock operation {key} has drifted move lines: "
+                f"{actual_moves!r} != {expected_moves!r}.",
+            )
 
     def _product(self, code, *, allow_sample=False, company=None, apply=False):
         products = (
@@ -929,6 +1596,20 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             limit=1,
         )
         if existing:
+            self._validate_direct_picking(
+                existing,
+                company=company,
+                key=key,
+                date=date,
+                partner=partner,
+                moves=moves,
+                picking_type=picking_type,
+                location=source_location or picking_type.default_location_src_id,
+                location_dest=(
+                    destination_location or picking_type.default_location_dest_id
+                ),
+                completed=True,
+            )
             return existing
         location_id = source_location or picking_type.default_location_src_id
         location_dest_id = destination_location or picking_type.default_location_dest_id
@@ -978,6 +1659,23 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             limit=1,
         )
         if existing:
+            self._validate_direct_picking(
+                existing,
+                company=company,
+                key=key,
+                date=date,
+                partner=partner,
+                moves=moves,
+                picking_type=picking_type,
+                location=picking_type.default_location_src_id,
+                location_dest=picking_type.default_location_dest_id,
+                completed=False,
+            )
+            self._assert_values(
+                existing,
+                {"usl_b2c_order_id": b2c_order},
+                f"Historical stock operation {key}",
+            )
             return existing
         picking = self.env["stock.picking"].sudo().with_context(**self._ctx()).create(
             {
@@ -1027,11 +1725,17 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             and {line.product_id.id: line.product_qty for line in bom.bom_line_ids} == expected
         )
         if len(exact) == 1:
-            exact.active = True
-            (boms - exact).active = False
+            if boms - exact:
+                raise UserError(
+                    f"Supplier pack {pack.display_name} has additional conflicting BoMs."
+                )
+            if not exact.active:
+                exact.active = True
             return exact
         if boms:
-            boms.active = False
+            raise UserError(
+                f"Supplier pack {pack.display_name} has a conflicting BoM."
+            )
         return self.env["mrp.bom"].sudo().with_context(**self._ctx()).create(
             {
                 "product_tmpl_id": pack.product_tmpl_id.id,
@@ -1058,6 +1762,27 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             [("company_id", "=", company.id), ("usl_b2c_source_key", "=", key)], limit=1,
         )
         if existing:
+            bom = self._ensure_pack_bom(
+                company,
+                pack,
+                PACK_COMPONENTS[pack.default_code],
+            )
+            self._assert_values(
+                existing,
+                {
+                    "company_id": company,
+                    "product_id": pack,
+                    "product_qty": quantity,
+                    "uom_id": pack.uom_id,
+                    "bom_id": bom,
+                    "location_id": warehouse.lot_stock_id,
+                    "location_dest_id": warehouse.lot_stock_id,
+                    "usl_historical_b2c": True,
+                    "usl_b2c_source_key": key,
+                    "state": "done",
+                },
+                f"Historical supplier-pack conversion {key}",
+            )
             return existing
         bom = self._ensure_pack_bom(company, pack, PACK_COMPONENTS[pack.default_code])
         unbuild = self.env["mrp.unbuild"].sudo().with_context(**self._ctx()).create(
@@ -1078,11 +1803,167 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
         (unbuild.consume_line_ids | unbuild.produce_line_ids).move_line_ids.write({"date": date})
         return unbuild
 
+    def _validate_existing_purchase(
+        self,
+        company,
+        warehouse,
+        acquisition,
+        partner,
+        currency,
+        lines,
+        purchase,
+    ):
+        date = fields.Datetime.to_datetime(acquisition["date"])
+        self._assert_values(
+            purchase,
+            {
+                "partner_id": partner,
+                "company_id": company,
+                "currency_id": currency,
+                "date_order": date,
+                "origin": f"Historical B2C acquisition {acquisition['key']}",
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": acquisition["key"],
+                "state": "purchase",
+            },
+            f"Historical purchase {acquisition['key']}",
+        )
+        purchase_lines = purchase.order_line.filtered(lambda line: not line.display_type)
+        if len(purchase_lines) != len(lines):
+            raise UserError(
+                f"Historical purchase {acquisition['key']} has {len(purchase_lines)} "
+                f"product lines; expected {len(lines)}.",
+            )
+        lines_by_product = {line.product_id.id: line for line in purchase_lines}
+        if len(lines_by_product) != len(purchase_lines):
+            raise UserError(
+                f"Historical purchase {acquisition['key']} has duplicate product lines.",
+            )
+        for item, product, bill_line in lines:
+            line = lines_by_product.get(product.id)
+            if not line:
+                raise UserError(
+                    f"Historical purchase {acquisition['key']} is missing {product.display_name}.",
+                )
+            self._assert_values(
+                line,
+                {
+                    "product_id": product,
+                    "name": item["bill_label"],
+                    "product_qty": item["quantity"],
+                    "uom_id": product.uom_id,
+                    "price_unit": item["price"],
+                    "date_planned": date,
+                    "usl_source_bill_line_ids": bill_line,
+                },
+                f"Historical purchase line {acquisition['key']} / {product.default_code}",
+            )
+            if line.tax_ids:
+                raise UserError(
+                    f"Historical purchase line {line.display_name} unexpectedly has taxes.",
+                )
+            if (
+                BILL_EVIDENCE_COUNTS[(item["bill_ref"], item["bill_label"])] == 1
+                and bill_line.purchase_line_id != line
+            ):
+                raise UserError(
+                    f"Vendor-bill line {bill_line.display_name!r} lost its exact "
+                    "historical Purchase-line relation.",
+                )
+        receipts = purchase.picking_ids.filtered(lambda record: record.state != "cancel")
+        if len(receipts) != 1:
+            raise UserError(
+                f"Historical purchase {acquisition['key']} has {len(receipts)} receipts; "
+                "expected one.",
+            )
+        receipt = receipts[0]
+        self._assert_values(
+            receipt,
+            {
+                "company_id": company,
+                "picking_type_id": warehouse.in_type_id,
+                "location_id": warehouse.in_type_id.default_location_src_id,
+                "location_dest_id": warehouse.in_type_id.default_location_dest_id,
+                "scheduled_date": date,
+                "date_done": date,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": f"receipt:{acquisition['key']}",
+                "state": "done",
+            },
+            f"Historical receipt {acquisition['key']}",
+        )
+        receipt_moves = receipt.move_ids.filtered(lambda move: move.state != "cancel")
+        expected_receipt_moves = Counter(
+            (
+                product.id,
+                round(float(item["quantity"]), 6),
+                lines_by_product[product.id].id,
+            )
+            for item, product, _bill_line in lines
+        )
+        actual_receipt_moves = Counter(
+            (
+                move.product_id.id,
+                round(move.product_uom_qty, 6),
+                move.purchase_line_id.id or False,
+            )
+            for move in receipt_moves
+        )
+        if actual_receipt_moves != expected_receipt_moves:
+            raise UserError(
+                f"Historical receipt {acquisition['key']} drifted: "
+                f"{actual_receipt_moves!r} != {expected_receipt_moves!r}.",
+            )
+        for item, product, _bill_line in lines:
+            if product.default_code in PACK_COMPONENTS:
+                self._unbuild_pack(
+                    company,
+                    warehouse,
+                    f"unpack:{acquisition['key']}:{product.default_code}",
+                    date,
+                    product,
+                    item["quantity"],
+                )
+        if acquisition.get("internal_consumption"):
+            inventory_location = self._inventory_loss_location(
+                company,
+                [product for _item, product, _bill_line in lines],
+                acquisition["key"],
+            )
+            self._done_picking(
+                company,
+                warehouse,
+                f"internal-consumption:{acquisition['key']}",
+                date,
+                False,
+                [
+                    (
+                        product,
+                        item["quantity"],
+                        {"name": "Documented prototype consumption"},
+                    )
+                    for item, product, _bill_line in lines
+                ],
+                warehouse.int_type_id,
+                source_location=warehouse.lot_stock_id,
+                destination_location=inventory_location,
+            )
+        self._landed_cost(company, acquisition, receipt)
+
     def _purchase(self, run, company, warehouse, acquisition, partner, currency, lines):
         existing = self.env["purchase.order"].sudo().search(
             [("company_id", "=", company.id), ("usl_b2c_source_key", "=", acquisition["key"])], limit=1,
         )
         if existing:
+            self._validate_existing_purchase(
+                company,
+                warehouse,
+                acquisition,
+                partner,
+                currency,
+                lines,
+                existing,
+            )
             return existing
         date = fields.Datetime.to_datetime(acquisition["date"])
         purchase = self.env["purchase.order"].sudo().with_context(**self._ctx()).create(
@@ -1181,6 +2062,35 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             [("company_id", "=", company.id), ("usl_b2c_source_key", "=", spec["key"])], limit=1,
         )
         if existing:
+            self._assert_values(
+                existing,
+                {
+                    "date": acquisition["date"],
+                    "company_id": company,
+                    "picking_ids": picking,
+                    "usl_historical_b2c": True,
+                    "usl_b2c_source_key": spec["key"],
+                    "state": "done",
+                },
+                f"Historical landed cost {spec['key']}",
+            )
+            if len(existing.cost_lines) != 1:
+                raise UserError(
+                    f"Historical landed cost {spec['key']} must have one cost line.",
+                )
+            self._assert_values(
+                existing.cost_lines,
+                {
+                    "name": spec["label"],
+                    "price_unit": spec["amount"],
+                    "split_method": spec["split_method"],
+                },
+                f"Historical landed-cost line {spec['key']}",
+            )
+            if existing.account_move_id:
+                raise UserError(
+                    f"Manual-valuation landed cost {existing.name} unexpectedly has Accounting.",
+                )
             return existing
         product = self.env["product.product"].sudo().search(
             [("default_code", "=", "B2C-HISTORICAL-LANDED-COST")], limit=1,
@@ -1233,6 +2143,11 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             and {line.product_id.id: line.product_qty for line in bom.bom_line_ids} == expected
         )
         if len(exact) == 1:
+            if boms - exact:
+                raise UserError(
+                    f"Product {product.display_name} has additional conflicting "
+                    "historical BoMs."
+                )
             return exact
         if boms:
             raise UserError(f"Product {product.display_name} has a conflicting historical BoM.")
@@ -1259,12 +2174,36 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
 
     def _production(self, company, warehouse, order, line, components, disposition):
         key = f"production:{order.canonical_key}:{line.line_key}"
+        per_unit = {
+            code: quantity / Decimal(str(line.quantity))
+            for code, quantity in components.items()
+        }
         existing = self.env["mrp.production"].sudo().search(
             [("company_id", "=", company.id), ("usl_b2c_source_key", "=", key)], limit=1,
         )
         if existing:
+            bom = self._ensure_finished_bom(company, line.product_id, per_unit)
+            expected_state = "confirmed" if disposition == "reserved" else "done"
+            expected = {
+                "company_id": company,
+                "product_id": line.product_id,
+                "product_qty": line.quantity,
+                "uom_id": line.product_id.uom_id,
+                "bom_id": bom,
+                "date_start": order.order_date,
+                "origin": order.sale_order_id.name,
+                "usl_b2c_order_line_id": line,
+                "usl_b2c_source_key": key,
+                "state": expected_state,
+            }
+            if expected_state == "done":
+                expected["date_finished"] = order.order_date
+            self._assert_values(
+                existing,
+                expected,
+                f"Historical production {key}",
+            )
             return existing
-        per_unit = {code: quantity / Decimal(str(line.quantity)) for code, quantity in components.items()}
         bom = self._ensure_finished_bom(company, line.product_id, per_unit)
         production = self.env["mrp.production"].sudo().with_context(**self._ctx()).create(
             {
@@ -1298,12 +2237,10 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             )
             (production.move_raw_ids | production.move_finished_ids).write({"date": order.order_date})
             (production.move_raw_ids | production.move_finished_ids).move_line_ids.write({"date": order.order_date})
-        line.with_context(**self._ctx()).write(
-            {
-                "production_ids": [Command.link(production.id)],
-                "stock_move_ids": [Command.set((production.move_raw_ids | production.move_finished_ids).ids)],
-            },
-        )
+        if set(line.production_ids.ids) != {production.id}:
+            line.with_context(**self._ctx()).write(
+                {"production_ids": [Command.set([production.id])]},
+            )
         return production
 
     def _materialize_demands(self, company, warehouse, orders):
@@ -1374,17 +2311,32 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                     company, warehouse, key, order.fulfilment_date or order.order_date,
                     partner, stock_lines, warehouse.out_type_id,
                 )
-            picking.write({"usl_b2c_order_id": order.id})
+            if picking.usl_b2c_order_id != order:
+                picking.with_context(**self._ctx()).write(
+                    {"usl_b2c_order_id": order.id},
+                )
             deliveries |= picking
             for line in order.line_ids.filtered(lambda record: record.id in [extra[2]["b2c_line_id"] for extra in stock_lines]):
-                moves = picking.move_ids.filtered(lambda move: move.usl_b2c_order_line_id == line)
-                line.with_context(**self._ctx()).write({"stock_move_ids": [Command.link(move.id) for move in moves]})
+                delivery_moves = picking.move_ids.filtered(
+                    lambda move: move.usl_b2c_order_line_id == line
+                )
+                production_moves = (
+                    line.production_ids.move_raw_ids
+                    | line.production_ids.move_finished_ids
+                )
+                expected_moves = delivery_moves | production_moves
+                if set(line.stock_move_ids.ids) != set(expected_moves.ids):
+                    line.with_context(**self._ctx()).write(
+                        {"stock_move_ids": [Command.set(expected_moves.ids)]},
+                    )
         for event in self.env["b2c.fulfilment.event"].sudo().search([("company_id", "=", company.id)]):
             sale_lines = event.order_id.line_ids.filtered(
                 lambda line: line.product_id.product_tmpl_id.b2c_fulfilment_mode == "printful",
             ).sale_order_line_id
-            if sale_lines:
-                event.with_context(**self._ctx()).write({"sale_order_line_ids": [Command.set(sale_lines.ids)]})
+            if sale_lines and set(event.sale_order_line_ids.ids) != set(sale_lines.ids):
+                event.with_context(**self._ctx()).write(
+                    {"sale_order_line_ids": [Command.set(sale_lines.ids)]},
+                )
         return deliveries, productions
 
     def _validate_runtime_stock(self, company):
@@ -1430,9 +2382,14 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             *(line["code"] for acquisition in ACQUISITIONS for line in acquisition["lines"]),
         }:
             evidenced_products |= self._product(code)
-        evidenced_products.product_tmpl_id.write(
-            {"b2c_opening_stock_state": "theoretical_reconstructed"},
+        templates_to_mark = evidenced_products.product_tmpl_id.filtered(
+            lambda template: template.b2c_opening_stock_state
+            != "theoretical_reconstructed"
         )
+        if templates_to_mark:
+            templates_to_mark.write(
+                {"b2c_opening_stock_state": "theoretical_reconstructed"},
+            )
         return {
             "purchases": len(purchases),
             "receipts": len(purchases.picking_ids),
@@ -1443,7 +2400,12 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                 [("company_id", "=", company.id), ("usl_historical_b2c", "=", True)],
             ),
             "productions": len(productions),
-            "deliveries": len(deliveries),
+            "deliveries": len(
+                deliveries.filtered(lambda picking: picking.picking_type_id.code == "outgoing")
+            ),
+            "internal_order_consumption": len(
+                deliveries.filtered(lambda picking: picking.picking_type_id.code == "internal")
+            ),
             "theoretical_stock": theoretical,
             "runtime_stock": runtime_stock,
             "uses_medusa_inventory_quantities": False,

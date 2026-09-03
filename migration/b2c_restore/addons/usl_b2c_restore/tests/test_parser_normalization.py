@@ -1,13 +1,33 @@
+from datetime import datetime
+from decimal import Decimal
+
 from odoo.tests import BaseCase, tagged
 
 from odoo.addons.usl_b2c_restore.parsers import (
+    money,
     normalize_printful_order_reference,
     parse_legacy_delivery_address,
+    parsed_datetime,
 )
 
 
 @tagged("post_install", "-at_install")
 class TestNativeHistoryParserNormalization(BaseCase):
+    def test_money_accepts_us_and_european_grouping(self):
+        self.assertEqual(money("1,234.56 USD"), Decimal("1234.56"))
+        self.assertEqual(money("1.234,56 EUR"), Decimal("1234.56"))
+        self.assertEqual(money("(1.234,56 €)"), Decimal("-1234.56"))
+
+    def test_offset_datetimes_are_normalized_to_utc(self):
+        self.assertEqual(
+            parsed_datetime("2026-09-03T10:30:00+02:00"),
+            datetime(2026, 9, 3, 8, 30),
+        )
+        self.assertEqual(
+            parsed_datetime("2026-09-03T08:30:00Z"),
+            datetime(2026, 9, 3, 8, 30),
+        )
+
     def test_printful_reference_prefixes_and_display_whitespace(self):
         self.assertEqual(
             normalize_printful_order_reference("Order #1617586251"),

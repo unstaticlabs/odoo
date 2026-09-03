@@ -18,7 +18,75 @@ EXPECTED_NATIVE_COUNTS = {
     "medusa_orders": 96,
     "legacy_orders": 35,
     "printful_events": 261,
+    "aliases": 174,
+    "provider_evidence": 2893,
+    "order_sources": 614,
+    "source_documents": 40,
+    "sale_lines": 940,
+    "contacts": 365,
+    "partner_identities": 365,
+    "purchases": 17,
+    "receipts": 17,
+    "unbuilds": 12,
+    "landed_costs": 3,
+    "productions": 81,
+    "productions_done": 69,
+    "productions_open": 12,
+    "deliveries": 85,
+    "deliveries_done": 77,
+    "deliveries_open": 8,
+    "internal_order_consumption": 1,
+    "internal_pickings": 2,
 }
+
+
+# Accepted from the independently qualified, finalized production clone. Counts
+# alone are insufficient here: a provider payload could drift while preserving
+# the number of records. These digests intentionally belong to migration code,
+# not the delivered product module.
+EXPECTED_SOURCE_FINGERPRINTS = {
+    "aliases": {
+        "count": 174,
+        "digest": "185cf839848fdb6c35fd6892547384f511f1909297f69285ee07b721985be498",
+    },
+    "evidence": {
+        "count": 2893,
+        "digest": "bfdc75f35ee2bc36193e5b38fe207800944a387163d015c5fdac0cc9041b9e8a",
+    },
+    "fulfilment_events": {
+        "count": 261,
+        "digest": "18302ef601aabc8d5f84c208b179a211ae34ab100e0ea673f20128b193c08f7b",
+    },
+    "lines": {
+        "count": 457,
+        "digest": "38d9f2b29fa7bce19873df057be26568d80650a1c7a8b14b13806612f99f29c9",
+    },
+    "order_sources": {
+        "count": 614,
+        "digest": "6a17fe80ab9197b95c4fd1361c9fbb700061bb5a8eb7038582de084849c2b99c",
+    },
+    "orders": {
+        "count": 304,
+        "digest": "8407c1d7f82683226cc7ca2f4c06fa8c01f2b98bdd801e837386aa3a183b2bc8",
+    },
+    "source_documents": {
+        "count": 40,
+        "digest": "fde60c95419e1fb0da3de42b38f352831730dc71b0188dd46f718f0b6082ca85",
+    },
+}
+
+
+def source_fingerprint_mismatches(actual):
+    """Return concise drift evidence against the qualified frozen source."""
+    keys = set(actual) | set(EXPECTED_SOURCE_FINGERPRINTS)
+    return {
+        key: {
+            "actual": actual.get(key),
+            "expected": EXPECTED_SOURCE_FINGERPRINTS.get(key),
+        }
+        for key in sorted(keys)
+        if actual.get(key) != EXPECTED_SOURCE_FINGERPRINTS.get(key)
+    }
 
 
 def accepted_finalization_run(*, restore_status=None, native_mode=None, native_state=None):

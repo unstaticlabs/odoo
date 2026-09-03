@@ -2954,3 +2954,111 @@ msgstr "Justificatifs B2C"
 #. module: usl_b2c
 msgid "Provider Operations"
 msgstr "Opérations des plateformes"
+
+#. module: usl_b2c
+msgid "Historical B2C purchase orders are locked. Use their source vendor evidence for audit corrections."
+msgstr "Les commandes fournisseurs B2C historiques sont verrouillées. Utilisez les justificatifs fournisseur d’origine pour toute correction d’audit."
+
+#. module: usl_b2c
+msgid "Historical B2C purchase orders cannot send supplier emails."
+msgstr "Les commandes fournisseurs B2C historiques ne peuvent pas envoyer d’e-mails aux fournisseurs."
+
+#. module: usl_b2c
+msgid "Historical B2C purchase orders cannot contact suppliers."
+msgstr "Les commandes fournisseurs B2C historiques ne peuvent pas contacter les fournisseurs."
+
+#. module: usl_b2c
+msgid "Historical B2C purchase orders cannot be deleted."
+msgstr "Les commandes fournisseurs B2C historiques ne peuvent pas être supprimées."
+
+#. module: usl_b2c
+msgid "Historical B2C purchase order lines are locked."
+msgstr "Les lignes de commande fournisseur B2C historiques sont verrouillées."
+
+#. module: usl_b2c
+msgid "Historical B2C purchase order lines cannot be deleted."
+msgstr "Les lignes de commande fournisseur B2C historiques ne peuvent pas être supprimées."
+
+#. module: usl_b2c
+msgid "A historical B2C stock operation can be promoted only once."
+msgstr "Une opération de stock B2C historique ne peut être créée qu’une seule fois."
+
+#. module: usl_b2c
+msgid "Historical B2C stock operations cannot be deleted."
+msgstr "Les opérations de stock B2C historiques ne peuvent pas être supprimées."
+
+#. module: usl_b2c
+msgid "Historical B2C production orders cannot be deleted."
+msgstr "Les ordres de fabrication B2C historiques ne peuvent pas être supprimés."
+
+#. module: usl_b2c
+msgid "Historical supplier-pack conversions cannot be deleted."
+msgstr "Les déconditionnements historiques de lots fournisseur ne peuvent pas être supprimés."
+
+#. module: usl_b2c
+msgid "Historical B2C landed costs cannot be deleted."
+msgstr "Les coûts logistiques B2C historiques ne peuvent pas être supprimés."
+
+#. module: usl_b2c
+msgid "Completed historical B2C order lines are locked."
+msgstr "Les lignes de commande B2C historiques terminées sont verrouillées."
+
+#. module: usl_b2c
+msgid "Completed historical B2C stock operations are locked."
+msgstr "Les opérations de stock B2C historiques terminées sont verrouillées."
+
+#. module: usl_b2c
+msgid "Completed historical B2C stock moves are locked."
+msgstr "Les mouvements de stock B2C historiques terminés sont verrouillés."
+
+#. module: usl_b2c
+msgid "Completed historical B2C stock move lines are locked."
+msgstr "Les lignes de mouvement de stock B2C historiques terminées sont verrouillées."
+
+#. module: usl_b2c
+msgid "Completed historical B2C stock move lines cannot be deleted."
+msgstr "Les lignes de mouvement de stock B2C historiques terminées ne peuvent pas être supprimées."
+
+#. module: usl_b2c
+msgid "Historical B2C stock moves cannot be deleted."
+msgstr "Les mouvements de stock B2C historiques ne peuvent pas être supprimés."
+
+#. module: usl_b2c
+msgid "Completed historical B2C production orders are locked."
+msgstr "Les ordres de fabrication B2C historiques terminés sont verrouillés."
+
+#. module: usl_b2c
+msgid "Completed historical supplier-pack conversions are locked."
+msgstr "Les déconditionnements historiques terminés sont verrouillés."
+
+#. module: usl_b2c
+msgid "Validated historical B2C landed costs are locked."
+msgstr "Les coûts logistiques B2C historiques validés sont verrouillés."
+
+#. module: usl_b2c
+msgid "Validated historical B2C landed cost lines are locked."
+msgstr "Les lignes de coûts logistiques B2C historiques validées sont verrouillées."
+
+#. module: usl_b2c
+msgid "Validated historical B2C landed cost lines cannot be deleted."
+msgstr "Les lignes de coûts logistiques B2C historiques validées ne peuvent pas être supprimées."
+
+#. module: usl_b2c
+msgid "Validated historical B2C valuation adjustments are locked."
+msgstr "Les ajustements de valorisation B2C historiques validés sont verrouillés."
+
+#. module: usl_b2c
+msgid "Validated historical B2C valuation adjustments cannot be deleted."
+msgstr "Les ajustements de valorisation B2C historiques validés ne peuvent pas être supprimés."
+
+#. module: usl_b2c
+msgid "Historical B2C orders cannot create payment links because their payments were reconstructed separately."
+msgstr "Les commandes B2C historiques ne peuvent pas créer de liens de paiement, car leurs paiements ont été reconstruits séparément."
+
+#. module: usl_b2c
+msgid "Historical B2C orders cannot create payment transactions."
+msgstr "Les commandes B2C historiques ne peuvent pas créer de transactions de paiement."
+
+#. module: usl_b2c
+msgid "Historical B2C orders cannot be linked to payment transactions."
+msgstr "Les commandes B2C historiques ne peuvent pas être liées à des transactions de paiement."

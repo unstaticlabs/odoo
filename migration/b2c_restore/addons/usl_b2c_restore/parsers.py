@@ -5,7 +5,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
 try:
@@ -318,14 +318,20 @@ def load_csv(name, checksum, content, expected_header, *, delimiter=","):
 
 
 def money(value, *, default=None):
-    raw = (value or "").strip().replace("\u00a0", "").replace(" ", "")
+    raw = (value or "").strip().replace("\u00a0", " ")
     if not raw or raw in {"-", "--", "—"}:
         return default
     negative = raw.startswith("(") and raw.endswith(")")
     raw = raw.strip("()").replace("€", "").replace("£", "").replace("$", "")
-    raw = re.sub(r"\b(?:EUR|GBP|USD)\b", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"(?:EUR|GBP|USD)", "", raw, flags=re.IGNORECASE)
+    raw = raw.replace(" ", "")
     if "," in raw and "." in raw:
-        raw = raw.replace(",", "")
+        # The final separator is the decimal separator. This accepts both
+        # 1,234.56 and 1.234,56 without guessing from the caller's locale.
+        if raw.rfind(",") > raw.rfind("."):
+            raw = raw.replace(".", "").replace(",", ".")
+        else:
+            raw = raw.replace(",", "")
     elif "," in raw:
         raw = raw.replace(",", ".")
     try:
@@ -345,7 +351,10 @@ def parsed_datetime(value):
         return None
     normalized = raw.replace("Z", "+00:00")
     try:
-        return datetime.fromisoformat(normalized).replace(tzinfo=None)
+        parsed = datetime.fromisoformat(normalized)
+        if parsed.tzinfo:
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        return parsed
     except ValueError:
         pass
     for pattern in (

@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app string="B2C" name="usl_b2c" groups="usl_b2c.group_b2c_manager">
+                <app string="B2C" name="usl_b2c" groups="base.group_system">
                     <block title="Historical customer safeguards" name="historical_b2c_customer_safeguards">
                         <setting string="Allow communication with historical B2C customers"
                                  help="Enables customer-facing messages from reconstructed historical Sales orders. Historical invoice creation always remains blocked.">
