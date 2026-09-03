@@ -19,3 +19,9 @@ class SourcePolicyTests(unittest.TestCase):
         validate(event="merge_group", base="19-usl", head=None)
         with self.assertRaises(SourcePolicyError):
             validate(event="merge_group", base="main", head=None)
+
+    def test_protected_branch_push_is_qualified_after_merge(self):
+        validate(event="push", base="19-usl", head=None)
+        validate(event="push", base="19-usl-staging", head=None)
+        with self.assertRaises(SourcePolicyError):
+            validate(event="push", base="main", head=None)

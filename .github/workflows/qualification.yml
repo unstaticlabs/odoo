@@ -1,6 +1,8 @@
 name: USL qualification
 
 on:
+  push:
+    branches: [19-usl, 19-usl-staging]
   pull_request:
     branches: [19-usl, 19-usl-staging]
   merge_group:
@@ -21,7 +23,7 @@ jobs:
       - name: Enforce protected-branch source policy
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           base="${BASE_REF#refs/heads/}"

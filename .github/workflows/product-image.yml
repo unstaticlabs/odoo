@@ -31,6 +31,7 @@ jobs:
   admission:
     name: Admit qualified release source
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       checks: read
       contents: read
@@ -45,11 +46,25 @@ jobs:
         run: |
           case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
             push:refs/heads/19-usl|push:refs/heads/19-usl-staging)
-              gh api \
-                -H 'Accept: application/vnd.github+json' \
-                "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
-                --jq '[.check_runs[] | select(.name == "USL qualification" and .head_sha == env.GITHUB_SHA and .status == "completed" and .conclusion == "success") | {id, name, head_sha, conclusion, details_url}] | sort_by(.id) | last' \
-                > qualification-evidence.json
+              qualified=false
+              for attempt in $(seq 1 240); do
+                gh api \
+                  -H 'Accept: application/vnd.github+json' \
+                  "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
+                  --jq '[.check_runs[] | select(.name == "USL qualification" and .head_sha == env.GITHUB_SHA and .status == "completed") | {id, name, head_sha, conclusion, details_url}] | sort_by(.id) | last' \
+                  > qualification-evidence.json
+                conclusion="$(jq -r '.conclusion // empty' qualification-evidence.json)"
+                if [ "$conclusion" = success ]; then
+                  qualified=true
+                  break
+                fi
+                if [ -n "$conclusion" ]; then
+                  printf 'USL qualification concluded %s for %s\n' "$conclusion" "$GITHUB_SHA" >&2
+                  exit 1
+                fi
+                sleep 10
+              done
+              test "$qualified" = true
               test "$(jq -r '.head_sha // empty' qualification-evidence.json)" = "$GITHUB_SHA"
               ;;
             workflow_dispatch:refs/tags/recovery-*)
