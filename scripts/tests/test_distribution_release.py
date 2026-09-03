@@ -91,6 +91,9 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("name: USL qualification", qualification)
         self.assertIn("scripts/ci-product-database", qualification)
         self.assertIn("test \"$DATABASE\" = success", qualification)
+        self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
+        database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
+        self.assertIn("fetch-depth: 0", database_job)
 
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(
