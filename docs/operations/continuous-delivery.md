@@ -115,10 +115,13 @@ admission is read-only; mutation journeys belong in CI and staging.
 One operation lock is held per exact target. Backup stages already persist
 checksummed evidence and support bounded resume. The release state-machine
 library validates ordered, checksummed transitions and the pre/post-reopen
-recovery boundary; its fixed-launcher integration and interruption drill remain
-an activation gate. Automation must stay disabled until that integration is
-proven, because a partially materialized restore is not yet a supported resume
-point.
+recovery boundary. Public status and abort operations reject tampered or
+malformed state instead of rewriting it. A release backup can leave all cohort
+writers stopped after its successful capture; capture failure always restarts
+them. The fixed production launcher uses that mode and keeps the gateway in
+maintenance on every later failure. Full stage-by-stage fixed-launcher
+integration and interruption drills remain an activation gate: a partially
+materialized restore is not yet a supported unattended resume point.
 
 ## Failure boundary
 

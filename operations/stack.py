@@ -238,17 +238,28 @@ def _run_cohort(
         raise RuntimeError(f"cohort {action} returned invalid JSON") from error
 
 
-def with_writers_paused(runner, identity: dict, services: list[str], callback):
+def with_writers_paused(
+    runner,
+    identity: dict,
+    services: list[str],
+    callback,
+    *,
+    resume_after_success: bool = True,
+):
     runner.run(compose_command(identity, ["stop", "--timeout", "30", *services]))
+    succeeded = False
     try:
-        return callback()
+        result = callback()
+        succeeded = True
+        return result
     finally:
-        runner.run(
-            compose_command(
-                identity,
-                ["up", "--detach", "--wait", "--no-recreate", *services],
-            ),
-        )
+        if resume_after_success or not succeeded:
+            runner.run(
+                compose_command(
+                    identity,
+                    ["up", "--detach", "--wait", "--no-recreate", *services],
+                ),
+            )
 
 
 def _ensure_image(runner, image: str) -> None:
@@ -487,6 +498,11 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
 
 def backup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
+    leave_quiesced = bool(getattr(arguments, "leave_quiesced", False))
+    if leave_quiesced and arguments.action != "create":
+        raise RuntimeError("--leave-quiesced is valid only for backup create")
+    if leave_quiesced and arguments.resume:
+        raise RuntimeError("a resumed backup cannot establish writer quiescence")
     runner = target.runner()
     runtime = inspect_runtime(target, runner)
     release, release_sha, release_raw = _release(target, runner, arguments.release)
@@ -560,6 +576,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     identity,
                     writer_services,
                     capture_phase,
+                    resume_after_success=not leave_quiesced,
                 )
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
                 _record_event(
@@ -627,6 +644,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
+                "writers_quiesced": leave_quiesced,
                 "status": "qualified",
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -1882,6 +1900,11 @@ def build_parser() -> argparse.ArgumentParser:
     backup.add_argument("--release", type=Path)
     backup.add_argument("--run-id")
     backup.add_argument("--resume")
+    backup.add_argument(
+        "--leave-quiesced",
+        action="store_true",
+        help="leave cohort writers stopped after a successful capture",
+    )
     backup.add_argument("--snapshot")
     backup.add_argument("--json", action="store_true")
     backup.set_defaults(handler=backup_command)
