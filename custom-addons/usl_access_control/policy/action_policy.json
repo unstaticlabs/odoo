@@ -154312,7 +154312,6 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.context.tag._ensure_for_descriptor:sudo:4",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._cron_queue_existing_attachments:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:10",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:4",
@@ -154322,7 +154321,6 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:8",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:9",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:10",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:4",
@@ -154349,7 +154347,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._queue_existing_attachments:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._sync_source_attachment_ledger:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._sync_source_attachment_ledger:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:3",
@@ -158289,9 +158289,6 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:10": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -158317,9 +158314,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:10": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:2": {
@@ -158400,8 +158394,14 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._sync_source_attachment_ledger:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.operation.cron_process_attachment_queue"
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.operation.cron_process_attachment_queue"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.operation.cron_process_attachment_queue"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -161313,26 +161313,24 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.context.tag._ensure_for_descriptor:sudo:3": "41f973bbc130b2ade86d448b34c74a376de2991bf363769b57e9aa21e642203d",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.context.tag._ensure_for_descriptor:sudo:4": "a1151494e7e039364977abc816dc7cd37aafb6cabaabadf23487c49431b1c996",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._cron_queue_existing_attachments:sudo:1": "ab1b64b73b5ff8fc50af7d6552ff109d195c5f345e1cfbd67e00efde9499fda0",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:1": "bc7153589810be0e0dec3014145302776f7b95307d0e24dd4da94b4db969b11a",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:10": "d41f9c208f3dd1705b8802884de87134983b8e7a7ea97285d16bbdaf0878445e",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:2": "4b1e66e946f93e12209ae763ffb16e253673eac84d4e7a340191e91845400241",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:3": "d758710eba02b0a21775b78afd947073f1e78b18b868ff683c6acc08230127c1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:4": "b99d24c1521a8aa6d23ae8e73d9001f34f340f045c747959311f03b835bcffeb",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:5": "8f2a4a9cdafc960e231a0b377440d373ebd57f547029ace4bd3b0c8351ec2e27",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:6": "95e5f81a9f1d8d2d949955ba7bae3e2c89dc5ba26336d53445ee887e30cad948",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:7": "9cd94c2b6dfc336cc775da80d07ae132bc23072da653336832c2bbd4667861eb",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:8": "2f802fb3c04fc56cec370351404365c7144f025aeceaf412106a3ce43fc86d99",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:9": "ce4a663c8df774ca61614fa396292a414d5f0d08d4957a577b0d1a4e047f3808",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:1": "4b05137a4071748b6a3bfc2f8e985d559f7bdb1b808f55e0220c7ec8afe5b577",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:10": "f8fef5a19641f845d890bcbe4bf77d098b327c8c97db336f911a1aa6d9de0313",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:2": "2b75ca3d7a95e8f704a8288e11fb3835b89b8c17bc00dc8fcf4042150c6d7311",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:3": "e19405267e1f0b5f5f137e2f002acd5de6a936fa0df575b161d9b076e178c4bc",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:4": "a35547f5818c66bdc5b2129a0d1de5a745e0c282155f2150682324da0fd34a69",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:5": "df3d1ac43db8f7da98a57e161b121bce0e945789beee4bfba7c08160d2d4cd45",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:6": "76d3cbdeaa4e391ff618e68a5cea9ec66773f024ca8a882752d05df3b21be3ee",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:7": "ed1261db6d88f7a1430da5ec50a907d995e163d4970c89364fdad2e59cfe3e1d",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:8": "c2a7079d6b775f9aaf87e43c19ec66fabdf58b78fe911b5bf56a11985b7c08b5",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:9": "2b0bb9a2f4c077739f050809ce14759aafc3fc3ee30f7af90f9a264e3adbe2a9",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:1": "643416de0f0b34936f4e1068aa8e4716d404a3dce0394a9ec2fe8ec114dff26a",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:2": "f323f61b42d394788bbe5ddb3a173cfe51fcd9aea7c32b88e55e2a95f2cd2600",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:3": "882d881241a15179b33c70b087ce232ef97ee7451128e6ea3a5fafaeb0966fad",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:4": "39376c1bf8c0e6f3674580877b109680a918baee01ebc2e23f2fc9f7fa650519",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:5": "19710d36b26f64ecd7697d25ba35aa79f2abb246cf39971420a0ea9f076a1fc2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:6": "c7e1a0f4c64bdb548d251fafc0d1fbd3393c2d615629a22a951af5907e4f8a21",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:7": "71941f2134382f3c7498d6b15413b8715188f409f9b6225af8c4f3f5ceb2a30f",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:8": "2a952367c948a625f81d40becb6271262dd6636167e09c8e677e1d4a845d1bbe",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:orm_write:9": "6afbc4de196dd964bbddaa4ccbbd852b8d56db92cfd0c1e0dbb33689db40bd1c",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:1": "8f8afb227eb24c3d0a8a4960f266c3ca70272a110b6a377c08e136965655df29",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:2": "a0d53d84f248272e3356a43fe4190391562f5e5640b225461d4bde4c89bfef94",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:3": "ec3482a99030d4a5efb809c415a6bd74f739a23fd0f6181d8c9da0102439b82c",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:4": "4b28af5e828f9963a5c12945092ea76833d8b20acd1df40077343b0cc1e0d97e",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:5": "1f69547609c584b903a462bda128c91342105b7363ea390c3b8f357d9fde51c7",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:6": "431ebd90ff1b5ba491b5cf2b8a0b6f60e416c9092a74a77068537488f512eb0d",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:7": "403b21277728b9fc1a3ab2ba0350f2c7792eee970245373e90a3659928a564c8",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:8": "4511ae5bac95bdb39f20af49102516efd7bbb67b37a8bf4b3d8bd3561e006b3d",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._process_native_attachment:sudo:9": "18c077c8adacafddb411342208dcd277008bf1ed8637aa6dc690e7bc3e83f9da",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._queue_attachment:orm_create:1": "15074cb55ca19d5029208efe8b6308f7342225268dd4b48aece94f0512f35eac",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._queue_attachment:orm_write:1": "580fc3e7a57527da511df86802ed8f6cdd3c938d3e8e61a044ca8be463267dfa",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._queue_attachment:orm_write:2": "f107b487ec6b36bb5d74431b981b633a372b9eaf7392f2dbe9e8f30e34377162",
@@ -161351,7 +161349,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._queue_existing_attachments:sudo:1": "fd32ca95341bbee7073a5c385e11eac52159ad806dbd399ca89a9ea491f7f043",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._sync_source_attachment_ledger:orm_write:1": "de2cdf9c483fecef5f319718e4792c778ca52e2e88b29b40fd4828125b49436e",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation._sync_source_attachment_ledger:sudo:1": "10a88be9670ec142842aed3d07d7303ba44648e010e2a955f666b4e0e8a03cff",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:1": "4445ece0cb066c9c7d0c105ef42ee7779bbcf64f91a1b0b3fdbd77d2d78e0869",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:orm_write:1": "e9c50b85475198f210df9dd38e9649ee2c44860cc891f3db82fd8a25738b91ca",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:1": "5e8bf2ec54a36efd40710e490c171f44312d180c78bd939e3c7631d5f263bd54",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.cron_process_attachment_queue:sudo:2": "71ac56d415cd4c6e572c3a2270be41eb6098353612a9ee4db1a8bc3b1df5419d",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:1": "3d6ad84f95b6c4501f075430ce6905487c00e6aa3e0ef39a4f76bfb7070985f2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:2": "bfbb7cab5c4579a672a0fcd4fd7ffc06587b35511fa9277793cc5fd05120ca8d",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:3": "6d1d472ebc8c80bed03d4600e294c93bbb1c607786405fd29c310a24316fad03",
@@ -186023,6 +186023,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "304824c83ac81d350fedb2ecec82350a2591a6e077b43e7bb6a302610dab076d",
+  "qualified_policy_digest": "6ef8c0a77eec286cbb791f02cf9eaf3bd0b6816aba56bda8c6718425839e164e",
   "schema": "usl-action-risk-policy-v1"
 }
