@@ -39,6 +39,17 @@ class RuntimeResourceTests(unittest.TestCase):
         target = load_target("local", TARGETS)
         self.assertIsNone(_resource_overlay(target))
 
+    def test_runtime_schema_covers_every_target_field(self) -> None:
+        schema = json.loads(
+            (ROOT / "operations/contracts/usl-runtime-v1.schema.json").read_text(
+                encoding="utf-8",
+            ),
+        )
+        self.assertEqual(set(schema["required"]), set(schema["properties"]))
+        for target_name in ("local", "production", "staging"):
+            target = json.loads((TARGETS / f"{target_name}.json").read_text(encoding="utf-8"))
+            self.assertEqual(set(target), set(schema["properties"]))
+
 
 if __name__ == "__main__":
     unittest.main()
