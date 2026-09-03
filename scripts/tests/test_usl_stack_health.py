@@ -33,6 +33,21 @@ class HealthRunner:
                     "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n",
                     "curl: timeout after upgrade",
                 )
+            if "--fail" in command:
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    json.dumps(
+                        {
+                            "schema": "usl-odoo-mcp-readiness/v1",
+                            "status": "ready",
+                            "server_version": "1.0.0",
+                            "targets": 1,
+                            "oauth": {"status": "ready", "schema_version": 1},
+                        }
+                    ),
+                    "",
+                )
             return subprocess.CompletedProcess(command, 0, "200", "")
         joined = " ".join(command)
         if "configparser" in joined:
@@ -46,6 +61,18 @@ class HealthRunner:
             value = {
                 "digest": self.target.value["ollama"]["manifest_sha256"],
                 "dimension": 1024,
+            }
+            return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+        if "usl-sign-readiness/v1" in joined:
+            value = {
+                "schema": "usl-sign-readiness/v1",
+                "status": "ready",
+                "step_ca": {"status": "ok", "trust_sha256": "a" * 64},
+                "dss": {
+                    "status": "ok",
+                    "engine_version": "6.4",
+                    "trust_sha256": "b" * 64,
+                },
             }
             return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
         raise AssertionError(command)

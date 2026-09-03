@@ -700,6 +700,97 @@ def _python_probe(target, runner, identity, service_key: str, program: str) -> d
     return value
 
 
+def _validate_mcp_readiness(value: object, *, require_oauth: bool) -> dict:
+    if not isinstance(value, dict) or value.get("schema") != "usl-odoo-mcp-readiness/v1":
+        raise RuntimeError("MCP readiness evidence schema differs")
+    version = value.get("server_version")
+    if not isinstance(version, str) or not re.fullmatch(r"1\.[0-9]+\.[0-9]+", version):
+        raise RuntimeError("MCP readiness reports an unsupported server version")
+    oauth = value.get("oauth")
+    if not isinstance(oauth, dict) or oauth.get("schema_version") != 1:
+        raise RuntimeError("MCP readiness reports an unsupported OAuth-vault schema")
+    allowed_oauth = {"ready"} if require_oauth else {"ready", "disabled"}
+    if oauth.get("status") not in allowed_oauth:
+        raise RuntimeError("MCP OAuth vault is not ready")
+    if value.get("status") != "ready" or not isinstance(value.get("targets"), int) or value["targets"] < 1:
+        raise RuntimeError("MCP runtime is not ready")
+    return {
+        "schema": value["schema"],
+        "server_version": version,
+        "oauth": {
+            "schema_version": oauth["schema_version"],
+            "status": oauth["status"],
+        },
+        "targets": value["targets"],
+        "status": value["status"],
+    }
+
+
+def _mcp_readiness(target, runner) -> dict:
+    url = target.value["endpoints"]["mcp"].rstrip("/") + "/readyz"
+    result = runner.run(
+        ["curl", "--silent", "--show-error", "--fail", "--max-time", "10", url],
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError("MCP readiness endpoint is unavailable")
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("MCP readiness endpoint did not return JSON") from error
+    return _validate_mcp_readiness(
+        value,
+        require_oauth=target.value["environment"] in {"production", "staging"},
+    )
+
+
+def _sign_readiness(target, runner, identity) -> dict:
+    # This probe performs only trusted health reads. It records public trust
+    # material identities, never provisioner keys, keystore values or secrets.
+    program = (
+        "import hashlib,json,os,pathlib,ssl,urllib.request;"
+        "ca_url=os.environ['USL_SIGN_STEP_CA_URL'].rstrip('/');"
+        "ca_bundle=os.environ['USL_SIGN_STEP_CA_CA_BUNDLE'];"
+        "ca_ctx=ssl.create_default_context(cafile=ca_bundle);"
+        "ca=json.load(urllib.request.urlopen(ca_url+'/health',context=ca_ctx,timeout=10));"
+        "dss_url=os.environ['USL_SIGN_DSS_URL'].rstrip('/');"
+        "dss_bundle=os.environ['USL_SIGN_DSS_CA_BUNDLE'];"
+        "dss_ctx=ssl.create_default_context(cafile=dss_bundle);"
+        "dss_ctx.load_cert_chain(os.environ['USL_SIGN_DSS_CLIENT_CERT'],os.environ['USL_SIGN_DSS_CLIENT_KEY']);"
+        "req=urllib.request.Request(dss_url+'/v1/health',data=b'{}',headers={'Content-Type':'application/json','Accept':'application/json'});"
+        "dss=json.load(urllib.request.urlopen(req,context=dss_ctx,timeout=10));"
+        "assert ca.get('status')=='ok' and dss.get('ok') is True and dss.get('engineVersion')=='6.4';"
+        "print(json.dumps({'schema':'usl-sign-readiness/v1','status':'ready',"
+        "'step_ca':{'status':'ok','trust_sha256':hashlib.sha256(pathlib.Path(ca_bundle).read_bytes()).hexdigest()},"
+        "'dss':{'status':'ok','engine_version':dss['engineVersion'],'trust_sha256':hashlib.sha256(pathlib.Path(dss_bundle).read_bytes()).hexdigest()}}))"
+    )
+    return _python_probe(target, runner, identity, "odoo", program)
+
+
+def _validate_sign_readiness(value: object) -> dict:
+    if (
+        not isinstance(value, dict)
+        or value.get("schema") != "usl-sign-readiness/v1"
+        or value.get("status") != "ready"
+        or not isinstance(value.get("step_ca"), dict)
+        or not isinstance(value.get("dss"), dict)
+        or value["step_ca"].get("status") != "ok"
+        or value["dss"].get("status") != "ok"
+        or value["dss"].get("engine_version") != "6.4"
+    ):
+        raise RuntimeError("Sign readiness evidence differs")
+    for service in ("step_ca", "dss"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(value[service].get("trust_sha256", ""))):
+            raise RuntimeError("Sign public trust identity is invalid")
+    return value
+
+
+def _runtime_admission_evidence(target, runner, identity) -> dict:
+    mcp = _mcp_readiness(target, runner)
+    sign = _validate_sign_readiness(_sign_readiness(target, runner, identity))
+    return {"mcp": mcp, "sign": sign}
+
+
 def health_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -824,6 +915,11 @@ def health_command(arguments: argparse.Namespace) -> int:
         ollama_status = None
     else:
         ollama_status = json.loads(ollama_result.stdout)
+    try:
+        service_evidence = _runtime_admission_evidence(target, runner, identity)
+    except RuntimeError as error:
+        failures.append("cohort:readiness-evidence")
+        service_evidence = {"error": str(error)}
     result = {
         "schema": "usl-runtime-health/v1",
         "target": target.name,
@@ -833,6 +929,7 @@ def health_command(arguments: argparse.Namespace) -> int:
         "odoo_config": odoo_config,
         "websocket": websocket_status,
         "ollama": ollama_status,
+        "services": service_evidence,
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0 if not failures else 2
@@ -873,6 +970,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
             "'vectors':'/usr/src/paperless/data/llm_index'};"
             "print(json.dumps({k:sum(1 for x in pathlib.Path(v).rglob('*') if x.is_file()) for k,v in roots.items()}))",
         )
+        service_evidence = _runtime_admission_evidence(target, runner, identity)
     except (RuntimeError, json.JSONDecodeError) as error:
         raise RuntimeError(f"read-only database smoke failed: {error}") from error
     failures = []
@@ -929,6 +1027,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         "failures": failures,
         "controls": {"odoo": odoo, "paperless": paperless},
         "cron_policy": cron_status,
+        "services": service_evidence,
         "storage": {"odoo": odoo_storage, "paperless": paperless_storage},
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
