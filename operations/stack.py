@@ -1594,7 +1594,7 @@ def _apply_generation_cron_policy(target, runner, release, network, volumes) -> 
 
 
 def _notify_release(target, runner, release_id: str) -> dict:
-    """Send a transient native Odoo notification to active human users."""
+    """Post one persistent OdooBot release note in the native upgrade channel."""
     if target.value["environment"] != "production":
         raise RuntimeError("release notifications are production-only")
     if not re.fullmatch(r"[0-9a-f]{64}", release_id):
@@ -1613,23 +1613,57 @@ def _notify_release(target, runner, release_id: str) -> dict:
     database = target.value["databases"]["odoo"]
     program = """
 import json
+from markupsafe import Markup, escape
+from odoo import fields
 release_id = env.context.get("usl_release_notification_id")
-domain = [("active", "=", True), ("share", "=", False)]
-if "usl_managed_agent_id" in env["res.users"]._fields:
-    domain.append(("usl_managed_agent_id", "=", False))
-users = env["res.users"].sudo().search(domain)
-payload = {
-    "type": "success",
-    "title": "USL Distribution updated",
-    "message": "Production release %s is now active." % release_id[:12],
-    "sticky": False,
-}
-for user in users:
-    user._bus_send("simple_notification", payload)
+notes = json.loads(env.context.get("usl_release_notification_notes"))
+evidence_url = env.context.get("usl_release_notification_evidence_url")
+channel = env.ref("mail.channel_all_employees").sudo()
+odoobot = env.ref("base.partner_root").sudo()
+external_message_id = "<usl-release-%s@unstaticlabs.com>" % release_id
+message = env["mail.message"].sudo().search([
+    ("model", "=", channel._name),
+    ("res_id", "=", channel.id),
+    ("message_id", "=", external_message_id),
+], limit=1)
+status = "already_posted"
+if not message:
+    items = Markup("").join(
+        Markup("<li>%s</li>") % escape(item)
+        for item in notes["changes"]
+    )
+    action = Markup("")
+    if notes.get("action_required"):
+        action = Markup("<p><strong>Action required:</strong> %s</p>") % escape(
+            notes["action_required"]
+        )
+    body = (
+        Markup("<h3>%s</h3><p>%s</p><ul>%s</ul>%s")
+        % (escape(notes["title"]), escape(notes["summary"]), items, action)
+        + Markup(
+            "<p>Deployed %s · release <code>%s</code> · "
+            '<a href="%s">technical evidence</a></p>'
+        )
+        % (
+            escape(fields.Datetime.now()),
+            escape(release_id[:12]),
+            escape(evidence_url),
+        )
+    )
+    message = channel.message_post(
+        author_id=odoobot.id,
+        body=body,
+        email_add_signature=False,
+        message_id=external_message_id,
+        message_type="comment",
+        subtype_xmlid="mail.mt_comment",
+    )
+    status = "posted"
 print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
+    "channel": "mail.channel_all_employees",
+    "message_id": message.id,
     "release": release_id,
-    "recipients": len(users),
-    "status": "sent",
+    "status": status,
 }, sort_keys=True))
 """
     result = runner.run(
@@ -1651,6 +1685,10 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
         input_text=(
             "env = env(context=dict(env.context, usl_release_notification_id="
             + repr(release_id)
+            + ", usl_release_notification_notes="
+            + repr(json.dumps(release["release_notes"], sort_keys=True))
+            + ", usl_release_notification_evidence_url="
+            + repr(release["build"]["workflow_url"])
             + "))\n"
             + program
         ),
@@ -1662,7 +1700,12 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
                 value = json.loads(line.removeprefix(prefix))
             except json.JSONDecodeError as error:
                 raise RuntimeError("release notification returned invalid evidence") from error
-            if value.get("status") != "sent" or value.get("release") != release_id:
+            if (
+                value.get("status") not in {"posted", "already_posted"}
+                or value.get("release") != release_id
+                or value.get("channel") != "mail.channel_all_employees"
+                or not isinstance(value.get("message_id"), int)
+            ):
                 raise RuntimeError("release notification evidence differs")
             return value
     raise RuntimeError("release notification returned no evidence")

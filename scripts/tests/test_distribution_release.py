@@ -57,6 +57,12 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
+        self.assertIn("--release-notes operations/release-notes.json", self.workflow)
+        notes = json.loads(
+            (ROOT / "operations/release-notes.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(notes["schema"], "usl-release-notes/v1")
+        self.assertTrue(notes["changes"])
 
     def test_release_is_only_published_from_permanent_release_branches(self) -> None:
         self.assertIn("- 19-usl-staging", self.workflow)

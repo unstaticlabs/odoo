@@ -53,6 +53,33 @@ def _sorted_strings(value: object, label: str) -> list[str]:
     return value
 
 
+def _release_notes(value: object) -> dict[str, Any]:
+    notes = _object(
+        value,
+        {"schema", "title", "summary", "changes", "action_required"},
+        "release_notes",
+    )
+    if notes["schema"] != "usl-release-notes/v1":
+        raise ReleaseManifestError("release notes schema is invalid")
+    for name, maximum in (("title", 100), ("summary", 500)):
+        text = notes[name]
+        if not isinstance(text, str) or not text.strip() or len(text) > maximum:
+            raise ReleaseManifestError(f"release_notes.{name} is invalid")
+    changes = notes["changes"]
+    if (
+        not isinstance(changes, list)
+        or not 1 <= len(changes) <= 12
+        or not all(isinstance(item, str) and item.strip() and len(item) <= 300 for item in changes)
+    ):
+        raise ReleaseManifestError("release_notes.changes is invalid")
+    action = notes["action_required"]
+    if action is not None and (
+        not isinstance(action, str) or not action.strip() or len(action) > 500
+    ):
+        raise ReleaseManifestError("release_notes.action_required is invalid")
+    return notes
+
+
 def _mcp_contract(value: object) -> dict[str, Any]:
     fields = {
         "schema",
@@ -197,7 +224,7 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         return root
     root = _object(
         payload,
-        {"schema", "identity", "source", "components", "modules", "foundation", "mcp", "mcp_contract", "renderer", "ollama", "qualification", "build"},
+        {"schema", "identity", "source", "components", "modules", "foundation", "mcp", "mcp_contract", "renderer", "ollama", "release_notes", "qualification", "build"},
         "release",
     )
     if root["schema"] != SCHEMA:
@@ -205,6 +232,7 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
     _validate_common(root, commit=commit, legacy=False)
     validate_inventory(root["modules"])
     _mcp_contract(root["mcp_contract"])
+    _release_notes(root["release_notes"])
     foundation = _object(
         root["foundation"],
         {"odoo_series", "odoo_core_commit", "odoo_core_sha256", "oca_sha256", "python_constraints_sha256", "security_policy_sha256", "digest"},
@@ -281,6 +309,9 @@ def create(arguments: argparse.Namespace) -> int:
     renderer = _read_json(Path(arguments.renderer_release), "renderer release")
     if renderer.get("schema") != "usl-external-oci-image/v2":
         raise ReleaseManifestError("renderer release has the wrong schema")
+    release_notes = _release_notes(
+        _read_json(Path(arguments.release_notes), "release notes")
+    )
     foundation_body = {
         "odoo_series": arguments.odoo_series,
         "odoo_core_commit": arguments.odoo_core_commit,
@@ -331,6 +362,7 @@ def create(arguments: argparse.Namespace) -> int:
         },
         "renderer": {"repository": renderer["repository"], "commit": renderer["commit"], "image": renderer["image_digest"]},
         "ollama": {"model": arguments.ollama_model, "manifest_sha256": arguments.ollama_manifest, "dimension": arguments.ollama_dimension},
+        "release_notes": release_notes,
         "qualification": {"evidence": _parse_evidence(arguments.evidence)},
         "build": {"workflow_run_id": arguments.workflow_run_id, "workflow_run_attempt": arguments.workflow_run_attempt, "workflow_url": arguments.workflow_url},
     }
@@ -363,6 +395,7 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--commit", required=True)
     create_command.add_argument("--component", action="append", required=True)
     create_command.add_argument("--renderer-release", required=True)
+    create_command.add_argument("--release-notes", required=True)
     create_command.add_argument("--odoo-core-commit", required=True)
     create_command.add_argument("--odoo-core-sha256", required=True)
     create_command.add_argument("--odoo-series", default="19.3")

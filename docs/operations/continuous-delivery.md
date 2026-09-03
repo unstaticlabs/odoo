@@ -78,9 +78,15 @@ scripts/usl-stack --target staging cleanup plan
 ```
 
 The fixed controller additionally uses a release-bound internal notification
-operation after production admission. It can only announce the exact active
-64-character release identity and sends a transient native Odoo notification
-to active human internal users; non-interactive Agent identities are excluded.
+operation after production admission. It can announce only the exact active
+64-character release identity. OdooBot posts the reviewed user-facing notes
+from that signed release manifest in Odoo's native all-employees upgrade
+channel. The post is persistent, links to technical evidence, and is
+idempotent for the release identity; it is not a transient browser popup.
+Before promoting a user-visible release, update
+`operations/release-notes.json` in the reviewed release PR. The v3 builder
+rejects missing, empty, oversized, or structurally unknown notes and binds the
+accepted content into the signed release identity.
 
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
@@ -127,9 +133,10 @@ candidate convergence, read-only smoke admission independently rejects
 unknown, missing, ambiguously identified, unexpectedly active, failed, or
 overdue scheduled actions. Production's explicit gate decisions and staging's
 fully neutralized state are separate target policy.
-Sign service identities and semantic MCP OAuth-vault controls remain
-activation gates. Production admission is read-only; mutation journeys belong
-in CI and staging.
+Sign service identities and semantic MCP OAuth-vault controls are implemented
+as read-only admission evidence. Their live staging, recovery, and rollback
+drills remain activation gates. Production admission is read-only; mutation
+journeys belong in CI and staging.
 
 One operation lock is held per exact target, and a second host-wide lock
 serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence

@@ -297,6 +297,7 @@ jobs:
             --commit "$GITHUB_SHA" \
             "${arguments[@]}" \
             --renderer-release deploy/document-renderer/release.json \
+            --release-notes operations/release-notes.json \
             --odoo-series 19.3 \
             --odoo-core-commit "$odoo_core_commit" \
             --odoo-core-sha256 "$odoo_core_sha" \
