@@ -8,3 +8,4 @@ docker/*
 !scripts/
 scripts/*
 !scripts/cohort-runtime
+!scripts/usl-stack

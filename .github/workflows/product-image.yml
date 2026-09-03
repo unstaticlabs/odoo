@@ -6,10 +6,13 @@ on:
   push:
     branches:
       - 19-usl
-      - codex/chore-post-migration-continuous-operations
-    tags:
-      - production-migration-*
+      - 19-usl-staging
   workflow_dispatch:
+    inputs:
+      recovery_ref:
+        description: Recovery release reference (must start with recovery-)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -25,6 +28,44 @@ env:
   OLLAMA_DIMENSION: "1024"
 
 jobs:
+  admission:
+    name: Admit qualified release source
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+    outputs:
+      evidence_sha256: ${{ steps.admit.outputs.evidence_sha256 }}
+    steps:
+      - name: Admit a protected branch commit or explicit recovery tag
+        id: admit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RECOVERY_REF: ${{ inputs.recovery_ref }}
+        run: |
+          case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+            push:refs/heads/19-usl|push:refs/heads/19-usl-staging)
+              gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
+                --jq '[.check_runs[] | select(.name == "USL qualification" and .head_sha == env.GITHUB_SHA and .status == "completed" and .conclusion == "success") | {id, name, head_sha, conclusion, details_url}] | sort_by(.id) | last' \
+                > qualification-evidence.json
+              test "$(jq -r '.head_sha // empty' qualification-evidence.json)" = "$GITHUB_SHA"
+              ;;
+            workflow_dispatch:refs/tags/recovery-*)
+              test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"
+              jq -n --arg event "$GITHUB_EVENT_NAME" --arg ref "$GITHUB_REF" --arg sha "$GITHUB_SHA" \
+                '{event: $event, ref: $ref, commit: $sha, explicitly_dispatched: true}' \
+                > qualification-evidence.json
+              ;;
+            *)
+              printf 'Release source is not authorized: %s %s\n' "$GITHUB_EVENT_NAME" "$GITHUB_REF" >&2
+              exit 2
+              ;;
+          esac
+          evidence_sha256="$(sha256sum qualification-evidence.json | cut -d' ' -f1)"
+          echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
+
   resolve:
     name: Resolve component inputs
     runs-on: ubuntu-latest
@@ -63,7 +104,7 @@ jobs:
 
   external:
     name: Verify MCP and renderer
-    needs: resolve
+    needs: [admission, resolve]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -99,7 +140,7 @@ jobs:
 
   component:
     name: ${{ matrix.name }} image
-    needs: resolve
+    needs: [admission, resolve]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -212,11 +253,14 @@ jobs:
 
   release:
     name: Assemble coordinated release
-    needs: [resolve, test, external, component]
+    needs: [admission, resolve, test, external, component]
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -230,9 +274,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install ORAS
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
       - name: Create release manifest from published components
         run: |
           scripts/component-build --json > component-inputs.json
+          odoo_core_commit="$(git log -1 --format=%H -- odoo addons setup setup.py MANIFEST.in)"
+          odoo_core_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import odoo_core_sha256; print(odoo_core_sha256())')"
+          scripts/sync-oca-addons
+          oca_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+          constraints_sha="$(sha256sum docker/constraints.txt requirements.txt | sha256sum | cut -d' ' -f1)"
+          policy_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
+          contract_evidence="$(git ls-files operations scripts/tests .github/workflows | xargs sha256sum | sha256sum | cut -d' ' -f1)"
           arguments=()
           while IFS=$'\t' read -r name inputs image tag; do
             digest="sha256:$(docker buildx imagetools inspect --raw "$image:$tag" | sha256sum | cut -d' ' -f1)"
@@ -240,25 +293,67 @@ jobs:
           done < <(jq -r '.components | to_entries[] | [.key,.value.input_sha256,.value.image,.value.tag] | @tsv' component-inputs.json)
           scripts/release-manifest create \
             --repository "$GITHUB_REPOSITORY" \
+            --source-ref "$GITHUB_REF" \
             --commit "$GITHUB_SHA" \
             "${arguments[@]}" \
             --renderer-release deploy/document-renderer/release.json \
-            --ollama-image "$OLLAMA_IMAGE" \
+            --odoo-series 19.3 \
+            --odoo-core-commit "$odoo_core_commit" \
+            --odoo-core-sha256 "$odoo_core_sha" \
+            --oca-sha256 "$oca_sha" \
+            --python-constraints-sha256 "$constraints_sha" \
+            --security-policy-sha256 "$policy_sha" \
             --ollama-model "$OLLAMA_MODEL" \
             --ollama-manifest "$OLLAMA_MANIFEST_SHA256" \
             --ollama-dimension "$OLLAMA_DIMENSION" \
+            --evidence "usl-qualification=${{ needs.admission.outputs.evidence_sha256 }}" \
+            --evidence "release-contract=$contract_evidence" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             --output usl-release.json
           scripts/release-manifest validate usl-release.json --commit "$GITHUB_SHA"
-      - name: Upload coordinated release
+      - name: Publish coordinated release as immutable OCI artifact
+        id: release_oci
+        run: |
+          reference="ghcr.io/unstaticlabs/usl-odoo-release:sha-$GITHUB_SHA"
+          oras push --artifact-type application/vnd.usl.odoo.release.v3+json \
+            "$reference" usl-release.json:application/json
+          digest="$(oras resolve "$reference")"
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "reference=ghcr.io/unstaticlabs/usl-odoo-release@$digest" >> "$GITHUB_OUTPUT"
+      - name: Attest coordinated release
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ghcr.io/unstaticlabs/usl-odoo-release
+          subject-digest: ${{ steps.release_oci.outputs.digest }}
+          push-to-registry: true
+      - name: Retain human-readable release evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: usl-release-${{ github.sha }}
           path: usl-release.json
           if-no-files-found: error
           retention-days: 90
+      - name: Trigger protected GitOps ingestion
+        if: vars.USL_RELEASE_AUTOMATION_ENABLED == 'true'
+        env:
+          GITOPS_PIPELINE_TRIGGER_URL: ${{ secrets.GITOPS_PIPELINE_TRIGGER_URL }}
+          GITOPS_PIPELINE_TRIGGER_TOKEN: ${{ secrets.GITOPS_PIPELINE_TRIGGER_TOKEN }}
+          RELEASE_MANIFEST_DIGEST: ${{ steps.release_oci.outputs.reference }}
+        run: |
+          test -n "$GITOPS_PIPELINE_TRIGGER_URL"
+          test -n "$GITOPS_PIPELINE_TRIGGER_TOKEN"
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            --request POST "$GITOPS_PIPELINE_TRIGGER_URL" \
+            --form "token=$GITOPS_PIPELINE_TRIGGER_TOKEN" \
+            --form "ref=main" \
+            --form "variables[USL_RELEASE_MANIFEST]=$RELEASE_MANIFEST_DIGEST" \
+            --form "variables[USL_SOURCE_REPOSITORY]=$GITHUB_REPOSITORY" \
+            --form "variables[USL_SOURCE_REF]=$GITHUB_REF" \
+            --form "variables[USL_SOURCE_COMMIT]=$GITHUB_SHA" \
+            --form "variables[USL_GITHUB_RUN_ID]=$GITHUB_RUN_ID"
       - name: Summarize release
         run: |
           {

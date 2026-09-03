@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+run_id="${GITHUB_RUN_ID:-local}"
+attempt="${GITHUB_RUN_ATTEMPT:-1}"
+project="usl-qualification-${run_id}-${attempt}"
+database="usl_qualification_${run_id}_${attempt}"
+project="${project//[^A-Za-z0-9_-]/-}"
+database="${database//[^A-Za-z0-9_]/_}"
+export COMPOSE_PROJECT_NAME="$project"
+export ODOO_DEV_DB="$database"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+compose=(docker compose -p "$project")
+cleanup() {
+  "${compose[@]}" down --volumes --remove-orphans >/dev/null 2>&1 || true
+}
+trap cleanup EXIT INT TERM
+
+scripts/sync-oca-addons
+modules="$(PYTHONPATH=. python3 - <<'PY'
+from pathlib import Path
+from operations.module_release import build_inventory
+
+print(",".join(sorted(build_inventory(Path.cwd(), require_dependencies=True)["modules"])))
+PY
+)"
+test -n "$modules"
+
+"${compose[@]}" up -d --wait db
+"${compose[@]}" --profile test build test
+
+odoo_run() {
+  "${compose[@]}" --profile test run --rm -T \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e ACTION_RISK_MODE="${ACTION_RISK_MODE:-check}" \
+    test odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --without-demo=true \
+    --workers=0 \
+    --max-cron-threads=0 \
+    --no-http \
+    --stop-after-init \
+    --log-level=warn \
+    "$@"
+}
+
+odoo_shell() {
+  "${compose[@]}" --profile test run --rm -T --no-deps \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e ACTION_RISK_MODE="${ACTION_RISK_MODE:-check}" \
+    test odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --shell-interface=python
+}
+
+printf 'Installing %s product modules into %s\n' "$(tr ',' '\n' <<<"$modules" | wc -l | tr -d ' ')" "$database"
+odoo_run --init="$modules"
+odoo_shell < scripts/odoo/enforce_product_module_scope.py
+odoo_run --update="$modules"
+odoo_run --update="$modules"
+
+USL_PRODUCT_BOUNDARY_PREPROD=0 odoo_shell < scripts/odoo/product_database_boundary.py
+
+ACTION_RISK_MODE=check odoo_shell < scripts/odoo/action_risk_inventory.py
+
+printf 'Clean install, repeated upgrade and runtime boundaries passed.\n'

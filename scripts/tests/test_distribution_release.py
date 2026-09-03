@@ -58,6 +58,30 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
 
+    def test_release_is_only_published_from_permanent_release_branches(self) -> None:
+        self.assertIn("- 19-usl-staging", self.workflow)
+        self.assertIn("- 19-usl", self.workflow)
+        self.assertNotIn("- codex/chore-post-migration-continuous-operations", self.workflow)
+        self.assertIn("usl-odoo-release", self.workflow)
+        self.assertIn("actions/attest@", self.workflow)
+
+    def test_release_requires_exact_successful_qualification_or_recovery_tag(self) -> None:
+        self.assertIn('.name == "USL qualification"', self.workflow)
+        self.assertIn('.head_sha == env.GITHUB_SHA', self.workflow)
+        self.assertIn('.conclusion == "success"', self.workflow)
+        self.assertIn("workflow_dispatch:refs/tags/recovery-*", self.workflow)
+        self.assertIn('test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"', self.workflow)
+
+    def test_stable_required_gate_includes_clean_database_qualification(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("pull_request:", qualification)
+        self.assertIn("merge_group:", qualification)
+        self.assertIn("name: USL qualification", qualification)
+        self.assertIn("scripts/ci-product-database", qualification)
+        self.assertIn("test \"$DATABASE\" = success", qualification)
+
     def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
         self.assertIn(
             "ref: ${{ needs.resolve.outputs.mcp_commit }}",

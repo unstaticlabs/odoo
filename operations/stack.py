@@ -14,6 +14,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from operations.release_manifest import validate as validate_release
+from operations.module_release import (
+    ModuleReleaseError,
+    derive_legacy_upgrade_plan,
+    derive_upgrade_plan,
+    validate_upgrade_plan,
+)
 from operations.runtime import (
     RuntimeError,
     compose_command,
@@ -349,7 +355,7 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
 def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
     _report("restore", "rollback", "started", f"activation failed: {error}")
     rollback = runner.run(
-        compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]),
+        compose_command(identity, ["up", "--detach", "--wait"]),
         check=False,
     )
     if rollback.returncode:
@@ -743,19 +749,40 @@ def smoke_command(arguments: argparse.Namespace) -> int:
 SELECT json_build_object(
   'companies', (SELECT count(*) FROM res_company),
   'users', (SELECT count(*) FROM res_users),
+  'employees', (SELECT count(*) FROM hr_employee),
+  'agents', (SELECT count(*) FROM usl_agent),
   'moves', (SELECT count(*) FROM account_move),
   'move_lines', (SELECT count(*) FROM account_move_line),
+  'posted_move_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, journal_id, name, date, state, amount_total, amount_residual, payment_state), E'\n' ORDER BY id), '')) FROM account_move WHERE state = 'posted'),
+  'posted_line_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, move_id, company_id, account_id, debit, credit, balance, currency_id, amount_currency, reconciled), E'\n' ORDER BY id), '')) FROM account_move_line WHERE parent_state = 'posted'),
+  'partial_reconcile_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, debit_move_id, credit_move_id, amount, debit_amount_currency, credit_amount_currency), E'\n' ORDER BY id), '')) FROM account_partial_reconcile),
+  'acl_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, group_id, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_model_access),
+  'record_rule_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_rule),
+  'currency_rate_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, currency_id, name, rate), E'\n' ORDER BY id), '')) FROM res_currency_rate),
   'attachments', (SELECT count(*) FROM ir_attachment),
+  'messages', (SELECT count(*) FROM mail_message),
+  'activities', (SELECT count(*) FROM mail_activity),
   'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
   'projects', (SELECT count(*) FROM project_project),
   'tasks', (SELECT count(*) FROM project_task),
   'expenses', (SELECT count(*) FROM hr_expense),
+  'assets', (SELECT count(*) FROM account_asset),
+  'analytics', (SELECT count(*) FROM account_analytic_line),
+  'taxes', (SELECT count(*) FROM account_tax),
+  'platform_sessions', (SELECT count(*) FROM usl_platform_billing_session),
+  'platform_payouts', (SELECT count(*) FROM usl_platform_billing_payout),
+  'tese_payslips', (SELECT count(*) FROM usl_tese_payslip),
   'ledger_delta', (SELECT coalesce(sum(debit-credit), 0) FROM account_move_line),
-  'queued_mail', (SELECT count(*) FROM mail_mail WHERE state IN ('outgoing','exception')),
-  'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','failed','duplicate')),
-  'bank_unsettled', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing','failed')),
-  'payment_unsettled', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized','error')),
-  'sign_archive_unsettled', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing','failed')),
+  'queued_mail', (SELECT count(*) FROM mail_mail WHERE state = 'outgoing'),
+  'failed_mail', (SELECT count(*) FROM mail_mail WHERE state = 'exception'),
+  'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','duplicate')),
+  'failed_documents', (SELECT count(*) FROM usl_document_operation WHERE state = 'failed'),
+  'bank_pending', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing')),
+  'bank_failed', (SELECT count(*) FROM account_bank_ingestion WHERE state = 'failed'),
+  'payment_pending', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized')),
+  'payment_failed', (SELECT count(*) FROM payment_transaction WHERE state = 'error'),
+  'sign_archive_pending', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing')),
+  'sign_archive_failed', (SELECT count(*) FROM sign_oca_request WHERE archive_status = 'failed'),
   'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active)
 );""".strip()
     paperless_query = """
@@ -796,15 +823,15 @@ SELECT json_build_object(
         failures.append("accounting:unbalanced")
     if min(odoo["companies"], odoo["users"], odoo["moves"], odoo["attachments"]) < 1:
         failures.append("odoo:empty-control")
-    queue_keys = (
-        "queued_mail",
-        "pending_documents",
-        "bank_unsettled",
-        "payment_unsettled",
-        "sign_archive_unsettled",
+    failed_queue_keys = (
+        "failed_mail",
+        "failed_documents",
+        "bank_failed",
+        "payment_failed",
+        "sign_archive_failed",
     )
-    if any(odoo[key] for key in queue_keys):
-        failures.append("odoo:pending-queue")
+    if any(odoo[key] for key in failed_queue_keys):
+        failures.append("odoo:failed-queue")
     if odoo["cron_failures"]:
         failures.append("odoo:cron-failures")
     if odoo_storage["files"] < odoo["stored_attachments"]:
@@ -1203,12 +1230,42 @@ def _validate_materialized_release(
     require_sign_secrets: bool = False,
 ) -> None:
     embedded = materialized.get("release", {})
-    if embedded.get("manifest_sha256") != release_sha:
-        raise RuntimeError("selected release differs from the cohort release")
-    if embedded.get("commit") != release["source"]["commit"]:
-        raise RuntimeError("selected release commit differs from the cohort release")
+    if not isinstance(embedded.get("manifest_sha256"), str) or len(embedded["manifest_sha256"]) != 64:
+        raise RuntimeError("cohort has no verified original release identity")
+    if not isinstance(embedded.get("commit"), str) or len(embedded["commit"]) != 40:
+        raise RuntimeError("cohort has no verified original release commit")
+    if release.get("schema") == "usl-release/v2" and embedded.get("manifest_sha256") != release_sha:
+        raise RuntimeError("legacy restore release differs from the cohort release")
     if require_sign_secrets and not materialized.get("sign_secrets_restored"):
         raise RuntimeError("production recovery lacks complete Sign secret material")
+
+
+def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> None:
+    modules = validate_upgrade_plan(plan)["upgrade_modules"]
+    if not modules:
+        return
+    if plan["candidate_release"] != release.get("identity"):
+        raise RuntimeError("upgrade plan is not bound to the candidate release")
+    database = target.value["databases"]["odoo"]
+    runner.run(
+        [
+            "docker", "run", "--rm", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}",
+            f"--update={','.join(modules)}",
+            "--stop-after-init", "--no-http", "--max-cron-threads=0",
+        ],
+    )
 
 
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
@@ -1223,7 +1280,16 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("source and target must be reachable through the same runtime host")
     current = inspect_runtime(target, target_runner)
     _secret_file(target, target_runner)
-    release, release_sha, release_raw = _release(source, target_runner, arguments.release)
+    release_override = getattr(arguments, "target_release", None) or arguments.release
+    release, release_sha, release_raw = _release(source, target_runner, release_override)
+    upgrade_plan = None
+    if getattr(arguments, "upgrade_plan", None):
+        try:
+            upgrade_plan = validate_upgrade_plan(
+                json.loads(_read_path(target, target_runner, arguments.upgrade_plan)),
+            )
+        except (json.JSONDecodeError, ModuleReleaseError) as error:
+            raise RuntimeError("upgrade plan is invalid") from error
     tool_image = release["components"]["backup-tool"]["digest_reference"]
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
     if len(generation) > 32 or not generation.startswith("g"):
@@ -1295,6 +1361,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             release_sha,
             require_sign_secrets=target.value["environment"] == "production",
         )
+        snapshot_release = materialize_state["release"]
+        candidate_differs = snapshot_release["manifest_sha256"] != release_sha
+        if candidate_differs and upgrade_plan is None:
+            raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+        if upgrade_plan is not None:
+            snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
+            if upgrade_plan["active_release"] != snapshot_identity:
+                raise RuntimeError("upgrade plan is not bound to the snapshot release")
+            _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     finally:
@@ -1360,9 +1435,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "activation", "started")
     try:
-        target_runner.run(compose_command(identity, ["stop", "--timeout", "60"]))
+        # A stable ingress gateway is intentionally outside this service
+        # perimeter. It must keep serving the maintenance response while the
+        # stateful cohort is replaced.
+        cohort_services = sorted(set(target.value["services"].values()))
         target_runner.run(
-            compose_command(generation_identity, ["up", "--detach", "--wait", "--force-recreate"]),
+            compose_command(identity, ["stop", "--timeout", "60", *cohort_services]),
+        )
+        target_runner.run(
+            compose_command(generation_identity, ["up", "--detach", "--wait"]),
         )
     except Exception as error:
         _rollback_after_failure(target_runner, identity, error)
@@ -1564,18 +1645,100 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def release_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    runner = target.runner()
+    state_path = f"{target.value['state_directory']}/release-state.json"
+    if arguments.action == "status":
+        state = runner.run(["cat", state_path], check=False)
+        value = json.loads(state.stdout) if state.returncode == 0 else {
+            "schema": "usl-release-run/v1",
+            "target": target.name,
+            "status": "idle",
+        }
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "abort":
+        state = runner.run(["cat", state_path], check=False)
+        if state.returncode:
+            raise RuntimeError("there is no release run to abort")
+        value = json.loads(state.stdout)
+        if value.get("phase") in {"reopen", "notify", "staging-refresh", "retention", "record"}:
+            raise RuntimeError("an already reopened release cannot discard production data")
+        value.update({"status": "aborted", "aborted_at": datetime.now(UTC).isoformat()})
+        _write_remote(target, runner, state_path, json.dumps(value, indent=2, sort_keys=True) + "\n")
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "plan":
+        current, _current_sha, _current_raw = _release(target, runner, arguments.active_release)
+        candidate_raw = _read_path(target, runner, arguments.candidate_release)
+        try:
+            candidate = validate_release(json.loads(candidate_raw))
+        except (ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("candidate release manifest is invalid") from error
+        if candidate.get("schema") != "usl-release/v3":
+            raise RuntimeError("upgrade planning requires a v3 candidate release")
+        runtime = inspect_runtime(target, runner)
+        installed_raw = _psql(
+            target,
+            runner,
+            runtime["compose"],
+            "odoo",
+            "SELECT coalesce(json_agg(name ORDER BY name), '[]'::json) FROM ir_module_module WHERE state = 'installed' AND name LIKE 'usl_%' OR state = 'installed' AND name = 'rebuild_account_migration';",
+        )
+        installed = set(json.loads(installed_raw))
+        try:
+            if current.get("schema") == "usl-release/v2":
+                plan = derive_legacy_upgrade_plan(
+                    candidate,
+                    installed,
+                    active_identity=hashlib.sha256(_current_raw.encode()).hexdigest(),
+                )
+            elif current.get("schema") == "usl-release/v3":
+                plan = derive_upgrade_plan(current, candidate, installed)
+            else:
+                raise RuntimeError("active release schema cannot be upgraded")
+        except ModuleReleaseError as error:
+            raise RuntimeError(str(error)) from error
+        output = arguments.output or Path(
+            f"{target.value['state_directory']}/plans/{plan['sha256']}.json",
+        )
+        _write_remote(target, runner, str(output), json.dumps(plan, indent=2, sort_keys=True) + "\n", "0644")
+        print(json.dumps({**plan, "path": str(output)}, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "reconcile":
+        if not arguments.snapshot or not arguments.candidate_release or not arguments.upgrade_plan:
+            raise RuntimeError("release reconcile requires snapshot, candidate release, and upgrade plan")
+        restore_arguments = argparse.Namespace(
+            targets=arguments.targets,
+            source=arguments.source,
+            target=arguments.target,
+            snapshot=arguments.snapshot,
+            release=None,
+            target_release=arguments.candidate_release,
+            upgrade_plan=arguments.upgrade_plan,
+            generation=arguments.generation,
+            replace=arguments.replace,
+            confirm=arguments.confirm,
+            json=arguments.json,
+        )
+        return restore_command(restore_arguments)
+    raise RuntimeError(f"unsupported release action: {arguments.action}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--targets", type=Path, default=DEFAULT_TARGETS)
+    parser.add_argument("--target")
     commands = parser.add_subparsers(dest="command", required=True)
     runtime = commands.add_parser("runtime")
     runtime.add_argument("action", choices=("status", "start", "stop"))
-    runtime.add_argument("--target", required=True)
+    runtime.add_argument("--target", dest="command_target")
     runtime.add_argument("--json", action="store_true")
     runtime.set_defaults(handler=runtime_command)
     backup = commands.add_parser("backup")
     backup.add_argument("action", choices=("create", "list", "verify"))
-    backup.add_argument("--target", required=True)
+    backup.add_argument("--target", dest="command_target")
     backup.add_argument("--release", type=Path)
     backup.add_argument("--run-id")
     backup.add_argument("--resume")
@@ -1583,19 +1746,21 @@ def build_parser() -> argparse.ArgumentParser:
     backup.add_argument("--json", action="store_true")
     backup.set_defaults(handler=backup_command)
     health = commands.add_parser("health")
-    health.add_argument("--target", required=True)
+    health.add_argument("--target", dest="command_target")
     health.add_argument("--json", action="store_true")
     health.set_defaults(handler=health_command)
     smoke = commands.add_parser("smoke")
-    smoke.add_argument("--target", required=True)
+    smoke.add_argument("--target", dest="command_target")
     smoke.add_argument("--json", action="store_true")
     smoke.set_defaults(handler=smoke_command)
     restore = commands.add_parser("restore")
     restore.add_argument("action", choices=("run",))
     restore.add_argument("--source", required=True)
-    restore.add_argument("--target", required=True)
+    restore.add_argument("--target", dest="command_target")
     restore.add_argument("--snapshot", required=True)
     restore.add_argument("--release", type=Path)
+    restore.add_argument("--target-release", type=Path)
+    restore.add_argument("--upgrade-plan", type=Path)
     restore.add_argument("--generation")
     restore.add_argument("--replace", action="store_true")
     restore.add_argument("--confirm")
@@ -1603,15 +1768,33 @@ def build_parser() -> argparse.ArgumentParser:
     restore.set_defaults(handler=restore_command)
     cleanup = commands.add_parser("cleanup")
     cleanup.add_argument("action", choices=("plan", "apply"))
-    cleanup.add_argument("--target", required=True)
+    cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
+    release = commands.add_parser("release")
+    release.add_argument("action", choices=("plan", "reconcile", "status", "abort"))
+    release.add_argument("--target", dest="command_target")
+    release.add_argument("--source", default="production")
+    release.add_argument("--active-release", type=Path)
+    release.add_argument("--candidate-release", type=Path)
+    release.add_argument("--upgrade-plan", type=Path)
+    release.add_argument("--snapshot")
+    release.add_argument("--generation")
+    release.add_argument("--output", type=Path)
+    release.add_argument("--replace", action="store_true")
+    release.add_argument("--confirm")
+    release.add_argument("--json", action="store_true")
+    release.set_defaults(handler=release_command)
     return parser
 
 
 def main() -> int:
     arguments = build_parser().parse_args()
+    arguments.target = getattr(arguments, "command_target", None) or arguments.target
+    if not arguments.target:
+        print("usl-stack: --target is required", file=sys.stderr)
+        return 2
     try:
         return arguments.handler(arguments)
     except RuntimeError as error:
