@@ -15,7 +15,11 @@ The `Distribution release` workflow publishes `usl-release/v3` as an immutable
 OCI artifact. The artifact binds the source ref and commit, every component
 image digest, renderer and tested MCP identity, SBOM/provenance subjects, the
 complete product-module inventory, foundation inputs, Ollama model contract,
-and qualification evidence.
+qualification evidence, and the Odoo-provided MCP support surface. The tested
+MCP commit and image remain qualification evidence; they do not permanently
+lock an environment to that MCP build. A separately released MCP may advance
+when its declared modules, methods, actions, Agent identity schema, Odoo series
+and major version all fit the support contract in the admitted Odoo release.
 
 Every installable product module records its version, dependencies, source
 digest and stored-model digest. Release construction fails for missing
