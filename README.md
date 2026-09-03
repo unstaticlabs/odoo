@@ -73,21 +73,23 @@ intentionally absent from the Makefile.
 
 ## Production and releases
 
-Production consumes immutable OCI digests built by CI. Odoo, Paperless,
-Ollama/BGE, Sign, the document renderer and the separately built MCP image are
-released and recovered as one coordinated cohort. Use the
+Production consumes immutable OCI digests built by CI. Odoo, Paperless, Sign,
+the document renderer and the separately built MCP image are released and
+recovered as one coordinated cohort. The shared MsgVault-owned Ollama service
+remains external infrastructure: releases validate its BGE model contract but
+never manage, replace or restore it. Use the
 [production runbook](docs/operations/production.md) for upgrades, coordinated
 backups, deployment, admission and recovery.
 
-The current local production dataset evolves independently from the frozen
-Online export. Never reset it from that export. Take a coordinated checkpoint
+The current production dataset evolves independently from the frozen Online
+export. Never reset it from that export. Take a coordinated checkpoint
 before risky upgrades or data repairs, and prove releases through an isolated
 restore before production admission.
 
 The historical Online reconstruction implementation remains isolated under
 `migration/`. [`migration/manage`](migration/manage) is its only public
-interface and is retained for audit, exceptional recovery and final cohort
-promotion; it is not the ordinary development workflow.
+interface and is retained only for historical audit and reproducibility. It is
+not a production recovery path or an ordinary development workflow.
 
 ## Product documentation
 
