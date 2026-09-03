@@ -444,7 +444,8 @@
         "server_action:project.action_server_share_project",
         "server_action:project.action_server_share_task",
         "server_action:project.ir_cron_rating_project_ir_actions_server",
-        "server_action:sale_project.model_sale_order_action_create_project"
+        "server_action:sale_project.model_sale_order_action_create_project",
+        "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server"
       ],
       "classification": "operational",
       "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
@@ -460,7 +461,8 @@
         "server_action:project.action_server_share_project": "867ad26b377b70022a51b0f621a10fb13344daf3e7580449ec1d8fc402e3e727",
         "server_action:project.action_server_share_task": "c812c12c28093aaf202d43d63738abec884fd594a9073de6f875a2cf42341790",
         "server_action:project.ir_cron_rating_project_ir_actions_server": "1bf6a34ea6e8fcd7443c1644cd485001644bae0bab00ad72d216a0c7518aac8d",
-        "server_action:sale_project.model_sale_order_action_create_project": "d57eda033c77c069c4b41d09b61b738a2830cdd4440f1d16dd4181fb19bc7eaf"
+        "server_action:sale_project.model_sale_order_action_create_project": "d57eda033c77c069c4b41d09b61b738a2830cdd4440f1d16dd4181fb19bc7eaf",
+        "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server": "875cd1258b28349ef70c4279f83ec97cb7206f9e69fc34e1af32bea3b81c694c"
       }
     },
     {
@@ -2703,7 +2705,7 @@
         "rpc:project.project.unlink": "034d1b73fc46f78d00d8ab8e8f3580a3f0162e35056735140cd740c010d1fce7",
         "rpc:project.role.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:project.task.type.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:project.task.unlink": "35364e976544829faa624c61c6e3229b4d96baa62668c497b5751249be14b487",
+        "rpc:project.task.unlink": "710a4ac3156b73180700be723ea97d62e9d5677fdc939ada0c66ea30326ecd4d",
         "rpc:purchase.order.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:quotation.document.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -10302,7 +10304,7 @@
         "rpc:account.bank.statement.line.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
         "rpc:account.bank.statement.line.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:account.bank.statement.line.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
-        "rpc:account.bank.statement.line.reconcile_bank_line": "491d530b4eeb110fb53e562161be6c4ee3bdeb9e0415323a03e6904b05569a9b",
+        "rpc:account.bank.statement.line.reconcile_bank_line": "b17b2a0383181534416e2fb74b4d9a1c4521d8bb9000598fc77b1df6cbeaeaf1",
         "rpc:account.bank.statement.line.save": "f45487646416721b52519c584db80a15dc7d7f9bff62b6dcccfd83fce701db70",
         "rpc:account.bank.statement.line.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
         "rpc:account.bank.statement.line.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
@@ -29114,6 +29116,8 @@
         "rpc:usl.expense.batch.activity_feedback",
         "rpc:usl.expense.batch.activity_search",
         "rpc:usl.expense.batch.activity_unlink",
+        "rpc:usl.expense.batch.add.wizard.mail_allowed_qweb_expressions",
+        "rpc:usl.expense.batch.add.wizard.mail_get_partner_fields",
         "rpc:usl.expense.batch.context.apply.wizard.mail_allowed_qweb_expressions",
         "rpc:usl.expense.batch.context.apply.wizard.mail_get_partner_fields",
         "rpc:usl.expense.batch.create.wizard.mail_allowed_qweb_expressions",
@@ -29652,7 +29656,7 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data": "c4ea743c84fad14ec0d7911dc061578c22bd75b61328bc2a837d575b7e1b3113",
         "route:jsonrpc:POST:/html_editor/attachment/add_url": "8d09d0f10a49935a60cd08892abe80e8e9d1860f5a5fa8f58e975cc2636d815f",
         "route:jsonrpc:POST:/mail/action": "7ce57a9f17915322fd503906f1df4570bdc349cbb1168300b5ddeeeb09d88ee7",
-        "route:jsonrpc:POST:/mail/attachment/delete": "155b20b11072bc37b8675e0e23c16107a910bec80b56ded8560fbf6580087f32",
+        "route:jsonrpc:POST:/mail/attachment/delete": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
         "route:jsonrpc:POST:/mail/data": "8922325747836c4023aca9f459876803d708dbfbd39acf2e5a64d2dd4911dccb",
         "route:jsonrpc:POST:/mail/guest/update_name": "dc7e56256060f832be2b37a6966d510d9b0db38cabf9f3a795c1c4091432f1f0",
         "route:jsonrpc:POST:/mail/link_preview": "5b4edc361991ee154343322d024ea154171a57f6797b013c69baf1f1526757d7",
@@ -30085,7 +30089,7 @@
         "rpc:ir.asset.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:ir.attachment.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:ir.attachment.action_get": "c1a806ddd489a1f391cb1314cf3bfdf4ce06e8c0726b1eaaca632504e9985c72",
-        "rpc:ir.attachment.action_open_in_documents": "6ccf773c6a306359c45a1feea05710356ea89043bd0bdcc8e90266e645517e7b",
+        "rpc:ir.attachment.action_open_in_documents": "269d607c17d95ed811f50c253c38dcd47d50084b57aaa080cabb61aba86c5542",
         "rpc:ir.attachment.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:ir.attachment.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:ir.attachment.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
@@ -30101,7 +30105,7 @@
         "rpc:ir.attachment.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
         "rpc:ir.attachment.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
         "rpc:ir.attachment.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
-        "rpc:ir.attachment.get_keep_in_documents_details": "a78785779c98e8d0f36c1c3f3c8d175e5048a01c078d001021d289266dd1cd82",
+        "rpc:ir.attachment.get_keep_in_documents_details": "09a1ef0f49ae683a265d06d5ffd1cd65edfbf0bfb4a907a3d4b59c223d3eacb4",
         "rpc:ir.attachment.get_keep_in_documents_states": "6a306dad5ee2353d3ab64ec3f1e5cb5fd76c22863a9356174753d085cd368ee9",
         "rpc:ir.attachment.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
         "rpc:ir.attachment.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
@@ -32926,6 +32930,8 @@
         "rpc:usl.expense.batch.activity_feedback": "81db87cf91b5b4c4fa86edddf1c1b5b76785febf85cfef3c7b1e52f8d5fe2d2e",
         "rpc:usl.expense.batch.activity_search": "e398cd5d9591651af45ce77c9c6ec37de28aa3510bdb76310ee066cfc015d438",
         "rpc:usl.expense.batch.activity_unlink": "7dfece5344a786c5be58e3aef93f092c543e6729ce183d52c1b2aae8e001a523",
+        "rpc:usl.expense.batch.add.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.expense.batch.add.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.expense.batch.context.apply.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.expense.batch.context.apply.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.expense.batch.create.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -39987,7 +39993,7 @@
         "rpc:usl.agent.credential.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:usl.agent.credential.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.agent.credential.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:usl.agent.current_identity": "20190478ff3acc78f3310106fbc3c2bcf5dba4bc7a4b8272176276ff673927a3",
+        "rpc:usl.agent.current_identity": "0c7b0d018218c6e315d5d3784bf97f1522e511e5ed0f7e36be2a636bfd69f9f3",
         "rpc:usl.agent.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
         "rpc:usl.agent.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:usl.agent.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
@@ -48715,6 +48721,38 @@
         "rpc:usl.expense.batch.action_open_expenses",
         "rpc:usl.expense.batch.action_open_moves",
         "rpc:usl.expense.batch.action_unarchive",
+        "rpc:usl.expense.batch.add.wizard.action_archive",
+        "rpc:usl.expense.batch.add.wizard.action_unarchive",
+        "rpc:usl.expense.batch.add.wizard.check_field_access",
+        "rpc:usl.expense.batch.add.wizard.copy_translations",
+        "rpc:usl.expense.batch.add.wizard.default_get",
+        "rpc:usl.expense.batch.add.wizard.export_data",
+        "rpc:usl.expense.batch.add.wizard.fields_get",
+        "rpc:usl.expense.batch.add.wizard.formatted_read_group",
+        "rpc:usl.expense.batch.add.wizard.get_base_url",
+        "rpc:usl.expense.batch.add.wizard.get_empty_list_help",
+        "rpc:usl.expense.batch.add.wizard.get_external_id",
+        "rpc:usl.expense.batch.add.wizard.get_field_translations",
+        "rpc:usl.expense.batch.add.wizard.get_formview_action",
+        "rpc:usl.expense.batch.add.wizard.get_formview_id",
+        "rpc:usl.expense.batch.add.wizard.get_import_templates",
+        "rpc:usl.expense.batch.add.wizard.get_metadata",
+        "rpc:usl.expense.batch.add.wizard.get_property_definition",
+        "rpc:usl.expense.batch.add.wizard.has_access",
+        "rpc:usl.expense.batch.add.wizard.has_field_access",
+        "rpc:usl.expense.batch.add.wizard.hierarchy_read",
+        "rpc:usl.expense.batch.add.wizard.load",
+        "rpc:usl.expense.batch.add.wizard.name_search",
+        "rpc:usl.expense.batch.add.wizard.read",
+        "rpc:usl.expense.batch.add.wizard.read_progress_bar",
+        "rpc:usl.expense.batch.add.wizard.search",
+        "rpc:usl.expense.batch.add.wizard.search_count",
+        "rpc:usl.expense.batch.add.wizard.search_panel_select_multi_range",
+        "rpc:usl.expense.batch.add.wizard.search_panel_select_range",
+        "rpc:usl.expense.batch.add.wizard.search_read",
+        "rpc:usl.expense.batch.add.wizard.view_header_get",
+        "rpc:usl.expense.batch.add.wizard.web_name_search",
+        "rpc:usl.expense.batch.add.wizard.web_read",
         "rpc:usl.expense.batch.check_field_access",
         "rpc:usl.expense.batch.context.apply.wizard.action_apply",
         "rpc:usl.expense.batch.context.apply.wizard.action_archive",
@@ -48787,6 +48825,7 @@
         "rpc:usl.expense.batch.fields_get",
         "rpc:usl.expense.batch.formatted_read_group",
         "rpc:usl.expense.batch.get_base_url",
+        "rpc:usl.expense.batch.get_batch_dashboard_counts",
         "rpc:usl.expense.batch.get_external_id",
         "rpc:usl.expense.batch.get_field_translations",
         "rpc:usl.expense.batch.get_formview_action",
@@ -50426,7 +50465,7 @@
         "route:http:ANY:/web/image/<string:xmlid>/<int:width>x<int:height>": "afc8d40b4b3c0a9cae264d93e6aeaa4088936e7ddf900ec07231d0fd90a14d4d",
         "route:http:ANY:/web/image/<string:xmlid>/<int:width>x<int:height>/<string:filename>": "ea6a266ead6241614bfc23f4bb6844985b01e446054bb13972f16a4ab004b359",
         "route:http:ANY:/web/image/<string:xmlid>/<string:filename>": "14005b230fc0d3eff440ca7e59a0b7a7997f963159eec6cb95d5394f6f890d90",
-        "route:http:ANY:/web/login": "dcbda753ca8d4160bbb2882527377c0719e88dc7fa98aa548a87bad86f766e46",
+        "route:http:ANY:/web/login": "d1366e53ea0c2fee847d9a972b1149a031b005dca54c299b006b91541a6950c9",
         "route:http:ANY:/web/login_successful": "2bb326f72608740cd65884d9389e851a5f70e3c8be65890d419927aa2ff97919",
         "route:http:ANY:/web/partner/vcard": "5ac9aca8fcfcf43de6717c353f638cc452bf18352d00525ad171dde077ed99e0",
         "route:http:ANY:/web/pivot/export_xlsx": "374c1814e86a51cc50a49894d6c4c9b94ac48326f15cd945af5518d3ce375686",
@@ -50478,7 +50517,7 @@
         "route:http:get,post:/rate/<string:token>/submit_feedback": "512bb0ad4d343b480732d5b5b5fa1eb5de95943a9f2f506542a48297006d68eb",
         "route:json2:ANY:/doc-bearer/<model_name>.json": "805c34495916da4d5bcaf558759440227983b3b8f5521fe5308ad85a29d86fef",
         "route:json2:ANY:/doc-bearer/index.json": "e332884212ad089c2ca078985371fb9186e0770862c46263cfd41452257718b6",
-        "route:json2:ANY:/doc/<model_name>.json": "4b496d99873fa8dcd11ef068a87dc274a4cfde498aacd29e9ad63af5b5bbd79a",
+        "route:json2:ANY:/doc/<model_name>.json": "a6e42a0e182579439a1ba5088377063e78d64f5a657ed66e3b357a757d35c243",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2": "b3c009beac46c777fbda4d3673c72ce9372810cf01fea6c53997fc05614cb11d",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2/<path:subpath>": "947396b931b39ef45aea67de72b7e2e57d14b2d18cd94ed8c67e27237dec29cc",
         "route:json2:POST:/json/2/<__model__>/<__method__>": "cb8ae338d0caef3cb4229c7c134384758b293c122a2b70597e335cf9567f0c1c",
@@ -58682,7 +58721,7 @@
         "rpc:usl.document.link.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:usl.document.link.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.document.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
-        "rpc:usl.document.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.name_search": "76864eb7a23f8a4aed6528cc5651c91dfbf5cfbf8da65d1c261ef5924c08e2ca",
         "rpc:usl.document.operation.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.document.operation.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.document.operation.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -58890,6 +58929,38 @@
         "rpc:usl.expense.batch.action_open_expenses": "c6a7f9becfda4f6c6d05a981829706494429b479d32d6fe5844d99f1939a91d3",
         "rpc:usl.expense.batch.action_open_moves": "c9fba1d3287243e9e2c1e54e32f484b1fa8bfae7aa2e8a3323175db220c2c7d6",
         "rpc:usl.expense.batch.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.expense.batch.add.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.expense.batch.add.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.expense.batch.add.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.expense.batch.add.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.expense.batch.add.wizard.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.expense.batch.add.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.expense.batch.add.wizard.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.expense.batch.add.wizard.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.expense.batch.add.wizard.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.expense.batch.add.wizard.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.expense.batch.add.wizard.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.expense.batch.add.wizard.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.expense.batch.add.wizard.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.expense.batch.add.wizard.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.expense.batch.add.wizard.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.expense.batch.add.wizard.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.expense.batch.add.wizard.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.expense.batch.add.wizard.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.expense.batch.add.wizard.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.expense.batch.add.wizard.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.expense.batch.add.wizard.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.expense.batch.add.wizard.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.expense.batch.add.wizard.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.expense.batch.add.wizard.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.expense.batch.add.wizard.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.expense.batch.add.wizard.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.expense.batch.add.wizard.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.expense.batch.add.wizard.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.expense.batch.add.wizard.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.expense.batch.add.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.expense.batch.add.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.expense.batch.add.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.expense.batch.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:usl.expense.batch.context.apply.wizard.action_apply": "f5a61125eea5d54dae6b8bdf2e3562c2c78b4a1a83d736ab5f62718671f75d0a",
         "rpc:usl.expense.batch.context.apply.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -58962,6 +59033,7 @@
         "rpc:usl.expense.batch.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
         "rpc:usl.expense.batch.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
         "rpc:usl.expense.batch.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.expense.batch.get_batch_dashboard_counts": "35f6447be2ce2fdee2c8dc68c4e4ff9df98a476e834d93db55221a1c17e1d1a5",
         "rpc:usl.expense.batch.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
         "rpc:usl.expense.batch.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
         "rpc:usl.expense.batch.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
@@ -60517,7 +60589,7 @@
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_action_configuration_dashboards": "850e1f607b8f070e344631ff0271d107ac614066797a4baf850501f9fd10ec39",
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_group_action_configuration_sections": "46170812c7f246b57c7652940f82d595c118dba5480ba3e23f0bad82edc64000",
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_share_action_configuration_share_links": "bfe6c604bfe7dd745494e44715e96014b55a4dd8b70af1d490618ffd6ff02204",
-        "ui:usl_expense_batch.action_expense_batches": "f80d5ef6c9630f234b2a1097f7d5f807e68054bbab299c5b5abb5f76bf990343",
+        "ui:usl_expense_batch.action_expense_batches": "3fb81944a0fef5d0d15fe56f0cb3eeb7e2a879f0f95e9d1bd9445310f4ea7b61",
         "ui:usl_pocketid.action_usl_oidc_audit_event": "f86da3ee4c964714f404021819bd9c31f3e95e50372253ed685dac54d3dc611d",
         "ui:usl_pocketid.action_usl_oidc_identity": "d1d2f8ba936319a12aab47019a0c72169d7331ee8b3d5c3c8663a9be84528457",
         "ui:utm.action_view_utm_stage": "033609df3b91f840cc4bf23bd50fa1645cba3beee4672772825e86c0936971e6",
@@ -74481,7 +74553,7 @@
         "rpc:account.bank.statement.line.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.bank.statement.line.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:account.bank.statement.line.unlink": "1afab8152675c8071f4fd011bdc15ca4960d37b3a0476399cfce2e5eed506bf2",
-        "rpc:account.bank.statement.line.unreconcile_bank_line": "5341acf524781166b701090f75a4f00a8ba8ef0f39ca54c276f07ca2ff30a523",
+        "rpc:account.bank.statement.line.unreconcile_bank_line": "de57b69e293b74e044845e50b7462f6a312e4adf149361ece1c83af2121edce6",
         "rpc:account.bank.statement.line.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.bank.statement.line.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.bank.statement.line.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -75158,14 +75230,14 @@
         "rpc:account.move.js_use_payment_rate_outstanding_line": "f7f53efd2bd35b105ed38252a1d95c5db430a1445bff378c94fb090bb7b2de12",
         "rpc:account.move.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.move.line.copy_data": "4c10895fa8b644748b9a3788d5fcf02b462fbe0f0c28c37c11d19f663b268f4e",
-        "rpc:account.move.line.create": "3464273420b2f380157a38b19b27b4f1f1b6da7a8276d1f45e983bc6c6a7f8cc",
+        "rpc:account.move.line.create": "a116569eff4ebd70d2aa0a5fe4af071d97f398eec6bb1042e26af7b0125abca2",
         "rpc:account.move.line.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.move.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.move.line.get_views": "4b9ad8be957def3a911800195202aa38e3558467d8e8404ba1c94486403da2c7",
         "rpc:account.move.line.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.move.line.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:account.move.line.reconcile": "0f038fc524d0ebf237958220fed6e415dbb6f948444a4f92662fd4af6b39f528",
-        "rpc:account.move.line.unlink": "cb869a71de0d955a4dd8c4e313a6ac85246af4b6942b519122b6644d4752af08",
+        "rpc:account.move.line.unlink": "f4e8ca488e56488866240508cc6ab2d1b70daec79a50e753c0c3a1282a990189",
         "rpc:account.move.line.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.move.line.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.move.line.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -75173,7 +75245,7 @@
         "rpc:account.move.line.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.move.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.move.line.web_search_read": "d448bc7377b0ef7737c803e83eafa1b09feccdbc7435f0bcd67ac4f3158df5c4",
-        "rpc:account.move.line.write": "9db714ef3faede93976b0c14768e761bb00f4da9f99232902a1bbb26ef271f70",
+        "rpc:account.move.line.write": "894841d6ae84f2ebbd6ef45534bb33ad8919a0e68dc3ef9efbd286349632c8d5",
         "rpc:account.move.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.move.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.move.message_new": "075669be35666dd58b3f9ab6422109ba51045c03b50c803e403647daede27f69",
@@ -75279,13 +75351,13 @@
         "rpc:account.move.write": "9def47f0da92c9f2bad94bb09a5265a3981c11f624977e17de26754a51607a18",
         "rpc:account.partial.reconcile.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.partial.reconcile.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:account.partial.reconcile.create": "eeedd325d7489c80a617fb5a76028f40fb841b30b6864a72816b5eb17b1c9592",
+        "rpc:account.partial.reconcile.create": "ff7a7b62c64e3aa391a0cc3508c0cb83bd810017b4f49883f0e04a6308b8992b",
         "rpc:account.partial.reconcile.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.partial.reconcile.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.partial.reconcile.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:account.partial.reconcile.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.partial.reconcile.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
-        "rpc:account.partial.reconcile.unlink": "11a44f06259a21435310db83676b915ec9028e2ec2928df47d22685001736be0",
+        "rpc:account.partial.reconcile.unlink": "0473c16c46e4a136f2c1e1ee02bc8b5cf5f22b5a9721a09f21cfd09e410da529",
         "rpc:account.partial.reconcile.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.partial.reconcile.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.partial.reconcile.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -87321,6 +87393,7 @@
         "rpc:ir.attachment.action_archive_in_paperless",
         "rpc:ir.attachment.action_keep_in_documents",
         "rpc:ir.attachment.action_keep_in_documents_from_ui",
+        "rpc:ir.attachment.action_remove_archived_from_record",
         "rpc:ir.attachment.check",
         "rpc:ir.attachment.copy",
         "rpc:ir.attachment.copy_data",
@@ -89819,6 +89892,9 @@
         },
         "rpc:ir.attachment.action_keep_in_documents_from_ui": {
           "reversal_action": "rpc:usl.document.operation.unlink"
+        },
+        "rpc:ir.attachment.action_remove_archived_from_record": {
+          "reversal_action": "rpc:usl.document.write"
         },
         "rpc:ir.attachment.check": {
           "reversal_action": "rpc:ir.attachment.write"
@@ -95323,6 +95399,7 @@
         "rpc:ir.attachment.action_archive_in_paperless": "7738c492338f189167a4b3d1bc47fc00f9d8149f5fa2b44e96fb3ca831ce5c60",
         "rpc:ir.attachment.action_keep_in_documents": "1cacab49ccc9da4430a37187ded725ed142927c2aa040cc477e08233cc451722",
         "rpc:ir.attachment.action_keep_in_documents_from_ui": "7449bc18081a1e2abd582885bdbc6e0a4bbc3179dc1271df63900bbb0b977681",
+        "rpc:ir.attachment.action_remove_archived_from_record": "140939ae2752ea46fd0ff45b545f80878df7defe7cca6344689539821804d4ce",
         "rpc:ir.attachment.check": "2048a7578cd6b01fd21fe60f3df430d32372fbdf9e59731ae8078be0774a153a",
         "rpc:ir.attachment.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:ir.attachment.copy_data": "838469485c80991078c87416e3da394d027bf12606be9baeff676f2f9feda60f",
@@ -96753,7 +96830,7 @@
         "rpc:usl.document.move_to_trash": "0cbabb01df8dea99f6ccb856289f64773121e7794dd576f7f645027e06efc9ab",
         "rpc:usl.document.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.document.operation.acknowledge": "4d9f990f23c37f7c67c8b06144bd30d4d4fac430e8878cf19fe9a56a4551a33a",
-        "rpc:usl.document.operation.cron_process_attachment_queue": "1d10405219b185fb4c51a011b5022e679a604e28d3fa1bfab7637d62ed51af36",
+        "rpc:usl.document.operation.cron_process_attachment_queue": "8f2e0e72621981e18d33b38faf49cb6b97e4b7187c97e8ea3fa410a8b68cc01d",
         "rpc:usl.document.operation.poll": "6fb82816803c595f2c0d4a8e26b9aa5c5cc422a7f01fbff1c4f27b0a6627da6a",
         "rpc:usl.document.quick.filter.save_from_search": "e824d737145331be0c17a412660be1c0547940f7c11c6b6c00df5ce8ed5675bf",
         "rpc:usl.document.reconcile_linked_classification": "5278204436e6a257a73e00c7ffd629ed2aef2cb79c3ca863c22c9e63291c79a0",
@@ -96765,7 +96842,7 @@
         "rpc:usl.document.smart.view.save_personal_view": "9af0599539aff67b4a707616eb2659cfad23169ed2adb3d7739929d6b31bf19e",
         "rpc:usl.document.smart.view.synchronize_archive_views": "7344a8c26442ef0124b5ad2d67a897ddcdc1b097d602c3f8ed3fd246f638b4df",
         "rpc:usl.document.sync_from_paperless": "a2c4dde9d41a76ef81e714bf3dd166125b2b00eee6be4ba0973bc0105cf2f729",
-        "rpc:usl.document.unlink_from_record": "bba95aaec3641398ed8b768a977b011db50dca94bf40e189c14f5150e91fb2ec",
+        "rpc:usl.document.unlink_from_record": "34b7b1c906451ce8d0ec3a2ced36b9cc5e50bb25434271f1aac7ec7c76fe80d6",
         "rpc:usl.document.update_archive_metadata": "725d976642a112939d760694f4528246104714b23d6a4b532faf8104312e890a",
         "rpc:usl.document.upload_from_odoo": "a963a0a356dc16e9fd16f1227c9bf1f006cac69da578d3f377c7b04e2ba23a79",
         "rpc:usl.document.upload_new_version": "f597309093b50196eda404c9a26ea1e16723839e9a88840a5fc6f293ccd09561",
@@ -100446,9 +100523,9 @@
         "rpc:usl.platform.billing.session.action_generate_documents": "c01b0af6448a0fc914a6fd0baa0459347ad9c1f15ce7b0233b144a209074a925",
         "rpc:usl.platform.billing.session.action_open_bank_import": "d7c0a99a90dd2243259b59fd23d69e1d93a22fc58dfc99233b469e3413fd7801",
         "rpc:usl.platform.billing.session.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:usl.platform.billing.session.action_post_documents": "288c9d6b3b3489f5a8c2eb9087b0aa9ad973448622701f9479a0e4ca2e46d351",
+        "rpc:usl.platform.billing.session.action_post_documents": "62719785a40af61d7814f96d889c44a71dee1bec663c8b92c673929016ef73d9",
         "rpc:usl.platform.billing.session.action_prefill": "7e1582f08893006bc9829095b978c48a8b4ccab475c946210256571fc22f873e",
-        "rpc:usl.platform.billing.session.action_reconcile_bank": "bd323d5d827ca7797e20032c60359f1b8737158bc1b27429091be6f76f96ca04",
+        "rpc:usl.platform.billing.session.action_reconcile_bank": "ba2dcf528bd29931ee30ae97993370cf213acbe73bb930d23bb2b14b7f3e5f40",
         "rpc:usl.platform.billing.session.action_reset_drafts": "6d8fffe7d2d974882d3254ebf61dcf04f311bd543b151edb4e3e3480416f8cfd"
       }
     },
@@ -104106,6 +104183,10 @@
         "rpc:usl.expense.bank.match.wizard.get_view",
         "rpc:usl.expense.bank.match.wizard.unlink",
         "rpc:usl.expense.bank.match.wizard.write",
+        "rpc:usl.expense.batch.add.wizard.create",
+        "rpc:usl.expense.batch.add.wizard.get_view",
+        "rpc:usl.expense.batch.add.wizard.unlink",
+        "rpc:usl.expense.batch.add.wizard.write",
         "rpc:usl.expense.batch.context.apply.wizard.create",
         "rpc:usl.expense.batch.context.apply.wizard.get_view",
         "rpc:usl.expense.batch.context.apply.wizard.unlink",
@@ -110797,6 +110878,18 @@
         "rpc:usl.expense.bank.match.wizard.write": {
           "reversal_action": "rpc:usl.expense.bank.match.wizard.write"
         },
+        "rpc:usl.expense.batch.add.wizard.create": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.unlink"
+        },
+        "rpc:usl.expense.batch.add.wizard.get_view": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.unlink": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.create"
+        },
+        "rpc:usl.expense.batch.add.wizard.write": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
         "rpc:usl.expense.batch.context.apply.wizard.create": {
           "reversal_action": "rpc:usl.expense.batch.context.apply.wizard.unlink"
         },
@@ -112618,7 +112711,7 @@
         "rpc:project.task.type.delete.wizard.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
         "rpc:project.task.type.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.type.write": "0ad380ecaeab599ee29d10d9f0f4593c5d9b0acb277ae934c1b1eade4b2f2052",
-        "rpc:project.task.write": "4afcd454bc34c4cf0c0c3b8e71a2961affaca7d27085a60d685bc4430e1f47d5",
+        "rpc:project.task.write": "3912e20cd4b9521e916ac0ff6a633ba39a448db84d325bd3e6351dc81bf97c0b",
         "rpc:project.template.create.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:project.template.create.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.template.create.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -113428,6 +113521,10 @@
         "rpc:usl.expense.bank.match.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.expense.bank.match.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:usl.expense.bank.match.wizard.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
+        "rpc:usl.expense.batch.add.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
+        "rpc:usl.expense.batch.add.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.expense.batch.add.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:usl.expense.batch.add.wizard.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
         "rpc:usl.expense.batch.context.apply.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:usl.expense.batch.context.apply.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.expense.batch.context.apply.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -113875,7 +113972,7 @@
         "rpc:usl.mail.sender.alias.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:usl.mail.sender.alias.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:usl.mail.sender.alias.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:usl.mail.sender.alias.write": "999407ebd8e63936365a4ef8b5c5d68c0fca070f7b30e88e9c5a88b4d53672f5"
+        "rpc:usl.mail.sender.alias.write": "6834f9c2a68dab4d14d7c2a8ae97846e122c35c8ab674057c69f707823886c83"
       }
     },
     {
@@ -117256,9 +117353,24 @@
         "rpc:usl.expense.bank.match.wizard.web_save_multi",
         "rpc:usl.expense.bank.match.wizard.web_search_read",
         "rpc:usl.expense.batch.action_approve",
+        "rpc:usl.expense.batch.action_open_add_expenses_wizard",
         "rpc:usl.expense.batch.action_open_context_wizard",
         "rpc:usl.expense.batch.action_post",
         "rpc:usl.expense.batch.action_submit",
+        "rpc:usl.expense.batch.add.wizard.action_add",
+        "rpc:usl.expense.batch.add.wizard.copy",
+        "rpc:usl.expense.batch.add.wizard.copy_data",
+        "rpc:usl.expense.batch.add.wizard.formatted_read_grouping_sets",
+        "rpc:usl.expense.batch.add.wizard.get_views",
+        "rpc:usl.expense.batch.add.wizard.name_create",
+        "rpc:usl.expense.batch.add.wizard.onchange",
+        "rpc:usl.expense.batch.add.wizard.update_field_translations",
+        "rpc:usl.expense.batch.add.wizard.web_override_translations",
+        "rpc:usl.expense.batch.add.wizard.web_read_group",
+        "rpc:usl.expense.batch.add.wizard.web_resequence",
+        "rpc:usl.expense.batch.add.wizard.web_save",
+        "rpc:usl.expense.batch.add.wizard.web_save_multi",
+        "rpc:usl.expense.batch.add.wizard.web_search_read",
         "rpc:usl.expense.batch.add_expenses",
         "rpc:usl.expense.batch.apply_context",
         "rpc:usl.expense.batch.context.apply.wizard.copy",
@@ -128063,6 +128175,9 @@
         "rpc:usl.expense.batch.action_approve": {
           "reversal_action": "rpc:usl.expense.batch.write"
         },
+        "rpc:usl.expense.batch.action_open_add_expenses_wizard": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.unlink"
+        },
         "rpc:usl.expense.batch.action_open_context_wizard": {
           "reversal_action": "rpc:usl.expense.batch.write"
         },
@@ -128071,6 +128186,48 @@
         },
         "rpc:usl.expense.batch.action_submit": {
           "reversal_action": "rpc:usl.expense.batch.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.action_add": {
+          "reversal_action": "rpc:hr.expense.action_return_from_batch"
+        },
+        "rpc:usl.expense.batch.add.wizard.copy": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.unlink"
+        },
+        "rpc:usl.expense.batch.add.wizard.copy_data": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.unlink"
+        },
+        "rpc:usl.expense.batch.add.wizard.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.get_views": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.name_create": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.onchange": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.update_field_translations": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_override_translations": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_read_group": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_resequence": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_save": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_save_multi": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
+        },
+        "rpc:usl.expense.batch.add.wizard.web_search_read": {
+          "reversal_action": "rpc:usl.expense.batch.add.wizard.write"
         },
         "rpc:usl.expense.batch.add_expenses": {
           "reversal_action": "rpc:usl.expense.batch.write"
@@ -130086,7 +130243,7 @@
         "route:http:ANY:/microsoft_outlook/confirm": "26c93a122f4318435ed6f5311be14503f1a55da275dc9eb049dde315cc6e19a3",
         "route:http:ANY:/microsoft_outlook/iap_confirm": "e622b023461f04ec77847d3026130da2c31f9855432a9dd7e8161b210fc9d792",
         "route:http:POST:/base_import/set_file": "9889fb2005279aaa8d4e4543401a4112e97d1b61562058a19724894e3f1852d4",
-        "route:json2:ANY:/doc/index.json": "559ac9354ff021dcdd537a585088635427f4db992aec138811a6b6c4397d40b7",
+        "route:json2:ANY:/doc/index.json": "7df5c56c5bf94ed80a10f08f3bf6e7c2d5e6fce3533e43b4443b2acd4fc9d357",
         "route:jsonrpc:ANY:/web_unsplash/save_unsplash": "214e6c63c37042f66762c5b9581c7b4a1d3c43491159fc9a8ad236127722aed4",
         "route:jsonrpc:POST:/my/profile/save": "b78c9c4f3b4d598555ab63104b7fb306df0a966e95287079445d5be531ed1816",
         "route:jsonrpc:POST:/website/rating/comment": "df7a3272339eec3cf72bb5199f9c299010498f1ea561f2968aae40b88e1de68b",
@@ -133458,9 +133615,24 @@
         "rpc:usl.expense.bank.match.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.expense.bank.match.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.expense.batch.action_approve": "fb49ccd13740afd6b5222173a120f23c462000101aaf06d6a27789205b54c2e8",
+        "rpc:usl.expense.batch.action_open_add_expenses_wizard": "2ed27e7dd06258c519a56cd3b55396d9b8e37a3eab10cbddffb9e2c57d034da2",
         "rpc:usl.expense.batch.action_open_context_wizard": "a1f8bd3b3e1432d6157f9ba3e161e703c3dadc9bb1663f6a5186bb5c0551e9f9",
         "rpc:usl.expense.batch.action_post": "87eea95161c283bfb1a03cac483f67c3f1ee2a6cf9e2733d4fcb4f5158f11e24",
         "rpc:usl.expense.batch.action_submit": "d7968fbff4e408d053a9317908afffefa350b980457b7fefd7aa0c0a996456ad",
+        "rpc:usl.expense.batch.add.wizard.action_add": "84e295f15a8995c58b2108c9f8b372e87dd0c3a03bfb1d3e139d80202c946587",
+        "rpc:usl.expense.batch.add.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.expense.batch.add.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.expense.batch.add.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.expense.batch.add.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.expense.batch.add.wizard.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.expense.batch.add.wizard.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.expense.batch.add.wizard.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.expense.batch.add.wizard.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.expense.batch.add.wizard.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.expense.batch.add.wizard.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.expense.batch.add.wizard.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.expense.batch.add.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.expense.batch.add.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.expense.batch.add_expenses": "6fcab068fa046e7fb168cc8b5461d355c13fdb5c969fc95da1f5cd885876e7c2",
         "rpc:usl.expense.batch.apply_context": "e759e93b435d38be6d189e6da7f07c99e78562f2e4fc60f94b4c9137a0adda79",
         "rpc:usl.expense.batch.context.apply.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -154266,7 +154438,6 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1",
@@ -154281,7 +154452,6 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2",
@@ -158150,9 +158320,6 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
         },
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": {
-          "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
-        },
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -158193,9 +158360,6 @@
           "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": {
-          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3": {
           "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": {
@@ -161301,10 +161465,9 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2": "6635f06b6bda38d05d73867f6cda5c52d1770394167d86d8cc44eb3f0881c7bc",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "c9c9a4af71d8e9501f4dcddabd0eb3fdf8d85eadaa79ca2ca716f56fac94bbdd",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "eb490ad678507077804cdf80da57cbefffe46e5a2fccfc53d435b4baebc43b98",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "9f3eef326828945bee973fc27478dc75912e8e0f6ae28152918e37e4b0a075df",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": "20ed432037a986b8d81805940ae049a6a9337fa5695bba8eb5f3f7635e4c5753",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "1f0dca72e96acb276e7d14a5b3a75f1d06aaf73848211737756f94e1c0dcec80",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "209a607ba29e5e96cfbf27c834a5373f0e2ef0957fee897826864b52583024ae",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": "bf6891576b7c69ddbb053176692631d7af0a83087993642fb6128dc24be2faaf",
@@ -161316,10 +161479,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2": "2d7139a7094f20796fce2fa1d4cd244c76459e04029e22428ef3e3b66d4ebe39",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3": "4dcbd543821c21fc236c9e48bf7b796d713595294e81d1b8c1e109a0b1935605",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1": "d16650e32ab32275f601d791405fc235356a56d986814798d33cd5dc037ccdf5",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": "38a412c6cde7e81441a516f165b420c0cc9133e694baeced925b64d521c7df50",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": "b82c4dcc72b281934d2a66697bfb0312402b0e5fc59dcbeaf4b3ace3748d630b",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": "652bfd8312c3a427f3e7c9978f46b08c5af32134931c0c7b3e981017d6787367",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:3": "a45857445fd3dd2ddaa4b7b9920598edcfeb02907df1dc58dc5f7613f8d62ec5",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": "89d747f2e5c1e8ef359f28ea8cb5093bfc034ecdd671c6fe70d068ec0b4a8cd4",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": "b12ed221c9f957af8c9cde066883b0b43dbe49b2eb1764f4355917ac3cf3adfa",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": "4a14b2a7b205ff2d17f9e1471c2c1c25eb071a1b9ff9dc1e72124f24db6c0639",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": "5aec8ce1db9494ffa58694b99a81b92fcd861224e9187a675ad374b91728ef52",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": "ce0b121b414d84a5d821102e5db3e69453220ad62d393987b335de5d4ca36dad",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2": "0e1285b8216b12cafb558169d3c6b2fb6f7c010a29a12fd24abbb9cc5687b2fc",
@@ -161558,7 +161720,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:5": "736814f9218f7bb6809b6e403f1ae13887feacaf146a8cecefe8c63b64af2e06",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:6": "a8a5195aac2e7127c70ba74e29ea3973bbc8483f588e5b764f54af782a48b348",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.sync_from_paperless:sudo:7": "a6b00df87f3ae88f7e7638753a8cb223a94646dc0014269090ce6652f3b269d9",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.unlink_from_record:sudo:1": "0714a051180fdf8940f7c6a7ae1d3baf3c38f4294d3e10ec3d26ea608b0bf98d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.unlink_from_record:sudo:1": "daf436b3469e81dcd3036a9d0aff86168fb1665f18a2c334f2a5b9a28c064cbc",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
@@ -165490,7 +165652,7 @@
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "e0d6dd59c76ccdc0c19b828b431e5c304f04a88acabe82acc4a4c84a79786671",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": "b5a2d537c69e9afbd4bffd537734bad8725743aaeaf12532293bebb26768c836",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": "637e3d57bd5763918eeb64b7436356331e9be481e42dc5b47ce832131ab9d98c",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "4a85fbdfdd0815a5565f6ce0dc7338febe026a3c9fcc6b6992f9e2d9757aa773",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "e1e030924aed03966beb2576cb215b159309a8d2cd2987a3ec5b28b5c8f23515",
@@ -183356,7 +183518,8 @@
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_milestone:1",
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_project_ids:1",
         "ui:sale_project.view_sale_project_inherit_form:button:object:action_view_so:1",
-        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1"
+        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1",
+        "ui:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server"
       ],
       "classification": "transport",
       "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
@@ -183663,6 +183826,11 @@
           "targets": [
             "rpc:project.project.action_estimated_margin"
           ]
+        },
+        "ui:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server": {
+          "targets": [
+            "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server"
+          ]
         }
       },
       "rationale": "The entry point is a UI, client, or controller transport; every statically resolved target is listed exactly and owns its own risk classification and guard.",
@@ -183726,7 +183894,8 @@
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_milestone:1": "0b9e30e3b7600aef99ce59df5bff09076dfbbe90d8a888f5df99cf88115e57e5",
         "ui:sale_project.view_order_form_inherit_sale_project:button:object:action_view_project_ids:1": "4ae3554ac94c51c6fab326b4970fddfa13a67b50e779f6d379a00d0f15b99a07",
         "ui:sale_project.view_sale_project_inherit_form:button:object:action_view_so:1": "cec0cfae6413a298f7671238d47974765055c635266ede75856f1478a73b08bd",
-        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1": "b44f1fbfc2bad7aa1db9d49620e4f0b497be1707b44b0210a18eda52ec328e59"
+        "ui:sale_project_margin.view_edit_project_inherit_form_sale_project_margin:button:object:action_estimated_margin:1": "b44f1fbfc2bad7aa1db9d49620e4f0b497be1707b44b0210a18eda52ec328e59",
+        "ui:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server": "e5ba38495bc7faf0deb288ebba43b94dcca006b6107b061e4ad5be38be14692f"
       }
     },
     {
@@ -184383,10 +184552,12 @@
         "ui:sms.sms_tsms_view_form:button:object:action_set_outgoing:1",
         "ui:sms.sms_tsms_view_form:button:object:send:1",
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_view_list:button:object:action_open_dashboard:1",
+        "ui:usl_expense_batch.view_expense_batch_add_wizard_form:button:object:action_add:1",
         "ui:usl_expense_batch.view_expense_batch_context_apply_wizard_form:button:object:action_apply:1",
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_and_submit:1",
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_add_expenses_wizard:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_context_wizard:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_moves:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_post:1",
@@ -185643,6 +185814,11 @@
             "rpc:spreadsheet.dashboard.action_open_dashboard"
           ]
         },
+        "ui:usl_expense_batch.view_expense_batch_add_wizard_form:button:object:action_add:1": {
+          "targets": [
+            "rpc:usl.expense.batch.add.wizard.action_add"
+          ]
+        },
         "ui:usl_expense_batch.view_expense_batch_context_apply_wizard_form:button:object:action_apply:1": {
           "targets": [
             "rpc:usl.expense.batch.context.apply.wizard.action_apply"
@@ -185661,6 +185837,11 @@
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1": {
           "targets": [
             "rpc:usl.expense.batch.action_approve"
+          ]
+        },
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_add_expenses_wizard:1": {
+          "targets": [
+            "rpc:usl.expense.batch.action_open_add_expenses_wizard"
           ]
         },
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_context_wizard:1": {
@@ -185962,17 +186143,19 @@
         "ui:sms.sms_tsms_view_form:button:object:action_set_outgoing:1": "cc226fe55d1c74a4668c06cc1be4e538478566d617b0057d46a2bd12c5a39923",
         "ui:sms.sms_tsms_view_form:button:object:send:1": "ee27a87cbe44943b0d8970fb0a1502a8c488683adeddd28fe72fea9068e8a2c8",
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_view_list:button:object:action_open_dashboard:1": "c3b7eb226c21de8816333e82513ec846cee78ea7a5b6860587637386c084c53d",
+        "ui:usl_expense_batch.view_expense_batch_add_wizard_form:button:object:action_add:1": "5391aa6d43f27b2dfd231634755309318664164541911e743d8da55c771add6b",
         "ui:usl_expense_batch.view_expense_batch_context_apply_wizard_form:button:object:action_apply:1": "3bf36d45463f912cd2b40dee7345184d3a61aeced91350471f906d3aa8870f0a",
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_and_submit:1": "9ef956d067c3d0375d942a567774bfa82fc36b4e017a2fc0acf7e533fdc6fe23",
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1": "bc33e0de81630587d80eb628bb1f0cd80c66dc290b049da9397997e11465aea7",
-        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1": "a9663bfed1cfb5e93672ab8679429ae2681f992aa1b52143157b5316b6d1c543",
-        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_context_wizard:1": "f86b6a25273a294bcdea87124a82585a01ad3bbb2afbc4567a0473bd29f5ca74",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1": "12a0c1b65c5a4783f1e9167a4188bc4f4d6dc366eca5e053f3a1922bb56bf09a",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_add_expenses_wizard:1": "821691489768955cc15ecdd7c9ebb1bb6dd11c6b1ce1880684f565d20ed83230",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_context_wizard:1": "9dc8bd31576179b67f9d66ec73508a75206841baafef7cc945526f38bd44567b",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_moves:1": "9db95ebbdb96a666aabce5cb9ea6cc282f04485d44a3baa03786f0fe7673dcae",
-        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_post:1": "c6e4d59ee176bc4704fd16b66e586febd611e8cf766cb741272fef8d2e064ce5",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_post:1": "c4ec6aa23df0e0005759f2110dce2f011b951021bf12ecbb02b6af8e30ae96d9",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_return_from_batch:1": "66bb9855cf9dc8de6282942bdf4bdcacc7c00fbb09a296056b6cf8df8eacab55",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_return_from_batch:2": "63943e7a8bcc4fdac49491011e2dc5c7b6aad429788b33b11fc712e679cb4ae6",
-        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_submit:1": "5d2f30a915c8b74c1af1b28b677bd24d2410ecd547ddd8eabe232c03e13dbb90",
-        "ui:usl_locale.view_company_form_interface_theme:button:object:action_use_automatic_usl_ui_theme_color:1": "70bee245fa40fc2de2f3eadb90fee341ca67a362bc58291f9d139c93bd6d389c",
+        "ui:usl_expense_batch.view_expense_batch_form:button:object:action_submit:1": "4ac8a2be799df369f2beb8726cb7858d2617abd9f62a78c0ac324ef6b3236ceb",
+        "ui:usl_locale.view_company_form_interface_theme:button:object:action_use_automatic_usl_ui_theme_color:1": "a488df27ba9e4326e39f71d47a432223c95e4adcf207df137b3e7e90cb3df0b4",
         "ui:web.download_contact": "e94f53ac978f9fefb17e292fe28d658f7f2e630b86f86934e9b320bf27d0b15e",
         "ui:web.view_base_document_layout:button:object:document_layout_save:1": "332847d10003af309e65915b1fbff3be240d635497b9ea43846d6a9de2960d63",
         "ui:web_tour.tour_export_js_action": "0b7419a32ec021792d94333d8118338a72ded02a5e4463f016bb139da7950624"
@@ -186128,6 +186311,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "9f5bb937536acf330e65a18cee0c8155224742795527d0659048fed7f6640e9e",
+  "qualified_policy_digest": "29692473904d715c660736472b33165a62fe1eb904df6c7b75702492df1fc6db",
   "schema": "usl-action-risk-policy-v1"
 }
