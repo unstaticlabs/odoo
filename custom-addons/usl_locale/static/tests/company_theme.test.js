@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
+import { queryAll, queryOne } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 import { mountWithCleanup, serverState } from "@web/../tests/web_test_helpers";
 
@@ -9,6 +9,7 @@ import { SwitchCompanyMenu } from "@web/webclient/switch_company_menu/switch_com
 import {
     applyCompanyTheme,
     clearCompanyTheme,
+    companyColorIndicatorStyle,
     companyThemeForeground,
     normalizeCompanyColor,
 } from "../src/js/company_theme";
@@ -30,15 +31,18 @@ beforeEach(() => {
             sequence: 2,
             parent_id: false,
             child_ids: [],
-            usl_ui_theme_color: "#8A5A2B",
+            usl_ui_theme_color: "#B85C38",
         },
     ];
 });
 
 test("company colors are normalized and malformed payloads fail safely", () => {
     expect(normalizeCompanyColor("#1a2b3c")).toBe("#1A2B3C");
-    expect(normalizeCompanyColor(undefined)).toBe("#714B67");
-    expect(normalizeCompanyColor("not-a-color")).toBe("#714B67");
+    expect(normalizeCompanyColor(undefined)).toBe("#4E5AA8");
+    expect(normalizeCompanyColor("not-a-color")).toBe("#4E5AA8");
+    expect(companyColorIndicatorStyle({ usl_ui_theme_color: "invalid" })).toBe(
+        "--usl-company-indicator:#4E5AA8"
+    );
 });
 
 test("foreground selection remains readable on light and dark colors", () => {
@@ -58,14 +62,17 @@ test("the theme writes only company-scoped CSS variables", () => {
     expect(root.style.getPropertyValue("--usl-company-foreground")).toBe("#111827");
 });
 
-test("multi-company scope restores native Odoo theming", () => {
+test("multi-company scope uses the neutral Odoo color", () => {
     const root = document.createElement("div");
     applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" });
 
-    expect(applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" }, 2)).toBe(null);
-    expect(root).not.toHaveAttribute("data-usl-company-theme");
-    expect(root.style.getPropertyValue("--usl-company-color")).toBe("");
-    expect(root.style.getPropertyValue("--usl-company-foreground")).toBe("");
+    expect(applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" }, 2)).toEqual({
+        color: "#714B67",
+        foreground: "#FFFFFF",
+    });
+    expect(root.dataset.uslCompanyTheme).toBe("neutral");
+    expect(root.style.getPropertyValue("--usl-company-color")).toBe("#714B67");
+    expect(root.style.getPropertyValue("--usl-company-foreground")).toBe("#FFFFFF");
 
     applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" });
     clearCompanyTheme(root);
@@ -86,6 +93,11 @@ test("the company selector shows colors and the broader company scope", async ()
     queryOne("button.o_switch_company_menu").click();
     await animationFrame();
     expect(".o_switch_company_menu_items .usl_company_color_dot").toHaveCount(2);
+    expect(
+        queryAll(".o_switch_company_menu_items .usl_company_color_dot").map((dot) =>
+            dot.style.getPropertyValue("--usl-company-indicator")
+        )
+    ).toEqual(["#2D7D68", "#B85C38"]);
     expect(".usl_company_scope_summary .text-truncate").toHaveText("Unstatic Labs");
     expect(".usl_company_scope_summary .badge").toHaveText("+1");
 });
