@@ -14,7 +14,7 @@ Use familiar French accounting language consistently:
 | Customer invoicing activity | Facturation |
 | Bank Matching | Rapprochement bancaire |
 | General Reconciliation | Lettrage général |
-| Accounting Hygiene | Qualité comptable |
+| Accounting Hygiene | Hygiène comptable |
 | Post / Posted | Comptabiliser / Comptabilisé |
 | Expense receipt | Justificatif |
 | Vendor bill | Facture fournisseur |
