@@ -90,11 +90,23 @@ keeps its own Pocket ID, Sign and runtime secrets and never mounts production
 Sign PKI or MCP OAuth grants.
 
 Admission compares captured before/after controls rather than merely checking
-that tables are non-empty. It covers identity and company mappings, access
-fingerprints, Accounting and reconciliation controls, attachments and
-filestore coverage, Documents/Paperless state, Projects, Platform Billing,
-TESE, Sign, MCP, cron identities and queue state. Production admission is
-read-only; mutation journeys belong in CI and staging.
+that tables are non-empty. Controls are deliberately separated into three
+classes:
+
+- business-history controls must remain exactly equal through restore and
+  upgrade, including posted Accounting and reconciliation fingerprints;
+- release-owned access controls may change, but production must match the
+  exact digest signed after the staging upgrade;
+- known pending queues may drain while writers are stopped, but may not grow,
+  and every failed queue or cron count must remain zero.
+
+Unknown or missing control fields fail closed. The current manifest also
+checks attachments and filestore coverage, Documents/Paperless state,
+Projects, Platform Billing and TESE. Extending it with semantic Pocket ID
+mappings, per-account/currency balances, journal/lock-date controls, detailed
+Paperless permissions and Trash, Sign identities, MCP OAuth state, and the
+complete cron identity/lag policy remains an activation gate. Production
+admission is read-only; mutation journeys belong in CI and staging.
 
 One operation lock is held per exact target. Backup stages already persist
 checksummed evidence and support bounded resume. The release state-machine

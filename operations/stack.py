@@ -13,6 +13,7 @@ from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime
 from pathlib import Path
 
+from operations.control_manifest import ControlManifestError, validate_restore
 from operations.release_manifest import validate as validate_release
 from operations.module_release import (
     ModuleReleaseError,
@@ -1344,6 +1345,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     release_override = getattr(arguments, "target_release", None) or arguments.release
     release, release_sha, release_raw = _release(source, target_runner, release_override)
     upgrade_plan = None
+    signed_plan_evidence = None
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
@@ -1354,6 +1356,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                     plan_value,
                     Path(target.value["plan_signing"]["public_key"]),
                 )
+                signed_plan_evidence = plan_value
             elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
                 upgrade_plan = verify_upgrade_plan(
                     plan_value,
@@ -1556,8 +1559,20 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        if smoke["controls"] != materialize_state["controls"]:
-            raise RuntimeError("restored business controls differ from the source cohort")
+        expected_release_sha256 = None
+        if signed_plan_evidence is not None:
+            expected_release_sha256 = signed_plan_evidence["staging"][
+                "release_controls_sha256"
+            ]
+        try:
+            control_validation = validate_restore(
+                materialize_state["controls"],
+                smoke["controls"],
+                expected_release_sha256=expected_release_sha256,
+                require_unchanged_release=not candidate_differs,
+            )
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
     except Exception as error:
         target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
         if current["active_state"] is None:
@@ -1589,6 +1604,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "materialize": materialize_state,
         "health": health,
         "smoke": smoke,
+        "control_validation": control_validation,
         "capacity": {
             "before_pull": capacity_before_pull,
             "after_pull": capacity_after_pull,

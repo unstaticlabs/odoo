@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from operations.control_manifest import ControlManifestError, release_digest
 from operations.module_release import validate_upgrade_plan
 
 
@@ -84,6 +85,10 @@ def sign(
         raise PlanEvidenceError("staging generation identity is invalid")
     if health.get("status") != "passed" or smoke.get("status") != "passed":
         raise PlanEvidenceError("staging health and smoke must pass before attestation")
+    try:
+        release_controls_sha256 = release_digest(smoke.get("controls"))
+    except ControlManifestError as error:
+        raise PlanEvidenceError("staging smoke controls are invalid") from error
     public_der = _public_from_private(private_key)
     body = {
         "schema": SCHEMA,
@@ -95,6 +100,7 @@ def sign(
             "candidate_release": plan["candidate_release"],
             "health_sha256": _digest(health),
             "smoke_sha256": _digest(smoke),
+            "release_controls_sha256": release_controls_sha256,
             "status": "passed",
         },
         "signed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
@@ -124,14 +130,20 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
     plan = validate_upgrade_plan(value["plan"])
     staging = value.get("staging")
     if not isinstance(staging, dict) or set(staging) != {
-        "target", "snapshot", "generation", "candidate_release", "health_sha256", "smoke_sha256", "status"
+        "target", "snapshot", "generation", "candidate_release", "health_sha256",
+        "smoke_sha256", "release_controls_sha256", "status"
     }:
         raise PlanEvidenceError("staging qualification evidence fields differ")
     if staging.get("target") != "staging" or staging.get("status") != "passed":
         raise PlanEvidenceError("upgrade plan was not admitted by staging")
     if staging.get("candidate_release") != plan["candidate_release"]:
         raise PlanEvidenceError("staging evidence targets another release")
-    for field in ("snapshot", "health_sha256", "smoke_sha256"):
+    for field in (
+        "snapshot",
+        "health_sha256",
+        "smoke_sha256",
+        "release_controls_sha256",
+    ):
         item = staging.get(field)
         if not isinstance(item, str) or not SHA256.fullmatch(item):
             raise PlanEvidenceError(f"staging evidence {field} is invalid")

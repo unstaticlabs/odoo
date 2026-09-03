@@ -7,6 +7,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from operations.control_manifest import (
+    ODOO_PRESERVATION_KEYS,
+    ODOO_QUEUE_KEYS,
+    ODOO_RELEASE_KEYS,
+    PAPERLESS_PRESERVATION_KEYS,
+)
 from operations.plan_evidence import PlanEvidenceError, sign, verify
 
 
@@ -25,6 +31,19 @@ def plan() -> dict:
     return body
 
 
+def smoke() -> dict:
+    return {
+        "status": "passed",
+        "controls": {
+            "odoo": {
+                key: 0
+                for key in ODOO_PRESERVATION_KEYS | ODOO_RELEASE_KEYS | ODOO_QUEUE_KEYS
+            },
+            "paperless": {key: 0 for key in PAPERLESS_PRESERVATION_KEYS},
+        },
+    }
+
+
 class PlanEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
@@ -36,7 +55,14 @@ class PlanEvidenceTests(unittest.TestCase):
         subprocess.run(["openssl", "pkey", "-in", self.private, "-pubout", "-out", self.public], check=True)
 
     def evidence(self):
-        return sign(plan(), self.private, snapshot="d" * 64, generation="g-qualified", health={"status": "passed"}, smoke={"status": "passed"})
+        return sign(
+            plan(),
+            self.private,
+            snapshot="d" * 64,
+            generation="g-qualified",
+            health={"status": "passed"},
+            smoke=smoke(),
+        )
 
     def test_round_trip_returns_exact_plan(self):
         self.assertEqual(verify(self.evidence(), self.public), plan())
@@ -67,7 +93,7 @@ class PlanEvidenceTests(unittest.TestCase):
                 snapshot="d" * 64,
                 generation="g-qualified",
                 health={"status": "failed"},
-                smoke={"status": "passed"},
+                smoke=smoke(),
             )
 
     def test_attestation_rejects_unsafe_private_key_permissions(self):
@@ -83,7 +109,26 @@ class PlanEvidenceTests(unittest.TestCase):
                 snapshot="not-a-snapshot",
                 generation="g-qualified",
                 health={"status": "passed"},
-                smoke={"status": "passed"},
+                smoke=smoke(),
+            )
+
+    def test_attestation_binds_release_owned_controls(self):
+        value = self.evidence()
+        value["staging"]["release_controls_sha256"] = "e" * 64
+        with self.assertRaisesRegex(PlanEvidenceError, "signature"):
+            verify(value, self.public)
+
+    def test_attestation_rejects_incomplete_controls(self):
+        invalid = smoke()
+        invalid["controls"]["odoo"].pop("acl_fingerprint")
+        with self.assertRaisesRegex(PlanEvidenceError, "controls"):
+            sign(
+                plan(),
+                self.private,
+                snapshot="d" * 64,
+                generation="g-qualified",
+                health={"status": "passed"},
+                smoke=invalid,
             )
 
 
