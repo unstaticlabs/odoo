@@ -131,6 +131,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "compose",
             "services",
             "databases",
+            "storage",
             "volumes",
             "paths",
             "external_networks",
@@ -216,6 +217,19 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         if not SECRET_KEY.fullmatch(database["password_key"]):
             raise RuntimeError(f"databases.{name}.password_key is invalid")
 
+    storage = _exact(root["storage"], {"tiers"}, "storage")
+    tiers = storage["tiers"]
+    if not isinstance(tiers, dict) or set(tiers) != {"bulk", "database", "local"}:
+        raise RuntimeError("storage.tiers must declare bulk, database, and local")
+    for name, tier in tiers.items():
+        _exact(tier, {"path", "reserve_bytes"}, f"storage.tiers.{name}")
+        if not isinstance(tier["path"], str) or not tier["path"].startswith("/"):
+            raise RuntimeError(f"storage.tiers.{name}.path must be absolute")
+        if type(tier["reserve_bytes"]) is not int or tier["reserve_bytes"] < 0:
+            raise RuntimeError(f"storage.tiers.{name}.reserve_bytes must be non-negative")
+    if len({tier["path"] for tier in tiers.values()}) != len(tiers):
+        raise RuntimeError("storage tier paths must be distinct")
+
     volumes = root["volumes"]
     required_volumes = {
         "odoo_filestore",
@@ -232,24 +246,28 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
         raise RuntimeError(f"target volumes must include {sorted(required_volumes)}")
     for role, volume in volumes.items():
-        _exact(volume, {"name", "class"}, f"volumes.{role}")
+        _exact(volume, {"name", "class", "tier"}, f"volumes.{role}")
         if volume["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"volumes.{role}.class is invalid")
         if not isinstance(volume["name"], str) or not volume["name"]:
             raise RuntimeError(f"volumes.{role}.name is required")
+        if volume["tier"] not in tiers:
+            raise RuntimeError(f"volumes.{role}.tier is invalid")
 
     paths = root["paths"]
     required_paths = {"sign_secrets", "sign_evidence"}
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"}, f"paths.{role}")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
             raise RuntimeError(f"paths.{role}.path must be absolute")
         if not isinstance(definition["required"], bool):
             raise RuntimeError(f"paths.{role}.required must be boolean")
+        if definition["tier"] not in tiers:
+            raise RuntimeError(f"paths.{role}.tier is invalid")
     sign_root = Path(paths["sign_secrets"]["path"])
     evidence_root = Path(paths["sign_evidence"]["path"])
     if sign_root == evidence_root or sign_root in evidence_root.parents or evidence_root in sign_root.parents:
@@ -486,7 +504,11 @@ def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[st
     if state is None:
         return target.value["volumes"], None
     volumes = {
-        role: {"name": name, "class": target.value["volumes"][role]["class"]}
+        role: {
+            "name": name,
+            "class": target.value["volumes"][role]["class"],
+            "tier": target.value["volumes"][role]["tier"],
+        }
         for role, name in state["volumes"].items()
         if isinstance(name, str) and name
     }
@@ -523,7 +545,11 @@ def inspect_runtime(target: Target, runner: Runner) -> dict[str, Any]:
         )
         if not legacy_owner and not generation_owner:
             raise RuntimeError(f"volume {definition['name']} is not owned by {target.project}")
-        volumes[role] = {"name": definition["name"], "class": definition["class"]}
+        volumes[role] = {
+            "name": definition["name"],
+            "class": definition["class"],
+            "tier": definition["tier"],
+        }
     return {
         "schema": "usl-runtime-status/v1",
         "target": target.name,

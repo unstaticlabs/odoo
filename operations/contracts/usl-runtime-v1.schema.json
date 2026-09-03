@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": [
     "schema", "name", "environment", "protected", "transport", "compose",
-    "services", "databases", "volumes", "paths", "external_networks", "endpoints", "ingress",
+    "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "ingress",
     "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
   ],
   "properties": {
@@ -18,6 +18,23 @@
     "compose": {"type": "object"},
     "services": {"type": "object"},
     "databases": {"type": "object"},
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tiers"],
+      "properties": {
+        "tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bulk", "database", "local"],
+          "properties": {
+            "bulk": {"$ref": "#/$defs/storageTier"},
+            "database": {"$ref": "#/$defs/storageTier"},
+            "local": {"$ref": "#/$defs/storageTier"}
+          }
+        }
+      }
+    },
     "volumes": {"type": "object"},
     "paths": {"type": "object"},
     "external_networks": {"type": "object"},
@@ -50,5 +67,16 @@
     },
     "secrets": {"type": "object"},
     "state_directory": {"type": "string"}
+  },
+  "$defs": {
+    "storageTier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reserve_bytes"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^/"},
+        "reserve_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
   }
 }
