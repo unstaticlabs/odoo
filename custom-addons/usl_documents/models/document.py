@@ -4245,7 +4245,7 @@ class UslDocument(models.Model):
         record = self.env[res_model].browse(int(res_id)).exists()
         if not record:
             raise ValidationError(_("The linked Odoo record no longer exists."))
-        record.check_access("read")
+        record.check_access("write")
         links = self.env["usl.document.link"].sudo().search(
             [
                 ("document_id", "=", self.id),
@@ -4257,6 +4257,7 @@ class UslDocument(models.Model):
         if not links:
             return False
         links.unlink()
+        self._recompute_linked_record_access(sync_permissions=True)
         return True
 
     def action_open_linked_record(self, link_id):

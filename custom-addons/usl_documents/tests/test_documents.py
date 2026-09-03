@@ -44,6 +44,14 @@ class TestDocuments(TransactionCase):
             company_ids=[Command.set(cls.company_a.ids)],
             groups="usl_documents.group_documents_user",
         )
+        cls.record_editor = mail_new_test_user(
+            cls.env,
+            login="documents-record-editor",
+            name="Documents Record Editor",
+            company_id=cls.company_a.id,
+            company_ids=[Command.set(cls.company_a.ids)],
+            groups="usl_documents.group_documents_user,base.group_partner_manager",
+        )
         cls.accountant = mail_new_test_user(
             cls.env,
             login="documents-accountant",
@@ -129,6 +137,118 @@ class TestDocuments(TransactionCase):
 
         self.assertFalse(result)
         attachment._has_attachments_ownership.assert_called_once_with([None])
+
+    def _archived_record_attachment(self, record, paperless_id):
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": f"record-{paperless_id}.pdf",
+                "raw": b"%PDF-1.4 durable record evidence",
+                "mimetype": "application/pdf",
+                "res_model": record._name,
+                "res_id": record.id,
+            },
+        )
+        document = self._document(paperless_id)
+        document.link_to_record(record._name, record.id)
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+            limit=1,
+        )
+        operation.sudo().write(
+            {"state": "archived", "document_id": document.id},
+        )
+        message = self.env["mail.message"].sudo().create(
+            {
+                "model": record._name,
+                "res_id": record.id,
+                "message_type": "notification",
+                "body": "A system notification carries this attachment.",
+                "attachment_ids": [Command.link(attachment.id)],
+            },
+        )
+        return attachment, document, message
+
+    def test_record_attachment_unlink_bypasses_notification_message_edit(self):
+        attachment, document, message = self._archived_record_attachment(
+            self.partner_a,
+            15101,
+        )
+
+        result = attachment.with_user(
+            self.record_editor,
+        ).action_remove_archived_from_record(
+            "unlink",
+        )
+
+        self.assertTrue(result["removed"])
+        self.assertIn("remains in Documents", result["message"])
+        self.assertFalse(attachment.exists())
+        self.assertTrue(document.exists())
+        self.assertEqual(document.availability_state, "available")
+        self.assertFalse(
+            document.sudo().link_ids.filtered(
+                lambda link: (
+                    link.active
+                    and link.res_model == self.partner_a._name
+                    and link.res_id == self.partner_a.id
+                ),
+            ),
+        )
+        self.assertTrue(message.exists())
+        self.assertFalse(message.attachment_ids)
+
+    def test_record_attachment_can_unlink_and_move_archive_to_trash(self):
+        attachment, document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15102,
+        )
+
+        with patch.object(PaperlessClient, "trash_document", return_value={}):
+            result = attachment.with_user(
+                self.record_editor,
+            ).action_remove_archived_from_record(
+                "trash",
+            )
+
+        self.assertTrue(result["removed"])
+        self.assertFalse(attachment.exists())
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertFalse(document.sudo().link_ids.filtered("active"))
+
+    def test_shared_archive_cannot_be_trashed_from_one_record(self):
+        attachment, document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15103,
+        )
+        document.link_to_record("res.partner", self.partner_b.id)
+
+        with self.assertRaisesRegex(UserError, "supports another Odoo record"):
+            attachment.with_user(
+                self.record_editor,
+            ).action_remove_archived_from_record(
+                "trash",
+            )
+
+        self.assertTrue(attachment.exists())
+        self.assertEqual(document.availability_state, "available")
+        details = self.env["ir.attachment"].with_user(
+            self.record_editor,
+        ).get_keep_in_documents_details([attachment.id])[str(attachment.id)]
+        self.assertTrue(details["can_remove_from_record"])
+        self.assertFalse(details["can_move_to_trash"])
+
+    def test_readonly_accountant_cannot_remove_record_attachment(self):
+        attachment, _document, _message = self._archived_record_attachment(
+            self.partner_a,
+            15104,
+        )
+
+        with self.assertRaises(AccessError):
+            attachment.with_user(self.accountant).action_remove_archived_from_record(
+                "unlink",
+            )
+
+        self.assertTrue(attachment.exists())
 
     def test_french_navigation_and_matching_terms_are_contextual(self):
         smart_view = self.env.ref(

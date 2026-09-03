@@ -910,6 +910,38 @@ class IrAttachment(models.Model):
                     "document_id": visible_document.id or False,
                     "error": operation.error_message or False,
                 }
+                if visible_document and state in {"archived", "duplicate"}:
+                    res_model = attachment.res_model or operation.res_model
+                    res_id = attachment.res_id or operation.res_id
+                    normalized_res_id = int(res_id or 0)
+                    record = (
+                        self.env[res_model].browse(normalized_res_id).exists()
+                        if res_model in self.env and normalized_res_id
+                        else False
+                    )
+                    can_remove = bool(
+                        attachment.has_access("write")
+                        and visible_document.has_access("write")
+                        and record
+                        and record.has_access("write")
+                    )
+                    active_links = visible_document.sudo().link_ids.filtered("active")
+                    current_links = active_links.filtered(
+                        lambda link: (
+                            link.res_model == res_model
+                            and link.res_id == normalized_res_id
+                        ),
+                    )
+                    details[str(attachment.id)].update(
+                        {
+                            "can_remove_from_record": can_remove,
+                            "can_move_to_trash": bool(
+                                can_remove
+                                and visible_document.availability_state == "available"
+                                and not (active_links - current_links)
+                            ),
+                        },
+                    )
                 continue
             if (
                 attachment.usl_documents_archive_mode == "on_request"
@@ -928,17 +960,7 @@ class IrAttachment(models.Model):
     def action_open_in_documents(self):
         self.ensure_one()
         self.check_access("read")
-        operation = self.env["usl.document.operation"].sudo().search(
-            [
-                ("source_attachment_id", "=", self.id),
-                ("state", "in", ("archived", "duplicate")),
-                "|",
-                ("document_id", "!=", False),
-                ("target_document_id", "!=", False),
-            ],
-            order="id desc",
-            limit=1,
-        )
+        operation = self._usl_documents_archived_operation()
         document = operation.document_id or operation.target_document_id
         if not document:
             raise UserError(_("This attachment is not yet available in Documents."))
@@ -954,6 +976,93 @@ class IrAttachment(models.Model):
             "linked_filter": True,
         }
         return action
+
+    def _usl_documents_archived_operation(self):
+        """Return the latest durable archive for this exact attachment."""
+        self.ensure_one()
+        return self.env["usl.document.operation"].sudo().search(
+            [
+                ("source_attachment_id", "=", self.id),
+                ("state", "in", ("archived", "duplicate")),
+                "|",
+                ("document_id", "!=", False),
+                ("target_document_id", "!=", False),
+            ],
+            order="id desc",
+            limit=1,
+        )
+
+    def action_remove_archived_from_record(self, removal="unlink"):
+        """Remove a record attachment without deleting its archived original."""
+        self.ensure_one()
+        if removal not in {"unlink", "trash"}:
+            raise ValidationError(_("Choose a supported document removal action."))
+        self.check_access("write")
+        operation = self._usl_documents_archived_operation()
+        document = operation.document_id or operation.target_document_id
+        if not document:
+            raise UserError(
+                _(
+                    "This file is not safely archived yet. Keep it in Documents "
+                    "and wait for archiving to finish before removing it.",
+                ),
+            )
+        document = document.with_user(self.env.user)
+        document.check_access("write")
+        res_model = self.res_model or operation.res_model
+        res_id = self.res_id or operation.res_id
+        if (
+            res_model not in self.env["usl.document.link"]._allowed_models()
+            or not res_id
+        ):
+            raise ValidationError(
+                _("This attachment is not linked to a supported business record."),
+            )
+        record = self.env[res_model].browse(int(res_id)).exists()
+        if not record:
+            raise ValidationError(_("The linked Odoo record no longer exists."))
+        record.check_access("write")
+
+        active_links = document.sudo().link_ids.filtered("active")
+        current_links = active_links.filtered(
+            lambda link: link.res_model == res_model and link.res_id == int(res_id),
+        )
+        if removal == "trash" and active_links - current_links:
+            raise UserError(
+                _(
+                    "This document still supports another Odoo record. Unlink it "
+                    "from this record without moving the shared archive to Trash.",
+                ),
+            )
+        if current_links:
+            document.unlink_from_record(res_model, res_id)
+        if removal == "trash":
+            document.move_to_trash()
+
+        message = self.env["mail.message"].sudo().search(
+            [("attachment_ids", "in", self.ids)],
+            limit=1,
+        )
+        attachment_name = self.name
+        # Authorization was verified above. Scoped elevation only removes the
+        # redundant Odoo copy and notifies open clients; it never edits the
+        # system message that originally carried the attachment.
+        self.sudo()._delete_and_notify(message)
+        if removal == "trash":
+            return {
+                "removed": True,
+                "message": _(
+                    "“%(attachment)s” was unlinked and moved to Documents Trash.",
+                    attachment=attachment_name,
+                ),
+            }
+        return {
+            "removed": True,
+            "message": _(
+                "“%(attachment)s” was unlinked. The archived document remains in Documents.",
+                attachment=attachment_name,
+            ),
+        }
 
     def action_keep_in_documents_from_ui(self):
         self.ensure_one()
