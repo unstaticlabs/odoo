@@ -145174,7 +145174,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2": "390a286b1c34694f23ef72c36b96a409826c48d9c4e3c77c109a15ddd14b692f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3": "bd78009fdde084c181c194c121ae7cb926f10e643857ef3c0615a2a98224c108",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_counts:sudo:1": "2863ffccf8bf818050b94d21372b67d688c018c5897efd49cfdea7a3557ce835",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_readiness:sudo:1": "3d7936651919e10405991dddb08296ea8fb7073596d4e7d215c29b2ec087ff0c",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_readiness:sudo:1": "bc9150418af2cd380ff431d63414b792d947e7762ed3854b98ca9d2d622a6382",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1": "2badc743d2abcd1b8b774948ab419f8e0a45d35da41ea64cb88d92a53a73809c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1": "dd6b0307c3709b55d2bd7be73a93638c5843f234f89ae50c6adbf7cc0f7a6034",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": "0ad48be4054bbff426a5d7d99eeb869f67ce5362e0d54836161055b8871d8ca8",
@@ -186128,6 +186128,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "afd5065732b72de2582aea065ef0c66ee88bff03585a36c0638d0fdec0e079f1",
+  "qualified_policy_digest": "65db63279b16ccb7e627551bfb6b6687326acc51df3162cd0b360fa0a954e72b",
   "schema": "usl-action-risk-policy-v1"
 }

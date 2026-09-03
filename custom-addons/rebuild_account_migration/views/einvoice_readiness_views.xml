@@ -12,8 +12,8 @@
                 <field name="name"/>
                 <field name="rebuild_einvoice_readiness_status" widget="badge"
                     decoration-success="rebuild_einvoice_readiness_status in ('ready_inactive', 'active')"
-                    decoration-info="rebuild_einvoice_readiness_status == 'activation_required'"
-                    decoration-warning="rebuild_einvoice_readiness_status == 'not_verified'"
+                    decoration-info="rebuild_einvoice_readiness_status == 'registration_in_progress'"
+                    decoration-warning="rebuild_einvoice_readiness_status in ('not_verified', 'activation_required')"
                     decoration-danger="rebuild_einvoice_readiness_status in ('configuration_incomplete', 'needs_attention')"/>
                 <field name="rebuild_einvoice_next_action" string="Next step"/>
                 <field name="rebuild_einvoice_attention_count" string="Issues"
@@ -80,7 +80,7 @@
                         type="object" string="Legacy revocation"
                         groups="base.group_no_one" invisible="1"/>
                     <field name="rebuild_einvoice_readiness_status" widget="statusbar"
-                        statusbar_visible="configuration_incomplete,not_verified,ready_inactive,activation_required,active,needs_attention"/>
+                        statusbar_visible="configuration_incomplete,not_verified,ready_inactive,activation_required,registration_in_progress,active,needs_attention"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -103,6 +103,12 @@
                     <widget name="web_ribbon" title="Ready for production"
                         bg_color="text-bg-success"
                         invisible="rebuild_einvoice_readiness_status != 'ready_inactive'"/>
+                    <widget name="web_ribbon" title="Activation required"
+                        bg_color="text-bg-warning"
+                        invisible="rebuild_einvoice_readiness_status != 'activation_required'"/>
+                    <widget name="web_ribbon" title="Registration in progress"
+                        bg_color="text-bg-info"
+                        invisible="rebuild_einvoice_readiness_status != 'registration_in_progress'"/>
                     <widget name="web_ribbon" title="Receiving"
                         bg_color="text-bg-success"
                         invisible="rebuild_einvoice_readiness_status != 'active'"/>

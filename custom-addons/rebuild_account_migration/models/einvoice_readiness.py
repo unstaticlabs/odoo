@@ -378,6 +378,7 @@ class ResCompany(models.Model):
             ("not_verified", "Ready to test"),
             ("ready_inactive", "Ready for production"),
             ("activation_required", "Activation required"),
+            ("registration_in_progress", "Registration in progress"),
             ("active", "Receiving"),
             ("needs_attention", "Needs attention"),
         ],
@@ -809,8 +810,14 @@ class ResCompany(models.Model):
             )
         if connection_status == "registration_pending":
             return (
-                _("Complete platform registration"),
-                [_("Finish registration and verify the French directory effective date.")],
+                _("Registration in progress"),
+                [
+                    _(
+                        "Odoo's Approved Platform is registering this company in "
+                        "the French directory. Reception can be enabled after the "
+                        "native status becomes Receiver.",
+                    ),
+                ],
             )
         if connection_status == "inactive":
             return (
@@ -925,6 +932,10 @@ class ResCompany(models.Model):
                 or not test_current
             ):
                 company.rebuild_einvoice_readiness_status = "not_verified"
+            elif raw_state == "smp_registration":
+                company.rebuild_einvoice_readiness_status = (
+                    "registration_in_progress"
+                )
             elif company.rebuild_einvoice_environment == "production":
                 company.rebuild_einvoice_readiness_status = "activation_required"
             else:

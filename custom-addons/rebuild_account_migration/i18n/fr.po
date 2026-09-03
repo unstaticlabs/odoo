@@ -2913,12 +2913,6 @@ msgstr "Activation complète de la plateforme"
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Complete platform registration"
-msgstr "Inscription complète à la plateforme"
-
-#. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Complete platform setup"
 msgstr "Terminer la configuration de la plateforme"
 
@@ -5133,14 +5127,6 @@ msgid "Finding"
 msgstr "Trouver"
 
 #. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Finish registration and verify the French directory effective date."
-msgstr ""
-"Terminez l’inscription et vérifiez la date d’entrée en vigueur de l’annuaire"
-" français."
-
-#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__first_detected_at
 msgid "First Detected"
 msgstr "Détecté pour la première fois"
@@ -7130,6 +7116,17 @@ msgstr "Ventes OSS"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_provider__odoo_pdp
 msgid "Odoo Approved Platform"
 msgstr "Plateforme agréée Odoo"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid ""
+"Odoo's Approved Platform is registering this company in the French "
+"directory. Reception can be enabled after the native status becomes "
+"Receiver."
+msgstr ""
+"La Plateforme Agréée d’Odoo inscrit cette société dans l’annuaire français. "
+"La réception pourra être activée lorsque l’état natif passera à « Récepteur »."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_origin__standard
@@ -9542,7 +9539,9 @@ msgid "Registration needs attention"
 msgstr "L'inscription nécessite une attention particulière"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__registration_in_progress
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_connection_status__registration_pending
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
 msgid "Registration in progress"
 msgstr "Inscription en cours"
 

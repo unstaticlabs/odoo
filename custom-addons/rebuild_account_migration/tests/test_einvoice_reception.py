@@ -523,6 +523,116 @@ class TestFrenchEinvoiceReception(
         self.assertFalse(self.company.rebuild_einvoice_activation_approved)
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
 
+    def test_readiness_tracks_native_registration_and_reception_states(self):
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.write({
+            "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_activation_approved": True,
+        })
+        self._create_production_proxy_user()
+        self.company.pdp_kyc_status = "success"
+
+        other_company = self.env["res.company"].create({
+            "name": "Independent E-Invoice Company",
+            "rebuild_einvoice_last_poll_status": "temporary_failure",
+        })
+        self.assertEqual(
+            other_company.rebuild_einvoice_readiness_status,
+            "needs_attention",
+        )
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.dict(
+            os.environ,
+            LIVE_ENVIRONMENT,
+            clear=False,
+        ), patch.object(
+            proxy_model,
+            "_call_peppol_proxy",
+            side_effect=AssertionError(
+                "Computing readiness must not contact the provider.",
+            ),
+        ) as provider_call:
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "activation_required",
+            )
+
+            self.company.account_peppol_proxy_state = "smp_registration"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "registration_in_progress",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "registration_pending",
+            )
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            self.assertEqual(
+                self.company.rebuild_einvoice_next_action,
+                "Registration in progress",
+            )
+
+            self.company.account_peppol_proxy_state = "receiver"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "activation_required",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "connected_suspended",
+            )
+
+            self.company.rebuild_einvoice_exchange_enabled = True
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "active",
+            )
+
+            self.company.account_peppol_proxy_state = "rejected"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "needs_attention",
+            )
+
+            for poll_status in ("authentication", "temporary_failure"):
+                with self.subTest(poll_status=poll_status):
+                    self.company.write({
+                        "account_peppol_proxy_state": "receiver",
+                        "rebuild_einvoice_last_poll_status": poll_status,
+                    })
+                    self.assertEqual(
+                        self.company.rebuild_einvoice_readiness_status,
+                        "needs_attention",
+                    )
+
+            self.company.rebuild_einvoice_last_poll_status = "passed"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "active",
+            )
+
+        provider_call.assert_not_called()
+        self.assertEqual(
+            other_company.rebuild_einvoice_readiness_status,
+            "needs_attention",
+        )
+        self.assertFalse(other_company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
+
+        readiness_labels = dict(
+            self.company._fields[
+                "rebuild_einvoice_readiness_status"
+            ]._description_selection(self.env),
+        )
+        self.assertEqual(
+            readiness_labels["registration_in_progress"],
+            "Registration in progress",
+        )
+
     def test_production_preparation_enforces_role_company_and_single_record(self):
         with self.assertRaises(AccessError):
             self.company.with_user(
@@ -612,6 +722,8 @@ class TestFrenchEinvoiceReception(
         )["arch"]
         self.assertIn("action_rebuild_prepare_einvoice_activation", manager_arch)
         self.assertNotIn("action_rebuild_prepare_einvoice_activation", reviewer_arch)
+        self.assertIn("registration_in_progress", manager_arch)
+        self.assertIn("Registration in progress", manager_arch)
 
     def test_self_check_is_invalidated_by_material_configuration_change(self):
         self.company.write({
