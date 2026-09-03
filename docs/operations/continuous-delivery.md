@@ -30,6 +30,13 @@ dependencies. Comparing two v3 releases yields one exact upgrade plan:
 The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
 
+Qualification derives its test plan from the same owned-module dependency
+graph. A changed module runs its suite and the suites of owned modules that
+depend on it. A core, OCA, Python-constraint or other foundation change runs
+every shipped product-module suite. Documentation-only changes still perform
+the clean install, repeated upgrade and runtime-boundary checks, but do not
+invent unrelated module tests.
+
 `usl-release/v2` remains readable for historical recovery verification. The
 first transition to v3 is deliberately conservative: because v2 contains no
 module inventory, every installed owned product module is upgraded once. All
