@@ -723,3 +723,16 @@
         }
     }
 }
+.o_usl_paperless_suggestions {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--o-brand-primary, #714b67) 4%, transparent);
+}
+
+.o_usl_paperless_suggestion {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
