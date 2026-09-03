@@ -122,8 +122,10 @@ def runtime_command(arguments: argparse.Namespace) -> int:
     if arguments.action == "status":
         result = inspect_runtime(target, runner)
     else:
-        identity = compose_identity(target, runner)
+        current = inspect_runtime(target, runner)
+        identity = current["compose"]
         if arguments.action == "start":
+            identity = _active_generation_identity(target, runner, current)
             runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
         else:
             runner.run(compose_command(identity, ["stop"]))
@@ -1727,6 +1729,30 @@ def _base_compose_identity(target, identity: dict) -> dict:
     if not compose_files:
         raise RuntimeError("base Compose identity is unavailable")
     return {**identity, "compose_files": compose_files}
+
+
+def _active_generation_identity(target, runner, current: dict) -> dict:
+    """Resolve the recorded active generation even when the anchor is still legacy."""
+    active = current["active_state"]
+    if active is None:
+        return current["compose"]
+    identity = _base_compose_identity(target, current["compose"])
+    generation = active["generation"]
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    release_manifest = f"{generation_root}/usl-release.json"
+    if active["release_manifest"] != release_manifest:
+        raise RuntimeError("active release manifest path is invalid")
+    overlay = f"{generation_root}/compose.generation.json"
+    required = [release_manifest, overlay]
+    if target.value["compose"]["resource_overlay"] is not None:
+        resource = f"{generation_root}/compose.resources.json"
+        required.append(resource)
+        identity["compose_files"].append(resource)
+    identity["compose_files"].append(overlay)
+    for path in required:
+        if runner.run(["test", "-f", path], check=False).returncode:
+            raise RuntimeError(f"active generation file is missing: {path}")
+    return identity
 
 
 def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, str | None]:
