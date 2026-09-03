@@ -147,6 +147,29 @@ class RuntimeContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "must not overlap"):
             validate_target(value)
 
+    def test_target_requires_a_tier_for_every_persistent_resource(self) -> None:
+        target = load_target("local", TARGETS)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        del value["volumes"]["odoo_postgres"]["tier"]
+        with self.assertRaisesRegex(RuntimeError, "volumes.odoo_postgres fields differ"):
+            validate_target(value)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        value["paths"]["sign_secrets"]["tier"] = "foreign"
+        with self.assertRaisesRegex(RuntimeError, "paths.sign_secrets.tier is invalid"):
+            validate_target(value)
+
+    def test_host_targets_split_bulk_and_database_tiers(self) -> None:
+        for name in ("production", "staging"):
+            target = load_target(name, TARGETS)
+            tiers = target.value["storage"]["tiers"]
+            self.assertEqual(tiers["bulk"]["path"], "/srv/storage")
+            self.assertEqual(tiers["database"]["path"], "/srv/db")
+            self.assertEqual(tiers["bulk"]["reserve_bytes"], 15 * 1024**3)
+            self.assertEqual(tiers["database"]["reserve_bytes"], 2 * 1024**3)
+            self.assertEqual(target.value["volumes"]["odoo_postgres"]["tier"], "database")
+            self.assertEqual(target.value["volumes"]["mcp_oauth"]["tier"], "database")
+            self.assertEqual(target.value["volumes"]["odoo_filestore"]["tier"], "bulk")
+
     def test_secret_file_rejects_unapproved_secret(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "not allowlisted"):
             validate_secret_text("UNKNOWN_TOKEN=secret\n", ["RESTIC_PASSWORD"])

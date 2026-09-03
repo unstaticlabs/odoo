@@ -15,6 +15,7 @@ from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
+    _create_generation_resources,
     _apply_generation_cron_policy,
     _abort_to_previous_generation,
     _generation_overlay,
@@ -32,6 +33,7 @@ from operations.stack import (
     _validate_materialized_release,
     _validate_runtime_release_images,
     generation_volume_names,
+    generation_volume_path,
     runtime_lock,
     with_writers_paused,
 )
@@ -795,7 +797,7 @@ class CohortContractTests(unittest.TestCase):
 
         class CapacityRunner:
             def run(self, command, *, check=True):
-                return subprocess.CompletedProcess(command, 0, "Avail\n1073741824\n", "")
+                return subprocess.CompletedProcess(command, 0, "Filesystem Avail\n/dev/root 1073741824\n", "")
 
         with self.assertRaisesRegex(RuntimeError, "below the 2 GiB safety floor"):
             _require_restore_capacity(target, CapacityRunner(), "preflight")
@@ -809,7 +811,7 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True):
                 return subprocess.CompletedProcess(
-                    command, 0, f"Avail\n{self.available}\n", "",
+                    command, 0, f"Filesystem Avail\n/dev/root {self.available}\n", "",
                 )
 
         gib = 1024**3
@@ -818,23 +820,46 @@ class CohortContractTests(unittest.TestCase):
                 target,
                 CapacityRunner(17 * gib),
                 "preflight",
-                candidate_bytes=4 * gib,
+                candidate_bytes={"bulk": 4 * gib},
             )
         admitted = _require_restore_capacity(
             target,
             CapacityRunner(19 * gib),
             "preflight",
-            candidate_bytes=4 * gib,
+            candidate_bytes={"bulk": 4 * gib},
         )
-        self.assertEqual(admitted["required_bytes"], 19 * gib)
+        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 19 * gib)
+
+    def test_restore_capacity_groups_tiers_on_their_actual_filesystems(self) -> None:
+        target = load_target("staging", TARGETS)
+        gib = 1024**3
+
+        class SplitRunner:
+            def run(self, command, *, check=True):
+                path = command[-1]
+                source = "/dev/volume" if path == "/srv/storage" else "/dev/root"
+                available = 30 * gib if source == "/dev/volume" else 10 * gib
+                return subprocess.CompletedProcess(
+                    command, 0, f"Filesystem Avail\n{source} {available}\n", "",
+                )
+
+        result = _require_restore_capacity(
+            target,
+            SplitRunner(),
+            "preflight",
+            candidate_bytes={"bulk": 3 * gib, "database": 2 * gib, "local": 1 * gib},
+        )
+        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 18 * gib)
+        self.assertEqual(result["filesystems"]["/dev/root"]["candidate_bytes"], 3 * gib)
+        self.assertEqual(result["filesystems"]["/dev/root"]["reserve_bytes"], 2 * gib)
 
     def test_candidate_measurement_counts_unique_volumes_and_required_paths(self) -> None:
         target = load_target("staging", TARGETS)
         runtime = {
             "volumes": {
-                "one": {"name": "volume-a"},
-                "duplicate": {"name": "volume-a"},
-                "two": {"name": "volume-b"},
+                "one": {"name": "volume-a", "tier": "bulk"},
+                "duplicate": {"name": "volume-a", "tier": "bulk"},
+                "two": {"name": "volume-b", "tier": "database"},
             },
         }
 
@@ -848,7 +873,7 @@ class CohortContractTests(unittest.TestCase):
         # path is ignored by the real runner; this fixture reports both.
         self.assertEqual(
             _measure_candidate_bytes(target, MeasurementRunner(), "tool@sha256:" + "a" * 64, runtime),
-            3072,
+            {"bulk": 1024, "database": 1024, "local": 1024},
         )
 
     def test_materialization_workspace_cleanup_is_exactly_scoped(self) -> None:
@@ -978,6 +1003,43 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(_generation_overlay(names))
         self.assertEqual(set(overlay["volumes"]), set(VOLUME_LOGICAL_NAMES.values()))
         self.assertTrue(all(value["external"] for value in overlay["volumes"].values()))
+
+    def test_generation_database_volumes_bind_to_exact_nvme_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                status = 1 if command[:3] in (["docker", "volume", "inspect"], ["docker", "network", "inspect"]) else 0
+                return subprocess.CompletedProcess(command, status, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260903-storage"
+        _create_generation_resources(target, runner, generation)
+        path = generation_volume_path(target, generation, "odoo_postgres")
+        creates = [command for command in runner.commands if command[:3] == ["docker", "volume", "create"]]
+        database = next(command for command in creates if command[-1].endswith("odoo-postgres"))
+        filestore = next(command for command in creates if command[-1].endswith("odoo-filestore"))
+        self.assertIn(f"device={path}", database)
+        self.assertIn("com.unstaticlabs.runtime.storage-tier=database", " ".join(database))
+        self.assertNotIn("type=none", filestore)
+
+    def test_generation_database_path_rejects_traversal(self) -> None:
+        target = load_target("staging", TARGETS)
+        with self.assertRaisesRegex(RuntimeError, "generation name is invalid"):
+            generation_volume_path(target, "g../../root", "odoo_postgres")
+
+    def test_active_candidate_and_rollback_database_paths_are_distinct(self) -> None:
+        target = load_target("production", TARGETS)
+        paths = {
+            generation_volume_path(target, generation, "odoo_postgres")
+            for generation in ("gactive", "gcandidate", "grollback")
+        }
+        self.assertEqual(len(paths), 3)
+        self.assertTrue(all(path.startswith("/srv/db/usl-odoo/production/generations/") for path in paths))
 
     def test_generation_pins_every_release_owned_runtime_image(self) -> None:
         digest = "sha256:" + "a" * 64
