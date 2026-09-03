@@ -131,6 +131,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "ollama",
             "backup",
             "release_manifest",
+            "plan_signing",
             "secrets",
             "state_directory",
         },
@@ -287,6 +288,17 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("durable and cache repositories must differ")
     if not isinstance(root["release_manifest"], str) or not root["release_manifest"].startswith("/"):
         raise RuntimeError("release_manifest must be absolute")
+
+    plan_signing = _exact(root["plan_signing"], {"private_key", "public_key"}, "plan_signing")
+    for field, value in plan_signing.items():
+        if value is not None and (not isinstance(value, str) or not value.startswith("/")):
+            raise RuntimeError(f"plan_signing.{field} must be an absolute path or null")
+    if root["environment"] == "staging" and not all(plan_signing.values()):
+        raise RuntimeError("staging requires plan signing and verification keys")
+    if root["environment"] == "production" and not plan_signing["public_key"]:
+        raise RuntimeError("production requires the staging plan verification key")
+    if root["environment"] == "production" and plan_signing["private_key"] is not None:
+        raise RuntimeError("production must not receive the staging plan signing key")
 
     secrets = _exact(root["secrets"], {"env_file", "allowed_keys"}, "secrets")
     if not isinstance(secrets["env_file"], str) or not secrets["env_file"]:

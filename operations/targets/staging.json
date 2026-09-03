@@ -84,6 +84,7 @@
     "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
+  "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},
   "secrets": {
     "env_file": "/opt/usl-odoo/staging/secrets/operations.env",
     "allowed_keys": [

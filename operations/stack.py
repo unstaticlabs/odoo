@@ -20,6 +20,7 @@ from operations.module_release import (
     derive_upgrade_plan,
     validate_upgrade_plan,
 )
+from operations.plan_evidence import PlanEvidenceError, sign as sign_upgrade_plan, verify as verify_upgrade_plan
 from operations.runtime import (
     RuntimeError,
     compose_command,
@@ -1345,10 +1346,22 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     upgrade_plan = None
     if getattr(arguments, "upgrade_plan", None):
         try:
-            upgrade_plan = validate_upgrade_plan(
-                json.loads(_read_path(target, target_runner, arguments.upgrade_plan)),
-            )
-        except (json.JSONDecodeError, ModuleReleaseError) as error:
+            plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
+            if not isinstance(plan_value, dict):
+                raise PlanEvidenceError("upgrade plan must be a JSON object")
+            if target.value["environment"] == "production":
+                upgrade_plan = verify_upgrade_plan(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+            elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
+                upgrade_plan = verify_upgrade_plan(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+            else:
+                upgrade_plan = validate_upgrade_plan(plan_value)
+        except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("upgrade plan is invalid") from error
     tool_image = release["components"]["backup-tool"]["digest_reference"]
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
@@ -1736,6 +1749,40 @@ def release_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
+        if arguments.attest:
+            if target.value["environment"] != "staging":
+                raise RuntimeError("only staging may attest an upgrade plan")
+            if not arguments.upgrade_plan or not arguments.snapshot or not arguments.candidate_release:
+                raise RuntimeError("plan attestation requires upgrade plan, snapshot, and candidate release")
+            try:
+                plan = validate_upgrade_plan(json.loads(_read_path(target, runner, arguments.upgrade_plan)))
+            except (json.JSONDecodeError, ModuleReleaseError) as error:
+                raise RuntimeError("unsigned staging upgrade plan is invalid") from error
+            candidate_raw = _read_path(target, runner, arguments.candidate_release)
+            try:
+                candidate = validate_release(json.loads(candidate_raw))
+            except (ValueError, json.JSONDecodeError) as error:
+                raise RuntimeError("candidate release manifest is invalid") from error
+            if candidate.get("identity") != plan["candidate_release"]:
+                raise RuntimeError("staging plan targets another candidate release")
+            runtime = inspect_runtime(target, runner)
+            generation = runtime.get("generation")
+            if not isinstance(generation, str) or not generation.startswith("g"):
+                raise RuntimeError("staging has no admitted generation to attest")
+            health = _gate(health_command, target, arguments.targets)
+            smoke = _gate(smoke_command, target, arguments.targets)
+            evidence = sign_upgrade_plan(
+                plan,
+                Path(target.value["plan_signing"]["private_key"]),
+                snapshot=arguments.snapshot,
+                generation=generation,
+                health=health,
+                smoke=smoke,
+            )
+            output = arguments.output or arguments.upgrade_plan
+            _write_remote(target, runner, str(output), json.dumps(evidence, indent=2, sort_keys=True) + "\n", "0644")
+            print(json.dumps({"schema": evidence["schema"], "path": str(output), "plan_sha256": plan["sha256"], "generation": generation, "status": "signed"}, indent=None if arguments.json else 2, sort_keys=True))
+            return 0
         current, _current_sha, _current_raw = _release(target, runner, arguments.active_release)
         candidate_raw = _read_path(target, runner, arguments.candidate_release)
         try:
@@ -1845,6 +1892,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--active-release", type=Path)
     release.add_argument("--candidate-release", type=Path)
     release.add_argument("--upgrade-plan", type=Path)
+    release.add_argument("--attest", action="store_true")
     release.add_argument("--snapshot")
     release.add_argument("--generation")
     release.add_argument("--output", type=Path)
