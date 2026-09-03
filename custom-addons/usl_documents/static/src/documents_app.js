@@ -2160,6 +2160,27 @@ export class DocumentsWorkspaceView extends Component {
         this.replaceTagSearchFilters([...selected]);
     }
 
+    onMoreTagsToggle(event) {
+        const details = event.currentTarget;
+        if (!details.open) {
+            this.state.tagShortcutQuery = "";
+            return;
+        }
+        browser.requestAnimationFrame(() => {
+            details.querySelector("input[type='search']")?.focus();
+        });
+    }
+
+    selectTagShortcut(tag, event) {
+        const details = event.currentTarget.closest("details");
+        this.toggleTagFilter(tag);
+        this.state.tagShortcutQuery = "";
+        if (details) {
+            details.open = false;
+            details.querySelector("summary")?.focus();
+        }
+    }
+
     onTagShortcutSearch(event) {
         this.state.tagShortcutQuery = event.target.value;
     }

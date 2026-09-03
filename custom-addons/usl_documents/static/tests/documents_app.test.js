@@ -1169,6 +1169,8 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         )
     ).toBeGreaterThan(2);
     await contains(".o_usl_more_tags summary").click();
+    await animationFrame();
+    expect(".o_usl_more_tags input").toBeFocused();
     await contains(".o_usl_more_tags input").fill("deliberately long");
     expect(".o_usl_more_tags_results .dropdown-item").toHaveCount(1);
     expect(".o_usl_more_tags_results .dropdown-item").toHaveAttribute(
@@ -1176,6 +1178,9 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         "Filter by tag: A deliberately long archive classification tag"
     );
     await contains(".o_usl_more_tags_results .dropdown-item").click();
+    expect(".o_usl_more_tags").not.toHaveAttribute("open");
+    expect(".o_usl_more_tags summary").toBeFocused();
+    expect(".o_usl_more_tags input").toHaveValue("");
     expect(lastDomain).toEqual([["tag_ids", "in", [20]]]);
     expect(".o_searchview_facet").toHaveText(
         /Tag: A deliberately long archive classification tag/

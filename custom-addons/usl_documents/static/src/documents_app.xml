@@ -306,7 +306,8 @@
                             <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
                         </button>
                         <details t-if="overflowTagShortcuts.length"
-                                 class="o_usl_more_tags position-relative">
+                                 class="o_usl_more_tags position-relative"
+                                 t-on-toggle="onMoreTagsToggle">
                             <summary class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap">
                                 More tags (<t t-esc="overflowTagShortcuts.length"/>)
                             </summary>
@@ -327,7 +328,7 @@
                                             type="button"
                                             t-att-class="'dropdown-item d-flex align-items-center gap-2 rounded ' + (this.isTagShortcutActive(tag) ? 'active' : '')"
                                             t-att-title="'Filter by tag: ' + tag.name"
-                                            t-on-click="() => this.toggleTagFilter(tag)">
+                                            t-on-click="(event) => this.selectTagShortcut(tag, event)">
                                         <span class="o_usl_tag_color flex-shrink-0"
                                               t-att-style="'--tag-color:' + tag.color"/>
                                         <span class="text-truncate flex-grow-1"
