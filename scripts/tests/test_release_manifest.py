@@ -54,6 +54,33 @@ def manifest() -> dict[str, object]:
     foundation["digest"] = hashlib.sha256(
         json.dumps(foundation, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
+    mcp_contract = {
+        "schema": "usl-odoo-mcp-support/v1",
+        "odoo_series": "19.3",
+        "supported_mcp_major": 1,
+        "required_modules": ["usl_access_control"],
+        "public_methods": ["usl.agent.current_identity"],
+        "actions": ["usl.agent.current_identity"],
+        "agent_identity": {
+            "method": "usl.agent.current_identity",
+            "principal_kind": "agent",
+            "schema_version": 3,
+            "fields": [
+                "access_mode",
+                "agent",
+                "authority_reduced",
+                "companies",
+                "credential",
+                "effective_applications",
+                "owner",
+                "principal_kind",
+                "schema_version",
+            ],
+        },
+    }
+    mcp_contract["sha256"] = hashlib.sha256(
+        json.dumps(mcp_contract, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
     value = {
         "schema": "usl-release/v3",
         "source": {"repository": "unstaticlabs/odoo", "ref": "refs/heads/19-usl-staging", "commit": COMMIT},
@@ -69,6 +96,7 @@ def manifest() -> dict[str, object]:
             "release_schema": "usl-odoo-mcp-oci-release/v2",
             "release_manifest_sha256": "5" * 64,
         },
+        "mcp_contract": mcp_contract,
         "renderer": {
             "repository": "https://github.com/unstaticlabs/unstatic_latex_templates",
             "commit": "d" * 40,
@@ -106,6 +134,36 @@ class ReleaseManifestTests(unittest.TestCase):
         value = copy.deepcopy(manifest())
         value["mcp"]["image"] = "ghcr.io/unstaticlabs/odoo-mcp:latest"
         with self.assertRaisesRegex(ReleaseManifestError, "MCP identity"):
+            validate(value)
+
+    def test_rejects_changed_mcp_support_contract(self) -> None:
+        value = copy.deepcopy(manifest())
+        value["mcp_contract"]["actions"].append("usl.document.mcp_get")
+        with self.assertRaisesRegex(ReleaseManifestError, "digest differs"):
+            validate(value)
+
+    def test_rejects_unsorted_mcp_support_surface(self) -> None:
+        value = copy.deepcopy(manifest())
+        value["mcp_contract"]["actions"] = ["z.method", "a.method"]
+        body = {key: item for key, item in value["mcp_contract"].items() if key != "sha256"}
+        value["mcp_contract"]["sha256"] = hashlib.sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "sorted and unique"):
+            validate(value)
+
+    def test_rejects_incomplete_agent_identity_support(self) -> None:
+        value = copy.deepcopy(manifest())
+        value["mcp_contract"]["agent_identity"]["fields"].remove("authority_reduced")
+        body = {
+            key: item
+            for key, item in value["mcp_contract"].items()
+            if key != "sha256"
+        }
+        value["mcp_contract"]["sha256"] = hashlib.sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "omits required fields"):
             validate(value)
 
     def test_rejects_wrong_embedding_dimension(self) -> None:

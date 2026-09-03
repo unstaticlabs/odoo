@@ -43,6 +43,72 @@ def _sha256(value: object) -> str:
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
+def _sorted_strings(value: object, label: str) -> list[str]:
+    if (
+        not isinstance(value, list)
+        or value != sorted(set(value))
+        or not all(isinstance(item, str) and item for item in value)
+    ):
+        raise ReleaseManifestError(f"{label} must be sorted and unique")
+    return value
+
+
+def _mcp_contract(value: object) -> dict[str, Any]:
+    fields = {
+        "schema",
+        "odoo_series",
+        "supported_mcp_major",
+        "required_modules",
+        "public_methods",
+        "actions",
+        "agent_identity",
+        "sha256",
+    }
+    contract = _object(value, fields, "mcp_contract")
+    if contract["schema"] != "usl-odoo-mcp-support/v1":
+        raise ReleaseManifestError("MCP support contract schema is invalid")
+    if contract["odoo_series"] != "19.3" or contract["supported_mcp_major"] != 1:
+        raise ReleaseManifestError("MCP support contract version is unsupported")
+    for name in ("required_modules", "public_methods", "actions"):
+        _sorted_strings(contract[name], f"mcp_contract.{name}")
+    identity = _object(
+        contract["agent_identity"],
+        {"method", "principal_kind", "schema_version", "fields"},
+        "mcp_contract.agent_identity",
+    )
+    if (
+        identity["method"] != "usl.agent.current_identity"
+        or identity["principal_kind"] != "agent"
+        or not isinstance(identity["schema_version"], int)
+        or identity["schema_version"] < 1
+    ):
+        raise ReleaseManifestError("MCP Agent identity contract is invalid")
+    identity_fields = _sorted_strings(
+        identity["fields"], "mcp_contract.agent_identity.fields"
+    )
+    required_identity_fields = {
+        "access_mode",
+        "agent",
+        "authority_reduced",
+        "companies",
+        "credential",
+        "effective_applications",
+        "owner",
+        "principal_kind",
+        "schema_version",
+    }
+    missing_identity_fields = sorted(required_identity_fields - set(identity_fields))
+    if missing_identity_fields:
+        raise ReleaseManifestError(
+            "MCP Agent identity contract omits required fields: "
+            + ", ".join(missing_identity_fields)
+        )
+    body = {key: item for key, item in contract.items() if key != "sha256"}
+    if contract["sha256"] != _sha256(body):
+        raise ReleaseManifestError("MCP support contract digest differs")
+    return contract
+
+
 def _component(value: object, label: str, *, legacy: bool = False) -> dict[str, Any]:
     fields = {"input_sha256", "image", "tag", "digest", "digest_reference"}
     if not legacy:
@@ -131,13 +197,14 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         return root
     root = _object(
         payload,
-        {"schema", "identity", "source", "components", "modules", "foundation", "mcp", "renderer", "ollama", "qualification", "build"},
+        {"schema", "identity", "source", "components", "modules", "foundation", "mcp", "mcp_contract", "renderer", "ollama", "qualification", "build"},
         "release",
     )
     if root["schema"] != SCHEMA:
         raise ReleaseManifestError(f"unsupported release schema: {root['schema']!r}")
     _validate_common(root, commit=commit, legacy=False)
     validate_inventory(root["modules"])
+    _mcp_contract(root["mcp_contract"])
     foundation = _object(
         root["foundation"],
         {"odoo_series", "odoo_core_commit", "odoo_core_sha256", "oca_sha256", "python_constraints_sha256", "security_policy_sha256", "digest"},
@@ -226,6 +293,23 @@ def create(arguments: argparse.Namespace) -> int:
         key: mcp[key]
         for key in ("schema", "repository", "ref", "commit", "image_digest", "compatibility_sha256")
     }
+    legacy_contract = mcp["contract"]
+    identity_contract = legacy_contract["required_agent_identity"]
+    mcp_contract_body = {
+        "schema": "usl-odoo-mcp-support/v1",
+        "odoo_series": arguments.odoo_series,
+        "supported_mcp_major": 1,
+        "required_modules": legacy_contract["required_modules"],
+        "public_methods": [identity_contract["method"]],
+        "actions": sorted(
+            action.removeprefix("rpc:")
+            for action in (
+                set(legacy_contract["source_rpc_actions"])
+                | set(legacy_contract["dynamic_rpc_actions"])
+            )
+        ),
+        "agent_identity": identity_contract,
+    }
     payload: dict[str, Any] = {
         "schema": SCHEMA,
         "source": {"repository": arguments.repository, "ref": arguments.source_ref, "commit": arguments.commit},
@@ -240,6 +324,10 @@ def create(arguments: argparse.Namespace) -> int:
             "compatibility_sha256": mcp["compatibility_sha256"],
             "release_schema": "usl-odoo-mcp-oci-release/v2",
             "release_manifest_sha256": _sha256(mcp_release_body),
+        },
+        "mcp_contract": {
+            **mcp_contract_body,
+            "sha256": _sha256(mcp_contract_body),
         },
         "renderer": {"repository": renderer["repository"], "commit": renderer["commit"], "image": renderer["image_digest"]},
         "ollama": {"model": arguments.ollama_model, "manifest_sha256": arguments.ollama_manifest, "dimension": arguments.ollama_dimension},

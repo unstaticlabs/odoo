@@ -4,7 +4,7 @@
   "title": "USL coordinated release v3",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "identity", "source", "components", "modules", "foundation", "mcp", "renderer", "ollama", "qualification", "build"],
+  "required": ["schema", "identity", "source", "components", "modules", "foundation", "mcp", "mcp_contract", "renderer", "ollama", "qualification", "build"],
   "properties": {
     "schema": {"const": "usl-release/v3"},
     "identity": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
@@ -13,6 +13,7 @@
     "modules": {"type": "object"},
     "foundation": {"type": "object"},
     "mcp": {"type": "object"},
+    "mcp_contract": {"type": "object"},
     "renderer": {"type": "object"},
     "ollama": {"type": "object"},
     "qualification": {"type": "object"},
