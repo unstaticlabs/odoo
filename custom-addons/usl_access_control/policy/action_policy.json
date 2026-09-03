@@ -173363,6 +173363,8 @@
     },
     {
       "action_keys": [
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:orm_write:1",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:sudo:1",
         "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1",
@@ -173388,6 +173390,12 @@
       "evidence_id": "internal-reachability-v1",
       "id": "system_internal.system_framework.sink.usl_home",
       "overrides": {
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:orm_write:1": {
+          "reachability_proof": "This private upgrade and installation helper has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:sudo:1": {
+          "reachability_proof": "This private upgrade and installation helper has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": {
           "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -173445,8 +173453,10 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": "46e7d18e5cb03c1211ea1b43b0ce6630012d8bc7beb021664dc59a7666f372eb",
-        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": "78dcee652ffb4c9e71fa42d5fdbd5c5d842ef2acc37c52502f70ff3f482de320",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:orm_write:1": "fe85b4629ba23b52162895842d6b441e3158c506160c8dbc1257fdb77afa5de1",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:sudo:1": "1160ad75acbac4efe7de6b0cd18f3eab5f363f63d8d87c1a3408fd588e381059",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": "6565d9938b8f44662f7f0e4075f44f6584e370c1288fb66e43727aa47a4c9d64",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": "ad38e846cb9a44e1c5858c525c9867deb9582bcf7ac85dc4fe8e7d8f05671ad3",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1": "7b727ea35b84e3137e0cdb2402c04bc01c695ce39e81524425872ec9ff880f0a",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:1": "a5ff0cb0998c45b10a6244954d79b722178ed49a4e03601bf2e5344e6e2b2869",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:2": "327e618e755cd4f6cd498380e9582592324168981ca70480a8d0402ca66db7f1",
@@ -186311,6 +186321,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "656a5e34a604a7109af198b28a93059e23d91173a041f795af65b3829747f5e0",
+  "qualified_policy_digest": "856a18630d3fca606074e6f57ec2c260a9c4e407043e3977726c703963150a44",
   "schema": "usl-action-risk-policy-v1"
 }
