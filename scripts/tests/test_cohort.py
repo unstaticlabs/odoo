@@ -393,6 +393,34 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("up", runner.commands[-1])
         self.assertIn("--no-recreate", runner.commands[-1])
 
+    def test_successful_release_capture_can_leave_writers_quiesced(self) -> None:
+        identity = {
+            "project": "safe-project",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml"],
+        }
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        result = with_writers_paused(
+            runner,
+            identity,
+            ["odoo", "paperless"],
+            lambda: {"status": "captured"},
+            resume_after_success=False,
+        )
+        self.assertEqual(result["status"], "captured")
+        self.assertIn("stop", runner.commands[0])
+        self.assertEqual(len(runner.commands), 1)
+
     def test_backup_image_is_pulled_only_when_missing(self) -> None:
         image = "backup@sha256:" + "a" * 64
 
