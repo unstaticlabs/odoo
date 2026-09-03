@@ -1296,11 +1296,12 @@ test("native search defaults to broad archive search and keeps specialist fields
     ]);
     expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/heliotrope/);
-    const encodedDomain = browser.location.href
-        .split("domain=")[1]
-        .split("&")[0];
-    expect(encodedDomain.includes("+")).toBe(false);
-    expect(decodeURIComponent(encodedDomain)).toBe(
+    const navigationUrl = new URL(browser.location.href);
+    expect(navigationUrl.searchParams.has("domain")).toBe(false);
+    expect(
+        JSON.parse(navigationUrl.searchParams.get("usl_filters")).nativeSearch
+            .domain
+    ).toBe(
         '[("all_text", "ilike", "heliotrope")]'
     );
 });
@@ -1530,6 +1531,36 @@ test("tags are searchable, removable, and creatable from document details", asyn
     expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
     await contains("button[aria-label='Remove tag Accounting']").click();
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
+});
+
+test.tags("desktop");
+test("Documents search domains stay namespaced away from tag dialogs", async () => {
+    const documentDomain = '[("review_state", "=", "classified")]';
+    const baseUrl = browser.location.href.split("?")[0];
+    browser.history.replaceState(
+        {},
+        "",
+        `${baseUrl}?domain=${encodeURIComponent(documentDomain)}`
+    );
+
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.search_domain).toEqual([
+            ["review_state", "=", "classified"],
+        ]);
+        return emptyWorkspace;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await animationFrame();
+
+    const canonicalUrl = new URL(browser.location.href);
+    expect(canonicalUrl.searchParams.has("domain")).toBe(false);
+    expect(
+        JSON.parse(canonicalUrl.searchParams.get("usl_filters")).nativeSearch
+            .domain
+    ).toBe(documentDomain);
 });
 
 test.tags("desktop");
@@ -1825,10 +1856,10 @@ test("Odoo-style list headers persist validated ordering in the URL", async () =
     await contains(".o_list_table th", { text: "Document" }).click();
 
     expect(orders.at(-1)).toEqual([{ name: "name", asc: true }]);
+    const navigationUrl = new URL(browser.location.href);
+    expect(navigationUrl.searchParams.has("orderBy")).toBe(false);
     expect(
-        JSON.parse(
-            new URL(browser.location.href).searchParams.get("orderBy")
-        )
+        JSON.parse(navigationUrl.searchParams.get("usl_filters")).orderBy
     ).toEqual([{ name: "name", asc: true }]);
 
     await contains(".o_list_table th", { text: "Document" }).click();

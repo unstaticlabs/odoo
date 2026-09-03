@@ -1250,18 +1250,13 @@ export class DocumentsWorkspaceView extends Component {
             for (const key of ["domain", "groupBy", "orderBy"]) {
                 url.searchParams.delete(key);
             }
-            // SearchModel intentionally serializes its shareable state with
-            // encodeURIComponent, matching Odoo's router. Do not pass this
-            // encoded query through URLSearchParams: it rewrites spaces as
-            // "+", while Odoo's router only decodes percent escapes. Repeated
-            // reloads would otherwise turn a valid domain into one containing
-            // accumulating unary "+" tokens.
-            const nativeSearch = this.searchModel.generateQueryString();
-            const navigationUrl = new URL(
-                nativeSearch
-                    ? `${url.href}${url.search ? "&" : "?"}${nativeSearch}`
-                    : url.href
-            );
+            // Keep Documents search state under its own URL key. Generic
+            // Odoo domain/groupBy/orderBy parameters are global to the route:
+            // leaving a document domain there makes nested selection dialogs
+            // apply it to unrelated models (for example review_state on tags).
+            // Old shared URLs remain supported because the host SearchModel
+            // reads them before this method canonicalizes the route.
+            const navigationUrl = url;
             const routeFromUrl = router.urlToState(navigationUrl);
             const hostRoute =
                 browser.history.state?.nextState || router.current || {};
