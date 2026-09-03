@@ -21,7 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates python3 python3-psycopg2 \
+    && apt-get install -y --no-install-recommends ca-certificates openssl python3 python3-psycopg2 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=restic /usr/bin/restic /usr/local/bin/restic

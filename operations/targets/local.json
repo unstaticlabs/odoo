@@ -80,6 +80,7 @@
     "cache_repository": "rest:/tmp/usl-odoo-local/restic/cache"
   },
   "release_manifest": "/tmp/usl-odoo-local/usl-release.json",
+  "plan_signing": {"private_key": null, "public_key": null},
   "secrets": {
     "env_file": "/tmp/usl-odoo-local/operations.env",
     "allowed_keys": [

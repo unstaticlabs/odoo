@@ -30,6 +30,11 @@ dependencies. Comparing two v3 releases yields one exact upgrade plan:
 The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
 
+After the candidate passes staging health and read-only control checks,
+staging signs that exact plan with a dedicated Ed25519 key. Production holds
+only the public key and rejects unsigned, modified, cross-release or
+non-staging-qualified plans.
+
 Qualification derives its test plan from the same owned-module dependency
 graph. A changed module runs its suite and the suites of owned modules that
 depend on it. A core, OCA, Python-constraint or other foundation change runs
