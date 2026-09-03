@@ -14,6 +14,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from operations.control_manifest import ControlManifestError, validate_restore
+from operations.release_controller import (
+    ReleaseControllerError,
+    abort as abort_release_state,
+    parse as parse_release_state,
+)
 from operations.release_manifest import validate as validate_release
 from operations.module_release import (
     ModuleReleaseError,
@@ -1746,21 +1751,27 @@ def release_command(arguments: argparse.Namespace) -> int:
     state_path = f"{target.value['state_directory']}/release-state.json"
     if arguments.action == "status":
         state = runner.run(["cat", state_path], check=False)
-        value = json.loads(state.stdout) if state.returncode == 0 else {
-            "schema": "usl-release-run/v1",
-            "target": target.name,
-            "status": "idle",
-        }
+        if state.returncode == 0:
+            try:
+                value = parse_release_state(state.stdout)
+            except ReleaseControllerError as error:
+                raise RuntimeError(str(error)) from error
+        else:
+            value = {
+                "schema": "usl-release-run/v1",
+                "target": target.name,
+                "status": "idle",
+            }
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "abort":
         state = runner.run(["cat", state_path], check=False)
         if state.returncode:
             raise RuntimeError("there is no release run to abort")
-        value = json.loads(state.stdout)
-        if value.get("phase") in {"reopen", "notify", "staging-refresh", "retention", "record"}:
-            raise RuntimeError("an already reopened release cannot discard production data")
-        value.update({"status": "aborted", "aborted_at": datetime.now(UTC).isoformat()})
+        try:
+            value = abort_release_state(parse_release_state(state.stdout))
+        except ReleaseControllerError as error:
+            raise RuntimeError(str(error)) from error
         _write_remote(target, runner, state_path, json.dumps(value, indent=2, sort_keys=True) + "\n")
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
