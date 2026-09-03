@@ -66,6 +66,7 @@ RELEASE_RUNTIME_SERVICES = {
 }
 MINIMUM_FREE_BYTES = 2 * 1024**3
 CAPACITY_WARNING_BYTES = 8 * 1024**3
+RESTORE_SAFETY_RESERVE_BYTES = 15 * 1024**3
 RESOURCE_FIELDS = {
     "cpus",
     "cpu_shares",
@@ -312,17 +313,76 @@ def _available_bytes(runner, path: str) -> int:
         raise RuntimeError(f"disk capacity probe returned invalid output for {path}") from error
 
 
-def _require_restore_capacity(target, runner, phase: str) -> dict:
+def _require_restore_capacity(
+    target,
+    runner,
+    phase: str,
+    *,
+    candidate_bytes: int | None = None,
+) -> dict:
     available = _available_bytes(runner, target.value["state_directory"])
     if available < MINIMUM_FREE_BYTES:
         raise RuntimeError(
             f"restore {phase} refused: {_capacity_detail(available)}",
         )
-    _report("restore", phase, "capacity checked", _capacity_detail(available))
-    return {
+    result = {
         "available_bytes": available,
         "warning": available < CAPACITY_WARNING_BYTES,
     }
+    if candidate_bytes is not None:
+        required = candidate_bytes + RESTORE_SAFETY_RESERVE_BYTES
+        if available < required:
+            deficit = required - available
+            raise RuntimeError(
+                "restore capacity refused: "
+                f"{available / 1024**3:.1f} GiB free, "
+                f"{candidate_bytes / 1024**3:.1f} GiB measured candidate, "
+                f"15.0 GiB reserve, {deficit / 1024**3:.1f} GiB deficit",
+            )
+        result.update(
+            candidate_bytes=candidate_bytes,
+            safety_reserve_bytes=RESTORE_SAFETY_RESERVE_BYTES,
+            required_bytes=required,
+        )
+    _report("restore", phase, "capacity checked", _capacity_detail(available))
+    return result
+
+
+def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> int:
+    """Measure the additional persistent state a fresh generation must hold.
+
+    Existing active and rollback generations are already reflected in free
+    space, so they must not be added again. The estimate intentionally sums
+    allocated file bytes rather than Docker volume metadata.
+    """
+    total = 0
+    seen: set[str] = set()
+    for item in runtime["volumes"].values():
+        name = item["name"]
+        if name in seen:
+            continue
+        seen.add(name)
+        measured = runner.run([
+            "docker", "run", "--rm", "--volume", f"{name}:/source:ro",
+            "--entrypoint", "du", tool_image, "-sb", "/source",
+        ]).stdout.split()
+        try:
+            total += int(measured[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent volume: {name}") from error
+    for item in target.value["paths"].values():
+        if not item.get("required") and item.get("class") != "durable":
+            continue
+        result = runner.run(["du", "-sb", item["path"]], check=False)
+        if result.returncode:
+            if item.get("required"):
+                raise RuntimeError(f"cannot measure required persistent path: {item['path']}")
+            continue
+        try:
+            total += int(result.stdout.split()[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent path: {item['path']}") from error
+    return total
 
 
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
@@ -1301,7 +1361,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
     for image in _release_images(release):
         _ensure_image(target_runner, image)
-    capacity_after_pull = _require_restore_capacity(target, target_runner, "image pre-pull")
+    candidate_bytes = _measure_candidate_bytes(target, target_runner, tool_image, current)
+    capacity_after_pull = _require_restore_capacity(
+        target,
+        target_runner,
+        "image pre-pull",
+        candidate_bytes=candidate_bytes,
+    )
     _record_event(
         target,
         target_runner,
