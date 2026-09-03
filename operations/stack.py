@@ -1594,7 +1594,7 @@ def _apply_generation_cron_policy(target, runner, release, network, volumes) -> 
 
 
 def _notify_release(target, runner, release_id: str) -> dict:
-    """Post one persistent OdooBot release note in the native upgrade channel."""
+    """Post one persistent OdooBot note in the distribution update channel."""
     if target.value["environment"] != "production":
         raise RuntimeError("release notifications are production-only")
     if not re.fullmatch(r"[0-9a-f]{64}", release_id):
@@ -1618,7 +1618,7 @@ from odoo import fields
 release_id = env.context.get("usl_release_notification_id")
 notes = json.loads(env.context.get("usl_release_notification_notes"))
 evidence_url = env.context.get("usl_release_notification_evidence_url")
-channel = env.ref("mail.channel_all_employees").sudo()
+channel = env.ref("usl_home.channel_distribution_updates").sudo()
 odoobot = env.ref("base.partner_root").sudo()
 external_message_id = "<usl-release-%s@unstaticlabs.com>" % release_id
 message = env["mail.message"].sudo().search([
@@ -1660,7 +1660,7 @@ if not message:
     )
     status = "posted"
 print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
-    "channel": "mail.channel_all_employees",
+    "channel": "usl_home.channel_distribution_updates",
     "message_id": message.id,
     "release": release_id,
     "status": status,
@@ -1703,7 +1703,7 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
             if (
                 value.get("status") not in {"posted", "already_posted"}
                 or value.get("release") != release_id
-                or value.get("channel") != "mail.channel_all_employees"
+                or value.get("channel") != "usl_home.channel_distribution_updates"
                 or not isinstance(value.get("message_id"), int)
             ):
                 raise RuntimeError("release notification evidence differs")

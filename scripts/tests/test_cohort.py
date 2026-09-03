@@ -91,7 +91,7 @@ class CohortContractTests(unittest.TestCase):
         runner = mock.Mock()
         runner.run.return_value = subprocess.CompletedProcess(
             [], 0,
-            'USL_RELEASE_NOTIFICATION_RESULT={"channel": "mail.channel_all_employees", "message_id": 42, "release": "' + release_id + '", "status": "posted"}\n',
+            'USL_RELEASE_NOTIFICATION_RESULT={"channel": "usl_home.channel_distribution_updates", "message_id": 42, "release": "' + release_id + '", "status": "posted"}\n',
             "",
         )
         runtime = {
@@ -116,7 +116,7 @@ class CohortContractTests(unittest.TestCase):
             result = _notify_release(target, runner, release_id)
         self.assertEqual(result["message_id"], 42)
         program = runner.run.call_args.kwargs["input_text"]
-        self.assertIn("mail.channel_all_employees", program)
+        self.assertIn("usl_home.channel_distribution_updates", program)
         self.assertIn("base.partner_root", program)
         self.assertIn("message_post", program)
         self.assertNotIn("_bus_send", program)
