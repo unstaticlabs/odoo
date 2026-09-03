@@ -5,11 +5,14 @@ test("saving address changes keeps the Preferences dialog open and confirms deli
     const notifications = [];
     const controller = {
         env: { inDialog: true },
-        keepOpenForSenderAliases: false,
         model: {
             root: {
-                async save() {
-                    controller.keepOpenForSenderAliases = true;
+                async getChanges() {
+                    return { usl_sender_alias_ids: [[0, 0, { email: "new@example.com" }]] };
+                },
+                async save(params) {
+                    expect(params.reload).toBe(true);
+                    expect.step("record saved and refreshed");
                     return true;
                 },
             },
@@ -21,6 +24,9 @@ test("saving address changes keeps the Preferences dialog open and confirms deli
         },
         onSaveError() {},
         props: {
+            saveRecord() {
+                expect.step("generic dialog save");
+            },
             onSave() {
                 expect.step("dialog closed");
             },
@@ -34,23 +40,28 @@ test("saving address changes keeps the Preferences dialog open and confirms deli
     expect(notifications[0].options.title).not.toBe(undefined);
     expect(notifications[0].message).not.toBe(undefined);
     expect(notifications[0].options.type).toBe("success");
-    expect.verifySteps([]);
+    expect.verifySteps(["record saved and refreshed"]);
 });
 
 test("ordinary preference saves retain the standard close behavior", async () => {
     const controller = {
         env: { inDialog: true },
-        keepOpenForSenderAliases: false,
-        model: { root: { save: async () => true } },
+        model: { root: { getChanges: async () => ({}) } },
         notification: { add: () => expect.step("notification") },
         onSaveError() {},
-        props: { onSave: () => expect.step("dialog closed") },
+        props: {
+            saveRecord: async () => {
+                expect.step("generic dialog save");
+                return true;
+            },
+            onSave: () => expect.step("dialog closed"),
+        },
     };
 
     const saved = await UslUserPreferencesController.prototype.save.call(controller);
 
     expect(saved).toBe(true);
-    expect.verifySteps(["dialog closed"]);
+    expect.verifySteps(["generic dialog save", "dialog closed"]);
 });
 
 test("security actions save without closing the Preferences dialog", async () => {

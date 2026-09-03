@@ -8,13 +8,6 @@ export class UslUserPreferencesController extends HrUserPreferencesController {
     setup() {
         super.setup();
         this.notification = useService("notification");
-        this.keepOpenForSenderAliases = false;
-    }
-
-    onWillSaveRecord(record, changes) {
-        const result = super.onWillSaveRecord(record, changes);
-        this.keepOpenForSenderAliases ||= "usl_sender_alias_ids" in changes;
-        return result;
     }
 
     async beforeExecuteActionButton(clickParams) {
@@ -31,9 +24,17 @@ export class UslUserPreferencesController extends HrUserPreferencesController {
 
     async save(params = {}) {
         const record = this.model.root;
-        this.keepOpenForSenderAliases = false;
+        const changes = await record.getChanges();
+        const keepOpenForSenderAliases =
+            this.env.inDialog && Object.hasOwn(changes, "usl_sender_alias_ids");
         let saved;
-        if (this.props.saveRecord) {
+        if (keepOpenForSenderAliases) {
+            saved = await record.save({
+                onError: (error, options) => this.onSaveError(error, options, false),
+                ...params,
+                reload: true,
+            });
+        } else if (this.props.saveRecord) {
             saved = await this.props.saveRecord(record, params);
         } else {
             saved = await record.save({
@@ -41,7 +42,7 @@ export class UslUserPreferencesController extends HrUserPreferencesController {
                 ...params,
             });
         }
-        if (saved && this.keepOpenForSenderAliases && this.env.inDialog) {
+        if (saved && keepOpenForSenderAliases) {
             this.notification.add(
                 _t(
                     "We sent a verification link to each new or changed address. Check your inbox within 24 hours."

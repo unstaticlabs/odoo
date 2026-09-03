@@ -1357,6 +1357,11 @@ msgid "Verified"
 msgstr "Vérifiée"
 
 #. module: usl_pocketid
+#. odoo-python
+msgid "This email address is already verified."
+msgstr "Cette adresse e-mail est déjà vérifiée."
+
+#. module: usl_pocketid
 msgid "Send verification"
 msgstr "Envoyer la vérification"
 
