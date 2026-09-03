@@ -13,7 +13,12 @@ from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime
 from pathlib import Path
 
-from operations.control_manifest import ControlManifestError, validate_restore
+from operations.control_manifest import (
+    ODOO_CONTROL_SQL,
+    PAPERLESS_CONTROL_SQL,
+    ControlManifestError,
+    validate_restore,
+)
 from operations.release_controller import (
     ReleaseControllerError,
     abort as abort_release_state,
@@ -830,52 +835,8 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     runner = target.runner()
     status = inspect_runtime(target, runner)
     identity = status["compose"]
-    odoo_query = """
-SELECT json_build_object(
-  'companies', (SELECT count(*) FROM res_company),
-  'users', (SELECT count(*) FROM res_users),
-  'employees', (SELECT count(*) FROM hr_employee),
-  'agents', (SELECT count(*) FROM usl_agent),
-  'moves', (SELECT count(*) FROM account_move),
-  'move_lines', (SELECT count(*) FROM account_move_line),
-  'posted_move_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, journal_id, name, date, state, amount_total, amount_residual, payment_state), E'\n' ORDER BY id), '')) FROM account_move WHERE state = 'posted'),
-  'posted_line_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, move_id, company_id, account_id, debit, credit, balance, currency_id, amount_currency, reconciled), E'\n' ORDER BY id), '')) FROM account_move_line WHERE parent_state = 'posted'),
-  'partial_reconcile_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, debit_move_id, credit_move_id, amount, debit_amount_currency, credit_amount_currency), E'\n' ORDER BY id), '')) FROM account_partial_reconcile),
-  'acl_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, group_id, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_model_access),
-  'record_rule_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_rule),
-  'currency_rate_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, currency_id, name, rate), E'\n' ORDER BY id), '')) FROM res_currency_rate),
-  'attachments', (SELECT count(*) FROM ir_attachment),
-  'messages', (SELECT count(*) FROM mail_message),
-  'activities', (SELECT count(*) FROM mail_activity),
-  'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
-  'projects', (SELECT count(*) FROM project_project),
-  'tasks', (SELECT count(*) FROM project_task),
-  'expenses', (SELECT count(*) FROM hr_expense),
-  'assets', (SELECT count(*) FROM account_asset),
-  'analytics', (SELECT count(*) FROM account_analytic_line),
-  'taxes', (SELECT count(*) FROM account_tax),
-  'platform_sessions', (SELECT count(*) FROM usl_platform_billing_session),
-  'platform_payouts', (SELECT count(*) FROM usl_platform_billing_payout),
-  'tese_payslips', (SELECT count(*) FROM usl_tese_payslip),
-  'ledger_delta', (SELECT coalesce(sum(debit-credit), 0) FROM account_move_line),
-  'queued_mail', (SELECT count(*) FROM mail_mail WHERE state = 'outgoing'),
-  'failed_mail', (SELECT count(*) FROM mail_mail WHERE state = 'exception'),
-  'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','duplicate')),
-  'failed_documents', (SELECT count(*) FROM usl_document_operation WHERE state = 'failed'),
-  'bank_pending', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing')),
-  'bank_failed', (SELECT count(*) FROM account_bank_ingestion WHERE state = 'failed'),
-  'payment_pending', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized')),
-  'payment_failed', (SELECT count(*) FROM payment_transaction WHERE state = 'error'),
-  'sign_archive_pending', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing')),
-  'sign_archive_failed', (SELECT count(*) FROM sign_oca_request WHERE archive_status = 'failed'),
-  'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active)
-);""".strip()
-    paperless_query = """
-SELECT json_build_object(
-  'documents', count(*),
-  'with_ocr', count(*) FILTER (WHERE coalesce(content, '') <> ''),
-  'missing_original_name', count(*) FILTER (WHERE coalesce(filename, '') = '')
-) FROM documents_document;""".strip()
+    odoo_query = ODOO_CONTROL_SQL
+    paperless_query = PAPERLESS_CONTROL_SQL
     try:
         odoo = json.loads(_psql(target, runner, identity, "odoo", odoo_query))
         paperless = json.loads(_psql(target, runner, identity, "paperless", paperless_query))

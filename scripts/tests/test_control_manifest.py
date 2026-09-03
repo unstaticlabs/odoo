@@ -6,8 +6,13 @@ import unittest
 from operations.control_manifest import (
     ControlManifestError,
     ODOO_PRESERVATION_KEYS,
+    ODOO_PRESERVATION_KEYS_V2,
     ODOO_QUEUE_KEYS,
     ODOO_RELEASE_KEYS,
+    ODOO_RELEASE_KEYS_V2,
+    PAPERLESS_PRESERVATION_KEYS_V2,
+    SCHEMA,
+    SCHEMA_V1,
     classify,
     release_digest,
     validate_restore,
@@ -40,7 +45,22 @@ def controls() -> dict:
     }
 
 
+def controls_v2() -> dict:
+    value = controls()
+    for key in ODOO_PRESERVATION_KEYS_V2 - ODOO_PRESERVATION_KEYS:
+        value["odoo"][key] = f"preservation-{key}"
+    for key in ODOO_RELEASE_KEYS_V2 - ODOO_RELEASE_KEYS:
+        value["odoo"][key] = f"release-{key}"
+    for key in PAPERLESS_PRESERVATION_KEYS_V2 - set(value["paperless"]):
+        value["paperless"][key] = 0 if key == "trash_count" else f"paperless-{key}"
+    return value
+
+
 class ControlManifestTests(unittest.TestCase):
+    def test_classifies_legacy_and_current_controls(self):
+        self.assertEqual(classify(controls())["schema"], SCHEMA_V1)
+        self.assertEqual(classify(controls_v2())["schema"], SCHEMA)
+
     def test_unknown_control_fails_closed(self):
         value = controls()
         value["odoo"]["new_queue"] = 1
@@ -108,6 +128,34 @@ class ControlManifestTests(unittest.TestCase):
         after = copy.deepcopy(before)
         after["odoo"]["failed_documents"] = 1
         with self.assertRaisesRegex(ControlManifestError, "failed queues"):
+            validate_restore(before, after)
+
+    def test_v1_snapshot_can_be_restored_into_v2_runtime(self):
+        before = controls()
+        after = controls_v2()
+        result = validate_restore(
+            before,
+            after,
+            expected_release_sha256=release_digest(after),
+        )
+        self.assertEqual(result["control_schema"], SCHEMA)
+
+    def test_v2_snapshot_cannot_regress_to_v1_controls(self):
+        with self.assertRaisesRegex(ControlManifestError, "regressed"):
+            validate_restore(controls_v2(), controls())
+
+    def test_v2_identity_drift_is_rejected(self):
+        before = controls_v2()
+        after = copy.deepcopy(before)
+        after["odoo"]["agent_authority_fingerprint"] = "changed"
+        with self.assertRaisesRegex(ControlManifestError, "business controls"):
+            validate_restore(before, after)
+
+    def test_v2_paperless_permissions_drift_is_rejected(self):
+        before = controls_v2()
+        after = copy.deepcopy(before)
+        after["paperless"]["permission_fingerprint"] = "changed"
+        with self.assertRaisesRegex(ControlManifestError, "business controls"):
             validate_restore(before, after)
 
 

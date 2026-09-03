@@ -7,7 +7,8 @@ import json
 from typing import Any, Mapping
 
 
-SCHEMA = "usl-control-manifest/v1"
+SCHEMA_V1 = "usl-control-manifest/v1"
+SCHEMA = "usl-control-manifest/v2"
 
 # These records express business history. A module upgrade may extend their
 # schema, but it may not silently add, remove or rewrite the captured records.
@@ -40,12 +41,31 @@ ODOO_PRESERVATION_KEYS = frozenset(
     },
 )
 
+ODOO_PRESERVATION_KEYS_V2 = ODOO_PRESERVATION_KEYS | frozenset(
+    {
+        "account_balance_fingerprint",
+        "agent_authority_fingerprint",
+        "company_identity_fingerprint",
+        "journal_control_fingerprint",
+        "lock_date_fingerprint",
+        "oidc_identity_fingerprint",
+        "user_authority_fingerprint",
+    },
+)
+
 # These values are owned by the candidate release. They may legitimately
 # change during an upgrade, but production must match what staging signed.
 ODOO_RELEASE_KEYS = frozenset(
     {
         "acl_fingerprint",
         "record_rule_fingerprint",
+    },
+)
+
+ODOO_RELEASE_KEYS_V2 = ODOO_RELEASE_KEYS | frozenset(
+    {
+        "cron_policy_fingerprint",
+        "group_implication_fingerprint",
     },
 )
 
@@ -74,6 +94,92 @@ PAPERLESS_PRESERVATION_KEYS = frozenset(
         "missing_original_name",
     },
 )
+
+PAPERLESS_PRESERVATION_KEYS_V2 = PAPERLESS_PRESERVATION_KEYS | frozenset(
+    {
+        "document_identity_fingerprint",
+        "permission_fingerprint",
+        "tag_link_fingerprint",
+        "trash_count",
+    },
+)
+
+
+ODOO_CONTROL_SQL = r"""
+SELECT json_build_object(
+  'companies', (SELECT count(*) FROM res_company),
+  'users', (SELECT count(*) FROM res_users),
+  'employees', (SELECT count(*) FROM hr_employee),
+  'agents', (SELECT count(*) FROM usl_agent),
+  'company_identity_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, parent_id, active, currency_id), E'\n' ORDER BY id), '')) FROM res_company),
+  'user_authority_fingerprint', (SELECT md5(concat(
+    (SELECT coalesce(string_agg(concat_ws('|', id, active, company_id), E'\n' ORDER BY id), '') FROM res_users), E'\n--companies--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', user_id, cid), E'\n' ORDER BY user_id, cid), '') FROM res_company_users_rel), E'\n--groups--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', uid, gid), E'\n' ORDER BY uid, gid), '') FROM res_groups_users_rel)
+  ))),
+  'oidc_identity_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, provider_id, user_id, issuer, subject_fingerprint, active, link_method), E'\n' ORDER BY id), '')) FROM usl_oidc_identity),
+  'agent_authority_fingerprint', (SELECT md5(concat(
+    (SELECT coalesce(string_agg(concat_ws('|', id, owner_id, user_id, company_id, state, access_mode), E'\n' ORDER BY id), '') FROM usl_agent), E'\n--companies--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', agent_id, company_id), E'\n' ORDER BY agent_id, company_id), '') FROM usl_agent_company_rel), E'\n--delegated--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', agent_id, group_id), E'\n' ORDER BY agent_id, group_id), '') FROM usl_agent_delegated_group_rel), E'\n--read-only--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', agent_id, group_id), E'\n' ORDER BY agent_id, group_id), '') FROM usl_agent_read_only_group_rel)
+  ))),
+  'moves', (SELECT count(*) FROM account_move),
+  'move_lines', (SELECT count(*) FROM account_move_line),
+  'posted_move_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, journal_id, name, date, state, amount_total, amount_residual, payment_state), E'\n' ORDER BY id), '')) FROM account_move WHERE state = 'posted'),
+  'posted_line_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, move_id, company_id, account_id, debit, credit, balance, currency_id, amount_currency, reconciled), E'\n' ORDER BY id), '')) FROM account_move_line WHERE parent_state = 'posted'),
+  'partial_reconcile_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, debit_move_id, credit_move_id, amount, debit_amount_currency, credit_amount_currency), E'\n' ORDER BY id), '')) FROM account_partial_reconcile),
+  'account_balance_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', company_id, account_id, currency_id, debit, credit, balance, amount_currency), E'\n' ORDER BY company_id, account_id, currency_id NULLS FIRST), '')) FROM (SELECT company_id, account_id, currency_id, sum(debit) debit, sum(credit) credit, sum(balance) balance, sum(amount_currency) amount_currency FROM account_move_line WHERE parent_state = 'posted' GROUP BY company_id, account_id, currency_id) balances),
+  'journal_control_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, code, type, active, sequence, refund_sequence, restrict_mode_hash_table, invoice_reference_type, invoice_reference_model, sequence_override_regex), E'\n' ORDER BY id), '')) FROM account_journal),
+  'lock_date_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, fiscalyear_lock_date, tax_lock_date, sale_lock_date, purchase_lock_date, hard_lock_date), E'\n' ORDER BY id), '')) FROM res_company),
+  'acl_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, group_id, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_model_access),
+  'record_rule_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_rule),
+  'group_implication_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', gid, hid), E'\n' ORDER BY gid, hid), '')) FROM res_groups_implied_rel),
+  'cron_policy_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', data.module, data.name, cron.active, cron.interval_number, cron.interval_type, cron.priority, cron.user_id, cron.ir_actions_server_id), E'\n' ORDER BY data.module, data.name), '')) FROM ir_cron cron LEFT JOIN ir_model_data data ON data.model = 'ir.cron' AND data.res_id = cron.id),
+  'currency_rate_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, currency_id, name, rate), E'\n' ORDER BY id), '')) FROM res_currency_rate),
+  'attachments', (SELECT count(*) FROM ir_attachment),
+  'messages', (SELECT count(*) FROM mail_message),
+  'activities', (SELECT count(*) FROM mail_activity),
+  'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
+  'projects', (SELECT count(*) FROM project_project),
+  'tasks', (SELECT count(*) FROM project_task),
+  'expenses', (SELECT count(*) FROM hr_expense),
+  'assets', (SELECT count(*) FROM account_asset),
+  'analytics', (SELECT count(*) FROM account_analytic_line),
+  'taxes', (SELECT count(*) FROM account_tax),
+  'platform_sessions', (SELECT count(*) FROM usl_platform_billing_session),
+  'platform_payouts', (SELECT count(*) FROM usl_platform_billing_payout),
+  'tese_payslips', (SELECT count(*) FROM usl_tese_payslip),
+  'ledger_delta', (SELECT coalesce(sum(debit-credit), 0) FROM account_move_line),
+  'queued_mail', (SELECT count(*) FROM mail_mail WHERE state = 'outgoing'),
+  'failed_mail', (SELECT count(*) FROM mail_mail WHERE state = 'exception'),
+  'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','duplicate')),
+  'failed_documents', (SELECT count(*) FROM usl_document_operation WHERE state = 'failed'),
+  'bank_pending', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing')),
+  'bank_failed', (SELECT count(*) FROM account_bank_ingestion WHERE state = 'failed'),
+  'payment_pending', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized')),
+  'payment_failed', (SELECT count(*) FROM payment_transaction WHERE state = 'error'),
+  'sign_archive_pending', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing')),
+  'sign_archive_failed', (SELECT count(*) FROM sign_oca_request WHERE archive_status = 'failed'),
+  'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active)
+);""".strip()
+
+
+PAPERLESS_CONTROL_SQL = r"""
+SELECT json_build_object(
+  'documents', count(*),
+  'with_ocr', count(*) FILTER (WHERE coalesce(content, '') <> ''),
+  'missing_original_name', count(*) FILTER (WHERE coalesce(filename, '') = ''),
+  'trash_count', count(*) FILTER (WHERE deleted_at IS NOT NULL),
+  'document_identity_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, checksum, archive_checksum, page_count, filename, archive_filename, original_filename, archive_serial_number, correspondent_id, document_type_id, storage_path_id, owner_id, deleted_at, restored_at, root_document_id, version_index), E'\n' ORDER BY id), '')) FROM documents_document),
+  'tag_link_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', document_id, tag_id), E'\n' ORDER BY document_id, tag_id), '')) FROM documents_document_tags),
+  'permission_fingerprint', md5(concat(
+    (SELECT coalesce(string_agg(concat_ws('|', user_id, group_id), E'\n' ORDER BY user_id, group_id), '') FROM auth_user_groups), E'\n--direct--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', user_id, permission_id), E'\n' ORDER BY user_id, permission_id), '') FROM auth_user_user_permissions), E'\n--user-object--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', object_pk, content_type_id, user_id, permission_id), E'\n' ORDER BY content_type_id, object_pk, user_id, permission_id), '') FROM guardian_userobjectpermission), E'\n--group-object--\n',
+    (SELECT coalesce(string_agg(concat_ws('|', object_pk, content_type_id, group_id, permission_id), E'\n' ORDER BY content_type_id, object_pk, group_id, permission_id), '') FROM guardian_groupobjectpermission)
+  ))
+) FROM documents_document;""".strip()
 
 PENDING_QUEUE_KEYS = frozenset(
     {
@@ -130,21 +236,33 @@ def classify(controls: object) -> dict[str, Any]:
     paperless = controls["paperless"]
     if not isinstance(odoo, dict) or not isinstance(paperless, dict):
         raise ControlManifestError("control roots must be objects")
-    expected_odoo = ODOO_PRESERVATION_KEYS | ODOO_RELEASE_KEYS | ODOO_QUEUE_KEYS
-    _exact_section(odoo, expected_odoo, "Odoo")
-    paperless_values = _exact_section(
-        paperless,
-        PAPERLESS_PRESERVATION_KEYS,
-        "Paperless",
-    )
+    v1_odoo = ODOO_PRESERVATION_KEYS | ODOO_RELEASE_KEYS | ODOO_QUEUE_KEYS
+    v2_odoo = ODOO_PRESERVATION_KEYS_V2 | ODOO_RELEASE_KEYS_V2 | ODOO_QUEUE_KEYS
+    if set(odoo) == v2_odoo:
+        _exact_section(paperless, PAPERLESS_PRESERVATION_KEYS_V2, "Paperless")
+        schema = SCHEMA
+        preservation_keys = ODOO_PRESERVATION_KEYS_V2
+        release_keys = ODOO_RELEASE_KEYS_V2
+        paperless_keys = PAPERLESS_PRESERVATION_KEYS_V2
+    elif set(odoo) == v1_odoo:
+        _exact_section(paperless, PAPERLESS_PRESERVATION_KEYS, "Paperless")
+        schema = SCHEMA_V1
+        preservation_keys = ODOO_PRESERVATION_KEYS
+        release_keys = ODOO_RELEASE_KEYS
+        paperless_keys = PAPERLESS_PRESERVATION_KEYS
+    else:
+        _exact_section(odoo, v2_odoo, "Odoo")
+        _exact_section(paperless, PAPERLESS_PRESERVATION_KEYS_V2, "Paperless")
+        raise AssertionError("unreachable")
+    paperless_values = _exact_section(paperless, paperless_keys, "Paperless")
     return {
-        "schema": SCHEMA,
+        "schema": schema,
         "preservation": {
-            "odoo": {key: odoo[key] for key in sorted(ODOO_PRESERVATION_KEYS)},
+            "odoo": {key: odoo[key] for key in sorted(preservation_keys)},
             "paperless": paperless_values,
         },
         "release": {
-            "odoo": {key: odoo[key] for key in sorted(ODOO_RELEASE_KEYS)},
+            "odoo": {key: odoo[key] for key in sorted(release_keys)},
         },
         "queues": {
             "odoo": {key: odoo[key] for key in sorted(ODOO_QUEUE_KEYS)},
@@ -166,7 +284,16 @@ def validate_restore(
     """Validate preserved data, queue monotonicity, and release-owned policy."""
     baseline = classify(before)
     candidate = classify(after)
-    if baseline["preservation"] != candidate["preservation"]:
+    if baseline["schema"] == SCHEMA and candidate["schema"] == SCHEMA_V1:
+        raise ControlManifestError("restored control manifest regressed from v2 to v1")
+    comparable_candidate = {
+        root: {
+            key: candidate["preservation"][root][key]
+            for key in baseline["preservation"][root]
+        }
+        for root in baseline["preservation"]
+    }
+    if baseline["preservation"] != comparable_candidate:
         raise ControlManifestError("restored business controls differ from the source cohort")
 
     baseline_queues = baseline["queues"]["odoo"]
@@ -205,6 +332,7 @@ def validate_restore(
 
     return {
         "schema": "usl-control-validation/v1",
+        "control_schema": candidate["schema"],
         "preservation_sha256": _digest(candidate["preservation"]),
         "release_sha256": candidate_release_sha256,
         "queues": candidate["queues"],
