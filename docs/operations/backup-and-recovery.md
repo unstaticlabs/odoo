@@ -79,6 +79,12 @@ The restore performs these steps unattended:
 9. verify HTTP health, Ollama identity, exact business controls, queues,
    filestore coverage, Paperless originals, OCR, previews, Tantivy, and vectors.
 
+Admission also records the MCP server version and OAuth-vault schema reported
+by its versioned readiness endpoint. Production and staging require the vault
+to be ready. Sign admission performs trusted, read-only Step CA and DSS health
+requests and records only the public trust-bundle digests and DSS engine
+version. It never issues a certificate, signs a document, or exposes a key.
+
 Production replacement additionally requires explicit confirmation:
 
 ```bash

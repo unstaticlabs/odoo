@@ -14,6 +14,7 @@ from operations.runtime import (
     validate_target,
     validate_secret_text,
 )
+from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -67,6 +68,43 @@ class FakeRunner:
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
+        value = {
+            "schema": "usl-odoo-mcp-readiness/v1",
+            "status": "ready",
+            "server_version": "1.4.2",
+            "targets": 1,
+            "oauth": {"status": "ready", "schema_version": 1},
+        }
+        self.assertEqual(_validate_mcp_readiness(value, require_oauth=True)["oauth"]["status"], "ready")
+        value["oauth"]["schema_version"] = 2
+        with self.assertRaisesRegex(RuntimeError, "OAuth-vault schema"):
+            _validate_mcp_readiness(value, require_oauth=True)
+
+    def test_production_mcp_requires_ready_oauth(self) -> None:
+        value = {
+            "schema": "usl-odoo-mcp-readiness/v1",
+            "status": "ready",
+            "server_version": "1.0.0",
+            "targets": 1,
+            "oauth": {"status": "disabled", "schema_version": 1},
+        }
+        with self.assertRaisesRegex(RuntimeError, "OAuth vault"):
+            _validate_mcp_readiness(value, require_oauth=True)
+        self.assertEqual(_validate_mcp_readiness(value, require_oauth=False)["status"], "ready")
+
+    def test_sign_readiness_binds_public_trust_and_dss_engine(self) -> None:
+        value = {
+            "schema": "usl-sign-readiness/v1",
+            "status": "ready",
+            "step_ca": {"status": "ok", "trust_sha256": "a" * 64},
+            "dss": {"status": "ok", "engine_version": "6.4", "trust_sha256": "b" * 64},
+        }
+        self.assertEqual(_validate_sign_readiness(value), value)
+        value["dss"]["trust_sha256"] = "unsafe"
+        with self.assertRaisesRegex(RuntimeError, "trust identity"):
+            _validate_sign_readiness(value)
+
     def test_all_versioned_targets_validate(self) -> None:
         for name in ("production", "staging", "local"):
             target = load_target(name, TARGETS)
