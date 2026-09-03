@@ -94,6 +94,32 @@ if [[ -n "$test_modules" ]]; then
     --test-tags="$test_tags" \
     --update="$test_modules" \
     --log-level=test
+
+  IFS=',' read -r -a affected_modules <<< "$test_modules"
+  for module in "${affected_modules[@]}"; do
+    frontend_tests="$ROOT/custom-addons/$module/static/tests"
+    if [[ ! -d "$frontend_tests" ]] \
+        || [[ -z "$(find "$frontend_tests" -type f -name '*.test.js' -print -quit)" ]]; then
+      continue
+    fi
+    printf 'Running affected frontend suites on desktop and mobile: %s\n' "$module"
+    "${compose[@]}" --profile test run --rm -T \
+      -e ODOO_INIT_DB="$database" \
+      -e ODOO_DB_FILTER="^${database}$" \
+      -e USL_EINVOICE_LIVE_ENABLED=0 \
+      -e USL_EREPORTING_LIVE_ENABLED=0 \
+      -e ACTION_RISK_MODE=check \
+      test odoo \
+      --config=/etc/odoo/odoo.conf \
+      --database="$database" \
+      --workers=0 \
+      --max-cron-threads=0 \
+      --stop-after-init \
+      --test-enable \
+      --test-tags="/$module:WebSuite.test_unit_desktop,/$module:MobileWebSuite.test_unit_mobile" \
+      --update="$module" \
+      --log-level=test
+  done
 fi
 
 USL_PRODUCT_BOUNDARY_PREPROD=0 odoo_shell < scripts/odoo/product_database_boundary.py
