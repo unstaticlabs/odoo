@@ -6,7 +6,7 @@ import math
 import os
 from datetime import UTC, datetime, timedelta
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 
@@ -4256,7 +4256,11 @@ class UslDocument(models.Model):
         )
         if not links:
             return False
-        links.unlink()
+        # The caller and target record were authorized above. Removing this
+        # recoverable relationship can cascade to technical chatter metadata,
+        # so execute that narrow cleanup as Odoo's service identity instead of
+        # requiring the human-only permanent-deletion capability.
+        links.with_user(SUPERUSER_ID).unlink()
         self._recompute_linked_record_access(sync_permissions=True)
         return True
 

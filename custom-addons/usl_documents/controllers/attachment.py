@@ -1,5 +1,6 @@
 from werkzeug.exceptions import NotFound
 
+from odoo import SUPERUSER_ID
 from odoo.http import request
 
 from odoo.addons.mail.controllers.attachment import AttachmentController
@@ -90,5 +91,5 @@ class DocumentsAttachmentController(AttachmentController):
             )
         # Technical or explicitly excluded attachments have no Documents
         # lifecycle. Remove them without trying to edit a system notification.
-        attachment.sudo()._delete_and_notify(message)
+        attachment.with_user(SUPERUSER_ID)._delete_and_notify(message)
         return None

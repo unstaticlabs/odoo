@@ -215,8 +215,7 @@ test("shared archived attachment cannot be moved to Trash from one record", asyn
 
     await contains(".o_usl_open_document");
     await click(".o-mail-Attachment-unlink");
-    await contains(".alert-info", {
-        text: "shared with another record",
-    });
+    await contains(".modal-title", { text: "Remove document from this record?" });
+    expect(".modal").toHaveText(/shared with another record/);
     await contains(".o_usl_unlink_trash_document:disabled");
 });
