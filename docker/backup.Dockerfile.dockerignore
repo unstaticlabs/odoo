@@ -5,6 +5,9 @@ docker/*
 !docker/backup.Dockerfile.dockerignore
 !operations/
 !operations/**
+!deploy/
+deploy/*
+!deploy/production.cron-policy.json
 !scripts/
 scripts/*
 !scripts/cohort-runtime

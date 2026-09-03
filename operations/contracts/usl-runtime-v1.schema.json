@@ -7,7 +7,7 @@
   "required": [
     "schema", "name", "environment", "protected", "transport", "compose",
     "services", "databases", "volumes", "paths", "external_networks", "endpoints", "ingress",
-    "ollama", "backup", "release_manifest", "plan_signing", "secrets", "state_directory"
+    "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
   ],
   "properties": {
     "schema": {"const": "usl-runtime/v1"},
@@ -33,6 +33,19 @@
       "properties": {
         "private_key": {"type": ["string", "null"]},
         "public_key": {"type": ["string", "null"]}
+      }
+    },
+    "cron_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "gates"],
+      "properties": {
+        "mode": {"enum": ["managed", "neutralized", "unmanaged"]},
+        "path": {"type": ["string", "null"]},
+        "gates": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        }
       }
     },
     "secrets": {"type": "object"},

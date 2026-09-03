@@ -19,6 +19,12 @@ from operations.control_manifest import (
     ControlManifestError,
     validate_restore,
 )
+from operations.cron_policy import (
+    INVENTORY_SQL as CRON_INVENTORY_SQL,
+    CronPolicyError,
+    load as load_cron_policy,
+    validate_runtime as validate_cron_runtime,
+)
 from operations.release_controller import (
     ReleaseControllerError,
     abort as abort_release_state,
@@ -840,6 +846,9 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     try:
         odoo = json.loads(_psql(target, runner, identity, "odoo", odoo_query))
         paperless = json.loads(_psql(target, runner, identity, "paperless", paperless_query))
+        cron_inventory = json.loads(
+            _psql(target, runner, identity, "odoo", CRON_INVENTORY_SQL),
+        )
         odoo_storage = _python_probe(
             target,
             runner,
@@ -865,6 +874,24 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     except (RuntimeError, json.JSONDecodeError) as error:
         raise RuntimeError(f"read-only database smoke failed: {error}") from error
     failures = []
+    cron_target = target.value["cron_policy"]
+    try:
+        cron_policy = (
+            None
+            if cron_target["mode"] == "unmanaged"
+            else load_cron_policy(Path(cron_target["path"]))
+        )
+        cron_status = validate_cron_runtime(
+            cron_policy,
+            mode=cron_target["mode"],
+            gates=cron_target["gates"],
+            installed=cron_inventory["installed"],
+            active=cron_inventory["active"],
+            invalid_identity_count=cron_inventory["invalid_identity_count"],
+        )
+    except (CronPolicyError, KeyError, TypeError) as error:
+        cron_status = {"status": "failed", "error": str(error)}
+        failures.append("odoo:cron-policy")
     if float(odoo["ledger_delta"]) != 0:
         failures.append("accounting:unbalanced")
     if min(odoo["companies"], odoo["users"], odoo["moves"], odoo["attachments"]) < 1:
@@ -880,6 +907,8 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         failures.append("odoo:failed-queue")
     if odoo["cron_failures"]:
         failures.append("odoo:cron-failures")
+    if odoo.get("cron_lag"):
+        failures.append("odoo:cron-lag")
     if odoo_storage["files"] < odoo["stored_attachments"]:
         failures.append("odoo:filestore-coverage")
     if paperless["documents"] < 1 or paperless["with_ocr"] < 1:
@@ -897,6 +926,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         "status": "passed" if not failures else "failed",
         "failures": failures,
         "controls": {"odoo": odoo, "paperless": paperless},
+        "cron_policy": cron_status,
         "storage": {"odoo": odoo_storage, "paperless": paperless_storage},
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))

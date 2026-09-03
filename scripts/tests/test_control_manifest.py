@@ -8,8 +8,10 @@ from operations.control_manifest import (
     ODOO_PRESERVATION_KEYS,
     ODOO_PRESERVATION_KEYS_V2,
     ODOO_QUEUE_KEYS,
+    ODOO_QUEUE_KEYS_V2,
     ODOO_RELEASE_KEYS,
     ODOO_RELEASE_KEYS_V2,
+    ODOO_CONTROL_SQL,
     PAPERLESS_PRESERVATION_KEYS_V2,
     SCHEMA,
     SCHEMA_V1,
@@ -51,12 +53,20 @@ def controls_v2() -> dict:
         value["odoo"][key] = f"preservation-{key}"
     for key in ODOO_RELEASE_KEYS_V2 - ODOO_RELEASE_KEYS:
         value["odoo"][key] = f"release-{key}"
+    for key in ODOO_QUEUE_KEYS_V2 - ODOO_QUEUE_KEYS:
+        value["odoo"][key] = 0
     for key in PAPERLESS_PRESERVATION_KEYS_V2 - set(value["paperless"]):
         value["paperless"][key] = 0 if key == "trash_count" else f"paperless-{key}"
     return value
 
 
 class ControlManifestTests(unittest.TestCase):
+    def test_cron_definition_control_excludes_environment_activation(self):
+        expression = ODOO_CONTROL_SQL.split("'cron_policy_fingerprint'", 1)[1].split(
+            "'currency_rate_fingerprint'", 1
+        )[0]
+        self.assertNotIn("cron.active", expression)
+
     def test_classifies_legacy_and_current_controls(self):
         self.assertEqual(classify(controls())["schema"], SCHEMA_V1)
         self.assertEqual(classify(controls_v2())["schema"], SCHEMA)

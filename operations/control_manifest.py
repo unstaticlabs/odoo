@@ -69,6 +69,10 @@ ODOO_RELEASE_KEYS_V2 = ODOO_RELEASE_KEYS | frozenset(
     },
 )
 
+# Cron activation is target-specific: staging is deliberately neutralized while
+# production follows deploy/production.cron-policy.json. The fingerprint below
+# therefore seals cron identity and scheduling, but not the active flag.
+
 # Pending work may drain during maintenance. It may not grow while all writers
 # are quiesced. Failed work and cron failures are rejected by smoke admission.
 ODOO_QUEUE_KEYS = frozenset(
@@ -86,6 +90,7 @@ ODOO_QUEUE_KEYS = frozenset(
         "cron_failures",
     },
 )
+ODOO_QUEUE_KEYS_V2 = ODOO_QUEUE_KEYS | frozenset({"cron_lag"})
 
 PAPERLESS_PRESERVATION_KEYS = frozenset(
     {
@@ -135,7 +140,7 @@ SELECT json_build_object(
   'acl_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, group_id, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_model_access),
   'record_rule_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink, active), E'\n' ORDER BY id), '')) FROM ir_rule),
   'group_implication_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', gid, hid), E'\n' ORDER BY gid, hid), '')) FROM res_groups_implied_rel),
-  'cron_policy_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', data.module, data.name, cron.active, cron.interval_number, cron.interval_type, cron.priority, cron.user_id, cron.ir_actions_server_id), E'\n' ORDER BY data.module, data.name), '')) FROM ir_cron cron LEFT JOIN ir_model_data data ON data.model = 'ir.cron' AND data.res_id = cron.id),
+  'cron_policy_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', data.module, data.name, cron.interval_number, cron.interval_type, cron.priority, cron.user_id, cron.ir_actions_server_id), E'\n' ORDER BY data.module, data.name), '')) FROM ir_cron cron LEFT JOIN ir_model_data data ON data.model = 'ir.cron' AND data.res_id = cron.id),
   'currency_rate_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, currency_id, name, rate), E'\n' ORDER BY id), '')) FROM res_currency_rate),
   'attachments', (SELECT count(*) FROM ir_attachment),
   'messages', (SELECT count(*) FROM mail_message),
@@ -161,7 +166,8 @@ SELECT json_build_object(
   'payment_failed', (SELECT count(*) FROM payment_transaction WHERE state = 'error'),
   'sign_archive_pending', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing')),
   'sign_archive_failed', (SELECT count(*) FROM sign_oca_request WHERE archive_status = 'failed'),
-  'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active)
+  'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active),
+  'cron_lag', (SELECT count(*) FROM ir_cron WHERE active AND (nextcall IS NULL OR nextcall < now() - interval '2 minutes' OR (interval_type IN ('minutes', 'hours') AND interval_number * CASE interval_type WHEN 'minutes' THEN 60 ELSE 3600 END <= 3600 AND (lastcall IS NULL OR lastcall < now() - make_interval(secs => interval_number * CASE interval_type WHEN 'minutes' THEN 60 ELSE 3600 END * 2 + 120)))))
 );""".strip()
 
 
@@ -201,6 +207,7 @@ FAILED_QUEUE_KEYS = frozenset(
         "cron_failures",
     },
 )
+FAILED_QUEUE_KEYS_V2 = FAILED_QUEUE_KEYS | frozenset({"cron_lag"})
 
 
 class ControlManifestError(ValueError):
@@ -237,7 +244,7 @@ def classify(controls: object) -> dict[str, Any]:
     if not isinstance(odoo, dict) or not isinstance(paperless, dict):
         raise ControlManifestError("control roots must be objects")
     v1_odoo = ODOO_PRESERVATION_KEYS | ODOO_RELEASE_KEYS | ODOO_QUEUE_KEYS
-    v2_odoo = ODOO_PRESERVATION_KEYS_V2 | ODOO_RELEASE_KEYS_V2 | ODOO_QUEUE_KEYS
+    v2_odoo = ODOO_PRESERVATION_KEYS_V2 | ODOO_RELEASE_KEYS_V2 | ODOO_QUEUE_KEYS_V2
     if set(odoo) == v2_odoo:
         _exact_section(paperless, PAPERLESS_PRESERVATION_KEYS_V2, "Paperless")
         schema = SCHEMA
@@ -265,7 +272,12 @@ def classify(controls: object) -> dict[str, Any]:
             "odoo": {key: odoo[key] for key in sorted(release_keys)},
         },
         "queues": {
-            "odoo": {key: odoo[key] for key in sorted(ODOO_QUEUE_KEYS)},
+            "odoo": {
+                key: odoo[key]
+                for key in sorted(
+                    ODOO_QUEUE_KEYS_V2 if schema == SCHEMA else ODOO_QUEUE_KEYS
+                )
+            },
         },
     }
 
@@ -308,9 +320,10 @@ def validate_restore(
             "pending queues grew while writers were quiesced: "
             + json.dumps(regressions, sort_keys=True),
         )
+    failed_keys = FAILED_QUEUE_KEYS_V2 if candidate["schema"] == SCHEMA else FAILED_QUEUE_KEYS
     failed = {
         key: candidate_queues[key]
-        for key in sorted(FAILED_QUEUE_KEYS)
+        for key in sorted(failed_keys)
         if candidate_queues[key]
     }
     if failed:

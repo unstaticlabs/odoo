@@ -112,9 +112,13 @@ Paperless document identities, tags, permissions, and Trash. Historical v1
 snapshots remain restorable into a v2 runtime, but a v2 snapshot may not
 regress to the weaker v1 controls. Counts and fingerprints also cover
 attachments and filestore coverage, Projects, Platform Billing, and TESE.
-Sign service identities, semantic MCP OAuth-vault controls, and complete
-runtime cron lag evidence remain activation gates. Production admission is
-read-only; mutation journeys belong in CI and staging.
+The immutable operations image carries the versioned 55-cron policy. Smoke
+admission rejects unknown, missing, ambiguously identified, unexpectedly
+active, failed, or overdue scheduled actions. Production's explicit gate
+decisions and staging's fully neutralized state are separate target policy.
+Sign service identities and semantic MCP OAuth-vault controls remain
+activation gates. Production admission is read-only; mutation journeys belong
+in CI and staging.
 
 One operation lock is held per exact target. Backup stages already persist
 checksummed evidence and support bounded resume. The release state-machine

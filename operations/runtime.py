@@ -132,6 +132,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "backup",
             "release_manifest",
             "plan_signing",
+            "cron_policy",
             "secrets",
             "state_directory",
         },
@@ -299,6 +300,21 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("production requires the staging plan verification key")
     if root["environment"] == "production" and plan_signing["private_key"] is not None:
         raise RuntimeError("production must not receive the staging plan signing key")
+
+    cron_policy = _exact(root["cron_policy"], {"mode", "path", "gates"}, "cron_policy")
+    if cron_policy["mode"] not in {"managed", "neutralized", "unmanaged"}:
+        raise RuntimeError("cron_policy.mode is invalid")
+    if cron_policy["mode"] == "unmanaged":
+        if cron_policy["path"] is not None or cron_policy["gates"] != {}:
+            raise RuntimeError("unmanaged cron policy must not declare a path or gates")
+    else:
+        if not isinstance(cron_policy["path"], str) or not cron_policy["path"].startswith("/"):
+            raise RuntimeError("managed cron policy path must be absolute")
+        if not isinstance(cron_policy["gates"], dict) or any(
+            not isinstance(key, str) or type(value) is not bool
+            for key, value in cron_policy["gates"].items()
+        ):
+            raise RuntimeError("cron policy gates must be boolean decisions")
 
     secrets = _exact(root["secrets"], {"env_file", "allowed_keys"}, "secrets")
     if not isinstance(secrets["env_file"], str) or not secrets["env_file"]:
