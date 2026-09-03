@@ -212,6 +212,7 @@
                                     <field name="event_date"/>
                                     <field name="source_provider"/>
                                     <field name="external_printful_id"/>
+                                    <field name="sale_order_id" optional="show"/>
                                     <field name="state" widget="badge"/>
                                     <field name="destination_country_id"/>
                                     <field name="cogs_amount"/>

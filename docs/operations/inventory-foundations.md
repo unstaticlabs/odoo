@@ -46,7 +46,7 @@ an exact known composition have native unpacking recipes:
 
 - `TBLK` produces two black individual locks;
 - `QBLKNOP` produces four black individual locks;
-- `QCOLNOP` has no recipe until reviewed evidence proves its colour mix.
+- `QCOLNOP` produces one blue, one green, one pink and one purple individual lock.
 
 The supplier-pack product form exposes **Unpack supplier pack**, which opens Odoo's
 native Unbuild Order with the exact pack recipe. It creates inventory movements
@@ -60,39 +60,35 @@ The old Quandun “colours unallocated” template is therefore archived as a
 historical source identity; it is not deleted and its cost history is preserved.
 
 The Master Lock assorted-pack holding product is archived alongside the old
-Quandun placeholder. Both have zero stock and no historical stock movements, so
-neither has an operational role now that the real colour variants exist. Their
-source identities, cost history and provider evidence remain available for
-audit. The assorted supplier pack remains a purchasing product, but it has no
-unpacking recipe until reviewed evidence defines its colour mix; Odoo must not
-invent that composition.
+Quandun placeholder. Both placeholders have no operational role now that the
+real colour variants and exact pack recipe exist. Their source identities, cost
+history and provider evidence remain available for audit. The active assorted
+supplier pack remains a purchasing product and its native unbuild recipe creates
+the four evidenced individual colours.
 
-## Opening inventory and future configuration
+## Theoretical history and physical reconciliation
 
-Supplier evidence reconstructs gross acquisitions, including 200 Quandun locks
-from the first order, 90 colour-unallocated Quandun locks from the later order,
-130 black Master Lock units and 12 assorted Master Lock units. Those figures do
-not establish present on-hand stock: sales, gifts, samples, damage and other
-movements occurred outside native Inventory. The known 130-versus-39 Master
-Lock variance demonstrates why gross purchases cannot be posted as current
-quants.
+The one-off native-history materializer uses documented acquisitions, evidenced
+delivered consumption and known reservations. It creates 17 dated Purchase
+orders and receipts, 12 supplier-pack unbuilds, native manufacturing and
+deliveries, and open reservations. It excludes Medusa inventory quantities and
+does not infer losses, gifts, damage or a physical count.
 
-The Online source contains no native historical stock operations and no
-approved physical opening count. Before entering stock:
+The second Quandun batch is allocated from the supplier invoice remark: 25
+purple, 25 black, 20 red and 20 blue. Eight documented prototype samples are
+recorded as internal consumption. Master packs use their exact two-black,
+four-black or four-colour recipes. A missing fulfilment timestamp uses the order
+date as an explicit approximation.
 
-1. obtain and approve a dated physical count;
-2. decide which products require lot or serial tracking;
-3. review product weights, volumes, packagings and replenishment rules;
-4. enter opening quantities through a native inventory adjustment;
-5. reconcile the resulting valuation with Accounting;
-6. allocate assorted units to colour variants only from that signed count and
-   reviewed pack evidence.
+Historical Landed Costs are created only for documented relationships: Quandun
+freight and duty by quantity, and shared Chonghong chain freight by current
+receipt cost. Import VAT remains outside product cost. Because valuation is
+periodic/manual, these operations create no Accounting journal entry.
 
-Landed Costs is installed but remains unconfigured if no unique restored stock
-journal and exact freight, customs or brokerage product exists. A future
-configuration must choose the journal, valuation accounts, eligible cost
-products and allocation methods from reviewed business evidence. Do not infer
-weights, volumes or historical receipts.
+The result is Odoo's theoretical stock source of truth until the 30 September
+physical inventory. At that point, record the measured differences through a
+native Inventory Adjustment and document their business explanation. Do not
+rewrite the reconstructed acquisition or consumption history.
 
 Raw AISI 304 chain uses diameter variants; A4/316 remains separate so
 Odoo cannot offer impossible material/diameter combinations. Any later merge,

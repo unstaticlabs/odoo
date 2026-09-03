@@ -8,10 +8,12 @@ from odoo.addons.usl_b2c_restore.models.relationships import (
     B2cRelationshipFinalizer,
 )
 from odoo.addons.usl_b2c_restore.parsers import (
+    apply_etsy_refunds,
     archive_baseline,
     build_canonical_orders,
     digest,
     evidence_payload,
+    normalize_printful_order_reference,
     parse_etsy_statement_events,
     parse_printful_pdf,
     parse_revolut_events,
@@ -19,7 +21,7 @@ from odoo.addons.usl_b2c_restore.parsers import (
 )
 from odoo.addons.usl_b2c_restore.source import B2cSourceReader
 
-RESTORE_REVISION = 3
+RESTORE_REVISION = 4
 
 
 class UslB2cRestoreRun(models.Model):
@@ -205,6 +207,8 @@ class UslB2cRestoreRun(models.Model):
         raw = (source_value or "").strip()
         if not raw:
             return self.env["res.country"]
+        if raw.casefold() == "the netherlands":
+            raw = "NL"
         domain = [("code", "=", raw.upper())] if len(raw) == 2 else [("name", "=", raw)]
         country = self.env["res.country"].sudo().search(domain, limit=2)
         return country if len(country) == 1 else self.env["res.country"]
@@ -380,10 +384,10 @@ class UslB2cRestoreRun(models.Model):
                 "discount": data["discount"],
                 "tax": data["tax"],
                 "fee": Decimal("0"),
-                "refund": Decimal("0"),
+                "refund": data.get("refund") or Decimal("0"),
                 "revenue": data["revenue"],
                 "total": data["total"],
-                "net": data["revenue"],
+                "net": data.get("net") or data["revenue"],
             },
         )
         values = {
@@ -396,8 +400,23 @@ class UslB2cRestoreRun(models.Model):
             "external_order_id": data["external_order_id"],
             "external_display_id": data["external_display_id"],
             "original_provider_state": data["original_provider_state"],
-            "state": self._normalized_order_state(data["original_provider_state"]),
+            "state": data["state"],
             "order_date": data["order_date"],
+            "payment_date": data["payment_date"],
+            "refund_date": data.get("refund_date"),
+            "fulfilment_date": data["fulfilment_date"],
+            "source_payment_state": data["source_payment_state"],
+            "source_fulfilment_state": data["source_fulfilment_state"],
+            "customer_external_id": data["customer_external_id"] or False,
+            "customer_name": data["customer_name"] or False,
+            "customer_email": data["customer_email"] or False,
+            "shipping_name": data["shipping_name"] or False,
+            "shipping_street": data["shipping_street"] or False,
+            "shipping_street2": data["shipping_street2"] or False,
+            "shipping_city": data["shipping_city"] or False,
+            "shipping_state": data["shipping_state"] or False,
+            "shipping_zip": data["shipping_zip"] or False,
+            "shipping_address_raw": data["shipping_address_raw"] or False,
             "country_id": country.id if country else False,
             "original_country": data["country"],
             "currency_id": currency.id if currency else False,
@@ -453,6 +472,7 @@ class UslB2cRestoreRun(models.Model):
             documents["medusa_items"][0],
         )
         etsy_events = parse_etsy_statement_events(documents["etsy_statement"])
+        apply_etsy_refunds(canonical, etsy_events)
         stripe_events = parse_stripe_events(
             documents["stripe_payment"][0],
             documents["stripe_payout"][0],
@@ -683,7 +703,7 @@ class UslB2cRestoreRun(models.Model):
                 "shipping_amount": line["shipping"],
                 "tax_amount": line["tax"],
                 "revenue_amount": line["revenue"],
-                "subtotal_amount": line["revenue"],
+                "subtotal_amount": line["unit_price"] * line["quantity"],
                 "subtotal_company_amount": company_amount,
                 "discount_company_amount": (
                     line["discount"] if currency == company.currency_id else 0
@@ -839,7 +859,7 @@ class UslB2cRestoreRun(models.Model):
         printful_attachment = attachments[printful_descriptor["source"].name]
         target_fulfilments = []
         for row in printful_rows:
-            external_order = row["order"].split()[-1]
+            external_order = normalize_printful_order_reference(row["order"])
             order = target_orders.get(external_order)
             payload = {
                 key: value

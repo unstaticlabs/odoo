@@ -7,9 +7,12 @@ from odoo.addons.usl_b2c_restore.models.relationships import accounting_link_typ
 from odoo.addons.usl_b2c_restore.parsers import (
     ETSY_STATEMENT_HEADER,
     MEDUSA_ITEMS_HEADER,
+    apply_etsy_refunds,
     archive_baseline,
     build_canonical_orders,
     load_csv,
+    normalize_printful_order_reference,
+    parse_legacy_delivery_address,
     parse_etsy_statement_events,
     parse_printful_pdf,
     parse_revolut_events,
@@ -42,6 +45,10 @@ class TestB2cSourceParsers(BaseCase):
         )
         cls.etsy_events = parse_etsy_statement_events(
             cls.documents["etsy_statement"],
+        )
+        cls.refunded_etsy_orders = apply_etsy_refunds(
+            cls.canonical,
+            cls.etsy_events,
         )
         cls.stripe_events = parse_stripe_events(
             cls.documents["stripe_payment"][0],
@@ -227,6 +234,77 @@ class TestB2cSourceParsers(BaseCase):
                 for external_id in legacy_only
             ),
         )
+
+    def test_native_sales_states_addresses_and_totals_are_source_derived(self):
+        orders = self.canonical["orders"]
+        medusa = [
+            order
+            for order in orders.values()
+            if order["source_provider"] == "medusa"
+        ]
+        self.assertEqual(
+            Counter(order["state"] for order in medusa),
+            {
+                "fulfilled": 85,
+                "partially_fulfilled": 4,
+                "confirmed": 5,
+                "cancelled": 2,
+            },
+        )
+        etsy = [
+            order
+            for order in orders.values()
+            if order["source_provider"] == "etsy"
+        ]
+        self.assertEqual(len(etsy), 173)
+        self.assertEqual(self.refunded_etsy_orders, {
+            external_id
+            for external_id, order in orders.items()
+            if order["source_provider"] == "etsy"
+            and order["state"] == "partially_refunded"
+        })
+        self.assertEqual(len(self.refunded_etsy_orders), 2)
+        self.assertTrue(all(order["payment_date"] for order in etsy))
+        self.assertTrue(all(order["fulfilment_date"] for order in etsy))
+        self.assertTrue(
+            all(
+                order["total"]
+                == order["revenue"]
+                == order["subtotal"]
+                + order["discount"]
+                + order["shipping"]
+                + order["tax"]
+                for order in etsy
+            ),
+        )
+        self.assertTrue(all(order["shipping_address_raw"] for order in etsy))
+        self.assertTrue(all(order["shipping_address_raw"] for order in medusa))
+
+    def test_printful_reference_and_legacy_address_normalization(self):
+        self.assertEqual(normalize_printful_order_reference("Order #1617586251"), "1617586251")
+        self.assertEqual(
+            normalize_printful_order_reference("order_01KWQF6Y14CCS8WSGGDNFF BXT1"),
+            "order_01KWQF6Y14CCS8WSGGDNFFBXT1",
+        )
+        self.assertEqual(
+            normalize_printful_order_reference("Refund to wallet #order_01ABC"),
+            "order_01ABC",
+        )
+        french = parse_legacy_delivery_address(
+            "**** ****, *** **** ***, ****, Nice, 06200, FR",
+        )
+        self.assertEqual(french["shipping_name"], "**** ****")
+        self.assertEqual(french["shipping_street"], "*** **** ***")
+        self.assertEqual(french["shipping_street2"], "****")
+        self.assertEqual(french["shipping_city"], "Nice")
+        self.assertEqual(french["shipping_zip"], "06200")
+        self.assertEqual(french["country"], "FR")
+        american = parse_legacy_delivery_address(
+            "**** ****, *** **** ***, ROSWELL, GA 30076, US",
+        )
+        self.assertEqual(american["shipping_city"], "ROSWELL")
+        self.assertEqual(american["shipping_state"], "GA")
+        self.assertEqual(american["shipping_zip"], "30076")
 
     def test_stripe_blank_ids_have_row_keys(self):
         payments = [

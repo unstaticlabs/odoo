@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_b2c_history" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.b2c.history</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="B2C" name="usl_b2c" groups="usl_b2c.group_b2c_manager">
+                    <block title="Historical customer safeguards" name="historical_b2c_customer_safeguards">
+                        <setting string="Allow communication with historical B2C customers"
+                                 help="Enables customer-facing messages from reconstructed historical Sales orders. Historical invoice creation always remains blocked.">
+                            <field name="allow_historical_b2c_customer_communication"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_form_b2c_history" model="ir.ui.view">
+        <field name="name">sale.order.form.b2c.history</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info mb-0" role="status" invisible="not usl_historical_b2c">
+                    <strong>Historical B2C order</strong>
+                    <span invisible="not usl_historical_source_warning"> — <field name="usl_historical_source_warning" nolabel="1"/></span>
+                    <span> Customer communication is governed in B2C Settings; invoice creation is disabled.</span>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="usl_b2c_order_id" invisible="not usl_historical_b2c" readonly="1"/>
+                <field name="usl_source_payment_state" invisible="not usl_historical_b2c" readonly="1"/>
+                <field name="usl_source_fulfilment_state" invisible="not usl_historical_b2c" readonly="1"/>
+                <field name="usl_source_total" invisible="not usl_historical_b2c" readonly="1"/>
+                <field name="usl_historical_b2c" invisible="1"/>
+                <field name="usl_historical_b2c_completed" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_form_b2c_identity" model="ir.ui.view">
+        <field name="name">res.partner.form.b2c.identity</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="B2C identities" groups="usl_b2c.group_b2c_reader" invisible="not usl_historical_b2c_contact">
+                    <field name="usl_historical_b2c_contact" invisible="1"/>
+                    <field name="b2c_identity_ids" readonly="1">
+                        <list create="0" delete="0" edit="0">
+                            <field name="source_provider"/>
+                            <field name="external_customer_id"/>
+                            <field name="identity_role"/>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

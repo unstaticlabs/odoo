@@ -9,6 +9,11 @@ SOURCE_PROVIDERS = [
     ("other", "Other"),
 ]
 
+HISTORICAL_B2C_COMMUNICATION_PARAMETER = (
+    "usl_b2c.allow_historical_customer_communication"
+)
+HISTORICAL_B2C_MATERIALIZATION_CONTEXT = "usl_b2c_history_materialization"
+
 ORIGINS = [
     ("imported", "Imported"),
     ("manual", "Manual"),

@@ -9,6 +9,10 @@ from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
+from odoo.addons.usl_b2c.models.constants import (
+    HISTORICAL_B2C_COMMUNICATION_PARAMETER,
+)
+
 
 @tagged("post_install", "-at_install")
 class TestB2cFoundation(TransactionCase):
@@ -668,6 +672,93 @@ class TestB2cFoundation(TransactionCase):
                     "source_provider": "manual",
                     "original_sku": "CROSS-COMPANY",
                     "evidence_id": other_evidence.id,
+                },
+            )
+
+    def test_historical_sales_are_quiet_locked_and_non_invoiceable(self):
+        source = self.env["b2c.order"].create(self._order_values("native-history"))
+        partner = self.env["res.partner"].create(
+            {"name": "Historical recipient", "email": "history@example.invalid"},
+        )
+        product = self.env["product.product"].create(
+            {"name": "Historical product", "list_price": 12},
+        )
+        sale = self.env["sale.order"].sudo().create(
+            {
+                "partner_id": partner.id,
+                "company_id": self.company.id,
+                "usl_b2c_order_id": source.id,
+                "usl_historical_b2c": True,
+                "usl_historical_b2c_completed": True,
+            },
+        )
+        line = self.env["sale.order.line"].sudo().create(
+            {
+                "order_id": sale.id,
+                "product_id": product.id,
+                "product_uom_qty": 1,
+                "price_unit": 12,
+            },
+        )
+        parameter = self.env["ir.config_parameter"].sudo()
+        parameter.set_bool(HISTORICAL_B2C_COMMUNICATION_PARAMETER, False)
+
+        with self.assertRaisesRegex(UserError, "Communication from historical"):
+            sale.with_user(self.manager).action_quotation_send()
+        with self.assertRaisesRegex(UserError, "cannot create invoices"):
+            sale.with_user(self.manager)._create_invoices()
+        with self.assertRaisesRegex(UserError, "locked"):
+            line.with_user(self.manager).write({"price_unit": 13})
+        with self.assertRaisesRegex(AccessError, "provenance is immutable"):
+            sale.with_user(self.manager).write({"usl_source_total": 99})
+        with self.assertRaisesRegex(AccessError, "provenance is immutable"):
+            source.with_user(self.manager).write({"sale_order_id": sale.id})
+
+        mail_count = self.env["mail.mail"].sudo().search_count([])
+        sale._send_order_notification_mail(self.env.ref("sale.email_template_edi_sale"))
+        self.assertEqual(self.env["mail.mail"].sudo().search_count([]), mail_count)
+        note = sale.with_user(self.manager).message_post(
+            body="Internal historical review",
+            subtype_xmlid="mail.mt_note",
+        )
+        self.assertEqual(note.model, "sale.order")
+
+    def test_provider_contact_identity_is_immutable_and_company_scoped(self):
+        partner = self.env["res.partner"].sudo().create(
+            {
+                "name": "Other-company historical recipient",
+                "company_id": self.other_company.id,
+                "usl_historical_b2c_contact": True,
+            },
+        )
+        identity = self.env["b2c.partner.identity"].sudo().create(
+            {
+                "name": partner.name,
+                "company_id": self.other_company.id,
+                "source_provider": "etsy",
+                "identity_role": "delivery",
+                "identity_digest": "d" * 64,
+                "partner_id": partner.id,
+            },
+        )
+        visible = (
+            self.env["b2c.partner.identity"]
+            .with_user(self.reader)
+            .with_context(allowed_company_ids=[self.company.id])
+            .search([("id", "=", identity.id)])
+        )
+        self.assertFalse(visible)
+        with self.assertRaises(AccessError):
+            identity.with_user(self.manager).write({"name": "Changed"})
+        with self.assertRaises(AccessError):
+            self.env["b2c.partner.identity"].with_user(self.manager).create(
+                {
+                    "name": "Forged",
+                    "company_id": self.company.id,
+                    "source_provider": "etsy",
+                    "identity_role": "delivery",
+                    "identity_digest": "e" * 64,
+                    "partner_id": self.company.partner_id.id,
                 },
             )
 

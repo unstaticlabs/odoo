@@ -2922,3 +2922,35 @@ msgstr "Il s’agit d’un lot d’achat, et non d’une unité vendable. Récep
 #: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
 msgid "This is an internal holding identity for units whose exact colour is not yet evidenced. Do not sell it. Allocate only from a reviewed physical count; never infer current stock from gross purchases."
 msgstr "Il s’agit d’une identité interne temporaire pour des unités dont la couleur exacte n’est pas encore justifiée. Ne la vendez pas. Affectez les couleurs uniquement à partir d’un inventaire physique vérifié ; ne déduisez jamais le stock actuel des achats bruts."
+
+#. module: usl_b2c
+msgid "Allow communication with historical B2C customers"
+msgstr "Autoriser la communication avec les clients B2C historiques"
+
+#. module: usl_b2c
+msgid "Historical B2C order"
+msgstr "Commande B2C historique"
+
+#. module: usl_b2c
+msgid "Historical B2C orders cannot create invoices because their Accounting was reconstructed separately."
+msgstr "Les commandes B2C historiques ne peuvent pas créer de factures, car leur comptabilité a été reconstruite séparément."
+
+#. module: usl_b2c
+msgid "Communication from historical B2C orders is disabled in Settings."
+msgstr "La communication depuis les commandes B2C historiques est désactivée dans les paramètres."
+
+#. module: usl_b2c
+msgid "Theoretical history reconstructed"
+msgstr "Historique théorique reconstruit"
+
+#. module: usl_b2c
+msgid "Inventory Evidence"
+msgstr "Justificatif du stock"
+
+#. module: usl_b2c
+msgid "B2C Evidence"
+msgstr "Justificatifs B2C"
+
+#. module: usl_b2c
+msgid "Provider Operations"
+msgstr "Opérations des plateformes"

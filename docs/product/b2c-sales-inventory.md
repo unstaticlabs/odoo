@@ -12,9 +12,10 @@ contains no source matching or import logic. Neither product module owns import
 runs, source database IDs, technical row traces, manifests, or parity UI.
 
 Future sales, purchase, delivery, valuation, payment, and margin operations use
-native Community records. Historical exports remain canonical B2C business
-records unless their evidence is complete enough to justify a real native
-workflow. A link may point to an existing native sale order, payment,
+native Community records. The reviewed Etsy and Medusa evidence is promoted to
+native Sales and Inventory records when its business meaning is deterministic;
+the canonical B2C records remain immutable provenance under **B2C Evidence**. A
+link may point to an existing native sale order, payment,
 transaction, journal item, bank transaction, picking, move, purchase order, or
 attachment. A relationship is direct only when unique transaction evidence
 supports it. Monthly aggregate Accounting coverage remains visibly separate
@@ -43,11 +44,12 @@ Three credible treatments were reviewed:
 | B. Use native workflows for future and sufficiently complete records; retain incomplete history as canonical B2C records | Preserves evidence and makes gaps visible without creating financial facts | Requires explicit mapping, link, amount, and conversion coverage | Selected |
 | C. Retain only aggregate journal totals | Smallest model | Loses order, SKU, country, fulfilment, fee, and refund evidence and prevents source-level audit | Rejected |
 
-The source confirms that B is the only lossless safe option: native Sales,
-Purchase, Payment, and Stock transaction counts are all zero; Etsy and Medusa
-overlap; current Medusa line evidence lacks immutable provider line IDs and
-does not fully allocate every header amount; 35 legacy-only orders remain
-header-only; and processor exports span multiple currencies.
+The source confirms that B is the only lossless safe option. The 304 canonical
+orders have deterministic header identity; 269 also have complete item detail.
+Those orders become native Sales history while 35 legacy-only orders use an
+explicit header-only line. Any Medusa header/line remainder is represented as a
+visible provider adjustment. Processor payments remain evidence unless an
+immutable identifier supports a unique direct relationship.
 
 ## Native and custom choices
 
@@ -117,18 +119,22 @@ stays disabled until a product-level traceability policy exists. Future
 own-stock COGS comes from native valued deliveries where available;
 provider-evidenced COGS remains on fulfilment events.
 
-The exact source stock history is zero, but physical opening stock is not
-evidenced. Until an approved dated count exists, current quantity and opening
-valuation are blocking unknowns. No historical stock operation may be created
-to make that gap disappear.
+The Online database contained no native stock history. Reviewed supplier bills,
+provider orders, fulfilment events and reservations nevertheless support a
+theoretical history: documented acquisitions minus evidenced delivered
+consumption minus known reservations. The reconstruction creates dated native
+purchases, receipts, supplier-pack unbuilds, manufacturing, deliveries and
+reservations from that evidence only. It never uses Medusa inventory snapshots.
+The result is an operational theoretical balance, not a signed physical count;
+the 30 September count remains the native reconciliation point.
 
 The normalization preserves raw provider rows, original titles, variations,
 SKUs, linked documents and cost-history row identity. It may advance a reviewed
 alias from `not_applicable` to `verified`, but never rewrites the source fields.
 Commercial supplier packs and individual saleable locks are separate products.
-Known pack contents use exact native unpacking recipes. The assorted Master Lock
-pack remains purchasable but has no unpacking recipe until reviewed evidence
-proves its colour mix. The former pending-colour products are archived because
+Known pack contents use exact native unpacking recipes, including one blue, one
+green, one pink and one purple lock for each assorted four-lock Master pack. The
+former pending-colour products are archived because
 they have no stock or historical movements; their source identities and evidence
 remain available for audit. Gross purchased quantities are evidence, not current
 stock.
@@ -137,3 +143,19 @@ When a provider reuses one generic SKU for several variants, the source SKU is
 preserved but marked non-unique. The alias then uses the exact source product
 generation and variation. Etsy listing `1838821663` follows this rule for the
 later `_10780` records, while its original catalog generation remains separate.
+
+## Promoted historical operations
+
+Native Sales is the normal operational view. Reconstructed completed orders are
+locked and all historical orders are permanently non-invoiceable because their
+Accounting was restored independently. The nine known outstanding fulfilments
+remain open and reserve native stock. A product-administrator setting can allow
+customer-facing messages from historical orders, but it is disabled by default.
+The import itself creates no followers or outbound mail.
+
+Native Contacts are company-scoped and keyed by exact provider identity or exact
+normalized recipient and address. Names alone are never merged. Native Purchase
+lines retain direct vendor-bill evidence without changing posted Accounting.
+Printful fulfilment references are normalized only by their evidenced prefixes
+and link back to canonical and native Sales records; POD items never create
+native stock movements.
