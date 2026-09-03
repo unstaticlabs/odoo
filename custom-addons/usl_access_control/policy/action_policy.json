@@ -2703,7 +2703,7 @@
         "rpc:project.project.unlink": "034d1b73fc46f78d00d8ab8e8f3580a3f0162e35056735140cd740c010d1fce7",
         "rpc:project.role.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:project.task.type.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:project.task.unlink": "ed4bae13d87c990a25e639ede95fadda6f5521b760da42a443f15a38ae2fcd4d",
+        "rpc:project.task.unlink": "35364e976544829faa624c61c6e3229b4d96baa62668c497b5751249be14b487",
         "rpc:purchase.order.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:quotation.document.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -112618,7 +112618,7 @@
         "rpc:project.task.type.delete.wizard.write": "326302e9db74dd282966fb26643c8a1125571f2d4cae0c233be70b22469d3158",
         "rpc:project.task.type.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.task.type.write": "0ad380ecaeab599ee29d10d9f0f4593c5d9b0acb277ae934c1b1eade4b2f2052",
-        "rpc:project.task.write": "c23c691c5afc14ad637e34a52f12c5415855f2972e335ba35d4f0b066ce41a32",
+        "rpc:project.task.write": "4afcd454bc34c4cf0c0c3b8e71a2961affaca7d27085a60d685bc4430e1f47d5",
         "rpc:project.template.create.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:project.template.create.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:project.template.create.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -136764,6 +136764,7 @@
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._bank_evidence_accepted:orm_write:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._bank_evidence_accepted:sudo:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._cron_archive_accepted_bank_evidence:sudo:1",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_bank_statement_tag:sudo:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_banking_tags:sudo:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:2",
@@ -143419,6 +143420,9 @@
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._cron_archive_accepted_bank_evidence:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_bank_statement_tag:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_banking_tags:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -145167,9 +145171,9 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3": "bd78009fdde084c181c194c121ae7cb926f10e643857ef3c0615a2a98224c108",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_counts:sudo:1": "2863ffccf8bf818050b94d21372b67d688c018c5897efd49cfdea7a3557ce835",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._compute_rebuild_einvoice_readiness:sudo:1": "3d7936651919e10405991dddb08296ea8fb7073596d4e7d215c29b2ec087ff0c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1": "1e5755f340af4cd7f0cc2660e383bdf5542f52c690372914aa2d94e80dc41c49",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1": "ebc2ac6793161473b092cbaf4ee231b52b0a698a3687638fb458ddef31198618",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": "cbbd15676b9dcaa4efbac81d5705ece3da825578e17f7a80b9da4dcf8816b001",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:orm_write:1": "2badc743d2abcd1b8b774948ab419f8e0a45d35da41ea64cb88d92a53a73809c",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:1": "dd6b0307c3709b55d2bd7be73a93638c5843f234f89ae50c6adbf7cc0f7a6034",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_apply_default_einvoice_provider:sudo:2": "0ad48be4054bbff426a5d7d99eeb869f67ce5362e0d54836161055b8871d8ca8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_check_einvoice_reception_crons:sudo:1": "58a6e63231d42e01f6c95dadac685d494e7c24b46ad59b2bd495a47541ac8484",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:orm_write:1": "ea56c2df4bb8d89a01f4e51cc2e319d5e0cb8bfdbdbd8449bfed9fd45bd43a5d",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company._rebuild_cleanup_legacy_einvoice_self_checks:sudo:1": "cfd242aa5cc3829646996136963d3a1a18418276e1c555d9b6bf3ed5f536a0a2",
@@ -145688,31 +145692,32 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1": "b882b52015493fc362ef55f3851e6eaa60747db4b984a7371f8081486ef9efb7",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1": "cfbbb43ba51d6356425a4c93c332b8c7509e93cab18638fdb5372e86ebc35994",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "b4cb48248040186b82988ca2d951c3817e9b8ebc5bb41fb0f60b12366af7a6ac",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1": "7cd0519e2c4026bac735aaf4a9bc34671e0c8e81661f6b93aa5a13a2a761a669",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:2": "8212109cd7bc175c4b65f9091cd4650c17d3f303624a9b9e9d83ff61efc3deaa",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:3": "8537c60376a82059d2dd30e2e8bf718cb26881d63c64523da2719d7372fe94cf",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:1": "0e9accbd21c87c986aed1347b543e414addad56b05653bb3ca37457fc02d48a4",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:2": "73c3d010594be582b2895001c7d0f3f808975f6e8af2de7558061dd93234c6af",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:3": "7121e45007812767f0149e46c6da1892c86c9d1122ea2ed9992ddc16631a441d",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:4": "6107fe9a6a7066806925cd7e42abd25a22ae3cf511c690329096e8a50de70988",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:5": "e69fdb84d6bf4f1a053fdb044f1c1984ad55d2d63ab16cc038795805ea212b62",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:6": "e6b8e45652d8bbea83d86b80a60154e03ce510471a09140c436d650a3332f49f",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:7": "bec04e066b39cccdf63d4f1ed8a12d2962778cc21065d6431d47af20d0d4c7e2",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:8": "b7231b4c80b89a354958d7bc280aa2a70f419abe17e5dc303972be366e91b3c8",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1": "9e827db29830a24000a687391f3a3a2fc2bbafeaa063b76719eadb76b61c2b65",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:2": "20c696a9dcb35479cf25cdbb18936c2522f9bf77fdc08c72641d0399e081b008",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:3": "f646021b465b99f3f90dfb3f3b4f59fa0d1e58b7a71bd4845b96592c7f250889",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:1": "8c3afc4193556603e6f4e23f7ac7c4121397c166b9db9dfa75583b26800e182e",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:2": "d6be5e090b288e863a76b8da7f7677a974732cf97ab34c604fb493fd7433e194",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:3": "ccd36211883aeec9fb5d32b2f53b759a03edfee81b9bfa38ba043fd0231c4bdb",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:4": "012eb3fc746ca09c2d5c1d21b2d52c4e687fbaf10644211ad1636bb48970801e",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:5": "179f1f0fa9246ff500de5f35c8d3bd76df40def1da79f87eb03d0b2c0c431ae8",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:6": "c779e9209deb5283b6cb74d6691b475988a702ba7271ef745bf3901ee0011c14",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:7": "792bc881874561fe41876c311c12781bbdadde54704c95a9f1f25ab1a66a75ff",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:8": "bfd3991ebc79b725d772834433b73b1df178e112572fce9b8ed597e4d59ac4a5",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._bank_evidence_accepted:orm_write:1": "80ec6d8c16c7fa85a9dd682ff0ee5ffbe597696e3999a85cc67f4cc18658a765",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._bank_evidence_accepted:sudo:1": "6c8078c29fd9b1445ac87c7b8f00f237cb86a6826132a7585938c61882667632",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._cron_archive_accepted_bank_evidence:sudo:1": "b2d2f2d559588c880e01b8eab13293ac70d301a4794175335a5f973e4795f90b",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_bank_statement_tag:sudo:1": "e5f743b649ccac26b3ad94f0508dc44645bc0a66b72d201d8e48ec6f10c5a789",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_banking_tags:sudo:1": "374a3d9425666ddaddc76b423180ddeb3e88895ca00ef53a064cb88143037cdb",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:1": "0964f5717cc9a6c680260fef7793d85e20a5e62a4fcb5164b39c48936dbc861e",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:2": "007267a522a3607cd169b65404d34b6515f299a4b8284430fe4f6098e9f1e3c6",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:1": "3d4a0b6c282323b86e0f853ce530f1c59a583cd2ccf1820d65933660b1a80cd0",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_integrity_error:sudo:2": "90a53f146c0e10ca2f4ef230c18d68d4f9e71599878b6a3584a506375c9a6c6b",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._paperless_version_record:sudo:1": "de60cac00cd24fbebebb2b48b70195c254ecd5e49cbf12ed32aab8daf843a69e",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_create:1": "a1be91605203b8486f3f64ffc6dcdc4ab504651c76d84599a0743a75b8853e0b",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:1": "6a558f9b4f430d5df3b603c358ba9cd0baa8d786d546c559b618359cd7e28e07",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:2": "dd76125d986f53311eb2551115f1e51fcaa784a5d7addccc9a7188d565a2590c",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:3": "c6011c3bb89e5a13888ea9c5d01eb6cbe99d1599519e9d0e985fd811da47eef3",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:1": "efa1fd7243944989281ca5e1006a9706e9b9dd133f901a4091374b41053e2435",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:2": "f0898d3faac1a992d0663e04819efc80d9b9e76d177475b4809ac4b9581c03c1",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:3": "74f5a075d51afbdd201b66c8aca1eda50dfd6b270e540da732fe911fa0d6634d",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_create:1": "88ea13ecf5e1b00b28f531c7fffa150c73ab0014ca89a68ad99ecfb76c88accf",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:1": "3caf86fa5ec17cbc8def6549710775ad105fd43959649a67aff04e9adc0d2a27",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:2": "c541eafa633ad88e08d451f1e25f69f8828201b9ccf6fcfe75013ec9bb3ea92e",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:orm_write:3": "3744252c7f9ad97d2dc23a24dc4da5e2613039c58b0dad9fb96f4f233b339b0d",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:1": "e2d7cdc7e43b12684543b295aa908f10e0521304a5695fdf47ce23b5f563f267",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:2": "758f692d2676aed7478af4c85272cd0913c7fc5fd2a51b8b1690e56073ae2176",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._pin_paperless_version:sudo:3": "696e8da1c6f6778852b0ffe43556bb363885d57eb5439b455acdcd0cd502f8f2",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._process_bank_evidence_archive:orm_write:1": "8d5c4330ede6fdcd9dc4fd68ba21fa5c6ee70c6b0ee3f85f8cfdd457084bd9be",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._process_bank_evidence_archive:orm_write:2": "54f6abbb79a9f065eeea7d5555ade1cde294297eaca15a3e062f0bebefa28c44",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._process_bank_evidence_archive:sudo:1": "eb75c4e2684873f0bfc32a985dcc3aef5a874353393cb80644e8b07b875ae62c",
@@ -153187,10 +153192,10 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:orm_write:11": "4e9d51a40eaa4c30f525fd0892fa758bdbcd39378602425c05dc29d3d398ee07",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:11": "86fa0b72c5dceb1a5a07f9ef1bf3c490c9e0be2266c6848ec13ae9ab4c539f9b",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.operation.poll:sudo:12": "5acd40e692f793c0208305c3f4f5eb49671085eacc6679c483791ccd9e4a53a0",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:message_send:1": "43c78999704cf7d471f77af39849aeeae5c8840776ff8b53742903ac51002148",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:4": "b4c76206dfc135c6efea6b4c34754fd6a9af563eaf4da35489967870c75a6c59",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:10": "1ee7ce631ec81c0f7da0484c0ed9ccabec1263e3eae0669266480335f3bd9bfa",
-        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:9": "3e5d44b0594d8822fccd722719b110006423279216a785b60d08f27693ea9cdf",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:message_send:1": "ecbf0d62cf0198ab6fe0c7de70c1c765f6691879da716e50ce82456346fb2033",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:4": "208d8fc8f27137f65093da1fe76b231d0b117b82ff7c22c15f6cdd2e95a8fa57",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:10": "cf249bb3a46c646c3ce9955aa84b01e58b6ec21813f3e03c1d2fcf5dd82634fc",
+        "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:sudo:9": "b64805f4d6ba22c85cd51e76f17a2b108de8b25f775cbf0b971efb2ac42ad9c6",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._exact_linked_evidence:sudo:1": "38be5c761c764503a0ffa54943c81cfe0a4a4daa15877d28bbe3f479dc64c3ae"
       }
     },
@@ -163720,7 +163725,8 @@
     },
     {
       "action_keys": [
-        "cron:project.ir_cron_rating_project"
+        "cron:project.ir_cron_rating_project",
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -163730,17 +163736,40 @@
       "overrides": {
         "cron:project.ir_cron_rating_project": {
           "reachability_proof": "The scheduler owns automatic execution; ordinary actors can only request manual execution through guarded rpc:ir.cron.method_direct_trigger."
+        },
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks": {
+          "reachability_proof": "The scheduler owns automatic execution; ordinary actors can only request manual execution through guarded rpc:ir.cron.method_direct_trigger."
         }
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "cron:project.ir_cron_rating_project": "8e3fc58bb68de250b19b91679981f8aba7208a44aec80689810db76895cedc38"
+        "cron:project.ir_cron_rating_project": "8e3fc58bb68de250b19b91679981f8aba7208a44aec80689810db76895cedc38",
+        "cron:usl_project.ir_cron_usl_reactivate_later_tasks": "2c06d1a0ff7075d54b44b85a840ed96a40ce0372414d00e6954e1c9f330a6550"
       }
     },
     {
       "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1"
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6",
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
@@ -163748,17 +163777,93 @@
       "evidence_id": "internal-reachability-v1",
       "id": "system_internal.projects.qualified_changes_20260902",
       "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1": {
+          "reachability_proof": "Static detection covers assignment into default-value dictionaries; this helper does not independently write an Odoo record."
+        },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": {
+          "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
+        },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": {
+          "reachability_proof": "Internal implementation sink reached through the protected project.task deletion operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": {
+          "reachability_proof": "Internal implementation sink reached through the protected project.task deletion operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": {
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1": {
+          "reachability_proof": "Private post-install and upgrade initializer with no independent RPC, controller, UI, or scheduled entry point."
         }
       },
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1": "454e7596a0bb0056c35e7822225b11c297a698265cd8dbc5ae0781d592882089",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1": "49c38c6517ac1f748e4a5154f74735c3b61dfe4ff47ee9f6dc7c3fd33394ffca",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1": "64227d34d9bed192dd58288fc5c76f5a1f45d0af90fef023117a15f044ee6958",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b"
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_has_completed_direct_subtasks:sudo:1": "559c5cd77be93857fe3970518172d0e255ca364c4e516aec3698b242cc45676b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:orm_write:1": "549a50472243f170c1da92581589b10327324dac6bf2ce07c0e00fa880d59ee3",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": "ed009dc95ab11a2addc39a44572b527aff26024a265a4cf4ebcd06d22365a3fd",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": "0954df52d6f3402a5da29ab9ddf015730efb2a72e1d5c714aaa8e4ce25ba0059",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": "c70e201431d8ab8876ace268804dca8a16aeb9d6455187d5b96419db46456211",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": "901bf2005834da32c498b97096bdc4ac4ff1332ab3fb4d740129a9dd6dd5123b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": "a4f416e9c24d6022c00de94dcd17d941c1d4ea9cf0c769ad4f3a462f309e117d",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "f1a983114c4417c9011f1ecbbfa85ff3f72a40b3977eb263085e7ffb173bde29",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": "4bb61b8f7d67c3105261cb24e995f859397f58682f44a9a070540618801fdda0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": "174e0fa7252d0fc794f043b604ef825216a5c78962c9381441dc2b7d590b1220",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": "b2b0b09412f5a5b60f50fa4f67f1fa2ea68ae38ffe85e2df288737fbc5880ad0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": "a3021d40b310c1df8512076e0059b4ac549198615dce85b9c5620080f244cfa9",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": "5d40ede026dcf9fe1ce6cf98081cb4bc27dcfe0f25cca74c870610f869800ac9",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": "d1c160a5d82c4bd737c8c389c5748bf38efe870a277bfab2928b36539c1d012d",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": "40b5e734cd1d4c5d3dce7581b80eb7c14d0fdfc177a2daee8241f4959c7cb1a0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": "b0c96a66c3927dcd6c03975f23ab861871b3d51b986a0134cf1b3297f27ed0e0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1": "a6e5eaef072d4d9edae33028e5a54eb0eaaacf89141f783ddbc6238908495a4d"
       }
     },
     {
@@ -165280,7 +165385,7 @@
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "e0d6dd59c76ccdc0c19b828b431e5c304f04a88acabe82acc4a4c84a79786671",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": "3e64cd35fa154761fce5f198e726b884ff73e57b5bafe7bf52422c960bda82fc",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": "b5a2d537c69e9afbd4bffd537734bad8725743aaeaf12532293bebb26768c836",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "4a85fbdfdd0815a5565f6ce0dc7338febe026a3c9fcc6b6992f9e2d9757aa773",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "e1e030924aed03966beb2576cb215b159309a8d2cd2987a3ec5b28b5c8f23515",
@@ -165304,8 +165409,8 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:sudo:1": "6c6d8b63219676d447227be09464c3d3a75d60b8a7bbcaaca14edbcc90c81984",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.create:orm_create:1": "5647948f62ad35ae061fde2d1cb305457da04c9d749acf23f20e30e5f1da5038",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.write:orm_write:1": "72daee0daf9d06e4583ca2a3bafe65d7636e1f54bf28cfdcc75e649b1131da48",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "027af0c69cbfebbf9d16669ec5a03238a10bb85353177d2ece8df214f2906363",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "c58241d0262019b40a2c23ae960f9fb5571d8b75e8a43dc36842740c133f6dbe",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "6d04c54a41e845c0203bb218b6b4f9a3184e3ef185d6e6f39f39ecbc3de22660",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "e8a36e107710ca469bd9eddf7a4a267ea25f1687086e7b22dc5b4199f82d14e5",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_create:1": "ae6e45b9febedc47a72920dfdac025b61f468626a75543fc623bd0f2ee3e9997",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_unlink:1": "978b03fa5a0322ee7d4c587eeb6700665301171160250c8a070208b9b06992a0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:sudo:1": "1babcc78551343c29b0975048777f3e13814668ace04b2a72a771f20e1d9b731",
@@ -167378,7 +167483,6 @@
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_client:sudo:1",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:orm_create:1",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:1",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:2",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_model:sudo:1",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:_DocUtils._settings_html:orm_write:1",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:_DocUtils._settings_pseudoxml:orm_write:1",
@@ -168370,6 +168474,7 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1",
@@ -168527,9 +168632,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_model:sudo:1": {
@@ -171505,6 +171607,9 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_approve"
         },
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_open_add_expenses_wizard"
+        },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_open_context_wizard"
         },
@@ -171872,12 +171977,11 @@
         "sink:analytic:addons/analytic/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:1": "a74d1ce2ba3d905e4aad53497fa55891d62461435c517304b55cecb4dbc15fe4",
         "sink:analytic:addons/analytic/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:2": "71f351adcec49ae3d398651242a11388ba83a55081b36811f1243b6f7b7d9e42",
         "sink:analytic:addons/analytic/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:3": "8171a18255f3b57afc5aaec0ac4083926e011df4bda096984d77638ab9ca706a",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController._doc_index:sudo:1": "2e4dbdd29458f058023b11a7e05281b126c58fbb60a3de4e80897926cf674759",
+        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController._doc_index:sudo:1": "721a122df417c898dab99b788e200163475cdda449c3bc1b05423c2f6fda8fc0",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_client:sudo:1": "23bed701f42d5affd14946712304a1473a9afcf4b421b937b674895c68f9a713",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:orm_create:1": "fa114d237ff0ec87faeff43a6f8a7926bb6a9d5480104f967d80e287f71f186a",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:1": "3a8ef097441e93d18f4eae2d7a2611cf23eaa0519c4ed99b48d292f0010eea84",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:2": "f57cd8997c71bb85bfbf8e8aea56db320c92f50c5e57e605a3eb1f16fadab165",
-        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_model:sudo:1": "249d561d1d6e4c851bc03bd52bf00183c814610b7f008a6e21e528300a8cd1d2",
+        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:orm_create:1": "ceee4431abc43d96d5fbb3ab0cfb369090958f97551408ae3174606bf6cb2944",
+        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_index:sudo:1": "47bc2f0aa78e1380c32533cd052493b7ebbcd6c343d128498fa3485896ec7e38",
+        "sink:api_doc:addons/api_doc/controllers/api_doc.py:DocController.doc_model:sudo:1": "a3ff8a4ebd3a8b8d8efc96bc67975215a42c9543fdcaf506cde6878982d09711",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:_DocUtils._settings_html:orm_write:1": "d099d667f21ea4c1e681ea9a8339c8c44a4804b3244bad5fa57b624549bae7e1",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:_DocUtils._settings_pseudoxml:orm_write:1": "7ace0b4eadcd5768c29437701fb51a6466b522d8fcb0445bec8f8a85c44cfafd",
         "sink:api_doc:addons/api_doc/controllers/api_doc.py:get_sorted_installed_modules:sudo:1": "669c98d2345ca4c7123519c3b6b8151909ad98f8c7d54d051e7359e881cb778a",
@@ -172864,10 +172968,11 @@
         "sink:spreadsheet_dashboard:addons/spreadsheet_dashboard/models/spreadsheet_dashboard.py:spreadsheet.dashboard.action_toggle_favorite:sudo:2": "6590d668d9d0dd72228091ac42381131c87b69b2d6f9be71588fa078584608f0",
         "sink:spreadsheet_dashboard:addons/spreadsheet_dashboard/models/spreadsheet_dashboard_share.py:spreadsheet.dashboard.share.action_get_share_url:orm_create:1": "bba28731b3a9858dabb639145c66aefc1c51245f36735bd6fa59aa82e1188789",
         "sink:uom:addons/uom/models/uom_uom.py:uom.uom._filter_protected_uoms:sudo:1": "3677a8f5a6b03f5b572075195aa523f7a575c92ab545fc77886d6572081e8f3f",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_review_context:sudo:1": "990e339fb2854624d7b645f61abd1d945c506c5cf4b7d594ed067ea868d03c6d",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_review_context:sudo:1": "fc8dc6eaced574785768ae0aff87523648341ce7783f80ab76290587010cefbb",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1": "e23cdc22e73b0992815e3ce2ad702adc38bab66fe25080c379701850716cc6e7",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1": "648900cf7b517713c1f78bf34421a900d4e97c90046d5a5c87dc92cc998d1730",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1": "3167e9560ec7cd7c61946de61b5a7bb263d0bf8ba14a97afc9e49492f53ceeb2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": "df2327b3e7d25d7f43c3f2de3e99cbdcd61bf30517db31338e46c461125ff78d",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1": "f6566cd0bb1f08d7cd36253d68c61397b1db657bc2b8a816d3d6beb051a35869",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1": "3b82374259213ffade2f89cd13105f27cd9c4102f62a0a4de158ffe66e76b6a4",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": "738659ca7151a07940bfa157d5a3cce03e1c7f88960ff0802333f54f2ffc041b",
@@ -185770,6 +185875,27 @@
     },
     {
       "action_keys": [
+        "client:usl_expense_batch:custom-addons/usl_expense_batch/static/src/js/expense_batch_form.js:if:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
+      "domain": "system_framework",
+      "evidence_id": "transport-exact-targets-v1",
+      "id": "transport.system_framework.actions.usl_expense_batch",
+      "overrides": {
+        "client:usl_expense_batch:custom-addons/usl_expense_batch/static/src/js/expense_batch_form.js:if:rpc:1": {
+          "targets": [
+            "rpc:usl.expense.batch.add_expenses"
+          ]
+        }
+      },
+      "rationale": "The entry point is a UI, client, or controller transport; every statically resolved target is listed exactly and owns its own risk classification and guard.",
+      "reviewed_digests": {
+        "client:usl_expense_batch:custom-addons/usl_expense_batch/static/src/js/expense_batch_form.js:if:rpc:1": "4c9b37ea476555a48c3e037262847e8af36379e9ea9ecef551ce41c9c107580c"
+      }
+    },
+    {
+      "action_keys": [
         "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1",
@@ -185897,6 +186023,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "4d5790ceef763d50e43e9014769f5daeed367a28c08f119cad4696ad425a6a14",
+  "qualified_policy_digest": "304824c83ac81d350fedb2ecec82350a2591a6e077b43e7bb6a302610dab076d",
   "schema": "usl-action-risk-policy-v1"
 }
