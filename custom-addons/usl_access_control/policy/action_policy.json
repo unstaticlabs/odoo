@@ -163431,6 +163431,11 @@
     },
     {
       "action_keys": [
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.move._platform_billing_sessions_to_refresh:sudo:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:2",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.create:orm_create:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.unlink:orm_unlink:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_create:orm_create:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_unlink:orm_unlink:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_write:orm_write:1",
@@ -163462,6 +163467,8 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:5",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:6",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:2",
@@ -163483,6 +163490,8 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:1",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:2",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:3",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:message_send:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:orm_write:1",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:orm_write:2",
@@ -163506,6 +163515,21 @@
       "evidence_id": "internal-reachability-v1",
       "id": "system_internal.platform_billing.sink",
       "overrides": {
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.move._platform_billing_sessions_to_refresh:sudo:1": {
+          "reachability_proof": "Private settlement-refresh helper; scoped elevation reads only Platform Billing links already stored on the affected Accounting moves."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:1": {
+          "reachability_proof": "Private settlement-refresh helper; scoped elevation reads only the two Accounting moves linked by the native reconciliation."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:2": {
+          "reachability_proof": "Private settlement-refresh helper; scoped elevation reads only the two Accounting moves linked by the native reconciliation."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an independent RPC/controller entry point; its exact reviewed parent action key is rpc:account.partial.reconcile.create."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an independent RPC/controller entry point; its exact reviewed parent action key is rpc:account.partial.reconcile.unlink."
+        },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_create:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -163599,6 +163623,12 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1": {
           "reachability_proof": "Private payout-compensation maintenance helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
         },
@@ -163662,6 +163692,12 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_reconcile_bank"
         },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_reconcile_bank"
+        },
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_reconcile_bank"
+        },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_reset_drafts"
         },
@@ -163713,6 +163749,11 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.move._platform_billing_sessions_to_refresh:sudo:1": "aee2b1b3876d096dafc32d23eec1d864198c9f02dafe6b2d7af6a2fb09ce3910",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:1": "129fa951e09ab93234c5561e3136a027e24f9ec1dbbb0630eb778e49245f2800",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile._platform_billing_sessions_to_refresh:sudo:2": "c4b93b9384c464bf7b52922efb46fa2af462a555e9e642b9abe50a0844ac9885",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.create:orm_create:1": "7dd12b691120ced9456b27e358aad76cf52e0ddfb52cc81340affc6ecbb36c44",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.partial.reconcile.unlink:orm_unlink:1": "235b61d4efa1e3ea109615f9dd63ef26353cf054e99bca77902d728b2197a68b",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_create:orm_create:1": "887ff88b35428917495261521ef3d5d705382c765022a0a755280c5f8d209ab0",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_unlink:orm_unlink:1": "11d1012dcccd6194d26f09d35554d5aa00c7a554b7ad5f1165b0b77fc5269024",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/bank_allocation.py:usl.platform.billing.bank.allocation._action_write:orm_write:1": "9e91e35ce771911749108704e7ec7f159b69c34ea970334096533d0c96d47827",
@@ -163740,10 +163781,12 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:3": "0b6d277a4f670b2f6d5099f11c6e73cd1fb277918cc0f4c176a72a7fffab867c",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:4": "7aab16428d441552280edd2f4126908004a6ec44f73daae77eee3f4855e49713",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_write:1": "d9f548f562076d883e5aa27be5bcafc85d19d2682a16fb34792b5d9dfbd45387",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:1": "e635ccee0a6b7ec98e32f98351f43036b2ad963fe0c025e96bf3d3f2877b13e4",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2": "a3a8052273047d892e94e6b86906c896141b6798b32f9246953c3a08efb6290c",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3": "8344940628c145f1288321cae0de36f9bd3ecf132dea94ba7d92e3fb0547a709",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4": "40f949ce61ea67447b7f0b6c58a4c7b135280af026a51c68d76f8d835bbdfb8c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:1": "b30f7c04e6967d18c4d9f4f273a19fedf4d67efb425a622f126684ad72077336",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2": "23f1e2dac5716124df4fa40c93f77e13b3d78f5e2523d5b33f8c305d3a3d4e7d",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3": "6bb752c1d78e108eb8cb31dee5ca2de5cacefcc8fb274460e434ce29a91d618d",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:4": "2717dbcf89bfed66f94f3a933e06d5b7c69f3a55828ba2fce95be719d231e7fd",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:5": "47671c9eb4255ff1db4d45733dc3468f78bbdeff3192c08b66fde000cb7eda6e",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:6": "852a67a1e0a4f916a5f381d977f6fcb1cf23fcf361cbb96960f96c9628bc1926",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:message_send:1": "2136f0c370f7d4fe3f1d1f73e258040f55a94e4e1ea75eddbedeea5710bcf418",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:1": "c0cb49ba73a946916f868d4890fc814f50a07176cb6a3a1b00ee2950c9f73915",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._repair_legacy_grouped_compensations:orm_write:2": "acc80cedd406103c5f61548f5026a5a1e865fc2bdc74a6c9fa577659e22e2ce6",
@@ -163763,8 +163806,10 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:3": "ea9d55ea6cf554d1d95a601693e2c95f32aff0b7c92aa10ff445c3373f661da2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:1": "70ac4524abf2411ac66d12bba70559cd781e52944adcbc74f647be01145f79bd",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2": "55d4b92cb3d4049b89ddd052c92a188a0b5714b1da48068cb067dfb25eed0349",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1": "1bc3ac514afadbc7bb8fe6733d8667383ef29698d20fd3caffc6b2931cfe4ea6",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:1": "c71dcb8aaa356bb7a17c1e8e42e7d1a1d7314b5fadb11875a8fa3cdaa7daa052",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1": "b6e80945c5cb1897c0ed351261ea40c6698536aa696d93b7e8bbe371f4daf20d",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:1": "e9fcaf329a5d92cd915c2d2b66db5c07b23a58336defe252e4073731ec3566c5",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:2": "d1be2e053ff3e77ef7ed82008c4ec4099c0ebcc4cf432e95ab387ec9917e7a40",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:3": "781619c1716fbdeec0052b93243831d7ed6a797438eae7a84ff39768ac0b0c77",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:message_send:1": "4d2baafdcb7697df8604a50f0dbf1ccee8c3dc2c7a6ca5fbba0cae0e9a91f0b2",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:orm_write:1": "81ea55ef654730e2e630f8af2d02547a3a8b069d39481053fdea58605a016708",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reset_drafts:orm_write:2": "700f4939b3b25259811a7a9b06413abb4991e14fe1a9641cc75c0c4954655909",
@@ -186083,6 +186128,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "3af974567c95528b4feaad54f75fa69693c61e00e7b8cd0f89646e5cbf59fa81",
+  "qualified_policy_digest": "afd5065732b72de2582aea065ef0c66ee88bff03585a36c0638d0fdec0e079f1",
   "schema": "usl-action-risk-policy-v1"
 }

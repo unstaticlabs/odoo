@@ -5,7 +5,6 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import float_is_zero
 
 SESSION_WORKFLOW_DEFAULTS = {
     "state": "draft",
@@ -1103,27 +1102,29 @@ class UslPlatformBillingSession(models.Model):
                 )
                 continue
             if moves.filtered(lambda move: move.state == "draft"):
-                session._workflow_write({"state": "generated"})
+                if session.state != "generated":
+                    session._workflow_write({"state": "generated"})
                 continue
-            invoices_paid = all(
-                move.payment_state in {"paid", "reversed"}
-                or float_is_zero(
-                    move.amount_residual,
-                    precision_rounding=move.currency_id.rounding,
-                )
-                for move in session.customer_invoice_ids | session.vendor_bill_ids
+            active_payouts = session.payout_ids.filtered(
+                lambda payout: payout.state != "cancelled",
             )
-            bank_paid = bool(session.payout_ids) and all(
-                payout.bank_match_status == "reconciled"
-                for payout in session.payout_ids
+            settled_payouts = active_payouts.filtered(
+                lambda payout: payout._accounting_is_settled(),
             )
-            state = "paid" if invoices_paid and bank_paid else "posted"
-            session._workflow_write({"state": state})
-            session.payout_ids._workflow_write(
-                {
-                    "state": "paid" if state == "paid" else "posted",
-                },
+            open_payouts = active_payouts - settled_payouts
+            settled_payouts.filtered(
+                lambda payout: payout.state != "paid",
+            )._workflow_write({"state": "paid"})
+            open_payouts.filtered(
+                lambda payout: payout.state != "posted",
+            )._workflow_write({"state": "posted"})
+            state = (
+                "paid"
+                if active_payouts and not open_payouts
+                else "posted"
             )
+            if session.state != state:
+                session._workflow_write({"state": state})
 
     def action_reconcile_bank(self):
         self._check_operator()
@@ -1152,13 +1153,31 @@ class UslPlatformBillingSession(models.Model):
             body = _("Bank reconciliation finished.")
             delayed_count = len(
                 session.payout_ids.filtered(
-                    lambda payout: payout.bank_match_status != "reconciled",
+                    lambda payout: (
+                        payout.state != "cancelled"
+                        and not payout._accounting_is_settled()
+                    ),
                 ),
             )
             if delayed_count:
                 body += "<br/>" + _(
                     "%(count)s payout(s) remain open while payment is delayed.",
                     count=delayed_count,
+                )
+            evidence_count = len(
+                session.payout_ids.filtered(
+                    lambda payout: (
+                        payout.state != "cancelled"
+                        and payout._accounting_is_settled()
+                        and payout.bank_match_status != "reconciled"
+                    ),
+                ),
+            )
+            if evidence_count:
+                body += "<br/>" + _(
+                    "%(count)s paid payout(s) do not have complete Platform Billing "
+                    "bank evidence; native Accounting settlement remains authoritative.",
+                    count=evidence_count,
                 )
             if blocked:
                 body += "<br/>" + "<br/>".join(blocked)

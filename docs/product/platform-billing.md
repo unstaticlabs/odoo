@@ -86,6 +86,11 @@ delayed-settlement FX.
   reconciliation metadata and counterpart lines. It cannot change the
   certified source amount, date, account, statement identity or liquidity
   balance.
+- Native Accounting settlement determines whether a payout is Paid. Platform
+  Billing allocations remain visible as optional matching evidence, so manual,
+  split and pooled Accounting reconciliation can settle a payout without an
+  application-owned allocation. Reopening the invoice or bill returns the
+  payout and its session to Posted.
 - The maintenance repair for older pooled compensation reverses the former
   entry and any resulting exchange differences through Odoo's accounting
   trail. It never deletes posted accounting history.
