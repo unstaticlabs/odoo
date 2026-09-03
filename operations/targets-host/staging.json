@@ -54,6 +54,11 @@
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},
+  "cron_policy": {
+    "mode": "neutralized",
+    "path": "/opt/usl/deploy/production.cron-policy.json",
+    "gates": {"always": true, "digest": false, "inbound_mail": true, "ots": false, "pdp_ereporting": false, "pdp_reception": true, "project_ratings": false, "purchase_reminders": false, "sales_automation": false, "smtp": true, "stock": false, "vies": false}
+  },
   "secrets": {"env_file": "/opt/usl-odoo/staging/secrets/operations.env", "allowed_keys": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "ODOO_DB_PASSWORD", "PAPERLESS_DB_PASSWORD", "RESTIC_PASSWORD", "USL_BACKUP_CACHE_PASSWORD"]},
   "state_directory": "/var/lib/usl-odoo/runtime/staging"
 }
