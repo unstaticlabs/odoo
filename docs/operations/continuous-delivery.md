@@ -77,6 +77,11 @@ scripts/usl-stack --target staging smoke
 scripts/usl-stack --target staging cleanup plan
 ```
 
+The fixed controller additionally uses a release-bound internal notification
+operation after production admission. It can only announce the exact active
+64-character release identity and sends a transient native Odoo notification
+to active human internal users; non-interactive Agent identities are excluded.
+
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
 inside another application image.
@@ -126,16 +131,22 @@ Sign service identities and semantic MCP OAuth-vault controls remain
 activation gates. Production admission is read-only; mutation journeys belong
 in CI and staging.
 
-One operation lock is held per exact target. Backup stages already persist
-checksummed evidence and support bounded resume. The release state-machine
-library validates ordered, checksummed transitions and the pre/post-reopen
-recovery boundary. Public status and abort operations reject tampered or
-malformed state instead of rewriting it. A release backup can leave all cohort
-writers stopped after its successful capture; capture failure always restarts
-them. The fixed production launcher uses that mode and keeps the gateway in
-maintenance on every later failure. Full stage-by-stage fixed-launcher
-integration and interruption drills remain an activation gate: a partially
-materialized restore is not yet a supported unattended resume point.
+One operation lock is held per exact target, and a second host-wide lock
+serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence
+and support bounded resume. Interrupted partial capture workspaces are safely
+recreated, while completed uploads are reused instead of taking a second
+snapshot. The fixed launcher persists every canonical release stage as an
+atomic, checksummed JSON record and resumes only the first incomplete stage.
+It rejects tampered evidence and will not resume a post-reopen failure as a
+rollback. Candidate generation names and pre/post-release backup run IDs are
+release-derived, so retrying cannot silently create parallel candidates.
+
+Public status and abort operations reject malformed state instead of rewriting
+it. A release backup can leave all cohort writers stopped after successful
+capture; capture failure always restarts them. If an interruption leaves an
+unadmitted candidate active, the controller restores the previous generation,
+truncates only the candidate-stage evidence, and can safely rematerialize it on
+the next invocation. Full live interruption drills remain an activation gate.
 
 ## Failure boundary
 

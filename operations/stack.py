@@ -1494,6 +1494,81 @@ def _apply_generation_cron_policy(target, runner, release, network, volumes) -> 
     raise RuntimeError("candidate cron policy returned no evidence")
 
 
+def _notify_release(target, runner, release_id: str) -> dict:
+    """Send a transient native Odoo notification to active human users."""
+    if target.value["environment"] != "production":
+        raise RuntimeError("release notifications are production-only")
+    if not re.fullmatch(r"[0-9a-f]{64}", release_id):
+        raise RuntimeError("release notification identity is invalid")
+    runtime = inspect_runtime(target, runner)
+    release, _release_sha, _release_raw = _release(target, runner, None)
+    if release.get("identity") != release_id:
+        raise RuntimeError("release notification does not match the active release")
+    active = runtime.get("active_state")
+    if active is not None and active.get("release_manifest"):
+        active_release = json.loads(_read_path(target, runner, active["release_manifest"]))
+        if active_release.get("identity") != release_id:
+            raise RuntimeError("active generation differs from the release notification")
+    network = active["network"] if active else target.value["compose"]["default_network"]
+    volumes = runtime["volumes"]
+    database = target.value["databases"]["odoo"]
+    program = """
+import json
+release_id = env.context.get("usl_release_notification_id")
+domain = [("active", "=", True), ("share", "=", False)]
+if "usl_managed_agent_id" in env["res.users"]._fields:
+    domain.append(("usl_managed_agent_id", "=", False))
+users = env["res.users"].sudo().search(domain)
+payload = {
+    "type": "success",
+    "title": "USL Distribution updated",
+    "message": "Production release %s is now active." % release_id[:12],
+    "sticky": False,
+}
+for user in users:
+    user._bus_send("simple_notification", payload)
+print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
+    "release": release_id,
+    "recipients": len(users),
+    "status": "sent",
+}, sort_keys=True))
+"""
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']['name']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(
+            "env = env(context=dict(env.context, usl_release_notification_id="
+            + repr(release_id)
+            + "))\n"
+            + program
+        ),
+    )
+    prefix = "USL_RELEASE_NOTIFICATION_RESULT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                value = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("release notification returned invalid evidence") from error
+            if value.get("status") != "sent" or value.get("release") != release_id:
+                raise RuntimeError("release notification evidence differs")
+            return value
+    raise RuntimeError("release notification returned no evidence")
+
+
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
     source = load_target(arguments.source, arguments.targets)
     target = load_target(arguments.target, arguments.targets)
@@ -1835,6 +1910,20 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     current = inspect_runtime(target, runner)
+    retention_plan = None
+    retention_image = None
+    if target.value["environment"] == "production" and not getattr(arguments, "runtime_only", False):
+        release, _release_sha, _release_raw = _release(target, runner, None)
+        _secret_file(target, runner)
+        retention_image = release["components"]["backup-tool"]["digest_reference"]
+        retention_plan = _run_cohort(
+            target,
+            runner,
+            retention_image,
+            "retention-plan",
+            [],
+            volumes=current["volumes"],
+        )
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
     state_result = runner.run(["cat", state_path], check=False)
@@ -1884,28 +1973,40 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
         "protected_networks": sorted(protected_networks),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
+        "backup_retention": retention_plan,
     }
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
-        for name in candidates:
-            labels = json.loads(
-                runner.run(
-                    ["docker", "volume", "inspect", name, "--format", "{{json .Labels}}"],
-                ).stdout,
-            )
-            if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                raise RuntimeError(f"cleanup candidate became foreign: {name}")
-            runner.run(["docker", "volume", "rm", name])
-        for name in network_candidates:
-            labels = json.loads(
-                runner.run(
-                    ["docker", "network", "inspect", name, "--format", "{{json .Labels}}"],
-                ).stdout,
-            )
-            if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                raise RuntimeError(f"cleanup candidate became foreign: {name}")
-            runner.run(["docker", "network", "rm", name])
+        run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+        with runtime_lock(target, runner, "cleanup", run_id):
+            for name in candidates:
+                labels = json.loads(
+                    runner.run(
+                        ["docker", "volume", "inspect", name, "--format", "{{json .Labels}}"],
+                    ).stdout,
+                )
+                if labels.get("com.unstaticlabs.runtime.target") != target.name:
+                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
+                runner.run(["docker", "volume", "rm", name])
+            for name in network_candidates:
+                labels = json.loads(
+                    runner.run(
+                        ["docker", "network", "inspect", name, "--format", "{{json .Labels}}"],
+                    ).stdout,
+                )
+                if labels.get("com.unstaticlabs.runtime.target") != target.name:
+                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
+                runner.run(["docker", "network", "rm", name])
+            if retention_image is not None:
+                plan["backup_retention"] = _run_cohort(
+                    target,
+                    runner,
+                    retention_image,
+                    "retention-apply",
+                    [],
+                    volumes=current["volumes"],
+                )
         plan["status"] = "applied"
     else:
         plan["status"] = "planned"
@@ -1950,6 +2051,10 @@ def release_command(arguments: argparse.Namespace) -> int:
         with runtime_lock(target, runner, "release-abort", run_id):
             rollback = _abort_to_previous_generation(target, runner, arguments.targets)
         value = {**rollback, "controller_state": controller_state}
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "notify":
+        value = _notify_release(target, runner, arguments.release_id or "")
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
@@ -2092,10 +2197,15 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("action", choices=("plan", "apply"))
     cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
+    cleanup.add_argument(
+        "--runtime-only",
+        action="store_true",
+        help="remove only obsolete generation-owned Docker resources",
+    )
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
     release = commands.add_parser("release")
-    release.add_argument("action", choices=("plan", "reconcile", "status", "abort"))
+    release.add_argument("action", choices=("plan", "reconcile", "status", "abort", "notify"))
     release.add_argument("--target", dest="command_target")
     release.add_argument("--source", default="production")
     release.add_argument("--active-release", type=Path)
@@ -2107,6 +2217,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--output", type=Path)
     release.add_argument("--replace", action="store_true")
     release.add_argument("--confirm")
+    release.add_argument("--release-id")
     release.add_argument("--json", action="store_true")
     release.set_defaults(handler=release_command)
     return parser

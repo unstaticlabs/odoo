@@ -109,7 +109,7 @@ def _validate(value: object) -> dict[str, Any]:
             raise ReleaseControllerError("failed release has invalid failure evidence")
         expected_recovery = (
             "forward-fix-only"
-            if STAGES.index(value["phase"]) >= STAGES.index("reopen")
+            if "reopen" in completed
             else "rollback-previous-generation"
         )
         if value.get("recovery") != expected_recovery:
@@ -169,7 +169,7 @@ def abort(value: dict[str, Any]) -> dict[str, Any]:
     state = _validate({key: item for key, item in value.items() if key != "checksum"})
     if state["status"] in {"admitted", "aborted"}:
         raise ReleaseControllerError(f"release run is {state['status']}")
-    if STAGES.index(state["phase"]) >= STAGES.index("reopen"):
+    if "reopen" in state["completed"]:
         raise ReleaseControllerError(
             "an already reopened release requires a forward fix",
         )
@@ -219,7 +219,7 @@ def run(
             }
             state["recovery"] = (
                 "forward-fix-only"
-                if STAGES.index(stage) >= STAGES.index("reopen")
+                if "reopen" in completed
                 else "rollback-previous-generation"
             )
             _write(path, state)

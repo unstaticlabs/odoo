@@ -5,6 +5,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -25,6 +26,7 @@ from operations.stack import (
     _remove_materialization_workspace,
     _require_restore_capacity,
     _measure_candidate_bytes,
+    _notify_release,
     _rollback_after_failure,
     _restore_unlocked,
     _validate_materialized_release,
@@ -78,6 +80,100 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_release_notification_is_bound_to_active_release_and_human_users(self) -> None:
+        release_id = "a" * 64
+        target = mock.Mock(value={
+            "environment": "production",
+            "compose": {"default_network": "production-network"},
+            "databases": {"odoo": {"service": "db", "name": "odoo", "user": "odoo"}},
+            "secrets": {"env_file": "/secrets.env"},
+        })
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0,
+            'USL_RELEASE_NOTIFICATION_RESULT={"recipients": 2, "release": "' + release_id + '", "status": "sent"}\n',
+            "",
+        )
+        runtime = {
+            "active_state": None,
+            "volumes": {"odoo_filestore": {"name": "odoo-data"}},
+        }
+        release = {
+            "identity": release_id,
+            "components": {"distribution": {"digest_reference": "odoo@sha256:" + "b" * 64}},
+        }
+        with mock.patch("operations.stack.inspect_runtime", return_value=runtime), mock.patch(
+            "operations.stack._release", return_value=(release, "c" * 64, "{}")
+        ):
+            result = _notify_release(target, runner, release_id)
+        self.assertEqual(result["recipients"], 2)
+        self.assertIn("usl_managed_agent_id", runner.run.call_args.kwargs["input_text"])
+        self.assertIn("_bus_send", runner.run.call_args.kwargs["input_text"])
+
+    def test_release_notification_rejects_untrusted_identity(self) -> None:
+        target = mock.Mock(value={"environment": "production"})
+        with self.assertRaisesRegex(RuntimeError, "identity"):
+            _notify_release(target, mock.Mock(), "../release")
+
+    def test_retention_keeps_latest_daily_weekly_monthly_and_yearly_points(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        snapshots = [
+            {
+                "id": f"{index:064x}",
+                "time": (now - timedelta(days=index)).isoformat(),
+                "tags": ["usl-cohort", "durable", "recovery-eligible", "target-production"],
+            }
+            for index in range(500)
+        ]
+        retained = cohort.select_retained_snapshots(snapshots)
+        self.assertIn(f"{0:064x}", retained)
+        self.assertIn(f"{13:064x}", retained)
+        self.assertNotIn(f"{499:064x}", retained)
+        self.assertGreaterEqual(len(retained), 14)
+
+    def test_retention_keeps_cache_for_every_retained_durable_run(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        release = "release-" + "a" * 64
+
+        def item(index, classification, age):
+            return {
+                "id": f"{index:064x}",
+                "time": (now - timedelta(days=age)).isoformat(),
+                "tags": [
+                    "usl-cohort", classification, "target-production",
+                    "recovery-eligible" if classification == "durable" else release,
+                    f"run-2026-run-{index:02d}",
+                ],
+            }
+
+        durable = [item(1, "durable", 0), item(2, "durable", 1000)]
+        cache = [item(11, "cache", 0), item(12, "cache", 1000)]
+        cache[0]["tags"][-1] = durable[0]["tags"][-1]
+        cache[1]["tags"][-1] = durable[1]["tags"][-1]
+        environments = [durable, cache]
+        with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
+            cohort, "_inventory", side_effect=environments
+        ):
+            plan = cohort.plan_retention(now)
+        self.assertIn(durable[0]["id"], plan["retain_durable"])
+        self.assertIn(cache[0]["id"], plan["retain_cache"])
+        self.assertNotIn(cache[0]["id"], plan["delete_cache"])
+
+    def test_retention_refuses_orphaned_retained_durable_snapshot(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        durable = [{
+            "id": "a" * 64,
+            "time": now.isoformat(),
+            "tags": [
+                "usl-cohort", "durable", "target-production", "recovery-eligible",
+                "run-20260903t120000z-deadbeef",
+            ],
+        }]
+        with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
+            cohort, "_inventory", side_effect=[durable, []]
+        ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
+            cohort.plan_retention(now)
+
     def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/production",
