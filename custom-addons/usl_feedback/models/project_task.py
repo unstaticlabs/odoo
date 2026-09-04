@@ -301,8 +301,13 @@ class ProjectTask(models.Model):
         source = str(description or "")
         # Identity blocks are generated as a closed section. Removing every matching
         # section makes a reporter, provider, or maintainer-supplied marker inert.
+        pattern = (
+            r"<section\b[^>]*\b"
+            + IDENTITY_MARKER
+            + r"""(?:\s*=\s*(?:[^\s>]+|['"][^'"]*['"]))?[^>]*>.*?</section\s*>"""
+        )
         return re.sub(
-            r"<section\b[^>]*\b" + IDENTITY_MARKER + r"(?:\s*=\s*(?:[^\s>]+|['"][^'"]*['"]))?[^>]*>.*?</section\s*>",
+            pattern,
             "",
             source,
             flags=re.IGNORECASE | re.DOTALL,
