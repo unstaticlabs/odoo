@@ -10,20 +10,25 @@
    required**) to find missing evidence. Open an expense to see its contextual
    next-step guidance; a required missing receipt blocks
    submission, approval and posting.
-5. If the company may already have paid the expense, select **Find bank
+5. When an emailed receipt contains a PDF link instead of an attachment, open
+   the expense. For an unfamiliar email format, choose **Choose receipt link**
+   and select the sanitized option that describes the receipt. Your choice
+   teaches the instance-wide matcher; later confident matches download in the
+   background. The signed link is not exposed or saved elsewhere.
+6. If the company may already have paid the expense, select **Find bank
    transactions** before posting. Review the amount, date, journal, label,
    partner and the plain-language facts shown for each suggestion.
-6. For an exact amount, select **Use**, read the confirmation and choose **Use
+7. For an exact amount, select **Use**, read the confirmation and choose **Use
    and reconcile**. Odoo submits, approves and posts the native company-paid
    expense when your permissions and its validations allow it, then matches
    the resulting payment to that bank transaction.
-7. If an amount is merely close, correct the expense or investigate the bank
+8. If an amount is merely close, correct the expense or investigate the bank
    item in **Bank Matching**; a close amount cannot be applied automatically.
-8. If no company transaction applies, select **Submit to Manager**, then
+9. If no company transaction applies, select **Submit to Manager**, then
    **Approve** and **Post Expense** normally. For an employee-paid expense,
    select **Pay** on the journal entry or **Record Reimbursement** on the
    expense.
-9. Inspect the posted entry, accepted company-payment evidence and analytical
+10. Inspect the posted entry, accepted company-payment evidence and analytical
    report impact.
 
 The bank partner is applied as the vendor only when the selected transaction
@@ -34,6 +39,16 @@ left half-applied.
 
 A scoped read-only accountant can inspect suggestions and accepted history but
 cannot refresh or use them. Ordinary employees cannot see bank-match evidence.
+
+Linked receipt download may complete in the background. If it needs attention,
+the expense keeps the original email and offers **Retry**, **Teach another
+link**, **Ignore**, and the normal receipt attachment action. Attach the PDF
+manually whenever the choices are ambiguous. If the provider requires login,
+select **Open receipt website**, review the displayed host, and continue in the
+new browser tab. Sign in with the provider, download the PDF, return to the
+expense, and select **Attach downloaded receipt**. Odoo never receives or
+stores your provider password, verification code, cookies, or browser session.
+The manual receipt immediately supersedes pending downloads.
 
 Use the **Missing receipt** filter to prepare incomplete drafts. A category such as a configured fixed allowance can explicitly say **Receipt not required**; this is a category policy, not an exception hidden in the workflow.
 

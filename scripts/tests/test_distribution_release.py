@@ -52,6 +52,16 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertIn("docker buildx imagetools inspect", self.workflow)
 
+    def test_receipt_images_are_qualified_before_attestation(self) -> None:
+        self.assertIn("Qualify isolated receipt component", self.workflow)
+        self.assertIn("-m unittest -v /app/test_app.py", self.workflow)
+        self.assertIn("chromium_sandbox=True", self.workflow)
+        self.assertIn("page.expect_download()", self.workflow)
+        self.assertIn(
+            "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json",
+            self.workflow,
+        )
+
     def test_release_binds_external_services_and_ollama(self) -> None:
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
@@ -63,6 +73,30 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertEqual(notes["schema"], "usl-release-notes/v1")
         self.assertTrue(notes["changes"])
+
+    def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
+        self.assertIn(
+            "name: Attest verified renderer as distribution integrator",
+            self.workflow,
+        )
+        self.assertIn(
+            "ghcr.io/unstaticlabs/usl-document-renderer@sha256:*",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-name: ${{ steps.renderer.outputs.subject_name }}",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-digest: ${{ steps.renderer.outputs.subject_digest }}",
+            self.workflow,
+        )
+        renderer_attestation = self.workflow.split(
+            "- name: Attest verified renderer as distribution integrator",
+            1,
+        )[1].split("- name: Install ORAS", 1)[0]
+        self.assertIn("create-storage-record: true", renderer_attestation)
+        self.assertNotIn("push-to-registry", renderer_attestation)
 
     def test_release_is_only_published_from_permanent_release_branches(self) -> None:
         self.assertIn("- 19-usl-staging", self.workflow)
@@ -94,6 +128,27 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
         database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
         self.assertIn("fetch-depth: 0", database_job)
+
+    def test_production_promotion_is_a_signed_event_bound_check(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(
+            "HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}",
+            qualification,
+        )
+        self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
+        self.assertIn("name: USL production promotion", qualification)
+        self.assertIn("subject-path: production-promotion.json", qualification)
+        self.assertIn("gh attestation verify production-promotion.json", qualification)
+        self.assertIn('--source-ref "$GITHUB_REF"', qualification)
+        self.assertIn('--source-digest "$GITHUB_SHA"', qualification)
+        self.assertIn("commits/$GITHUB_SHA/pulls?per_page=100", qualification)
+        self.assertIn("--production-merge-group-tree \"$GITHUB_SHA\"", qualification)
+        self.assertGreaterEqual(
+            qualification.count('git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"'),
+            2,
+        )
 
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(
