@@ -7,6 +7,7 @@ import base64
 import hashlib
 import io
 import json
+import os
 import re
 import sys
 import time
@@ -892,6 +893,7 @@ def _prepare_release_candidate(target, runner, release: dict, current: dict) -> 
         "schema": "usl-release-prepare/v1",
         "target": target.name,
         "release": release["identity"],
+        "gitops_commit": candidate_identity.get("gitops_commit"),
         "compose_sha256": hashlib.sha256(canonical.encode()).hexdigest(),
         "services": sorted(rendered_services),
         "images": sorted(_release_images(release)),
@@ -953,7 +955,7 @@ def _maintenance_receipt(value: object, *, target: str, attempt: str) -> dict:
 def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) -> dict:
     expected = {
         "schema", "target", "release", "attempt", "prepared_at", "compose_sha256",
-        "services", "images", "capacity", "runtime_changed", "status", "sha256",
+        "gitops_commit", "services", "images", "capacity", "runtime_changed", "status", "sha256",
     }
     if not isinstance(value, dict) or set(value) != expected:
         raise RuntimeError("release prepare receipt fields differ")
@@ -965,6 +967,8 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
         or value["runtime_changed"] is not False
         or value["status"] != "prepared"
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["compose_sha256"]))
+        or value["gitops_commit"] is not None
+        and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
     ):
         raise RuntimeError("release prepare receipt identity differs")
     try:
@@ -983,7 +987,7 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
 
 def _require_same_preparation(current: dict, receipt: dict) -> None:
     for field in (
-        "target", "release", "compose_sha256", "services", "images",
+        "target", "release", "gitops_commit", "compose_sha256", "services", "images",
         "runtime_changed", "status",
     ):
         if current.get(field) != receipt.get(field):
@@ -2259,6 +2263,50 @@ def _compose_services(target, identity: dict) -> list[str]:
 def _candidate_compose_identity(target, runner, current_identity: dict) -> dict:
     """Resolve the canonical base independently from a permitted legacy runtime."""
     anchor = target.value["compose"]["anchor_service"]
+    canonical = target.value["compose"].get("canonical")
+    if canonical is not None:
+        root_value = os.environ.get("USL_RELEASE_GITOPS_ROOT", "")
+        commit = os.environ.get("USL_RELEASE_GITOPS_COMMIT", "")
+        if not root_value.startswith("/") or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            raise RuntimeError("exact GitOps Compose identity is missing")
+        root = Path(root_value)
+        if root.is_symlink() or not root.is_dir() or root.resolve() != root:
+            raise RuntimeError("exact GitOps root is unsafe")
+        marker = root / ".usl-gitops-commit"
+        if (
+            marker.is_symlink()
+            or not marker.is_file()
+            or marker.read_text(encoding="ascii").strip() != commit
+        ):
+            raise RuntimeError("exact GitOps commit marker differs")
+        working = root / canonical["working_directory"]
+        files = [working / item for item in canonical["compose_files"]]
+        environment = Path(canonical["environment_file"])
+        identity = {
+            "project": target.project,
+            "working_directory": str(working),
+            "environment_file": str(environment),
+            "compose_files": [str(item) for item in files],
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": anchor,
+            "gitops_commit": commit,
+        }
+        approved_root = root.resolve()
+        for path in (working, *files):
+            try:
+                resolved = path.resolve(strict=True)
+            except OSError as error:
+                raise RuntimeError(f"exact GitOps Compose path is unavailable: {path}") from error
+            if resolved != path or (resolved != approved_root and approved_root not in resolved.parents):
+                raise RuntimeError(f"exact GitOps Compose path is unsafe: {path}")
+        if not environment.is_file() or environment.is_symlink():
+            raise RuntimeError("exact Compose environment file is unavailable")
+        services = set(
+            runner.run(compose_command(identity, ["config", "--services"])).stdout.splitlines(),
+        )
+        if not set(target.value["services"].values()).issubset(services):
+            raise RuntimeError("exact GitOps Compose service identity differs")
+        return identity
     if current_identity.get("anchor_service", anchor) == anchor:
         return _base_compose_identity(target, current_identity)
     adoption = target.value["compose"].get("adoption")

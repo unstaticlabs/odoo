@@ -173,6 +173,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     }
     if isinstance(root["compose"], dict) and "adoption" in root["compose"]:
         compose_fields.add("adoption")
+    if isinstance(root["compose"], dict) and "canonical" in root["compose"]:
+        compose_fields.add("canonical")
     compose = _exact(root["compose"], compose_fields, "compose")
     if not TARGET_NAME.fullmatch(str(compose["project"])):
         raise RuntimeError("compose.project is invalid")
@@ -192,6 +194,37 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         or not resource_overlay.endswith(".json")
     ):
         raise RuntimeError("compose.resource_overlay must be a safe relative JSON path")
+    canonical = compose.get("canonical")
+    if canonical is not None:
+        canonical = _exact(
+            canonical,
+            {"working_directory", "compose_files", "environment_file"},
+            "compose.canonical",
+        )
+        working = canonical["working_directory"]
+        if (
+            not isinstance(working, str)
+            or not working
+            or working.startswith("/")
+            or ".." in Path(working).parts
+        ):
+            raise RuntimeError("compose.canonical.working_directory must be relative")
+        files = canonical["compose_files"]
+        if (
+            not isinstance(files, list)
+            or not files
+            or not all(
+                isinstance(item, str)
+                and bool(item)
+                and not item.startswith("/")
+                and ".." not in Path(item).parts
+                for item in files
+            )
+        ):
+            raise RuntimeError("compose.canonical.compose_files must be safe relative paths")
+        environment_file = canonical["environment_file"]
+        if not isinstance(environment_file, str) or not environment_file.startswith("/"):
+            raise RuntimeError("compose.canonical.environment_file must be absolute")
     adoption = compose.get("adoption")
     if adoption is not None:
         if root["name"] != "staging" or root["environment"] != "staging":

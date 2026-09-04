@@ -10,6 +10,11 @@
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-staging-main_default",
     "resource_overlay": "compose.resources.staging.json",
+    "canonical": {
+      "working_directory": "komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging",
+      "compose_files": ["compose.yaml", "compose.resources.json"],
+      "environment_file": "/opt/usl-odoo/staging/staging.env"
+    },
     "adoption": {
       "schema": "usl-compose-adoption/v1",
       "legacy_anchor_service": "odoo",

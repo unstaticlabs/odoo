@@ -144,7 +144,11 @@ exact target Compose topology with release images, resource limits, generation
 volumes, Sign mounts, and production quarantine settings. It returns a
 content-addressed render receipt and does not stop, recreate, or reconfigure a
 running service. `release reconcile` repeats this gate so a caller cannot skip
-it accidentally.
+it accidentally. Host releases must supply an immutable GitOps archive root
+and its exact 40-character commit. The archive marker, Compose paths, rendered
+services, and commit are validated and bound into the preparation receipt;
+neither a mutable checkout nor the currently running container labels can
+silently select a different topology later in the attempt.
 
 Every rollout attempt has an identity distinct from the desired release. The
 controller binds preparation, observed public HTTP 503 evidence, generation,

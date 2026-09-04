@@ -245,6 +245,7 @@ class CohortContractTests(unittest.TestCase):
             "release": "a" * 64,
             "attempt": "attempt-20260904-0001",
             "prepared_at": "2026-09-04T11:59:00Z",
+            "gitops_commit": None,
             "compose_sha256": "c" * 64,
             "services": ["odoo"],
             "images": ["ghcr.io/unstaticlabs/odoo@sha256:" + "d" * 64],
@@ -275,6 +276,7 @@ class CohortContractTests(unittest.TestCase):
         prepared = {
             "target": "production",
             "release": "a" * 64,
+            "gitops_commit": "e" * 40,
             "compose_sha256": "b" * 64,
             "services": ["odoo"],
             "images": ["image@sha256:" + "c" * 64],
@@ -285,6 +287,10 @@ class CohortContractTests(unittest.TestCase):
         changed = dict(prepared)
         changed["compose_sha256"] = "d" * 64
         with self.assertRaisesRegex(RuntimeError, "compose_sha256"):
+            _require_same_preparation(changed, prepared)
+        changed = dict(prepared)
+        changed["gitops_commit"] = "f" * 40
+        with self.assertRaisesRegex(RuntimeError, "gitops_commit"):
             _require_same_preparation(changed, prepared)
 
     def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:
@@ -2052,10 +2058,6 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True):
                 self.commands.append(command)
-                if command[:2] in (["test", "-f"], ["test", "-d"]):
-                    return subprocess.CompletedProcess(command, 0, "", "")
-                if command[:2] == ["readlink", "-f"]:
-                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
                 if command[-2:] == ["config", "--services"]:
                     services = "".join(
                         f"{service}\n"
@@ -2064,16 +2066,48 @@ class CohortContractTests(unittest.TestCase):
                     return subprocess.CompletedProcess(command, 0, services, "")
                 raise AssertionError(command)
 
-        runner = CandidateRunner()
-        candidate = _candidate_compose_identity(target, runner, legacy)
-        contract = target.value["compose"]["adoption"]["candidate"]
-        self.assertEqual(candidate["working_directory"], contract["working_directory"])
-        self.assertEqual(candidate["compose_files"], contract["compose_files"])
-        self.assertEqual(candidate["environment_file"], contract["environment_file"])
-        self.assertNotIn(legacy["compose_files"][0], candidate["compose_files"])
-        config_command = runner.commands[-1]
-        self.assertIn(contract["compose_files"][0], config_command)
-        self.assertNotIn(legacy["compose_files"][0], config_command)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            commit = "c" * 40
+            (root / ".usl-gitops-commit").write_text(commit + "\n")
+            contract = target.value["compose"]["canonical"]
+            working = root / contract["working_directory"]
+            working.mkdir(parents=True)
+            for name in contract["compose_files"]:
+                (working / name).write_text("services: {}\n")
+            environment = root / "staging.env"
+            environment.write_text("SAFE=value\n")
+            contract["environment_file"] = str(environment)
+            runner = CandidateRunner()
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "USL_RELEASE_GITOPS_ROOT": str(root),
+                    "USL_RELEASE_GITOPS_COMMIT": commit,
+                },
+            ):
+                candidate = _candidate_compose_identity(target, runner, legacy)
+
+            self.assertEqual(candidate["working_directory"], str(working))
+            self.assertEqual(
+                candidate["compose_files"],
+                [str(working / name) for name in contract["compose_files"]],
+            )
+            self.assertEqual(candidate["gitops_commit"], commit)
+            self.assertNotIn(legacy["compose_files"][0], candidate["compose_files"])
+
+            (root / ".usl-gitops-commit").write_text("d" * 40 + "\n")
+            with (
+                mock.patch.dict(
+                    "os.environ",
+                    {
+                        "USL_RELEASE_GITOPS_ROOT": str(root),
+                        "USL_RELEASE_GITOPS_COMMIT": commit,
+                    },
+                ),
+                self.assertRaisesRegex(RuntimeError, "commit marker differs"),
+            ):
+                _candidate_compose_identity(target, runner, legacy)
 
     def test_second_staging_activation_uses_only_the_canonical_service(self) -> None:
         target = load_target("staging", HOST_TARGETS)
