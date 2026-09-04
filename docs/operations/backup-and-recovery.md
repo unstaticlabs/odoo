@@ -67,7 +67,9 @@ scripts/usl-stack restore run \
 
 The restore performs these steps unattended:
 
-1. validate the target, secrets, source release, and free-space floor;
+1. validate the target, secrets, source release, and free-space floor; during
+   first-v3 staging adoption the fixed launcher also transfers public ingress
+   to the stable gateway and proves HTTP and websocket maintenance responses;
 2. pre-pull every immutable release image;
 3. create generation-labeled volumes and a private network;
 4. restore both databases and all durable/cache resources while retaining the
@@ -88,7 +90,12 @@ The first v3 activation also records the exact validated v2 Compose identity.
 If a post-activation gate fails, rollback accepts only the staging validation
 directory, generation overlays and environment file allowed by the transition
 contract. It removes the stopped canonical anchor before restarting the legacy
-service, so later runtime inspection cannot see two competing Odoo anchors.
+service, recreates that service without starting its legacy gateway, and
+disconnects it from Cloudflare before start. The legacy Odoo remains reachable
+through `odoo-staging-app` behind the stable gateway, so later runtime
+inspection cannot see two competing Odoo anchors or public aliases. Gateway
+start, alias transfer, or rollback failure leaves maintenance closed and is
+safe to retry after interruption or reboot.
 
 Admission also records the MCP server version and OAuth-vault schema reported
 by its versioned readiness endpoint. Production and staging require the vault

@@ -128,10 +128,246 @@ def _capacity_detail(available: int) -> str:
     return f"{gib:.1f} GiB free"
 
 
+def _container_networks(runner, container: str) -> dict:
+    raw = runner.run(
+        ["docker", "inspect", container, "--format", "{{json .NetworkSettings.Networks}}"],
+    ).stdout
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("container network inventory is invalid") from error
+    if not isinstance(value, dict):
+        raise RuntimeError("container network inventory is invalid")
+    return value
+
+
+def _container_identifier(runner, container: str) -> str:
+    identifier = runner.run(
+        ["docker", "inspect", container, "--format", "{{.Id}}"],
+    ).stdout.strip()
+    if not re.fullmatch(r"[0-9a-f]{64}", identifier):
+        raise RuntimeError("container identity is invalid")
+    return identifier
+
+
+def _network_alias_owners(runner, network: str, alias: str) -> list[str]:
+    raw = runner.run(
+        ["docker", "network", "inspect", network, "--format", "{{json .Containers}}"],
+    ).stdout
+    try:
+        containers = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("ingress network inventory is invalid") from error
+    if not isinstance(containers, dict):
+        raise RuntimeError("ingress network inventory is invalid")
+    owners = []
+    for container in containers:
+        networks = _container_networks(runner, container)
+        aliases = (networks.get(network) or {}).get("Aliases") or []
+        if alias in aliases:
+            owners.append(container)
+    return sorted(owners)
+
+
+def _gateway_container(target, runner) -> str | None:
+    containers = runner.run(
+        [
+            "docker", "ps", "-a",
+            "--no-trunc",
+            "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", "label=com.docker.compose.service=gateway",
+            "--format", "{{.ID}}",
+        ],
+    ).stdout.splitlines()
+    if len(containers) > 1:
+        raise RuntimeError("staging gateway container identity is ambiguous")
+    return containers[0] if containers else None
+
+
+def _validate_gateway_container(target, runner, container: str, identity: dict) -> None:
+    try:
+        labels = json.loads(runner.run(
+            ["docker", "inspect", container, "--format", "{{json .Config.Labels}}"],
+        ).stdout)
+        state = json.loads(runner.run(
+            ["docker", "inspect", container, "--format", "{{json .State}}"],
+        ).stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("staging gateway container evidence is invalid") from error
+    config_files = [
+        item for item in labels.get("com.docker.compose.project.config_files", "").split(",")
+        if item
+    ]
+    env_files = [
+        item for item in labels.get("com.docker.compose.project.environment_file", "").split(",")
+        if item
+    ]
+    networks = _container_networks(runner, container)
+    ingress = target.value["external_networks"]["ingress"]
+    default_network = target.value["compose"]["default_network"]
+    ingress_aliases = (networks.get(ingress) or {}).get("Aliases") or []
+    backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
+    if (
+        labels.get("com.docker.compose.project") != target.project
+        or labels.get("com.docker.compose.service") != "gateway"
+        or labels.get("com.docker.compose.project.working_dir") != identity["working_directory"]
+        or config_files != identity["compose_files"]
+        or env_files != [identity["environment_file"]]
+        or set(networks) != {ingress, default_network}
+        or "odoo-staging" not in ingress_aliases
+        or "gateway" not in backend_aliases
+        or state.get("Running") is not True
+        or state.get("Health", {}).get("Status") != "healthy"
+    ):
+        raise RuntimeError("staging gateway ownership or health differs")
+
+
+def _probe_staging_gateway_maintenance(target, runner) -> dict:
+    endpoint = target.value["endpoints"]["odoo"].rstrip("/")
+    if endpoint != "https://odoo-staging.unstaticlabs.com":
+        raise RuntimeError("staging public ingress endpoint differs")
+    nonce = str(time.time_ns())
+    common = [
+        "curl", "--silent", "--show-error", "--include", "--http1.1",
+        "--max-time", "15", "--header", "Cache-Control: no-cache",
+    ]
+    http = runner.run(
+        [*common, f"{endpoint}/web/health?maintenance_probe={nonce}"],
+        check=False,
+    )
+    websocket = runner.run(
+        [
+            *common,
+            "--header", "Connection: Upgrade",
+            "--header", "Upgrade: websocket",
+            "--header", "Sec-WebSocket-Version: 13",
+            "--header", "Sec-WebSocket-Key: dXNsLW1haW50ZW5hbmNlIQ==",
+            f"{endpoint}/websocket?maintenance_probe={nonce}",
+        ],
+        check=False,
+    )
+    http_lines = http.stdout.splitlines()
+    websocket_lines = websocket.stdout.splitlines()
+    if (
+        http.returncode
+        or websocket.returncode
+        or not http_lines
+        or not websocket_lines
+        or " 503 " not in http_lines[0]
+        or "Retry-After: 60" not in http.stdout
+        or " 503 " not in websocket_lines[0]
+        or '"error":"maintenance"' not in websocket.stdout
+    ):
+        raise RuntimeError("staging gateway maintenance was not admitted over HTTP and WebSocket")
+    return {
+        "schema": "usl-staging-gateway-maintenance/v1",
+        "http_status": 503,
+        "websocket_status": 503,
+        "status": "passed",
+    }
+
+
+def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: str, aliases: list[str]) -> None:
+    gateway = _gateway_container(target, runner)
+    if gateway:
+        runner.run(
+            compose_command(candidate_identity, ["rm", "--stop", "--force", "gateway"]),
+        )
+    ingress = target.value["external_networks"]["ingress"]
+    networks = _container_networks(runner, legacy)
+    if ingress not in networks:
+        command = ["docker", "network", "connect"]
+        for alias in aliases:
+            command.extend(("--alias", alias))
+        runner.run([*command, ingress, legacy])
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [legacy]:
+        raise RuntimeError("legacy staging ingress could not be restored")
+
+
+def _adopt_staging_gateway(target, runner) -> dict:
+    """Transfer first-v3 ingress to the stable gateway before writers stop."""
+    adoption = target.value["compose"].get("adoption")
+    if target.name != "staging" or adoption is None:
+        raise RuntimeError("stable gateway adoption is staging-only")
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/staging/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("stable gateway adoption requires the maintenance marker")
+    current = inspect_runtime(target, runner)
+    identity = current["compose"]
+    candidate_identity = _candidate_compose_identity(target, runner, identity)
+    legacy_anchor = adoption["legacy_anchor_service"]
+    if identity.get("anchor_service") != legacy_anchor:
+        gateway = _gateway_container(target, runner)
+        if not gateway:
+            raise RuntimeError("canonical staging has no stable gateway")
+        _validate_gateway_container(target, runner, gateway, candidate_identity)
+        maintenance = _probe_staging_gateway_maintenance(target, runner)
+        return {**maintenance, "adoption": "already-canonical"}
+
+    _validated_legacy_compose_identity(
+        target,
+        runner,
+        _recorded_compose_identity(identity),
+        current["generation"],
+    )
+    legacy = _container_identifier(runner, identity["container_id"])
+    ingress = target.value["external_networks"]["ingress"]
+    default_network = target.value["compose"]["default_network"]
+    networks = _container_networks(runner, legacy)
+    backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
+    ingress_aliases = (networks.get(ingress) or {}).get("Aliases") or []
+    expected_ingress_aliases = sorted({f"{target.project}-odoo-1", "odoo", "odoo-staging"})
+    if "odoo-staging-app" not in backend_aliases:
+        raise RuntimeError("legacy staging backend alias is missing")
+    owners = _network_alias_owners(runner, ingress, "odoo-staging")
+    already_adopted = legacy not in owners
+    if not already_adopted and (owners != [legacy] or sorted(ingress_aliases) != expected_ingress_aliases):
+        raise RuntimeError("legacy staging ingress aliases differ from the adoption contract")
+    detached = False
+    try:
+        if not already_adopted:
+            runner.run(["docker", "network", "disconnect", ingress, legacy])
+            detached = True
+        runner.run(
+            compose_command(
+                candidate_identity,
+                ["up", "--detach", "--wait", "--no-deps", "gateway"],
+            ),
+        )
+        gateway = _gateway_container(target, runner)
+        if not gateway:
+            raise RuntimeError("stable staging gateway was not created")
+        _validate_gateway_container(target, runner, gateway, candidate_identity)
+        if runner.run(
+            ["docker", "exec", gateway, "test", "-f", "/run/usl-gateway/maintenance"],
+            check=False,
+        ).returncode:
+            raise RuntimeError("stable staging gateway did not mount the maintenance marker")
+        if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+            raise RuntimeError("stable staging gateway does not uniquely own public ingress")
+        if ingress in _container_networks(runner, legacy):
+            raise RuntimeError("legacy staging retained public ingress")
+        maintenance = _probe_staging_gateway_maintenance(target, runner)
+    except Exception:
+        if detached or already_adopted:
+            _restore_legacy_ingress(
+                target,
+                runner,
+                candidate_identity,
+                legacy,
+                expected_ingress_aliases,
+            )
+        raise
+    return {**maintenance, "adoption": "already-adopted" if already_adopted else "adopted"}
+
+
 def runtime_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
-    if arguments.action == "status":
+    if arguments.action == "adopt-gateway":
+        with runtime_lock(target, runner, "gateway-adoption", "gateway-adoption"):
+            result = _adopt_staging_gateway(target, runner)
+    elif arguments.action == "status":
         result = inspect_runtime(target, runner)
     else:
         current = inspect_runtime(target, runner)
@@ -811,16 +1047,90 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
     )
 
 
-def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
+def _wait_compose_services(target, runner, services: list[str], timeout: int = 120) -> None:
+    deadline = time.monotonic() + timeout
+    last = ""
+    while time.monotonic() < deadline:
+        pending = []
+        for service in services:
+            containers = runner.run(
+                [
+                    "docker", "ps", "-a",
+                    "--filter", f"label=com.docker.compose.project={target.project}",
+                    "--filter", f"label=com.docker.compose.service={service}",
+                    "--format", "{{.ID}}",
+                ],
+            ).stdout.splitlines()
+            if len(containers) != 1:
+                pending.append(f"{service}:ambiguous")
+                continue
+            try:
+                state = json.loads(runner.run(
+                    ["docker", "inspect", containers[0], "--format", "{{json .State}}"],
+                ).stdout)
+            except json.JSONDecodeError as error:
+                raise RuntimeError("rollback container state is invalid") from error
+            health = state.get("Health", {}).get("Status")
+            if state.get("Running") is not True or health not in {None, "healthy"}:
+                pending.append(f"{service}:{health or state.get('Status', 'unknown')}")
+        if not pending:
+            return
+        last = ", ".join(pending)
+        time.sleep(2)
+    raise RuntimeError(f"rollback services did not become ready: {last}")
+
+
+def _start_rollback_identity(target, runner, identity: dict) -> None:
+    """Start a rollback generation without returning legacy ingress to Odoo."""
+    adoption = target.value["compose"].get("adoption")
+    if adoption is None or identity.get("anchor_service") != adoption["legacy_anchor_service"]:
+        runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
+        return
+
+    gateway = _gateway_container(target, runner)
+    if not gateway:
+        raise RuntimeError("legacy rollback requires the stable staging gateway")
+    candidate_identity = _candidate_compose_identity(target, runner, identity)
+    _validate_gateway_container(target, runner, gateway, candidate_identity)
+    ingress = target.value["external_networks"]["ingress"]
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+        raise RuntimeError("legacy rollback gateway does not uniquely own public ingress")
+
+    services = _compose_services(target, identity)
+    runner.run(compose_command(
+        identity,
+        ["create", "--force-recreate", "--no-deps", *services],
+    ))
+    legacy = runner.run(
+        [
+            "docker", "ps", "-a",
+            "--no-trunc",
+            "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", f"label=com.docker.compose.service={adoption['legacy_anchor_service']}",
+            "--format", "{{.ID}}",
+        ],
+    ).stdout.splitlines()
+    if len(legacy) != 1:
+        raise RuntimeError("legacy rollback Odoo identity is ambiguous")
+    networks = _container_networks(runner, legacy[0])
+    default_network = target.value["compose"]["default_network"]
+    if "odoo-staging-app" not in (networks.get(default_network) or {}).get("Aliases", []):
+        raise RuntimeError("legacy rollback backend alias is missing")
+    if ingress in networks:
+        runner.run(["docker", "network", "disconnect", ingress, legacy[0]])
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+        raise RuntimeError("legacy rollback retained duplicate public ingress")
+    runner.run(compose_command(identity, ["start", *services]))
+    _wait_compose_services(target, runner, services)
+
+
+def _rollback_after_failure(target, runner, identity: dict, error: Exception) -> None:
     _report("restore", "rollback", "started", f"activation failed: {error}")
-    rollback = runner.run(
-        compose_command(identity, ["up", "--detach", "--wait"]),
-        check=False,
-    )
-    if rollback.returncode:
-        detail = (rollback.stderr or rollback.stdout).strip()
+    try:
+        _start_rollback_identity(target, runner, identity)
+    except Exception as rollback_error:
         raise RuntimeError(
-            f"activation failed ({error}); rollback also failed ({detail})",
+            f"activation failed ({error}); rollback also failed ({rollback_error})",
         ) from error
     _report("restore", "rollback", "completed", "previous generation is running")
 
@@ -2041,7 +2351,7 @@ def _activate_generation(
             _cleanup_adoption_candidate_anchor(target, runner, current_identity)
         except Exception as cleanup:
             cleanup_error = cleanup
-        _rollback_after_failure(runner, current_identity, error)
+        _rollback_after_failure(target, runner, current_identity, error)
         if cleanup_error is not None:
             raise RuntimeError(
                 f"activation failed ({error}); legacy rollback completed but candidate cleanup failed "
@@ -2178,13 +2488,10 @@ def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
             runner,
             target.value["compose"]["anchor_service"],
         )
-    rollback = runner.run(
-        compose_command(previous_identity, ["up", "--detach", "--wait"]),
-        check=False,
-    )
-    if rollback.returncode:
-        detail = (rollback.stderr or rollback.stdout).strip()
-        raise RuntimeError(f"previous generation did not start: {detail}")
+    try:
+        _start_rollback_identity(target, runner, previous_identity)
+    except Exception as error:
+        raise RuntimeError(f"previous generation did not start: {error}") from error
     active_path = f"{target.value['state_directory']}/active.json"
     if previous_state is None:
         runner.run(["rm", "-f", active_path])
@@ -2820,7 +3127,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 active_path,
                 json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
             )
-        _rollback_after_failure(target_runner, identity, error)
+        _rollback_after_failure(target, target_runner, identity, error)
         if cleanup_error is not None:
             raise RuntimeError(
                 f"validation failed ({error}); legacy rollback completed but candidate cleanup failed "
@@ -3355,7 +3662,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target")
     commands = parser.add_subparsers(dest="command", required=True)
     runtime = commands.add_parser("runtime")
-    runtime.add_argument("action", choices=("status", "start", "stop"))
+    runtime.add_argument("action", choices=("status", "start", "stop", "adopt-gateway"))
     runtime.add_argument("--target", dest="command_target")
     runtime.add_argument("--json", action="store_true")
     runtime.set_defaults(handler=runtime_command)

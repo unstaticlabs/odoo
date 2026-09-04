@@ -18,6 +18,7 @@ from operations.stack import (
     _create_generation_resources,
     _apply_generation_cron_policy,
     _active_generation_identity,
+    _adopt_staging_gateway,
     _abort_to_previous_generation,
     _activate_generation,
     _candidate_compose_identity,
@@ -39,12 +40,14 @@ from operations.stack import (
     _measure_candidate_bytes,
     _notify_release,
     _rollback_after_failure,
+    _start_rollback_identity,
     _run_candidate_upgrade,
     _restore_unlocked,
     _storage_status,
     _write_adopt_generation,
     _validate_materialized_release,
     _validate_runtime_release_images,
+    _probe_staging_gateway_maintenance,
     _validated_cleanup_resources,
     _validated_cleanup_network,
     _validated_cleanup_volume,
@@ -564,14 +567,17 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._previous_generation_identity",
             return_value=(legacy_identity, '{"generation":"legacy"}'),
         ), mock.patch(
+            "operations.stack._start_rollback_identity",
+        ) as starter, mock.patch(
             "operations.stack._gate",
             side_effect=[{"status": "passed"}, {"status": "passed"}],
-        ):
+        ) as gates:
             result = _abort_to_previous_generation(target, runner, TARGETS)
         remove = ["docker", "rm", "--force", "canonical-id"]
-        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
-        self.assertLess(runner.commands.index(remove), runner.commands.index(up))
-        self.assertIn("/runtime/legacy-v2.json", up)
+        self.assertIn(remove, runner.commands)
+        # The shared starter keeps the recovered legacy Odoo behind the stable gateway.
+        starter.assert_called_once_with(target, runner, legacy_identity)
+        self.assertEqual(gates.call_count, 2)
         self.assertEqual(result["status"], "rolled-back")
 
     def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
@@ -1790,6 +1796,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(command[-3:], ["1000:1000", "/var/lib/odoo", "/var/lib/odoo/filestore"])
 
     def test_rollback_failure_preserves_the_activation_error(self) -> None:
+        target = mock.Mock(value={"compose": {}})
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -1799,12 +1806,15 @@ class CohortContractTests(unittest.TestCase):
 
         class FailedRunner:
             def run(self, command, *, check=True):
+                if check:
+                    raise RuntimeError("disk full")
                 return subprocess.CompletedProcess(command, 1, "", "disk full")
 
         with self.assertRaisesRegex(RuntimeError, "activation failed \\(original failure\\).*disk full"):
-            _rollback_after_failure(FailedRunner(), identity, RuntimeError("original failure"))
+            _rollback_after_failure(target, FailedRunner(), identity, RuntimeError("original failure"))
 
     def test_rollback_reactivates_the_previous_generation_overlay(self) -> None:
+        target = mock.Mock(value={"compose": {}})
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -1824,7 +1834,7 @@ class CohortContractTests(unittest.TestCase):
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         runner = RecordingRunner()
-        _rollback_after_failure(runner, identity, RuntimeError("new generation failed"))
+        _rollback_after_failure(target, runner, identity, RuntimeError("new generation failed"))
         command = runner.commands[0]
         self.assertIn(
             "/runtime/generations/g-previous/compose.generation.json",
@@ -2020,18 +2030,18 @@ class CohortContractTests(unittest.TestCase):
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         runner = FailingCandidateRunner()
-        with self.assertRaisesRegex(RuntimeError, "candidate failed"):
+        with mock.patch("operations.stack._start_rollback_identity") as starter, self.assertRaisesRegex(
+            RuntimeError, "candidate failed",
+        ):
             _activate_generation(target, runner, legacy, candidate)
 
         stop = runner.commands[0]
         failed_up = runner.commands[1]
-        rollback = runner.commands[-1]
         self.assertEqual(stop[-14:-10], ["stop", "--timeout", "60", "db"])
         self.assertIn("odoo", stop)
         self.assertNotIn("odoo-staging", stop)
         self.assertIn("/runtime/v3.json", failed_up)
-        self.assertIn("/runtime/v2.json", rollback)
-        self.assertEqual(rollback[-3:], ["up", "--detach", "--wait"])
+        starter.assert_called_once_with(target, runner, legacy)
         self.assertIn(["docker", "rm", "--force", "candidate-id"], runner.commands)
 
     def test_first_staging_candidate_uses_only_the_allowlisted_gitops_identity(self) -> None:
@@ -2096,6 +2106,216 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("odoo-staging", stop)
         self.assertNotIn("odoo", stop)
         self.assertIn("/runtime/v3-next.json", runner.run.call_args_list[1].args[0])
+
+    def test_first_v3_gateway_adoption_rolls_back_when_gateway_start_fails(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "container_id": "legacy-id",
+            "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy/compose.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    self.detached = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "connect"]:
+                    self.detached = False
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    raise RuntimeError("gateway start failed")
+                raise AssertionError(command)
+
+        runner = Runner()
+        networks = lambda _runner, container: {
+            target.value["compose"]["default_network"]: {"Aliases": ["odoo-staging-app"]},
+            **({target.value["external_networks"]["ingress"]: {"Aliases": [
+                f"{target.project}-odoo-1", "odoo", "odoo-staging",
+            ]}} if not runner.detached else {}),
+        }
+        owners = lambda _runner, _network, _alias: [] if runner.detached else ["legacy-id"]
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch("operations.stack._gateway_container", return_value=None), self.assertRaisesRegex(
+            RuntimeError, "gateway start failed",
+        ):
+            _adopt_staging_gateway(target, runner)
+        self.assertFalse(runner.detached)
+
+    def test_first_v3_gateway_adoption_is_retryable_after_alias_transfer(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = True
+            gateway = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"] or command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    self.gateway = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+        def networks(_runner, container):
+            if container == "legacy-id":
+                return {default: {"Aliases": ["odoo-staging-app"]}}
+            return {ingress: {"Aliases": ["odoo-staging"]}, default: {"Aliases": ["gateway"]}}
+
+        def owners(_runner, _network, _alias):
+            return ["gateway-id"] if runner.gateway else []
+
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch("operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._probe_staging_gateway_maintenance",
+            return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
+        ):
+            first = _adopt_staging_gateway(target, runner)
+            second = _adopt_staging_gateway(target, runner)
+        self.assertEqual(
+            set(first),
+            {"schema", "status", "adoption", "http_status", "websocket_status"},
+        )
+        self.assertEqual(first["adoption"], "already-adopted")
+        self.assertEqual(second["adoption"], "already-adopted")
+
+    def test_first_v3_gateway_adoption_stops_on_alias_transfer_failure(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy", "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"], "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy.yaml"],
+        }
+
+        class Runner:
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    raise RuntimeError("alias transfer failed")
+                raise AssertionError(command)
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value={**legacy, "anchor_service": "odoo-staging"},
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", return_value={
+            default: {"Aliases": ["odoo-staging-app"]},
+            ingress: {"Aliases": [f"{target.project}-odoo-1", "odoo", "odoo-staging"]},
+        }), mock.patch(
+            "operations.stack._network_alias_owners", return_value=["legacy-id"],
+        ), self.assertRaisesRegex(RuntimeError, "alias transfer failed"):
+            _adopt_staging_gateway(target, runner)
+        self.assertFalse(any("gateway" == command[-1] for command in runner.commands))
+
+    def test_gateway_maintenance_probe_requires_http_and_websocket_503(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            responses = [
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nRetry-After: 60\n", ""),
+                subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
+            ]
+
+            def run(self, command, *, check=True, input_text=None):
+                return self.responses.pop(0)
+
+        evidence = _probe_staging_gateway_maintenance(target, Runner())
+        self.assertEqual(
+            set(evidence),
+            {"schema", "status", "http_status", "websocket_status"},
+        )
+        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["http_status"], 503)
+        self.assertEqual(evidence["websocket_status"], 503)
+
+    def test_legacy_rollback_starts_behind_the_stable_gateway(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project, "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+
+        class Runner:
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "legacy-id\n", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack._gateway_container", return_value="gateway-id"), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value={**legacy, "anchor_service": "odoo-staging"},
+        ), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._network_alias_owners", return_value=["gateway-id"],
+        ), mock.patch(
+            "operations.stack._container_networks", return_value={
+                target.value["compose"]["default_network"]: {"Aliases": ["odoo-staging-app"]},
+                target.value["external_networks"]["ingress"]: {"Aliases": ["odoo-staging"]},
+            },
+        ), mock.patch("operations.stack._wait_compose_services"):
+            _start_rollback_identity(target, runner, legacy)
+        create = next(command for command in runner.commands if "create" in command)
+        start = next(command for command in runner.commands if "start" in command)
+        self.assertIn("--force-recreate", create)
+        self.assertIn(["docker", "network", "disconnect", "cloudflare", "legacy-id"], runner.commands)
+        self.assertNotIn("gateway", create[create.index("create") + 1:])
+        self.assertIn("odoo", start)
+        self.assertFalse(any("up" in command for command in runner.commands))
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)
