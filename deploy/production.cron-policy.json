@@ -66,6 +66,7 @@
     "usl_documents.ir_cron_usl_documents_poll": {"gate": "always", "reason": "Track Paperless ingestion completion."},
     "usl_documents.ir_cron_usl_documents_sync": {"gate": "always", "reason": "Synchronize Odoo and Paperless archive metadata."},
     "usl_documents_accounting.ir_cron_archive_bank_statement_evidence": {"gate": "always", "reason": "Archive accepted bank-statement evidence."},
+    "usl_project.ir_cron_usl_reactivate_later_tasks": {"gate": "always", "reason": "Return active deferred personal tasks to Inbox when their actionable date arrives."},
     "usl_sign.ir_cron_sign_daily_event_heads": {"gate": "always", "reason": "Build daily Sign evidence manifests."},
     "usl_sign.ir_cron_sign_opentimestamps": {"gate": "ots", "reason": "Submit public timestamp proofs after the external-service gate."},
     "usl_sign.ir_cron_sign_operations": {"gate": "always", "reason": "Process Sign lifecycle, reminders and archive recovery."},
