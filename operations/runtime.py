@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
+from operations.release_manifest import ReleaseManifestError, validate as validate_release
+
 
 SCHEMA = "usl-runtime/v1"
 TARGET_NAME = re.compile(r"[a-z][a-z0-9-]{1,31}\Z")
@@ -164,11 +166,12 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if transport.get("type") == "ssh" and not TARGET_NAME.fullmatch(str(transport.get("host"))):
         raise RuntimeError("transport.host is invalid")
 
-    compose = _exact(
-        root["compose"],
-        {"project", "anchor_service", "profiles", "default_network", "resource_overlay"},
-        "compose",
-    )
+    compose_fields = {
+        "project", "anchor_service", "profiles", "default_network", "resource_overlay",
+    }
+    if isinstance(root["compose"], dict) and "adoption" in root["compose"]:
+        compose_fields.add("adoption")
+    compose = _exact(root["compose"], compose_fields, "compose")
     if not TARGET_NAME.fullmatch(str(compose["project"])):
         raise RuntimeError("compose.project is invalid")
     if not isinstance(compose["anchor_service"], str) or not compose["anchor_service"]:
@@ -187,6 +190,48 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         or not resource_overlay.endswith(".json")
     ):
         raise RuntimeError("compose.resource_overlay must be a safe relative JSON path")
+    adoption = compose.get("adoption")
+    if adoption is not None:
+        if root["name"] != "staging" or root["environment"] != "staging":
+            raise RuntimeError("compose.adoption is staging-only")
+        adoption = _exact(
+            adoption,
+            {"schema", "legacy_anchor_service", "legacy_release_schema", "candidate"},
+            "compose.adoption",
+        )
+        if adoption["schema"] != "usl-compose-adoption/v1":
+            raise RuntimeError("compose.adoption schema is invalid")
+        if adoption["legacy_anchor_service"] == compose["anchor_service"]:
+            raise RuntimeError("compose.adoption legacy anchor must differ")
+        if adoption["legacy_release_schema"] != "usl-release/v2":
+            raise RuntimeError("compose.adoption release schema is invalid")
+        candidate = _exact(
+            adoption["candidate"],
+            {"working_directory", "compose_files", "environment_file"},
+            "compose.adoption.candidate",
+        )
+        for field in ("working_directory", "environment_file"):
+            if not isinstance(candidate[field], str) or not candidate[field].startswith("/"):
+                raise RuntimeError(f"compose.adoption.candidate.{field} must be absolute")
+        if (
+            not isinstance(candidate["compose_files"], list)
+            or not candidate["compose_files"]
+            or not all(
+                isinstance(item, str) and item.startswith("/")
+                for item in candidate["compose_files"]
+            )
+        ):
+            raise RuntimeError("compose.adoption.candidate.compose_files must be absolute paths")
+        approved_working_root = "/etc/komodo/stacks/usl-odoo-production-main/"
+        if not candidate["working_directory"].startswith(approved_working_root):
+            raise RuntimeError("compose.adoption candidate working directory is outside GitOps")
+        if any(
+            not item.startswith(candidate["working_directory"] + "/")
+            for item in candidate["compose_files"]
+        ):
+            raise RuntimeError("compose.adoption candidate file is outside its working directory")
+        if not candidate["environment_file"].startswith("/opt/usl-odoo/staging/"):
+            raise RuntimeError("compose.adoption candidate environment is outside staging")
 
     services = root["services"]
     required_services = {
@@ -416,24 +461,27 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
 
     identifiers = service_containers(anchor)
     selected_anchor = anchor
-    staging_transition = (
-        target.name == "staging"
-        and target.value["environment"] == "staging"
-        and anchor == "odoo-staging"
-        and target.value["services"]["odoo"] == "odoo-staging"
-    )
+    active_state = None
+    active_release_schema = None
+    adoption = target.value["compose"].get("adoption")
+    staging_transition = adoption is not None
     if staging_transition:
-        legacy_anchor = "odoo"
+        legacy_anchor = adoption["legacy_anchor_service"]
         legacy_identifiers = service_containers(legacy_anchor)
         if identifiers and legacy_identifiers:
-            raise RuntimeError(
-                f"both canonical and legacy anchors exist for {target.project}",
-            )
-        if (
-            not identifiers
-            and len(legacy_identifiers) == 1
-            and read_active_state(target, runner) is None
-        ):
+            active_state = read_active_state(target, runner)
+            if active_state is not None:
+                active_release_schema = read_active_release(target, runner, active_state)["schema"]
+            if active_release_schema != "usl-release/v3":
+                raise RuntimeError(
+                    f"both canonical and legacy anchors exist for {target.project}",
+                )
+        elif not identifiers and len(legacy_identifiers) == 1:
+            active_state = read_active_state(target, runner)
+            if active_state is not None:
+                active_release_schema = read_active_release(target, runner, active_state)["schema"]
+            if active_release_schema != adoption["legacy_release_schema"]:
+                raise RuntimeError("legacy staging anchor is not an active v2 release")
             identifiers = legacy_identifiers
             selected_anchor = legacy_anchor
     if len(identifiers) != 1:
@@ -448,7 +496,22 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
         raise RuntimeError("anchor container belongs to another Compose project")
     if labels.get("com.docker.compose.service") != selected_anchor:
         raise RuntimeError("anchor container has the wrong Compose service label")
-    files = [item for item in labels.get("com.docker.compose.project.config_files", "").split(",") if item]
+    if selected_anchor != anchor:
+        state = json.loads(
+            runner.run(
+                ["docker", "inspect", identifiers[0], "--format", "{{json .State}}"],
+            ).stdout,
+        )
+        if (
+            state.get("Running") is not True
+            or state.get("Health", {}).get("Status") != "healthy"
+        ):
+            raise RuntimeError("legacy staging anchor is not running and healthy")
+    files = [
+        item
+        for item in labels.get("com.docker.compose.project.config_files", "").split(",")
+        if item
+    ]
     directory = labels.get("com.docker.compose.project.working_dir", "")
     env_file = labels.get("com.docker.compose.project.environment_file", "")
     env_files = [item for item in env_file.split(",") if item]
@@ -456,17 +519,40 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
         not files
         or not directory.startswith("/")
         or not env_files
+        or any(not item.startswith("/") for item in files)
         or any(not item.startswith("/") for item in env_files)
     ):
         raise RuntimeError("anchor container has incomplete Compose provenance")
-    return {
+    identity = {
         "container_id": identifiers[0],
+        "anchor_service": selected_anchor,
         "project": target.project,
         "working_directory": directory,
         "compose_files": files,
         "environment_file": env_file,
         "profiles": target.value["compose"]["profiles"],
     }
+    if selected_anchor != anchor:
+        paths = [directory, *files, *env_files]
+        if runner.run(["test", "-d", directory], check=False).returncode:
+            raise RuntimeError("legacy Compose working directory is missing")
+        for path in paths:
+            if path != directory and runner.run(
+                ["test", "-f", path], check=False,
+            ).returncode:
+                raise RuntimeError(f"legacy Compose identity file is missing: {path}")
+            resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+            if resolved != path:
+                raise RuntimeError(f"legacy Compose identity path is not direct: {path}")
+        services = set(
+            runner.run(compose_command(identity, ["config", "--services"])).stdout.splitlines(),
+        )
+        expected = set(target.value["services"].values())
+        expected.remove(anchor)
+        expected.add(selected_anchor)
+        if not expected.issubset(services) or anchor in services:
+            raise RuntimeError("legacy Compose service perimeter differs")
+    return identity
 
 
 def compose_command(identity: dict[str, Any], arguments: list[str]) -> list[str]:
@@ -523,6 +609,20 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
     ):
         raise RuntimeError("active generation release manifest is invalid")
     return state
+
+
+def read_active_release(target: Target, runner: Runner, state: dict[str, Any]) -> dict[str, Any]:
+    expected = (
+        f"{target.value['state_directory']}/generations/"
+        f"{state['generation']}/usl-release.json"
+    )
+    if state["release_manifest"] != expected:
+        raise RuntimeError("active release manifest path does not match its generation")
+    try:
+        payload = json.loads(runner.run(["cat", expected]).stdout)
+        return validate_release(payload)
+    except (json.JSONDecodeError, ReleaseManifestError) as error:
+        raise RuntimeError("active release manifest is invalid") from error
 
 
 def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[str, str]], str | None]:

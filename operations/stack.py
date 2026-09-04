@@ -32,7 +32,7 @@ from operations.release_controller import (
     abort as abort_release_state,
     parse as parse_release_state,
 )
-from operations.release_manifest import validate as validate_release
+from operations.release_manifest import ReleaseManifestError, validate as validate_release
 from operations.module_release import (
     ModuleReleaseError,
     derive_legacy_upgrade_plan,
@@ -324,7 +324,13 @@ def _write_adopt_generation(
         target,
         runner,
         overlay_path,
-        _generation_overlay(volumes, release, services, target.value["ingress"]),
+        _generation_overlay(
+            volumes,
+            release,
+            services,
+            target.value["ingress"],
+            service_names=target.value["services"],
+        ),
         "0644",
     )
     return release_path
@@ -1613,6 +1619,15 @@ def _resource_overlay(target) -> str | None:
     if not isinstance(value, dict) or set(value) != {"services"}:
         raise RuntimeError("resource overlay must contain only services")
     services = value["services"]
+    if (
+        target.name == "staging"
+        and target.value["environment"] == "staging"
+        and target.value["services"]["odoo"] == "odoo-staging"
+        and isinstance(services, dict)
+        and "odoo" in services
+        and "odoo-staging" not in services
+    ):
+        services["odoo-staging"] = services.pop("odoo")
     expected = set(target.value["services"].values())
     if not isinstance(services, dict) or set(services) != expected:
         raise RuntimeError("resource overlay service perimeter differs from the target")
@@ -1664,13 +1679,21 @@ def _generation_overlay(
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
-            service: {"image": images[component]}
+            (service_names or {}).get("odoo", "odoo") if service == "odoo" else service: {
+                "image": images[component]
+            }
             for component, services in RELEASE_IMAGE_SERVICES.items()
             for service in services
-            if available_services is None or service in available_services
+            if available_services is None
+            or service in available_services
+            or (
+                service == "odoo"
+                and (service_names or {}).get("odoo") in available_services
+            )
         }
-        if ingress is not None and "odoo" in value["services"]:
-            value["services"]["odoo"]["environment"] = {
+        odoo_service = (service_names or {}).get("odoo", "odoo")
+        if ingress is not None and odoo_service in value["services"]:
+            value["services"][odoo_service]["environment"] = {
                 "ODOO_PROXY_MODE": "True" if ingress["proxy_mode"] else "False",
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
@@ -1798,6 +1821,115 @@ def _base_compose_identity(target, identity: dict) -> dict:
     return {**identity, "compose_files": compose_files}
 
 
+def _compose_services(target, identity: dict) -> list[str]:
+    """Return target services using the captured runtime anchor when it is legacy."""
+    services = set(target.value["services"].values())
+    anchor = target.value["compose"]["anchor_service"]
+    captured = identity.get("anchor_service", anchor)
+    if captured != anchor:
+        services.remove(anchor)
+        services.add(captured)
+    return sorted(services)
+
+
+def _candidate_compose_identity(target, runner, current_identity: dict) -> dict:
+    """Resolve the canonical base independently from a permitted legacy runtime."""
+    anchor = target.value["compose"]["anchor_service"]
+    if current_identity.get("anchor_service", anchor) == anchor:
+        return _base_compose_identity(target, current_identity)
+    adoption = target.value["compose"].get("adoption")
+    if adoption is None:
+        raise RuntimeError("legacy runtime has no candidate Compose contract")
+    candidate = adoption["candidate"]
+    identity = {
+        "project": target.project,
+        "working_directory": candidate["working_directory"],
+        "environment_file": candidate["environment_file"],
+        "compose_files": list(candidate["compose_files"]),
+        "profiles": target.value["compose"]["profiles"],
+        "anchor_service": anchor,
+    }
+    if runner.run(["test", "-d", identity["working_directory"]], check=False).returncode:
+        raise RuntimeError("canonical Compose working directory is missing")
+    paths = [
+        identity["working_directory"],
+        *identity["compose_files"],
+        identity["environment_file"],
+    ]
+    for path in paths:
+        if path != identity["working_directory"] and runner.run(
+            ["test", "-f", path], check=False,
+        ).returncode:
+            raise RuntimeError(f"canonical Compose identity file is missing: {path}")
+        resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+        if resolved != path:
+            raise RuntimeError(f"canonical Compose identity path is not direct: {path}")
+    services = set(
+        runner.run(compose_command(identity, ["config", "--services"])).stdout.splitlines(),
+    )
+    legacy_anchor = adoption["legacy_anchor_service"]
+    expected = set(target.value["services"].values())
+    if not expected.issubset(services) or legacy_anchor in services:
+        raise RuntimeError("canonical Compose service identity differs")
+    return identity
+
+
+def _activate_generation(
+    target,
+    runner,
+    current_identity: dict,
+    generation_identity: dict,
+) -> None:
+    """Replace the current cohort while retaining its exact rollback identity."""
+    try:
+        runner.run(
+            compose_command(
+                current_identity,
+                ["stop", "--timeout", "60", *_compose_services(target, current_identity)],
+            ),
+        )
+        runner.run(
+            compose_command(generation_identity, ["up", "--detach", "--wait"]),
+        )
+    except Exception as error:
+        anchor = target.value["compose"]["anchor_service"]
+        cleanup_error = None
+        try:
+            if current_identity.get("anchor_service", anchor) != anchor:
+                candidates = runner.run(
+                    [
+                        "docker", "ps", "-a",
+                        "--filter", f"label=com.docker.compose.project={target.project}",
+                        "--filter", f"label=com.docker.compose.service={anchor}",
+                        "--format", "{{.ID}}",
+                    ],
+                ).stdout.splitlines()
+                for container in candidates:
+                    labels = json.loads(
+                        runner.run(
+                            [
+                                "docker", "inspect", container,
+                                "--format", "{{json .Config.Labels}}",
+                            ],
+                        ).stdout,
+                    )
+                    if (
+                        labels.get("com.docker.compose.project") != target.project
+                        or labels.get("com.docker.compose.service") != anchor
+                    ):
+                        raise RuntimeError("failed candidate anchor ownership differs")
+                    runner.run(["docker", "rm", "--force", container])
+        except Exception as cleanup:
+            cleanup_error = cleanup
+        _rollback_after_failure(runner, current_identity, error)
+        if cleanup_error is not None:
+            raise RuntimeError(
+                f"activation failed ({error}); legacy rollback completed but candidate cleanup failed "
+                f"({cleanup_error})",
+            ) from error
+        raise
+
+
 def _active_generation_identity(target, runner, current: dict) -> dict:
     """Resolve the recorded active generation even when the anchor is still legacy."""
     active = current["active_state"]
@@ -1865,6 +1997,18 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     for path in required:
         if runner.run(["test", "-f", path], check=False).returncode:
             raise RuntimeError(f"rollback generation file is missing: {path}")
+    adoption = target.value["compose"].get("adoption")
+    if adoption is not None:
+        try:
+            previous_release = json.loads(runner.run(["cat", release_manifest]).stdout)
+        except json.JSONDecodeError as error:
+            raise RuntimeError("rollback release manifest is invalid") from error
+        if previous_release.get("schema") != "usl-release/v3":
+            raise RuntimeError("automatic rollback to the preserved legacy v2 topology is disabled")
+        try:
+            validate_release(previous_release)
+        except ReleaseManifestError as error:
+            raise RuntimeError("rollback release manifest is invalid") from error
     state = _active_generation_state(
         target,
         generation,
@@ -2161,7 +2305,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     if len(generation) > 32 or not generation.startswith("g"):
         raise RuntimeError("generation name is invalid")
     identity = current["compose"]
-    images = _runtime_images(target_runner, identity)
+    candidate_identity = _candidate_compose_identity(target, target_runner, identity)
+    images = _runtime_images(target_runner, candidate_identity)
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "image-preparation", "started")
     capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
@@ -2291,19 +2436,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             service_names=target.value["services"],
         ),
     )
-    generated_prefix = target.value["state_directory"] + "/generations/"
-    compose_files = [
-        path
-        for path in identity["compose_files"]
-        if not (
-            path.startswith(generated_prefix)
-            and path.endswith(("/compose.generation.json", "/compose.resources.json"))
-        )
-    ]
+    compose_files = list(candidate_identity["compose_files"])
     if resource_path is not None:
         compose_files.append(resource_path)
     compose_files.append(overlay)
-    generation_identity = {**identity, "compose_files": compose_files}
+    generation_identity = {
+        **candidate_identity,
+        "anchor_service": target.value["compose"]["anchor_service"],
+        "compose_files": compose_files,
+    }
     previous = {
         "generation": current["generation"],
         "volumes": {role: item["name"] for role, item in current["volumes"].items()},
@@ -2313,20 +2454,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     }
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "activation", "started")
-    try:
-        # A stable ingress gateway is intentionally outside this service
-        # perimeter. It must keep serving the maintenance response while the
-        # stateful cohort is replaced.
-        cohort_services = sorted(set(target.value["services"].values()))
-        target_runner.run(
-            compose_command(identity, ["stop", "--timeout", "60", *cohort_services]),
-        )
-        target_runner.run(
-            compose_command(generation_identity, ["up", "--detach", "--wait"]),
-        )
-    except Exception as error:
-        _rollback_after_failure(target_runner, identity, error)
-        raise
+    # A stable ingress gateway is intentionally outside this service
+    # perimeter. It must keep serving the maintenance response while the
+    # stateful cohort is replaced.
+    _activate_generation(target, target_runner, identity, generation_identity)
     _record_event(
         target,
         target_runner,

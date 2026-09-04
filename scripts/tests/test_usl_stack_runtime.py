@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import subprocess
 import unittest
@@ -15,6 +16,7 @@ from operations.runtime import (
     validate_secret_text,
 )
 from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
+from scripts.tests.test_release_manifest import manifest as v3_release_manifest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -89,6 +91,29 @@ def active_generation(target) -> dict:
     }
 
 
+def release_manifest(schema: str) -> dict:
+    value = copy.deepcopy(v3_release_manifest())
+    if schema == "usl-release/v3":
+        return value
+    for component in value["components"].values():
+        component.pop("attestations")
+    return {
+        "schema": "usl-release/v2",
+        "source": {
+            "repository": value["source"]["repository"],
+            "commit": value["source"]["commit"],
+        },
+        "components": value["components"],
+        "mcp": {
+            key: value["mcp"][key]
+            for key in ("repository", "ref", "commit", "image", "compatibility_sha256")
+        },
+        "renderer": value["renderer"],
+        "ollama": {"image": "ollama/ollama@sha256:" + "e" * 64, **value["ollama"]},
+        "build": value["build"],
+    }
+
+
 class ComposeAnchorRunner(FakeRunner):
     def __init__(
         self,
@@ -96,16 +121,27 @@ class ComposeAnchorRunner(FakeRunner):
         services: dict[str, list[str]],
         *,
         active_state: dict | None = None,
+        release_schema: str = "usl-release/v2",
+        release_payload: dict | None = None,
+        healthy: bool = True,
         label_overrides: dict[str, dict[str, str]] | None = None,
     ) -> None:
         super().__init__(target)
         self.services = services
         self.active_state = active_state
+        self.release_schema = release_schema
+        self.release_payload = release_payload
+        self.healthy = healthy
         self.label_overrides = label_overrides or {}
 
     def run(self, command: list[str], *, check: bool = True):
         self.commands.append(command)
         if command[:1] == ["cat"]:
+            if self.active_state is not None and command[1] == self.active_state["release_manifest"]:
+                return self.completed(
+                    command,
+                    json.dumps(self.release_payload or release_manifest(self.release_schema)),
+                )
             if self.active_state is None:
                 return subprocess.CompletedProcess(command, 1, "", "missing")
             return self.completed(command, json.dumps(self.active_state))
@@ -118,6 +154,14 @@ class ComposeAnchorRunner(FakeRunner):
             output = "".join(f"{identifier}\n" for identifier in self.services.get(service, []))
             return self.completed(command, output)
         if command[:2] == ["docker", "inspect"]:
+            if command[-1] == "{{json .State}}":
+                return self.completed(
+                    command,
+                    json.dumps({
+                        "Running": self.healthy,
+                        "Health": {"Status": "healthy" if self.healthy else "unhealthy"},
+                    }),
+                )
             identifier = command[2]
             service = next(
                 name for name, identifiers in self.services.items()
@@ -132,6 +176,15 @@ class ComposeAnchorRunner(FakeRunner):
             }
             labels.update(self.label_overrides.get(identifier, {}))
             return self.completed(command, json.dumps(labels))
+        if command[:2] in (["test", "-f"], ["test", "-d"]):
+            return self.completed(command, "")
+        if command[:2] == ["readlink", "-f"]:
+            return self.completed(command, command[-1] + "\n")
+        if "compose" in command and command[-2:] == ["config", "--services"]:
+            services = set(self.target.value["services"].values())
+            services.discard(self.target.value["compose"]["anchor_service"])
+            services.add("odoo")
+            return self.completed(command, "".join(f"{service}\n" for service in sorted(services)))
         return super().run(command, check=check)
 
 
@@ -257,11 +310,16 @@ class RuntimeContractTests(unittest.TestCase):
 
     def test_staging_first_adoption_accepts_only_one_legacy_anchor(self) -> None:
         target = load_target("staging", HOST_TARGETS)
-        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]})
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
 
         identity = compose_identity(target, runner)
 
         self.assertEqual(identity["container_id"], "legacy-id")
+        self.assertEqual(identity["anchor_service"], "odoo")
 
     def test_staging_accepts_only_one_canonical_anchor(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -270,27 +328,87 @@ class RuntimeContractTests(unittest.TestCase):
         identity = compose_identity(target, runner)
 
         self.assertEqual(identity["container_id"], "canonical-id")
+        self.assertEqual(identity["anchor_service"], "odoo-staging")
 
     def test_staging_rejects_canonical_and_legacy_anchors_together(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         runner = ComposeAnchorRunner(
             target,
             {"odoo-staging": ["canonical-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
         )
 
         with self.assertRaisesRegex(RuntimeError, "both canonical and legacy anchors"):
             compose_identity(target, runner)
 
-    def test_staging_rejects_legacy_anchor_after_activation(self) -> None:
+    def test_staging_rejects_legacy_anchor_without_active_v2_release(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         runner = ComposeAnchorRunner(
             target,
             {"odoo": ["legacy-id"]},
             active_state=active_generation(target),
+            release_schema="usl-release/v3",
         )
 
-        with self.assertRaisesRegex(RuntimeError, "expected one.*odoo-staging"):
+        with self.assertRaisesRegex(RuntimeError, "not an active v2 release"):
             compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_without_active_state(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]})
+
+        with self.assertRaisesRegex(RuntimeError, "not an active v2 release"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_with_incomplete_release_manifest(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            release_payload={"schema": "usl-release/v2"},
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "active release manifest is invalid"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_bound_to_another_generation_manifest(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        state = active_generation(target)
+        state["release_manifest"] = (
+            target.value["state_directory"]
+            + "/generations/g20260901-stale/usl-release.json"
+        )
+        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]}, active_state=state)
+
+        with self.assertRaisesRegex(RuntimeError, "does not match its generation"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_unhealthy_legacy_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            healthy=False,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "not running and healthy"):
+            compose_identity(target, runner)
+
+    def test_staging_prefers_canonical_anchor_after_v3_activation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["canonical-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            release_schema="usl-release/v3",
+        )
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "canonical-id")
+        self.assertEqual(identity["anchor_service"], "odoo-staging")
 
     def test_staging_rejects_foreign_or_wrong_legacy_labels(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -302,6 +420,7 @@ class RuntimeContractTests(unittest.TestCase):
                 runner = ComposeAnchorRunner(
                     target,
                     {"odoo": ["legacy-id"]},
+                    active_state=active_generation(target),
                     label_overrides={"legacy-id": labels},
                 )
                 with self.assertRaisesRegex(RuntimeError, message):
