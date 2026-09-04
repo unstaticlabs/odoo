@@ -131953,7 +131953,7 @@
         "rpc:ir.ui.menu.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:ir.ui.menu.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:ir.ui.menu.load_menus": "290fe96c3c094f39fb0fc83da72feea2126e5a0d8d791fcc4754b29d1b941d8a",
-        "rpc:ir.ui.menu.load_web_menus": "a81f62d2ac61d47722c7d317a3a59ddf4619b11d8f3baa17cdcd57d5a90185fb",
+        "rpc:ir.ui.menu.load_web_menus": "dc8ee0c71dc17678135f8da3fa4d7c36e5d61f9cea062be6761b928987d2e1a4",
         "rpc:ir.ui.menu.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:ir.ui.menu.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:ir.ui.menu.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
@@ -186321,6 +186321,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "6f214d01f46a695ab53ead32b0c40ff4d430eba54ec766036f9a119e486f6d62",
+  "qualified_policy_digest": "b306ca81675eb020cf757bce8c507d36362fbd99dcd387306d1ca5828af04234",
   "schema": "usl-action-risk-policy-v1"
 }
