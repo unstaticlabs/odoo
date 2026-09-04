@@ -144,6 +144,13 @@ as read-only admission evidence. Their live staging, recovery, and rollback
 drills remain activation gates. Production admission is read-only; mutation
 journeys belong in CI and staging.
 
+Candidate health is measured through target-host loopback ports while the
+stable gateway still serves maintenance. Odoo HTTP and websocket probes use
+their distinct host ports; Paperless and MCP use their private host bindings.
+The fixed controller therefore runs with host networking and must not use a
+public route as pre-reopen evidence. Public HTTPS and websocket checks are a
+separate post-reopen control-plane gate.
+
 One operation lock is held per exact target, and a second host-wide lock
 serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence
 and support bounded resume. Interrupted partial capture workspaces are safely

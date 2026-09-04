@@ -9,6 +9,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
+from urllib.parse import urlsplit
 
 from operations.release_manifest import ReleaseManifestError, validate as validate_release
 
@@ -138,6 +139,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "paths",
             "external_networks",
             "endpoints",
+            "admission_endpoints",
             "ingress",
             "ollama",
             "backup",
@@ -323,11 +325,31 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         for key, value in root["external_networks"].items()
     ):
         raise RuntimeError("external_networks must map roles to names")
-    if not isinstance(root["endpoints"], dict) or not all(
-        isinstance(key, str) and isinstance(value, str) and value.startswith(("http://", "https://"))
-        for key, value in root["endpoints"].items()
+    endpoint_fields = {"odoo", "paperless", "mcp"}
+    if (
+        not isinstance(root["endpoints"], dict)
+        or set(root["endpoints"]) != endpoint_fields
+        or not all(
+            isinstance(value, str) and value.startswith(("http://", "https://"))
+            for value in root["endpoints"].values()
+        )
     ):
-        raise RuntimeError("endpoints must contain HTTP URLs")
+        raise RuntimeError("endpoints must contain the public HTTP URLs")
+    admission_fields = {*endpoint_fields, "odoo_websocket"}
+    if (
+        not isinstance(root["admission_endpoints"], dict)
+        or set(root["admission_endpoints"]) != admission_fields
+        or not all(
+            isinstance(value, str) and value.startswith(("http://", "https://"))
+            for value in root["admission_endpoints"].values()
+        )
+    ):
+        raise RuntimeError("admission_endpoints must contain the internal HTTP URLs")
+    if root["environment"] in {"production", "staging"} and any(
+        urlsplit(value).hostname != "127.0.0.1"
+        for value in root["admission_endpoints"].values()
+    ):
+        raise RuntimeError("remote admission endpoints must use target-host loopback")
 
     ingress = _exact(
         root["ingress"],
