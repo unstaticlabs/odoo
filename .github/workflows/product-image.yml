@@ -308,7 +308,7 @@ jobs:
         with:
           subject-name: ${{ steps.renderer.outputs.subject_name }}
           subject-digest: ${{ steps.renderer.outputs.subject_digest }}
-          push-to-registry: true
+          create-storage-record: true
       - name: Install ORAS
         uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
       - name: Create release manifest from published components
