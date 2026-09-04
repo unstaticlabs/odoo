@@ -1,4 +1,4 @@
-from odoo import fields, models, tools
+from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
 
 
@@ -124,6 +124,11 @@ class RebuildAccountOverview(models.Model):
         ],
         readonly=True,
     )
+    pending_declaration_ids = fields.Many2many(
+        "rebuild.account.declaration",
+        string="Next Pending Declarations",
+        compute="_compute_pending_declaration_ids",
+    )
     overdue_declaration_count = fields.Integer(readonly=True)
     upcoming_declaration_count = fields.Integer(
         string="Declarations Due in 45 Days",
@@ -173,6 +178,25 @@ class RebuildAccountOverview(models.Model):
         ],
         readonly=True,
     )
+
+    @api.depends("company_id")
+    def _compute_pending_declaration_ids(self):
+        """Keep the dashboard list short, ordered and subject to record rules."""
+        Declaration = self.env["rebuild.account.declaration"]
+        for summary in self:
+            summary.pending_declaration_ids = Declaration.search(
+                [
+                    ("company_id", "=", summary.company_id.id),
+                    ("applicability", "!=", "not_applicable"),
+                    (
+                        "status",
+                        "not in",
+                        ["filed", "paid", "archived", "not_applicable"],
+                    ),
+                ],
+                order="deadline_date, id",
+                limit=3,
+            )
 
     def _compute_hygiene_issue_count(self):
         Issue = self.env["rebuild.account.hygiene.issue"]

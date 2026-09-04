@@ -31,6 +31,7 @@ from . import report_export_pdf
 from . import french_tax_report
 from . import accounting_overview
 from . import accounting_overview_actions
+from . import accounting_dashboard
 from . import analytic_pivot_export
 from . import bank_statement_hygiene
 from . import cash_position

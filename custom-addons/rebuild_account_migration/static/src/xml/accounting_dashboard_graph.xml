@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.JournalDashboardGraphField" t-inherit-mode="extension">
+        <xpath expr="//canvas" position="attributes">
+            <attribute name="t-att-role">this.accessibleGraphLabel ? 'img' : undefined</attribute>
+            <attribute name="t-att-aria-label">this.accessibleGraphLabel</attribute>
+            <attribute name="t-att-aria-describedby">this.accessibleGraphLabel ? this.accessibleGraphDescriptionId : undefined</attribute>
+        </xpath>
+        <xpath expr="//canvas" position="after">
+            <ul t-if="this.accessibleMonthlyValues.length"
+                t-att-id="this.accessibleGraphDescriptionId"
+                class="visually-hidden o_usl_journal_monthly_values">
+                <li t-foreach="this.accessibleMonthlyValues"
+                    t-as="point"
+                    t-key="point_index">
+                    <t t-esc="point.label"/> —
+                    <t t-esc="point.formatted_value"/>
+                </li>
+            </ul>
+        </xpath>
+    </t>
+
+</templates>

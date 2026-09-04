@@ -55,6 +55,102 @@
         font-weight: 600;
     }
 
+    .o_usl_pending_declarations {
+        margin: 0.8rem 0 0.55rem;
+
+        h5 {
+            margin-bottom: 0.35rem;
+            color: var(--o-main-text-color, #{$o-main-text-color});
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .o_list_renderer {
+            border-top: 1px solid var(--usl-overview-border);
+        }
+
+        .o_list_table {
+            margin-bottom: 0;
+            font-size: 0.82rem;
+        }
+
+        th,
+        td {
+            padding-block: 0.35rem;
+        }
+
+        .o_usl_pending_declarations_mobile {
+            .o_kanban_renderer {
+                display: block;
+                padding: 0;
+                border-top: 1px solid var(--usl-overview-border);
+                background: transparent;
+            }
+
+            .o_kanban_record {
+                width: 100%;
+                min-height: 4.75rem;
+                margin: 0;
+                padding: 0.65rem 0.15rem;
+                border: 0;
+                border-bottom: 1px solid var(--usl-overview-border);
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            .o_kanban_ghost {
+                display: none;
+            }
+        }
+
+        .o_usl_pending_declaration_mobile_header,
+        .o_usl_pending_declaration_mobile_due {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .o_usl_pending_declaration_mobile_name {
+            margin-top: 0.25rem;
+            color: var(--o-main-text-color, #{$o-main-text-color});
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .o_usl_pending_declaration_mobile_due {
+            margin-top: 0.35rem;
+            color: var(--usl-overview-muted);
+            font-size: 0.78rem;
+
+            label {
+                margin: 0;
+                color: inherit;
+                font-weight: 600;
+
+                &::after {
+                    content: attr(string);
+                }
+
+                sup {
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .o_usl_next_deadline_label {
+        display: block;
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 600;
+
+        sup {
+            display: none;
+        }
+    }
+
     .o_usl_cash_card_header {
         display: flex;
         align-items: center;
@@ -456,5 +552,28 @@
         padding-left: 0;
         font-weight: 600;
         text-decoration: none;
+    }
+}
+
+.o_form_view .o_usl_overview_shortcuts {
+    @media (min-width: 768px) {
+        .oe_stat_button {
+            min-width: 0;
+            padding-inline: 0.65rem;
+        }
+    }
+}
+
+.o_account_kanban .o_usl_journal_trend_caption {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+    color: var(--o-main-text-color, #374151);
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    .fa {
+        color: var(--o-main-color-muted, #6b7280);
     }
 }
