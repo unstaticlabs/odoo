@@ -1132,6 +1132,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
             _record_event(target, runner, run_id, "backup", "operation", "started")
             captured = None
             freeze_seconds = 0.0
+            writers_stopped_at = None
+            writers_resumed_at = None
             if not arguments.resume:
                 identity = compose_identity(target, runner)
                 writer_services = [
@@ -1168,6 +1170,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     )
 
                 freeze_started = time.monotonic()
+                writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 _record_event(target, runner, run_id, "backup", "capture", "started")
                 captured = with_writers_paused(
                     runner,
@@ -1177,6 +1180,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     resume_after_success=not leave_quiesced,
                 )
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
+                if not leave_quiesced:
+                    writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 _record_event(
                     target,
                     runner,
@@ -1251,6 +1256,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "runtime_images": runtime_images,
                 "writers_quiesced": leave_quiesced,
                 "writer_interval_complete": not leave_quiesced and not arguments.resume,
+                "writers_stopped_at": writers_stopped_at,
+                "writers_resumed_at": writers_resumed_at,
                 "status": "qualified",
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))

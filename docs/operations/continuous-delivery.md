@@ -179,6 +179,11 @@ Any failure before `release activate` rolls back while public ingress remains
 closed. Once activation begins, recovery is forward-only because an external
 worker may have observed the new state.
 
+Backup evidence records the wall-clock instants immediately before writers are
+stopped and after they are healthy again. A capture that deliberately leaves
+writers stopped has no synthetic completion time or SLA result; the release
+controller must close that interval only when the admitted generation starts.
+
 Admission compares captured before/after controls rather than merely checking
 that tables are non-empty. Controls are deliberately separated into three
 classes:
