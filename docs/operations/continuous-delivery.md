@@ -334,6 +334,23 @@ The fixed controller therefore runs with host networking and must not use a
 public route as pre-reopen evidence. Public HTTPS and websocket checks are a
 separate post-reopen control-plane gate.
 
+The gateway is not part of an Odoo release generation. Activation, candidate
+rollback, canonical rollback, and `runtime start` name the complete application
+cohort explicitly and use dependency-free Compose starts, so none of those
+paths can reconcile or recreate the gateway. First staging adoption is the only
+release operation allowed to create it. Before activation, the controller
+compares the canonical and generated gateway as normalized rendered services.
+It replaces the checkout-dependent `gateway.conf` bind source with the file's
+SHA-256 content identity, so different immutable checkout paths do not create
+false drift. The controller also copies that exact content to a persistent,
+content-addressed path and appends an override for new gateway creation. The
+running gateway may still name a deleted launcher snapshot, so admission
+strictly validates that recorded path shape without reopening it. It requires a
+valid Compose hash label and compares the container's image, command, resource
+and security settings, mounts, live configuration digest, networks, aliases,
+and health with the canonical contract. Missing, malformed, or unequal
+evidence fails before any cohort service stops.
+
 The first v3 staging release has one additional, automated ingress-adoption
 step. After the controller creates the maintenance marker and before it pauses
 writers, it runs `scripts/usl-stack --target staging runtime adopt-gateway

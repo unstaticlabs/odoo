@@ -216,16 +216,130 @@ def _gateway_container(target, runner) -> str | None:
     return containers[0] if containers else None
 
 
-def _validate_gateway_container(target, runner, container: str, identity: dict) -> None:
+def _gateway_service_hash(runner, identity: dict) -> str:
+    """Return Compose's exact hash for one rendered gateway identity."""
+    lines = runner.run(
+        compose_command(identity, ["config", "--hash", "gateway"]),
+    ).stdout.splitlines()
+    fields = lines[0].split() if len(lines) == 1 else []
+    if (
+        len(fields) != 2
+        or fields[0] != "gateway"
+        or not re.fullmatch(r"[0-9a-f]{64}", fields[1])
+    ):
+        raise RuntimeError("gateway Compose hash evidence is invalid")
+    return fields[1]
+
+
+def _gateway_semantic_contract(target, runner, identity: dict) -> tuple[str, str, str, dict]:
+    """Hash the rendered gateway while binding its config mount by content."""
+    raw = runner.run(
+        compose_command(identity, ["config", "--format", "json"]),
+    ).stdout
     try:
-        labels = json.loads(runner.run(
-            ["docker", "inspect", container, "--format", "{{json .Config.Labels}}"],
-        ).stdout)
-        state = json.loads(runner.run(
-            ["docker", "inspect", container, "--format", "{{json .State}}"],
-        ).stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError("staging gateway container evidence is invalid") from error
+        rendered = json.loads(raw)
+        gateway = rendered["services"]["gateway"]
+        volumes = gateway["volumes"]
+    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        raise RuntimeError("gateway rendered configuration is invalid") from error
+    if not isinstance(gateway, dict) or not isinstance(volumes, list):
+        raise RuntimeError("gateway rendered configuration is invalid")
+    config_mounts = [
+        volume for volume in volumes
+        if isinstance(volume, dict)
+        and volume.get("target") == "/etc/nginx/usl-gateway.conf"
+    ]
+    if len(config_mounts) != 1:
+        raise RuntimeError("gateway configuration mount identity is ambiguous")
+    config_mount = config_mounts[0]
+    source = config_mount.get("source")
+    if config_mount.get("type") != "bind" or not isinstance(source, str) or not source.startswith("/"):
+        raise RuntimeError("gateway configuration mount is invalid")
+    digest_fields = runner.run(["sha256sum", "--", source]).stdout.split()
+    if len(digest_fields) < 1 or not re.fullmatch(r"[0-9a-f]{64}", digest_fields[0]):
+        raise RuntimeError("gateway configuration content digest is invalid")
+    normalized = copy.deepcopy(gateway)
+    normalized_mount = next(
+        volume for volume in normalized["volumes"]
+        if volume.get("target") == "/etc/nginx/usl-gateway.conf"
+    )
+    normalized_mount["source"] = f"sha256:{digest_fields[0]}"
+    semantic_hash = hashlib.sha256(json.dumps(
+        normalized, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return semantic_hash, digest_fields[0], source, gateway
+
+
+def _gateway_semantic_hash(target, runner, identity: dict) -> str:
+    return _gateway_semantic_contract(target, runner, identity)[0]
+
+
+def _compose_duration_nanoseconds(value: object) -> int:
+    if value in (None, 0):
+        return 0
+    if not isinstance(value, str):
+        raise RuntimeError("gateway healthcheck duration is invalid")
+    match = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)(ns|us|ms|s|m|h)", value)
+    if not match:
+        raise RuntimeError("gateway healthcheck duration is invalid")
+    scale = {
+        "ns": 1,
+        "us": 1_000,
+        "ms": 1_000_000,
+        "s": 1_000_000_000,
+        "m": 60_000_000_000,
+        "h": 3_600_000_000_000,
+    }
+    return int(float(match.group(1)) * scale[match.group(2)])
+
+
+def _with_stable_gateway_config(target, runner, identity: dict) -> dict:
+    """Pin staging gateway configuration to a persistent content identity."""
+    if target.value["environment"] != "staging":
+        return identity
+    semantic_hash, config_digest, source, _gateway = _gateway_semantic_contract(
+        target, runner, identity,
+    )
+    content = runner.run(["cat", source]).stdout
+    if hashlib.sha256(content.encode()).hexdigest() != config_digest:
+        raise RuntimeError("gateway configuration changed while it was captured")
+    gateway_root = f"{Path(target.value['state_directory']).parents[1]}/gateway/staging"
+    config_root = f"{gateway_root}/configs/{config_digest}"
+    config_path = f"{config_root}/gateway.conf"
+    overlay_path = f"{config_root}/compose.gateway.json"
+    runner.run(["install", "-d", "-m", "0755", config_root])
+    _write_remote(target, runner, config_path, content, "0444")
+    overlay = {
+        "services": {
+            "gateway": {
+                "volumes": [{
+                    "type": "bind",
+                    "source": config_path,
+                    "target": "/etc/nginx/usl-gateway.conf",
+                    "read_only": True,
+                }],
+            },
+        },
+    }
+    _write_remote(
+        target, runner, overlay_path,
+        json.dumps(overlay, indent=2, sort_keys=True) + "\n", "0444",
+    )
+    stable = {**identity, "compose_files": [*identity["compose_files"], overlay_path]}
+    stable_hash, stable_digest, stable_source, _stable_gateway = _gateway_semantic_contract(
+        target, runner, stable,
+    )
+    if (
+        stable_hash != semantic_hash
+        or stable_digest != config_digest
+        or stable_source != config_path
+    ):
+        raise RuntimeError("content-addressed gateway configuration differs")
+    return stable
+
+
+def _gateway_labeled_identity(target, runner, labels: dict, canonical_identity: dict) -> dict:
+    """Recover the immutable Compose identity that created the running gateway."""
     config_files = [
         item for item in labels.get("com.docker.compose.project.config_files", "").split(",")
         if item
@@ -234,6 +348,167 @@ def _validate_gateway_container(target, runner, container: str, identity: dict) 
         item for item in labels.get("com.docker.compose.project.environment_file", "").split(",")
         if item
     ]
+    working_directory = labels.get("com.docker.compose.project.working_dir")
+    state_prefix = target.value["state_directory"].rstrip("/") + "/"
+    canonical_working = canonical_identity["working_directory"]
+    relative_working = target.value["compose"]["canonical"]["working_directory"]
+    working_suffix = "/" + relative_working
+    canonical_prefix = canonical_working.removesuffix(working_suffix)
+    running_prefix = (
+        working_directory.removesuffix(working_suffix)
+        if isinstance(working_directory, str) and working_directory.endswith(working_suffix)
+        else ""
+    )
+    snapshot_prefix = re.compile(
+        r"/var/lib/usl-odoo/gitops-runs/[0-9a-f]{40}\.[A-Za-z0-9._-]+",
+    )
+    canonical_static = {
+        path for path in canonical_identity["compose_files"]
+        if path.startswith(canonical_working + "/")
+    }
+    relative_static = {
+        path.removeprefix(canonical_working + "/") for path in canonical_static
+    }
+    running_static = {
+        f"{working_directory}/{path}" for path in relative_static
+    }
+    gateway_root = f"{Path(target.value['state_directory']).parents[1]}/gateway/staging"
+    generation_pattern = GENERATION_NAME.pattern.removesuffix(r"\Z")
+    dynamic_patterns = (
+        re.compile(re.escape(state_prefix) + r"generations/" + generation_pattern + r"/compose\.(?:generation|resources)\.json"),
+        re.compile(re.escape(state_prefix) + r"authorities/mcp-[0-9a-f]{64}\.json"),
+        re.compile(re.escape(gateway_root) + r"/configs/[0-9a-f]{64}/compose\.gateway\.json"),
+    )
+    if (
+        not config_files
+        or len(config_files) != len(set(config_files))
+        or not all(path.startswith("/") for path in config_files)
+        or not relative_static
+        or not running_static.issubset(config_files)
+        or any(
+            path not in running_static
+            and not any(pattern.fullmatch(path) for pattern in dynamic_patterns)
+            for path in config_files
+        )
+        or env_files != canonical_identity["environment_file"].split(",")
+        or working_directory != canonical_working
+        and running_prefix != canonical_prefix
+        and not snapshot_prefix.fullmatch(running_prefix)
+    ):
+        raise RuntimeError("running gateway Compose identity is invalid")
+    return {
+        **canonical_identity,
+        "working_directory": working_directory,
+        "environment_file": ",".join(env_files),
+        "compose_files": config_files,
+    }
+
+
+def _validate_gateway_container(
+    target,
+    runner,
+    container: str,
+    canonical_identity: dict,
+    generation_identity: dict | None = None,
+) -> None:
+    try:
+        inspected = json.loads(runner.run(
+            ["docker", "inspect", container, "--format", "{{json .}}"],
+        ).stdout)
+        labels = inspected["Config"]["Labels"]
+        state = inspected["State"]
+        host = inspected["HostConfig"]
+        mounts = inspected["Mounts"]
+    except json.JSONDecodeError as error:
+        raise RuntimeError("staging gateway container evidence is invalid") from error
+    except (KeyError, TypeError) as error:
+        raise RuntimeError("staging gateway container evidence is invalid") from error
+    _gateway_labeled_identity(
+        target, runner, labels, canonical_identity,
+    )
+    running_hash = labels.get("com.docker.compose.config-hash", "")
+    if not re.fullmatch(r"[0-9a-f]{64}", running_hash):
+        raise RuntimeError("running gateway Compose hash is invalid")
+    semantic_hash, config_digest, _canonical_source, canonical_gateway = _gateway_semantic_contract(
+        target, runner, canonical_identity,
+    )
+    canonical_hash = _gateway_service_hash(runner, canonical_identity)
+    if generation_identity is not None:
+        generation_contract = _gateway_semantic_contract(
+            target, runner, generation_identity,
+        )
+        if generation_contract[0] != semantic_hash:
+            raise RuntimeError("generation gateway semantic configuration differs")
+        if _gateway_service_hash(runner, generation_identity) != canonical_hash:
+            raise RuntimeError("generation gateway Compose hash differs")
+    runtime_digest_fields = runner.run([
+        "docker", "exec", container, "sha256sum", "--",
+        "/etc/nginx/usl-gateway.conf",
+    ]).stdout.split()
+    if (
+        len(runtime_digest_fields) < 1
+        or not re.fullmatch(r"[0-9a-f]{64}", runtime_digest_fields[0])
+        or runtime_digest_fields[0] != config_digest
+    ):
+        raise RuntimeError("running gateway configuration content differs")
+    config_mounts = [
+        mount for mount in mounts
+        if isinstance(mount, dict) and mount.get("Destination") == "/etc/nginx/usl-gateway.conf"
+    ]
+    marker_mounts = [
+        mount for mount in mounts
+        if isinstance(mount, dict) and mount.get("Destination") == "/run/usl-gateway"
+    ]
+    expected_marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/staging"
+    expected_logging = canonical_gateway.get("logging") or {}
+    expected_health = canonical_gateway.get("healthcheck") or {}
+    actual_health = inspected["Config"].get("Healthcheck") or {}
+    health_matches = (
+        actual_health.get("Test") == expected_health.get("test")
+        and actual_health.get("Interval", 0)
+        == _compose_duration_nanoseconds(expected_health.get("interval"))
+        and actual_health.get("Timeout", 0)
+        == _compose_duration_nanoseconds(expected_health.get("timeout"))
+        and actual_health.get("StartPeriod", 0)
+        == _compose_duration_nanoseconds(expected_health.get("start_period"))
+        and actual_health.get("Retries", 0) == expected_health.get("retries", 0)
+    )
+    expected_tmpfs = {}
+    for item in canonical_gateway.get("tmpfs") or []:
+        if not isinstance(item, str) or ":" not in item:
+            raise RuntimeError("canonical gateway tmpfs configuration is invalid")
+        destination, options = item.split(":", 1)
+        expected_tmpfs[destination] = options
+    if (
+        inspected["Config"].get("Image") != canonical_gateway.get("image")
+        or inspected["Config"].get("Cmd") != canonical_gateway.get("command")
+        or canonical_gateway.get("entrypoint") is not None
+        and inspected["Config"].get("Entrypoint") != canonical_gateway["entrypoint"]
+        or not health_matches
+        or host.get("ReadonlyRootfs") is not True
+        or (host.get("RestartPolicy") or {}).get("Name") != "unless-stopped"
+        or host.get("NanoCpus") != int(float(canonical_gateway.get("cpus", 0)) * 1_000_000_000)
+        or host.get("CpuShares") != canonical_gateway.get("cpu_shares", 0)
+        or host.get("Memory") != int(canonical_gateway.get("mem_limit", 0))
+        or host.get("MemoryReservation") != int(canonical_gateway.get("mem_reservation", 0))
+        or host.get("MemorySwap") != int(canonical_gateway.get("memswap_limit", 0))
+        or host.get("MemorySwappiness") != int(canonical_gateway.get("mem_swappiness", 0))
+        or host.get("OomScoreAdj") != canonical_gateway.get("oom_score_adj", 0)
+        or host.get("PidsLimit") != canonical_gateway.get("pids_limit")
+        or sorted(host.get("SecurityOpt") or [])
+        != sorted(canonical_gateway.get("security_opt") or [])
+        or (host.get("LogConfig") or {}).get("Type") != expected_logging.get("driver")
+        or (host.get("LogConfig") or {}).get("Config") != expected_logging.get("options")
+        or (host.get("Tmpfs") or {}) != expected_tmpfs
+        or len(config_mounts) != 1
+        or config_mounts[0].get("Type") != "bind"
+        or config_mounts[0].get("RW") is not False
+        or len(marker_mounts) != 1
+        or marker_mounts[0].get("Type") != "bind"
+        or marker_mounts[0].get("Source") != expected_marker
+        or marker_mounts[0].get("RW") is not False
+    ):
+        raise RuntimeError("running gateway semantic configuration differs")
     networks = _container_networks(runner, container)
     ingress = target.value["external_networks"]["ingress"]
     default_network = target.value["compose"]["default_network"]
@@ -242,9 +517,6 @@ def _validate_gateway_container(target, runner, container: str, identity: dict) 
     if (
         labels.get("com.docker.compose.project") != target.project
         or labels.get("com.docker.compose.service") != "gateway"
-        or labels.get("com.docker.compose.project.working_dir") != identity["working_directory"]
-        or config_files != identity["compose_files"]
-        or env_files != [identity["environment_file"]]
         or set(networks) != {ingress, default_network}
         or "odoo-staging" not in ingress_aliases
         or "gateway" not in backend_aliases
@@ -252,6 +524,20 @@ def _validate_gateway_container(target, runner, container: str, identity: dict) 
         or state.get("Health", {}).get("Status") != "healthy"
     ):
         raise RuntimeError("staging gateway ownership or health differs")
+
+
+def _validate_stable_gateway_generation(
+    target, runner, canonical_identity: dict, generation_identity: dict,
+) -> None:
+    """Prove that a release cannot create or reconfigure the staging gateway."""
+    if target.value["environment"] != "staging":
+        return
+    gateway = _gateway_container(target, runner)
+    if not gateway:
+        raise RuntimeError("staging release requires the stable gateway")
+    _validate_gateway_container(
+        target, runner, gateway, canonical_identity, generation_identity,
+    )
 
 
 def _probe_staging_gateway_maintenance(target, runner) -> dict:
@@ -531,9 +817,14 @@ def runtime_command(arguments: argparse.Namespace) -> int:
         identity = current["compose"]
         if arguments.action == "start":
             identity = _active_generation_identity(target, runner, current)
-            runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
+            runner.run(compose_command(
+                identity,
+                ["up", "--detach", "--wait", "--no-deps", *_compose_services(target, identity)],
+            ))
         else:
-            runner.run(compose_command(identity, ["stop"]))
+            runner.run(compose_command(
+                identity, ["stop", *_compose_services(target, identity)],
+            ))
         result = inspect_runtime(target, runner)
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
@@ -2134,7 +2425,10 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     )
     adoption = target.value["compose"].get("adoption")
     if adoption is None or identity.get("anchor_service") != adoption["legacy_anchor_service"]:
-        runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
+        runner.run(compose_command(
+            identity,
+            ["up", "--detach", "--wait", "--no-deps", *_compose_services(target, identity)],
+        ))
         return
 
     gateway = _gateway_container(target, runner)
@@ -4222,7 +4516,7 @@ def _candidate_compose_identity(target, runner, current_identity: dict) -> dict:
         )
         if not set(target.value["services"].values()).issubset(services):
             raise RuntimeError("exact GitOps Compose service identity differs")
-        return identity
+        return _with_stable_gateway_config(target, runner, identity)
     if current_identity.get("anchor_service", anchor) == anchor:
         return _base_compose_identity(target, current_identity)
     adoption = target.value["compose"].get("adoption")
@@ -4307,6 +4601,7 @@ def _activate_generation(
     target,
     runner,
     current_identity: dict,
+    canonical_identity: dict,
     generation_identity: dict,
 ) -> None:
     """Replace the current cohort while retaining its exact rollback identity."""
@@ -4317,6 +4612,13 @@ def _activate_generation(
     generation_identity = _with_mcp_runtime_authority(
         target, runner, generation_identity, authority,
     )
+    canonical_identity = _with_mcp_runtime_authority(
+        target, runner, canonical_identity, authority,
+    )
+    _validate_stable_gateway_generation(
+        target, runner, canonical_identity, generation_identity,
+    )
+    generation_services = _compose_services(target, generation_identity)
     try:
         runner.run(
             compose_command(
@@ -4325,7 +4627,10 @@ def _activate_generation(
             ),
         )
         runner.run(
-            compose_command(generation_identity, ["up", "--detach", "--wait"]),
+            compose_command(
+                generation_identity,
+                ["up", "--detach", "--wait", "--no-deps", *generation_services],
+            ),
         )
     except Exception as error:
         cleanup_error = None
@@ -4354,7 +4659,10 @@ def _rollback_active_candidate(
 ) -> None:
     """Restore the exact baseline after any pre-boundary candidate failure."""
     runner.run(
-        compose_command(generation_identity, ["stop", "--timeout", "60"]),
+        compose_command(
+            generation_identity,
+            ["stop", "--timeout", "60", *_compose_services(target, generation_identity)],
+        ),
         check=False,
     )
     cleanup_error = None
@@ -5644,7 +5952,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     # A stable ingress gateway is intentionally outside this service
     # perimeter. It must keep serving the maintenance response while the
     # stateful cohort is replaced.
-    _activate_generation(target, target_runner, identity, generation_identity)
+    _activate_generation(
+        target, target_runner, identity, candidate_identity, generation_identity,
+    )
     activation_seconds = round(time.monotonic() - phase_started, 3)
     try:
         _record_event(
@@ -8150,6 +8460,8 @@ def _validated_cleanup_containers(
         selected = generations & candidate_generations
         if not selected:
             continue
+        if labels.get("com.docker.compose.service") == "gateway":
+            raise RuntimeError("cleanup refuses the stable gateway")
         generation = next(iter(selected)) if len(selected) == 1 else None
         expected_overlay = f"{prefix}{generation}{suffix}"
         if (
