@@ -70,6 +70,7 @@ from operations.stack import (
     _staging_abort_neutralization,
     _staging_checkpoint_receipt,
     _staging_reset_intent_receipt,
+    _staging_reset_deferred_receipt,
     _validate_backup_quiescence_receipt,
     _preserve_staging_environment_state,
     _write_source_backup_environment,
@@ -597,7 +598,7 @@ class CohortContractTests(unittest.TestCase):
     def test_quarantine_receipt_binds_attempt_release_and_generation(self) -> None:
         target = load_target("production", TARGETS)
         receipt = _release_boundary_receipt(
-            schema="usl-release-quarantine/v1",
+            schema="usl-release-quarantine/v2",
             status="quarantined",
             target=target,
             attempt="attempt-20260904-a1b2c3d4",
@@ -612,7 +613,7 @@ class CohortContractTests(unittest.TestCase):
 
         validated = _validate_release_boundary_receipt(
             receipt,
-            schema="usl-release-quarantine/v1",
+            schema="usl-release-quarantine/v2",
             status="quarantined",
             target=target,
             attempt="attempt-20260904-a1b2c3d4",
@@ -625,7 +626,7 @@ class CohortContractTests(unittest.TestCase):
     def test_quarantine_receipt_rejects_attempt_replay(self) -> None:
         target = load_target("production", TARGETS)
         receipt = _release_boundary_receipt(
-            schema="usl-release-quarantine/v1",
+            schema="usl-release-quarantine/v2",
             status="quarantined",
             target=target,
             attempt="attempt-20260904-a1b2c3d4",
@@ -646,6 +647,62 @@ class CohortContractTests(unittest.TestCase):
                 target=target,
                 attempt="attempt-20260904-deadbeef",
                 release="a" * 64,
+            )
+
+    def test_legacy_v1_boundary_remains_readable_without_v2_runtime_evidence(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = {
+            "schema": "usl-release-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-legacy01",
+            "release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "glegacy-boundary",
+            "operation_bundle_sha256": "c" * 64,
+            "health_sha256": "d" * 64,
+            "smoke_sha256": "e" * 64,
+            "control_validation_sha256": "f" * 64,
+            "admitted_at": "2026-09-04T12:00:00Z",
+            "status": "admitted",
+        }
+        receipt["sha256"] = __import__("hashlib").sha256(json.dumps(
+            receipt, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        self.assertEqual(
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-admission/v2",
+                status="admitted",
+                target=target,
+                attempt=receipt["attempt"],
+                release=receipt["release"],
+            ),
+            receipt,
+        )
+
+    def test_staging_v2_boundary_requires_runtime_evidence(self) -> None:
+        target = load_target("staging", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-admission/v2",
+            status="admitted",
+            target=target,
+            attempt="attempt-20260904-staging2",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="gstaging-boundary",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
+        )
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-admission/v2",
+                status="admitted",
+                target=target,
+                attempt=receipt["attempt"],
+                release=receipt["release"],
             )
 
     def test_staging_runtime_evidence_is_exact_and_tamper_evident(self) -> None:
@@ -743,7 +800,7 @@ class CohortContractTests(unittest.TestCase):
             generation=generation,
         )
         admission = _release_boundary_receipt(
-            schema="usl-release-admission/v1",
+            schema="usl-release-admission/v2",
             status="admitted",
             target=target,
             attempt=attempt,
@@ -1698,7 +1755,7 @@ class CohortContractTests(unittest.TestCase):
             json.dumps(marker, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
         admission = _release_boundary_receipt(
-            schema="usl-release-admission/v1",
+            schema="usl-release-admission/v2",
             status="admitted",
             target=target,
             attempt=attempt,
@@ -4250,6 +4307,36 @@ class CohortContractTests(unittest.TestCase):
             _staging_checkpoint_receipt(
                 changed, target=target, attempt=value["attempt"], release="a" * 64,
             )
+
+    def test_staging_reset_drift_returns_typed_no_touch_receipt(self) -> None:
+        target = load_target("staging", TARGETS)
+        intent = {
+            "sha256": "a" * 64,
+            "staging_baseline_generation": "gbase",
+            "staging_baseline_release": "b" * 64,
+            "staging_baseline_runtime_sha256": "c" * 64,
+        }
+        receipt = _staging_reset_deferred_receipt(
+            target=target,
+            admission={
+                "attempt": "attempt-20260904-production",
+                "release": "d" * 64,
+            },
+            intent=intent,
+            observed={"generation": "gnewer"},
+            observed_release="e" * 64,
+            observed_runtime_sha256="f" * 64,
+        )
+        self.assertEqual(receipt["schema"], "usl-staging-reset-deferred/v1")
+        self.assertEqual(receipt["status"], "deferred")
+        self.assertEqual(receipt["reason"], "staging-advanced")
+        self.assertEqual(receipt["baseline"]["runtime_sha256"], "c" * 64)
+        self.assertEqual(receipt["observed"]["runtime_sha256"], "f" * 64)
+        self.assertEqual(receipt["sha256"], __import__("hashlib").sha256(json.dumps(
+            {key: value for key, value in receipt.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest())
 
     def test_runtime_baseline_cas_binds_volumes_and_compose(self) -> None:
         runtime = {

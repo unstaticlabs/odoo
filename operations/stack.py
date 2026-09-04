@@ -1561,6 +1561,37 @@ def _staging_reset_intent_receipt(value: object, *, target, admission: dict) -> 
     return value
 
 
+def _staging_reset_deferred_receipt(
+    *, target, admission: dict, intent: dict, observed: dict,
+    observed_release: str, observed_runtime_sha256: str,
+) -> dict:
+    """Describe a no-touch reset deferral after staging advances."""
+    body = {
+        "schema": "usl-staging-reset-deferred/v1",
+        "target": target.name,
+        "production_attempt": admission["attempt"],
+        "production_release": admission["release"],
+        "intent_sha256": intent["sha256"],
+        "baseline": {
+            "generation": intent["staging_baseline_generation"],
+            "release": intent["staging_baseline_release"],
+            "runtime_sha256": intent["staging_baseline_runtime_sha256"],
+        },
+        "observed": {
+            "generation": observed.get("generation"),
+            "release": observed_release,
+            "runtime_sha256": observed_runtime_sha256,
+        },
+        "reason": "staging-advanced",
+        "deferred_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "deferred",
+    }
+    body["sha256"] = hashlib.sha256(json.dumps(
+        body, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return body
+
+
 def _runtime_baseline_sha256(runtime: dict) -> str:
     """Fingerprint every persistent/runtime identity relevant to cutover CAS."""
     compose = runtime.get("compose") or {}
@@ -3427,25 +3458,32 @@ def _validate_release_boundary_receipt(
     release: str,
 ) -> dict:
     timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
-    required = {
+    common = {
         "schema", "target", "attempt", "release", "snapshot", "generation",
         "operation_bundle_sha256",
         "health_sha256", "smoke_sha256", "control_validation_sha256",
-        "runtime_evidence_sha256",
         timestamp_key, "status", "sha256",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    actual_schema = value.get("schema") if isinstance(value, dict) else None
+    expected_kind = schema.rsplit("/", 1)[0]
+    allowed_schemas = {f"{expected_kind}/v1", f"{expected_kind}/v2"}
+    required = common | ({"runtime_evidence_sha256"} if actual_schema == f"{expected_kind}/v2" else set())
+    if (
+        not isinstance(value, dict)
+        or actual_schema not in allowed_schemas
+        or set(value) != required
+    ):
         raise RuntimeError("release boundary receipt fields differ")
     if (
-        value["schema"] != schema
-        or value["status"] != status
+        value["status"] != status
         or value["target"] != target.name
         or value["attempt"] != attempt
         or value["release"] != release
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["operation_bundle_sha256"]))
-        or (
+        or actual_schema == f"{expected_kind}/v2"
+        and (
             not re.fullmatch(r"[0-9a-f]{64}", str(value["runtime_evidence_sha256"]))
             if target.value["environment"] == "staging"
             else value["runtime_evidence_sha256"] is not None
@@ -5321,8 +5359,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 )
             receipt_body = _release_boundary_receipt(
                 schema=(
-                    "usl-release-quarantine/v1"
-                    if production else "usl-release-admission/v1"
+                    "usl-release-quarantine/v2"
+                    if production else "usl-release-admission/v2"
                 ),
                 status="quarantined" if production else "admitted",
                 target=target,
@@ -6570,6 +6608,8 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         attempt=attempt,
         release=release["identity"],
     )
+    if quarantine["schema"].endswith("/v1"):
+        raise RuntimeError("legacy v1 quarantine is audit-only and cannot be activated")
     _require_same_attempt_boundary(
         claim,
         quarantine,
@@ -6712,7 +6752,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
             "control_validation_sha256", "operation_bundle_sha256",
             "runtime_evidence_sha256",
         )},
-        "schema": "usl-release-admission/v1",
+        "schema": "usl-release-admission/v2",
         "health_sha256": hashlib.sha256(
             json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest(),
@@ -7301,6 +7341,10 @@ def release_command(arguments: argparse.Namespace) -> int:
                 attempt=str(admission_value.get("attempt", "")),
                 release=str(admission_value.get("release", "")),
             )
+            if admission["schema"].endswith("/v1"):
+                raise RuntimeError(
+                    "legacy v1 production admission cannot authorize a staging reset",
+                )
             backup = _backup_run_receipt(
                 json.loads(_read_path(target, runner, arguments.backup_receipt)),
                 target="production",
@@ -7323,16 +7367,25 @@ def release_command(arguments: argparse.Namespace) -> int:
         observed_staging_release, _observed_sha, _observed_raw = _release(
             target, runner, None,
         )
+        observed_runtime_sha256 = _runtime_cas_sha256(target, runner, observed_staging)
         if (
             observed_staging.get("generation") != reset_intent["staging_baseline_generation"]
             or observed_staging_release["identity"]
             != reset_intent["staging_baseline_release"]
-            or _runtime_cas_sha256(target, runner, observed_staging)
-            != reset_intent["staging_baseline_runtime_sha256"]
+            or observed_runtime_sha256 != reset_intent["staging_baseline_runtime_sha256"]
         ):
-            raise RuntimeError(
-                "staging advanced after production intent; reset is safely deferred",
+            deferred = _staging_reset_deferred_receipt(
+                target=target,
+                admission=admission,
+                intent=reset_intent,
+                observed=observed_staging,
+                observed_release=observed_staging_release["identity"],
+                observed_runtime_sha256=observed_runtime_sha256,
             )
+            print(json.dumps(
+                deferred, indent=None if arguments.json else 2, sort_keys=True,
+            ))
+            return 0
         if (
             production_claim.get("operation_kind") != "production-upgrade"
             or production_claim["source"] != production.name
@@ -7526,10 +7579,14 @@ def release_command(arguments: argparse.Namespace) -> int:
                 raise RuntimeError("release attempt has no durable boundary receipt")
             receipt = _validate_release_boundary_receipt(
                 json.loads(receipt_raw.stdout),
-                schema=("usl-release-quarantine/v1" if production else "usl-release-admission/v1"),
+                schema=("usl-release-quarantine/v2" if production else "usl-release-admission/v2"),
                 status=("quarantined" if production else "admitted"),
                 target=target, attempt=attempt, release=release_value["identity"],
             )
+            if receipt["schema"].endswith("/v1"):
+                raise RuntimeError(
+                    "legacy v1 boundary is audit-only and cannot replay reconciliation",
+                )
             _require_same_attempt_boundary(
                 existing_claim, receipt, generation=generation, snapshot=arguments.snapshot,
             )

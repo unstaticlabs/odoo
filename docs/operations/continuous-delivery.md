@@ -183,8 +183,11 @@ A production-derived staging refresh is a different operation. Before the
 production attempt, `staging-reset-intent` captures the full current staging
 runtime identity. Only after production admission and a newer qualified
 production backup may `staging-reset-from-production` consume that backup. A
-changed staging identity defers the reset without touching staging or failing
-the successful production release. Production runtime secrets, Sign keys and
+changed staging identity returns a content-digested
+`usl-staging-reset-deferred/v1` receipt with the intended and observed
+generation, release and runtime CAS values. The reset does not touch staging or
+fail the successful production release; CI reports the receipt as a warning.
+Production runtime secrets, Sign keys and
 MCP OAuth data never cross environments; the reset preserves the paused,
 environment-owned staging OAuth vault and records non-secret source and
 destination tree identities. A daily run with no production change performs a
@@ -246,15 +249,17 @@ commit and Compose render, preparation and maintenance receipts, baseline, and
 new generation into one operation-bundle digest. Quarantine and admission
 receipts must carry that same digest; mixing evidence from retries or concurrent
 promotions fails closed. In production reconciliation stops at an immutable
-`usl-release-quarantine/v1` receipt. The controller must complete every
+`usl-release-quarantine/v2` receipt. The controller must complete every
 rollback-eligible check and candidate backup before it calls `release activate`
 with that exact receipt. A failed or interrupted attempt is
 terminal: after verified recovery, automation must create a fresh attempt and
 fresh backup/generation identities. It may never reuse an old pre-release
 snapshot merely because the desired release is unchanged. Only the immutable
-`usl-release-admission/v1` receipt written after final health, smoke,
+`usl-release-admission/v2` receipt written after final health, smoke,
 preservation, and side-effect checks proves admission; an active image plus a
-healthy endpoint is not sufficient.
+healthy endpoint is not sufficient. Historical v1 boundary receipts remain
+readable for exact rollback and audit only; they do not claim the v2 runtime
+evidence binding.
 
 Production candidates remain quarantined behind maintenance until activation.
 Odoo starts with zero cron threads, a closed SMTP endpoint, disabled regulatory
