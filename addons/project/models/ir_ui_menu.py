@@ -19,9 +19,23 @@ class IrUiMenu(models.Model):
             for xmlid in ('project.menu_projects', 'project.menu_projects_group_stage')
             if (menu := self.env.ref(xmlid, raise_if_not_found=False))
         }
-        project_menu_data['children'] = [
+        # ``load_web_menus`` may start from a cached menu payload. Drop only the
+        # synthetic entries this override added on an earlier load before
+        # rebuilding the current user's favorite-project section.
+        def is_favorite_project_menu(menu_id):
+            menu = menus.get(menu_id)
+            action = menu.get('actionID') if isinstance(menu, dict) else None
+            return (
+                isinstance(menu_id, str)
+                and menu_id.startswith('project-')
+                and isinstance(action, dict)
+                and action.get('tag') == 'project_top_menu_overview'
+            )
+
+        project_menu_children = [
             menu_id for menu_id in project_menu_data['children']
             if menu_id not in project_menu_ids
+            and not is_favorite_project_menu(menu_id)
         ]
 
         favorite_projects = self.env['project.project'].search([
@@ -53,7 +67,10 @@ class IrUiMenu(models.Model):
                 'webIconData': False,
                 'webIconDataMimetype': False,
             }
-        project_menu_data['children'] = favorite_menu_ids + project_menu_data['children']
+        project_menu_data['children'] = [
+            *project_menu_children,
+            *favorite_menu_ids,
+        ]
         return menus
 
     def _load_menus_blacklist(self):

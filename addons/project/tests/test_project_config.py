@@ -42,7 +42,18 @@ class TestProjectConfig(TestProjectCommon):
         project_menu = menus[self.env.ref('project.menu_main_pm').id]
 
         self.assertEqual(project_menu['actionID'], self.env.ref('project.open_view_project_all').id)
-        self.assertEqual(project_menu['children'][0], f'project-{favorite.id}')
+        self.assertEqual(project_menu['children'][-1], f'project-{favorite.id}')
+        for xmlid in (
+            'project.menu_project_management',
+            'project.menu_project_report',
+            'project.menu_project_config',
+        ):
+            menu_id = self.env.ref(xmlid).id
+            if menu_id in project_menu['children']:
+                self.assertLess(
+                    project_menu['children'].index(menu_id),
+                    project_menu['children'].index(f'project-{favorite.id}'),
+                )
         self.assertNotIn(f'project-{hidden.id}', project_menu['children'])
         self.assertNotIn(f'project-{archived.id}', project_menu['children'])
         self.assertNotIn(self.env.ref('project.menu_projects').id, project_menu['children'])
@@ -53,6 +64,15 @@ class TestProjectConfig(TestProjectCommon):
             'name': favorite.name,
             'res_id': favorite.id,
         })
+
+        self.user_projectuser.favorite_project_ids -= favorite
+        reloaded_menus = self.env['ir.ui.menu'].with_user(
+            self.user_projectuser,
+        ).load_web_menus(False)
+        self.assertNotIn(
+            f'project-{favorite.id}',
+            reloaded_menus[self.env.ref('project.menu_main_pm').id]['children'],
+        )
 
     def test_favorite_projects_follow_selected_companies(self):
         other_company = self.env['res.company'].create({'name': 'Other company'})
