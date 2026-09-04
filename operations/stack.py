@@ -2323,6 +2323,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("protected restore requires --replace and exact --confirm")
     if arguments.replace and arguments.confirm != target.name:
         raise RuntimeError("replacement confirmation must equal the target name")
+    gitops_commit = getattr(arguments, "gitops_commit", None)
+    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
+        raise RuntimeError("release activation GitOps commit is invalid")
     target_runner = target.runner()
     if source.value["transport"] != target.value["transport"]:
         raise RuntimeError("source and target must be reachable through the same runtime host")
@@ -2330,9 +2333,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     _secret_file(target, target_runner)
     release_override = getattr(arguments, "target_release", None) or arguments.release
     release, release_sha, release_raw = _release(source, target_runner, release_override)
-    gitops_commit = getattr(arguments, "gitops_commit", None)
-    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
-        raise RuntimeError("release activation GitOps commit is invalid")
     upgrade_plan = None
     signed_plan_evidence = None
     cron_policy_application = None

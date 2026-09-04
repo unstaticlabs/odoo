@@ -1145,6 +1145,19 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "protected restore"):
             _restore_unlocked(arguments)
 
+    def test_activation_rejects_a_malformed_supplied_gitops_commit(self) -> None:
+        target = mock.Mock(protected=False, value={"transport": "ssh"})
+        target.runner.return_value = mock.Mock()
+        arguments = argparse.Namespace(
+            source="staging", target="staging", targets=TARGETS, replace=False, confirm=None,
+            target_release=None, release=None, gitops_commit="not-a-commit",
+        )
+        with mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack._release", return_value=({}, "a" * 64, "{}")):
+            with self.assertRaisesRegex(RuntimeError, "GitOps commit is invalid"):
+                _restore_unlocked(arguments)
+
     def test_generation_uses_unique_exact_volume_names(self) -> None:
         target = load_target("staging", TARGETS)
         names = generation_volume_names(target, "g20260901-a1b2c3d4")
@@ -1248,6 +1261,14 @@ class CohortContractTests(unittest.TestCase):
         )
         self.assertEqual(set(mapped["services"]), {"odoo-staging"})
         self.assertEqual(mapped["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "b" * 40)
+        unknown = json.loads(
+            _generation_overlay(
+                names, release, {"odoo-staging"}, target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={"USL_GITOPS_COMMIT": "Unknown"},
+            ),
+        )
+        self.assertEqual(unknown["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "Unknown")
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)

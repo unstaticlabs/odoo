@@ -302,7 +302,7 @@ class ProjectTask(models.Model):
         # Identity blocks are generated as a closed section. Removing every matching
         # section makes a reporter, provider, or maintainer-supplied marker inert.
         return re.sub(
-            r"<section\\b[^>]*\\b" + IDENTITY_MARKER + r"(?:\\s*=\\s*(?:[^\\s>]+|['\"][^'\"]*['\"]))?[^>]*>.*?</section\\s*>",
+            r"<section\b[^>]*\b" + IDENTITY_MARKER + r"(?:\s*=\s*(?:[^\s>]+|['"][^'"]*['"]))?[^>]*>.*?</section\s*>",
             "",
             source,
             flags=re.IGNORECASE | re.DOTALL,
@@ -315,7 +315,7 @@ class ProjectTask(models.Model):
         trusted = self._usl_feedback_identity_html(identity)
         if IDENTITY_MARKER in (self.description or ""):
             marker = re.search(
-                r"<section\\b[^>]*\\b" + IDENTITY_MARKER + r"[^>]*>.*?</section\\s*>",
+                r"<section\b[^>]*\b" + IDENTITY_MARKER + r"[^>]*>.*?</section\s*>",
                 self.description or "", re.IGNORECASE | re.DOTALL,
             )
             if marker:
