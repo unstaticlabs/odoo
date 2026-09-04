@@ -134,6 +134,16 @@ inspection cannot see two competing Odoo anchors or public aliases. Gateway
 start, alias transfer, or rollback failure leaves maintenance closed and is
 safe to retry after interruption or reboot.
 
+Ordinary generation activation and rollback never pass an unqualified Compose
+`up` or `stop`. They name only the target's application services; the stable
+gateway stays attached with the same container identity and IP. Gateway drift
+is admitted semantically, including the SHA-256 content of its Nginx
+configuration, because Compose's raw service hash changes when an identical
+relative bind mount is rendered from a different immutable checkout path. New
+gateway creation mounts a persistent content-addressed copy, while an existing
+gateway is verified directly even after the launcher's temporary GitOps
+snapshot has been removed.
+
 Admission also records the MCP server version and OAuth-vault schema reported
 by its versioned readiness endpoint. Production and staging require the vault
 to be ready. Sign admission performs trusted, read-only Step CA and DSS health
