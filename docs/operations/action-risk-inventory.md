@@ -71,6 +71,9 @@ surface:
 
 1. Run `make action-risk-discover` and inspect the candidate diff. Discovery
    reads the running `odoo_dev` registry and never creates policy decisions.
+   Use a clean delivered-product registry, not a focused module-test database:
+   its installed-module set must match the tracked surface before the candidate
+   can be reviewed or refreshed.
 2. Trace each added or changed entry point through delegates to its mutation,
    `sudo()`, raw SQL, filesystem, messaging and provider sinks. Check its ACLs,
    record rules, company behavior and externally reachable callers.

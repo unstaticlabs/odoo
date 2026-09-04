@@ -91,6 +91,10 @@ Choose unused ports before starting the stack. If Docker reports a port
 collision, retain the owned Compose project and restart it with a new free
 port set; do not reuse another worktree's project or volumes.
 
+For ad-hoc shell commands, use task-specific variable names such as
+`task_module_names`; `modules` is read-only in zsh and makes an otherwise
+valid qualification command fail before Odoo starts.
+
 Open <http://localhost:8069/web/login?db=odoo_dev>. A clean local installation
 uses `admin` / `admin`; production-derived runtimes use Pocket ID instead.
 

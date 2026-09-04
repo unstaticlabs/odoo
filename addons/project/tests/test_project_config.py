@@ -54,6 +54,48 @@ class TestProjectConfig(TestProjectCommon):
             'res_id': favorite.id,
         })
 
+    def test_favorite_projects_follow_selected_companies(self):
+        other_company = self.env['res.company'].create({'name': 'Other company'})
+        self.user_projectuser.company_ids |= other_company
+        current_company_favorite = self.env['project.project'].create({
+            'name': 'Current company favorite',
+            'company_id': self.env.company.id,
+            'privacy_visibility': 'employees',
+        })
+        other_company_favorite = self.env['project.project'].with_company(other_company).create({
+            'name': 'Other company favorite',
+            'company_id': other_company.id,
+            'privacy_visibility': 'employees',
+        })
+        self.user_projectuser.favorite_project_ids = (
+            current_company_favorite | other_company_favorite
+        )
+        project_menu = self.env.ref('project.menu_main_pm')
+
+        current_company_menus = self.env['ir.ui.menu'].with_user(
+            self.user_projectuser,
+        ).with_context(allowed_company_ids=[self.env.company.id]).load_web_menus(False)
+        other_company_menus = self.env['ir.ui.menu'].with_user(
+            self.user_projectuser,
+        ).with_context(allowed_company_ids=[other_company.id]).load_web_menus(False)
+
+        self.assertIn(
+            f'project-{current_company_favorite.id}',
+            current_company_menus[project_menu.id]['children'],
+        )
+        self.assertNotIn(
+            f'project-{other_company_favorite.id}',
+            current_company_menus[project_menu.id]['children'],
+        )
+        self.assertIn(
+            f'project-{other_company_favorite.id}',
+            other_company_menus[project_menu.id]['children'],
+        )
+        self.assertNotIn(
+            f'project-{current_company_favorite.id}',
+            other_company_menus[project_menu.id]['children'],
+        )
+
     def test_copy_project_manager_embedded_config_as_default(self):
         """
         Test that when a user gets the embedded actions configs of a projet, he gets the configs of

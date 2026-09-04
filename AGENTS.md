@@ -52,6 +52,8 @@ documentation, reports, comments, and commit messages.
 - Keep changes scoped and preserve unrelated worktree changes.
 - Agent-authored commits use `scripts/commit`; do not construct messages with
   escaped newlines or repeat attribution text manually.
+- Invoke the helper with its structured arguments, for example:
+  `scripts/commit --type fix --scope project --summary "..." --body "..."`.
 - Commit subjects follow Conventional Commits:
   `<type>(<scope>): <description>`.
 - The helper enforces the worktree-local author
