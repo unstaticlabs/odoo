@@ -101,14 +101,12 @@ RELEASE_IMAGE_SERVICES = {
         "paperless-identity-init",
     ),
     "sign-dss": ("usl-sign-dss",),
-    "mcp": ("odoo-mcp-oauth-init", "odoo-mcp"),
     "renderer": ("usl-document-renderer",),
 }
 RELEASE_RUNTIME_SERVICES = {
     "distribution": "odoo",
     "paperless": "paperless",
     "sign-dss": "sign",
-    "mcp": "mcp",
     "renderer": "renderer",
 }
 MINIMUM_FREE_BYTES = 2 * 1024**3
@@ -264,6 +262,12 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
     # container after Docker transfers the public network alias.  Admission is
     # still fail-closed, but allow that bounded propagation window instead of
     # treating the first stale origin response as a release failure.
+    last_observation = {
+        "http_status": None,
+        "http_retry_after": False,
+        "websocket_status": None,
+        "websocket_maintenance": False,
+    }
     for attempt in range(30):
         nonce = str(time.time_ns())
         common = [
@@ -279,6 +283,7 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
                 *common,
                 "--header", "Connection: Upgrade",
                 "--header", "Upgrade: websocket",
+                "--header", f"Origin: {endpoint}",
                 "--header", "Sec-WebSocket-Version: 13",
                 "--header", "Sec-WebSocket-Key: dXNsLW1haW50ZW5hbmNlIQ==",
                 f"{endpoint}/websocket?maintenance_probe={nonce}",
@@ -287,13 +292,21 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
         )
         http_lines = http.stdout.splitlines()
         websocket_lines = websocket.stdout.splitlines()
+        http_status = http_lines[0] if http_lines else ""
+        websocket_status = websocket_lines[0] if websocket_lines else ""
+        last_observation = {
+            "http_status": 503 if " 503 " in http_status else None,
+            "http_retry_after": "retry-after: 60" in http.stdout.lower(),
+            "websocket_status": 503 if " 503 " in websocket_status else None,
+            "websocket_maintenance": '"error":"maintenance"' in websocket.stdout,
+        }
         if (
             not http.returncode
             and not websocket.returncode
             and http_lines
             and websocket_lines
             and " 503 " in http_lines[0]
-            and "Retry-After: 60" in http.stdout
+            and last_observation["http_retry_after"]
             and " 503 " in websocket_lines[0]
             and '"error":"maintenance"' in websocket.stdout
         ):
@@ -307,7 +320,8 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
             time.sleep(2)
     raise RuntimeError(
         "staging gateway maintenance was not admitted over HTTP and WebSocket "
-        "within the bounded propagation window",
+        "within the bounded propagation window; last observation: "
+        + json.dumps(last_observation, sort_keys=True),
     )
 
 
@@ -953,25 +967,38 @@ def _ensure_image(runner, image: str) -> None:
 
 
 def _release_images(release: dict) -> list[str]:
-    """Return every immutable image needed before a restore can start."""
+    """Return Odoo-cohort images needed before a restore can start.
+
+    MCP has an independently admitted release ledger. Its image comes from the
+    GitOps Compose generation and must never be downgraded to the MCP build that
+    happened to qualify this Odoo release.
+    """
     return sorted(
         {
             release["components"]["backup-tool"]["digest_reference"],
             release["components"]["distribution"]["digest_reference"],
             release["components"]["paperless"]["digest_reference"],
             release["components"]["sign-dss"]["digest_reference"],
-            release["mcp"]["image"],
             release["renderer"]["image"],
         },
     )
 
 
 def _release_image(release: dict, component: str) -> str:
-    if component == "mcp":
-        return release["mcp"]["image"]
     if component == "renderer":
         return release["renderer"]["image"]
     return release["components"][component]["digest_reference"]
+
+
+def _independent_mcp_image(target, images: dict[str, str]) -> str:
+    """Return the immutable MCP image admitted by the GitOps Compose state."""
+    service = target.value["services"]["mcp"]
+    image = images.get(service)
+    if not isinstance(image, str) or not re.fullmatch(
+        r"ghcr\.io/unstaticlabs/odoo-mcp@sha256:[0-9a-f]{64}", image,
+    ):
+        raise RuntimeError("independently admitted MCP image is missing or mutable")
+    return image
 
 
 def _validate_runtime_release_images(target, runner, runtime: dict, release: dict) -> dict[str, str]:
@@ -3108,7 +3135,6 @@ def _generation_overlay(
             "distribution": release["components"]["distribution"]["digest_reference"],
             "paperless": release["components"]["paperless"]["digest_reference"],
             "sign-dss": release["components"]["sign-dss"]["digest_reference"],
-            "mcp": release["mcp"]["image"],
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
@@ -6427,6 +6453,7 @@ def _start_recovery_proof_runtime(
     env: dict[str, str],
 ) -> dict:
     """Start only restored services on the proof's Docker-internal network."""
+    mcp_image = _independent_mcp_image(target, images)
     generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
     secrets = f"{proof_root}/generations/{generation}/sign-secrets"
     renderer_secrets = f"{proof_root}/generations/{generation}/renderer-secrets"
@@ -6516,10 +6543,10 @@ def _start_recovery_proof_runtime(
         "--volume", f"{volumes['mcp_oauth']}:/data",
         "--volume", f"{env['better-auth']}:/run/secrets/better-auth.secret:ro",
         "--volume", f"{env['credential-encryption-key']}:/run/secrets/credential-encryption-key.secret:ro",
-        release["mcp"]["image"], "node", "dist/auth/cli.js", "migrate",
+        mcp_image, "node", "dist/auth/cli.js", "migrate",
     ])
     started["mcp"] = _run_recovery_proof_container(
-        runner, proof_id, names, "mcp", release["mcp"]["image"], **mcp_common,
+        runner, proof_id, names, "mcp", mcp_image, **mcp_common,
     )
     if set(started) != set(RECOVERY_PROOF_RUNTIME_ROLES):
         raise RuntimeError("recovery proof runtime service perimeter differs")
@@ -6729,6 +6756,7 @@ def _recovery_proof_isolation(runner, names: dict) -> str:
 
 def _recovery_proof_durable_state(
     target, runner, names: dict, release: dict, backup: dict, proof_root: str,
+    images: dict[str, str],
 ) -> tuple[dict, dict]:
     odoo = _recovery_proof_query(
         target, runner, names["containers"]["odoo_db"], "odoo",
@@ -6789,7 +6817,8 @@ def _recovery_proof_durable_state(
         samples[role] = {"file_count": count, "sample_content_sha256": digest, "status": "passed"}
     oauth = runner.run([
         "docker", "run", "--rm", "--network", "none",
-        "--volume", f"{names['volumes']['mcp_oauth']}:/data:ro", release["mcp"]["image"],
+        "--volume", f"{names['volumes']['mcp_oauth']}:/data:ro",
+        _independent_mcp_image(target, images),
         "node", "-e",
         "const D=require('better-sqlite3');const d=new D('/data/oauth.sqlite',{readonly:true});"
         "const ok=d.pragma('integrity_check',{simple:true});const v=d.pragma('schema_version',{simple:true});"
@@ -7343,7 +7372,7 @@ def _recovery_proof_command_locked(
         )
         health["databases"] = database_health
         durable_state, cache_roles = _recovery_proof_durable_state(
-            target, runner, names, release, backup, proof_root,
+            target, runner, names, release, backup, proof_root, images,
         )
         for role, identity in captured_cache.items():
             cache_roles[role]["capture_identity_sha256"] = hashlib.sha256(json.dumps(

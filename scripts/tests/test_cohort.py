@@ -31,6 +31,7 @@ from operations.stack import (
     _cleanup_workspaces,
     _delete_cleanup_resources,
     _generation_overlay,
+    _independent_mcp_image,
     _forward_only_receipt,
     _ensure_image,
     _materialize_command,
@@ -1048,6 +1049,7 @@ class CohortContractTests(unittest.TestCase):
 
     def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:
         target = load_target("production", TARGETS)
+        independent_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "d" * 64
         release = {
             "identity": "f" * 64,
             "components": {
@@ -1081,12 +1083,18 @@ class CohortContractTests(unittest.TestCase):
                 if command[:2] == ["mktemp", "-d"]:
                     return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
                 if command[-2:] == ["config", "--services"]:
-                    return subprocess.CompletedProcess(command, 0, "odoo\nodoo-upgrade\npaperless-webserver\n", "")
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        "odoo\nodoo-upgrade\npaperless-webserver\nodoo-mcp\n",
+                        "",
+                    )
                 if command[-3:] == ["config", "--format", "json"]:
                     services = {
                         "odoo": {"image": release["components"]["distribution"]["digest_reference"]},
                         "odoo-upgrade": {"image": release["components"]["distribution"]["digest_reference"]},
                         "paperless-webserver": {"image": release["components"]["paperless"]["digest_reference"]},
+                        "odoo-mcp": {"image": independent_mcp},
                     }
                     return subprocess.CompletedProcess(command, 0, json.dumps({"services": services}), "")
                 return subprocess.CompletedProcess(command, 0, "", "")
@@ -1105,6 +1113,7 @@ class CohortContractTests(unittest.TestCase):
             result = _prepare_release_candidate(target, runner, release, current)
         self.assertEqual(result["status"], "prepared")
         self.assertFalse(result["runtime_changed"])
+        self.assertNotIn(release["mcp"]["image"], result["images"])
         flattened = [item for command in runner.commands for item in command]
         self.assertNotIn("stop", flattened)
         self.assertNotIn("up", flattened)
@@ -2949,7 +2958,38 @@ class CohortContractTests(unittest.TestCase):
             "mcp": {"image": references[4]},
             "renderer": {"image": references[5]},
         }
-        self.assertEqual(_release_images(release), sorted(references))
+        self.assertEqual(_release_images(release), sorted(references[:4] + references[5:]))
+
+    def test_odoo_release_does_not_pin_or_downgrade_independent_mcp(self) -> None:
+        target = load_target("staging", TARGETS)
+        old_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64
+        current_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        release_image = "ghcr.io/unstaticlabs/example@sha256:" + "c" * 64
+        release = {
+            "components": {
+                name: {"digest_reference": release_image}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+            },
+            "mcp": {"image": old_mcp},
+            "renderer": {"image": release_image},
+        }
+        names = generation_volume_names(target, "g20260904-independent-mcp")
+        overlay = json.loads(_generation_overlay(
+            names,
+            release,
+            {"odoo", "odoo-mcp", "odoo-mcp-oauth-init"},
+            target.value["ingress"],
+        ))
+        self.assertNotIn("odoo-mcp", overlay["services"])
+        self.assertNotIn("odoo-mcp-oauth-init", overlay["services"])
+        self.assertNotIn(old_mcp, _release_images(release))
+        self.assertEqual(
+            _independent_mcp_image(
+                target,
+                {target.value["services"]["mcp"]: current_mcp},
+            ),
+            current_mcp,
+        )
 
     def test_backup_refuses_runtime_images_outside_selected_release(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3808,7 +3848,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(len(paths), 3)
         self.assertTrue(all(path.startswith("/srv/db/usl-odoo/production/generations/") for path in paths))
 
-    def test_generation_pins_every_release_owned_runtime_image(self) -> None:
+    def test_generation_pins_only_odoo_cohort_runtime_images(self) -> None:
         digest = "sha256:" + "a" * 64
         reference = "ghcr.io/unstaticlabs/example@" + digest
         release = {
@@ -3832,7 +3872,7 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(
             _generation_overlay(names, release, services, target.value["ingress"]),
         )
-        self.assertEqual(set(overlay["services"]), services)
+        self.assertEqual(set(overlay["services"]), services - {"odoo-mcp"})
         self.assertTrue(all(item["image"] == reference for item in overlay["services"].values()))
         self.assertEqual(
             overlay["services"]["odoo"]["environment"],
@@ -4299,14 +4339,18 @@ class CohortContractTests(unittest.TestCase):
 
         class Runner:
             responses = [
-                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nRetry-After: 60\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nretry-after: 60\n", ""),
                 subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
             ]
 
+            commands = []
+
             def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
                 return self.responses.pop(0)
 
-        evidence = _probe_staging_gateway_maintenance(target, Runner())
+        runner = Runner()
+        evidence = _probe_staging_gateway_maintenance(target, runner)
         self.assertEqual(
             set(evidence),
             {"schema", "status", "http_status", "websocket_status"},
@@ -4314,6 +4358,10 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(evidence["status"], "passed")
         self.assertEqual(evidence["http_status"], 503)
         self.assertEqual(evidence["websocket_status"], 503)
+        self.assertIn(
+            "Origin: https://odoo-staging.unstaticlabs.com",
+            runner.commands[1],
+        )
 
     def test_gateway_maintenance_probe_waits_for_public_alias_propagation(self) -> None:
         target = load_target("staging", HOST_TARGETS)
