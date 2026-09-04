@@ -11,6 +11,7 @@ from odoo.tests import TransactionCase, tagged
 from ..controllers.json2 import UslAgentJson2Controller
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..models import agent as agent_model_module
+from ..models import agent_feedback as agent_feedback_module
 from ..models.action_policy import load_agent_readonly_policy
 from ..models.agent import (
     UslAgentCredential,
@@ -965,12 +966,239 @@ class TestAutonomousAgents(TransactionCase):
         task.with_user(agent.user_id).message_unsubscribe(
             partner_ids=agent.user_id.partner_id.ids,
         )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
 
         self.assertEqual(message.author_id, agent.user_id.partner_id)
         self.assertTrue(notification)
         self.assertEqual(activity.create_uid, agent.user_id)
         self.assertGreater(self.env["mail.message"].sudo().search_count([]), message_count)
         self.assertGreater(self.env["mail.mail"].sudo().search_count([]), mail_count)
+
+    def test_project_agent_completes_activity_through_business_record_authority(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "Agent activity project"})
+        task = self.env["project.task"].create(
+            {"name": "Agent activity task", "project_id": project.id},
+        )
+        activity = task.activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+            summary="Complete through Agent",
+        )
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            kwargs={},
+        )
+        self.assertEqual(access, "collaboration")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            access=access,
+        )
+
+        activity.with_user(agent.user_id).with_context(context).action_feedback(
+            feedback="Completed by governed Agent",
+        )
+
+        self.assertFalse(activity.active)
+        self.assertTrue(activity.date_done)
+        self.assertTrue(
+            self.env["mail.message"].sudo().search_count(
+                [("model", "=", "project.task"), ("res_id", "=", task.id)],
+            ),
+        )
+
+    def test_project_agent_creates_task_with_followers_and_personal_stage(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "Agent create project"})
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="project.task",
+            method_name="create",
+            kwargs={},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="project.task",
+            method_name="create",
+            access=access,
+        )
+
+        task = self.env["project.task"].with_user(agent.user_id).with_context(
+            context,
+        ).create(
+            {
+                "name": "Created by governed Agent",
+                "project_id": project.id,
+                "user_ids": [Command.set(agent.user_id.ids)],
+            },
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+
+        self.assertEqual(task.create_uid, agent.user_id)
+        self.assertTrue(task.message_follower_ids)
+        self.assertTrue(
+            self.env["project.task.stage.personal"].sudo().search_count(
+                [("user_id", "=", agent.user_id.id), ("task_id", "=", task.id)],
+            ),
+        )
+
+    def test_activity_completion_denies_agent_without_business_write(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        project = self.env["project.project"].create({"name": "Read-only activity project"})
+        task = self.env["project.task"].create(
+            {"name": "Read-only activity task", "project_id": project.id},
+        )
+        activity = task.activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            access="collaboration",
+        )
+
+        with self.assertRaises(AgentPolicyAccessError):
+            activity.with_user(agent.user_id).with_context(context).action_feedback()
+        self.assertTrue(activity.exists())
+
+    def test_active_agent_submits_atomic_low_trust_feedback(self):
+        agent = self._create_agent()
+        project = self.env["project.project"].create({"name": "[DEV] Odoo MCP"})
+        stage = self.env["project.task.type"].create(
+            {"name": "Inbox", "sequence": 0, "project_ids": [Command.set(project.ids)]},
+        )
+        self.env["project.tags"].create({"name": "MCP"})
+        self.env["project.tags"].create({"name": "Agent Feedback"})
+        self.env["project.tags"].create({"name": "Bug"})
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="usl.agent",
+            method_name="submit_mcp_feedback",
+            access="collaboration",
+        )
+        values = {
+            "category": "bug",
+            "impact": "major",
+            "title": "Escaped <feedback>",
+            "summary": "A structured failure was observed.",
+            "affected_tool": "odoo_call_method",
+            "expected_behavior": "The action succeeds.",
+            "actual_behavior": "The action was denied.",
+            "reproduction_steps": ["Call the tool", "Observe the denial"],
+            "workaround": "Use a human session.",
+            "correlation_id": "corr-test",
+        }
+        environment = {
+            "USL_MCP_FEEDBACK_PROJECT_ID": str(project.id),
+            "USL_MCP_FEEDBACK_STAGE_ID": str(stage.id),
+            "USL_RELEASE_COMMIT": "c" * 40,
+        }
+        with patch.object(agent_feedback_module.os, "getenv", side_effect=environment.get):
+            result = self.env["usl.agent"].with_user(agent.user_id).with_context(
+                context,
+            ).submit_mcp_feedback(
+                values,
+                {
+                    "mcp_server_version": "1.1.0",
+                    "mcp_commit": "a" * 40,
+                    "gitops_commit": "b" * 40,
+                },
+            )
+
+        task = self.env["project.task"].sudo().browse(result["task_id"])
+        self.assertEqual(task.project_id, project)
+        self.assertEqual(task.stage_id, stage)
+        self.assertEqual(task.name, "[Agent feedback] Escaped <feedback>")
+        self.assertIn("[agent-feedback]", task.description)
+        self.assertIn("a" * 40, task.description)
+        self.assertIn("b" * 40, task.description)
+        self.assertIn("c" * 40, task.description)
+        self.assertEqual(set(task.tag_ids.mapped("name")), {"MCP", "Agent Feedback", "Bug"})
+        self.assertTrue(task.message_ids.filtered(lambda message: "[agent-feedback]" in message.body))
+
+    def test_feedback_rejects_suspended_agent_and_incomplete_bug(self):
+        agent = self._create_agent()
+        with self.assertRaises(ValidationError):
+            self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(
+                {
+                    "category": "bug",
+                    "impact": "major",
+                    "title": "Incomplete",
+                    "summary": "Missing reproduction details",
+                },
+            )
+        agent.with_user(self.owner).action_suspend()
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(
+                {
+                    "category": "feature_request",
+                    "impact": "suggestion",
+                    "title": "No longer active",
+                    "summary": "Suspended Agents cannot submit.",
+                },
+            )
+
+    def test_feedback_requires_authenticated_root_scope_and_strict_fields(self):
+        agent = self._create_agent()
+        project = self.env["project.project"].create({"name": "[DEV] Odoo MCP"})
+        stage = self.env["project.task.type"].create(
+            {"name": "Inbox", "sequence": 0, "project_ids": [Command.set(project.ids)]},
+        )
+        feedback = {
+            "category": "feature_request",
+            "impact": "suggestion",
+            "title": "Strict feedback",
+            "summary": "Reject fields outside the public contract.",
+        }
+        environment = {
+            "USL_MCP_FEEDBACK_PROJECT_ID": str(project.id),
+            "USL_MCP_FEEDBACK_STAGE_ID": str(stage.id),
+        }
+        with patch.object(agent_feedback_module.os, "getenv", side_effect=environment.get):
+            with self.assertRaises(AgentPolicyAccessError):
+                self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(feedback)
+            context = UslAgentJson2Controller._agent_call_context(
+                context={},
+                agent=agent,
+                model_name="usl.agent",
+                method_name="submit_mcp_feedback",
+                access="collaboration",
+            )
+            with self.assertRaises(ValidationError):
+                self.env["usl.agent"].with_user(agent.user_id).with_context(
+                    context,
+                ).submit_mcp_feedback({**feedback, "unexpected": "rejected"})
+            with self.assertRaises(ValidationError):
+                self.env["usl.agent"].with_user(agent.user_id).with_context(
+                    context,
+                ).submit_mcp_feedback(feedback, {"unexpected": "rejected"})
 
     def test_every_collaboration_action_uses_a_governed_shared_primitive(self):
         policy = load_agent_readonly_policy()
@@ -982,17 +1210,21 @@ class TestAutonomousAgents(TransactionCase):
             action_key.removeprefix("rpc:").rsplit(".", 1)[0]
             for action_key in policy.collaboration_actions
         }
-        self.assertEqual(len(policy.collaboration_actions), 279)
-        self.assertEqual(len(models), 77)
+        self.assertEqual(len(policy.collaboration_actions), 283)
+        self.assertEqual(len(models), 79)
         self.assertEqual(
             parsed,
             {
                 "activity_schedule",
+                "action_done_schedule_next",
+                "action_feedback",
+                "action_feedback_schedule_next",
                 "mcp_create_download_grant",
                 "mcp_revoke_download_grant",
                 "message_post",
                 "message_subscribe",
                 "message_unsubscribe",
+                "submit_mcp_feedback",
             },
         )
         for action_key in policy.collaboration_actions:
