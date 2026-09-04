@@ -8,6 +8,9 @@ from . import (
     test_immediate_settlement,
     test_immediate_settlement_tour,
     test_invoice_document,
+    test_linked_receipt,
+    test_linked_receipt_http,
+    test_linked_receipt_tour,
     test_multi_company_cards,
     test_multi_company_expenses,
 )

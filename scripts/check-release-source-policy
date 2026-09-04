@@ -14,8 +14,16 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--event", required=True)
 parser.add_argument("--base", required=True)
 parser.add_argument("--head")
+parser.add_argument("--head-repository")
+parser.add_argument("--expected-repository")
 arguments = parser.parse_args()
 try:
-    validate(event=arguments.event, base=arguments.base, head=arguments.head)
+    validate(
+        event=arguments.event,
+        base=arguments.base,
+        head=arguments.head,
+        head_repository=arguments.head_repository,
+        expected_repository=arguments.expected_repository,
+    )
 except SourcePolicyError as error:
     parser.error(str(error))

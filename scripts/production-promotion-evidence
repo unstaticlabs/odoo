@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Create or verify exact production-promotion evidence."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.production_promotion import (  # noqa: E402
+    ProductionPromotionError,
+    create_merge_group_evidence,
+    create_pull_request_evidence,
+    load,
+    verify,
+)
+
+
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=("create", "verify"))
+    parser.add_argument("--event", required=True, choices=("pull_request", "merge_group"))
+    parser.add_argument("--repository", required=True)
+    parser.add_argument("--base-branch", required=True)
+    parser.add_argument("--qualified-git-tree", required=True)
+    parser.add_argument("--pull-request-number", type=int)
+    parser.add_argument("--source-repository")
+    parser.add_argument("--source-branch")
+    parser.add_argument("--source-tree")
+    parser.add_argument("--pull-requests", type=Path)
+    parser.add_argument("--production-merge-group-tree")
+    parser.add_argument("--evidence", type=Path)
+    parser.add_argument("--output", type=Path)
+    return parser.parse_args()
+
+
+def _expected(arguments: argparse.Namespace) -> dict[str, object]:
+    if arguments.event == "pull_request":
+        return create_pull_request_evidence(
+            repository=arguments.repository,
+            base_branch=arguments.base_branch,
+            pull_request_number=arguments.pull_request_number,
+            source_repository=arguments.source_repository,
+            source_branch=arguments.source_branch,
+            source_tree=arguments.source_tree,
+            qualified_git_tree=arguments.qualified_git_tree,
+        )
+    if arguments.pull_requests is None:
+        raise ProductionPromotionError("merge-group evidence requires --pull-requests")
+    try:
+        pull_requests = json.loads(arguments.pull_requests.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ProductionPromotionError("cannot read associated pull requests") from error
+    return create_merge_group_evidence(
+        repository=arguments.repository,
+        base_branch=arguments.base_branch,
+        pull_requests=pull_requests,
+        qualified_git_tree=arguments.qualified_git_tree,
+        production_merge_group_tree=arguments.production_merge_group_tree,
+    )
+
+
+def main() -> int:
+    arguments = _arguments()
+    try:
+        expected = _expected(arguments)
+        if arguments.mode == "verify":
+            if arguments.evidence is None:
+                raise ProductionPromotionError("verification requires --evidence")
+            verify(load(arguments.evidence), expected)
+        elif arguments.output is None:
+            raise ProductionPromotionError("creation requires --output")
+        else:
+            arguments.output.write_text(
+                json.dumps(expected, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+    except ProductionPromotionError as error:
+        print(f"production promotion evidence: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

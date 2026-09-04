@@ -171,6 +171,57 @@ transaction would roll back. Successful protected and Agent mutations are
 stored in immutable Distribution Audit events with the stable action key and
 qualified policy digest.
 
+## Product feedback actions
+
+`usl.feedback.submission.feedback_submit_initial` is an operational action that
+creates one attributable native task in the fixed **Odoo Product Feedback**
+Project before any external request. Its elevated region runs only after the
+message, source company, exact release identity, sanitized page details and draft
+attachment ownership have been validated. Recovery is to retain or move the
+Inbox card, or restore the consistent database and filestore backup after a
+failed deployment.
+
+The messages-drawer client collects typed action/model/record/viewport
+candidates and never a URL or arbitrary browser state. The server rechecks
+readable source records. A local DOM renderer reproduces only the visible Odoo
+tab, excluding messaging surfaces, alerts, password fields, private-marked
+elements, external media and inaccessible frames. It never uses display
+capture or serializes HTML to the server. The selected JPEG remains on the
+device until Send and can be removed before submission.
+
+`project.task.feedback_withdraw` is a recoverable reporter action on the
+reporter's own feedback only. It locks the task, makes active assistant runs
+stale, uses Odoo's native cancelled task state and posts an attributable chatter
+event. It does not delete the task, files or conversation. Feedback maintainers
+can restore the native task state when recovery is warranted.
+
+`usl.feedback.agent.run` is a system-internal, audited orchestration surface.
+The minute cron and reporter polling may submit or poll a background Gemini
+Interaction. The allowed external targets are Google's fixed Interactions and
+model endpoints, one validated HTTPS `/mcp/projects` endpoint, and a
+release-pinned public repository URL provided to Gemini URL context. The MCP
+credential belongs to a dedicated non-human **Feedback Agent (read-only
+service)** identity. It is denied Internal User and Feedback Maintainer group
+membership and has read ACLs/rules only for the governed Project surface.
+
+Provider output is untrusted structured data. A private sudo-only apply method
+validates state, lengths, category, priority and related-card membership before
+updating the same task and posting as the Feedback Assistant. Safe run evidence
+keeps hashes and operational metadata, not secrets, prompts, responses or
+reasoning. Retry is bounded; provider/configuration failures leave the card in
+Inbox and expose only a generic error.
+
+The shared board lets internal employees search, group, read and discuss every
+feedback card and attachment. Ordinary users are negative-tested against card
+field/stage mutations, activity mutations, follower changes for others,
+generic Project creation/deletion and unrelated source-company records. The
+explicit **Feedback Maintainer** group is the only non-superuser operator.
+Model-level guards also reject generic Project-manager mutation of the governed
+Project, its workflow stages and its explicitly marked category tags; this
+includes crafted RPC and import paths.
+Feedback tasks are company-neutral with a separately validated source-company
+field, avoiding company-switch disappearance without opening business data.
+
 ## Governed document actions
 
 The LaTeX renderer does not receive an Odoo credential and is not an authority

@@ -26,3 +26,10 @@ access_bank_statement_confirm_manager,bank statement confirm manager,model_accou
 access_bank_statement_reopen_manager,bank statement reopen manager,model_account_bank_statement_reopen,account.group_account_manager,1,1,1,1
 access_bank_ingestion_upload_user,bank ingestion upload user,model_account_bank_ingestion_upload,account.group_account_user,1,1,1,1
 access_bank_ingestion_upload_manager,bank ingestion upload manager,model_account_bank_ingestion_upload,account.group_account_manager,1,1,1,1
+access_linked_receipt_employee,linked receipt employee,model_usl_mail_pdf_retrieval,base.group_user,1,0,0,0
+access_linked_receipt_manager,linked receipt manager,model_usl_mail_pdf_retrieval,account.group_account_manager,1,0,0,0
+access_linked_receipt_readonly,linked receipt readonly,model_usl_mail_pdf_retrieval,account.group_account_readonly,1,0,0,0
+access_linked_receipt_host_manager,linked receipt host manager,model_usl_mail_pdf_host,account.group_account_manager,1,1,0,0
+access_linked_receipt_pattern_manager,linked receipt pattern manager,model_usl_mail_pdf_pattern,account.group_account_manager,1,1,0,0
+access_linked_receipt_wizard,linked receipt wizard,model_usl_mail_pdf_candidate_wizard,base.group_user,1,1,1,1
+access_linked_receipt_wizard_line,linked receipt wizard line,model_usl_mail_pdf_candidate_wizard_line,base.group_user,1,1,1,1
