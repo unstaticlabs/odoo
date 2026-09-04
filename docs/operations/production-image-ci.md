@@ -22,7 +22,12 @@ minute.
 
 Odoo MCP and the document renderer remain separately owned images. The
 Distribution workflow verifies their pinned commits, compatibility metadata,
-OCI revision labels, and digest references before assembling a release.
+OCI revision labels, and digest references before assembling a release. After
+that verification, the protected Distribution release job adds an artifact
+attestation for the exact renderer digest with `unstaticlabs/odoo` as the
+trusted integration owner. GitHub stores the public-repository attestation;
+the separately owned renderer package does not need to accept a cross-package
+write. The workflow neither rebuilds nor retags the renderer.
 
 ## Release artifact
 
@@ -50,7 +55,8 @@ The workflow uses the repository `GITHUB_TOKEN` with job-scoped permissions:
 - `contents: read` for source;
 - `packages: read` when verifying external MCP and renderer images;
 - `packages: write`, `id-token: write`, `attestations: write`, and
-  `artifact-metadata: write` only for repository-owned image publication.
+  `artifact-metadata: write` for repository-owned image publication and the
+  exact verified renderer digest's GitHub-stored integration attestation.
 
 Each GHCR package must grant `unstaticlabs/odoo` Actions read access; the four
 repository-owned packages must also permit publication from this repository.
@@ -62,6 +68,12 @@ Manage Actions access**. Grant `unstaticlabs/odoo` read access to the separately
 owned `odoo-mcp` and document-renderer packages. Repository-owned Distribution,
 backup-tool, Paperless, and Sign packages inherit publication access from
 `unstaticlabs/odoo`; their workflow job alone receives `packages: write`.
+
+Deployment admission verifies the renderer digest against the
+`unstaticlabs/odoo` attestation owner and this Distribution workflow identity.
+It retrieves that renderer bundle from GitHub's attestation store rather than
+requiring an OCI referrer write to the separately owned package. The renderer's
+own BuildKit provenance remains separate source-build evidence.
 
 The validated repository context is `unstaticlabs/odoo`, not a fork or local
 runner. Run 33568552569 at commit `84c8d30159dbc99258c8e44f3316fbdec88bf799`
