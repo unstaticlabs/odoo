@@ -90,7 +90,7 @@ scripts/usl-stack --target production release prepare \
   --upgrade-plan /path/to/production-promotion.json
 
 scripts/usl-stack --target production release status
-scripts/usl-stack --target production release abort
+scripts/usl-stack --target production release abort --attempt-id <attempt>
 scripts/usl-stack --target production backup create
 scripts/usl-stack --target production backup list
 scripts/usl-stack --target production backup verify --snapshot <snapshot>
@@ -180,7 +180,11 @@ checked without any scheduler thread executing it. Paperless starts with every
 scheduled external or destructive task disabled. After health, smoke, business
 preservation, release-owned controls, and the candidate backup pass, the
 controller crosses the irreversible boundary with `release activate`. That
-command explicitly clears
+command writes an immutable, attempt-bound forward-only receipt immediately
+before its first database activation mutation. A killed invocation resumes the
+same idempotent activation, but automatic rollback is permanently refused once
+that receipt exists—even if the process stopped before it could write final
+admission. The command then explicitly clears
 the matching quarantine identity, restores only the recorded approved incoming
 server, replaces the quarantine overlay with the admitted environment, recreates
 the affected services, and repeats health and smoke. The side-effect admission
@@ -254,8 +258,10 @@ generation. Full live interruption drills remain an activation gate.
 ## Failure boundary
 
 Before user access reopens, a failed candidate is stopped and the untouched
-previous generation is restored. `release abort` is permitted only while the
-target gateway already has its maintenance marker. It reconstructs the one
+previous generation is restored. `release abort` requires the exact consumed
+attempt and is permitted only while the target gateway already has its
+maintenance marker. It refuses any generation with a final admission receipt,
+recognizes an already-restored attempt idempotently, and reconstructs the one
 recorded rollback generation from validated state, starts it, and runs both
 health and read-only smoke admission. The fixed production launcher removes
 maintenance only after that proof; failed or ambiguous recovery leaves the

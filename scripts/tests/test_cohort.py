@@ -26,6 +26,7 @@ from operations.stack import (
     _cleanup_workspaces,
     _delete_cleanup_resources,
     _generation_overlay,
+    _forward_only_receipt,
     _ensure_image,
     _materialize_command,
     _materialization_cleanup,
@@ -52,6 +53,7 @@ from operations.stack import (
     _storage_status,
     _write_adopt_generation,
     _validate_materialized_release,
+    _validate_forward_only_receipt,
     _validate_release_boundary_receipt,
     _validate_runtime_release_images,
     _validated_cleanup_resources,
@@ -214,6 +216,41 @@ class CohortContractTests(unittest.TestCase):
                 boundary,
                 generation=claim["generation"],
                 snapshot=claim["snapshot"],
+            )
+
+    def test_forward_only_receipt_is_attempt_bound_and_tamper_evident(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _forward_only_receipt(
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            operation_bundle_sha256="c" * 64,
+        )
+        self.assertEqual(
+            _validate_forward_only_receipt(
+                receipt,
+                target=target,
+                attempt="attempt-20260904-a1b2c3d4",
+                release="a" * 64,
+                snapshot="b" * 64,
+                generation="grelease-a1b2c3d4",
+                operation_bundle_sha256="c" * 64,
+            ),
+            receipt,
+        )
+        changed = dict(receipt)
+        changed["operation_bundle_sha256"] = "d" * 64
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_forward_only_receipt(
+                changed,
+                target=target,
+                attempt="attempt-20260904-a1b2c3d4",
+                release="a" * 64,
+                snapshot="b" * 64,
+                generation="grelease-a1b2c3d4",
+                operation_bundle_sha256="c" * 64,
             )
 
     def test_quarantine_receipt_binds_attempt_release_and_generation(self) -> None:
@@ -828,6 +865,10 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
+                if command[:2] == ["test", "-f"] and command[-1].endswith(
+                    ("/activation-started.json", "/admission.json"),
+                ):
+                    return subprocess.CompletedProcess(command, 1, "", "")
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         runner = Runner()
@@ -843,6 +884,84 @@ class CohortContractTests(unittest.TestCase):
             ["rm", "-f", "/var/lib/usl-odoo/runtime/production/active.json"],
             runner.commands,
         )
+
+    def test_release_abort_rejects_an_admitted_generation(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {"state_directory": "/var/lib/usl-odoo/runtime/production"}
+        current = {"generation": "gcandidate"}
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        with (
+            mock.patch("operations.stack.inspect_runtime", return_value=current),
+            self.assertRaisesRegex(RuntimeError, "forward-only boundary"),
+        ):
+            _abort_to_previous_generation(target, Runner(), TARGETS)
+
+    def test_release_abort_recognizes_an_already_restored_admitted_baseline(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"canonical": None},
+        }
+        attempt = "attempt-20260904-a1b2c3d4"
+        baseline = "gprevious-a1b2c3d4"
+        operation = {
+            "target": "production",
+            "attempt": attempt,
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "gcandidate-a1b2c3d4",
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
+            "baseline_generation": baseline,
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+                raise AssertionError(command)
+
+        with (
+            mock.patch(
+                "operations.stack.inspect_runtime",
+                return_value={"generation": baseline},
+            ),
+            mock.patch(
+                "operations.stack._gate",
+                side_effect=[{"status": "passed"}, {"status": "passed"}],
+            ),
+        ):
+            result = _abort_to_previous_generation(
+                target,
+                Runner(),
+                TARGETS,
+                attempt=attempt,
+            )
+        self.assertEqual(result["status"], "already-rolled-back")
+        self.assertEqual(result["generation"], baseline)
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
         policy_path = "/opt/usl/deploy/production.cron-policy.json"

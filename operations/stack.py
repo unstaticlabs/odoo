@@ -2201,6 +2201,7 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or value["target"] != target.name
         or value["attempt"] != attempt
         or value["candidate_release"] != release
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["candidate_release"]))
         or value["status"] != "claimed"
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
@@ -2257,6 +2258,77 @@ def _require_same_attempt_boundary(
         or claim["snapshot"] != snapshot
     ):
         raise RuntimeError("release boundary operation bundle differs")
+
+
+def _forward_only_receipt(
+    *,
+    target,
+    attempt: str,
+    release: str,
+    snapshot: str,
+    generation: str,
+    operation_bundle_sha256: str,
+) -> dict:
+    body = {
+        "schema": "usl-release-forward-only/v1",
+        "target": target.name,
+        "attempt": attempt,
+        "release": release,
+        "snapshot": snapshot,
+        "generation": generation,
+        "operation_bundle_sha256": operation_bundle_sha256,
+        "crossed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "forward-only",
+    }
+    body["sha256"] = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    return body
+
+
+def _validate_forward_only_receipt(
+    value: object,
+    *,
+    target,
+    attempt: str,
+    release: str,
+    snapshot: str,
+    generation: str,
+    operation_bundle_sha256: str,
+) -> dict:
+    expected = {
+        "schema", "target", "attempt", "release", "snapshot", "generation",
+        "operation_bundle_sha256", "crossed_at", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise RuntimeError("release forward-only receipt fields differ")
+    if (
+        value["schema"] != "usl-release-forward-only/v1"
+        or value["target"] != target.name
+        or value["attempt"] != attempt
+        or value["release"] != release
+        or value["snapshot"] != snapshot
+        or value["generation"] != generation
+        or value["operation_bundle_sha256"] != operation_bundle_sha256
+        or value["status"] != "forward-only"
+    ):
+        raise RuntimeError("release forward-only receipt identity differs")
+    try:
+        crossed_at = datetime.fromisoformat(str(value["crossed_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("release forward-only timestamp is invalid") from error
+    if crossed_at.tzinfo is None:
+        raise RuntimeError("release forward-only timestamp is invalid")
+    digest = hashlib.sha256(
+        json.dumps(
+            {key: item for key, item in value.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode(),
+    ).hexdigest()
+    if value["sha256"] != digest:
+        raise RuntimeError("release forward-only receipt digest differs")
+    return value
 
 
 def _release_boundary_receipt(
@@ -2641,12 +2713,65 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     return identity, state
 
 
-def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
+def _abort_to_previous_generation(
+    target,
+    runner,
+    targets: Path,
+    *,
+    attempt: str | None = None,
+) -> dict:
     """Restore and prove the untouched pre-reopen runtime generation."""
     marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
     if runner.run(["test", "-f", marker], check=False).returncode:
         raise RuntimeError("runtime rollback is allowed only while the gateway is in maintenance")
     current = inspect_runtime(target, runner)
+    generation = current.get("generation")
+    claim = None
+    if attempt is not None:
+        if not isinstance(attempt, str) or not RELEASE_ATTEMPT.fullmatch(attempt):
+            raise RuntimeError("release abort attempt identity is invalid")
+        claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
+        try:
+            claim_value = json.loads(_read_path(target, runner, Path(claim_path)))
+            claim = _release_attempt_claim(
+                claim_value,
+                target=target,
+                attempt=attempt,
+                release=str(claim_value.get("candidate_release", "")),
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("release abort attempt claim is invalid") from error
+        if generation == claim["baseline_generation"]:
+            health = _gate(health_command, target, targets)
+            smoke = _gate(smoke_command, target, targets)
+            return {
+                "schema": "usl-release-abort/v1",
+                "target": target.name,
+                "attempt": attempt,
+                "generation": generation or "adopted",
+                "health": health,
+                "smoke": smoke,
+                "status": "already-rolled-back",
+            }
+        if generation != claim["generation"]:
+            raise RuntimeError("release abort runtime is outside the claimed attempt")
+        active = current.get("active_state") or {}
+        if (
+            active.get("snapshot") != claim["snapshot"]
+            or active.get("release_manifest")
+            != f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+        ):
+            raise RuntimeError("release abort candidate identity differs from its claim")
+    if isinstance(generation, str):
+        generation_root = f"{target.value['state_directory']}/generations/{generation}"
+        for boundary in ("activation-started.json", "admission.json"):
+            if runner.run(
+                ["test", "-f", f"{generation_root}/{boundary}"],
+                check=False,
+            ).returncode == 0:
+                raise RuntimeError(
+                    "release crossed the forward-only boundary and cannot be rolled back automatically",
+                )
     previous_identity, previous_state = _previous_generation_identity(target, runner, current)
     cohort_services = sorted(set(target.value["services"].values()))
     runner.run(
@@ -2672,6 +2797,7 @@ def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
     return {
         "schema": "usl-release-abort/v1",
         "target": target.name,
+        "attempt": attempt,
         "generation": generation,
         "health": health,
         "smoke": smoke,
@@ -3727,6 +3853,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         raise RuntimeError("production quarantine predates maintenance admission")
 
     admission_path = f"{generation_root}/admission.json"
+    forward_path = f"{generation_root}/activation-started.json"
     existing = runner.run(["cat", admission_path], check=False)
     if existing.returncode == 0:
         admission = _validate_release_boundary_receipt(
@@ -3743,12 +3870,25 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
             generation=generation,
             snapshot=arguments.snapshot,
         )
+        try:
+            forward = _validate_forward_only_receipt(
+                json.loads(_read_path(target, runner, Path(forward_path))),
+                target=target,
+                attempt=attempt,
+                release=release["identity"],
+                snapshot=arguments.snapshot,
+                generation=generation,
+                operation_bundle_sha256=claim["operation_bundle_sha256"],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("release forward-only receipt is invalid") from error
         return {
             "schema": "usl-production-release-activation/v1",
             "target": target.name,
             "attempt": attempt,
             "release": release["identity"],
             "generation": generation,
+            "forward_only": {"path": forward_path, **forward},
             "admission": {"path": admission_path, **admission},
             "status": "already-activated",
         }
@@ -3764,6 +3904,36 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
     side_effect_admission = _admit_production_side_effects(
         target, runner, release, network, volumes,
     )
+    existing_forward = runner.run(["cat", forward_path], check=False)
+    if existing_forward.returncode == 0:
+        try:
+            forward = _validate_forward_only_receipt(
+                json.loads(existing_forward.stdout),
+                target=target,
+                attempt=attempt,
+                release=release["identity"],
+                snapshot=arguments.snapshot,
+                generation=generation,
+                operation_bundle_sha256=claim["operation_bundle_sha256"],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("release forward-only receipt is invalid") from error
+    else:
+        forward = _forward_only_receipt(
+            target=target,
+            attempt=attempt,
+            release=release["identity"],
+            snapshot=arguments.snapshot,
+            generation=generation,
+            operation_bundle_sha256=claim["operation_bundle_sha256"],
+        )
+        _write_remote(
+            target,
+            runner,
+            forward_path,
+            json.dumps(forward, indent=2, sort_keys=True) + "\n",
+            "0444",
+        )
     activation = _run_production_boundary_script(
         target,
         runner,
@@ -3829,6 +3999,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         "attempt": attempt,
         "release": release["identity"],
         "generation": generation,
+        "forward_only": {"path": forward_path, **forward},
         "production_activation": activation,
         "health": health,
         "smoke": smoke,
@@ -3891,6 +4062,8 @@ def release_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "abort":
+        if not arguments.attempt_id:
+            raise RuntimeError("release abort requires the exact attempt identity")
         state = runner.run(["cat", state_path], check=False)
         controller_state = None
         if state.returncode == 0:
@@ -3906,7 +4079,12 @@ def release_command(arguments: argparse.Namespace) -> int:
             )
         run_id = f"abort-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "release-abort", run_id):
-            rollback = _abort_to_previous_generation(target, runner, arguments.targets)
+            rollback = _abort_to_previous_generation(
+                target,
+                runner,
+                arguments.targets,
+                attempt=arguments.attempt_id,
+            )
         value = {**rollback, "controller_state": controller_state}
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
