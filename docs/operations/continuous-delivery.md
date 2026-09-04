@@ -154,6 +154,8 @@ Every rollout attempt has an identity distinct from the desired release. The
 controller binds preparation, observed public HTTP 503 evidence, generation,
 backup and final admission to that attempt. `release reconcile` requires a
 digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
+with exact 503 coverage of Odoo HTTP and WebSocket plus every public Paperless
+and MCP writer ingress affected by the release,
 then consumes the attempt exactly once. Its immutable attempt claim binds the
 source snapshot, candidate release, exact signed upgrade plan, archived GitOps
 commit and Compose render, preparation and maintenance receipts, baseline, and

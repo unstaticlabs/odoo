@@ -922,7 +922,26 @@ def _release_attempt(value: str | None, release_identity: str) -> str:
     return value
 
 
-def _maintenance_receipt(value: object, *, target: str, attempt: str) -> dict:
+def _required_maintenance_endpoints(target) -> set[str]:
+    endpoints = target.value["endpoints"]
+    required = {
+        endpoints["odoo"].rstrip("/") + "/web/health",
+        endpoints["odoo"].rstrip("/") + "/websocket",
+    }
+    for service, path in (("paperless", "/api/schema/"), ("mcp", "/readyz")):
+        origin = endpoints[service]
+        if origin.startswith("https://"):
+            required.add(origin.rstrip("/") + path)
+    return required
+
+
+def _maintenance_receipt(
+    value: object,
+    *,
+    target: str,
+    attempt: str,
+    required_endpoints: set[str] | None = None,
+) -> dict:
     expected = {"schema", "target", "attempt", "observed_at", "endpoints", "status", "sha256"}
     if not isinstance(value, dict) or set(value) != expected:
         raise RuntimeError("maintenance receipt fields differ")
@@ -942,6 +961,8 @@ def _maintenance_receipt(value: object, *, target: str, attempt: str) -> dict:
     endpoints = value["endpoints"]
     if not isinstance(endpoints, dict) or not endpoints:
         raise RuntimeError("maintenance receipt has no endpoints")
+    if required_endpoints is not None and set(endpoints) != required_endpoints:
+        raise RuntimeError("maintenance receipt endpoint coverage differs")
     for url, evidence in endpoints.items():
         if (
             not isinstance(url, str)
@@ -2901,6 +2922,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             maintenance,
             target=target.name,
             attempt=attempt,
+            required_endpoints=_required_maintenance_endpoints(target),
         )
     upgrade_plan = None
     signed_plan_evidence = None
@@ -3697,6 +3719,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
         target=target.name,
         attempt=attempt,
+        required_endpoints=_required_maintenance_endpoints(target),
     )
     if datetime.fromisoformat(maintenance["observed_at"].replace("Z", "+00:00")) > datetime.fromisoformat(
         quarantine["quarantined_at"].replace("Z", "+00:00"),
@@ -4044,6 +4067,7 @@ def release_command(arguments: argparse.Namespace) -> int:
                 json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
                 target=target.name,
                 attempt=attempt,
+                required_endpoints=_required_maintenance_endpoints(target),
             )
         except json.JSONDecodeError as error:
             raise RuntimeError("maintenance receipt is invalid") from error

@@ -38,6 +38,7 @@ from operations.stack import (
     _release_attempt_claim,
     _release_boundary_receipt,
     _require_same_attempt_boundary,
+    _required_maintenance_endpoints,
     _require_same_preparation,
     _previous_generation_identity,
     _release_images,
@@ -309,6 +310,37 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "identity"):
             _maintenance_receipt(
                 changed, target="production", attempt="attempt-20260904-0001",
+            )
+
+    def test_production_maintenance_covers_every_public_writer(self) -> None:
+        target = load_target("production", TARGETS)
+        required = _required_maintenance_endpoints(target)
+        self.assertEqual(required, {
+            "https://odoo.unstaticlabs.com/web/health",
+            "https://odoo.unstaticlabs.com/websocket",
+            "https://papers.unstaticlabs.com/api/schema/",
+            "https://odoo-mcp.unstaticlabs.com/readyz",
+        })
+        body = {
+            "schema": "usl-maintenance-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-0001",
+            "observed_at": "2026-09-04T12:00:00Z",
+            "endpoints": {
+                endpoint: {"status_code": 503, "body_sha256": "b" * 64}
+                for endpoint in required - {"https://odoo-mcp.unstaticlabs.com/readyz"}
+            },
+            "status": "closed",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "endpoint coverage differs"):
+            _maintenance_receipt(
+                body,
+                target="production",
+                attempt="attempt-20260904-0001",
+                required_endpoints=required,
             )
 
     def test_prepare_receipt_is_bound_to_attempt_release_and_render(self) -> None:
