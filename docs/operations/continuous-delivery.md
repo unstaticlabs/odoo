@@ -150,7 +150,10 @@ Every rollout attempt has an identity distinct from the desired release. The
 controller binds preparation, observed public HTTP 503 evidence, generation,
 backup and final admission to that attempt. `release reconcile` requires a
 digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
-then consumes the attempt exactly once. A failed or interrupted attempt is
+then consumes the attempt exactly once. In production it stops at an immutable
+`usl-release-quarantine/v1` receipt. The controller must complete every
+rollback-eligible check and candidate backup before it calls `release activate`
+with that exact receipt. A failed or interrupted attempt is
 terminal: after verified recovery, automation must create a fresh attempt and
 fresh backup/generation identities. It may never reuse an old pre-release
 snapshot merely because the desired release is unchanged. Only the immutable
@@ -158,19 +161,23 @@ snapshot merely because the desired release is unchanged. Only the immutable
 preservation, and side-effect checks proves admission; an active image plus a
 healthy endpoint is not sufficient.
 
-Production candidates remain quarantined behind maintenance during admission.
+Production candidates remain quarantined behind maintenance until activation.
 Odoo starts with zero cron threads, a closed SMTP endpoint, disabled regulatory
 flags, and a neutralization marker. The candidate database records and disables
 the exact active incoming-mail server, while the versioned cron policy may be
 checked without any scheduler thread executing it. Paperless starts with every
 scheduled external or destructive task disabled. After health, smoke, business
-preservation, and release-owned controls pass, the controller explicitly clears
+preservation, release-owned controls, and the candidate backup pass, the
+controller crosses the irreversible boundary with `release activate`. That
+command explicitly clears
 the matching quarantine identity, restores only the recorded approved incoming
 server, replaces the quarantine overlay with the admitted environment, recreates
 the affected services, and repeats health and smoke. The side-effect admission
 check runs while the quarantine overlay is still active, so an invalid SMTP,
 inbound-mail, cron, or regulatory contract cannot race a newly started worker.
-Any failure before completion rolls back while public ingress remains closed.
+Any failure before `release activate` rolls back while public ingress remains
+closed. Once activation begins, recovery is forward-only because an external
+worker may have observed the new state.
 
 Admission compares captured before/after controls rather than merely checking
 that tables are non-empty. Controls are deliberately separated into three

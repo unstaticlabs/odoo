@@ -14,6 +14,7 @@ from operations.runtime import load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
+    build_parser,
     _cohort_command,
     _create_generation_resources,
     _apply_generation_cron_policy,
@@ -34,6 +35,7 @@ from operations.stack import (
     _prepare_release_candidate,
     _prepare_receipt,
     _release_attempt,
+    _release_boundary_receipt,
     _require_same_preparation,
     _previous_generation_identity,
     _release_images,
@@ -47,6 +49,7 @@ from operations.stack import (
     _storage_status,
     _write_adopt_generation,
     _validate_materialized_release,
+    _validate_release_boundary_receipt,
     _validate_runtime_release_images,
     _validated_cleanup_resources,
     _validated_cleanup_network,
@@ -141,6 +144,70 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "missing or invalid"):
             _release_attempt("bad", "a" * 64)
 
+    def test_quarantine_receipt_binds_attempt_release_and_generation(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-quarantine/v1",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+        )
+
+        validated = _validate_release_boundary_receipt(
+            receipt,
+            schema="usl-release-quarantine/v1",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+        )
+
+        self.assertEqual(validated["generation"], "grelease-a1b2c3d4")
+        self.assertEqual(validated["status"], "quarantined")
+
+    def test_quarantine_receipt_rejects_attempt_replay(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-quarantine/v1",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-quarantine/v1",
+                status="quarantined",
+                target=target,
+                attempt="attempt-20260904-deadbeef",
+                release="a" * 64,
+            )
+
+    def test_release_activate_requires_explicit_boundary_receipts(self) -> None:
+        arguments = build_parser().parse_args([
+            "--target", "production", "release", "activate",
+            "--snapshot", "b" * 64,
+            "--candidate-release", "/release.json",
+            "--attempt-id", "attempt-20260904-a1b2c3d4",
+            "--maintenance-receipt", "/maintenance.json",
+            "--quarantine-receipt", "/quarantine.json",
+        ])
+
+        self.assertEqual(arguments.action, "activate")
+        self.assertEqual(arguments.quarantine_receipt, Path("/quarantine.json"))
     def test_maintenance_receipt_binds_attempt_and_public_503(self) -> None:
         body = {
             "schema": "usl-maintenance-admission/v1",

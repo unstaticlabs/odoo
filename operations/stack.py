@@ -2110,6 +2110,85 @@ def _admit_production_side_effects(target, runner, release, network, volumes) ->
     return value
 
 
+def _release_boundary_receipt(
+    *,
+    schema: str,
+    status: str,
+    target,
+    attempt: str,
+    release: str,
+    snapshot: str,
+    generation: str,
+    health: dict,
+    smoke: dict,
+    control_validation: dict,
+) -> dict:
+    """Bind a runtime boundary to the exact candidate and its validation."""
+    timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
+    body = {
+        "schema": schema,
+        "target": target.name,
+        "attempt": attempt,
+        "release": release,
+        "snapshot": snapshot,
+        "generation": generation,
+        "health_sha256": hashlib.sha256(
+            json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest(),
+        "smoke_sha256": hashlib.sha256(
+            json.dumps(smoke, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest(),
+        "control_validation_sha256": hashlib.sha256(
+            json.dumps(control_validation, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest(),
+        timestamp_key: datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": status,
+    }
+    body["sha256"] = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    return body
+
+
+def _validate_release_boundary_receipt(
+    value: object,
+    *,
+    schema: str,
+    status: str,
+    target,
+    attempt: str,
+    release: str,
+) -> dict:
+    timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
+    required = {
+        "schema", "target", "attempt", "release", "snapshot", "generation",
+        "health_sha256", "smoke_sha256", "control_validation_sha256",
+        timestamp_key, "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("release boundary receipt fields differ")
+    if (
+        value["schema"] != schema
+        or value["status"] != status
+        or value["target"] != target.name
+        or value["attempt"] != attempt
+        or value["release"] != release
+        or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
+    ):
+        raise RuntimeError("release boundary receipt identity differs")
+    digest = hashlib.sha256(
+        json.dumps(
+            {key: item for key, item in value.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode(),
+    ).hexdigest()
+    if value["sha256"] != digest:
+        raise RuntimeError("release boundary receipt digest differs")
+    return value
+
+
 def _gate(handler, target, targets: Path) -> dict:
     output = io.StringIO()
     arguments = argparse.Namespace(target=target.name, targets=targets, json=True)
@@ -2887,7 +2966,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
         production_activation = None
-        if target.value["environment"] == "production":
+        if target.value["environment"] == "production" and attempt is None:
             production_activation = _run_production_boundary_script(
                 target,
                 target_runner,
@@ -2898,10 +2977,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 release["identity"],
                 "USL_PRODUCTION_ACTIVATION=",
             )
-            # Prove that the host configuration, database state, inbound-mail
-            # selection and regulatory gates agree while every candidate
-            # worker is still running under the quarantine overlay.  Only a
-            # passing result permits the unquarantined Odoo/Paperless restart.
             production_activation["side_effect_admission"] = _admit_production_side_effects(
                 target, target_runner, release, network, volumes,
             )
@@ -2964,31 +3039,25 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         duration_seconds=validation_seconds,
     )
     admission_receipt = None
+    quarantine_receipt = None
     if attempt is not None:
-        admitted_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        receipt_body = {
-            "schema": "usl-release-admission/v1",
-            "target": target.name,
-            "attempt": attempt,
-            "release": release["identity"],
-            "snapshot": arguments.snapshot,
-            "generation": generation,
-            "health_sha256": hashlib.sha256(
-                json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
-            ).hexdigest(),
-            "smoke_sha256": hashlib.sha256(
-                json.dumps(smoke, sort_keys=True, separators=(",", ":")).encode(),
-            ).hexdigest(),
-            "control_validation_sha256": hashlib.sha256(
-                json.dumps(control_validation, sort_keys=True, separators=(",", ":")).encode(),
-            ).hexdigest(),
-            "admitted_at": admitted_at,
-            "status": "admitted",
-        }
-        receipt_body["sha256"] = hashlib.sha256(
-            json.dumps(receipt_body, sort_keys=True, separators=(",", ":")).encode(),
-        ).hexdigest()
-        receipt_path = f"{generation_root}/admission.json"
+        production = target.value["environment"] == "production"
+        receipt_body = _release_boundary_receipt(
+            schema=(
+                "usl-release-quarantine/v1"
+                if production else "usl-release-admission/v1"
+            ),
+            status="quarantined" if production else "admitted",
+            target=target,
+            attempt=attempt,
+            release=release["identity"],
+            snapshot=arguments.snapshot,
+            generation=generation,
+            health=health,
+            smoke=smoke,
+            control_validation=control_validation,
+        )
+        receipt_path = f"{generation_root}/{'quarantine' if production else 'admission'}.json"
         _write_remote(
             target,
             target_runner,
@@ -2996,7 +3065,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             json.dumps(receipt_body, indent=2, sort_keys=True) + "\n",
             "0444",
         )
-        admission_receipt = {"path": receipt_path, **receipt_body}
+        if production:
+            quarantine_receipt = {"path": receipt_path, **receipt_body}
+        else:
+            admission_receipt = {"path": receipt_path, **receipt_body}
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,
@@ -3017,6 +3089,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "preparation": preparation,
         "attempt": attempt,
         "admission": admission_receipt,
+        "quarantine": quarantine_receipt,
         "performance": {
             "preparation_seconds": preparation_seconds,
             "materialization_seconds": materialization_seconds,
@@ -3037,7 +3110,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         },
         "maintenance": maintenance,
         "prepared_before_downtime": prepared_before_downtime,
-        "status": "activated",
+        "status": (
+            "quarantined"
+            if target.value["environment"] == "production" else "activated"
+        ),
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
@@ -3399,6 +3475,159 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def _activate_quarantined_release(target, runner, arguments, release: dict) -> dict:
+    """Cross the production side-effect boundary for one exact generation."""
+    if target.value["environment"] != "production":
+        raise RuntimeError("release activation is production-only")
+    attempt = _release_attempt(arguments.attempt_id, release["identity"])
+    if not arguments.quarantine_receipt or not arguments.maintenance_receipt:
+        raise RuntimeError(
+            "release activation requires quarantine and maintenance receipts",
+        )
+    runtime = inspect_runtime(target, runner)
+    active = runtime.get("active_state")
+    generation = runtime.get("generation")
+    if not isinstance(active, dict) or not isinstance(generation, str):
+        raise RuntimeError("production has no quarantined candidate generation")
+    if active.get("snapshot") != arguments.snapshot:
+        raise RuntimeError("production activation snapshot differs")
+    active_release = validate_release(json.loads(
+        _read_path(target, runner, Path(active.get("release_manifest", ""))),
+    ))
+    if active_release.get("identity") != release["identity"]:
+        raise RuntimeError("production activation release differs")
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    quarantine_path = f"{generation_root}/quarantine.json"
+    if str(arguments.quarantine_receipt) != quarantine_path:
+        raise RuntimeError("production quarantine receipt path differs")
+    quarantine = _validate_release_boundary_receipt(
+        json.loads(_read_path(target, runner, arguments.quarantine_receipt)),
+        schema="usl-release-quarantine/v1",
+        status="quarantined",
+        target=target,
+        attempt=attempt,
+        release=release["identity"],
+    )
+    if (
+        quarantine["generation"] != generation
+        or quarantine["snapshot"] != arguments.snapshot
+    ):
+        raise RuntimeError("production quarantine receipt runtime differs")
+    maintenance = _maintenance_receipt(
+        json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
+        target=target.name,
+        attempt=attempt,
+    )
+    if datetime.fromisoformat(maintenance["observed_at"].replace("Z", "+00:00")) > datetime.fromisoformat(
+        quarantine["quarantined_at"].replace("Z", "+00:00"),
+    ):
+        raise RuntimeError("production quarantine predates maintenance admission")
+
+    admission_path = f"{generation_root}/admission.json"
+    existing = runner.run(["cat", admission_path], check=False)
+    if existing.returncode == 0:
+        admission = _validate_release_boundary_receipt(
+            json.loads(existing.stdout),
+            schema="usl-release-admission/v1",
+            status="admitted",
+            target=target,
+            attempt=attempt,
+            release=release["identity"],
+        )
+        return {
+            "schema": "usl-production-release-activation/v1",
+            "target": target.name,
+            "attempt": attempt,
+            "release": release["identity"],
+            "generation": generation,
+            "admission": {"path": admission_path, **admission},
+            "status": "already-activated",
+        }
+
+    identity = runtime["compose"]
+    overlay = f"{generation_root}/compose.generation.json"
+    if overlay not in identity["compose_files"]:
+        raise RuntimeError("production generation overlay is unavailable")
+    volumes = {role: item["name"] for role, item in runtime["volumes"].items()}
+    network = active.get("network")
+    if not isinstance(network, str):
+        raise RuntimeError("production candidate network is unavailable")
+    side_effect_admission = _admit_production_side_effects(
+        target, runner, release, network, volumes,
+    )
+    activation = _run_production_boundary_script(
+        target,
+        runner,
+        release,
+        network,
+        volumes,
+        "production_activate.py",
+        release["identity"],
+        "USL_PRODUCTION_ACTIVATION=",
+    )
+    activation["side_effect_admission"] = side_effect_admission
+    images = _runtime_images(runner, identity)
+    _write_remote(
+        target,
+        runner,
+        overlay,
+        _generation_overlay(
+            volumes,
+            release,
+            set(images) | {"odoo-upgrade"},
+            target.value["ingress"],
+            sign_secret_root=f"{generation_root}/sign-secrets",
+            service_names=target.value["services"],
+        ),
+    )
+    runner.run(
+        compose_command(
+            identity,
+            [
+                "up", "--detach", "--wait", "--force-recreate",
+                target.value["services"]["odoo"],
+                target.value["services"]["paperless"],
+            ],
+        ),
+    )
+    health = _gate(health_command, target, arguments.targets)
+    smoke = _gate(smoke_command, target, arguments.targets)
+    receipt = {
+        **{key: quarantine[key] for key in (
+            "target", "attempt", "release", "snapshot", "generation",
+            "control_validation_sha256",
+        )},
+        "schema": "usl-release-admission/v1",
+        "health_sha256": hashlib.sha256(
+            json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest(),
+        "smoke_sha256": hashlib.sha256(
+            json.dumps(smoke, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest(),
+        "admitted_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "admitted",
+    }
+    receipt["sha256"] = hashlib.sha256(
+        json.dumps(receipt, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    _write_remote(
+        target, runner, admission_path,
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", "0444",
+    )
+    return {
+        "schema": "usl-production-release-activation/v1",
+        "target": target.name,
+        "attempt": attempt,
+        "release": release["identity"],
+        "generation": generation,
+        "production_activation": activation,
+        "health": health,
+        "smoke": smoke,
+        "admission": {"path": admission_path, **receipt},
+        "status": "activated",
+    }
+
+
 def release_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -3482,6 +3711,20 @@ def release_command(arguments: argparse.Namespace) -> int:
         return 0
     if arguments.action == "notify":
         value = _notify_release(target, runner, arguments.release_id or "")
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "activate":
+        if not arguments.snapshot or not arguments.candidate_release:
+            raise RuntimeError(
+                "release activation requires snapshot and candidate release",
+            )
+        try:
+            release = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+        except (json.JSONDecodeError, ReleaseManifestError) as error:
+            raise RuntimeError("release activation candidate is invalid") from error
+        value = _activate_quarantined_release(target, runner, arguments, release)
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
@@ -3743,7 +3986,7 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
     release = commands.add_parser("release")
-    release.add_argument("action", choices=("prepare", "plan", "reconcile", "status", "abort", "notify"))
+    release.add_argument("action", choices=("prepare", "plan", "reconcile", "activate", "status", "abort", "notify"))
     release.add_argument("--target", dest="command_target")
     release.add_argument("--source", default="production")
     release.add_argument("--active-release", type=Path)
@@ -3761,6 +4004,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--attempt-id")
     release.add_argument("--maintenance-receipt", type=Path)
     release.add_argument("--prepare-receipt", type=Path)
+    release.add_argument("--quarantine-receipt", type=Path)
     release.add_argument("--json", action="store_true")
     release.set_defaults(handler=release_command)
     return parser
