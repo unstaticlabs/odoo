@@ -21,9 +21,13 @@ from operations.stack import (
     _abort_to_previous_generation,
     _activate_generation,
     _candidate_compose_identity,
+    _cleanup_inventory,
+    _cleanup_workspaces,
+    _delete_cleanup_resources,
     _generation_overlay,
     _ensure_image,
     _materialize_command,
+    _materialization_cleanup,
     _prepare_generation_volume_ownership,
     _previous_generation_identity,
     _release_images,
@@ -38,6 +42,10 @@ from operations.stack import (
     _write_adopt_generation,
     _validate_materialized_release,
     _validate_runtime_release_images,
+    _validated_cleanup_resources,
+    _validated_cleanup_network,
+    _validated_cleanup_volume,
+    cleanup_command,
     generation_volume_names,
     generation_volume_path,
     runtime_lock,
@@ -1088,9 +1096,377 @@ class CohortContractTests(unittest.TestCase):
             [[
                 "rm",
                 "-rf",
+                "--",
                 target.value["state_directory"] + "/generations/g20260901-a1b2c3d4/work",
             ]],
         )
+
+    def test_materialization_failure_removes_exact_workspace_and_database_containers(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260901-a1b2c3d4"
+        with self.assertRaisesRegex(RuntimeError, "materialization failed"):
+            with _materialization_cleanup(target, runner, generation) as containers:
+                containers.append("candidate-postgres")
+                raise RuntimeError("materialization failed")
+        self.assertEqual(
+            runner.commands,
+            [
+                ["docker", "rm", "--force", "candidate-postgres"],
+                [
+                    "rm", "-rf", "--",
+                    target.value["state_directory"] + f"/generations/{generation}/work",
+                ],
+            ],
+        )
+
+    def test_cleanup_accepts_modern_bind_and_safe_legacy_named_database_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        names = generation_volume_names(target, generation)
+
+        class InspectRunner:
+            def __init__(self, volume):
+                self.volume = volume
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(self.volume), "")
+                if command[0] == "find":
+                    return subprocess.CompletedProcess(command, 0, "d\n", "")
+                raise AssertionError(command)
+
+        labels = {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+            "com.unstaticlabs.runtime.role": "odoo_postgres",
+            "com.unstaticlabs.runtime.storage-tier": "database",
+        }
+        database_path = generation_volume_path(target, generation, "odoo_postgres")
+        modern = {
+            "Name": names["odoo_postgres"],
+            "Driver": "local",
+            "Labels": labels,
+            "Options": {"device": database_path, "o": "bind", "type": "none"},
+            "Mountpoint": "/var/lib/docker/volumes/ignored-for-bind/_data",
+        }
+        self.assertEqual(
+            _validated_cleanup_volume(
+                target, InspectRunner(modern), modern["Name"], "/var/lib/docker",
+            )["database_path"],
+            database_path,
+        )
+
+        for options in (None, {}):
+            legacy = {
+                **modern,
+                "Labels": {
+                    key: value for key, value in labels.items()
+                    if not key.endswith("storage-tier")
+                },
+                "Options": options,
+                "Mountpoint": f"/var/lib/docker/volumes/{modern['Name']}/_data",
+            }
+            legacy_runner = InspectRunner(legacy)
+            self.assertIsNone(
+                _validated_cleanup_volume(
+                    target, legacy_runner, legacy["Name"], "/var/lib/docker",
+                )["database_path"],
+            )
+            self.assertFalse(any(command[0] == "find" for command in legacy_runner.commands))
+
+    def test_cleanup_rejects_foreign_mismatched_and_unsafe_named_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        name = generation_volume_names(target, generation)["odoo_postgres"]
+        base = {
+            "Name": name,
+            "Driver": "local",
+            "Labels": {
+                "com.unstaticlabs.runtime.project": target.project,
+                "com.unstaticlabs.runtime.target": target.name,
+                "com.unstaticlabs.runtime.generation": generation,
+                "com.unstaticlabs.runtime.role": "odoo_postgres",
+            },
+            "Options": {},
+            "Mountpoint": f"/var/lib/docker/volumes/{name}/_data",
+        }
+
+        class InspectRunner:
+            def __init__(self, volume):
+                self.volume = volume
+
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 0, json.dumps(self.volume), "")
+
+        mutations = (
+            {"Name": "foreign"},
+            {"Driver": "nfs"},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.project": "foreign"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.target": "production"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.generation": "invalid"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.role": "foreign"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.storage-tier": "bulk"}},
+            {"Options": {"device": "/foreign", "o": "bind", "type": "none"}},
+            {"Mountpoint": "/foreign"},
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                volume = {**base, **mutation}
+                with self.assertRaises(RuntimeError):
+                    _validated_cleanup_volume(
+                        target, InspectRunner(volume), name, "/var/lib/docker",
+                    )
+
+    def test_cleanup_deletes_only_modern_bind_paths(self) -> None:
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        _delete_cleanup_resources(
+            runner,
+            [
+                {"name": "legacy-named", "database_path": None},
+                {"name": "modern-bind", "database_path": "/srv/db/exact"},
+            ],
+            [],
+            [],
+        )
+        self.assertEqual(
+            runner.commands,
+            [
+                ["docker", "volume", "rm", "legacy-named"],
+                ["docker", "volume", "rm", "modern-bind"],
+                ["find", "/srv/db/exact", "-xdev", "-mindepth", "1", "-delete"],
+                ["rmdir", "--", "/srv/db/exact"],
+            ],
+        )
+
+    def test_cleanup_rejects_bind_options_for_non_database_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        name = generation_volume_names(target, generation)["odoo_filestore"]
+        volume = {
+            "Name": name,
+            "Driver": "local",
+            "Labels": {
+                "com.unstaticlabs.runtime.project": target.project,
+                "com.unstaticlabs.runtime.target": target.name,
+                "com.unstaticlabs.runtime.generation": generation,
+                "com.unstaticlabs.runtime.role": "odoo_filestore",
+                "com.unstaticlabs.runtime.storage-tier": "bulk",
+            },
+            "Options": {"device": "/foreign", "o": "bind", "type": "none"},
+            "Mountpoint": f"/var/lib/docker/volumes/{name}/_data",
+        }
+
+        class InspectRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 0, json.dumps(volume), "")
+
+        with self.assertRaisesRegex(RuntimeError, "managed volume differs"):
+            _validated_cleanup_volume(target, InspectRunner(), name, "/var/lib/docker")
+
+    def test_cleanup_rejects_malformed_network_labels(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class InspectRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(
+                    command, 0, json.dumps({"Name": "candidate", "Labels": None}), "",
+                )
+
+        with self.assertRaisesRegex(RuntimeError, "network inspection is invalid"):
+            _validated_cleanup_network(target, InspectRunner(), "candidate")
+
+    def test_cleanup_inventory_protects_active_and_rollback_resources(self) -> None:
+        target = load_target("staging", TARGETS)
+        active = "active-volume"
+        previous = "previous-volume"
+
+        class InventoryRunner:
+            def run(self, command, *, check=True):
+                if command[0] == "cat":
+                    state = {
+                        "network": "active-network",
+                        "previous": {
+                            "generation": "g20260903-rollback",
+                            "volumes": {"odoo_postgres": previous},
+                            "network": "rollback-network",
+                        },
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps(state), "")
+                if command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, f"{active}\n{previous}\nstale-volume\n", "",
+                    )
+                if command[:3] == ["docker", "network", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        "active-network\nrollback-network\nstale-network\n", "",
+                    )
+                raise AssertionError(command)
+
+        current = {
+            "generation": "g20260904-active",
+            "volumes": {"odoo_postgres": {"name": active}},
+        }
+        with mock.patch("operations.stack._cleanup_workspaces", return_value=["stale-work"]):
+            inventory = _cleanup_inventory(target, InventoryRunner(), current)
+        self.assertEqual(inventory["delete_volumes"], ["stale-volume"])
+        self.assertEqual(inventory["delete_networks"], ["stale-network"])
+        self.assertEqual(inventory["delete_workspaces"], ["stale-work"])
+        self.assertEqual(
+            inventory["protected_generations"],
+            ["g20260903-rollback", "g20260904-active"],
+        )
+
+    def test_cleanup_workspace_inventory_rejects_symlinks_and_keeps_runs(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class WorkspaceRunner:
+            def __init__(self, generation_kind="d"):
+                self.generation_kind = generation_kind
+
+            def run(self, command, *, check=True):
+                if command[:2] == ["test", "-L"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[2:6] == ["-mindepth", "0", "-maxdepth", "0"]:
+                    return subprocess.CompletedProcess(command, 0, "d\n", "")
+                if command[2:6] == ["-mindepth", "1", "-maxdepth", "1"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        f"g20260904-active\td\ng20260903-stale\t{self.generation_kind}\n", "",
+                    )
+                if command[2:6] == ["-mindepth", "2", "-maxdepth", "2"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        "g20260904-active/work\td\ng20260903-stale/work\td\n", "",
+                    )
+                raise AssertionError(command)
+
+        workspaces = _cleanup_workspaces(
+            target, WorkspaceRunner(), {"g20260904-active"},
+        )
+        self.assertEqual(
+            workspaces,
+            [target.value["state_directory"] + "/generations/g20260903-stale/work"],
+        )
+        with self.assertRaises(RuntimeError):
+            _cleanup_workspaces(target, WorkspaceRunner("l"), set())
+
+    def test_cleanup_apply_recomputes_after_lock_and_prevalidates_everything(self) -> None:
+        configured_target = load_target("staging", TARGETS)
+        generation = "g20260903-stale"
+        names = generation_volume_names(configured_target, generation)
+        candidates = [names["odoo_postgres"], names["paperless_postgres"]]
+        labels = {
+            "com.unstaticlabs.runtime.project": configured_target.project,
+            "com.unstaticlabs.runtime.target": configured_target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+        }
+        volumes = {
+            candidates[0]: {
+                "Name": candidates[0], "Driver": "local", "Options": None,
+                "Mountpoint": f"/var/lib/docker/volumes/{candidates[0]}/_data",
+                "Labels": {**labels, "com.unstaticlabs.runtime.role": "odoo_postgres"},
+            },
+            candidates[1]: {
+                "Name": candidates[1], "Driver": "local", "Options": None,
+                "Mountpoint": f"/var/lib/docker/volumes/{candidates[1]}/_data",
+                "Labels": {
+                    **labels, "com.unstaticlabs.runtime.target": "production",
+                    "com.unstaticlabs.runtime.role": "paperless_postgres",
+                },
+            },
+        }
+
+        class CleanupRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:2] == ["docker", "info"]:
+                    return subprocess.CompletedProcess(command, 0, "/var/lib/docker\n", "")
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(volumes[command[3]]), "",
+                    )
+                raise AssertionError(command)
+
+        runner = CleanupRunner()
+        target = mock.Mock(
+            name=configured_target.name,
+            project=configured_target.project,
+            value=configured_target.value,
+        )
+        target.name = configured_target.name
+        target.project = configured_target.project
+        target.value = configured_target.value
+        target.runner.return_value = runner
+        locked = {"value": False}
+
+        class Lock:
+            def __enter__(self):
+                locked["value"] = True
+
+            def __exit__(self, *_args):
+                locked["value"] = False
+
+        current = {"generation": "g20260904-active", "volumes": {}}
+
+        def inspect_after_lock(_target, _runner):
+            self.assertTrue(locked["value"])
+            return current
+
+        def inventory_after_lock(_target, _runner, value):
+            self.assertTrue(locked["value"])
+            self.assertIs(value, current)
+            return {
+                "protected_volumes": [], "protected_networks": [],
+                "protected_generations": ["g20260904-active"],
+                "delete_volumes": candidates,
+                "delete_networks": [], "delete_workspaces": [],
+            }
+
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.runtime_lock", return_value=Lock()),
+            mock.patch("operations.stack.inspect_runtime", side_effect=inspect_after_lock),
+            mock.patch("operations.stack._cleanup_inventory", side_effect=inventory_after_lock),
+            self.assertRaisesRegex(RuntimeError, "candidate identity differs"),
+        ):
+            cleanup_command(argparse.Namespace(
+                target="staging", targets=TARGETS, action="apply", confirm="staging",
+                runtime_only=True, json=True,
+            ))
+        self.assertEqual(
+            [command[3] for command in runner.commands if command[:3] == ["docker", "volume", "inspect"]],
+            candidates,
+        )
+        self.assertFalse(any(
+            command[:3] in (["docker", "volume", "rm"], ["docker", "network", "rm"])
+            or command[:3] == ["rm", "-rf", "--"]
+            for command in runner.commands
+        ))
 
     def test_fresh_odoo_volume_is_prepared_for_the_runtime_user(self) -> None:
         image = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64

@@ -70,6 +70,7 @@ COMPONENTS = {
             (
                 "docker/backup.Dockerfile",
                 "docker/backup.Dockerfile.dockerignore",
+                "deploy/production.cron-policy.json",
                 "operations/**",
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
