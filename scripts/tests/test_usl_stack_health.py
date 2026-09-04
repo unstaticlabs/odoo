@@ -115,6 +115,10 @@ class HealthContractTests(unittest.TestCase):
         with (
             patch("operations.stack.load_target", return_value=wrapped),
             patch("operations.stack.inspect_runtime", return_value=status),
+            patch(
+                "operations.stack._runtime_admission_evidence",
+                return_value={"mcp": {"status": "ready"}, "sign": {"status": "ready"}},
+            ),
             redirect_stdout(output),
         ):
             result = health_command(
