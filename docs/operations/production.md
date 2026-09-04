@@ -19,6 +19,14 @@ Cloudflare routes production to `odoo:8069` and staging to
 `odoo-staging:8069`; websocket routes use port `8072`. Never reuse the ingress
 alias across environments.
 
+The first generation-based staging adoption may discover the pre-v3 service
+under its legacy `odoo` Compose label. The controller accepts that anchor only
+when the canonical `odoo-staging` anchor is absent, exactly one legacy anchor
+has complete provenance for the staging project, and no active-generation
+record exists. It rejects duplicate, mixed, foreign, or wrongly labelled
+anchors. After activation, staging requires `odoo-staging`; production always
+requires `odoo` and has no transition fallback.
+
 Odoo enables `proxy_mode` only in production-like targets. Cloudflare is the
 trusted edge for those targets and must preserve `Host`, `X-Forwarded-For`, and
 `X-Forwarded-Proto`. The public `/websocket` route must reach Odoo's gevent

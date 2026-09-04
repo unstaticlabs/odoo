@@ -19,6 +19,7 @@ from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ROOT / "operations/targets"
+HOST_TARGETS = ROOT / "operations/targets-host"
 
 
 class FakeRunner:
@@ -38,6 +39,7 @@ class FakeRunner:
         if command[:3] == ["docker", "inspect", "anchor-id"]:
             labels = {
                 "com.docker.compose.project": self.target.project,
+                "com.docker.compose.service": self.target.value["compose"]["anchor_service"],
                 "com.docker.compose.project.config_files": "/release/compose.yaml,/release/production.yaml",
                 "com.docker.compose.project.working_dir": "/release",
                 "com.docker.compose.project.environment_file": (
@@ -65,6 +67,72 @@ class FakeRunner:
                 + "\n",
             )
         raise AssertionError(command)
+
+
+def active_generation(target) -> dict:
+    generation = "g20260901-a1b2c3d4"
+    return {
+        "schema": "usl-active-generation/v1",
+        "target": target.name,
+        "generation": generation,
+        "volumes": {
+            role: f"generation-{role}"
+            for role in target.value["volumes"]
+        },
+        "network": "generation-network",
+        "snapshot": "a" * 64,
+        "release_manifest": (
+            target.value["state_directory"]
+            + f"/generations/{generation}/usl-release.json"
+        ),
+        "previous": {},
+    }
+
+
+class ComposeAnchorRunner(FakeRunner):
+    def __init__(
+        self,
+        target,
+        services: dict[str, list[str]],
+        *,
+        active_state: dict | None = None,
+        label_overrides: dict[str, dict[str, str]] | None = None,
+    ) -> None:
+        super().__init__(target)
+        self.services = services
+        self.active_state = active_state
+        self.label_overrides = label_overrides or {}
+
+    def run(self, command: list[str], *, check: bool = True):
+        self.commands.append(command)
+        if command[:1] == ["cat"]:
+            if self.active_state is None:
+                return subprocess.CompletedProcess(command, 1, "", "missing")
+            return self.completed(command, json.dumps(self.active_state))
+        if command[:2] == ["docker", "ps"]:
+            service_filter = next(
+                item for item in command
+                if item.startswith("label=com.docker.compose.service=")
+            )
+            service = service_filter.rsplit("=", 1)[1]
+            output = "".join(f"{identifier}\n" for identifier in self.services.get(service, []))
+            return self.completed(command, output)
+        if command[:2] == ["docker", "inspect"]:
+            identifier = command[2]
+            service = next(
+                name for name, identifiers in self.services.items()
+                if identifier in identifiers
+            )
+            labels = {
+                "com.docker.compose.project": self.target.project,
+                "com.docker.compose.service": service,
+                "com.docker.compose.project.config_files": "/release/compose.yaml,/release/production.yaml",
+                "com.docker.compose.project.working_dir": "/release",
+                "com.docker.compose.project.environment_file": "/runtime/site.env,/release/.env",
+            }
+            labels.update(self.label_overrides.get(identifier, {}))
+            return self.completed(command, json.dumps(labels))
+        return super().run(command, check=check)
 
 
 class RuntimeContractTests(unittest.TestCase):
@@ -186,6 +254,73 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("/release/.env", command)
         for profile in target.value["compose"]["profiles"]:
             self.assertIn(profile, command)
+
+    def test_staging_first_adoption_accepts_only_one_legacy_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]})
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "legacy-id")
+
+    def test_staging_accepts_only_one_canonical_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo-staging": ["canonical-id"]})
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "canonical-id")
+
+    def test_staging_rejects_canonical_and_legacy_anchors_together(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["canonical-id"], "odoo": ["legacy-id"]},
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "both canonical and legacy anchors"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_after_activation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "expected one.*odoo-staging"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_foreign_or_wrong_legacy_labels(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        for labels, message in (
+            ({"com.docker.compose.project": "foreign"}, "another Compose project"),
+            ({"com.docker.compose.service": "wrong"}, "wrong Compose service label"),
+        ):
+            with self.subTest(message=message):
+                runner = ComposeAnchorRunner(
+                    target,
+                    {"odoo": ["legacy-id"]},
+                    label_overrides={"legacy-id": labels},
+                )
+                with self.assertRaisesRegex(RuntimeError, message):
+                    compose_identity(target, runner)
+
+    def test_production_does_not_probe_the_staging_legacy_transition(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo": ["production-id"]})
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "production-id")
+        service_filters = [
+            item
+            for command in runner.commands
+            for item in command
+            if item.startswith("label=com.docker.compose.service=")
+        ]
+        self.assertEqual(service_filters, ["label=com.docker.compose.service=odoo"])
 
     def test_status_rejects_foreign_volume_ownership(self) -> None:
         target = load_target("production", TARGETS)

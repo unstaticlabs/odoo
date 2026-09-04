@@ -398,20 +398,44 @@ def _json_lines(output: str) -> list[dict[str, Any]]:
 
 def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     anchor = target.value["compose"]["anchor_service"]
-    process = runner.run(
-        [
-            "docker",
-            "ps",
-            "-a",
-            "--filter",
-            f"label=com.docker.compose.project={target.project}",
-            "--filter",
-            f"label=com.docker.compose.service={anchor}",
-            "--format",
-            "{{.ID}}",
-        ],
+    def service_containers(service: str) -> list[str]:
+        process = runner.run(
+            [
+                "docker",
+                "ps",
+                "-a",
+                "--filter",
+                f"label=com.docker.compose.project={target.project}",
+                "--filter",
+                f"label=com.docker.compose.service={service}",
+                "--format",
+                "{{.ID}}",
+            ],
+        )
+        return [line for line in process.stdout.splitlines() if line]
+
+    identifiers = service_containers(anchor)
+    selected_anchor = anchor
+    staging_transition = (
+        target.name == "staging"
+        and target.value["environment"] == "staging"
+        and anchor == "odoo-staging"
+        and target.value["services"]["odoo"] == "odoo-staging"
     )
-    identifiers = [line for line in process.stdout.splitlines() if line]
+    if staging_transition:
+        legacy_anchor = "odoo"
+        legacy_identifiers = service_containers(legacy_anchor)
+        if identifiers and legacy_identifiers:
+            raise RuntimeError(
+                f"both canonical and legacy anchors exist for {target.project}",
+            )
+        if (
+            not identifiers
+            and len(legacy_identifiers) == 1
+            and read_active_state(target, runner) is None
+        ):
+            identifiers = legacy_identifiers
+            selected_anchor = legacy_anchor
     if len(identifiers) != 1:
         raise RuntimeError(
             f"expected one {target.project}/{anchor} container, found {len(identifiers)}",
@@ -422,6 +446,8 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     labels = json.loads(inspect.stdout)
     if labels.get("com.docker.compose.project") != target.project:
         raise RuntimeError("anchor container belongs to another Compose project")
+    if labels.get("com.docker.compose.service") != selected_anchor:
+        raise RuntimeError("anchor container has the wrong Compose service label")
     files = [item for item in labels.get("com.docker.compose.project.config_files", "").split(",") if item]
     directory = labels.get("com.docker.compose.project.working_dir", "")
     env_file = labels.get("com.docker.compose.project.environment_file", "")
