@@ -289,6 +289,26 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve verified renderer identity
+        id: renderer
+        run: |
+          reference="$(jq -r .image_digest deploy/document-renderer/release.json)"
+          case "$reference" in
+            ghcr.io/unstaticlabs/usl-document-renderer@sha256:*) ;;
+            *) printf 'Renderer image is not the governed GHCR package: %s\n' "$reference" >&2; exit 1 ;;
+          esac
+          subject_name="${reference%@*}"
+          subject_digest="${reference#*@}"
+          printf '%s\n' "$subject_digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          test "$subject_name@$subject_digest" = "$reference"
+          echo "subject_name=$subject_name" >> "$GITHUB_OUTPUT"
+          echo "subject_digest=$subject_digest" >> "$GITHUB_OUTPUT"
+      - name: Attest verified renderer as distribution integrator
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ steps.renderer.outputs.subject_name }}
+          subject-digest: ${{ steps.renderer.outputs.subject_digest }}
+          create-storage-record: true
       - name: Install ORAS
         uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
       - name: Create release manifest from published components
