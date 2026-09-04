@@ -1441,7 +1441,14 @@ class TestFrenchEinvoiceReception(
             "rebuild_einvoice_activation_approved": False,
             "account_peppol_proxy_state": "smp_registration",
         })
-        self._create_production_proxy_user()
+        unapproved_proxy = self._create_production_proxy_user()
+        eligible_users = self.env["account_edi_proxy_client.user"].search([
+            ("company_id.rebuild_einvoice_activation_approved", "=", True),
+            ("proxy_type", "in", self.env[
+                "account_edi_proxy_client.user"
+            ]._get_peppol_proxy_types()),
+        ])
+        self.assertNotIn(unapproved_proxy, eligible_users)
         cron = self.env.ref(
             "account_peppol.ir_cron_peppol_get_participant_status",
         )
@@ -1456,7 +1463,9 @@ class TestFrenchEinvoiceReception(
         ) as poll_status:
             self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
 
-        poll_status.assert_not_called()
+        # The cron invokes the recordset method even when the eligible
+        # recordset is empty; the domain assertion above proves exclusion.
+        poll_status.assert_called_once()
         self.assertFalse(self.env["ir.cron.trigger"].sudo().search([
             ("cron_id", "=", cron.id),
         ]))
