@@ -2313,6 +2313,80 @@ def _runtime_admission_evidence(target, runner, identity) -> dict:
     return {"mcp": mcp, "sign": sign}
 
 
+def _legacy_staging_baseline(target, runner, runtime: dict, release: dict) -> dict:
+    """Prove the one v2 staging baseline without assuming candidate-only schema."""
+    if target.value["environment"] != "staging" or release.get("schema") != "usl-release/v2":
+        raise RuntimeError("legacy baseline admission requires an active staging v2 release")
+    expected = set(target.value["services"].values())
+    containers = {item.get("Service"): item for item in runtime["containers"]}
+    unhealthy = sorted(
+        service
+        for service in expected
+        if service not in containers
+        or containers[service].get("State") != "running"
+        or containers[service].get("Health") not in {None, "", "healthy"}
+    )
+    if unhealthy:
+        raise RuntimeError("legacy staging services are not healthy: " + ", ".join(unhealthy))
+    endpoints = {}
+    paths = {"odoo": "/web/health?db_server_status=1", "paperless": "/api/", "mcp": "/healthz"}
+    for name, path in paths.items():
+        url = target.value["admission_endpoints"][name].rstrip("/") + path
+        process = runner.run([
+            "curl", "--silent", "--show-error", "--output", "/dev/null",
+            "--write-out", "%{http_code}", "--max-time", "10", url,
+        ], check=False)
+        code = int(process.stdout) if process.returncode == 0 and process.stdout.isdigit() else 0
+        ok = code == 200 if name in {"odoo", "mcp"} else 200 <= code < 500
+        endpoints[name] = {"url": url, "status_code": code, "ok": ok}
+    if not all(item["ok"] for item in endpoints.values()):
+        raise RuntimeError("legacy staging baseline endpoint is unavailable")
+    query = """
+SELECT json_build_object(
+  'database', current_database(),
+  'companies', (SELECT count(*) FROM res_company),
+  'users', (SELECT count(*) FROM res_users),
+  'moves', (SELECT count(*) FROM account_move),
+  'attachments', (SELECT count(*) FROM ir_attachment),
+  'ledger_delta', (SELECT coalesce(sum(balance), 0) FROM account_move_line WHERE parent_state = 'posted')
+)::text
+"""
+    try:
+        database = json.loads(_psql(target, runner, runtime["compose"], "odoo", query))
+    except (RuntimeError, json.JSONDecodeError) as error:
+        raise RuntimeError("legacy staging baseline database probe failed") from error
+    if (
+        database.get("database") != target.value["databases"]["odoo"]["name"]
+        or min(database.get(key, 0) for key in ("companies", "users", "moves", "attachments")) < 1
+        or float(database.get("ledger_delta", 1)) != 0
+    ):
+        raise RuntimeError("legacy staging baseline business controls differ")
+    body = {
+        "schema": "usl-legacy-staging-baseline/v1",
+        "target": target.name,
+        "release_schema": release["schema"],
+        "release_commit": release["source"]["commit"],
+        "generation": runtime.get("generation"),
+        "runtime_sha256": _runtime_cas_sha256(target, runner, runtime),
+        "endpoints": endpoints,
+        "database": database,
+        "status": "passed",
+    }
+    body["sha256"] = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    return body
+
+
+def _runtime_boundary_gates(target, runner, targets: Path, runtime: dict) -> tuple[dict, dict]:
+    """Use the active release's own boundary during rollback validation."""
+    release, _release_sha256, _release_raw = _release(target, runner, None)
+    if release.get("schema") == "usl-release/v2":
+        baseline = _legacy_staging_baseline(target, runner, runtime, release)
+        return baseline, baseline
+    return _gate(health_command, target, targets), _gate(smoke_command, target, targets)
+
+
 def health_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -4092,8 +4166,7 @@ def _abort_to_previous_generation(
                 and _runtime_cas_sha256(target, runner, current) != claim["baseline_runtime_sha256"]
             ):
                 raise RuntimeError("rolled-back runtime differs from the claimed baseline")
-            health = _gate(health_command, target, targets)
-            smoke = _gate(smoke_command, target, targets)
+            health, smoke = _runtime_boundary_gates(target, runner, targets, current)
             return {
                 "schema": "usl-release-abort/v1",
                 "target": target.name,
@@ -4177,8 +4250,10 @@ def _abort_to_previous_generation(
     else:
         _write_remote(target, runner, active_path, previous_state)
         generation = json.loads(previous_state)["generation"]
-    health = _gate(health_command, target, targets)
-    smoke = _gate(smoke_command, target, targets)
+    restored_runtime = inspect_runtime(target, runner)
+    health, smoke = _runtime_boundary_gates(
+        target, runner, targets, restored_runtime,
+    )
     result = {
         "schema": "usl-release-abort/v1",
         "target": target.name,
@@ -6673,6 +6748,12 @@ def release_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     state_path = f"{target.value['state_directory']}/release-state.json"
+    if arguments.action == "baseline-check":
+        runtime = inspect_runtime(target, runner)
+        release, _release_sha256, _release_raw = _release(target, runner, None)
+        value = _legacy_staging_baseline(target, runner, runtime, release)
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "resume-staging":
         if target.value["environment"] != "staging" or not (
             arguments.backup_receipt or arguments.quiescence_receipt
@@ -7609,7 +7690,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument(
         "action",
         choices=(
-            "prepare", "plan", "staging-checkpoint", "reconcile",
+            "prepare", "plan", "staging-checkpoint", "reconcile", "baseline-check",
             "staging-reset-intent",
             "resume-staging",
             "reconcile-staging", "staging-reset-from-production",

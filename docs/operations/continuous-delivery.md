@@ -121,6 +121,24 @@ scripts/usl-stack --target production storage plan \
 scripts/usl-stack --target production storage status
 ```
 
+The first upgrade from the historical `usl-release/v2` staging runtime is the
+one exception to the generic preflight commands above. Candidate `health` and
+`smoke` require the new MCP readiness and Agent tables, so they cannot describe
+the unchanged legacy runtime. Before that upgrade, use the version-locked,
+read-only baseline gate instead:
+
+```bash
+scripts/usl-stack --target staging release baseline-check --json
+```
+
+It accepts only an active staging v2 release, requires every owned container to
+be running and healthy, checks the Odoo, Paperless and legacy MCP endpoints,
+and proves basic business counts plus a balanced posted ledger. The ordinary
+qualified backup remains the durable pre-change checkpoint. After the v3
+candidate starts, the controller always runs the full current `health` and
+`smoke` admission; rollback selects the v2 baseline gate only when the restored
+release manifest is v2.
+
 The fixed controller additionally uses a release-bound internal notification
 operation after production admission. It can announce only the exact active
 64-character release identity. OdooBot posts the reviewed user-facing notes

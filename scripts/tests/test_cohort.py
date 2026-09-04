@@ -45,7 +45,9 @@ from operations.stack import (
     _release_attempt_claim,
     _release_boundary_receipt,
     _release_runtime_evidence,
+    _legacy_staging_baseline,
     _runtime_baseline_sha256,
+    _runtime_boundary_gates,
     _runtime_cas_sha256,
     _require_same_attempt_boundary,
     _required_maintenance_endpoints,
@@ -257,6 +259,103 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_legacy_staging_baseline_uses_only_v2_safe_probes(self) -> None:
+        target = load_target("staging", TARGETS)
+        runtime = {
+            "generation": "glegacy",
+            "compose": {},
+            "containers": [
+                {"Service": service, "State": "running", "Health": "healthy"}
+                for service in target.value["services"].values()
+            ],
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "curl":
+                    return subprocess.CompletedProcess(command, 0, "200", "")
+                raise AssertionError(command)
+
+        controls = {
+            "database": target.value["databases"]["odoo"]["name"],
+            "companies": 1,
+            "users": 2,
+            "moves": 3,
+            "attachments": 4,
+            "ledger_delta": 0,
+        }
+        with (
+            mock.patch("operations.stack._psql", return_value=json.dumps(controls)),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="a" * 64),
+        ):
+            value = _legacy_staging_baseline(
+                target,
+                Runner(),
+                runtime,
+                {"schema": "usl-release/v2", "source": {"commit": "b" * 40}},
+            )
+        self.assertEqual(value["status"], "passed")
+        self.assertEqual(value["release_schema"], "usl-release/v2")
+        self.assertEqual(
+            value["endpoints"]["mcp"]["url"],
+            "http://127.0.0.1:19000/healthz",
+        )
+
+    def test_legacy_staging_baseline_rejects_v3(self) -> None:
+        target = load_target("staging", TARGETS)
+        with self.assertRaisesRegex(RuntimeError, "active staging v2"):
+            _legacy_staging_baseline(
+                target,
+                mock.Mock(),
+                {},
+                {"schema": "usl-release/v3"},
+            )
+
+    def test_runtime_boundary_uses_exact_legacy_gate_for_v2(self) -> None:
+        target = mock.Mock()
+        runner = mock.Mock()
+        runtime = {"generation": "glegacy"}
+        baseline = {"schema": "usl-legacy-staging-baseline/v1", "status": "passed"}
+        with (
+            mock.patch("operations.stack._release", return_value=(
+                {"schema": "usl-release/v2"}, "a" * 64, "{}",
+            )),
+            mock.patch(
+                "operations.stack._legacy_staging_baseline", return_value=baseline,
+            ) as legacy,
+            mock.patch("operations.stack._gate") as strict,
+        ):
+            health, smoke = _runtime_boundary_gates(target, runner, TARGETS, runtime)
+        self.assertIs(health, baseline)
+        self.assertIs(smoke, baseline)
+        legacy.assert_called_once_with(
+            target, runner, runtime, {"schema": "usl-release/v2"},
+        )
+        strict.assert_not_called()
+
+    def test_runtime_boundary_keeps_full_candidate_gates_for_v3(self) -> None:
+        target = mock.Mock()
+        runner = mock.Mock()
+        runtime = {"generation": "gcandidate"}
+        with (
+            mock.patch("operations.stack._release", return_value=(
+                {"schema": "usl-release/v3"}, "a" * 64, "{}",
+            )),
+            mock.patch("operations.stack._legacy_staging_baseline") as legacy,
+            mock.patch(
+                "operations.stack._gate",
+                side_effect=[
+                    {"schema": "health", "status": "passed"},
+                    {"schema": "smoke", "status": "passed"},
+                ],
+            ) as strict,
+        ):
+            health, smoke = _runtime_boundary_gates(target, runner, TARGETS, runtime)
+        self.assertEqual(health["schema"], "health")
+        self.assertEqual(smoke["schema"], "smoke")
+        self.assertEqual(strict.call_count, 2)
+        legacy.assert_not_called()
+
     def test_select_latest_recovery_snapshot_requires_production_scope(self) -> None:
         with self.assertRaisesRegex(cohort.CohortError, "production durable cohort"):
             cohort.select_latest_recovery_snapshot([{
@@ -1399,15 +1498,15 @@ class CohortContractTests(unittest.TestCase):
         ), mock.patch(
             "operations.stack._start_rollback_identity",
         ) as starter, mock.patch(
-            "operations.stack._gate",
-            side_effect=[{"status": "passed"}, {"status": "passed"}],
+            "operations.stack._runtime_boundary_gates",
+            return_value=({"status": "passed"}, {"status": "passed"}),
         ) as gates:
             result = _abort_to_previous_generation(target, runner, TARGETS)
         remove = ["docker", "rm", "--force", "canonical-id"]
         self.assertIn(remove, runner.commands)
         # The shared starter keeps the recovered legacy Odoo behind the stable gateway.
         starter.assert_called_once_with(target, runner, legacy_identity)
-        self.assertEqual(gates.call_count, 2)
+        gates.assert_called_once()
         self.assertEqual(result["status"], "rolled-back")
 
     def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
@@ -1458,8 +1557,8 @@ class CohortContractTests(unittest.TestCase):
 
         runner = Runner()
         with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
-            "operations.stack._gate",
-            side_effect=[{"status": "passed"}, {"status": "passed"}],
+            "operations.stack._runtime_boundary_gates",
+            return_value=({"status": "passed"}, {"status": "passed"}),
         ):
             result = _abort_to_previous_generation(target, runner, TARGETS)
         self.assertEqual(result["status"], "rolled-back")
@@ -1545,8 +1644,8 @@ class CohortContractTests(unittest.TestCase):
                 return_value={"generation": baseline},
             ),
             mock.patch(
-                "operations.stack._gate",
-                side_effect=[{"status": "passed"}, {"status": "passed"}],
+                "operations.stack._runtime_boundary_gates",
+                return_value=({"status": "passed"}, {"status": "passed"}),
             ),
         ):
             result = _abort_to_previous_generation(
@@ -1662,8 +1761,8 @@ class CohortContractTests(unittest.TestCase):
                 }, json.dumps({"generation": "gprevious-staging1"})),
             ),
             mock.patch(
-                "operations.stack._gate",
-                side_effect=[{"status": "passed"}, {"status": "passed"}],
+                "operations.stack._runtime_boundary_gates",
+                return_value=({"status": "passed"}, {"status": "passed"}),
             ),
         ):
             result = _abort_to_previous_generation(
