@@ -100,6 +100,9 @@
     "rpc:l10n.fr.pdp.reports.flow.message_post",
     "rpc:l10n.fr.pdp.reports.flow.message_subscribe",
     "rpc:l10n.fr.pdp.reports.flow.message_unsubscribe",
+    "rpc:mail.activity.action_done_schedule_next",
+    "rpc:mail.activity.action_feedback",
+    "rpc:mail.activity.action_feedback_schedule_next",
     "rpc:mail.activity.mixin.activity_schedule",
     "rpc:mail.blacklist.message_post",
     "rpc:mail.blacklist.message_subscribe",
@@ -228,6 +231,7 @@
     "rpc:stock.picking.message_post",
     "rpc:stock.picking.message_subscribe",
     "rpc:stock.picking.message_unsubscribe",
+    "rpc:usl.agent.submit_mcp_feedback",
     "rpc:usl.document.activity_schedule",
     "rpc:usl.document.letter.activity_schedule",
     "rpc:usl.document.letter.message_post",
@@ -280,7 +284,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "ba659362035c7d4b62338ca63093747090295c7e834d24d97a27bb7cb9916b00",
+  "qualified_policy_digest": "657193fcdfc9dfbe45dc665610154ad2bcdd3fdfcec4e929b9a98a1a3bcaede7",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12402,7 +12406,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "dbcb205107473adde1872ada5129ca9c42733102afee4af1eb0b7f614a58c61d",
+  "runtime_policy_sha256": "f5077548e3a9ebaac2254f936abffd7f759e9aea1accc6789ad432c2e2f5771b",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -18151,8 +18155,6 @@
     "rpc:lot.label.layout.web_save_multi",
     "rpc:lot.label.layout.web_search_read",
     "rpc:lot.label.layout.write",
-    "rpc:mail.activity.action_done_schedule_next",
-    "rpc:mail.activity.action_feedback_schedule_next",
     "rpc:mail.activity.copy",
     "rpc:mail.activity.copy_data",
     "rpc:mail.activity.create",

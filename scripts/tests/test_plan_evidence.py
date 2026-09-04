@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -13,7 +14,8 @@ from operations.control_manifest import (
     ODOO_RELEASE_KEYS,
     PAPERLESS_PRESERVATION_KEYS,
 )
-from operations.plan_evidence import PlanEvidenceError, sign, verify
+from operations.plan_evidence import PlanEvidenceError, promote, sign, verify, verify_promotion
+from scripts.tests.test_release_manifest import manifest
 
 
 def plan() -> dict:
@@ -26,7 +28,6 @@ def plan() -> dict:
         "upgrade_modules": ["usl_a"],
         "reasons": {"usl_a": ["source-changed"]},
     }
-    import hashlib
     body["sha256"] = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return body
 
@@ -129,6 +130,167 @@ class PlanEvidenceTests(unittest.TestCase):
                 generation="g-qualified",
                 health={"status": "passed"},
                 smoke=invalid,
+            )
+
+    @staticmethod
+    def production_release(staging):
+        value = copy.deepcopy(staging)
+        value["source"]["ref"] = "refs/heads/19-usl"
+        value["source"]["commit"] = "e" * 40
+        value["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in value.items() if key != "identity"},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        return value
+
+    def test_promotes_equivalent_production_release_without_replacing_staging_signature(self):
+        staging = manifest()
+        staging["identity"] = plan()["candidate_release"]
+        # Rebind the synthetic plan to the valid manifest identity.
+        staging["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in staging.items() if key != "identity"},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(
+            json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        staging_evidence = sign(
+            unsigned,
+            self.private,
+            snapshot="d" * 64,
+            generation="g-qualified",
+            health={"status": "passed"},
+            smoke=smoke(),
+        )
+        production = self.production_release(staging)
+        promoted = promote(
+            staging_evidence, staging, production, self.private, self.public,
+        )
+        self.assertEqual(promoted["staging_evidence"], staging_evidence)
+        result = verify_promotion(promoted, self.public, production)
+        self.assertEqual(result["candidate_release"], production["identity"])
+        self.assertEqual(result["upgrade_modules"], unsigned["upgrade_modules"])
+
+    def test_promotion_allows_branch_specific_release_notes(self):
+        staging = manifest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(
+            json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        evidence = sign(
+            unsigned, self.private, snapshot="d" * 64,
+            generation="g-qualified", health={"status": "passed"}, smoke=smoke(),
+        )
+        production = self.production_release(staging)
+        production["release_notes"] = {
+            "schema": "usl-release-notes/v1",
+            "title": "Production promotion",
+            "summary": "Promote the exact tree qualified by staging.",
+            "changes": ["Promote the exact tree qualified by staging."],
+            "action_required": None,
+        }
+        production["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in production.items() if key != "identity"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        promoted = promote(evidence, staging, production, self.private, self.public)
+        self.assertEqual(
+            verify_promotion(promoted, self.public, production)["candidate_release"],
+            production["identity"],
+        )
+
+    def test_promotion_rejects_different_source_repository(self):
+        staging = manifest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(
+            json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        evidence = sign(
+            unsigned, self.private, snapshot="d" * 64,
+            generation="g-qualified", health={"status": "passed"}, smoke=smoke(),
+        )
+        production = self.production_release(staging)
+        production["source"]["repository"] = "fork-owner/odoo"
+        production["build"]["workflow_url"] = (
+            "https://github.com/fork-owner/odoo/actions/runs/"
+            + str(production["build"]["workflow_run_id"])
+        )
+        production["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in production.items() if key != "identity"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        with self.assertRaisesRegex(PlanEvidenceError, "different repositories"):
+            promote(evidence, staging, production, self.private, self.public)
+
+    def test_promotion_rejects_changed_component(self):
+        staging = manifest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(
+            json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        evidence = sign(
+            unsigned, self.private, snapshot="d" * 64,
+            generation="g-qualified", health={"status": "passed"}, smoke=smoke(),
+        )
+        production = self.production_release(staging)
+        production["components"]["distribution"]["digest"] = "sha256:" + "f" * 64
+        production["components"]["distribution"]["digest_reference"] = (
+            production["components"]["distribution"]["image"] + "@" +
+            production["components"]["distribution"]["digest"]
+        )
+        production["components"]["distribution"]["attestations"]["sbom"]["subject_digest"] = production["components"]["distribution"]["digest"]
+        production["components"]["distribution"]["attestations"]["provenance"]["subject_digest"] = production["components"]["distribution"]["digest"]
+        production["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in production.items() if key != "identity"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        with self.assertRaisesRegex(PlanEvidenceError, "deployable inputs"):
+            promote(evidence, staging, production, self.private, self.public)
+
+    def test_promotion_rejects_wrong_branches(self):
+        staging = manifest()
+        staging["source"]["ref"] = "refs/heads/19-usl"
+        staging["identity"] = hashlib.sha256(
+            json.dumps(
+                {key: item for key, item in staging.items() if key != "identity"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode(),
+        ).hexdigest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(
+            json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        evidence = sign(
+            unsigned, self.private, snapshot="d" * 64,
+            generation="g-qualified", health={"status": "passed"}, smoke=smoke(),
+        )
+        with self.assertRaisesRegex(PlanEvidenceError, "staging branch"):
+            promote(
+                evidence, staging, self.production_release(staging),
+                self.private, self.public,
             )
 
 

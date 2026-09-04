@@ -92,7 +92,14 @@ A later protected deployment workflow consumes the release artifact and uses
 3. run required Odoo module upgrades;
 4. run health and business smoke gates;
 5. unfreeze on success or restore the pre-release snapshot on failure;
-6. recreate staging from the accepted production backup.
+6. after production admission, create and qualify a new production backup;
+7. reset staging from that exact post-admission backup only when its
+   pre-production staging intent still matches the complete staging runtime.
+
+Ordinary staging releases use a staging checkpoint and upgrade the existing
+staging state. They never restore a production backup. A scheduled run with no
+production release change performs the production backup and an independent
+disposable restore proof, but leaves persistent staging unchanged.
 
 Build caching and runtime backup caching are separate: OCI layers stay in
 GHCR, while OCR, previews, Tantivy, and vectors use the reusable Restic cache
