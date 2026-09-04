@@ -329,7 +329,10 @@ step. After the controller creates the maintenance marker and before it pauses
 writers, it runs `scripts/usl-stack --target staging runtime adopt-gateway
 --json`. The command validates the recorded legacy Compose runtime and the
 canonical GitOps gateway, transfers the single `odoo-staging` Cloudflare alias,
-and requires public HTTP and websocket probes to return the maintenance 503.
+restarts only the detached legacy staging Odoo origin so Cloudflared cannot
+retain its pooled direct connection, and requires public HTTP and websocket
+probes to return the maintenance 503. Production and the shared Cloudflared
+service are not restarted.
 If any transfer or gateway check fails, it removes only the proven gateway and
 restores the exact legacy aliases. Repeating the command after interruption is
 safe.
