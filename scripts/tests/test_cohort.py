@@ -31,6 +31,9 @@ from operations.stack import (
     _cleanup_workspaces,
     _delete_cleanup_resources,
     _generation_overlay,
+    _independent_mcp_image,
+    _mcp_runtime_authority,
+    _with_mcp_runtime_authority,
     _forward_only_receipt,
     _ensure_image,
     _materialize_command,
@@ -276,6 +279,18 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # Most contract fixtures exercise lifecycle behavior without a mounted
+        # GitOps checkout. Tests of the authority reader call the imported
+        # function directly; lifecycle authority wiring is covered explicitly.
+        self.mcp_authority = mock.patch(
+            "operations.stack._mcp_runtime_authority", return_value=None,
+        )
+        self.mcp_authority.start()
+
+    def tearDown(self) -> None:
+        self.mcp_authority.stop()
+
     def test_legacy_staging_baseline_uses_only_v2_safe_probes(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         legacy = target.value["compose"]["adoption"]["legacy_anchor_service"]
@@ -1048,6 +1063,7 @@ class CohortContractTests(unittest.TestCase):
 
     def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:
         target = load_target("production", TARGETS)
+        independent_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "d" * 64
         release = {
             "identity": "f" * 64,
             "components": {
@@ -1081,12 +1097,18 @@ class CohortContractTests(unittest.TestCase):
                 if command[:2] == ["mktemp", "-d"]:
                     return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
                 if command[-2:] == ["config", "--services"]:
-                    return subprocess.CompletedProcess(command, 0, "odoo\nodoo-upgrade\npaperless-webserver\n", "")
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        "odoo\nodoo-upgrade\npaperless-webserver\nodoo-mcp\n",
+                        "",
+                    )
                 if command[-3:] == ["config", "--format", "json"]:
                     services = {
                         "odoo": {"image": release["components"]["distribution"]["digest_reference"]},
                         "odoo-upgrade": {"image": release["components"]["distribution"]["digest_reference"]},
                         "paperless-webserver": {"image": release["components"]["paperless"]["digest_reference"]},
+                        "odoo-mcp": {"image": independent_mcp},
                     }
                     return subprocess.CompletedProcess(command, 0, json.dumps({"services": services}), "")
                 return subprocess.CompletedProcess(command, 0, "", "")
@@ -1105,6 +1127,7 @@ class CohortContractTests(unittest.TestCase):
             result = _prepare_release_candidate(target, runner, release, current)
         self.assertEqual(result["status"], "prepared")
         self.assertFalse(result["runtime_changed"])
+        self.assertNotIn(release["mcp"]["image"], result["images"])
         flattened = [item for command in runner.commands for item in command]
         self.assertNotIn("stop", flattened)
         self.assertNotIn("up", flattened)
@@ -2949,7 +2972,188 @@ class CohortContractTests(unittest.TestCase):
             "mcp": {"image": references[4]},
             "renderer": {"image": references[5]},
         }
-        self.assertEqual(_release_images(release), sorted(references))
+        self.assertEqual(_release_images(release), sorted(references[:4] + references[5:]))
+
+    def test_odoo_release_does_not_pin_or_downgrade_independent_mcp(self) -> None:
+        target = load_target("staging", TARGETS)
+        old_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64
+        current_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        release_image = "ghcr.io/unstaticlabs/example@sha256:" + "c" * 64
+        release = {
+            "components": {
+                name: {"digest_reference": release_image}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+            },
+            "mcp": {"image": old_mcp},
+            "renderer": {"image": release_image},
+        }
+        names = generation_volume_names(target, "g20260904-independent-mcp")
+        overlay = json.loads(_generation_overlay(
+            names,
+            release,
+            {"odoo", "odoo-mcp", "odoo-mcp-oauth-init"},
+            target.value["ingress"],
+        ))
+        self.assertNotIn("odoo-mcp", overlay["services"])
+        self.assertNotIn("odoo-mcp-oauth-init", overlay["services"])
+        self.assertNotIn(old_mcp, _release_images(release))
+        self.assertEqual(
+            _independent_mcp_image(
+                target,
+                {target.value["services"]["mcp"]: current_mcp},
+            ),
+            current_mcp,
+        )
+
+    def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        selected = {
+            "schema": "usl-odoo-mcp-environment-release/v1",
+            "environment": "staging",
+            "commit": "a" * 40,
+            "compatibility_sha256": "c" * 64,
+            "image": image,
+            "oauth_vault_schema": 1,
+            "release_manifest": (
+                "ghcr.io/unstaticlabs/usl-odoo-mcp-release@sha256:" + "d" * 64
+            ),
+        }
+        manifest = {
+            "schema": "usl-odoo-mcp-oci-release/v2",
+            "source": {
+                "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
+                "ref": "refs/heads/main",
+                "commit": selected["commit"],
+            },
+            "image": {"digest_reference": image},
+            "compatibility": {
+                "sha256": selected["compatibility_sha256"],
+                "oauth_vault": {"schema_version": 1},
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".usl-gitops-commit").write_text("e" * 40 + "\n", encoding="ascii")
+            releases = root / "komodo/releases"
+            releases.mkdir(parents=True)
+            # Odoo and MCP advance independently: the Odoo ledger deliberately
+            # contains no MCP authority.
+            (releases / "usl-odoo-staging.json").write_text(
+                json.dumps({"schema": "usl-odoo-environment-release/v1", "environment": "staging"}),
+                encoding="utf-8",
+            )
+            (releases / "usl-odoo-staging-mcp.json").write_text(
+                json.dumps(selected), encoding="utf-8",
+            )
+            manifest_path = releases / "usl-odoo-staging-mcp-manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            environment = {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": "e" * 40,
+            }
+            with mock.patch.dict("operations.stack.os.environ", environment, clear=False):
+                authority = _mcp_runtime_authority(target)
+                self.assertEqual(authority["image"], image)
+                self.assertEqual(authority["gitops_commit"], "e" * 40)
+                manifest["source"]["commit"] = "f" * 40
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                with self.assertRaisesRegex(RuntimeError, "manifest and ledger differ"):
+                    _mcp_runtime_authority(target)
+
+    def test_mcp_runtime_authority_rejects_uncommissioned_ledger(self) -> None:
+        target = load_target("production", TARGETS)
+        selected = {
+            "schema": "usl-odoo-mcp-environment-release/v1",
+            "environment": "production",
+            "commit": "a" * 40,
+            "compatibility_sha256": None,
+            "image": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64,
+            "oauth_vault_schema": 1,
+            "release_manifest": None,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".usl-gitops-commit").write_text("e" * 40 + "\n", encoding="ascii")
+            releases = root / "komodo/releases"
+            releases.mkdir(parents=True)
+            (releases / "usl-odoo-production-mcp.json").write_text(
+                json.dumps(selected), encoding="utf-8",
+            )
+            environment = {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": "e" * 40,
+            }
+            with mock.patch.dict("operations.stack.os.environ", environment, clear=False):
+                with self.assertRaisesRegex(
+                    RuntimeError, "uncommissioned GitOps MCP cannot be runtime authority",
+                ):
+                    _mcp_runtime_authority(target)
+
+    def test_mcp_authority_override_is_last_after_historical_generation(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        authority = {"image": image, "sha256": "c" * 64}
+
+        class Runner:
+            def __init__(self):
+                self.writes = {}
+
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["install", "-d"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["python3", "-c"]:
+                    self.writes[command[-2]] = input_text
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "config" in command and "--services" in command:
+                    return subprocess.CompletedProcess(
+                        command, 0, "odoo\nodoo-mcp\nodoo-mcp-oauth-init\n", "",
+                    )
+                if "config" in command and "--format" in command:
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"services": {
+                        "odoo": {"image": "odoo"},
+                        "odoo-mcp": {"image": image},
+                        "odoo-mcp-oauth-init": {"image": image},
+                    }}), "")
+                raise AssertionError(command)
+
+        historical = "/state/generations/gold/compose.generation.json"
+        identity = {
+            "project": "staging", "working_directory": "/release",
+            "environment_file": "/runtime.env", "profiles": [],
+            "anchor_service": "odoo", "compose_files": ["/release/compose.yaml", historical],
+        }
+        runner = Runner()
+        result = _with_mcp_runtime_authority(target, runner, identity, authority)
+        self.assertEqual(result["compose_files"][-2], historical)
+        self.assertIn("/authorities/mcp-" + "c" * 64, result["compose_files"][-1])
+        value = json.loads(runner.writes[result["compose_files"][-1]])
+        self.assertEqual(value["services"]["odoo-mcp"]["image"], image)
+        self.assertEqual(value["services"]["odoo-mcp-oauth-init"]["image"], image)
+
+    def test_rollback_reapplies_mcp_authority_after_historical_overlay(self) -> None:
+        target = load_target("production", TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/release",
+            "environment_file": "/runtime.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/release/compose.yaml", "/old/compose.generation.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        def apply_authority(_target, _runner, value, _authority):
+            return {**value, "compose_files": [*value["compose_files"], "/authority.json"]}
+
+        with (
+            mock.patch("operations.stack._mcp_runtime_authority", return_value={"image": "x"}),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority", side_effect=apply_authority,
+            ),
+        ):
+            _start_rollback_identity(target, runner, identity)
+        command = runner.run.call_args.args[0]
+        self.assertLess(command.index("/old/compose.generation.json"), command.index("/authority.json"))
 
     def test_backup_refuses_runtime_images_outside_selected_release(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3808,7 +4012,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(len(paths), 3)
         self.assertTrue(all(path.startswith("/srv/db/usl-odoo/production/generations/") for path in paths))
 
-    def test_generation_pins_every_release_owned_runtime_image(self) -> None:
+    def test_generation_pins_only_odoo_cohort_runtime_images(self) -> None:
         digest = "sha256:" + "a" * 64
         reference = "ghcr.io/unstaticlabs/example@" + digest
         release = {
@@ -3832,7 +4036,7 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(
             _generation_overlay(names, release, services, target.value["ingress"]),
         )
-        self.assertEqual(set(overlay["services"]), services)
+        self.assertEqual(set(overlay["services"]), services - {"odoo-mcp"})
         self.assertTrue(all(item["image"] == reference for item in overlay["services"].values()))
         self.assertEqual(
             overlay["services"]["odoo"]["environment"],
@@ -4299,14 +4503,18 @@ class CohortContractTests(unittest.TestCase):
 
         class Runner:
             responses = [
-                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nRetry-After: 60\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nretry-after: 60\n", ""),
                 subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
             ]
 
+            commands = []
+
             def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
                 return self.responses.pop(0)
 
-        evidence = _probe_staging_gateway_maintenance(target, Runner())
+        runner = Runner()
+        evidence = _probe_staging_gateway_maintenance(target, runner)
         self.assertEqual(
             set(evidence),
             {"schema", "status", "http_status", "websocket_status"},
@@ -4314,6 +4522,10 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(evidence["status"], "passed")
         self.assertEqual(evidence["http_status"], 503)
         self.assertEqual(evidence["websocket_status"], 503)
+        self.assertIn(
+            "Origin: https://odoo-staging.unstaticlabs.com",
+            runner.commands[1],
+        )
 
     def test_gateway_maintenance_probe_waits_for_public_alias_propagation(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -5015,13 +5227,52 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch(
             "operations.stack._release",
             return_value=(release, "b" * 64, "{}"),
-        ):
+        ), mock.patch("operations.stack._mcp_runtime_authority", return_value=None):
             first = _runtime_cas_sha256(target, runner, runtime)
             runner.run.return_value = subprocess.CompletedProcess(
                 [], 0, json.dumps({"services": {"odoo": {"image": "second"}}}), "",
             )
             second = _runtime_cas_sha256(target, runner, runtime)
         self.assertNotEqual(first, second)
+
+    def test_runtime_cas_rejects_running_mcp_outside_gitops_authority(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64
+        authority = {"image": image, "sha256": "b" * 64}
+        runtime = {
+            "compose": {
+                "project": "staging", "working_directory": "/release",
+                "environment_file": "/runtime.env", "profiles": [],
+                "anchor_service": "odoo", "compose_files": ["/release/compose.yaml"],
+            },
+            "containers": [{
+                "Service": target.value["services"]["mcp"],
+                "ID": "mcp-container", "State": "running",
+            }],
+        }
+        release = {"identity": "c" * 64}
+        runner = mock.Mock()
+
+        def run(command, **_kwargs):
+            if command[:3] == ["docker", "inspect", "mcp-container"]:
+                return subprocess.CompletedProcess(command, 0, image + "\n", "")
+            return subprocess.CompletedProcess(
+                command, 0, json.dumps({"services": {"odoo-mcp": {"image": image}}}), "",
+            )
+
+        runner.run.side_effect = run
+        with (
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._mcp_runtime_authority", return_value=authority),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority",
+                side_effect=lambda _target, _runner, identity, _authority: identity,
+            ),
+        ):
+            self.assertRegex(_runtime_cas_sha256(target, runner, runtime), r"[0-9a-f]{64}")
+            authority["image"] = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "e" * 64
+            with self.assertRaisesRegex(RuntimeError, "differs from GitOps authority"):
+                _runtime_cas_sha256(target, runner, runtime)
 
     def test_staging_oauth_copy_resumes_mcp_after_copy_failure(self) -> None:
         target = load_target("staging", TARGETS)
