@@ -2332,7 +2332,11 @@ base_url = os.environ["USL_POCKET_ID_ODOO_BASE_URL"].rstrip("/")
 expected_scopes = set(os.environ["USL_POCKET_ID_SCOPES"].split())
 issuer_url = urlsplit(issuer)
 endpoint_fields = ("auth_endpoint", "token_endpoint", "jwks_uri", "usl_end_session_endpoint")
-endpoints = [urlsplit(provider[field]) for field in endpoint_fields]
+endpoints = [
+    urlsplit(provider[field])
+    for field in endpoint_fields
+    if provider[field]
+]
 checks = {
     "application_completed": applied is True,
     "provider_enabled": provider.enabled is True,
@@ -2350,7 +2354,7 @@ checks = {
         and not endpoint.username
         and not endpoint.password
         for endpoint in endpoints
-    ),
+    ) and all(provider[field] for field in endpoint_fields[:3]),
 }
 evidence = {"schema": "usl-pocket-id-runtime-admission/v1", "status": "passed", **checks}
 if not all(checks.values()):
