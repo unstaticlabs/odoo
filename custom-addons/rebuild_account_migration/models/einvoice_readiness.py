@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import uuid as uuid_lib
+from datetime import timedelta
 
 from lxml import etree
 from markupsafe import Markup
@@ -1506,6 +1507,36 @@ class PeppolRegistration(models.TransientModel):
         )
 
 
+class AccountEdiCii(models.AbstractModel):
+    _inherit = "account.edi.cii"
+
+    def _cii_get_billing_specified_period_node(self, vals):
+        """Keep CII export compatible with the USL deferral data model.
+
+        Upstream uses optional line-level deferred dates.  USL keeps deferral
+        schedules in its own model, so those fields are not necessarily
+        installed on account.move.line.  In that case, retain the invoice-level
+        billing dates without inventing line-level deferral data.
+        """
+        invoice = vals["invoice"]
+        line_fields = invoice.invoice_line_ids._fields
+        if {
+            "deferred_start_date",
+            "deferred_end_date",
+        } <= line_fields.keys():
+            return super()._cii_get_billing_specified_period_node(vals)
+        return {
+            "ram:StartDateTime": self._cii_get_date_time_string_node(
+                vals,
+                invoice.invoice_date,
+            ) if invoice.invoice_date else None,
+            "ram:EndDateTime": self._cii_get_date_time_string_node(
+                vals,
+                invoice.invoice_date_due,
+            ) if invoice.invoice_date_due else None,
+        }
+
+
 class AccountEdiProxyClientUser(models.Model):
     _inherit = "account_edi_proxy_client.user"
 
@@ -1589,6 +1620,17 @@ class AccountEdiProxyClientUser(models.Model):
             ("proxy_type", "in", self._get_peppol_proxy_types()),
         ])
         edi_users._peppol_get_participant_status()
+
+        # This override narrows upstream polling to USL-approved providers, but
+        # must retain its one-hour retry while SMP registration is pending.
+        if self.search_count([
+            ("company_id.rebuild_einvoice_activation_approved", "=", True),
+            ("company_id.account_peppol_proxy_state", "=", "smp_registration"),
+            ("proxy_type", "in", self._get_peppol_proxy_types()),
+        ], limit=1):
+            self.env.ref(
+                "account_peppol.ir_cron_peppol_get_participant_status",
+            )._trigger(at=fields.Datetime.now() + timedelta(hours=1))
 
     @api.model
     def _cron_peppol_webhook_keepalive(self):
@@ -1733,6 +1775,12 @@ class AccountEdiProxyClientUser(models.Model):
                 })
 
         try:
+            # Upstream logs a malformed type-code parse but continues into its
+            # importer, which can create an empty draft move.  Parse first so
+            # the existing reception-evidence path remains non-polluting.
+            self._get_type_code(
+                self.env["account.move"]._to_files_data(processing_attachment),
+            )
             result = super()._peppol_import_invoice(
                 processing_attachment,
                 peppol_state,

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+secret_root="${USL_RECEIPT_SECRET_ROOT:-$repo_root/.secrets/receipts}"
+fetcher_dir="$secret_root/fetcher"
+odoo_dir="$secret_root/odoo"
+ca_key="$secret_root/ca.key"
+ca_cert="$secret_root/ca.crt"
+
+if ! command -v openssl >/dev/null 2>&1; then
+    printf 'OpenSSL is required to generate receipt-fetcher credentials.\n' >&2
+    exit 2
+fi
+
+mkdir -p "$fetcher_dir" "$odoo_dir"
+chmod 700 "$secret_root" "$fetcher_dir" "$odoo_dir"
+
+required=(
+    "$ca_key" "$ca_cert"
+    "$fetcher_dir/ca.crt" "$fetcher_dir/server.crt" "$fetcher_dir/server.key"
+    "$odoo_dir/ca.crt" "$odoo_dir/odoo.crt" "$odoo_dir/odoo.key"
+)
+if [[ -e "$ca_key" ]]; then
+    for path in "${required[@]}"; do
+        if [[ ! -f "$path" ]]; then
+            printf 'Receipt credential set is incomplete; missing %s.\n' "$path" >&2
+            exit 1
+        fi
+    done
+    printf 'Receipt-fetcher credentials already exist at %s; leaving them unchanged.\n' "$secret_root"
+    exit 0
+fi
+for path in "${required[@]:1}"; do
+    if [[ -e "$path" ]]; then
+        printf 'Receipt credential set is incomplete; found %s without ca.key.\n' "$path" >&2
+        exit 1
+    fi
+done
+
+openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 825 \
+    -subj "/CN=USL Receipt Fetcher CA" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "keyUsage=critical,keyCertSign,cRLSign" \
+    -keyout "$ca_key" -out "$ca_cert"
+
+openssl req -newkey rsa:3072 -sha256 -nodes \
+    -subj "/CN=usl-receipt-fetcher" \
+    -keyout "$fetcher_dir/server.key" -out "$fetcher_dir/server.csr"
+openssl x509 -req -sha256 -days 397 \
+    -in "$fetcher_dir/server.csr" \
+    -CA "$ca_cert" -CAkey "$ca_key" -CAcreateserial \
+    -extfile <(printf 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nsubjectAltName=DNS:usl-receipt-fetcher\nextendedKeyUsage=serverAuth\n') \
+    -out "$fetcher_dir/server.crt"
+
+openssl req -newkey rsa:3072 -sha256 -nodes \
+    -subj "/CN=odoo-receipt-client" \
+    -keyout "$odoo_dir/odoo.key" -out "$odoo_dir/odoo.csr"
+openssl x509 -req -sha256 -days 397 \
+    -in "$odoo_dir/odoo.csr" \
+    -CA "$ca_cert" -CAkey "$ca_key" -CAcreateserial \
+    -extfile <(printf 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=clientAuth\n') \
+    -out "$odoo_dir/odoo.crt"
+
+cp "$ca_cert" "$fetcher_dir/ca.crt"
+cp "$ca_cert" "$odoo_dir/ca.crt"
+rm "$fetcher_dir/server.csr" "$odoo_dir/odoo.csr" "$secret_root/ca.srl"
+chmod 600 "$ca_key"
+chmod 444 "$fetcher_dir/ca.crt" "$fetcher_dir/server.crt" "$fetcher_dir/server.key"
+chmod 444 "$odoo_dir/ca.crt" "$odoo_dir/odoo.crt" "$odoo_dir/odoo.key"
+printf 'Generated isolated receipt-fetcher credentials at %s.\n' "$secret_root"
