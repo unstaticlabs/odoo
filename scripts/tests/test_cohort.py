@@ -81,6 +81,7 @@ from operations.stack import (
     _validate_runtime_release_images,
     _probe_staging_gateway_maintenance,
     _validated_cleanup_resources,
+    _validated_cleanup_containers,
     _validated_cleanup_network,
     _validated_cleanup_volume,
     _validate_recovery_selection,
@@ -261,13 +262,17 @@ def staging_runtime_evidence(
 
 class CohortContractTests(unittest.TestCase):
     def test_legacy_staging_baseline_uses_only_v2_safe_probes(self) -> None:
-        target = load_target("staging", TARGETS)
+        target = load_target("staging", HOST_TARGETS)
+        legacy = target.value["compose"]["adoption"]["legacy_anchor_service"]
+        services = set(target.value["services"].values())
+        services.remove(target.value["compose"]["anchor_service"])
+        services.add(legacy)
         runtime = {
             "generation": "glegacy",
-            "compose": {},
+            "compose": {"anchor_service": legacy},
             "containers": [
                 {"Service": service, "State": "running", "Health": "healthy"}
-                for service in target.value["services"].values()
+                for service in services
             ],
         }
 
@@ -3273,9 +3278,18 @@ class CohortContractTests(unittest.TestCase):
         runner = RecordingRunner()
         _delete_cleanup_resources(
             runner,
+            [],
             [
-                {"name": "legacy-named", "database_path": None},
-                {"name": "modern-bind", "database_path": "/srv/db/exact"},
+                {
+                    "name": "legacy-named",
+                    "generation": "gstale",
+                    "database_path": None,
+                },
+                {
+                    "name": "modern-bind",
+                    "generation": "gstale",
+                    "database_path": "/srv/db/exact",
+                },
             ],
             [],
             [],
@@ -3289,6 +3303,67 @@ class CohortContractTests(unittest.TestCase):
                 ["rmdir", "--", "/srv/db/exact"],
             ],
         )
+
+    def test_cleanup_removes_stopped_owned_candidate_before_its_volume(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260904t1033-591f7326"
+        volume = generation_volume_names(target, generation)["odoo_filestore"]
+        identifier = "c" * 64
+        overlay = (
+            f"{target.value['state_directory']}/generations/{generation}/"
+            "compose.generation.json"
+        )
+        container = {
+            "Id": identifier,
+            "State": {"Status": "exited"},
+            "Config": {"Labels": {
+                "com.docker.compose.project": target.project,
+                "com.docker.compose.service": "odoo-upgrade",
+                "com.docker.compose.project.config_files": (
+                    "/gitops/staging/compose.yaml," + overlay
+                ),
+            }},
+            "Mounts": [{"Type": "volume", "Name": volume}],
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:3] == ["docker", "ps", "-a"]:
+                    return subprocess.CompletedProcess(command, 0, identifier + "\n", "")
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(container), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        volumes = [{
+            "name": volume,
+            "generation": generation,
+            "database_path": None,
+        }]
+        containers = _validated_cleanup_containers(
+            target, runner, volumes, [], set(), set(),
+        )
+        self.assertEqual(containers, [identifier])
+        _delete_cleanup_resources(runner, containers, volumes, [], [])
+        remove = [
+            command for command in runner.commands
+            if command[:2] == ["docker", "rm"]
+            or command[:3] == ["docker", "volume", "rm"]
+        ]
+        self.assertEqual(remove, [
+            ["docker", "rm", "--force", identifier],
+            ["docker", "volume", "rm", volume],
+        ])
+
+        container["Config"]["Labels"]["com.docker.compose.project"] = "foreign"
+        with self.assertRaisesRegex(RuntimeError, "container ownership differs"):
+            _validated_cleanup_containers(
+                target, Runner(), volumes, [], set(), set(),
+            )
 
     def test_cleanup_rejects_bind_options_for_non_database_volumes(self) -> None:
         target = load_target("staging", TARGETS)
