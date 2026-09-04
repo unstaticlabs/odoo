@@ -340,12 +340,16 @@ writers, it runs `scripts/usl-stack --target staging runtime adopt-gateway
 --json`. The command validates the recorded legacy Compose runtime and the
 canonical GitOps gateway, transfers the single `odoo-staging` Cloudflare alias,
 restarts only the detached legacy staging Odoo origin so Cloudflared cannot
-retain its pooled direct connection, and requires public HTTP and websocket
-probes to return the maintenance 503. Production and the shared Cloudflared
-service are not restarted.
-If any transfer or gateway check fails, it removes only the proven gateway and
-restores the exact legacy aliases. Repeating the command after interruption is
-safe.
+retain its pooled direct connection, waits up to two minutes for that exact
+container to become healthy, and requires public HTTP and websocket probes to
+return the maintenance 503. Production and the shared Cloudflared service are
+not restarted. A retry that finds the healthy gateway already owning ingress
+does not restart legacy Odoo again.
+If any transfer or gateway check fails, rollback keeps the admitted maintenance
+gateway online until the legacy origin is healthy, then restores the exact
+legacy aliases. If legacy health does not recover, ingress remains safely in
+maintenance instead of being pointed at an unavailable origin. Repeating the
+command after interruption is safe.
 
 One operation lock is held per exact target, and a second host-wide lock
 serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence

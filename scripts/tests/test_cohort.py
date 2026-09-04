@@ -34,6 +34,7 @@ from operations.stack import (
     _independent_mcp_image,
     _mcp_runtime_authority,
     _with_mcp_runtime_authority,
+    _wait_legacy_staging_origin,
     _forward_only_receipt,
     _ensure_image,
     _materialize_command,
@@ -61,6 +62,7 @@ from operations.stack import (
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
+    _restore_legacy_ingress,
     _require_restore_capacity,
     _measure_candidate_bytes,
     _notify_release,
@@ -4321,6 +4323,9 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._container_identifier", return_value="legacy-id",
         ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
             "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
         ), mock.patch("operations.stack._gateway_container", return_value=None), self.assertRaisesRegex(
             RuntimeError, "gateway start failed",
         ):
@@ -4376,6 +4381,9 @@ class CohortContractTests(unittest.TestCase):
         ), mock.patch("operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None), mock.patch(
             "operations.stack._validate_gateway_container",
         ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
             "operations.stack._probe_staging_gateway_maintenance",
             return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
         ):
@@ -4389,7 +4397,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(second["adoption"], "already-adopted")
         self.assertEqual(
             sum(command[:2] == ["docker", "restart"] for command in runner.commands),
-            2,
+            1,
         )
 
     def test_first_v3_gateway_adoption_restarts_only_detached_legacy_origin(self) -> None:
@@ -4450,6 +4458,9 @@ class CohortContractTests(unittest.TestCase):
         ), mock.patch(
             "operations.stack._validate_gateway_container",
         ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
             "operations.stack._probe_staging_gateway_maintenance",
             return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
         ):
@@ -4459,6 +4470,77 @@ class CohortContractTests(unittest.TestCase):
         self.assertTrue(runner.assert_detached_at_restart)
         restart = next(command for command in runner.commands if command[:2] == ["docker", "restart"])
         self.assertEqual(restart, ["docker", "restart", "--time", "30", "legacy-id"])
+
+    def test_legacy_origin_waits_past_restart_until_healthy(self) -> None:
+        states = [
+            {"Status": "running", "Running": True, "Health": {"Status": "starting"}},
+            {"Status": "running", "Running": True, "Health": {"Status": "healthy"}},
+        ]
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(states.pop(0)), "")
+
+        with mock.patch("operations.stack.time.sleep") as sleep:
+            result = _wait_legacy_staging_origin(Runner(), "legacy-id")
+        self.assertEqual(result["health"], "healthy")
+        sleep.assert_called_once_with(2.0)
+
+    def test_legacy_origin_health_wait_is_bounded_and_rejects_terminal_state(self) -> None:
+        class Runner:
+            state = {"Status": "running", "Running": True, "Health": {"Status": "starting"}}
+
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(self.state), "")
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack.time.monotonic", side_effect=[0.0, 121.0]),
+            mock.patch("operations.stack.time.sleep"),
+            self.assertRaisesRegex(RuntimeError, "did not become healthy within 120 seconds"),
+        ):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+        runner.state = {"Status": "exited", "Running": False, "Health": {"Status": "unhealthy"}}
+        with self.assertRaisesRegex(RuntimeError, "entered a terminal state"):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+
+    def test_failed_legacy_health_keeps_admitted_maintenance_gateway(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": "odoo-staging", "compose_files": ["/gitops/compose.yaml"],
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["docker", "start"]:
+                    return subprocess.CompletedProcess(command, 0, "legacy-id\n", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack._gateway_container", return_value="gateway-id"),
+            mock.patch(
+                "operations.stack._wait_legacy_staging_origin",
+                side_effect=RuntimeError("health timeout"),
+            ),
+            mock.patch("operations.stack._validate_gateway_container") as validate_gateway,
+            mock.patch("operations.stack._network_alias_owners", return_value=["gateway-id"]),
+            mock.patch(
+                "operations.stack._probe_staging_gateway_maintenance",
+                return_value={"status": "passed"},
+            ) as maintenance,
+            self.assertRaisesRegex(RuntimeError, "maintenance gateway remains active"),
+        ):
+            _restore_legacy_ingress(target, runner, candidate, "legacy-id", ["odoo-staging"])
+        validate_gateway.assert_called_once_with(target, runner, "gateway-id", candidate)
+        maintenance.assert_called_once_with(target, runner)
+        self.assertFalse(any("rm" in command and "gateway" in command for command in runner.commands))
 
     def test_first_v3_gateway_adoption_stops_on_alias_transfer_failure(self) -> None:
         target = load_target("staging", HOST_TARGETS)

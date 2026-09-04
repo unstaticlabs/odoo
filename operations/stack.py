@@ -325,16 +325,67 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
     )
 
 
+def _wait_legacy_staging_origin(
+    runner, container: str, *, timeout: float = 120.0, interval: float = 2.0,
+) -> dict:
+    """Wait for the exact restarted legacy Odoo container to become healthy."""
+    deadline = time.monotonic() + timeout
+    last = {"status": "unknown", "running": False, "health": "unknown"}
+    while True:
+        result = runner.run(
+            ["docker", "inspect", container, "--format", "{{json .State}}"],
+            check=False,
+        )
+        if result.returncode == 0:
+            try:
+                state = json.loads(result.stdout)
+            except json.JSONDecodeError as error:
+                raise RuntimeError("legacy staging origin state is invalid") from error
+            health = (state.get("Health") or {}).get("Status")
+            last = {
+                "status": state.get("Status"),
+                "running": state.get("Running"),
+                "health": health,
+            }
+            if state.get("Running") is True and health == "healthy":
+                return last
+            if state.get("Status") in {"dead", "exited", "removing"}:
+                raise RuntimeError(
+                    "legacy staging origin entered a terminal state: "
+                    + json.dumps(last, sort_keys=True),
+                )
+        if time.monotonic() >= deadline:
+            raise RuntimeError(
+                "legacy staging origin did not become healthy within "
+                f"{int(timeout)} seconds: " + json.dumps(last, sort_keys=True),
+            )
+        time.sleep(interval)
+
+
 def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: str, aliases: list[str]) -> None:
+    # Keep the stable gateway serving maintenance until the legacy origin is
+    # genuinely ready. Docker start/restart returning only proves PID startup.
     gateway = _gateway_container(target, runner)
+    runner.run(["docker", "start", legacy])
+    try:
+        _wait_legacy_staging_origin(runner, legacy)
+    except Exception as error:
+        if gateway:
+            _validate_gateway_container(target, runner, gateway, candidate_identity)
+            if _network_alias_owners(
+                runner, target.value["external_networks"]["ingress"], "odoo-staging",
+            ) != [gateway]:
+                raise RuntimeError(
+                    "legacy staging rollback failed and maintenance gateway lost ingress",
+                ) from error
+            _probe_staging_gateway_maintenance(target, runner)
+        raise RuntimeError(
+            "legacy staging rollback origin is not healthy; maintenance gateway remains active",
+        ) from error
     if gateway:
         runner.run(
             compose_command(candidate_identity, ["rm", "--stop", "--force", "gateway"]),
         )
-    # A failed handoff may have interrupted the legacy origin while forcing
-    # Cloudflared to drop its pooled connection.  Starting an already-running
-    # container is idempotent and guarantees rollback restores a live origin.
-    runner.run(["docker", "start", legacy])
     ingress = target.value["external_networks"]["ingress"]
     networks = _container_networks(runner, legacy)
     if ingress not in networks:
@@ -351,6 +402,7 @@ def _refresh_legacy_staging_origin(target, runner, legacy: str) -> None:
     ingress = target.value["external_networks"]["ingress"]
     default_network = target.value["compose"]["default_network"]
     runner.run(["docker", "restart", "--time", "30", legacy])
+    _wait_legacy_staging_origin(runner, legacy)
     networks = _container_networks(runner, legacy)
     backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
     if ingress in networks or "odoo-staging-app" not in backend_aliases:
@@ -396,6 +448,27 @@ def _adopt_staging_gateway(target, runner) -> dict:
     already_adopted = legacy not in owners
     if not already_adopted and (owners != [legacy] or sorted(ingress_aliases) != expected_ingress_aliases):
         raise RuntimeError("legacy staging ingress aliases differ from the adoption contract")
+    if already_adopted:
+        gateway = _gateway_container(target, runner)
+        if gateway:
+            try:
+                _validate_gateway_container(target, runner, gateway, candidate_identity)
+                if runner.run(
+                    ["docker", "exec", gateway, "test", "-f", "/run/usl-gateway/maintenance"],
+                    check=False,
+                ).returncode:
+                    raise RuntimeError("stable staging gateway did not mount the maintenance marker")
+                if owners != [gateway]:
+                    raise RuntimeError("stable staging gateway does not uniquely own public ingress")
+                if ingress in _container_networks(runner, legacy):
+                    raise RuntimeError("legacy staging retained public ingress")
+            except RuntimeError:
+                # A partial earlier attempt is repaired by the normal path
+                # below, whose failure handling restores the legacy ingress.
+                pass
+            else:
+                maintenance = _probe_staging_gateway_maintenance(target, runner)
+                return {**maintenance, "adoption": "already-adopted"}
     detached = False
     try:
         if not already_adopted:
@@ -426,15 +499,21 @@ def _adopt_staging_gateway(target, runner) -> dict:
         # the remaining staging services and every production service stay up.
         _refresh_legacy_staging_origin(target, runner, legacy)
         maintenance = _probe_staging_gateway_maintenance(target, runner)
-    except Exception:
+    except Exception as error:
         if detached or already_adopted:
-            _restore_legacy_ingress(
-                target,
-                runner,
-                candidate_identity,
-                legacy,
-                expected_ingress_aliases,
-            )
+            try:
+                _restore_legacy_ingress(
+                    target,
+                    runner,
+                    candidate_identity,
+                    legacy,
+                    expected_ingress_aliases,
+                )
+            except Exception as rollback_error:
+                raise RuntimeError(
+                    f"gateway adoption failed ({error}); ingress rollback failed "
+                    f"({rollback_error})",
+                ) from error
         raise
     return {**maintenance, "adoption": "already-adopted" if already_adopted else "adopted"}
 
