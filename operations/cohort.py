@@ -517,6 +517,39 @@ def _snapshot_time(item: dict[str, Any]) -> datetime:
     return parsed.astimezone(RETENTION_TIMEZONE)
 
 
+def select_latest_recovery_snapshot(snapshots: list[dict[str, Any]]) -> str:
+    """Select one unambiguous production recovery point from Restic inventory."""
+    if not isinstance(snapshots, list) or not all(
+        isinstance(item, dict) for item in snapshots
+    ):
+        raise CohortError("Restic snapshot inventory is invalid")
+    qualified: list[tuple[datetime, str]] = []
+    seen_times: set[datetime] = set()
+    required = {"usl-cohort", "durable", "target-production", "recovery-eligible"}
+    for item in snapshots:
+        tags_value = item.get("tags", [])
+        if not isinstance(tags_value, list) or not all(
+            isinstance(tag, str) for tag in tags_value
+        ):
+            raise CohortError("Restic snapshot tags are invalid")
+        tags = set(tags_value)
+        if "recovery-eligible" not in tags:
+            continue
+        if not required <= tags:
+            raise CohortError("recovery-eligible snapshot is not a production durable cohort")
+        identity = str(item.get("id", ""))
+        if not SNAPSHOT.fullmatch(identity):
+            raise CohortError("recovery-eligible snapshot identity is invalid")
+        moment = _snapshot_time(item)
+        if moment in seen_times:
+            raise CohortError("recovery-eligible snapshots have an ambiguous timestamp")
+        seen_times.add(moment)
+        qualified.append((moment, identity))
+    if not qualified:
+        raise CohortError("there is no qualified production snapshot")
+    return max(qualified)[1]
+
+
 def _period_key(moment: datetime, kind: str) -> tuple[int, ...]:
     if kind == "daily":
         return moment.year, moment.month, moment.day

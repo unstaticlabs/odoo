@@ -21,6 +21,10 @@ from operations.control_manifest import (
     ControlManifestError,
     validate_restore,
 )
+from operations.cohort import (
+    SCHEMA as RECOVERY_COHORT_SCHEMA,
+    select_latest_recovery_snapshot,
+)
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
     CronPolicyError,
@@ -1169,6 +1173,28 @@ def backup_command(arguments: argparse.Namespace) -> int:
     image = release["components"]["backup-tool"]["digest_reference"]
     if arguments.action == "list":
         result = _run_cohort(target, runner, image, "list", [], volumes=runtime["volumes"])
+    elif arguments.action == "select":
+        if target.name != "production":
+            raise RuntimeError("backup selection is production-only")
+        inventory = _run_cohort(
+            target, runner, image, "list", [], volumes=runtime["volumes"],
+        )
+        snapshot = select_latest_recovery_snapshot(inventory.get("snapshots"))
+        verified = _run_cohort(
+            target,
+            runner,
+            image,
+            "verify",
+            ["--durable-snapshot", snapshot],
+            volumes=runtime["volumes"],
+        )
+        _validate_recovery_selection(snapshot, verified)
+        result = {
+            "schema": "usl-recovery-selection/v1",
+            "snapshot": snapshot,
+            "verification": verified,
+            "status": "selected",
+        }
     elif arguments.action == "verify":
         if not arguments.snapshot:
             raise RuntimeError("backup verify requires --snapshot")
@@ -1323,6 +1349,17 @@ def backup_command(arguments: argparse.Namespace) -> int:
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
+
+
+def _validate_recovery_selection(snapshot: str, verified: dict) -> None:
+    """Bind recovery admission to the exact complete production cohort."""
+    if (
+        verified.get("status") != "verified"
+        or verified.get("durable_snapshot_id") != snapshot
+        or verified.get("target") != "production"
+        or verified.get("cohort_schema") != RECOVERY_COHORT_SCHEMA
+    ):
+        raise RuntimeError("selected production recovery snapshot verification differs")
 
 
 def _psql(target, runner, identity, database_key: str, query: str) -> str:
@@ -4342,7 +4379,7 @@ def build_parser() -> argparse.ArgumentParser:
     storage.add_argument("--json", action="store_true")
     storage.set_defaults(handler=storage_command)
     backup = commands.add_parser("backup")
-    backup.add_argument("action", choices=("create", "list", "verify"))
+    backup.add_argument("action", choices=("create", "list", "select", "verify"))
     backup.add_argument("--target", dest="command_target")
     backup.add_argument("--release", type=Path)
     backup.add_argument("--run-id")

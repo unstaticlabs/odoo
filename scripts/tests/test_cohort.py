@@ -59,6 +59,7 @@ from operations.stack import (
     _validated_cleanup_resources,
     _validated_cleanup_network,
     _validated_cleanup_volume,
+    _validate_recovery_selection,
     cleanup_command,
     generation_volume_names,
     generation_volume_path,
@@ -111,6 +112,80 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_select_latest_recovery_snapshot_requires_production_scope(self) -> None:
+        with self.assertRaisesRegex(cohort.CohortError, "production durable cohort"):
+            cohort.select_latest_recovery_snapshot([{
+                "id": "a" * 64,
+                "time": "2026-09-04T01:00:00Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-staging", "recovery-eligible",
+                ],
+            }])
+
+    def test_select_latest_recovery_snapshot_rejects_malformed_time(self) -> None:
+        with self.assertRaisesRegex(cohort.CohortError, "invalid timestamp"):
+            cohort.select_latest_recovery_snapshot([{
+                "id": "a" * 64,
+                "time": "later",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            }])
+
+    def test_select_latest_recovery_snapshot_rejects_tied_time(self) -> None:
+        snapshots = [
+            {
+                "id": character * 64,
+                "time": "2026-09-04T01:00:00Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            }
+            for character in ("a", "b")
+        ]
+        with self.assertRaisesRegex(cohort.CohortError, "ambiguous timestamp"):
+            cohort.select_latest_recovery_snapshot(snapshots)
+
+    def test_select_latest_recovery_snapshot_uses_latest_instant(self) -> None:
+        snapshots = [
+            {
+                "id": "a" * 64,
+                "time": "2026-09-04T00:59:59Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            },
+            {
+                "id": "b" * 64,
+                "time": "2026-09-04T03:00:00+02:00",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            },
+        ]
+        self.assertEqual(cohort.select_latest_recovery_snapshot(snapshots), "b" * 64)
+
+    def test_recovery_selection_binds_exact_verified_cohort(self) -> None:
+        snapshot = "a" * 64
+        verified = {
+            "status": "verified",
+            "durable_snapshot_id": snapshot,
+            "target": "production",
+            "cohort_schema": cohort.SCHEMA,
+        }
+        _validate_recovery_selection(snapshot, verified)
+        for key, value in (
+            ("durable_snapshot_id", "b" * 64),
+            ("target", "staging"),
+            ("cohort_schema", cohort.LEGACY_SCHEMA),
+            ("status", "qualified"),
+        ):
+            changed = {**verified, key: value}
+            with self.subTest(key=key), self.assertRaisesRegex(
+                RuntimeError, "verification differs",
+            ):
+                _validate_recovery_selection(snapshot, changed)
+
     def test_release_prepare_requires_complete_owner_protected_secrets(self) -> None:
         target = load_target("production", TARGETS)
         path = target.value["secrets"]["env_file"]

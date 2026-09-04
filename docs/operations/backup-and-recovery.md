@@ -48,9 +48,16 @@ List and recheck recovery points without changing a runtime:
 
 ```bash
 scripts/usl-stack backup list --target production --json
+scripts/usl-stack backup select --target production --json
 scripts/usl-stack backup verify --target production \
   --snapshot <64-character-qualified-snapshot-id> --json
 ```
+
+`backup select` is the unattended-controller interface. It rejects malformed or
+ambiguous Restic timestamps, recovery tags from another target, legacy cohorts,
+and any verification result that does not name the exact selected production
+snapshot. Operators can still use `list` for inspection, but automation must not
+reimplement selection from its untrusted rows.
 
 ## Independent staging restore
 

@@ -93,6 +93,7 @@ scripts/usl-stack --target production release status
 scripts/usl-stack --target production release abort --attempt-id <attempt>
 scripts/usl-stack --target production backup create
 scripts/usl-stack --target production backup list
+scripts/usl-stack --target production backup select
 scripts/usl-stack --target production backup verify --snapshot <snapshot>
 scripts/usl-stack --target staging health
 scripts/usl-stack --target staging smoke
