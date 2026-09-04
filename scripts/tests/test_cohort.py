@@ -44,6 +44,7 @@ from operations.stack import (
     _release_attempt,
     _release_attempt_claim,
     _release_boundary_receipt,
+    _release_runtime_evidence,
     _runtime_baseline_sha256,
     _runtime_cas_sha256,
     _require_same_attempt_boundary,
@@ -185,6 +186,69 @@ def backup_receipt(*, target: str = "staging", run_id: str = "attempt-20260904-s
         "writers_resumed_at": None,
         "quiescence": quiescence,
         "status": "qualified",
+    }
+    value["sha256"] = __import__("hashlib").sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
+
+
+def staging_runtime_evidence(
+    *,
+    attempt: str = "attempt-20260904-staging",
+    release: str = "a" * 64,
+    snapshot: str = "b" * 64,
+    generation: str = "grelease-staging1",
+    operation_kind: str = "staging-upgrade",
+) -> dict:
+    auth = {
+        "schema": "usl-staging-auth-compose/v1",
+        "paperless_mode": "internal-only",
+        "canonical_environment": True,
+        "odoo_sso_enabled": True,
+        "paperless_internal_url": True,
+        "paperless_loopback_only": True,
+        "paperless_external_route_absent": True,
+        "paperless_oidc_disabled": True,
+        "status": "passed",
+    }
+    pocket = {
+        "schema": "usl-pocket-id-runtime-admission/v1",
+        "paperless_mode": "internal-only",
+        "application_completed": True,
+        "provider_enabled": True,
+        "governed_provider": True,
+        "client_id_matches": True,
+        "database_secret_absent": True,
+        "issuer_matches": True,
+        "base_url_matches": True,
+        "required_group_matches": True,
+        "scopes_match": True,
+        "endpoints_match_issuer": True,
+        "odoo_authorization_accepted": True,
+        "odoo_client_secret_accepted": True,
+        "status": "passed",
+    }
+    preservation = None
+    if operation_kind == "staging-reset-from-production":
+        identity = {"files": 2, "bytes": 144, "sha256": "c" * 64}
+        preservation = {
+            "schema": "usl-staging-environment-state/v1",
+            "mcp_oauth": {"source": identity, "destination": dict(identity)},
+            "status": "preserved",
+        }
+    value = {
+        "schema": "usl-release-runtime-evidence/v1",
+        "target": "staging",
+        "attempt": attempt,
+        "release": release,
+        "snapshot": snapshot,
+        "generation": generation,
+        "operation_kind": operation_kind,
+        "auth_compose_admission": auth,
+        "pocket_id_admission": pocket,
+        "environment_state_preservation": preservation,
+        "status": "validated",
     }
     value["sha256"] = __import__("hashlib").sha256(json.dumps(
         value, sort_keys=True, separators=(",", ":"),
@@ -484,6 +548,193 @@ class CohortContractTests(unittest.TestCase):
                 attempt="attempt-20260904-deadbeef",
                 release="a" * 64,
             )
+
+    def test_staging_runtime_evidence_is_exact_and_tamper_evident(self) -> None:
+        target = load_target("staging", TARGETS)
+        evidence = staging_runtime_evidence(operation_kind="staging-reset-from-production")
+        self.assertEqual(
+            _release_runtime_evidence(
+                evidence,
+                target=target,
+                attempt=evidence["attempt"],
+                release=evidence["release"],
+                snapshot=evidence["snapshot"],
+                generation=evidence["generation"],
+                operation_kind=evidence["operation_kind"],
+            ),
+            evidence,
+        )
+        changed = json.loads(json.dumps(evidence))
+        changed["auth_compose_admission"]["odoo_sso_enabled"] = False
+        changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in changed.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "authentication evidence differs"):
+            _release_runtime_evidence(
+                changed,
+                target=target,
+                attempt=evidence["attempt"],
+                release=evidence["release"],
+                snapshot=evidence["snapshot"],
+                generation=evidence["generation"],
+                operation_kind=evidence["operation_kind"],
+            )
+
+    def test_staging_reconcile_retry_returns_bound_authentication_evidence(self) -> None:
+        configured = load_target("staging", TARGETS)
+        target = mock.Mock(value=configured.value, project=configured.project, protected=False)
+        target.name = "staging"
+        runner = mock.Mock()
+        target.runner.return_value = runner
+        attempt = "attempt-20260904-staging"
+        release_id = "a" * 64
+        snapshot = "b" * 64
+        generation = "grelease-staging1"
+        checkpoint = {
+            "snapshot": snapshot,
+            "baseline_generation": "gbase",
+            "baseline_runtime_sha256": "c" * 64,
+            "sha256": "d" * 64,
+        }
+        prepare = {
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "f" * 64,
+            "sha256": "1" * 64,
+            "prepared_at": "2026-09-04T00:00:00Z",
+        }
+        maintenance = {
+            "sha256": "2" * 64,
+            "observed_at": "2026-09-04T00:01:00Z",
+        }
+        operation = {
+            "target": "staging",
+            "attempt": attempt,
+            "source": "staging",
+            "candidate_release": release_id,
+            "snapshot": snapshot,
+            "generation": generation,
+            "gitops_commit": prepare["gitops_commit"],
+            "upgrade_plan_sha256": prepare["upgrade_plan_sha256"],
+            "prepare_receipt_sha256": prepare["sha256"],
+            "maintenance_receipt_sha256": maintenance["sha256"],
+            "operation_kind": "staging-upgrade",
+            "source_receipt_sha256": checkpoint["sha256"],
+            "baseline_runtime_sha256": "c" * 64,
+        }
+        bundle = __import__("hashlib").sha256(json.dumps(
+            operation, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gbase",
+            "operation_bundle_sha256": bundle,
+            "claimed_at": "2026-09-04T00:01:01Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(json.dumps(
+            claim, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        evidence = staging_runtime_evidence(
+            attempt=attempt,
+            release=release_id,
+            snapshot=snapshot,
+            generation=generation,
+        )
+        admission = _release_boundary_receipt(
+            schema="usl-release-admission/v1",
+            status="admitted",
+            target=target,
+            attempt=attempt,
+            release=release_id,
+            snapshot=snapshot,
+            generation=generation,
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256=bundle,
+            runtime_evidence_sha256=evidence["sha256"],
+        )
+        attempt_path = f"{configured.value['state_directory']}/attempts/{attempt}/claim.json"
+        admission_path = (
+            f"{configured.value['state_directory']}/generations/{generation}/admission.json"
+        )
+
+        def run(command, *, check=True, input_text=None):
+            if command[:1] == ["mkdir"]:
+                return subprocess.CompletedProcess(command, 1, "", "exists")
+            if command[:2] == ["cat", attempt_path]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+            if command[:2] == ["cat", admission_path]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(admission), "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = run
+        baseline = {"generation": "gbase", "compose": {}}
+        active = {"generation": generation, "compose": {}}
+        arguments = argparse.Namespace(
+            action="reconcile-staging", target="staging", targets=TARGETS,
+            source=None, checkpoint_receipt=Path("/checkpoint.json"),
+            candidate_release=Path("/release.json"), attempt_id=attempt,
+            prepare_receipt=Path("/prepare.json"),
+            maintenance_receipt=Path("/maintenance.json"),
+            upgrade_plan=Path("/plan.json"), generation=generation,
+            snapshot=None, replace=True, confirm="staging", json=True,
+        )
+        output = __import__("io").StringIO()
+        with (
+            contextlib.redirect_stdout(output),
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.validate_release", return_value={"identity": release_id}),
+            mock.patch("operations.stack._staging_checkpoint_receipt", return_value=checkpoint),
+            mock.patch("operations.stack.inspect_runtime", side_effect=[baseline, baseline, active]),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="c" * 64),
+            mock.patch("operations.stack._prepare_receipt", return_value=prepare),
+            mock.patch("operations.stack._maintenance_receipt", return_value=maintenance),
+            mock.patch(
+                "operations.stack._validated_release_upgrade_plan",
+                return_value={"sha256": prepare["upgrade_plan_sha256"]},
+            ),
+            mock.patch(
+                "operations.stack._read_path",
+                side_effect=lambda _target, _runner, path: (
+                    json.dumps(evidence)
+                    if str(path).endswith("runtime-evidence.json") else "{}"
+                ),
+            ),
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        replay = json.loads(output.getvalue())
+        self.assertEqual(replay["auth_compose_admission"], evidence["auth_compose_admission"])
+        self.assertEqual(replay["pocket_id_admission"], evidence["pocket_id_admission"])
+        self.assertEqual(replay["runtime_evidence"]["sha256"], evidence["sha256"])
+
+        tampered = json.loads(json.dumps(evidence))
+        tampered["pocket_id_admission"]["provider_enabled"] = False
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.validate_release", return_value={"identity": release_id}),
+            mock.patch("operations.stack._staging_checkpoint_receipt", return_value=checkpoint),
+            mock.patch("operations.stack.inspect_runtime", side_effect=[baseline, baseline, active]),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="c" * 64),
+            mock.patch("operations.stack._prepare_receipt", return_value=prepare),
+            mock.patch("operations.stack._maintenance_receipt", return_value=maintenance),
+            mock.patch(
+                "operations.stack._validated_release_upgrade_plan",
+                return_value={"sha256": prepare["upgrade_plan_sha256"]},
+            ),
+            mock.patch(
+                "operations.stack._read_path",
+                side_effect=lambda _target, _runner, path: (
+                    json.dumps(tampered)
+                    if str(path).endswith("runtime-evidence.json") else "{}"
+                ),
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "authentication evidence differs"):
+                release_command(arguments)
 
     def test_release_activate_requires_explicit_boundary_receipts(self) -> None:
         arguments = build_parser().parse_args([
@@ -1359,6 +1610,7 @@ class CohortContractTests(unittest.TestCase):
             smoke={"status": "passed"},
             control_validation={"status": "passed"},
             operation_bundle_sha256=claim["operation_bundle_sha256"],
+            runtime_evidence_sha256="9" * 64,
         )
         current = {
             "generation": generation,

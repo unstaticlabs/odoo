@@ -3268,6 +3268,7 @@ def _release_boundary_receipt(
     smoke: dict,
     control_validation: dict,
     operation_bundle_sha256: str,
+    runtime_evidence_sha256: str | None = None,
 ) -> dict:
     """Bind a runtime boundary to the exact candidate and its validation."""
     timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
@@ -3288,6 +3289,7 @@ def _release_boundary_receipt(
         "control_validation_sha256": hashlib.sha256(
             json.dumps(control_validation, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest(),
+        "runtime_evidence_sha256": runtime_evidence_sha256,
         timestamp_key: datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "status": status,
     }
@@ -3311,6 +3313,7 @@ def _validate_release_boundary_receipt(
         "schema", "target", "attempt", "release", "snapshot", "generation",
         "operation_bundle_sha256",
         "health_sha256", "smoke_sha256", "control_validation_sha256",
+        "runtime_evidence_sha256",
         timestamp_key, "status", "sha256",
     }
     if not isinstance(value, dict) or set(value) != required:
@@ -3324,6 +3327,11 @@ def _validate_release_boundary_receipt(
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["operation_bundle_sha256"]))
+        or (
+            not re.fullmatch(r"[0-9a-f]{64}", str(value["runtime_evidence_sha256"]))
+            if target.value["environment"] == "staging"
+            else value["runtime_evidence_sha256"] is not None
+        )
     ):
         raise RuntimeError("release boundary receipt identity differs")
     digest = hashlib.sha256(
@@ -3335,6 +3343,120 @@ def _validate_release_boundary_receipt(
     ).hexdigest()
     if value["sha256"] != digest:
         raise RuntimeError("release boundary receipt digest differs")
+    return value
+
+
+def _release_runtime_evidence(
+    value: object,
+    *,
+    target,
+    attempt: str,
+    release: str,
+    snapshot: str,
+    generation: str,
+    operation_kind: str,
+) -> dict:
+    """Validate the staging-only evidence needed to replay an admission."""
+    required = {
+        "schema", "target", "attempt", "release", "snapshot", "generation",
+        "operation_kind", "auth_compose_admission", "pocket_id_admission",
+        "environment_state_preservation", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("release runtime evidence fields differ")
+    if (
+        target.value["environment"] != "staging"
+        or value["schema"] != "usl-release-runtime-evidence/v1"
+        or value["target"] != target.name
+        or value["attempt"] != attempt
+        or value["release"] != release
+        or value["snapshot"] != snapshot
+        or value["generation"] != generation
+        or value["operation_kind"] != operation_kind
+        or operation_kind not in {"staging-upgrade", "staging-reset-from-production"}
+        or value["status"] != "validated"
+    ):
+        raise RuntimeError("release runtime evidence identity differs")
+    auth = value["auth_compose_admission"]
+    pocket = value["pocket_id_admission"]
+    auth_common = {
+        "schema", "status", "paperless_mode", "canonical_environment",
+        "odoo_sso_enabled",
+    }
+    auth_modes = {
+        "oidc": {"paperless_https_url", "paperless_sso_enabled", "paperless_client_isolated"},
+        "internal-only": {
+            "paperless_internal_url", "paperless_loopback_only",
+            "paperless_external_route_absent", "paperless_oidc_disabled",
+        },
+    }
+    pocket_common = {
+        "schema", "status", "paperless_mode", "application_completed",
+        "provider_enabled", "governed_provider", "client_id_matches",
+        "database_secret_absent", "issuer_matches", "base_url_matches",
+        "required_group_matches", "scopes_match", "endpoints_match_issuer",
+        "odoo_authorization_accepted", "odoo_client_secret_accepted",
+    }
+    pocket_modes = {
+        "oidc": {"paperless_authorization_accepted", "paperless_client_secret_accepted"},
+        "internal-only": set(),
+    }
+    auth_mode = auth.get("paperless_mode") if isinstance(auth, dict) else None
+    pocket_mode = pocket.get("paperless_mode") if isinstance(pocket, dict) else None
+    if (
+        not isinstance(auth, dict)
+        or auth.get("schema") != "usl-staging-auth-compose/v1"
+        or auth.get("status") != "passed"
+        or auth_mode not in auth_modes
+        or set(auth) != auth_common | auth_modes[auth_mode]
+        or any(
+            item is not True
+            for key, item in auth.items()
+            if key not in {"schema", "status", "paperless_mode"}
+        )
+        or not isinstance(pocket, dict)
+        or pocket.get("schema") != "usl-pocket-id-runtime-admission/v1"
+        or pocket.get("status") != "passed"
+        or pocket_mode != auth_mode
+        or set(pocket) != pocket_common | pocket_modes[pocket_mode]
+        or any(
+            item is not True
+            for key, item in pocket.items()
+            if key not in {"schema", "status", "paperless_mode"}
+        )
+    ):
+        raise RuntimeError("release runtime authentication evidence differs")
+    preservation = value["environment_state_preservation"]
+    if operation_kind == "staging-reset-from-production":
+        if (
+            not isinstance(preservation, dict)
+            or set(preservation) != {"schema", "mcp_oauth", "status"}
+            or preservation["schema"] != "usl-staging-environment-state/v1"
+            or preservation["status"] != "preserved"
+            or not isinstance(preservation["mcp_oauth"], dict)
+            or set(preservation["mcp_oauth"]) != {"source", "destination"}
+            or preservation["mcp_oauth"]["source"]
+            != preservation["mcp_oauth"]["destination"]
+            or any(
+                not isinstance(identity, dict)
+                or set(identity) != {"files", "bytes", "sha256"}
+                or not isinstance(identity["files"], int)
+                or identity["files"] < 0
+                or not isinstance(identity["bytes"], int)
+                or identity["bytes"] < 0
+                or not re.fullmatch(r"[0-9a-f]{64}", str(identity["sha256"]))
+                for identity in preservation["mcp_oauth"].values()
+            )
+        ):
+            raise RuntimeError("release runtime environment evidence differs")
+    elif preservation is not None:
+        raise RuntimeError("ordinary staging upgrade has unexpected environment preservation")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    digest = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    if value["sha256"] != digest:
+        raise RuntimeError("release runtime evidence digest differs")
     return value
 
 
@@ -4678,6 +4800,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     release_override = getattr(arguments, "target_release", None) or arguments.release
     release, release_sha, release_raw = _release(source, target_runner, release_override)
     attempt = getattr(arguments, "attempt_id", None)
+    operation_kind = getattr(arguments, "operation_kind", None)
     if attempt is not None:
         attempt = _release_attempt(attempt, release.get("identity", ""))
     maintenance = getattr(arguments, "maintenance_receipt", None)
@@ -5025,6 +5148,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     validation_seconds = round(time.monotonic() - phase_started, 3)
     admission_receipt = None
     quarantine_receipt = None
+    runtime_evidence = None
     try:
         _record_event(
             target,
@@ -5040,6 +5164,42 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             if not isinstance(operation_bundle_sha256, str):
                 raise RuntimeError("release operation bundle identity is missing")
             production = target.value["environment"] == "production"
+            if not production:
+                evidence_body = {
+                    "schema": "usl-release-runtime-evidence/v1",
+                    "target": target.name,
+                    "attempt": attempt,
+                    "release": release["identity"],
+                    "snapshot": arguments.snapshot,
+                    "generation": generation,
+                    "operation_kind": operation_kind,
+                    "auth_compose_admission": auth_compose_admission,
+                    "pocket_id_admission": pocketid_admission,
+                    "environment_state_preservation": environment_state_preservation,
+                    "status": "validated",
+                }
+                evidence_body["sha256"] = hashlib.sha256(
+                    json.dumps(
+                        evidence_body, sort_keys=True, separators=(",", ":"),
+                    ).encode(),
+                ).hexdigest()
+                runtime_evidence = _release_runtime_evidence(
+                    evidence_body,
+                    target=target,
+                    attempt=attempt,
+                    release=release["identity"],
+                    snapshot=arguments.snapshot,
+                    generation=generation,
+                    operation_kind=operation_kind,
+                )
+                runtime_evidence_path = f"{generation_root}/runtime-evidence.json"
+                _write_remote(
+                    target,
+                    target_runner,
+                    runtime_evidence_path,
+                    json.dumps(runtime_evidence, indent=2, sort_keys=True) + "\n",
+                    "0444",
+                )
             receipt_body = _release_boundary_receipt(
                 schema=(
                     "usl-release-quarantine/v1"
@@ -5055,6 +5215,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 smoke=smoke,
                 control_validation=control_validation,
                 operation_bundle_sha256=operation_bundle_sha256,
+                runtime_evidence_sha256=(runtime_evidence or {}).get("sha256"),
             )
             receipt_path = f"{generation_root}/{'quarantine' if production else 'admission'}.json"
             _write_remote(
@@ -5095,6 +5256,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "attempt": attempt,
         "admission": admission_receipt,
         "quarantine": quarantine_receipt,
+        "runtime_evidence": (
+            {"path": f"{generation_root}/runtime-evidence.json", **runtime_evidence}
+            if runtime_evidence is not None else None
+        ),
         "performance": {
             "preparation_seconds": preparation_seconds,
             "materialization_seconds": materialization_seconds,
@@ -5663,6 +5828,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         **{key: quarantine[key] for key in (
             "target", "attempt", "release", "snapshot", "generation",
             "control_validation_sha256", "operation_bundle_sha256",
+            "runtime_evidence_sha256",
         )},
         "schema": "usl-release-admission/v1",
         "health_sha256": hashlib.sha256(
@@ -6479,6 +6645,29 @@ def release_command(arguments: argparse.Namespace) -> int:
             _require_same_attempt_boundary(
                 existing_claim, receipt, generation=generation, snapshot=arguments.snapshot,
             )
+            runtime_evidence = None
+            if production:
+                if receipt["runtime_evidence_sha256"] is not None:
+                    raise RuntimeError("production boundary has staging runtime evidence")
+            else:
+                runtime_evidence_path = (
+                    f"{target.value['state_directory']}/generations/{generation}/"
+                    "runtime-evidence.json"
+                )
+                try:
+                    runtime_evidence = _release_runtime_evidence(
+                        json.loads(_read_path(target, runner, Path(runtime_evidence_path))),
+                        target=target,
+                        attempt=attempt,
+                        release=release_value["identity"],
+                        snapshot=arguments.snapshot,
+                        generation=generation,
+                        operation_kind=operation_kind,
+                    )
+                except json.JSONDecodeError as error:
+                    raise RuntimeError("release runtime evidence is invalid") from error
+                if receipt["runtime_evidence_sha256"] != runtime_evidence["sha256"]:
+                    raise RuntimeError("release boundary runtime evidence differs")
             value = {
                 "schema": "usl-release-reconcile-replay/v1",
                 "target": target.name,
@@ -6489,8 +6678,20 @@ def release_command(arguments: argparse.Namespace) -> int:
                     "path": f"{target.value['state_directory']}/generations/{generation}/{receipt_name}.json",
                     **receipt,
                 },
+                "runtime_evidence": (
+                    {"path": runtime_evidence_path, **runtime_evidence}
+                    if runtime_evidence is not None else None
+                ),
                 "status": "already-" + receipt["status"],
             }
+            if runtime_evidence is not None:
+                value.update({
+                    "auth_compose_admission": runtime_evidence["auth_compose_admission"],
+                    "pocket_id_admission": runtime_evidence["pocket_id_admission"],
+                    "environment_state_preservation": runtime_evidence[
+                        "environment_state_preservation"
+                    ],
+                })
             print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
             return 0
         _write_remote(
@@ -6510,6 +6711,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             maintenance_receipt=maintenance_receipt,
             prepare_receipt=prepare_receipt,
             operation_bundle_sha256=operation_bundle_sha256,
+            operation_kind=operation_kind,
             replace=arguments.replace,
             confirm=arguments.confirm,
             json=arguments.json,

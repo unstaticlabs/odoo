@@ -59,10 +59,17 @@ and any verification result that does not name the exact selected production
 snapshot. Operators can still use `list` for inspection, but automation must not
 reimplement selection from its untrusted rows.
 
-## Independent staging restore
+## Independent staging recovery restore
 
-Staging is restored into uniquely named volumes. Existing staging remains the
-rollback generation until the new generation passes every gate.
+This low-level command is for an explicitly authorized recovery or disposable
+restore, not the ordinary staging release path. A persistent production-derived
+staging refresh must use `release staging-reset-from-production`; that command
+requires the pre-production staging intent, admitted production receipt, exact
+production attempt claim, and a newer post-admission qualified backup. Ordinary
+staging releases use `release reconcile-staging` and preserve current staging
+data. Staging is restored into uniquely named volumes, and the existing staging
+generation remains the rollback generation until the candidate passes every
+gate.
 
 ```bash
 scripts/usl-stack restore run \
@@ -104,6 +111,11 @@ The restore performs these steps unattended:
 10. apply the target's versioned CPU, memory, PID and OOM-priority policy;
 11. verify HTTP health, Ollama identity, exact business controls, queues,
    filestore coverage, Paperless originals, OCR, previews, Tantivy, and vectors.
+
+Attempt-scoped staging releases also retain the redacted Compose authentication,
+Pocket ID client-admission, and any staging OAuth-preservation evidence in the
+generation directory. The admission receipt binds that evidence digest, and an
+idempotent retry returns it only after exact identity and digest validation.
 
 The first v3 activation also records the exact validated v2 Compose identity.
 If a post-activation gate fails, rollback accepts only the staging validation
