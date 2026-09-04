@@ -282,6 +282,16 @@ The fixed controller therefore runs with host networking and must not use a
 public route as pre-reopen evidence. Public HTTPS and websocket checks are a
 separate post-reopen control-plane gate.
 
+The first v3 staging release has one additional, automated ingress-adoption
+step. After the controller creates the maintenance marker and before it pauses
+writers, it runs `scripts/usl-stack --target staging runtime adopt-gateway
+--json`. The command validates the recorded legacy Compose runtime and the
+canonical GitOps gateway, transfers the single `odoo-staging` Cloudflare alias,
+and requires public HTTP and websocket probes to return the maintenance 503.
+If any transfer or gateway check fails, it removes only the proven gateway and
+restores the exact legacy aliases. Repeating the command after interruption is
+safe.
+
 One operation lock is held per exact target, and a second host-wide lock
 serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence
 and support bounded resume. Interrupted partial capture workspaces are safely
@@ -321,6 +331,17 @@ maintenance only after that proof; failed or ambiguous recovery leaves the
 HTTP 503 in place. After access has reopened, automation must never discard
 current data by restoring an older database; recovery requires a forward fix
 or explicit incident approval.
+
+During the one-time staging v2-to-v3 transition, `active.previous` also carries
+the stable fields of the captured legacy Compose identity. Admission accepts
+only the staging validation directory, exact generation overlays, approved
+staging environment file and expected service perimeter. This lets failures
+after activation restore the real legacy `odoo` service without turning the
+state file into an arbitrary host-path execution surface. That service is
+recreated with its recorded volumes, detached from Cloudflare before it starts,
+and exposed only through `odoo-staging-app` behind the stable gateway. Rollback
+therefore cannot reintroduce duplicate public aliases; an incomplete rollback
+keeps maintenance closed.
 
 Persistent resources declare one of three storage tiers. On production hosts,
 `bulk` is the Hetzner EXT4 Volume mounted at `/srv/storage`, `database` is the

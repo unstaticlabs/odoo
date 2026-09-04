@@ -14,6 +14,7 @@ import time
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from operations.control_manifest import (
     ODOO_CONTROL_SQL,
@@ -142,10 +143,246 @@ def _capacity_detail(available: int) -> str:
     return f"{gib:.1f} GiB free"
 
 
+def _container_networks(runner, container: str) -> dict:
+    raw = runner.run(
+        ["docker", "inspect", container, "--format", "{{json .NetworkSettings.Networks}}"],
+    ).stdout
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("container network inventory is invalid") from error
+    if not isinstance(value, dict):
+        raise RuntimeError("container network inventory is invalid")
+    return value
+
+
+def _container_identifier(runner, container: str) -> str:
+    identifier = runner.run(
+        ["docker", "inspect", container, "--format", "{{.Id}}"],
+    ).stdout.strip()
+    if not re.fullmatch(r"[0-9a-f]{64}", identifier):
+        raise RuntimeError("container identity is invalid")
+    return identifier
+
+
+def _network_alias_owners(runner, network: str, alias: str) -> list[str]:
+    raw = runner.run(
+        ["docker", "network", "inspect", network, "--format", "{{json .Containers}}"],
+    ).stdout
+    try:
+        containers = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("ingress network inventory is invalid") from error
+    if not isinstance(containers, dict):
+        raise RuntimeError("ingress network inventory is invalid")
+    owners = []
+    for container in containers:
+        networks = _container_networks(runner, container)
+        aliases = (networks.get(network) or {}).get("Aliases") or []
+        if alias in aliases:
+            owners.append(container)
+    return sorted(owners)
+
+
+def _gateway_container(target, runner) -> str | None:
+    containers = runner.run(
+        [
+            "docker", "ps", "-a",
+            "--no-trunc",
+            "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", "label=com.docker.compose.service=gateway",
+            "--format", "{{.ID}}",
+        ],
+    ).stdout.splitlines()
+    if len(containers) > 1:
+        raise RuntimeError("staging gateway container identity is ambiguous")
+    return containers[0] if containers else None
+
+
+def _validate_gateway_container(target, runner, container: str, identity: dict) -> None:
+    try:
+        labels = json.loads(runner.run(
+            ["docker", "inspect", container, "--format", "{{json .Config.Labels}}"],
+        ).stdout)
+        state = json.loads(runner.run(
+            ["docker", "inspect", container, "--format", "{{json .State}}"],
+        ).stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("staging gateway container evidence is invalid") from error
+    config_files = [
+        item for item in labels.get("com.docker.compose.project.config_files", "").split(",")
+        if item
+    ]
+    env_files = [
+        item for item in labels.get("com.docker.compose.project.environment_file", "").split(",")
+        if item
+    ]
+    networks = _container_networks(runner, container)
+    ingress = target.value["external_networks"]["ingress"]
+    default_network = target.value["compose"]["default_network"]
+    ingress_aliases = (networks.get(ingress) or {}).get("Aliases") or []
+    backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
+    if (
+        labels.get("com.docker.compose.project") != target.project
+        or labels.get("com.docker.compose.service") != "gateway"
+        or labels.get("com.docker.compose.project.working_dir") != identity["working_directory"]
+        or config_files != identity["compose_files"]
+        or env_files != [identity["environment_file"]]
+        or set(networks) != {ingress, default_network}
+        or "odoo-staging" not in ingress_aliases
+        or "gateway" not in backend_aliases
+        or state.get("Running") is not True
+        or state.get("Health", {}).get("Status") != "healthy"
+    ):
+        raise RuntimeError("staging gateway ownership or health differs")
+
+
+def _probe_staging_gateway_maintenance(target, runner) -> dict:
+    endpoint = target.value["endpoints"]["odoo"].rstrip("/")
+    if endpoint != "https://odoo-staging.unstaticlabs.com":
+        raise RuntimeError("staging public ingress endpoint differs")
+    nonce = str(time.time_ns())
+    common = [
+        "curl", "--silent", "--show-error", "--include", "--http1.1",
+        "--max-time", "15", "--header", "Cache-Control: no-cache",
+    ]
+    http = runner.run(
+        [*common, f"{endpoint}/web/health?maintenance_probe={nonce}"],
+        check=False,
+    )
+    websocket = runner.run(
+        [
+            *common,
+            "--header", "Connection: Upgrade",
+            "--header", "Upgrade: websocket",
+            "--header", "Sec-WebSocket-Version: 13",
+            "--header", "Sec-WebSocket-Key: dXNsLW1haW50ZW5hbmNlIQ==",
+            f"{endpoint}/websocket?maintenance_probe={nonce}",
+        ],
+        check=False,
+    )
+    http_lines = http.stdout.splitlines()
+    websocket_lines = websocket.stdout.splitlines()
+    if (
+        http.returncode
+        or websocket.returncode
+        or not http_lines
+        or not websocket_lines
+        or " 503 " not in http_lines[0]
+        or "Retry-After: 60" not in http.stdout
+        or " 503 " not in websocket_lines[0]
+        or '"error":"maintenance"' not in websocket.stdout
+    ):
+        raise RuntimeError("staging gateway maintenance was not admitted over HTTP and WebSocket")
+    return {
+        "schema": "usl-staging-gateway-maintenance/v1",
+        "http_status": 503,
+        "websocket_status": 503,
+        "status": "passed",
+    }
+
+
+def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: str, aliases: list[str]) -> None:
+    gateway = _gateway_container(target, runner)
+    if gateway:
+        runner.run(
+            compose_command(candidate_identity, ["rm", "--stop", "--force", "gateway"]),
+        )
+    ingress = target.value["external_networks"]["ingress"]
+    networks = _container_networks(runner, legacy)
+    if ingress not in networks:
+        command = ["docker", "network", "connect"]
+        for alias in aliases:
+            command.extend(("--alias", alias))
+        runner.run([*command, ingress, legacy])
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [legacy]:
+        raise RuntimeError("legacy staging ingress could not be restored")
+
+
+def _adopt_staging_gateway(target, runner) -> dict:
+    """Transfer first-v3 ingress to the stable gateway before writers stop."""
+    adoption = target.value["compose"].get("adoption")
+    if target.name != "staging" or adoption is None:
+        raise RuntimeError("stable gateway adoption is staging-only")
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/staging/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("stable gateway adoption requires the maintenance marker")
+    current = inspect_runtime(target, runner)
+    identity = current["compose"]
+    candidate_identity = _candidate_compose_identity(target, runner, identity)
+    legacy_anchor = adoption["legacy_anchor_service"]
+    if identity.get("anchor_service") != legacy_anchor:
+        gateway = _gateway_container(target, runner)
+        if not gateway:
+            raise RuntimeError("canonical staging has no stable gateway")
+        _validate_gateway_container(target, runner, gateway, candidate_identity)
+        maintenance = _probe_staging_gateway_maintenance(target, runner)
+        return {**maintenance, "adoption": "already-canonical"}
+
+    _validated_legacy_compose_identity(
+        target,
+        runner,
+        _recorded_compose_identity(identity),
+        current["generation"],
+    )
+    legacy = _container_identifier(runner, identity["container_id"])
+    ingress = target.value["external_networks"]["ingress"]
+    default_network = target.value["compose"]["default_network"]
+    networks = _container_networks(runner, legacy)
+    backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
+    ingress_aliases = (networks.get(ingress) or {}).get("Aliases") or []
+    expected_ingress_aliases = sorted({f"{target.project}-odoo-1", "odoo", "odoo-staging"})
+    if "odoo-staging-app" not in backend_aliases:
+        raise RuntimeError("legacy staging backend alias is missing")
+    owners = _network_alias_owners(runner, ingress, "odoo-staging")
+    already_adopted = legacy not in owners
+    if not already_adopted and (owners != [legacy] or sorted(ingress_aliases) != expected_ingress_aliases):
+        raise RuntimeError("legacy staging ingress aliases differ from the adoption contract")
+    detached = False
+    try:
+        if not already_adopted:
+            runner.run(["docker", "network", "disconnect", ingress, legacy])
+            detached = True
+        runner.run(
+            compose_command(
+                candidate_identity,
+                ["up", "--detach", "--wait", "--no-deps", "gateway"],
+            ),
+        )
+        gateway = _gateway_container(target, runner)
+        if not gateway:
+            raise RuntimeError("stable staging gateway was not created")
+        _validate_gateway_container(target, runner, gateway, candidate_identity)
+        if runner.run(
+            ["docker", "exec", gateway, "test", "-f", "/run/usl-gateway/maintenance"],
+            check=False,
+        ).returncode:
+            raise RuntimeError("stable staging gateway did not mount the maintenance marker")
+        if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+            raise RuntimeError("stable staging gateway does not uniquely own public ingress")
+        if ingress in _container_networks(runner, legacy):
+            raise RuntimeError("legacy staging retained public ingress")
+        maintenance = _probe_staging_gateway_maintenance(target, runner)
+    except Exception:
+        if detached or already_adopted:
+            _restore_legacy_ingress(
+                target,
+                runner,
+                candidate_identity,
+                legacy,
+                expected_ingress_aliases,
+            )
+        raise
+    return {**maintenance, "adoption": "already-adopted" if already_adopted else "adopted"}
+
+
 def runtime_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
-    if arguments.action == "status":
+    if arguments.action == "adopt-gateway":
+        with runtime_lock(target, runner, "gateway-adoption", "gateway-adoption"):
+            result = _adopt_staging_gateway(target, runner)
+    elif arguments.action == "status":
         result = inspect_runtime(target, runner)
     else:
         current = inspect_runtime(target, runner)
@@ -1434,16 +1671,90 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
     )
 
 
-def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
+def _wait_compose_services(target, runner, services: list[str], timeout: int = 120) -> None:
+    deadline = time.monotonic() + timeout
+    last = ""
+    while time.monotonic() < deadline:
+        pending = []
+        for service in services:
+            containers = runner.run(
+                [
+                    "docker", "ps", "-a",
+                    "--filter", f"label=com.docker.compose.project={target.project}",
+                    "--filter", f"label=com.docker.compose.service={service}",
+                    "--format", "{{.ID}}",
+                ],
+            ).stdout.splitlines()
+            if len(containers) != 1:
+                pending.append(f"{service}:ambiguous")
+                continue
+            try:
+                state = json.loads(runner.run(
+                    ["docker", "inspect", containers[0], "--format", "{{json .State}}"],
+                ).stdout)
+            except json.JSONDecodeError as error:
+                raise RuntimeError("rollback container state is invalid") from error
+            health = state.get("Health", {}).get("Status")
+            if state.get("Running") is not True or health not in {None, "healthy"}:
+                pending.append(f"{service}:{health or state.get('Status', 'unknown')}")
+        if not pending:
+            return
+        last = ", ".join(pending)
+        time.sleep(2)
+    raise RuntimeError(f"rollback services did not become ready: {last}")
+
+
+def _start_rollback_identity(target, runner, identity: dict) -> None:
+    """Start a rollback generation without returning legacy ingress to Odoo."""
+    adoption = target.value["compose"].get("adoption")
+    if adoption is None or identity.get("anchor_service") != adoption["legacy_anchor_service"]:
+        runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
+        return
+
+    gateway = _gateway_container(target, runner)
+    if not gateway:
+        raise RuntimeError("legacy rollback requires the stable staging gateway")
+    candidate_identity = _candidate_compose_identity(target, runner, identity)
+    _validate_gateway_container(target, runner, gateway, candidate_identity)
+    ingress = target.value["external_networks"]["ingress"]
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+        raise RuntimeError("legacy rollback gateway does not uniquely own public ingress")
+
+    services = _compose_services(target, identity)
+    runner.run(compose_command(
+        identity,
+        ["create", "--force-recreate", "--no-deps", *services],
+    ))
+    legacy = runner.run(
+        [
+            "docker", "ps", "-a",
+            "--no-trunc",
+            "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", f"label=com.docker.compose.service={adoption['legacy_anchor_service']}",
+            "--format", "{{.ID}}",
+        ],
+    ).stdout.splitlines()
+    if len(legacy) != 1:
+        raise RuntimeError("legacy rollback Odoo identity is ambiguous")
+    networks = _container_networks(runner, legacy[0])
+    default_network = target.value["compose"]["default_network"]
+    if "odoo-staging-app" not in (networks.get(default_network) or {}).get("Aliases", []):
+        raise RuntimeError("legacy rollback backend alias is missing")
+    if ingress in networks:
+        runner.run(["docker", "network", "disconnect", ingress, legacy[0]])
+    if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
+        raise RuntimeError("legacy rollback retained duplicate public ingress")
+    runner.run(compose_command(identity, ["start", *services]))
+    _wait_compose_services(target, runner, services)
+
+
+def _rollback_after_failure(target, runner, identity: dict, error: Exception) -> None:
     _report("restore", "rollback", "started", f"activation failed: {error}")
-    rollback = runner.run(
-        compose_command(identity, ["up", "--detach", "--wait"]),
-        check=False,
-    )
-    if rollback.returncode:
-        detail = (rollback.stderr or rollback.stdout).strip()
+    try:
+        _start_rollback_identity(target, runner, identity)
+    except Exception as rollback_error:
         raise RuntimeError(
-            f"activation failed ({error}); rollback also failed ({detail})",
+            f"activation failed ({error}); rollback also failed ({rollback_error})",
         ) from error
     _report("restore", "rollback", "completed", "previous generation is running")
 
@@ -3061,6 +3372,23 @@ def _active_generation_state(
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _previous_generation_record(target, current: dict) -> dict:
+    """Record rollback resources plus exact validated legacy Compose provenance."""
+    active = current["active_state"] or {}
+    previous = {
+        "generation": current["generation"],
+        "volumes": {role: item["name"] for role, item in current["volumes"].items()},
+        "network": active.get("network"),
+        "release_manifest": active.get("release_manifest"),
+        "snapshot": active.get("snapshot"),
+    }
+    identity = current["compose"]
+    adoption = target.value["compose"].get("adoption")
+    if adoption is not None and identity.get("anchor_service") == adoption["legacy_anchor_service"]:
+        previous["compose"] = _recorded_compose_identity(identity)
+    return previous
+
+
 def _base_compose_identity(target, identity: dict) -> dict:
     generated_prefix = target.value["state_directory"] + "/generations/"
     compose_files = [
@@ -3074,6 +3402,77 @@ def _base_compose_identity(target, identity: dict) -> dict:
     if not compose_files:
         raise RuntimeError("base Compose identity is unavailable")
     return {**identity, "compose_files": compose_files}
+
+
+def _recorded_compose_identity(identity: dict) -> dict:
+    """Persist only the stable Compose provenance needed for rollback."""
+    return {
+        field: identity[field]
+        for field in (
+            "project",
+            "working_directory",
+            "environment_file",
+            "compose_files",
+            "profiles",
+            "anchor_service",
+        )
+    }
+
+
+def _validated_legacy_compose_identity(target, runner, value: dict, generation: str) -> dict:
+    """Admit the one staging v2 layout without accepting arbitrary host paths."""
+    adoption = target.value["compose"].get("adoption")
+    expected_fields = {
+        "project",
+        "working_directory",
+        "environment_file",
+        "compose_files",
+        "profiles",
+        "anchor_service",
+    }
+    if adoption is None or not isinstance(value, dict) or set(value) != expected_fields:
+        raise RuntimeError("legacy rollback Compose identity is invalid")
+    if (
+        value["project"] != target.project
+        or value["anchor_service"] != adoption["legacy_anchor_service"]
+        or value["profiles"] != target.value["compose"]["profiles"]
+        or value["environment_file"] != adoption["candidate"]["environment_file"]
+    ):
+        raise RuntimeError("legacy rollback Compose identity differs from its contract")
+    state_root = target.value["state_directory"]
+    working_directory = value["working_directory"]
+    if not re.fullmatch(re.escape(state_root) + r"/validation-[0-9a-f]{8,16}", working_directory):
+        raise RuntimeError("legacy rollback working directory is outside the validation perimeter")
+    allowed = {
+        f"{working_directory}/compose.yaml",
+        f"{working_directory}/compose.resources.json",
+        f"{working_directory}/usl-staging-proxy-generation.json",
+        f"{state_root}/generations/{generation}/compose.resources.json",
+        f"{state_root}/generations/{generation}/compose.generation.json",
+    }
+    compose_files = value["compose_files"]
+    if (
+        not isinstance(compose_files, list)
+        or not compose_files
+        or len(compose_files) != len(set(compose_files))
+        or set(compose_files) != allowed
+    ):
+        raise RuntimeError("legacy rollback Compose files are outside the validation perimeter")
+    paths = [working_directory, value["environment_file"], *compose_files]
+    for path in paths:
+        test = ["test", "-d" if path == working_directory else "-f", path]
+        if runner.run(test, check=False).returncode:
+            raise RuntimeError(f"legacy rollback Compose path is missing: {path}")
+        resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+        if resolved != path:
+            raise RuntimeError(f"legacy rollback Compose path is not direct: {path}")
+    services = set(runner.run(compose_command(value, ["config", "--services"])).stdout.splitlines())
+    expected_services = set(target.value["services"].values())
+    expected_services.remove(target.value["compose"]["anchor_service"])
+    expected_services.add(adoption["legacy_anchor_service"])
+    if not expected_services.issubset(services) or target.value["compose"]["anchor_service"] in services:
+        raise RuntimeError("legacy rollback Compose service perimeter differs")
+    return value
 
 
 def _compose_services(target, identity: dict) -> list[str]:
@@ -3178,11 +3577,22 @@ def _cleanup_adoption_candidate_anchor(target, runner, current_identity: dict) -
     anchor = target.value["compose"]["anchor_service"]
     if current_identity.get("anchor_service", anchor) == anchor:
         return
+    _remove_owned_compose_service(target, runner, anchor)
+
+
+def _remove_owned_compose_service(target, runner, service: str) -> None:
+    """Remove exactly one allowlisted Compose service after proving ownership."""
+    permitted = set(target.value["services"].values())
+    adoption = target.value["compose"].get("adoption")
+    if adoption is not None:
+        permitted.add(adoption["legacy_anchor_service"])
+    if service not in permitted:
+        raise RuntimeError("refusing to remove a service outside the target perimeter")
     candidates = runner.run(
         [
             "docker", "ps", "-a",
             "--filter", f"label=com.docker.compose.project={target.project}",
-            "--filter", f"label=com.docker.compose.service={anchor}",
+            "--filter", f"label=com.docker.compose.service={service}",
             "--format", "{{.ID}}",
         ],
     ).stdout.splitlines()
@@ -3197,9 +3607,9 @@ def _cleanup_adoption_candidate_anchor(target, runner, current_identity: dict) -
         )
         if (
             labels.get("com.docker.compose.project") != target.project
-            or labels.get("com.docker.compose.service") != anchor
+            or labels.get("com.docker.compose.service") != service
         ):
-            raise RuntimeError("failed candidate anchor ownership differs")
+            raise RuntimeError("Compose service ownership differs")
         runner.run(["docker", "rm", "--force", container])
 
 
@@ -3226,7 +3636,7 @@ def _activate_generation(
             _cleanup_adoption_candidate_anchor(target, runner, current_identity)
         except Exception as cleanup:
             cleanup_error = cleanup
-        _rollback_after_failure(runner, current_identity, error)
+        _rollback_after_failure(target, runner, current_identity, error)
         if cleanup_error is not None:
             raise RuntimeError(
                 f"activation failed ({error}); legacy rollback completed but candidate cleanup failed "
@@ -3264,7 +3674,7 @@ def _rollback_active_candidate(
             active_path,
             json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
         )
-    _rollback_after_failure(runner, current_identity, error)
+    _rollback_after_failure(target, runner, current_identity, error)
     if cleanup_error is not None:
         raise RuntimeError(
             f"candidate failed ({error}); rollback completed but cleanup failed "
@@ -3303,9 +3713,15 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     if active is None:
         return identity, None
     previous = active.get("previous")
-    if not isinstance(previous, dict) or set(previous) != {
+    required_previous = {
         "generation", "volumes", "network", "release_manifest", "snapshot",
-    }:
+    }
+    allowed_previous = required_previous | {"compose"}
+    if (
+        not isinstance(previous, dict)
+        or not required_previous.issubset(previous)
+        or not set(previous).issubset(allowed_previous)
+    ):
         raise RuntimeError("rollback generation state is incomplete")
     if previous["release_manifest"] is None:
         if previous["network"] is not None or previous["snapshot"] is not None:
@@ -3340,20 +3756,30 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
         if runner.run(["test", "-f", path], check=False).returncode:
             raise RuntimeError(f"rollback generation file is missing: {path}")
     adoption = target.value["compose"].get("adoption")
-    if adoption is not None:
-        try:
-            previous_release = json.loads(runner.run(["cat", release_manifest]).stdout)
-        except json.JSONDecodeError as error:
-            raise RuntimeError("rollback release manifest is invalid") from error
-        if previous_release.get("schema") != "usl-release/v3" and not (
-            target.value["environment"] == "staging"
-            and previous_release.get("schema") == "usl-release/v2"
+    try:
+        previous_release = json.loads(runner.run(["cat", release_manifest]).stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("rollback release manifest is invalid") from error
+    if previous_release.get("schema") == "usl-release/v2":
+        if (
+            target.value["environment"] != "staging"
+            or adoption is None
+            or previous_release.get("schema") != adoption["legacy_release_schema"]
+            or "compose" not in previous
         ):
-            raise RuntimeError("automatic rollback to the preserved legacy topology is disabled")
-        try:
-            validate_release(previous_release)
-        except ReleaseManifestError as error:
-            raise RuntimeError("rollback release manifest is invalid") from error
+            raise RuntimeError("legacy v2 rollback lacks its exact Compose identity")
+        identity = _validated_legacy_compose_identity(
+            target,
+            runner,
+            previous["compose"],
+            generation,
+        )
+    elif previous_release.get("schema") != "usl-release/v3":
+        raise RuntimeError("rollback release schema is unsupported")
+    try:
+        validate_release(previous_release)
+    except ReleaseManifestError as error:
+        raise RuntimeError("rollback release manifest is invalid") from error
     state = _active_generation_state(
         target,
         generation,
@@ -3564,13 +3990,20 @@ def _abort_to_previous_generation(
         compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
         check=False,
     )
-    rollback = runner.run(
-        compose_command(previous_identity, ["up", "--detach", "--wait"]),
-        check=False,
-    )
-    if rollback.returncode:
-        detail = (rollback.stderr or rollback.stdout).strip()
-        raise RuntimeError(f"previous generation did not start: {detail}")
+    adoption = target.value["compose"].get("adoption")
+    if (
+        adoption is not None
+        and previous_identity.get("anchor_service") == adoption["legacy_anchor_service"]
+    ):
+        _remove_owned_compose_service(
+            target,
+            runner,
+            target.value["compose"]["anchor_service"],
+        )
+    try:
+        _start_rollback_identity(target, runner, previous_identity)
+    except Exception as error:
+        raise RuntimeError(f"previous generation did not start: {error}") from error
     active_path = f"{target.value['state_directory']}/active.json"
     if previous_state is None:
         runner.run(["rm", "-f", active_path])
@@ -3612,15 +4045,40 @@ def _validate_materialized_release(
         raise RuntimeError("production recovery lacks complete Sign secret material")
 
 
-def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> None:
+def _run_candidate_upgrade(
+    target,
+    runner,
+    release,
+    network,
+    volumes,
+    plan,
+    candidate_identity=None,
+) -> None:
     modules = validate_upgrade_plan(plan)["upgrade_modules"]
     if not modules:
         return
     if plan["candidate_release"] != release.get("identity"):
         raise RuntimeError("upgrade plan is not bound to the candidate release")
     database = target.value["databases"]["odoo"]
-    runner.run(
-        [
+    arguments = [
+        "odoo", "--config=/etc/odoo/odoo.conf",
+        f"--database={database['name']}",
+        f"--update={','.join(modules)}",
+        "--stop-after-init", "--no-http", "--max-cron-threads=0",
+    ]
+    if target.value["environment"] == "staging":
+        if candidate_identity is None:
+            raise RuntimeError("staging upgrade requires the approved runtime identity")
+        command = _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            arguments,
+        )
+    else:
+        command = [
             "docker", "run", "--rm", "--network", network,
             "--env-file", target.value["secrets"]["env_file"],
             "--env", f"ODOO_DB_HOST={database['service']}",
@@ -3632,12 +4090,418 @@ def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> N
             "--env", "USL_EREPORTING_LIVE_ENABLED=0",
             "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
             release["components"]["distribution"]["digest_reference"],
-            "odoo", "--config=/etc/odoo/odoo.conf",
-            f"--database={database['name']}",
-            f"--update={','.join(modules)}",
-            "--stop-after-init", "--no-http", "--max-cron-threads=0",
-        ],
+            *arguments,
+        ]
+    runner.run(command)
+
+
+def _staging_pocketid_runtime_environment(target, candidate_identity: dict) -> str:
+    adoption = target.value["compose"].get("adoption")
+    if target.value["environment"] != "staging" or adoption is None:
+        raise RuntimeError("Pocket ID staging reconciliation requires the staging adoption contract")
+    environment_file = candidate_identity.get("environment_file")
+    if environment_file != adoption["candidate"]["environment_file"]:
+        raise RuntimeError("Pocket ID staging environment differs from the approved runtime file")
+    return environment_file
+
+
+def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> dict:
+    """Fail before materialization unless staging authentication is explicit."""
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-staging-auth-compose/v1", "status": "not-applicable"}
+    _staging_pocketid_runtime_environment(target, candidate_identity)
+    rendered = runner.run(
+        compose_command(candidate_identity, ["config", "--format", "json"]),
     )
+    try:
+        compose = json.loads(rendered.stdout)
+        services = compose["services"]
+        odoo = services[target.value["services"]["odoo"]]["environment"]
+        upgrade = services["odoo-upgrade"]["environment"]
+        paperless_service = services[target.value["services"]["paperless"]]
+        paperless = paperless_service["environment"]
+        paperless_preflight = services["paperless-preflight"]["environment"]
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("rendered staging authentication contract is invalid") from error
+    issuer = "https://auth.unstaticlabs.com"
+    base_url = target.value["endpoints"]["odoo"].rstrip("/")
+    paperless_url = str(paperless.get("PAPERLESS_URL", "")).rstrip("/")
+    paperless_public_url = str(
+        paperless_preflight.get("PAPERLESS_PUBLIC_URL", "")
+    ).rstrip("/")
+    paperless_public_base = str(
+        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", "")
+    ).rstrip("/")
+    configured_paperless_urls = [
+        value for value in (paperless_url, paperless_public_url, paperless_public_base) if value
+    ]
+    public_paperless = any(
+        urlsplit(value).hostname not in {"127.0.0.1", "localhost", "::1"}
+        for value in configured_paperless_urls
+    )
+    checks = {
+        "canonical_environment": all(
+            environment.get("USL_DEPLOYMENT_ENV") == "staging"
+            for environment in (odoo, upgrade, paperless, paperless_preflight)
+        ),
+        "odoo_sso_enabled": all(
+            environment.get("USL_POCKET_ID_ENABLED") == "1"
+            and environment.get("USL_POCKET_ID_ISSUER", "").rstrip("/") == issuer
+            and environment.get("USL_POCKET_ID_ODOO_BASE_URL", "").rstrip("/") == base_url
+            and bool(environment.get("USL_POCKET_ID_CLIENT_ID"))
+            and bool(environment.get("USL_POCKET_ID_CLIENT_SECRET"))
+            for environment in (odoo, upgrade)
+        ),
+    }
+    paperless_apps = {
+        value.strip() for value in str(paperless.get("PAPERLESS_APPS", "")).split(",")
+        if value.strip()
+    }
+    if public_paperless:
+        try:
+            providers = json.loads(paperless["PAPERLESS_SOCIALACCOUNT_PROVIDERS"])
+            provider_list = providers["openid_connect"]["APPS"]
+            if not isinstance(provider_list, list) or len(provider_list) != 1:
+                raise KeyError("Paperless provider count")
+            provider = provider_list[0]
+        except (KeyError, TypeError, json.JSONDecodeError) as error:
+            raise RuntimeError("rendered public Paperless OIDC contract is invalid") from error
+        provider_server = str(
+            (provider.get("settings") or {}).get("server_url", "")
+        ).rstrip("/")
+        checks.update({
+            "paperless_https_url": (
+                urlsplit(paperless_url).scheme == "https"
+                and paperless_url == paperless_public_url == paperless_public_base
+            ),
+            "paperless_sso_enabled": (
+                paperless_preflight.get("PAPERLESS_OIDC_ENABLED") == "1"
+                and paperless_preflight.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
+                and paperless.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
+                and paperless.get("PAPERLESS_REDIRECT_LOGIN_TO_SSO") == "true"
+                and "allauth.socialaccount.providers.openid_connect" in paperless_apps
+            ),
+            "paperless_client_isolated": (
+                provider.get("provider_id") == "pocket-id"
+                and bool(provider.get("client_id"))
+                and bool(provider.get("secret"))
+                and provider.get("client_id") != odoo.get("USL_POCKET_ID_CLIENT_ID")
+                and provider_server == issuer
+                and (provider.get("settings") or {}).get("token_auth_method")
+                == "client_secret_basic"
+            ),
+        })
+        paperless_mode = "oidc"
+    else:
+        internal_url = target.value["endpoints"]["paperless"].rstrip("/")
+        internal_endpoint = urlsplit(internal_url)
+        ports = paperless_service.get("ports") or []
+        networks = paperless_service.get("networks") or []
+        network_names = set(networks if isinstance(networks, list) else networks)
+        rendered_networks = compose.get("networks") or {}
+        ingress_name = target.value["external_networks"]["ingress"]
+        attached_networks = {
+            str((rendered_networks.get(name) or {}).get("name", name))
+            for name in network_names
+        }
+        ingress_route_clear = True
+        for service_name, service in services.items():
+            service_networks = service.get("networks") or []
+            service_network_names = set(
+                service_networks if isinstance(service_networks, list) else service_networks
+            )
+            resolved_service_networks = {
+                str((rendered_networks.get(name) or {}).get("name", name))
+                for name in service_network_names
+            }
+            if ingress_name not in service_network_names | resolved_service_networks:
+                continue
+            for network_name in service_network_names:
+                network_options = (
+                    service_networks.get(network_name) or {}
+                    if isinstance(service_networks, dict)
+                    else {}
+                )
+                aliases = network_options.get("aliases") or []
+                if any("paperless" in str(alias).lower() for alias in aliases):
+                    ingress_route_clear = False
+            image = str(service.get("image", "")).lower()
+            if not any(proxy in image for proxy in ("nginx", "caddy", "traefik")):
+                continue
+            inspected_proxy_config = False
+            for volume in service.get("volumes") or []:
+                if not isinstance(volume, dict) or volume.get("type") != "bind":
+                    continue
+                source = Path(str(volume.get("source", "")))
+                if source.suffix not in {".conf", ".cfg"}:
+                    continue
+                if not source.is_absolute():
+                    source = Path(candidate_identity["working_directory"]) / source
+                inspected_proxy_config = True
+                if "paperless" in _read_path(target, runner, source).lower():
+                    ingress_route_clear = False
+            if not inspected_proxy_config:
+                ingress_route_clear = False
+        exact_loopback_port = len(ports) == 1 and all(
+            str(port.get("host_ip", "")) == "127.0.0.1"
+            and str(port.get("published", "")) == str(internal_endpoint.port)
+            and str(port.get("target", "")) == "8000"
+            for port in ports
+            if isinstance(port, dict)
+        ) and all(isinstance(port, dict) for port in ports)
+        checks.update({
+            "paperless_internal_url": (
+                internal_endpoint.scheme == "http"
+                and internal_endpoint.hostname == "127.0.0.1"
+                and paperless_url == paperless_public_url == internal_url
+                and not paperless_public_base
+            ),
+            "paperless_loopback_only": (
+                exact_loopback_port
+                and ingress_name not in network_names
+                and ingress_name not in attached_networks
+            ),
+            "paperless_external_route_absent": ingress_route_clear,
+            "paperless_oidc_disabled": (
+                paperless_preflight.get("PAPERLESS_OIDC_ENABLED") == "0"
+                and not paperless.get("PAPERLESS_SOCIALACCOUNT_PROVIDERS")
+                and not paperless.get("PAPERLESS_REDIRECT_LOGIN_TO_SSO")
+                and "allauth.socialaccount.providers.openid_connect" not in paperless_apps
+            ),
+        })
+        paperless_mode = "internal-only"
+    if not all(checks.values()):
+        raise RuntimeError(
+            "staging authentication Compose admission failed: "
+            + ", ".join(key for key, value in checks.items() if not value),
+        )
+    return {
+        "schema": "usl-staging-auth-compose/v1",
+        "paperless_mode": paperless_mode,
+        **checks,
+        "status": "passed",
+    }
+
+
+def _staging_pocketid_command(target, release, network, volumes, candidate_identity, arguments):
+    database = target.value["databases"]["odoo"]
+    runtime_environment = _staging_pocketid_runtime_environment(target, candidate_identity)
+    shell = (
+        'set -eu; '
+        'export USL_POCKET_ID_CLIENT_ID="${POCKET_ID_CLIENT_ID:?}"; '
+        'export USL_POCKET_ID_CLIENT_SECRET="${POCKET_ID_CLIENT_SECRET:?}"; '
+        'if [ "${PAPERLESS_OIDC_ENABLED:-0}" = 1 ]; then '
+        ': "${POCKET_ID_PAPERLESS_CLIENT_ID:?}"; '
+        ': "${POCKET_ID_PAPERLESS_CLIENT_SECRET:?}"; '
+        ': "${PAPERLESS_PUBLIC_URL:?}"; fi; '
+        'exec "$@"'
+    )
+    return [
+        "docker", "run", "--rm", "--interactive", "--network", network,
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env-file", runtime_environment,
+        "--env", f"ODOO_DB_HOST={database['service']}",
+        "--env", "ODOO_DB_PORT=5432",
+        "--env", f"ODOO_DB_USER={database['user']}",
+        "--env", f"ODOO_DB_NAME={database['name']}",
+        "--env", "ODOO_MAX_CRON_THREADS=0",
+        "--env", "USL_DEPLOYMENT_ENV=staging",
+        "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+        "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+        "--env", "USL_POCKET_ID_ENABLED=1",
+        "--env", "USL_POCKET_ID_ISSUER=https://auth.unstaticlabs.com",
+        "--env", f"USL_POCKET_ID_ODOO_BASE_URL={target.value['endpoints']['odoo']}",
+        "--env", "USL_POCKET_ID_REQUIRED_GROUP=c_suite",
+        "--env", "USL_POCKET_ID_SCOPES=openid profile email groups",
+        "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+        "--entrypoint", "/bin/sh",
+        release["components"]["distribution"]["digest_reference"],
+        "-c", shell, "usl-pocketid-reconcile", *arguments,
+    ]
+
+
+def _reconcile_staging_pocketid(target, runner, release, network, volumes, candidate_identity) -> dict:
+    """Re-enable and prove the staging OIDC provider after neutralization."""
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-pocket-id-runtime-admission/v1", "status": "not-applicable"}
+    database = target.value["databases"]["odoo"]
+    program = r'''import base64
+import hashlib
+import json
+import os
+import secrets
+from urllib.parse import urlsplit
+
+import requests
+
+provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+applied = env["auth.oauth.provider"]._usl_pocketid_apply_environment()
+provider.invalidate_recordset()
+issuer = os.environ["USL_POCKET_ID_ISSUER"].rstrip("/")
+base_url = os.environ["USL_POCKET_ID_ODOO_BASE_URL"].rstrip("/")
+expected_scopes = set(os.environ["USL_POCKET_ID_SCOPES"].split())
+issuer_url = urlsplit(issuer)
+endpoint_fields = ("auth_endpoint", "token_endpoint", "jwks_uri", "usl_end_session_endpoint")
+endpoints = [
+    urlsplit(provider[field])
+    for field in endpoint_fields
+    if provider[field]
+]
+
+def synthetic_client_probe(client_id, client_secret, redirect_uri, token_auth_method):
+    verifier = secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).rstrip(b"=").decode()
+    authorization = requests.get(
+        provider.auth_endpoint,
+        params={
+            "response_type": "code",
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "scope": "openid profile email groups",
+            "state": secrets.token_urlsafe(24),
+            "nonce": secrets.token_urlsafe(24),
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        },
+        allow_redirects=False,
+        timeout=10,
+    )
+    authorization_detail = (
+        authorization.headers.get("Location", "") + "\n" + authorization.text
+    ).lower()
+    authorization_accepted = (
+        authorization.status_code in {200, 302, 303, 307, 308}
+        and "error=invalid_client" not in authorization_detail
+        and "invalid callback" not in authorization_detail
+        and "invalid redirect" not in authorization_detail
+    )
+    data = {
+        "client_id": client_id,
+        "grant_type": "authorization_code",
+        "code": "usl-admission-invalid-code",
+        "code_verifier": verifier,
+        "redirect_uri": redirect_uri,
+    }
+    auth = None
+    if token_auth_method == "client_secret_post":
+        data["client_secret"] = client_secret
+    else:
+        auth = (client_id, client_secret)
+    token = requests.post(provider.token_endpoint, data=data, auth=auth, timeout=10)
+    try:
+        token_error = token.json().get("error")
+    except ValueError:
+        token_error = None
+    secret_accepted = (
+        token.status_code in {400, 401}
+        and token_error == "invalid_grant"
+    )
+    return authorization_accepted, secret_accepted
+
+odoo_authorization, odoo_secret = synthetic_client_probe(
+    os.environ["USL_POCKET_ID_CLIENT_ID"],
+    os.environ["USL_POCKET_ID_CLIENT_SECRET"],
+    base_url + "/auth_oauth/signin",
+    provider.usl_token_auth_method,
+)
+paperless_mode = "oidc" if os.environ.get("PAPERLESS_OIDC_ENABLED") == "1" else "internal-only"
+checks = {
+    "application_completed": applied is True,
+    "provider_enabled": provider.enabled is True,
+    "governed_provider": provider.usl_pocketid is True,
+    "client_id_matches": provider.client_id == os.environ["USL_POCKET_ID_CLIENT_ID"],
+    "database_secret_absent": not provider.client_secret,
+    "issuer_matches": provider.usl_oidc_issuer.rstrip("/") == issuer,
+    "base_url_matches": provider.usl_public_base_url.rstrip("/") == base_url,
+    "required_group_matches": provider.usl_required_group == os.environ["USL_POCKET_ID_REQUIRED_GROUP"],
+    "scopes_match": set(provider.scope.split()) == expected_scopes,
+    "endpoints_match_issuer": all(
+        endpoint.scheme == "https"
+        and endpoint.hostname == issuer_url.hostname
+        and endpoint.port == issuer_url.port
+        and not endpoint.username
+        and not endpoint.password
+        for endpoint in endpoints
+    ) and all(provider[field] for field in endpoint_fields[:3]),
+    "odoo_authorization_accepted": odoo_authorization,
+    "odoo_client_secret_accepted": odoo_secret,
+}
+if paperless_mode == "oidc":
+    paperless_url = os.environ["PAPERLESS_PUBLIC_URL"].rstrip("/")
+    paperless_authorization, paperless_secret = synthetic_client_probe(
+        os.environ["POCKET_ID_PAPERLESS_CLIENT_ID"],
+        os.environ["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
+        paperless_url + "/accounts/oidc/pocket-id/login/callback/",
+        "client_secret_basic",
+    )
+    checks.update({
+        "paperless_authorization_accepted": paperless_authorization,
+        "paperless_client_secret_accepted": paperless_secret,
+    })
+evidence = {
+    "schema": "usl-pocket-id-runtime-admission/v1",
+    "status": "passed",
+    "paperless_mode": paperless_mode,
+    **checks,
+}
+if not all(checks.values()):
+    raise RuntimeError("Pocket ID runtime admission failed: " + ", ".join(
+        key for key, value in checks.items() if not value
+    ))
+print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
+'''
+    result = runner.run(
+        _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            [
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+            ],
+        ),
+        input_text=program,
+    )
+    prefix = "USL_POCKET_ID_RUNTIME_ADMISSION="
+    for line in reversed(result.stdout.splitlines()):
+        if not line.startswith(prefix):
+            continue
+        try:
+            evidence = json.loads(line.removeprefix(prefix))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("Pocket ID runtime admission returned invalid evidence") from error
+        common_keys = {
+            "schema", "status", "application_completed", "provider_enabled",
+            "governed_provider", "client_id_matches", "database_secret_absent",
+            "issuer_matches", "base_url_matches", "required_group_matches",
+            "scopes_match", "endpoints_match_issuer", "odoo_authorization_accepted",
+            "odoo_client_secret_accepted", "paperless_mode",
+        }
+        paperless_mode = evidence.get("paperless_mode")
+        expected_keys = set(common_keys)
+        if paperless_mode == "oidc":
+            expected_keys.update({
+                "paperless_authorization_accepted",
+                "paperless_client_secret_accepted",
+            })
+        elif paperless_mode != "internal-only":
+            raise RuntimeError("Pocket ID runtime admission evidence differs")
+        if (
+            set(evidence) != expected_keys
+            or evidence.get("schema") != "usl-pocket-id-runtime-admission/v1"
+            or evidence.get("status") != "passed"
+            or any(
+                evidence[key] is not True
+                for key in expected_keys - {"schema", "status", "paperless_mode"}
+            )
+        ):
+            raise RuntimeError("Pocket ID runtime admission evidence differs")
+        return evidence
+    raise RuntimeError("Pocket ID runtime admission returned no evidence")
 
 
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
@@ -3843,6 +4707,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     signed_plan_evidence = None
     cron_policy_application = None
     environment_state_preservation = None
+    pocketid_admission = None
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
@@ -3857,6 +4722,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("generation name is invalid")
     identity = current["compose"]
     candidate_identity = _candidate_compose_identity(target, target_runner, identity)
+    auth_compose_admission = _validate_staging_auth_compose(
+        target, target_runner, candidate_identity,
+    )
     images = _runtime_images(target_runner, candidate_identity)
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "image-preparation", "started")
@@ -3954,7 +4822,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
             if upgrade_plan["active_release"] != snapshot_identity:
                 raise RuntimeError("upgrade plan is not bound to the snapshot release")
-            _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
+            _run_candidate_upgrade(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                upgrade_plan,
+                candidate_identity,
+            )
         if target.value["environment"] == "production":
             _run_production_boundary_script(
                 target,
@@ -3967,7 +4843,17 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 "USL_PRODUCTION_QUARANTINE=",
             )
         else:
-            _neutralize_generation(target, target_runner, release, generation, network, volumes)
+            _neutralize_generation(
+                target, target_runner, release, generation, network, volumes,
+            )
+            pocketid_admission = _reconcile_staging_pocketid(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                candidate_identity,
+            )
         cron_policy_application = _apply_generation_cron_policy(
             target,
             target_runner,
@@ -4023,13 +4909,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "anchor_service": target.value["compose"]["anchor_service"],
         "compose_files": compose_files,
     }
-    previous = {
-        "generation": current["generation"],
-        "volumes": {role: item["name"] for role, item in current["volumes"].items()},
-        "network": (current["active_state"] or {}).get("network"),
-        "release_manifest": (current["active_state"] or {}).get("release_manifest"),
-        "snapshot": (current["active_state"] or {}).get("snapshot"),
-    }
+    previous = _previous_generation_record(target, current)
     active_path = f"{target.value['state_directory']}/active.json"
 
     def rollback_active_candidate(error: Exception) -> None:
@@ -4202,6 +5082,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "smoke": smoke,
         "cron_policy_application": cron_policy_application,
         "environment_state_preservation": environment_state_preservation,
+        "pocket_id_admission": pocketid_admission,
+        "auth_compose_admission": auth_compose_admission,
         "control_validation": control_validation,
         "production_activation": production_activation,
         "capacity": {
@@ -5642,7 +6524,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target")
     commands = parser.add_subparsers(dest="command", required=True)
     runtime = commands.add_parser("runtime")
-    runtime.add_argument("action", choices=("status", "start", "stop"))
+    runtime.add_argument("action", choices=("status", "start", "stop", "adopt-gateway"))
     runtime.add_argument("--target", dest="command_target")
     runtime.add_argument("--json", action="store_true")
     runtime.set_defaults(handler=runtime_command)
