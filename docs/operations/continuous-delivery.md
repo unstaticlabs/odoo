@@ -69,14 +69,32 @@ scripts/usl-stack --target production release plan \
   --candidate-release /path/to/candidate.json \
   --output /path/to/upgrade-plan.json
 
-scripts/usl-stack --target staging release reconcile \
-  --source production \
-  --snapshot <qualified-production-snapshot> \
+scripts/usl-stack --target staging backup create \
+  --run-id <unique-attempt-id> --leave-quiesced --json
+
+scripts/usl-stack --target staging release staging-checkpoint \
+  --attempt-id <unique-attempt-id> \
   --candidate-release /path/to/candidate.json \
   --upgrade-plan /path/to/upgrade-plan.json \
-  --attempt-id <unique-attempt-id> \
   --prepare-receipt /path/to/prepare.json \
-  --maintenance-receipt /path/to/maintenance.json
+  --maintenance-receipt /path/to/maintenance.json \
+  --backup-receipt /path/to/qualified-staging-backup.json \
+  --output /path/to/staging-checkpoint.json
+
+scripts/usl-stack --target staging release reconcile-staging \
+  --source staging \
+  --attempt-id <unique-attempt-id> \
+  --candidate-release /path/to/candidate.json \
+  --upgrade-plan /path/to/upgrade-plan.json \
+  --prepare-receipt /path/to/prepare.json \
+  --maintenance-receipt /path/to/maintenance.json \
+  --checkpoint-receipt /path/to/staging-checkpoint.json
+
+# Run from the fixed launcher's failure handler before any successful cutover.
+scripts/usl-stack --target staging release resume-staging \
+  --attempt-id <unique-attempt-id> \
+  --quiescence-receipt \
+  /var/lib/usl-odoo/runtime/staging/backup-runs/<unique-attempt-id>/quiesced.json
 
 scripts/usl-stack --target staging release plan --promote \
   --upgrade-plan /path/to/signed-staging-plan.json \
@@ -133,6 +151,34 @@ container, the controller applies the target's complete scheduled-action
 policy through Odoo's ORM. Production receives its explicitly gated set and
 staging receives no active jobs. Unknown, missing or ambiguously identified
 jobs stop the candidate before the active generation is touched.
+
+An ordinary `19-usl-staging` release never selects a production snapshot. It
+takes an attempt-bound staging checkpoint, clones the current staging database,
+filestore, Paperless state, staging Sign material, MCP OAuth vault and reusable
+OCR/vector caches, then upgrades that clone. `reconcile-staging` performs the
+neutralized cutover, internal admission and durable receipt atomically. The
+gateway remains in maintenance until the control plane completes its public
+checks. If those checks fail, the same attempt may restore the exact previous
+staging generation while maintenance remains continuously proven.
+
+A production-derived staging refresh is a different operation. Before the
+production attempt, `staging-reset-intent` captures the full current staging
+runtime identity. Only after production admission and a newer qualified
+production backup may `staging-reset-from-production` consume that backup. A
+changed staging identity defers the reset without touching staging or failing
+the successful production release. Production runtime secrets, Sign keys and
+MCP OAuth data never cross environments; the reset preserves the paused,
+environment-owned staging OAuth vault and records non-secret source and
+destination tree identities. A daily run with no production change performs a
+backup and disposable recovery proof only—it does not reset persistent staging.
+
+Backups that deliberately leave writers stopped persist a canonical
+`usl-backup-quiescence/v2` receipt before stopping and advance it immediately
+after the stop. The fixed launcher holds its kernel lock across the complete
+operation. Its failure handler can therefore use `resume-staging` to remove
+only an exact crash-left inner backup lock and restart only the receipt-bound
+writer set. Wrong owners, missing host-side receipts and changed runtime
+content fail closed.
 
 Production Sign secrets are restored only to a production generation. Staging
 keeps its own Pocket ID, Sign and runtime secrets and never mounts production

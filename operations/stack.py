@@ -24,6 +24,7 @@ from operations.control_manifest import (
 from operations.cohort import (
     SCHEMA as RECOVERY_COHORT_SCHEMA,
     select_latest_recovery_snapshot,
+    validate_manifest as validate_cohort_manifest,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
@@ -1021,6 +1022,346 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
     return value
 
 
+def _backup_run_receipt(
+    value: object,
+    *,
+    target: str,
+    run_id: str | None = None,
+    require_quiesced: bool = False,
+    expected_writer_services: list[str] | None = None,
+) -> dict:
+    """Validate an exact qualified cohort produced by ``backup create``."""
+    required = {
+        "schema", "run_id", "capture", "upload", "qualification", "performance",
+        "runtime_images", "writers_quiesced", "writer_interval_complete",
+        "writers_stopped_at", "writers_resumed_at", "quiescence", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("backup receipt fields differ")
+    if value.get("schema") != "usl-backup-run/v2":
+        raise RuntimeError("backup receipt schema differs")
+    if value.get("status") != "qualified":
+        raise RuntimeError("backup receipt is not qualified")
+    if run_id is not None and value.get("run_id") != run_id:
+        raise RuntimeError("backup receipt run identity differs")
+    capture = value.get("capture")
+    upload = value.get("upload")
+    qualification = value.get("qualification")
+    if not all(isinstance(item, dict) for item in (capture, upload, qualification)):
+        raise RuntimeError("backup receipt cohort evidence is incomplete")
+    try:
+        validate_cohort_manifest(capture)
+    except (ValueError, KeyError) as error:
+        raise RuntimeError("backup receipt capture manifest is invalid") from error
+    state_fields = {
+        "schema", "cohort_schema", "run_id", "target", "durable_snapshot_id",
+        "cache_snapshot_id", "status",
+    }
+    snapshot = qualification.get("durable_snapshot_id")
+    cache_snapshot = qualification.get("cache_snapshot_id")
+    if (
+        capture.get("schema") != RECOVERY_COHORT_SCHEMA
+        or capture.get("target") != target
+        or not re.fullmatch(r"[0-9a-f]{64}", str(capture.get("release", {}).get("identity")))
+        or set(upload) != state_fields
+        or set(qualification) != state_fields
+        or upload.get("schema") != "usl-recovery-cohort-state/v1"
+        or qualification.get("schema") != "usl-recovery-cohort-state/v1"
+        or upload.get("run_id") != value.get("run_id")
+        or qualification.get("run_id") != value.get("run_id")
+        or upload.get("target") != target
+        or qualification.get("target") != target
+        or qualification.get("cohort_schema") != RECOVERY_COHORT_SCHEMA
+        or qualification.get("status") != "qualified"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(snapshot))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(cache_snapshot))
+        or upload.get("durable_snapshot_id") != snapshot
+        or upload.get("cache_snapshot_id") != cache_snapshot
+    ):
+        raise RuntimeError("backup receipt cohort identity differs")
+    if not isinstance(value.get("runtime_images"), dict) or not value["runtime_images"]:
+        raise RuntimeError("backup receipt runtime image evidence is invalid")
+    for image in value["runtime_images"].values():
+        if not isinstance(image, str) or "@sha256:" not in image:
+            raise RuntimeError("backup receipt runtime image evidence is invalid")
+    performance = value.get("performance")
+    performance_fields = {
+        "capture_pause_seconds", "writer_freeze_seconds", "writer_freeze_sla_seconds",
+        "writer_freeze_sla_passed", "upload_seconds", "verification_seconds",
+        "total_seconds",
+    }
+    if not isinstance(performance, dict) or set(performance) != performance_fields:
+        raise RuntimeError("backup receipt performance evidence is invalid")
+    try:
+        created = datetime.fromisoformat(str(capture["created_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("backup receipt capture timestamp is invalid") from error
+    if created.tzinfo is None:
+        raise RuntimeError("backup receipt capture timestamp is invalid")
+    if require_quiesced and (
+        value.get("writers_quiesced") is not True
+        or value.get("writer_interval_complete") is not False
+        or value.get("writers_resumed_at") is not None
+        or not isinstance(value.get("writers_stopped_at"), str)
+    ):
+        raise RuntimeError("staging checkpoint did not leave writers quiesced")
+    quiescence = value.get("quiescence")
+    if require_quiesced:
+        required_quiescence = {
+            "schema", "target", "run_id", "baseline_runtime_sha256",
+            "writer_services", "prepared_at", "stopped_at", "status", "sha256",
+        }
+        if (
+            not isinstance(quiescence, dict)
+            or set(quiescence) != required_quiescence
+            or quiescence["schema"] != "usl-backup-quiescence/v2"
+            or quiescence["target"] != target
+            or quiescence["run_id"] != value["run_id"]
+            or quiescence["status"] != "quiesced"
+            or not re.fullmatch(r"[0-9a-f]{64}", str(quiescence["baseline_runtime_sha256"]))
+            or not isinstance(quiescence["writer_services"], list)
+            or not quiescence["writer_services"]
+            or expected_writer_services is not None
+            and quiescence["writer_services"] != expected_writer_services
+            or quiescence["stopped_at"] != value["writers_stopped_at"]
+        ):
+            raise RuntimeError("backup quiescence receipt is invalid")
+        try:
+            stopped = datetime.fromisoformat(
+                str(quiescence["stopped_at"]).replace("Z", "+00:00"),
+            )
+        except ValueError as error:
+            raise RuntimeError("backup quiescence timestamp is invalid") from error
+        if stopped.tzinfo is None:
+            raise RuntimeError("backup quiescence timestamp is invalid")
+        body = {key: item for key, item in quiescence.items() if key != "sha256"}
+        if quiescence["sha256"] != hashlib.sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest():
+            raise RuntimeError("backup quiescence receipt digest differs")
+    elif quiescence is not None:
+        raise RuntimeError("resumed backup unexpectedly claims writer quiescence")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("backup receipt digest differs")
+    return value
+
+
+def _backup_quiescence_receipt(
+    *, target: str, run_id: str, baseline: str, services: list[str], status: str,
+    prepared_at: str, stopped_at: str | None,
+) -> dict:
+    if status not in {"prepared", "quiesced", "resumed"}:
+        raise RuntimeError("backup quiescence status is invalid")
+    value = {
+        "schema": "usl-backup-quiescence/v2",
+        "target": target,
+        "run_id": run_id,
+        "baseline_runtime_sha256": baseline,
+        "writer_services": services,
+        "prepared_at": prepared_at,
+        "stopped_at": stopped_at,
+        "status": status,
+    }
+    value["sha256"] = hashlib.sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
+
+
+def _validate_backup_quiescence_receipt(
+    value: object, *, target: str, run_id: str, services: list[str],
+) -> dict:
+    required = {
+        "schema", "target", "run_id", "baseline_runtime_sha256", "writer_services",
+        "prepared_at", "stopped_at", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("backup quiescence receipt fields differ")
+    if (
+        value["schema"] != "usl-backup-quiescence/v2"
+        or value["target"] != target
+        or value["run_id"] != run_id
+        or value["writer_services"] != services
+        or value["status"] not in {"prepared", "quiesced", "resumed"}
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
+        or value["status"] == "prepared" and value["stopped_at"] is not None
+        or value["status"] != "prepared" and not isinstance(value["stopped_at"], str)
+    ):
+        raise RuntimeError("backup quiescence receipt identity differs")
+    timestamps = {}
+    for field in ("prepared_at", "stopped_at"):
+        if value[field] is None:
+            continue
+        try:
+            timestamp = datetime.fromisoformat(str(value[field]).replace("Z", "+00:00"))
+        except ValueError as error:
+            raise RuntimeError("backup quiescence timestamp is invalid") from error
+        if timestamp.tzinfo is None:
+            raise RuntimeError("backup quiescence timestamp is invalid")
+        timestamps[field] = timestamp
+    if (
+        "stopped_at" in timestamps
+        and timestamps["stopped_at"] < timestamps["prepared_at"]
+    ):
+        raise RuntimeError("backup quiescence phase order is invalid")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(json.dumps(
+        body, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest():
+        raise RuntimeError("backup quiescence receipt digest differs")
+    return value
+
+
+def _staging_checkpoint_receipt(
+    value: object,
+    *,
+    target,
+    attempt: str,
+    release: str,
+) -> dict:
+    required = {
+        "schema", "target", "attempt", "candidate_release", "snapshot",
+        "cache_snapshot", "baseline_generation", "baseline_release",
+        "baseline_runtime_sha256",
+        "upgrade_plan_sha256", "prepare_receipt_sha256",
+        "maintenance_receipt_sha256", "resources_sha256", "controls_sha256",
+        "checkpointed_at", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("staging checkpoint receipt fields differ")
+    if (
+        value["schema"] != "usl-staging-checkpoint/v1"
+        or value["target"] != target.name
+        or target.value["environment"] != "staging"
+        or value["attempt"] != attempt
+        or value["candidate_release"] != release
+        or value["status"] != "checkpointed"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["cache_snapshot"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_release"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
+        or any(
+            not re.fullmatch(r"[0-9a-f]{64}", str(value[field]))
+            for field in (
+                "upgrade_plan_sha256", "prepare_receipt_sha256",
+                "maintenance_receipt_sha256", "resources_sha256", "controls_sha256",
+            )
+        )
+        or value["baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["baseline_generation"]))
+    ):
+        raise RuntimeError("staging checkpoint receipt identity differs")
+    try:
+        created = datetime.fromisoformat(str(value["checkpointed_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("staging checkpoint timestamp is invalid") from error
+    if created.tzinfo is None:
+        raise RuntimeError("staging checkpoint timestamp is invalid")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("staging checkpoint receipt digest differs")
+    return value
+
+
+def _staging_reset_intent_receipt(value: object, *, target, admission: dict) -> dict:
+    """Validate the immutable pre-production intent that authorizes a later reset."""
+    required = {
+        "schema", "staging_target", "staging_baseline_generation",
+        "staging_baseline_release", "production_attempt", "production_release",
+        "staging_baseline_runtime_sha256",
+        "gitops_commit", "production_prepare_receipt_sha256",
+        "production_upgrade_plan_sha256", "created_at", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise RuntimeError("staging reset intent fields differ")
+    if (
+        value["schema"] != "usl-staging-reset-intent/v1"
+        or value["staging_target"] != target.name
+        or value["production_attempt"] != admission["attempt"]
+        or value["production_release"] != admission["release"]
+        or value["status"] != "planned"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["staging_baseline_release"]))
+        or not re.fullmatch(
+            r"[0-9a-f]{64}", str(value["staging_baseline_runtime_sha256"]),
+        )
+        or not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
+        or not re.fullmatch(
+            r"[0-9a-f]{64}", str(value["production_prepare_receipt_sha256"]),
+        )
+        or not re.fullmatch(
+            r"[0-9a-f]{64}", str(value["production_upgrade_plan_sha256"]),
+        )
+        or value["staging_baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["staging_baseline_generation"]))
+    ):
+        raise RuntimeError("staging reset intent identity differs")
+    try:
+        created = datetime.fromisoformat(str(value["created_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("staging reset intent timestamp is invalid") from error
+    if created.tzinfo is None:
+        raise RuntimeError("staging reset intent timestamp is invalid")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("staging reset intent digest differs")
+    return value
+
+
+def _runtime_baseline_sha256(runtime: dict) -> str:
+    """Fingerprint every persistent/runtime identity relevant to cutover CAS."""
+    compose = runtime.get("compose") or {}
+    body = {
+        "generation": runtime.get("generation"),
+        "active_state": runtime.get("active_state"),
+        "volumes": {
+            role: {
+                "name": item.get("name"),
+                "path": item.get("path"),
+            }
+            for role, item in sorted((runtime.get("volumes") or {}).items())
+        },
+        "compose": {
+            key: compose.get(key)
+            for key in (
+                "project", "working_directory", "environment_file", "profiles",
+                "anchor_service", "compose_files", "gitops_commit",
+            )
+        },
+    }
+    return hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+
+
+def _runtime_cas_sha256(target, runner, runtime: dict) -> str:
+    """Bind runtime topology to rendered Compose and the exact active release."""
+    release, release_sha256, _release_raw = _release(target, runner, None)
+    try:
+        rendered = json.loads(runner.run(
+            compose_command(runtime["compose"], ["config", "--format", "json"]),
+        ).stdout)
+    except (KeyError, json.JSONDecodeError) as error:
+        raise RuntimeError("runtime CAS Compose render is invalid") from error
+    body = {
+        "runtime_sha256": _runtime_baseline_sha256(runtime),
+        "release": release["identity"],
+        "release_manifest_sha256": release_sha256,
+        "compose_sha256": hashlib.sha256(json.dumps(
+            rendered, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest(),
+    }
+    return hashlib.sha256(json.dumps(
+        body, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+
+
 def _require_same_preparation(current: dict, receipt: dict) -> None:
     for field in (
         "target", "release", "gitops_commit", "upgrade_plan_sha256", "compose_sha256", "services", "images",
@@ -1133,6 +1474,70 @@ def runtime_lock(target, runner, operation: str, run_id: str):
         runner.run(["rmdir", lock], check=False)
 
 
+def _recover_interrupted_backup_lock(
+    target,
+    runner,
+    *,
+    run_id: str,
+    quiescence: dict,
+) -> bool:
+    """Remove only an exact, crash-left backup lock under launcher exclusivity.
+
+    The fixed host launcher holds its kernel ``flock`` across every lifecycle
+    command.  Consequently, an inner lock observed by ``resume-staging`` cannot
+    have a live owner.  This helper still requires the immutable host-side
+    quiescence artifact for the same run before removing the lock; callers that
+    bypass the launcher fail closed instead of guessing whether an owner lives.
+    """
+    root = target.value["state_directory"]
+    lock = f"{root}/operation.lock"
+    owner_result = runner.run(["cat", f"{lock}/owner.json"], check=False)
+    if owner_result.returncode:
+        present = runner.run(["test", "-d", lock], check=False)
+        if present.returncode:
+            return False
+        raise RuntimeError("operation lock exists without exact owner evidence")
+    try:
+        owner = json.loads(owner_result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("operation lock owner evidence is invalid") from error
+    if (
+        not isinstance(owner, dict)
+        or set(owner) != {"schema", "target", "operation", "run_id", "started_at"}
+        or owner.get("schema") != "usl-operation-lock/v1"
+        or owner.get("target") != target.name
+        or owner.get("operation") != "backup"
+        or owner.get("run_id") != run_id
+    ):
+        raise RuntimeError("another operation still owns the target")
+    try:
+        started = datetime.fromisoformat(str(owner["started_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("operation lock timestamp is invalid") from error
+    if started.tzinfo is None:
+        raise RuntimeError("operation lock timestamp is invalid")
+
+    artifact_root = f"{root}/backup-runs/{run_id}"
+    exact_artifact = None
+    for filename in ("quiesced.json", "prepared.json"):
+        result = runner.run(["cat", f"{artifact_root}/{filename}"], check=False)
+        if result.returncode:
+            continue
+        try:
+            candidate = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            continue
+        if candidate.get("sha256") == quiescence.get("sha256"):
+            exact_artifact = candidate
+            break
+    if exact_artifact != quiescence:
+        raise RuntimeError("live or unproven backup lock cannot be recovered")
+    removed = runner.run(["rm", "-f", f"{lock}/owner.json"], check=False)
+    if removed.returncode or runner.run(["rmdir", lock], check=False).returncode:
+        raise RuntimeError("interrupted backup lock could not be recovered")
+    return True
+
+
 def _record_event(target, runner, run_id: str, operation: str, phase: str, status: str, **details) -> None:
     event = {
         "schema": "usl-operation-event/v1",
@@ -1221,6 +1626,9 @@ def backup_command(arguments: argparse.Namespace) -> int:
             freeze_seconds = 0.0
             writers_stopped_at = None
             writers_resumed_at = None
+            writer_services = []
+            quiescence = None
+            baseline_runtime_sha256 = _runtime_cas_sha256(target, runner, runtime)
             if not arguments.resume:
                 identity = compose_identity(target, runner)
                 writer_services = [
@@ -1235,6 +1643,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         f"USL_TARGET={target.name}",
                         "--env",
                         f"USL_RELEASE_COMMIT={release['source']['commit']}",
+                        "--env",
+                        f"USL_RELEASE_IDENTITY={release['identity']}",
                         "--env",
                         f"USL_RELEASE_MANIFEST_SHA256={release_sha}",
                         "--env",
@@ -1257,18 +1667,54 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     )
 
                 freeze_started = time.monotonic()
-                writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                _record_event(target, runner, run_id, "backup", "capture", "started")
-                captured = with_writers_paused(
-                    runner,
-                    identity,
-                    writer_services,
-                    capture_phase,
-                    resume_after_success=not leave_quiesced,
+                prepared_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                quiescence_root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+                runner.run(["install", "-d", "-m", "0700", quiescence_root])
+                prepared_quiescence = _backup_quiescence_receipt(
+                    target=target.name,
+                    run_id=run_id,
+                    baseline=baseline_runtime_sha256,
+                    services=writer_services,
+                    status="prepared",
+                    prepared_at=prepared_at,
+                    stopped_at=None,
                 )
+                _write_remote(
+                    target, runner, f"{quiescence_root}/prepared.json",
+                    json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                )
+                _record_event(target, runner, run_id, "backup", "capture", "started")
+                runner.run(compose_command(
+                    identity, ["stop", "--timeout", "30", *writer_services],
+                ))
+                writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                stopped_quiescence = _backup_quiescence_receipt(
+                    target=target.name,
+                    run_id=run_id,
+                    baseline=baseline_runtime_sha256,
+                    services=writer_services,
+                    status="quiesced",
+                    prepared_at=prepared_at,
+                    stopped_at=writers_stopped_at,
+                )
+                _write_remote(
+                    target, runner, f"{quiescence_root}/quiesced.json",
+                    json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                )
+                capture_succeeded = False
+                try:
+                    captured = capture_phase()
+                    capture_succeeded = True
+                finally:
+                    if not leave_quiesced or not capture_succeeded:
+                        runner.run(compose_command(
+                            identity,
+                            ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                        ))
+                        writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                if leave_quiesced:
+                    quiescence = stopped_quiescence
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
-                if not leave_quiesced:
-                    writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 _record_event(
                     target,
                     runner,
@@ -1278,16 +1724,31 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     "completed",
                     duration_seconds=freeze_seconds,
                 )
+            def resume_failed_quiescence() -> None:
+                if not leave_quiesced or not writer_services:
+                    return
+                runner.run(compose_command(
+                    identity,
+                    ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                ))
+                if _runtime_cas_sha256(
+                    target, runner, inspect_runtime(target, runner),
+                ) != baseline_runtime_sha256:
+                    raise RuntimeError("writer recovery changed the backup baseline")
             upload_started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "upload", "started")
-            uploaded = _run_cohort(
-                target,
-                runner,
-                image,
-                "push",
-                ["--run-id", run_id],
-                volumes=runtime["volumes"],
-            )
+            try:
+                uploaded = _run_cohort(
+                    target,
+                    runner,
+                    image,
+                    "push",
+                    ["--run-id", run_id],
+                    volumes=runtime["volumes"],
+                )
+            except Exception:
+                resume_failed_quiescence()
+                raise
             upload_seconds = round(time.monotonic() - upload_started, 3)
             _record_event(
                 target,
@@ -1300,14 +1761,18 @@ def backup_command(arguments: argparse.Namespace) -> int:
             )
             verify_started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "verification", "started")
-            qualified = _run_cohort(
-                target,
-                runner,
-                image,
-                "qualify",
-                ["--durable-snapshot", uploaded["durable_snapshot_id"]],
-                volumes=runtime["volumes"],
-            )
+            try:
+                qualified = _run_cohort(
+                    target,
+                    runner,
+                    image,
+                    "qualify",
+                    ["--durable-snapshot", uploaded["durable_snapshot_id"]],
+                    volumes=runtime["volumes"],
+                )
+            except Exception:
+                resume_failed_quiescence()
+                raise
             verify_seconds = round(time.monotonic() - verify_started, 3)
             total_seconds = round(time.monotonic() - started, 3)
             _record_event(
@@ -1320,7 +1785,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 duration_seconds=total_seconds,
             )
             result = {
-                "schema": "usl-backup-run/v1",
+                "schema": "usl-backup-run/v2",
                 "run_id": run_id,
                 "capture": captured,
                 "upload": uploaded,
@@ -1345,8 +1810,12 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "writer_interval_complete": not leave_quiesced and not arguments.resume,
                 "writers_stopped_at": writers_stopped_at,
                 "writers_resumed_at": writers_resumed_at,
+                "quiescence": quiescence,
                 "status": "qualified",
             }
+            result["sha256"] = hashlib.sha256(json.dumps(
+                result, sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest()
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -1762,60 +2231,75 @@ def generation_volume_path(target, generation: str, role: str) -> str:
 def _create_generation_resources(target, runner, generation: str) -> tuple[dict[str, str], str]:
     volumes = generation_volume_names(target, generation)
     network = f"{target.project}-{generation}-recovery"
-    for role, name in volumes.items():
-        probe = runner.run(["docker", "volume", "inspect", name], check=False)
+    created_volumes: list[str] = []
+    created_paths: list[str] = []
+    network_created = False
+    try:
+        for role, name in volumes.items():
+            probe = runner.run(["docker", "volume", "inspect", name], check=False)
+            if probe.returncode == 0:
+                raise RuntimeError(f"generation volume already exists: {name}")
+            tier = target.value["volumes"][role]["tier"]
+            command = [
+                "docker",
+                "volume",
+                "create",
+                "--label",
+                f"com.unstaticlabs.runtime.project={target.project}",
+                "--label",
+                f"com.unstaticlabs.runtime.target={target.name}",
+                "--label",
+                f"com.unstaticlabs.runtime.generation={generation}",
+                "--label",
+                f"com.unstaticlabs.runtime.role={role}",
+                "--label",
+                f"com.unstaticlabs.runtime.storage-tier={tier}",
+            ]
+            if tier == "database":
+                device = generation_volume_path(target, generation, role)
+                runner.run(["install", "-d", "-m", "0700", "--", device])
+                created_paths.append(device)
+                command.extend(
+                    [
+                        "--driver",
+                        "local",
+                        "--opt",
+                        "type=none",
+                        "--opt",
+                        "o=bind",
+                        "--opt",
+                        f"device={device}",
+                    ],
+                )
+            command.append(name)
+            runner.run(command)
+            created_volumes.append(name)
+        probe = runner.run(["docker", "network", "inspect", network], check=False)
         if probe.returncode == 0:
-            raise RuntimeError(f"generation volume already exists: {name}")
-        tier = target.value["volumes"][role]["tier"]
-        command = [
-            "docker",
-            "volume",
-            "create",
-            "--label",
-            f"com.unstaticlabs.runtime.project={target.project}",
-            "--label",
-            f"com.unstaticlabs.runtime.target={target.name}",
-            "--label",
-            f"com.unstaticlabs.runtime.generation={generation}",
-            "--label",
-            f"com.unstaticlabs.runtime.role={role}",
-            "--label",
-            f"com.unstaticlabs.runtime.storage-tier={tier}",
-        ]
-        if tier == "database":
-            device = generation_volume_path(target, generation, role)
-            runner.run(["install", "-d", "-m", "0700", "--", device])
-            command.extend(
-                [
-                    "--driver",
-                    "local",
-                    "--opt",
-                    "type=none",
-                    "--opt",
-                    "o=bind",
-                    "--opt",
-                    f"device={device}",
-                ],
-            )
-        command.append(name)
-        runner.run(command)
-    probe = runner.run(["docker", "network", "inspect", network], check=False)
-    if probe.returncode == 0:
-        raise RuntimeError(f"generation network already exists: {network}")
-    runner.run(
-        [
-            "docker",
-            "network",
-            "create",
-            "--label",
-            f"com.unstaticlabs.runtime.project={target.project}",
-            "--label",
-            f"com.unstaticlabs.runtime.target={target.name}",
-            "--label",
-            f"com.unstaticlabs.runtime.generation={generation}",
-            network,
-        ],
-    )
+            raise RuntimeError(f"generation network already exists: {network}")
+        runner.run(
+            [
+                "docker",
+                "network",
+                "create",
+                "--label",
+                f"com.unstaticlabs.runtime.project={target.project}",
+                "--label",
+                f"com.unstaticlabs.runtime.target={target.name}",
+                "--label",
+                f"com.unstaticlabs.runtime.generation={generation}",
+                network,
+            ],
+        )
+        network_created = True
+    except Exception:
+        if network_created:
+            runner.run(["docker", "network", "rm", network], check=False)
+        for name in reversed(created_volumes):
+            runner.run(["docker", "volume", "rm", name], check=False)
+        for path in reversed(created_paths):
+            runner.run(["rmdir", "--", path], check=False)
+        raise
     return volumes, network
 
 
@@ -1891,6 +2375,7 @@ def _materialize_command(
     generation: str,
     network: str,
     volumes: dict[str, str],
+    source_backup_env: str,
 ) -> list[str]:
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     command = [
@@ -1901,6 +2386,8 @@ def _materialize_command(
         network,
         "--env-file",
         target.value["secrets"]["env_file"],
+        "--env-file",
+        source_backup_env,
         "--env",
         f"RESTIC_REPOSITORY={source.value['backup']['durable_repository']}",
         "--env",
@@ -1938,6 +2425,78 @@ def _materialize_command(
         snapshot,
     ]
     return command
+
+
+def _write_source_backup_environment(source, source_runner, target, target_runner, path: str) -> str:
+    """Transfer only repository credentials, never source runtime secrets."""
+    allowed = {
+        "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "RESTIC_PASSWORD",
+        "USL_BACKUP_CACHE_PASSWORD",
+    }
+    raw = source_runner.run(["cat", source.value["secrets"]["env_file"]]).stdout
+    validate_secret_text(raw, source.value["secrets"]["allowed_keys"])
+    selected: dict[str, str] = {}
+    for line in raw.splitlines():
+        if not line or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key in allowed:
+            selected[key] = value
+    if set(selected) != allowed or any(not value for value in selected.values()):
+        raise RuntimeError("source backup credential contract is incomplete")
+    text = "".join(f"{key}={selected[key]}\n" for key in sorted(selected))
+    program = (
+        "import os,pathlib,sys;"
+        "p=pathlib.Path(sys.argv[1]);p.parent.mkdir(parents=True,exist_ok=True);"
+        "p.write_bytes(sys.stdin.buffer.read());os.chmod(p,0o600)"
+    )
+    target_runner.run(["python3", "-c", program, path], input_text=text)
+    return path
+
+
+def _preserve_staging_environment_state(target, runner, current: dict, volumes: dict[str, str]) -> dict:
+    """Keep staging-owned OAuth state when business data is reseeded from production."""
+    if target.value["environment"] != "staging":
+        raise RuntimeError("staging environment-state preservation is staging-only")
+    role = "mcp_oauth"
+    source = _volume_source_path(runner, current["volumes"][role]["name"])
+    destination = _volume_source_path(runner, volumes[role])
+    mcp = target.value["services"]["mcp"]
+    identity_program = (
+        "import hashlib,json,os,pathlib,stat,sys;"
+        "r=pathlib.Path(sys.argv[1]);h=hashlib.sha256();n=0;b=0;"
+        "exec(\"for p in sorted(r.rglob('*')):\\n s=p.lstat();rel=p.relative_to(r).as_posix();"
+        "h.update((rel+'\\0'+oct(stat.S_IMODE(s.st_mode))+'\\0').encode());"
+        "n+=1;"
+        "b+=s.st_size if p.is_file() else 0;"
+        "h.update(p.read_bytes()) if p.is_file() else None\");"
+        "print(json.dumps({'files':n,'bytes':b,'sha256':h.hexdigest()},sort_keys=True))"
+    )
+    runner.run(compose_command(current["compose"], ["stop", "--timeout", "30", mcp]))
+    try:
+        source_identity = json.loads(runner.run(
+            ["python3", "-c", identity_program, source],
+        ).stdout)
+        common = ["-aHAXS", "--numeric-ids", "--sparse", "--delete", "--"]
+        runner.run(["rsync", *common, source.rstrip("/") + "/", destination.rstrip("/") + "/"])
+        verified = runner.run([
+            "rsync", "-aHAXScn", "--numeric-ids", "--sparse", "--delete",
+            "--itemize-changes", "--", source.rstrip("/") + "/", destination.rstrip("/") + "/",
+        ])
+        destination_identity = json.loads(runner.run(
+            ["python3", "-c", identity_program, destination],
+        ).stdout)
+        if verified.stdout.strip() or destination_identity != source_identity:
+            raise RuntimeError("staging MCP OAuth preservation differs")
+    finally:
+        runner.run(compose_command(
+            current["compose"], ["up", "--detach", "--wait", "--no-recreate", mcp],
+        ))
+    return {
+        "schema": "usl-staging-environment-state/v1",
+        "mcp_oauth": {"source": source_identity, "destination": destination_identity},
+        "status": "preserved",
+    }
 
 
 def _write_remote(target, runner, path: str, content: str, mode: str = "0600") -> None:
@@ -2217,25 +2776,34 @@ def _admit_production_side_effects(target, runner, release, network, volumes) ->
 
 def _release_attempt_claim(value: object, *, target, attempt: str, release: str) -> dict:
     """Validate the immutable, attempt-scoped operation bundle."""
-    expected = {
+    common = {
         "schema", "attempt", "target", "candidate_release", "source", "snapshot",
         "generation", "gitops_commit", "upgrade_plan_sha256", "prepare_receipt_sha256",
         "maintenance_receipt_sha256", "baseline_generation", "operation_bundle_sha256",
         "claimed_at", "status", "sha256",
     }
-    if not isinstance(value, dict) or set(value) != expected:
+    v3 = {"operation_kind", "source_receipt_sha256", "baseline_runtime_sha256"}
+    if (
+        not isinstance(value, dict)
+        or value.get("schema") not in {"usl-release-attempt/v2", "usl-release-attempt/v3"}
+        or set(value) != common | (v3 if value.get("schema") == "usl-release-attempt/v3" else set())
+    ):
         raise RuntimeError("release attempt claim fields differ")
+    operation_fields = [
+        "target", "attempt", "source", "candidate_release", "snapshot", "generation",
+        "gitops_commit", "upgrade_plan_sha256", "prepare_receipt_sha256",
+        "maintenance_receipt_sha256",
+    ]
+    if value["schema"] == "usl-release-attempt/v3":
+        operation_fields.extend((
+            "operation_kind", "source_receipt_sha256", "baseline_runtime_sha256",
+        ))
     operation = {
         key: value[key]
-        for key in (
-            "target", "attempt", "source", "candidate_release", "snapshot", "generation",
-            "gitops_commit", "upgrade_plan_sha256", "prepare_receipt_sha256",
-            "maintenance_receipt_sha256",
-        )
+        for key in operation_fields
     }
     if (
-        value["schema"] != "usl-release-attempt/v2"
-        or value["target"] != target.name
+        value["target"] != target.name
         or value["attempt"] != attempt
         or value["candidate_release"] != release
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["candidate_release"]))
@@ -2248,6 +2816,14 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
             else value["gitops_commit"] is not None
         )
         or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
+        or value["schema"] == "usl-release-attempt/v3"
+        and (
+            value["operation_kind"] not in {
+                "production-upgrade", "staging-upgrade", "staging-reset-from-production",
+            }
+            or not re.fullmatch(r"[0-9a-f]{64}", str(value["source_receipt_sha256"]))
+            or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
+        )
         or not all(
             re.fullmatch(r"[0-9a-f]{64}", str(value[field]))
             for field in (
@@ -2659,6 +3235,43 @@ def _activate_generation(
         raise
 
 
+def _rollback_active_candidate(
+    target,
+    runner,
+    *,
+    current: dict,
+    current_identity: dict,
+    generation_identity: dict,
+    active_path: str,
+    error: Exception,
+) -> None:
+    """Restore the exact baseline after any pre-boundary candidate failure."""
+    runner.run(
+        compose_command(generation_identity, ["stop", "--timeout", "60"]),
+        check=False,
+    )
+    cleanup_error = None
+    try:
+        _cleanup_adoption_candidate_anchor(target, runner, current_identity)
+    except Exception as cleanup:
+        cleanup_error = cleanup
+    if current["active_state"] is None:
+        runner.run(["rm", "-f", active_path], check=False)
+    else:
+        _write_remote(
+            target,
+            runner,
+            active_path,
+            json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
+        )
+    _rollback_after_failure(runner, current_identity, error)
+    if cleanup_error is not None:
+        raise RuntimeError(
+            f"candidate failed ({error}); rollback completed but cleanup failed "
+            f"({cleanup_error})",
+        ) from error
+
+
 def _active_generation_identity(target, runner, current: dict) -> dict:
     """Resolve the recorded active generation even when the anchor is still legacy."""
     active = current["active_state"]
@@ -2732,8 +3345,11 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
             previous_release = json.loads(runner.run(["cat", release_manifest]).stdout)
         except json.JSONDecodeError as error:
             raise RuntimeError("rollback release manifest is invalid") from error
-        if previous_release.get("schema") != "usl-release/v3":
-            raise RuntimeError("automatic rollback to the preserved legacy v2 topology is disabled")
+        if previous_release.get("schema") != "usl-release/v3" and not (
+            target.value["environment"] == "staging"
+            and previous_release.get("schema") == "usl-release/v2"
+        ):
+            raise RuntimeError("automatic rollback to the preserved legacy topology is disabled")
         try:
             validate_release(previous_release)
         except ReleaseManifestError as error:
@@ -2879,6 +3495,11 @@ def _abort_to_previous_generation(
         except json.JSONDecodeError as error:
             raise RuntimeError("release abort attempt claim is invalid") from error
         if generation == claim["baseline_generation"]:
+            if (
+                claim["schema"] == "usl-release-attempt/v3"
+                and _runtime_cas_sha256(target, runner, current) != claim["baseline_runtime_sha256"]
+            ):
+                raise RuntimeError("rolled-back runtime differs from the claimed baseline")
             health = _gate(health_command, target, targets)
             smoke = _gate(smoke_command, target, targets)
             return {
@@ -3221,6 +3842,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     upgrade_plan = None
     signed_plan_evidence = None
     cron_policy_application = None
+    environment_state_preservation = None
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
@@ -3264,8 +3886,16 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     _record_event(target, target_runner, generation, "restore", "materialization", "started")
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
+    target_runner.run(["install", "-d", "-m", "0700", f"{generation_root}/work"])
     volumes, network = _create_generation_resources(target, target_runner, generation)
     with _materialization_cleanup(target, target_runner, generation) as database_containers:
+        source_backup_env = _write_source_backup_environment(
+            source,
+            source.runner(),
+            target,
+            target_runner,
+            f"{generation_root}/work/source-backup.env",
+        )
         database_containers.append(
             _start_generation_database(
                 target,
@@ -3290,17 +3920,21 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 target.value["databases"]["paperless"]["service"],
             ),
         )
-        materialized = target_runner.run(
-            _materialize_command(
-                source,
-                target,
-                tool_image,
-                arguments.snapshot,
-                generation,
-                network,
-                volumes,
-            ),
-        )
+        try:
+            materialized = target_runner.run(
+                _materialize_command(
+                    source,
+                    target,
+                    tool_image,
+                    arguments.snapshot,
+                    generation,
+                    network,
+                    volumes,
+                    source_backup_env,
+                ),
+            )
+        finally:
+            target_runner.run(["rm", "-f", "--", source_backup_env], check=False)
         materialize_state = json.loads(materialized.stdout.splitlines()[-1])
         _validate_materialized_release(
             materialize_state,
@@ -3308,6 +3942,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             release_sha,
             require_sign_secrets=target.value["environment"] == "production",
         )
+        if source.name != target.name and target.value["environment"] == "staging":
+            environment_state_preservation = _preserve_staging_environment_state(
+                target, target_runner, current, volumes,
+            )
         snapshot_release = materialize_state["release"]
         candidate_differs = snapshot_release["manifest_sha256"] != release_sha
         if candidate_differs and upgrade_plan is None:
@@ -3392,6 +4030,18 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "release_manifest": (current["active_state"] or {}).get("release_manifest"),
         "snapshot": (current["active_state"] or {}).get("snapshot"),
     }
+    active_path = f"{target.value['state_directory']}/active.json"
+
+    def rollback_active_candidate(error: Exception) -> None:
+        _rollback_active_candidate(
+            target,
+            target_runner,
+            current=current,
+            current_identity=identity,
+            generation_identity=generation_identity,
+            active_path=active_path,
+            error=error,
+        )
     phase_started = time.monotonic()
     cutover_started = phase_started
     _record_event(target, target_runner, generation, "restore", "activation", "started")
@@ -3400,30 +4050,33 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     # stateful cohort is replaced.
     _activate_generation(target, target_runner, identity, generation_identity)
     activation_seconds = round(time.monotonic() - phase_started, 3)
-    _record_event(
-        target,
-        target_runner,
-        generation,
-        "restore",
-        "activation",
-        "completed",
-        duration_seconds=activation_seconds,
-    )
-    active_path = f"{target.value['state_directory']}/active.json"
-    _write_remote(
-        target,
-        target_runner,
-        active_path,
-        _active_generation_state(
+    try:
+        _record_event(
             target,
+            target_runner,
             generation,
-            volumes,
-            network,
-            arguments.snapshot,
-            release_path,
-            previous,
-        ),
-    )
+            "restore",
+            "activation",
+            "completed",
+            duration_seconds=activation_seconds,
+        )
+        _write_remote(
+            target,
+            target_runner,
+            active_path,
+            _active_generation_state(
+                target,
+                generation,
+                volumes,
+                network,
+                arguments.snapshot,
+                release_path,
+                previous,
+            ),
+        )
+    except Exception as error:
+        rollback_active_candidate(error)
+        raise
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "validation", "started")
     try:
@@ -3487,73 +4140,57 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             health = _gate(health_command, target, arguments.targets)
             smoke = _gate(smoke_command, target, arguments.targets)
     except Exception as error:
-        target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
-        cleanup_error = None
-        try:
-            _cleanup_adoption_candidate_anchor(target, target_runner, identity)
-        except Exception as cleanup:
-            cleanup_error = cleanup
-        if current["active_state"] is None:
-            target_runner.run(["rm", "-f", active_path], check=False)
-        else:
+        rollback_active_candidate(error)
+        raise
+    validation_seconds = round(time.monotonic() - phase_started, 3)
+    admission_receipt = None
+    quarantine_receipt = None
+    try:
+        _record_event(
+            target,
+            target_runner,
+            generation,
+            "restore",
+            "validation",
+            "completed",
+            duration_seconds=validation_seconds,
+        )
+        if attempt is not None:
+            operation_bundle_sha256 = getattr(arguments, "operation_bundle_sha256", None)
+            if not isinstance(operation_bundle_sha256, str):
+                raise RuntimeError("release operation bundle identity is missing")
+            production = target.value["environment"] == "production"
+            receipt_body = _release_boundary_receipt(
+                schema=(
+                    "usl-release-quarantine/v1"
+                    if production else "usl-release-admission/v1"
+                ),
+                status="quarantined" if production else "admitted",
+                target=target,
+                attempt=attempt,
+                release=release["identity"],
+                snapshot=arguments.snapshot,
+                generation=generation,
+                health=health,
+                smoke=smoke,
+                control_validation=control_validation,
+                operation_bundle_sha256=operation_bundle_sha256,
+            )
+            receipt_path = f"{generation_root}/{'quarantine' if production else 'admission'}.json"
             _write_remote(
                 target,
                 target_runner,
-                active_path,
-                json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
+                receipt_path,
+                json.dumps(receipt_body, indent=2, sort_keys=True) + "\n",
+                "0444",
             )
-        _rollback_after_failure(target_runner, identity, error)
-        if cleanup_error is not None:
-            raise RuntimeError(
-                f"validation failed ({error}); legacy rollback completed but candidate cleanup failed "
-                f"({cleanup_error})",
-            ) from error
+            if production:
+                quarantine_receipt = {"path": receipt_path, **receipt_body}
+            else:
+                admission_receipt = {"path": receipt_path, **receipt_body}
+    except Exception as error:
+        rollback_active_candidate(error)
         raise
-    validation_seconds = round(time.monotonic() - phase_started, 3)
-    _record_event(
-        target,
-        target_runner,
-        generation,
-        "restore",
-        "validation",
-        "completed",
-        duration_seconds=validation_seconds,
-    )
-    admission_receipt = None
-    quarantine_receipt = None
-    if attempt is not None:
-        operation_bundle_sha256 = getattr(arguments, "operation_bundle_sha256", None)
-        if not isinstance(operation_bundle_sha256, str):
-            raise RuntimeError("release operation bundle identity is missing")
-        production = target.value["environment"] == "production"
-        receipt_body = _release_boundary_receipt(
-            schema=(
-                "usl-release-quarantine/v1"
-                if production else "usl-release-admission/v1"
-            ),
-            status="quarantined" if production else "admitted",
-            target=target,
-            attempt=attempt,
-            release=release["identity"],
-            snapshot=arguments.snapshot,
-            generation=generation,
-            health=health,
-            smoke=smoke,
-            control_validation=control_validation,
-            operation_bundle_sha256=operation_bundle_sha256,
-        )
-        receipt_path = f"{generation_root}/{'quarantine' if production else 'admission'}.json"
-        _write_remote(
-            target,
-            target_runner,
-            receipt_path,
-            json.dumps(receipt_body, indent=2, sort_keys=True) + "\n",
-            "0444",
-        )
-        if production:
-            quarantine_receipt = {"path": receipt_path, **receipt_body}
-        else:
-            admission_receipt = {"path": receipt_path, **receipt_body}
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,
@@ -3564,6 +4201,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "health": health,
         "smoke": smoke,
         "cron_policy_application": cron_policy_application,
+        "environment_state_preservation": environment_state_preservation,
         "control_validation": control_validation,
         "production_activation": production_activation,
         "capacity": {
@@ -4180,6 +4818,64 @@ def release_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     state_path = f"{target.value['state_directory']}/release-state.json"
+    if arguments.action == "resume-staging":
+        if target.value["environment"] != "staging" or not (
+            arguments.backup_receipt or arguments.quiescence_receipt
+        ):
+            raise RuntimeError("staging writer resume requires exact quiescence evidence")
+        attempt = str(arguments.attempt_id or "")
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        try:
+            if arguments.quiescence_receipt:
+                quiescence = _validate_backup_quiescence_receipt(
+                    json.loads(_read_path(target, runner, arguments.quiescence_receipt)),
+                    target=target.name, run_id=attempt, services=services,
+                )
+                backup_sha256 = None
+            else:
+                backup = _backup_run_receipt(
+                    json.loads(_read_path(target, runner, arguments.backup_receipt)),
+                    target=target.name,
+                    run_id=attempt,
+                    require_quiesced=True,
+                    expected_writer_services=services,
+                )
+                quiescence = backup["quiescence"]
+                backup_sha256 = backup["sha256"]
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging writer resume receipt is invalid") from error
+        _recover_interrupted_backup_lock(
+            target, runner, run_id=attempt, quiescence=quiescence,
+        )
+        with runtime_lock(target, runner, "resume-staging", attempt):
+            runtime = inspect_runtime(target, runner)
+            baseline = quiescence["baseline_runtime_sha256"]
+            if _runtime_cas_sha256(target, runner, runtime) != baseline:
+                raise RuntimeError("staging writer resume baseline differs")
+            services = quiescence["writer_services"]
+            runner.run(compose_command(
+                runtime["compose"],
+                ["up", "--detach", "--wait", "--no-recreate", *services],
+            ))
+            resumed = inspect_runtime(target, runner)
+            if _runtime_cas_sha256(target, runner, resumed) != baseline:
+                raise RuntimeError("staging writer resume changed the runtime baseline")
+        value = {
+            "schema": "usl-staging-writer-resume/v1",
+            "target": target.name,
+            "attempt": attempt,
+            "backup_receipt_sha256": backup_sha256,
+            "quiescence_receipt_sha256": quiescence["sha256"],
+            "baseline_runtime_sha256": baseline,
+            "services": services,
+            "resumed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "status": "resumed",
+        }
+        value["sha256"] = hashlib.sha256(json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "prepare":
         if not arguments.candidate_release:
             raise RuntimeError("release prepare requires a candidate release")
@@ -4213,6 +4909,234 @@ def release_command(arguments: argparse.Namespace) -> int:
             json.dumps(value, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "staging-reset-intent":
+        if target.value["environment"] != "staging":
+            raise RuntimeError("staging reset intent is staging-only")
+        if not arguments.candidate_release or not arguments.prepare_receipt:
+            raise RuntimeError(
+                "staging reset intent requires production candidate and prepare receipt",
+            )
+        try:
+            production_release = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+        except (json.JSONDecodeError, ReleaseManifestError) as error:
+            raise RuntimeError("staging reset intent candidate is invalid") from error
+        production_attempt = _release_attempt(
+            arguments.attempt_id, production_release["identity"],
+        )
+        try:
+            production_prepare = _prepare_receipt(
+                json.loads(_read_path(target, runner, arguments.prepare_receipt)),
+                target="production",
+                attempt=production_attempt,
+                release=production_release["identity"],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging reset intent preparation is invalid") from error
+        if production_prepare["gitops_commit"] is None:
+            raise RuntimeError("staging reset intent has no immutable GitOps commit")
+        staging_runtime = inspect_runtime(target, runner)
+        staging_release, _staging_sha, _staging_raw = _release(target, runner, None)
+        value = {
+            "schema": "usl-staging-reset-intent/v1",
+            "staging_target": target.name,
+            "staging_baseline_generation": staging_runtime.get("generation"),
+            "staging_baseline_release": staging_release["identity"],
+            "staging_baseline_runtime_sha256": _runtime_cas_sha256(
+                target, runner, staging_runtime,
+            ),
+            "production_attempt": production_attempt,
+            "production_release": production_release["identity"],
+            "gitops_commit": production_prepare["gitops_commit"],
+            "production_prepare_receipt_sha256": production_prepare["sha256"],
+            "production_upgrade_plan_sha256": production_prepare["upgrade_plan_sha256"],
+            "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "status": "planned",
+        }
+        value["sha256"] = hashlib.sha256(json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        output = arguments.output or Path(
+            f"{target.value['state_directory']}/reset-intents/{production_attempt}.json",
+        )
+        runner.run([
+            "install", "-d", "-m", "0700", str(Path(str(output)).parent),
+        ])
+        existing = runner.run(["cat", str(output)], check=False)
+        if existing.returncode == 0:
+            try:
+                existing_value = _staging_reset_intent_receipt(
+                    json.loads(existing.stdout),
+                    target=target,
+                    admission={
+                        "attempt": production_attempt,
+                        "release": production_release["identity"],
+                    },
+                )
+            except json.JSONDecodeError as error:
+                raise RuntimeError("existing staging reset intent is invalid") from error
+            stable = set(value) - {"created_at", "sha256"}
+            if any(existing_value.get(key) != value[key] for key in stable):
+                raise RuntimeError("existing staging reset intent differs")
+            print(json.dumps(
+                {"path": str(output), **existing_value},
+                indent=None if arguments.json else 2, sort_keys=True,
+            ))
+            return 0
+        _write_remote(
+            target, runner, str(output),
+            json.dumps(value, indent=2, sort_keys=True) + "\n", "0444",
+        )
+        print(json.dumps(
+            {"path": str(output), **value},
+            indent=None if arguments.json else 2,
+            sort_keys=True,
+        ))
+        return 0
+    if arguments.action == "staging-checkpoint":
+        if target.value["environment"] != "staging":
+            raise RuntimeError("staging checkpoint is staging-only")
+        if not all((
+            arguments.candidate_release,
+            arguments.upgrade_plan,
+            arguments.prepare_receipt,
+            arguments.maintenance_receipt,
+            arguments.backup_receipt,
+        )):
+            raise RuntimeError(
+                "staging checkpoint requires candidate, plan, prepare, maintenance, and backup receipts",
+            )
+        try:
+            release = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+            plan = _validated_release_upgrade_plan(
+                target,
+                json.loads(_read_path(target, runner, arguments.upgrade_plan)),
+                release,
+            )
+        except (json.JSONDecodeError, ReleaseManifestError, ModuleReleaseError, PlanEvidenceError) as error:
+            raise RuntimeError("staging checkpoint release evidence is invalid") from error
+        attempt = _release_attempt(arguments.attempt_id, release["identity"])
+        try:
+            prepared = _prepare_receipt(
+                json.loads(_read_path(target, runner, arguments.prepare_receipt)),
+                target=target.name,
+                attempt=attempt,
+                release=release["identity"],
+            )
+            maintenance = _maintenance_receipt(
+                json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
+                target=target.name,
+                attempt=attempt,
+                required_endpoints=_required_maintenance_endpoints(target),
+            )
+            backup = _backup_run_receipt(
+                json.loads(_read_path(target, runner, arguments.backup_receipt)),
+                target=target.name,
+                run_id=attempt,
+                require_quiesced=True,
+                expected_writer_services=[
+                    target.value["services"][role]
+                    for role in BACKUP_WRITER_SERVICE_ROLES
+                ],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging checkpoint input receipt is invalid") from error
+        if prepared["upgrade_plan_sha256"] != plan["sha256"]:
+            raise RuntimeError("staging checkpoint plan differs from preparation")
+        prepared_at = datetime.fromisoformat(prepared["prepared_at"].replace("Z", "+00:00"))
+        maintenance_at = datetime.fromisoformat(maintenance["observed_at"].replace("Z", "+00:00"))
+        capture_at = datetime.fromisoformat(backup["capture"]["created_at"].replace("Z", "+00:00"))
+        if maintenance_at < prepared_at or capture_at < maintenance_at:
+            raise RuntimeError("staging checkpoint phase ordering differs")
+        active_release, _active_sha, _active_raw = _release(target, runner, None)
+        if backup["capture"]["release"]["identity"] != active_release["identity"]:
+            raise RuntimeError("staging checkpoint does not describe the active release")
+        runtime = inspect_runtime(target, runner)
+        image = active_release["components"]["backup-tool"]["digest_reference"]
+        verified = _run_cohort(
+            target,
+            runner,
+            image,
+            "verify",
+            ["--durable-snapshot", backup["qualification"]["durable_snapshot_id"]],
+            volumes=runtime["volumes"],
+        )
+        if (
+            verified.get("status") != "verified"
+            or verified.get("target") != "staging"
+            or verified.get("cohort_schema") != RECOVERY_COHORT_SCHEMA
+            or verified.get("durable_snapshot_id")
+            != backup["qualification"]["durable_snapshot_id"]
+            or verified.get("cache_snapshot_id")
+            != backup["qualification"]["cache_snapshot_id"]
+        ):
+            raise RuntimeError("staging checkpoint verification differs")
+        value = {
+            "schema": "usl-staging-checkpoint/v1",
+            "target": target.name,
+            "attempt": attempt,
+            "candidate_release": release["identity"],
+            "snapshot": verified["durable_snapshot_id"],
+            "cache_snapshot": verified["cache_snapshot_id"],
+            "baseline_generation": runtime.get("generation"),
+            "baseline_release": active_release["identity"],
+            "baseline_runtime_sha256": _runtime_cas_sha256(target, runner, runtime),
+            "upgrade_plan_sha256": plan["sha256"],
+            "prepare_receipt_sha256": prepared["sha256"],
+            "maintenance_receipt_sha256": maintenance["sha256"],
+            "resources_sha256": hashlib.sha256(json.dumps(
+                backup["capture"]["resources"], sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest(),
+            "controls_sha256": hashlib.sha256(json.dumps(
+                backup["capture"]["controls"], sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest(),
+            "checkpointed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "status": "checkpointed",
+        }
+        if (
+            backup["quiescence"]["baseline_runtime_sha256"]
+            != value["baseline_runtime_sha256"]
+        ):
+            raise RuntimeError("staging checkpoint baseline differs from quiescence")
+        value["sha256"] = hashlib.sha256(json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        checkpoint_root = f"{target.value['state_directory']}/checkpoints/{attempt}"
+        runner.run([
+            "install", "-d", "-m", "0700",
+            f"{target.value['state_directory']}/checkpoints",
+        ])
+        path = f"{checkpoint_root}/receipt.json"
+        if runner.run(["mkdir", checkpoint_root], check=False).returncode:
+            existing = runner.run(["cat", path], check=False)
+            if existing.returncode:
+                raise RuntimeError("staging checkpoint attempt is incomplete")
+            try:
+                existing_value = _staging_checkpoint_receipt(
+                    json.loads(existing.stdout), target=target, attempt=attempt,
+                    release=release["identity"],
+                )
+            except json.JSONDecodeError as error:
+                raise RuntimeError("existing staging checkpoint is invalid") from error
+            stable = set(value) - {"checkpointed_at", "sha256"}
+            if any(existing_value.get(key) != value[key] for key in stable):
+                raise RuntimeError("existing staging checkpoint differs")
+            print(json.dumps(
+                {"path": path, **existing_value},
+                indent=None if arguments.json else 2, sort_keys=True,
+            ))
+            return 0
+        _write_remote(
+            target, runner, path,
+            json.dumps(value, indent=2, sort_keys=True) + "\n", "0444",
+        )
+        print(json.dumps(
+            {"path": path, **value}, indent=None if arguments.json else 2, sort_keys=True,
+        ))
         return 0
     if arguments.action == "status":
         state = runner.run(["cat", state_path], check=False)
@@ -4386,7 +5310,182 @@ def release_command(arguments: argparse.Namespace) -> int:
         _write_remote(target, runner, str(output), json.dumps(plan, indent=2, sort_keys=True) + "\n", "0644")
         print(json.dumps({**plan, "path": str(output)}, indent=None if arguments.json else 2, sort_keys=True))
         return 0
-    if arguments.action == "reconcile":
+    operation_kind = None
+    source_receipt_sha256 = None
+    if arguments.action == "reconcile-staging":
+        if target.value["environment"] != "staging":
+            raise RuntimeError("ordinary staging reconciliation is staging-only")
+        if arguments.source not in (None, "staging"):
+            raise RuntimeError("ordinary staging reconciliation must preserve staging data")
+        if not arguments.checkpoint_receipt or not arguments.candidate_release:
+            raise RuntimeError("ordinary staging reconciliation requires its exact checkpoint")
+        try:
+            release_for_checkpoint = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+            checkpoint = _staging_checkpoint_receipt(
+                json.loads(_read_path(target, runner, arguments.checkpoint_receipt)),
+                target=target,
+                attempt=_release_attempt(
+                    arguments.attempt_id, release_for_checkpoint["identity"],
+                ),
+                release=release_for_checkpoint["identity"],
+            )
+        except (json.JSONDecodeError, ReleaseManifestError) as error:
+            raise RuntimeError("staging checkpoint receipt is invalid") from error
+        current = inspect_runtime(target, runner)
+        if current.get("generation") != checkpoint["baseline_generation"]:
+            raise RuntimeError("staging changed after its checkpoint")
+        if _runtime_cas_sha256(target, runner, current) != checkpoint["baseline_runtime_sha256"]:
+            raise RuntimeError("staging runtime changed after its checkpoint")
+        arguments.source = "staging"
+        arguments.snapshot = checkpoint["snapshot"]
+        operation_kind = "staging-upgrade"
+        source_receipt_sha256 = checkpoint["sha256"]
+    elif arguments.action == "staging-reset-from-production":
+        if target.value["environment"] != "staging":
+            raise RuntimeError("production-derived staging reset is staging-only")
+        if (
+            not arguments.production_admission_receipt
+            or not arguments.backup_receipt
+            or not arguments.staging_reset_intent
+            or not arguments.production_claim
+        ):
+            raise RuntimeError(
+                "production-derived staging reset requires production admission, backup, and intent",
+            )
+        production = load_target("production", arguments.targets)
+        try:
+            admission_value = json.loads(_read_path(target, runner, arguments.production_admission_receipt))
+            admission = _validate_release_boundary_receipt(
+                admission_value,
+                schema="usl-release-admission/v1",
+                status="admitted",
+                target=production,
+                attempt=str(admission_value.get("attempt", "")),
+                release=str(admission_value.get("release", "")),
+            )
+            backup = _backup_run_receipt(
+                json.loads(_read_path(target, runner, arguments.backup_receipt)),
+                target="production",
+            )
+            reset_intent = _staging_reset_intent_receipt(
+                json.loads(_read_path(target, runner, arguments.staging_reset_intent)),
+                target=target,
+                admission=admission,
+            )
+            claim_value = json.loads(_read_path(target, runner, arguments.production_claim))
+            production_claim = _release_attempt_claim(
+                claim_value,
+                target=production,
+                attempt=admission["attempt"],
+                release=admission["release"],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("production-derived staging reset evidence is invalid") from error
+        observed_staging = inspect_runtime(target, runner)
+        observed_staging_release, _observed_sha, _observed_raw = _release(
+            target, runner, None,
+        )
+        if (
+            observed_staging.get("generation") != reset_intent["staging_baseline_generation"]
+            or observed_staging_release["identity"]
+            != reset_intent["staging_baseline_release"]
+            or _runtime_cas_sha256(target, runner, observed_staging)
+            != reset_intent["staging_baseline_runtime_sha256"]
+        ):
+            raise RuntimeError(
+                "staging advanced after production intent; reset is safely deferred",
+            )
+        if (
+            production_claim.get("operation_kind") != "production-upgrade"
+            or production_claim["source"] != production.name
+            or production_claim["operation_bundle_sha256"]
+            != admission["operation_bundle_sha256"]
+            or production_claim["snapshot"] != admission["snapshot"]
+            or production_claim["generation"] != admission["generation"]
+            or production_claim["gitops_commit"] != reset_intent["gitops_commit"]
+            or production_claim["prepare_receipt_sha256"]
+            != reset_intent["production_prepare_receipt_sha256"]
+            or production_claim["upgrade_plan_sha256"]
+            != reset_intent["production_upgrade_plan_sha256"]
+        ):
+            raise RuntimeError("production staging-reset evidence is cross-wired")
+        admitted_at = datetime.fromisoformat(admission["admitted_at"].replace("Z", "+00:00"))
+        captured_at = datetime.fromisoformat(backup["capture"]["created_at"].replace("Z", "+00:00"))
+        if captured_at <= admitted_at:
+            raise RuntimeError("staging reset backup predates production admission")
+        if backup["capture"]["release"]["identity"] != admission["release"]:
+            raise RuntimeError("staging reset backup is not from the admitted production release")
+        production_runner = production.runner()
+        production_release, _production_sha, _production_raw = _release(
+            production, production_runner, None,
+        )
+        if production_release["identity"] != admission["release"]:
+            raise RuntimeError("production changed after the accepted backup")
+        production_runtime = inspect_runtime(production, production_runner)
+        verified = _run_cohort(
+            production,
+            production_runner,
+            production_release["components"]["backup-tool"]["digest_reference"],
+            "verify",
+            ["--durable-snapshot", backup["qualification"]["durable_snapshot_id"]],
+            volumes=production_runtime["volumes"],
+        )
+        _validate_recovery_selection(
+            backup["qualification"]["durable_snapshot_id"], verified,
+        )
+        if verified.get("cache_snapshot_id") != backup["qualification"]["cache_snapshot_id"]:
+            raise RuntimeError("staging reset reusable cache verification differs")
+        arguments.source = "production"
+        arguments.snapshot = backup["qualification"]["durable_snapshot_id"]
+        operation_kind = "staging-reset-from-production"
+        source_receipt_sha256 = hashlib.sha256(json.dumps(
+            {
+                "admission": admission["sha256"],
+                "backup": backup,
+                "intent": reset_intent["sha256"],
+                "claim": production_claim["sha256"],
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest()
+    elif arguments.action == "reconcile":
+        if target.value["environment"] != "production":
+            raise RuntimeError(
+                "use reconcile-staging for ordinary staging upgrades or "
+                "staging-reset-from-production after production admission",
+            )
+        if arguments.source not in (None, "production"):
+            raise RuntimeError("production reconciliation requires a production snapshot")
+        if not arguments.backup_receipt:
+            raise RuntimeError("production reconciliation requires its exact qualified backup")
+        try:
+            production_backup = _backup_run_receipt(
+                json.loads(_read_path(target, runner, arguments.backup_receipt)),
+                target="production",
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("production reconciliation backup receipt is invalid") from error
+        if arguments.snapshot != production_backup["qualification"]["durable_snapshot_id"]:
+            raise RuntimeError("production reconciliation snapshot differs from backup receipt")
+        active_release, _active_sha, _active_raw = _release(target, runner, None)
+        if production_backup["capture"]["release"]["identity"] != active_release["identity"]:
+            raise RuntimeError("production backup does not describe the active release")
+        runtime = inspect_runtime(target, runner)
+        verified = _run_cohort(
+            target,
+            runner,
+            active_release["components"]["backup-tool"]["digest_reference"],
+            "verify",
+            ["--durable-snapshot", arguments.snapshot],
+            volumes=runtime["volumes"],
+        )
+        _validate_recovery_selection(arguments.snapshot, verified)
+        arguments.source = "production"
+        operation_kind = "production-upgrade"
+        source_receipt_sha256 = production_backup["sha256"]
+    if operation_kind is not None:
         if not arguments.snapshot or not arguments.candidate_release or not arguments.upgrade_plan:
             raise RuntimeError("release reconcile requires snapshot, candidate release, and upgrade plan")
         try:
@@ -4434,10 +5533,6 @@ def release_command(arguments: argparse.Namespace) -> int:
             + hashlib.sha256(attempt.encode()).hexdigest()[:8]
         )
         attempt_root = f"{target.value['state_directory']}/attempts/{attempt}"
-        if runner.run(["mkdir", attempt_root], check=False).returncode != 0:
-            raise RuntimeError(
-                "release attempt was already consumed; recover and use a fresh attempt",
-            )
         attempt_path = f"{attempt_root}/claim.json"
         baseline = inspect_runtime(target, runner)
         operation = {
@@ -4451,12 +5546,15 @@ def release_command(arguments: argparse.Namespace) -> int:
             "upgrade_plan_sha256": exact_plan["sha256"],
             "prepare_receipt_sha256": prepare_receipt["sha256"],
             "maintenance_receipt_sha256": maintenance_receipt["sha256"],
+            "operation_kind": operation_kind,
+            "source_receipt_sha256": source_receipt_sha256,
+            "baseline_runtime_sha256": _runtime_cas_sha256(target, runner, baseline),
         }
         operation_bundle_sha256 = hashlib.sha256(
             json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
         claim = {
-            "schema": "usl-release-attempt/v2",
+            "schema": "usl-release-attempt/v3",
             **operation,
             "baseline_generation": baseline.get("generation"),
             "operation_bundle_sha256": operation_bundle_sha256,
@@ -4466,6 +5564,53 @@ def release_command(arguments: argparse.Namespace) -> int:
         claim["sha256"] = hashlib.sha256(
             json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
+        if runner.run(["mkdir", attempt_root], check=False).returncode != 0:
+            existing_raw = runner.run(["cat", attempt_path], check=False)
+            if existing_raw.returncode:
+                raise RuntimeError("release attempt is incomplete; abort before retry")
+            try:
+                existing_claim = _release_attempt_claim(
+                    json.loads(existing_raw.stdout), target=target, attempt=attempt,
+                    release=release_value["identity"],
+                )
+            except json.JSONDecodeError as error:
+                raise RuntimeError("existing release attempt is invalid") from error
+            stable = set(claim) - {"claimed_at", "sha256"}
+            if any(existing_claim.get(key) != claim[key] for key in stable):
+                raise RuntimeError("existing release attempt differs")
+            active = inspect_runtime(target, runner)
+            if active.get("generation") != generation:
+                raise RuntimeError("release attempt is incomplete; abort before retry")
+            production = target.value["environment"] == "production"
+            receipt_name = "quarantine" if production else "admission"
+            receipt_raw = runner.run([
+                "cat", f"{target.value['state_directory']}/generations/{generation}/{receipt_name}.json",
+            ], check=False)
+            if receipt_raw.returncode:
+                raise RuntimeError("release attempt has no durable boundary receipt")
+            receipt = _validate_release_boundary_receipt(
+                json.loads(receipt_raw.stdout),
+                schema=("usl-release-quarantine/v1" if production else "usl-release-admission/v1"),
+                status=("quarantined" if production else "admitted"),
+                target=target, attempt=attempt, release=release_value["identity"],
+            )
+            _require_same_attempt_boundary(
+                existing_claim, receipt, generation=generation, snapshot=arguments.snapshot,
+            )
+            value = {
+                "schema": "usl-release-reconcile-replay/v1",
+                "target": target.name,
+                "attempt": attempt,
+                "operation_kind": operation_kind,
+                "claim": {"path": attempt_path, **existing_claim},
+                receipt_name: {
+                    "path": f"{target.value['state_directory']}/generations/{generation}/{receipt_name}.json",
+                    **receipt,
+                },
+                "status": "already-" + receipt["status"],
+            }
+            print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+            return 0
         _write_remote(
             target, runner, attempt_path,
             json.dumps(claim, indent=2, sort_keys=True) + "\n", "0444",
@@ -4557,9 +5702,18 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
     release = commands.add_parser("release")
-    release.add_argument("action", choices=("prepare", "plan", "reconcile", "activate", "status", "abort", "notify"))
+    release.add_argument(
+        "action",
+        choices=(
+            "prepare", "plan", "staging-checkpoint", "reconcile",
+            "staging-reset-intent",
+            "resume-staging",
+            "reconcile-staging", "staging-reset-from-production",
+            "activate", "status", "abort", "notify",
+        ),
+    )
     release.add_argument("--target", dest="command_target")
-    release.add_argument("--source", default="production")
+    release.add_argument("--source")
     release.add_argument("--active-release", type=Path)
     release.add_argument("--candidate-release", type=Path)
     release.add_argument("--upgrade-plan", type=Path)
@@ -4576,6 +5730,12 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--maintenance-receipt", type=Path)
     release.add_argument("--prepare-receipt", type=Path)
     release.add_argument("--quarantine-receipt", type=Path)
+    release.add_argument("--backup-receipt", type=Path)
+    release.add_argument("--quiescence-receipt", type=Path)
+    release.add_argument("--checkpoint-receipt", type=Path)
+    release.add_argument("--production-admission-receipt", type=Path)
+    release.add_argument("--production-claim", type=Path)
+    release.add_argument("--staging-reset-intent", type=Path)
     release.add_argument("--json", action="store_true")
     release.set_defaults(handler=release_command)
     return parser

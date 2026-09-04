@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import subprocess
 import tempfile
@@ -15,11 +16,14 @@ from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
     build_parser,
+    backup_command,
     _cohort_command,
     _create_generation_resources,
     _apply_generation_cron_policy,
     _active_generation_identity,
     _abort_to_previous_generation,
+    _backup_run_receipt,
+    _backup_quiescence_receipt,
     _activate_generation,
     _candidate_compose_identity,
     _cleanup_inventory,
@@ -34,10 +38,13 @@ from operations.stack import (
     _prepare_generation_volume_ownership,
     _prepare_secret_contract,
     _prepare_release_candidate,
+    _recover_interrupted_backup_lock,
     _prepare_receipt,
     _release_attempt,
     _release_attempt_claim,
     _release_boundary_receipt,
+    _runtime_baseline_sha256,
+    _runtime_cas_sha256,
     _require_same_attempt_boundary,
     _required_maintenance_endpoints,
     _require_same_preparation,
@@ -49,9 +56,15 @@ from operations.stack import (
     _measure_candidate_bytes,
     _notify_release,
     _rollback_after_failure,
+    _rollback_active_candidate,
     _restore_unlocked,
     _storage_status,
     _staging_abort_neutralization,
+    _staging_checkpoint_receipt,
+    _staging_reset_intent_receipt,
+    _validate_backup_quiescence_receipt,
+    _preserve_staging_environment_state,
+    _write_source_backup_environment,
     _write_adopt_generation,
     _validate_materialized_release,
     _validate_forward_only_receipt,
@@ -111,6 +124,65 @@ def manifest(durable: dict, cache: dict) -> dict:
         },
         "cache_snapshot_id": None,
     }
+
+
+def backup_receipt(*, target: str = "staging", run_id: str = "attempt-20260904-staging") -> dict:
+    identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+    capture = manifest(identity, identity)
+    capture.update({"target": target, "run_id": run_id})
+    capture["release"]["identity"] = "a" * 64
+    snapshot = "b" * 64
+    cache_snapshot = "c" * 64
+    state = {
+        "schema": cohort.STATE_SCHEMA,
+        "cohort_schema": cohort.SCHEMA,
+        "run_id": run_id,
+        "target": target,
+        "durable_snapshot_id": snapshot,
+        "cache_snapshot_id": cache_snapshot,
+        "status": "uploaded",
+    }
+    qualification = {**state, "status": "qualified"}
+    quiescence = {
+        "schema": "usl-backup-quiescence/v2",
+        "target": target,
+        "run_id": run_id,
+        "baseline_runtime_sha256": "e" * 64,
+        "writer_services": ["odoo", "paperless-webserver", "odoo-mcp", "usl-sign-dss", "usl-sign-step-ca"],
+        "prepared_at": "2026-09-03T23:59:59Z",
+        "stopped_at": "2026-09-04T00:00:00Z",
+        "status": "quiesced",
+    }
+    quiescence["sha256"] = __import__("hashlib").sha256(json.dumps(
+        quiescence, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    value = {
+        "schema": "usl-backup-run/v2",
+        "run_id": run_id,
+        "capture": capture,
+        "upload": state,
+        "qualification": qualification,
+        "performance": {
+            "capture_pause_seconds": 1.0,
+            "writer_freeze_seconds": None,
+            "writer_freeze_sla_seconds": 120,
+            "writer_freeze_sla_passed": None,
+            "upload_seconds": 1.0,
+            "verification_seconds": 1.0,
+            "total_seconds": 3.0,
+        },
+        "runtime_images": {"odoo": "image@sha256:" + "f" * 64},
+        "writers_quiesced": True,
+        "writer_interval_complete": False,
+        "writers_stopped_at": quiescence["stopped_at"],
+        "writers_resumed_at": None,
+        "quiescence": quiescence,
+        "status": "qualified",
+    }
+    value["sha256"] = __import__("hashlib").sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
 
 
 class CohortContractTests(unittest.TestCase):
@@ -239,9 +311,12 @@ class CohortContractTests(unittest.TestCase):
             "upgrade_plan_sha256": "c" * 64,
             "prepare_receipt_sha256": "d" * 64,
             "maintenance_receipt_sha256": "e" * 64,
+            "operation_kind": "production-upgrade",
+            "source_receipt_sha256": "f" * 64,
+            "baseline_runtime_sha256": "1" * 64,
         }
         claim = {
-            "schema": "usl-release-attempt/v2",
+            "schema": "usl-release-attempt/v3",
             **operation,
             "baseline_generation": "gprevious-a1b2c3d4",
             "operation_bundle_sha256": __import__("hashlib").sha256(
@@ -272,6 +347,25 @@ class CohortContractTests(unittest.TestCase):
                 attempt=operation["attempt"],
                 release=operation["candidate_release"],
             )
+        for field, replacement in (
+            ("operation_kind", "staging-upgrade"),
+            ("source_receipt_sha256", "2" * 64),
+            ("baseline_runtime_sha256", "3" * 64),
+        ):
+            changed = json.loads(json.dumps(claim))
+            changed[field] = replacement
+            changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+                {key: item for key, item in changed.items() if key != "sha256"},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()).hexdigest()
+            with self.assertRaisesRegex(RuntimeError, "differs"):
+                _release_attempt_claim(
+                    changed,
+                    target=target,
+                    attempt=operation["attempt"],
+                    release=operation["candidate_release"],
+                )
 
     def test_release_boundary_rejects_a_different_operation_bundle(self) -> None:
         claim = {
@@ -854,7 +948,7 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "manifest path"):
             _previous_generation_identity(target, mock.Mock(), current)
 
-    def test_staging_abort_preserves_but_refuses_the_legacy_v2_generation(self) -> None:
+    def test_staging_abort_can_restore_the_exact_preserved_legacy_v2_generation(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         generation = "g20260903-storage-a"
         root = f"{target.value['state_directory']}/generations/{generation}"
@@ -894,8 +988,14 @@ class CohortContractTests(unittest.TestCase):
                     )
                 raise AssertionError(command)
 
-        with self.assertRaisesRegex(RuntimeError, "legacy v2 topology is disabled"):
-            _previous_generation_identity(target, LegacyReleaseRunner(), current)
+        with mock.patch(
+            "operations.stack.validate_release", return_value={"schema": "usl-release/v2"},
+        ):
+            identity, state = _previous_generation_identity(
+                target, LegacyReleaseRunner(), current,
+            )
+        self.assertIn(f"{root}/compose.generation.json", identity["compose_files"])
+        self.assertEqual(json.loads(state)["generation"], generation)
 
         malformed = LegacyReleaseRunner()
         malformed.release = {"schema": "usl-release/v3"}
@@ -1572,13 +1672,67 @@ class CohortContractTests(unittest.TestCase):
             self.assertEqual(cohort.resolve_snapshot_reference({}, original), current)
 
     def test_staging_restore_isolates_production_mcp_oauth_state(self) -> None:
-        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging"))
-        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local"))
-        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production"))
-        self.assertFalse(cohort.should_restore_resource("sign_secrets", "staging"))
-        self.assertFalse(cohort.should_restore_resource("sign_secrets", "local"))
-        self.assertTrue(cohort.should_restore_resource("sign_secrets", "production"))
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging", "production"))
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local", "production"))
+        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production", "production"))
+        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "staging", "staging"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "staging", "production"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "local", "production"))
+        self.assertTrue(cohort.should_restore_resource("sign_secrets", "production", "production"))
+        self.assertTrue(cohort.should_restore_resource("sign_secrets", "staging", "staging"))
         self.assertTrue(cohort.should_restore_resource("paperless_originals", "staging"))
+
+    def test_legacy_v2_materialization_uses_manifest_digest_as_release_identity(self) -> None:
+        identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+        value = manifest(identity, identity)
+        value["schema"] = cohort.LEGACY_SCHEMA
+        value["target"] = "staging"
+        value["cache_snapshot_id"] = "c" * 64
+        value["release"].pop("identity", None)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def restore(snapshot, destination, _environment):
+                destination.mkdir(parents=True)
+                if "durable-snapshot" in destination.name:
+                    cohort_root = destination / "cohort"
+                    (cohort_root / "durable/databases").mkdir(parents=True)
+                    (cohort_root / "manifest.json").write_text(json.dumps(value))
+                    for name in ("odoo", "paperless"):
+                        (cohort_root / f"durable/databases/{name}.dump").write_bytes(b"x")
+                else:
+                    (destination / "payload/cache").mkdir(parents=True)
+                return snapshot
+
+            arguments = argparse.Namespace(
+                root=root,
+                durable_snapshot="b" * 64,
+            )
+            environment = {
+                "RESTIC_REPOSITORY": "s3:test/durable",
+                "RESTIC_PASSWORD": "durable-password-long-enough",
+                "USL_BACKUP_CACHE_REPOSITORY": "s3:test/cache",
+                "USL_BACKUP_CACHE_PASSWORD": "cache-password-long-enough",
+                "USL_TARGET": "staging",
+                "USL_TARGET_ENVIRONMENT": "staging",
+                "ODOO_DB_NAME": "odoo_staging",
+            }
+            embedded = {"schema": "usl-release/v2", "source": {"commit": "a" * 40}}
+            with (
+                mock.patch.dict("os.environ", environment, clear=False),
+                mock.patch("operations.cohort.restore_snapshot", side_effect=restore),
+                mock.patch("operations.cohort.verify_embedded_release", return_value=embedded),
+                mock.patch("operations.cohort.tree_identity", return_value=identity),
+                mock.patch("operations.cohort._copy_contents"),
+                mock.patch("operations.cohort._empty_directory"),
+                mock.patch("operations.cohort._reset_database"),
+                mock.patch("operations.cohort.sha256_file", side_effect=lambda path: value["databases"][path.stem]["sha256"]),
+            ):
+                result = cohort.materialize(arguments)
+        self.assertEqual(result["cohort_schema"], cohort.LEGACY_SCHEMA)
+        self.assertEqual(result["release"]["identity"], "b" * 64)
+        self.assertEqual(result["release"]["commit"], "a" * 40)
 
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
@@ -1658,6 +1812,123 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(result["status"], "captured")
         self.assertIn("stop", runner.commands[0])
         self.assertEqual(len(runner.commands), 1)
+
+    def test_checkpoint_persists_pre_stop_intent_before_stop_failure(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+
+        def fail_stop(command, *, check=True, input_text=None):
+            if "stop" in command:
+                raise RuntimeError("injected stop failure")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = fail_stop
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {},
+        }
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+        writes = []
+
+        def record_write(_target, _runner, path, content, mode="0600"):
+            writes.append((path, json.loads(content)))
+
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260904-stop", leave_quiesced=True,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=runtime["compose"]),
+            mock.patch("operations.stack._write_remote", side_effect=record_write),
+            self.assertRaisesRegex(RuntimeError, "injected stop"),
+        ):
+            backup_command(arguments)
+        self.assertEqual(len(writes), 1)
+        self.assertTrue(writes[0][0].endswith("/prepared.json"))
+        self.assertEqual(writes[0][1]["status"], "prepared")
+
+    def test_checkpoint_persists_quiesced_state_before_capture_and_resumes_on_failure(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {},
+        }
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+        events = []
+
+        def record_write(_target, _runner, path, content, mode="0600"):
+            events.append(("write", path, json.loads(content)["status"]))
+
+        def fail_capture(*_args, **_kwargs):
+            events.append(("capture",))
+            raise RuntimeError("injected capture failure")
+
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260904-capture", leave_quiesced=True,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=runtime["compose"]),
+            mock.patch("operations.stack._write_remote", side_effect=record_write),
+            mock.patch("operations.stack._run_cohort", side_effect=fail_capture),
+            self.assertRaisesRegex(RuntimeError, "injected capture"),
+        ):
+            backup_command(arguments)
+        self.assertEqual(
+            events,
+            [
+                ("write", "/var/lib/usl-odoo/runtime/staging/backup-runs/attempt-20260904-capture/prepared.json", "prepared"),
+                ("write", "/var/lib/usl-odoo/runtime/staging/backup-runs/attempt-20260904-capture/quiesced.json", "quiesced"),
+                ("capture",),
+            ],
+        )
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        self.assertTrue(any("stop" in command for command in commands))
+        self.assertTrue(any("up" in command and "--no-recreate" in command for command in commands))
 
     def test_backup_image_is_pulled_only_when_missing(self) -> None:
         image = "backup@sha256:" + "a" * 64
@@ -1908,6 +2179,25 @@ class CohortContractTests(unittest.TestCase):
                 ],
             ],
         )
+
+    def test_source_secret_workspace_is_removed_on_each_database_start_failure(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-secrets"
+        workspace = f"{target.value['state_directory']}/generations/{generation}/work"
+        for completed_containers, failure in (
+            ([], "first database failed"),
+            (["temporary-odoo-db"], "second database failed"),
+        ):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+            with self.assertRaisesRegex(RuntimeError, failure):
+                with _materialization_cleanup(target, runner, generation) as containers:
+                    containers.extend(completed_containers)
+                    raise RuntimeError(failure)
+            commands = [call.args[0] for call in runner.run.call_args_list]
+            self.assertIn(["rm", "-rf", "--", workspace], commands)
+            for container in completed_containers:
+                self.assertIn(["docker", "rm", "--force", container], commands)
 
     def test_cleanup_accepts_modern_bind_and_safe_legacy_named_database_volumes(self) -> None:
         target = load_target("staging", TARGETS)
@@ -2316,6 +2606,75 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
         self.assertNotIn("--force-recreate", command)
 
+    def test_pre_boundary_failure_restores_active_state_and_previous_runtime(self) -> None:
+        target = mock.Mock(value={"compose": {"adoption": None}})
+        current_identity = {
+            "project": "staging",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml", "/runtime/previous.json"],
+        }
+        generation_identity = {
+            **current_identity,
+            "compose_files": ["/release/compose.yaml", "/runtime/candidate.json"],
+        }
+        current = {
+            "active_state": {
+                "generation": "gprevious",
+                "snapshot": "a" * 64,
+                "network": "previous-network",
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        active_path = "/runtime/active.json"
+        with (
+            mock.patch("operations.stack._write_remote") as write_remote,
+            mock.patch("operations.stack._cleanup_adoption_candidate_anchor"),
+        ):
+            _rollback_active_candidate(
+                target,
+                runner,
+                current=current,
+                current_identity=current_identity,
+                generation_identity=generation_identity,
+                active_path=active_path,
+                error=RuntimeError("boundary receipt write failed"),
+            )
+        write_remote.assert_called_once()
+        self.assertEqual(write_remote.call_args.args[2], active_path)
+        self.assertEqual(json.loads(write_remote.call_args.args[3]), current["active_state"])
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        candidate_stop = next(command for command in commands if "stop" in command)
+        previous_up = next(command for command in commands if "up" in command)
+        self.assertIn("/runtime/candidate.json", candidate_stop)
+        self.assertIn("/runtime/previous.json", previous_up)
+        self.assertNotIn("--force-recreate", previous_up)
+
+    def test_pre_boundary_failure_removes_uncommitted_active_state_for_adopted_baseline(self) -> None:
+        target = mock.Mock(value={"compose": {"adoption": None}})
+        identity = {
+            "project": "staging",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack._cleanup_adoption_candidate_anchor"):
+            _rollback_active_candidate(
+                target,
+                runner,
+                current={"active_state": None},
+                current_identity=identity,
+                generation_identity={**identity, "compose_files": [*identity["compose_files"], "/candidate.json"]},
+                active_path="/runtime/active.json",
+                error=RuntimeError("active state write failed"),
+            )
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        self.assertIn(["rm", "-f", "/runtime/active.json"], commands)
+        self.assertTrue(any("up" in command for command in commands))
+
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
 
@@ -2682,6 +3041,7 @@ class CohortContractTests(unittest.TestCase):
             "g20260901-a1b2c3d4",
             "recovery-network",
             names,
+            "/run/usl/source-backup.env",
         )
         joined = " ".join(command)
         self.assertIn(source.value["backup"]["durable_repository"], joined)
@@ -2690,6 +3050,671 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/sign-secrets:/target/sign-secrets", joined)
         self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
+        self.assertIn("--env-file /run/usl/source-backup.env", joined)
+
+    def test_backup_v2_receipt_binds_exact_quiesced_staging_cohort(self) -> None:
+        target = load_target("staging", TARGETS)
+        value = backup_receipt()
+        self.assertEqual(
+            _backup_run_receipt(
+                value,
+                target="staging",
+                run_id=value["run_id"],
+                require_quiesced=True,
+                expected_writer_services=[
+                    target.value["services"][role]
+                    for role in BACKUP_WRITER_SERVICE_ROLES
+                ],
+            )["sha256"],
+            value["sha256"],
+        )
+        for mutation, message in (
+            (("quiescence", "writer_services"), "quiescence"),
+            (("qualification", "durable_snapshot_id"), "cohort identity"),
+        ):
+            changed = json.loads(json.dumps(value))
+            parent = changed
+            for key in mutation[:-1]:
+                parent = parent[key]
+            parent[mutation[-1]] = [] if mutation[-1] == "writer_services" else "9" * 64
+            if mutation[0] == "quiescence":
+                changed["quiescence"]["sha256"] = __import__("hashlib").sha256(json.dumps(
+                    {key: item for key, item in changed["quiescence"].items() if key != "sha256"},
+                    sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest()
+            changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+                {key: item for key, item in changed.items() if key != "sha256"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest()
+            with self.assertRaisesRegex(RuntimeError, message):
+                _backup_run_receipt(
+                    changed,
+                    target="staging",
+                    run_id=value["run_id"],
+                    require_quiesced=True,
+                    expected_writer_services=[
+                        target.value["services"][role]
+                        for role in BACKUP_WRITER_SERVICE_ROLES
+                    ],
+                )
+
+    def test_staging_checkpoint_receipt_rejects_tamper(self) -> None:
+        target = load_target("staging", TARGETS)
+        value = {
+            "schema": "usl-staging-checkpoint/v1",
+            "target": "staging",
+            "attempt": "attempt-20260904-staging",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "cache_snapshot": "c" * 64,
+            "baseline_generation": None,
+            "baseline_release": "d" * 64,
+            "baseline_runtime_sha256": "e" * 64,
+            "upgrade_plan_sha256": "f" * 64,
+            "prepare_receipt_sha256": "1" * 64,
+            "maintenance_receipt_sha256": "2" * 64,
+            "resources_sha256": "3" * 64,
+            "controls_sha256": "4" * 64,
+            "checkpointed_at": "2026-09-04T00:01:00Z",
+            "status": "checkpointed",
+        }
+        value["sha256"] = __import__("hashlib").sha256(json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        self.assertEqual(
+            _staging_checkpoint_receipt(
+                value, target=target, attempt=value["attempt"], release="a" * 64,
+            )["snapshot"],
+            "b" * 64,
+        )
+        changed = dict(value, baseline_runtime_sha256="9" * 64)
+        with self.assertRaisesRegex(RuntimeError, "digest differs"):
+            _staging_checkpoint_receipt(
+                changed, target=target, attempt=value["attempt"], release="a" * 64,
+            )
+
+    def test_runtime_baseline_cas_binds_volumes_and_compose(self) -> None:
+        runtime = {
+            "generation": "gbase",
+            "active_state": {"generation": "gbase", "network": "network-a"},
+            "volumes": {"odoo_postgres": {"name": "db-a", "path": "/data/a"}},
+            "compose": {"project": "staging", "compose_files": ["compose.yaml"]},
+        }
+        original = _runtime_baseline_sha256(runtime)
+        changed = json.loads(json.dumps(runtime))
+        changed["volumes"]["odoo_postgres"]["name"] = "db-b"
+        self.assertNotEqual(original, _runtime_baseline_sha256(changed))
+        changed = json.loads(json.dumps(runtime))
+        changed["compose"]["compose_files"].append("different.json")
+        self.assertNotEqual(original, _runtime_baseline_sha256(changed))
+
+    def test_source_backup_secrets_use_stdin_and_never_argv(self) -> None:
+        secret_values = {
+            "AWS_ACCESS_KEY_ID": "access-secret",
+            "AWS_SECRET_ACCESS_KEY": "private-secret",
+            "RESTIC_PASSWORD": "durable-secret",
+            "USL_BACKUP_CACHE_PASSWORD": "cache-secret",
+        }
+        raw = "".join(f"{key}={value}\n" for key, value in secret_values.items())
+        source = mock.Mock(value={
+            "secrets": {"env_file": "/prod/operations.env", "allowed_keys": list(secret_values)},
+        })
+        source_runner = mock.Mock()
+        source_runner.run.return_value = subprocess.CompletedProcess([], 0, raw, "")
+        target_runner = mock.Mock()
+        target_runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        _write_source_backup_environment(
+            source, source_runner, mock.Mock(), target_runner, "/run/source.env",
+        )
+        command = target_runner.run.call_args.args[0]
+        input_text = target_runner.run.call_args.kwargs["input_text"]
+        self.assertFalse(any(value in " ".join(command) for value in secret_values.values()))
+        self.assertTrue(all(value in input_text for value in secret_values.values()))
+
+    def test_ordinary_staging_never_accepts_production_source(self) -> None:
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="reconcile-staging",
+            source="production", checkpoint_receipt=None, candidate_release=None,
+        )
+        with self.assertRaisesRegex(RuntimeError, "must preserve staging data"):
+            release_command(arguments)
+        arguments.action = "reconcile"
+        arguments.source = None
+        with self.assertRaisesRegex(RuntimeError, "reconcile-staging"):
+            release_command(arguments)
+
+    def test_staging_reset_intent_response_loss_replays_exact_existing_receipt(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        production_release = {"identity": "a" * 64}
+        production_prepare = {
+            "gitops_commit": "b" * 40,
+            "sha256": "c" * 64,
+            "upgrade_plan_sha256": "d" * 64,
+        }
+        existing = {
+            "schema": "usl-staging-reset-intent/v1",
+            "staging_target": "staging",
+            "staging_baseline_generation": "gbase",
+            "staging_baseline_release": "e" * 64,
+            "staging_baseline_runtime_sha256": "f" * 64,
+            "production_attempt": "attempt-20260904-prod",
+            "production_release": "a" * 64,
+            "gitops_commit": "b" * 40,
+            "production_prepare_receipt_sha256": "c" * 64,
+            "production_upgrade_plan_sha256": "d" * 64,
+            "created_at": "2026-09-04T00:00:00Z",
+            "status": "planned",
+        }
+        existing["sha256"] = __import__("hashlib").sha256(json.dumps(
+            existing, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+
+        def run(command, *, check=True, input_text=None):
+            if command[:1] == ["cat"]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(existing), "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = run
+        arguments = argparse.Namespace(
+            action="staging-reset-intent", target="staging", targets=TARGETS,
+            candidate_release=Path("/release.json"),
+            prepare_receipt=Path("/prepare.json"),
+            attempt_id="attempt-20260904-prod", output=Path("/intent.json"), json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value="{}"),
+            mock.patch("operations.stack.validate_release", return_value=production_release),
+            mock.patch("operations.stack._prepare_receipt", return_value=production_prepare),
+            mock.patch(
+                "operations.stack.inspect_runtime",
+                return_value={"generation": "gbase", "compose": {}},
+            ),
+            mock.patch(
+                "operations.stack._release",
+                return_value=({"identity": "e" * 64}, "1" * 64, "{}"),
+            ),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack._write_remote") as write_remote,
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        write_remote.assert_not_called()
+
+        mismatched = json.loads(json.dumps(existing))
+        mismatched["staging_baseline_release"] = "9" * 64
+        mismatched["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in mismatched.items() if key != "sha256"},
+            sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        runner.run.side_effect = lambda command, **kwargs: subprocess.CompletedProcess(
+            command, 0, json.dumps(mismatched) if command[:1] == ["cat"] else "", "",
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value="{}"),
+            mock.patch("operations.stack.validate_release", return_value=production_release),
+            mock.patch("operations.stack._prepare_receipt", return_value=production_prepare),
+            mock.patch("operations.stack.inspect_runtime", return_value={"generation": "gbase", "compose": {}}),
+            mock.patch("operations.stack._release", return_value=({"identity": "e" * 64}, "1" * 64, "{}")),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            self.assertRaisesRegex(RuntimeError, "existing staging reset intent differs"),
+        ):
+            release_command(arguments)
+
+    def test_prepared_quiescence_receipt_can_recover_the_exact_writer_set(self) -> None:
+        target = load_target("staging", TARGETS)
+        services = [
+            target.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+        self.assertEqual(
+            _validate_backup_quiescence_receipt(
+                receipt,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )["status"],
+            "prepared",
+        )
+        changed = json.loads(json.dumps(receipt))
+        changed["writer_services"] = list(reversed(services))
+        changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in changed.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_backup_quiescence_receipt(
+                changed,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )
+        reversed_time = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="quiesced",
+            prepared_at="2026-09-04T00:00:01Z",
+            stopped_at="2026-09-04T00:00:00Z",
+        )
+        with self.assertRaisesRegex(RuntimeError, "phase order"):
+            _validate_backup_quiescence_receipt(
+                reversed_time,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )
+
+    def test_resume_staging_accepts_pre_stop_receipt_after_runner_crash(self) -> None:
+        configured = load_target("staging", TARGETS)
+        services = [
+            configured.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:1] == ["cat"] and command[-1].endswith("/operation.lock/owner.json"):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:2] == ["test", "-d"] and command[-1].endswith("/operation.lock"):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+        }
+        arguments = argparse.Namespace(
+            action="resume-staging",
+            target="staging",
+            targets=TARGETS,
+            attempt_id=receipt["run_id"],
+            backup_receipt=None,
+            quiescence_receipt=Path("/runtime/prepared.json"),
+            json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value=json.dumps(receipt)),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="a" * 64),
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        recovery = next(command for command in runner.commands if "up" in command)
+        self.assertIn("--no-recreate", recovery)
+        self.assertEqual(recovery[-len(services):], services)
+
+    def test_release_cli_exposes_crash_recovery_quiescence_receipt(self) -> None:
+        arguments = build_parser().parse_args([
+            "release",
+            "resume-staging",
+            "--target",
+            "staging",
+            "--attempt-id",
+            "attempt-20260904-crash",
+            "--quiescence-receipt",
+            "/runtime/prepared.json",
+        ])
+        self.assertEqual(arguments.action, "resume-staging")
+        self.assertEqual(arguments.quiescence_receipt, Path("/runtime/prepared.json"))
+
+    def test_resume_staging_rejects_pre_stop_receipt_after_baseline_change(self) -> None:
+        configured = load_target("staging", TARGETS)
+        services = [
+            configured.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+        runner = mock.Mock()
+        def no_existing_lock(command, *, check=True, input_text=None):
+            if command[:1] == ["cat"] and command[-1].endswith("/operation.lock/owner.json"):
+                return subprocess.CompletedProcess(command, 1, "", "")
+            if command[:2] == ["test", "-d"] and command[-1].endswith("/operation.lock"):
+                return subprocess.CompletedProcess(command, 1, "", "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+        runner.run.side_effect = no_existing_lock
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        arguments = argparse.Namespace(
+            action="resume-staging",
+            target="staging",
+            targets=TARGETS,
+            attempt_id=receipt["run_id"],
+            backup_receipt=None,
+            quiescence_receipt=Path("/runtime/prepared.json"),
+            json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value=json.dumps(receipt)),
+            mock.patch("operations.stack.inspect_runtime", return_value={"compose": {}}),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="b" * 64),
+            self.assertRaisesRegex(RuntimeError, "baseline differs"),
+        ):
+            release_command(arguments)
+        self.assertFalse(any("up" in call.args[0] for call in runner.run.call_args_list))
+
+    def test_crash_recovery_refuses_a_different_operation_lock_owner(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": "attempt-20260904-other",
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, json.dumps(owner), "")
+        with self.assertRaisesRegex(RuntimeError, "another operation"):
+            _recover_interrupted_backup_lock(
+                target, runner, run_id=run_id, quiescence=receipt,
+            )
+        self.assertFalse(any(call.args[0][:1] == ["rm"] for call in runner.run.call_args_list))
+
+    def test_crash_recovery_refuses_an_unproven_matching_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": run_id,
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[-1].endswith("/operation.lock/owner.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(owner), "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "unproven"):
+            _recover_interrupted_backup_lock(
+                target, runner, run_id=run_id, quiescence=receipt,
+            )
+        self.assertFalse(any(command[:1] == ["rm"] for command in runner.commands))
+
+    def test_crash_recovery_removes_only_exact_proven_backup_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": run_id,
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[-1].endswith("/operation.lock/owner.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(owner), "")
+                if command[-1].endswith("/quiesced.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[-1].endswith("/prepared.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(receipt), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        self.assertTrue(_recover_interrupted_backup_lock(
+            target, runner, run_id=run_id, quiescence=receipt,
+        ))
+        lock = target.value["state_directory"] + "/operation.lock"
+        self.assertIn(["rm", "-f", lock + "/owner.json"], runner.commands)
+        self.assertIn(["rmdir", lock], runner.commands)
+
+    def test_generation_resource_failure_removes_every_partial_resource(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-partial"
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+                self.creates = 0
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:3] == ["docker", "volume", "create"]:
+                    self.creates += 1
+                    if self.creates == 2:
+                        raise RuntimeError("injected volume creation failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected volume"):
+            _create_generation_resources(target, runner, generation)
+        created = [
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "create"]
+        ]
+        removed = [
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "rm"]
+        ]
+        self.assertEqual(removed, created[:1])
+
+    def test_generation_network_failure_removes_all_new_volumes_and_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-network"
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] in (
+                    ["docker", "volume", "inspect"],
+                    ["docker", "network", "inspect"],
+                ):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:3] == ["docker", "network", "create"]:
+                    raise RuntimeError("injected network creation failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected network"):
+            _create_generation_resources(target, runner, generation)
+        created = {
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "create"]
+        }
+        removed = {
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "rm"]
+        }
+        self.assertEqual(removed, created)
+        self.assertTrue(any(command[:2] == ["rmdir", "--"] for command in runner.commands))
+
+    def test_runtime_cas_binds_rendered_compose_and_release_manifest(self) -> None:
+        target = mock.Mock()
+        runtime = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+        }
+        release = {"identity": "a" * 64}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps({"services": {"odoo": {"image": "first"}}}), "",
+        )
+        with mock.patch(
+            "operations.stack._release",
+            return_value=(release, "b" * 64, "{}"),
+        ):
+            first = _runtime_cas_sha256(target, runner, runtime)
+            runner.run.return_value = subprocess.CompletedProcess(
+                [], 0, json.dumps({"services": {"odoo": {"image": "second"}}}), "",
+            )
+            second = _runtime_cas_sha256(target, runner, runtime)
+        self.assertNotEqual(first, second)
+
+    def test_staging_oauth_copy_resumes_mcp_after_copy_failure(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {"mcp_oauth": {"name": "old-oauth"}},
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    name = command[3]
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"Mountpoint": f"/volumes/{name}"}),
+                        "",
+                    )
+                if command and command[0] == "python3":
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"files": 1, "bytes": 10, "sha256": "a" * 64}),
+                        "",
+                    )
+                if command and command[0] == "rsync" and "-aHAXS" in command:
+                    raise RuntimeError("injected OAuth copy failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected OAuth"):
+            _preserve_staging_environment_state(
+                target, runner, current, {"mcp_oauth": "new-oauth"},
+            )
+        self.assertTrue(any("stop" in command for command in runner.commands))
+        resume = next(command for command in runner.commands if "up" in command)
+        self.assertIn("--no-recreate", resume)
+        self.assertEqual(resume[-1], target.value["services"]["mcp"])
+
+    def test_staging_oauth_copy_binds_identical_source_and_destination_trees(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {"mcp_oauth": {"name": "old-oauth"}},
+        }
+        identity = {"files": 3, "bytes": 144, "sha256": "a" * 64}
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"Mountpoint": f"/volumes/{command[3]}"}),
+                        "",
+                    )
+                if command and command[0] == "python3":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(identity), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        result = _preserve_staging_environment_state(
+            target, runner, current, {"mcp_oauth": "new-oauth"},
+        )
+        self.assertEqual(result["status"], "preserved")
+        self.assertEqual(result["mcp_oauth"]["source"], identity)
+        self.assertEqual(result["mcp_oauth"]["destination"], identity)
+        self.assertFalse(any("production" in " ".join(command) for command in runner.commands))
 
 
 if __name__ == "__main__":

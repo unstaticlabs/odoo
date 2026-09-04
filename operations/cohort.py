@@ -262,6 +262,9 @@ def validate_manifest(value: object) -> dict[str, Any]:
         raise CohortError("cohort manifest identity is invalid")
     if not SHA256.fullmatch(str(value["release"].get("manifest_sha256", ""))):
         raise CohortError("release manifest digest is invalid")
+    identity = value["release"].get("identity")
+    if identity is not None and not SHA256.fullmatch(str(identity)):
+        raise CohortError("release identity is invalid")
     if not COMMIT.fullmatch(str(value["release"].get("commit", ""))):
         raise CohortError("release commit is invalid")
     if value["release"].get("path") != "durable/release.json":
@@ -342,6 +345,8 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "USL_RELEASE_COMMIT",
         ):
             raise CohortError("supplied release manifest commit differs")
+        if release_value.get("identity") != _required_environment("USL_RELEASE_IDENTITY"):
+            raise CohortError("supplied release identity differs")
         (durable / "release.json").write_text(release_raw, encoding="utf-8")
         odoo_database = os.environ["ODOO_DB_NAME"]
         copy_tree(
@@ -398,6 +403,7 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "target": _required_environment("USL_TARGET"),
             "release": {
                 "commit": _required_environment("USL_RELEASE_COMMIT"),
+                "identity": _required_environment("USL_RELEASE_IDENTITY"),
                 "manifest_sha256": _required_environment("USL_RELEASE_MANIFEST_SHA256"),
                 "path": "durable/release.json",
             },
@@ -864,6 +870,11 @@ def verify_embedded_release(cohort_root: Path, manifest: dict[str, Any]) -> dict
         raise CohortError("embedded release manifest digest differs")
     if value["source"]["commit"] != manifest["release"]["commit"]:
         raise CohortError("embedded release commit differs")
+    if (
+        manifest["release"].get("identity") is not None
+        and value["identity"] != manifest["release"]["identity"]
+    ):
+        raise CohortError("embedded release identity differs")
     return value
 
 
@@ -980,9 +991,20 @@ def _copy_contents(source: Path, destination: Path) -> None:
     run(["cp", "--archive", "--reflink=auto", f"{source}/.", str(destination)])
 
 
-def should_restore_resource(role: str, target_environment: str) -> bool:
+def should_restore_resource(
+    role: str,
+    target_environment: str,
+    source_environment: str | None = None,
+) -> bool:
     production_only = {"mcp_oauth", "sign_ca", "sign_secrets"}
-    return role not in production_only or target_environment == "production"
+    if role not in production_only:
+        return True
+    # Environment-owned credentials and signing material may be carried only
+    # inside an exact same-environment checkpoint.  In particular, a
+    # production cohort restored into staging must never import production
+    # OAuth or signing authority.
+    effective_source = source_environment or target_environment
+    return effective_source == target_environment
 
 
 def _reset_database(prefix: str, dump: Path) -> None:
@@ -1041,6 +1063,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
     target_database = os.environ["ODOO_DB_NAME"]
     source_database = manifest["databases"]["odoo"]["name"]
     target_environment = _required_environment("USL_TARGET_ENVIRONMENT")
+    source_environment = manifest["target"]
     if target_environment == "production" and manifest["schema"] != SCHEMA:
         raise CohortError("legacy production snapshot lacks complete Sign recovery material")
     transformations: list[str] = []
@@ -1059,7 +1082,7 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "paperless_vectors": Path("/target/paperless-data/llm_index"),
     }
     for role, metadata in manifest["resources"].items():
-        if not should_restore_resource(role, target_environment):
+        if not should_restore_resource(role, target_environment, source_environment):
             _empty_directory(destinations[role])
             transformations.append(f"{role}:target-isolated")
             continue
@@ -1072,7 +1095,9 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
             _copy_contents(source, destinations[role])
         if tree_identity(destinations[role]) != metadata["identity"]:
             raise CohortError(f"materialized resource differs: {role}")
-    sign_secrets_restored = target_environment == "production" and manifest["schema"] == SCHEMA
+    sign_secrets_restored = (
+        source_environment == target_environment and manifest["schema"] == SCHEMA
+    )
     if sign_secrets_restored:
         identity = validate_sign_secrets(destinations["sign_secrets"])
         if identity != manifest["resources"]["sign_secrets"]["identity"]:
@@ -1093,6 +1118,9 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "cache_snapshot_id": cache_snapshot,
         "release": {
             "commit": embedded_release["source"]["commit"],
+            "identity": embedded_release.get(
+                "identity", manifest["release"]["manifest_sha256"],
+            ),
             "manifest_sha256": hashlib.sha256(embedded_canonical.encode()).hexdigest(),
         },
         "controls": manifest["controls"],
