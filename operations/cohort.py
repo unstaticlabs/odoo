@@ -82,6 +82,8 @@ PRIVATE_SIGN_SECRET_FILES = (
     "step-ca/password",
     "step-ca/secrets/intermediate_ca_key",
 )
+MCP_SECRET_FILES = ("better-auth.secret", "credential-encryption-key.secret")
+RENDERER_SECRET_FILES = ("ca.crt", "renderer.crt", "renderer.key", "odoo.crt", "odoo.key")
 
 
 class CohortError(RuntimeError):
@@ -179,6 +181,30 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
             raise CohortError(f"Sign recovery JSON is invalid: {relative}") from error
         if not isinstance(value, dict) or not value:
             raise CohortError(f"Sign recovery JSON is empty: {relative}")
+    return tree_identity(root)
+
+
+def validate_mcp_secrets(root: Path) -> dict[str, Any]:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+        raise CohortError("complete MCP secret root is missing or unsafe")
+    for relative in MCP_SECRET_FILES:
+        path = root / relative
+        if not path.is_file() or path.is_symlink() or path.stat().st_size < 32:
+            raise CohortError(f"required MCP recovery material is missing: {relative}")
+        if path.stat().st_mode & 0o077:
+            raise CohortError(f"private MCP recovery material has unsafe permissions: {relative}")
+    return tree_identity(root)
+
+
+def validate_renderer_secrets(root: Path) -> dict[str, Any]:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+        raise CohortError("complete renderer secret root is missing or unsafe")
+    for relative in RENDERER_SECRET_FILES:
+        path = root / relative
+        if not path.is_file() or path.is_symlink() or path.stat().st_size < 1:
+            raise CohortError(f"required renderer recovery material is missing: {relative}")
+        if relative.endswith(".key") and path.stat().st_mode & 0o077:
+            raise CohortError(f"private renderer recovery material has unsafe permissions: {relative}")
     return tree_identity(root)
 
 
@@ -306,6 +332,10 @@ def validate_manifest(value: object) -> dict[str, Any]:
             raise CohortError(f"resource {role} identity is invalid")
     if value["schema"] == SCHEMA and "sign_secrets" not in resources:
         raise CohortError("complete Sign recovery material is missing")
+    if value["schema"] == SCHEMA and value["target"] == "production" and "mcp_secrets" not in resources:
+        raise CohortError("complete MCP recovery material is missing")
+    if value["schema"] == SCHEMA and value["target"] == "production" and "renderer_secrets" not in resources:
+        raise CohortError("complete renderer recovery material is missing")
     cache_snapshot = value["cache_snapshot_id"]
     if cache_snapshot is not None and not SNAPSHOT.fullmatch(str(cache_snapshot)):
         raise CohortError("cache snapshot ID is invalid")
@@ -360,6 +390,20 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
         copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
         copy_tree(Path("/source/mcp-oauth"), durable / "mcp-oauth")
+        mcp_secrets_source = Path("/source/mcp-secrets")
+        mcp_secrets_identity = None
+        if mcp_secrets_source.exists():
+            mcp_secrets_identity = validate_mcp_secrets(mcp_secrets_source)
+            copy_tree(mcp_secrets_source, durable / "mcp-secrets")
+        elif _required_environment("USL_TARGET") == "production":
+            raise CohortError("complete MCP recovery material is missing")
+        renderer_secrets_source = Path("/source/renderer-secrets")
+        renderer_secrets_identity = None
+        if renderer_secrets_source.exists():
+            renderer_secrets_identity = validate_renderer_secrets(renderer_secrets_source)
+            copy_tree(renderer_secrets_source, durable / "renderer-secrets")
+        elif _required_environment("USL_TARGET") == "production":
+            raise CohortError("complete renderer recovery material is missing")
         sign_secrets_identity = validate_sign_secrets(Path("/source/sign-secrets"))
         copy_tree(Path("/source/sign-secrets"), durable / "sign-secrets")
         copy_tree(Path("/source/sign-evidence"), durable / "sign-evidence", required=False)
@@ -386,6 +430,10 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "paperless_tantivy": ("cache", cache / "paperless-data/index"),
             "paperless_vectors": ("cache", cache / "paperless-data/llm_index"),
         }
+        if mcp_secrets_identity is not None:
+            resource_paths["mcp_secrets"] = ("durable", durable / "mcp-secrets")
+        if renderer_secrets_identity is not None:
+            resource_paths["renderer_secrets"] = ("durable", durable / "renderer-secrets")
         resources = {
             role: {
                 "class": classification,
@@ -396,6 +444,13 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         }
         if resources["sign_secrets"]["identity"] != sign_secrets_identity:
             raise CohortError("Sign recovery material changed during capture")
+        if mcp_secrets_identity is not None and resources["mcp_secrets"]["identity"] != mcp_secrets_identity:
+            raise CohortError("MCP recovery material changed during capture")
+        if (
+            renderer_secrets_identity is not None
+            and resources["renderer_secrets"]["identity"] != renderer_secrets_identity
+        ):
+            raise CohortError("renderer recovery material changed during capture")
         manifest = {
             "schema": SCHEMA,
             "run_id": arguments.run_id,
@@ -905,6 +960,15 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
             sign_identity = validate_sign_secrets(cohort_root / "durable/sign-secrets")
             if sign_identity != manifest["resources"]["sign_secrets"]["identity"]:
                 raise CohortError("restored Sign recovery material differs from its manifest")
+            if manifest["target"] == "production":
+                mcp_identity = validate_mcp_secrets(cohort_root / "durable/mcp-secrets")
+                if mcp_identity != manifest["resources"]["mcp_secrets"]["identity"]:
+                    raise CohortError("restored MCP recovery material differs from its manifest")
+                renderer_identity = validate_renderer_secrets(
+                    cohort_root / "durable/renderer-secrets",
+                )
+                if renderer_identity != manifest["resources"]["renderer_secrets"]["identity"]:
+                    raise CohortError("restored renderer recovery material differs from its manifest")
         cache_snapshot = manifest["cache_snapshot_id"]
         if not cache_snapshot:
             raise CohortError("durable snapshot does not bind a cache snapshot")
@@ -996,7 +1060,9 @@ def should_restore_resource(
     target_environment: str,
     source_environment: str | None = None,
 ) -> bool:
-    production_only = {"mcp_oauth", "sign_ca", "sign_secrets"}
+    production_only = {
+        "mcp_oauth", "mcp_secrets", "renderer_secrets", "sign_ca", "sign_secrets",
+    }
     if role not in production_only:
         return True
     # Environment-owned credentials and signing material may be carried only
@@ -1073,6 +1139,8 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "paperless_trash": Path("/target/paperless-trash"),
         "paperless_consume": Path("/target/paperless-consume"),
         "mcp_oauth": Path("/target/mcp-oauth"),
+        "mcp_secrets": Path("/target/mcp-secrets"),
+        "renderer_secrets": Path("/target/renderer-secrets"),
         "sign_ca": Path("/target/sign-secrets/step-ca"),
         "sign_secrets": Path("/target/sign-secrets"),
         "sign_evidence": Path("/target/sign-evidence"),
@@ -1102,6 +1170,18 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         identity = validate_sign_secrets(destinations["sign_secrets"])
         if identity != manifest["resources"]["sign_secrets"]["identity"]:
             raise CohortError("materialized Sign recovery material differs")
+    mcp_secrets_restored = source_environment == target_environment and "mcp_secrets" in manifest["resources"]
+    if mcp_secrets_restored:
+        identity = validate_mcp_secrets(destinations["mcp_secrets"])
+        if identity != manifest["resources"]["mcp_secrets"]["identity"]:
+            raise CohortError("materialized MCP recovery material differs")
+    renderer_secrets_restored = (
+        source_environment == target_environment and "renderer_secrets" in manifest["resources"]
+    )
+    if renderer_secrets_restored:
+        identity = validate_renderer_secrets(destinations["renderer_secrets"])
+        if identity != manifest["resources"]["renderer_secrets"]["identity"]:
+            raise CohortError("materialized renderer recovery material differs")
 
     for name in DATABASES:
         dump = cohort_root / "durable/databases" / f"{name}.dump"
@@ -1126,6 +1206,8 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "controls": manifest["controls"],
         "transformations": transformations,
         "sign_secrets_restored": sign_secrets_restored,
+        "mcp_secrets_restored": mcp_secrets_restored,
+        "renderer_secrets_restored": renderer_secrets_restored,
         "status": "materialized",
     }
 

@@ -136,20 +136,39 @@ operation secrets or Sign state. The directory retains canonical state,
 failure and completion receipts. It never retains repository credentials,
 database passwords, restored files or Sign keys.
 
-The proof creates uniquely named Docker volumes, one private network and two
-database-only containers. Every persistent resource carries
+The proof creates uniquely named Docker volumes and containers on one Docker
+`--internal` network. Every resource carries
 `com.unstaticlabs.recovery-proof.owner=usl-disposable-recovery-proof`, the exact
-proof ID, production source and logical role. It does not use Compose, attach a
-gateway, start Odoo or Paperless workers, write `active.json`, use a release
-candidate or read staging configuration. The materializer restores the exact
-qualified durable and cache snapshots, including OCR, previews, Tantivy and
-vector indexes. It then queries the restored databases independently and
-compares Accounting, Documents, access, queue, cron and release controls with
-the quiesced capture manifest.
+proof ID, production source and logical role. No proof container publishes a
+host port or joins ingress, identity, Ollama, or any other external network.
+The runtime uses generated or restored proof-local secrets and least-privilege
+environment files; it cannot send mail, run cron, contact regulatory services,
+or use production identity providers.
 
-Cleanup runs after success and ordinary failure. A process crash leaves a
-digest-bound state receipt; the retry validates ownership before removing only
-the named proof resources. A missing label or name collision fails closed.
+The materializer restores the exact qualified durable and cache snapshots,
+including the Odoo filestore, Paperless originals, OCR archive, thumbnails,
+Tantivy and vector indexes, the MCP OAuth vault, and Sign recovery material.
+The production cohort also carries the OAuth vault's matching Better Auth and
+credential-encryption keys and the renderer's CA, server and client credentials.
+The proof rejects a cohort that restores either state without its matching key
+material; those credentials remain inside the encrypted backup and disposable
+proof workspace and are removed during exact cleanup.
+Before any application worker starts, the proof neutralizes the disposable
+Odoo database. It then starts and probes Odoo HTTP, Paperless web and Redis,
+MCP OAuth readiness and its unauthenticated boundary, Step CA, DSS, the document
+renderer, Gotenberg, and Tika. Read-only smoke checks compare the restored
+Accounting, Documents, access, queue, cron, and release controls with the
+quiesced capture manifest and sample durable files and the OAuth SQLite
+database. The proof never writes `active.json`, uses a release candidate, reads
+staging configuration, or attaches the production gateway.
+
+The command has a hard 1,800-second total deadline. Cleanup runs after success
+and failure. Before final cleanup it enters a durable `finalizing` phase and
+arms a failure receipt, so cleanup, production runtime-CAS, or final receipt
+write failures retain evidence even if the final write itself fails. A process
+crash leaves a digest-bound state receipt; the retry validates ownership before
+removing only the named proof resources. A missing label or name collision
+fails closed.
 Operators can exercise each durable boundary without changing the algorithm:
 
 ```bash
@@ -161,9 +180,11 @@ scripts/usl-stack recovery-proof run \
   --json
 ```
 
-Allowed boundaries are `backup-qualified`, `resources-created`, `materialized`
-and `validated`. Use failure injection only in an approved drill. Each injected
-failure cleans owned resources and retains a failure receipt.
+Allowed boundaries are `backup-qualified`, `resources-created`, `materialized`,
+`runtime-started`, `validated`, `cleanup`, `cas-verified`, and `final-write`.
+Use failure injection only in an approved drill. Each injected failure retains
+a digest-bound failure receipt; pre-cleanup injections also clean exact owned
+resources.
 
 ## Capacity and cleanup
 

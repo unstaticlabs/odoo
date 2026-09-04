@@ -184,12 +184,16 @@ scripts/usl-stack recovery-proof run \
 
 The command qualifies the production backup before it creates a proof resource.
 It then performs a candidate-independent same-release restore using only
-proof-labelled volumes, a private network and database-only containers. It
-never invokes staging reset, release reconciliation, activation, gateway or
+proof-labelled volumes and containers on a Docker-internal network. The proof
+starts the complete restored application cohort without host ports or external
+networks, with cron, mail, identity and regulatory side effects disabled. It
+checks Odoo and Paperless HTTP, Redis, MCP OAuth, Step CA, DSS, the renderer,
+restored databases, filestore, media, OCR and vector/index state. It never
+invokes staging reset, release reconciliation, activation, gateway or
 runtime-ledger restore paths. The retained completion receipt binds the release
-manifest, backup receipt, durable and cache snapshot IDs, restored controls,
-owned-resource inventory digest, cleanup result and unchanged production
-runtime identity.
+manifest, backup receipt, durable and cache snapshot IDs, restored controls and
+sampled durable state, owned-resource inventory digest, cleanup result, elapsed
+time below 1,800 seconds, and unchanged production runtime identity.
 
 Backups that deliberately leave writers stopped persist a canonical
 `usl-backup-quiescence/v2` receipt before stopping and advance it immediately

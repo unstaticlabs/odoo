@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import io
 import json
 import subprocess
@@ -11,6 +12,8 @@ from unittest.mock import patch
 
 from operations.runtime import load_target
 from operations.stack import (
+    RECOVERY_PROOF_MAX_SECONDS,
+    RECOVERY_PROOF_RUNTIME_ROLES,
     RECOVERY_PROOF_FAILURE_STAGES,
     RECOVERY_PROOF_OWNER,
     _cleanup_recovery_proof_resources,
@@ -19,9 +22,11 @@ from operations.stack import (
     _digested_document,
     _recovery_proof_names,
     _recovery_proof_root,
+    _run_recovery_proof_container,
     _recover_recovery_proof_backup,
     _validate_digested_document,
     _validate_recovery_proof_receipt,
+    _write_recovery_proof_failure,
     build_parser,
     recovery_proof_command,
 )
@@ -48,6 +53,9 @@ class ResourceRunner:
             value = self.files.get(command[1])
             return self.completed(command, value or "", 0 if value is not None else 1)
         if command[:2] == ["install", "-d"]:
+            return self.completed(command)
+        if command[:2] == ["python3", "-c"]:
+            self.files[command[3]] = base64.b64decode(command[4]).decode()
             return self.completed(command)
         if command[:2] == ["test", "-e"]:
             return self.completed(command, returncode=1)
@@ -79,6 +87,15 @@ class ResourceRunner:
             }
             self.resources[(resource_type, name)] = labels
             return self.completed(command, name + "\n")
+        if command[:3] == ["docker", "run", "--detach"]:
+            name = command[command.index("--name") + 1]
+            labels = {
+                item.split("=", 1)[0]: item.split("=", 1)[1]
+                for index, item in enumerate(command)
+                if index > 0 and command[index - 1] == "--label"
+            }
+            self.resources[("container", name)] = labels
+            return self.completed(command, name + "\n")
         if command[:3] in (["docker", "volume", "rm"], ["docker", "network", "rm"]):
             self.resources.pop((command[1], command[3]), None)
             return self.completed(command)
@@ -86,6 +103,9 @@ class ResourceRunner:
             self.resources.pop(("container", command[3]), None)
             return self.completed(command)
         if command[:3] == ["rm", "-rf", "--"]:
+            return self.completed(command)
+        if command[:3] == ["rm", "-f", "--"]:
+            self.files.pop(command[3], None)
             return self.completed(command)
         if "compose" in command and "up" in command:
             return self.completed(command)
@@ -95,7 +115,7 @@ class ResourceRunner:
 def completion_receipt(proof_id: str = PROOF_ID) -> dict:
     digest = "a" * 64
     return _digested_document({
-        "schema": "usl-disposable-recovery-proof/v1",
+        "schema": "usl-disposable-recovery-proof/v2",
         "proof_id": proof_id,
         "source": "production",
         "release": {"identity": digest, "manifest_sha256": digest},
@@ -105,23 +125,78 @@ def completion_receipt(proof_id: str = PROOF_ID) -> dict:
             "durable_snapshot_id": digest,
             "cache_snapshot_id": digest,
         },
-        "materialization": {},
-        "health": {"status": "passed"},
+        "materialization": {
+            "sign_secrets_restored": True, "mcp_secrets_restored": True,
+            "renderer_secrets_restored": True, "status": "materialized",
+        },
+        "runtime": {
+            "network": "internal",
+            "services": {
+                role: {"container_name_sha256": digest, "status": "ready"}
+                for role in RECOVERY_PROOF_RUNTIME_ROLES
+            },
+            "environment": {
+                "environment_sha256": {
+                    role: digest
+                    for role in (
+                        "database", "odoo", "paperless", "mcp", "dss",
+                        "better-auth", "credential-encryption-key", "personal-ai",
+                    )
+                },
+                "status": "passed",
+            },
+            "quarantine": {
+                "candidate_fingerprint": digest,
+                "cron_count": 0,
+                "database_neutralized": True,
+                "fetchmail_count": 0,
+                "status": "passed",
+            },
+            "status": "passed",
+        },
+        "health": {"checked_at": "2026-09-04T04:09:00Z", "status": "passed"},
         "smoke": {"status": "passed"},
-        "reusable_cache": {},
-        "ownership": {"label": RECOVERY_PROOF_OWNER},
-        "cleanup": {"status": "clean"},
+        "durable_state": {
+            "checked_at": "2026-09-04T04:09:30Z",
+            "mcp_oauth": {
+                "schema_version": 1, "vault_identity_sha256": digest,
+                "recovered_key_material_sha256": digest,
+                "vault_key_binding_sha256": digest,
+                "migration": "passed", "readability": "passed", "status": "passed",
+            },
+            "status": "passed",
+        },
+        "reusable_cache": {
+            **{
+                role: {"capture_identity_sha256": digest, "status": "passed"}
+                for role in (
+                    "paperless_archive", "paperless_thumbnails",
+                    "paperless_tantivy", "paperless_vectors",
+                )
+            },
+            "status": "reused",
+        },
+        "ownership": {"label": RECOVERY_PROOF_OWNER, "resource_names_sha256": digest},
+        "cleanup": {
+            "schema": "usl-recovery-proof-cleanup/v1", "containers": [],
+            "volumes": [], "networks": [], "workspaces": [], "status": "clean",
+        },
         "isolation": {
             "active_runtime_sha256": digest,
             "active_runtime_unchanged": True,
             "gateway_attached": False,
-            "application_workers_started": False,
+            "host_ports_published": False,
+            "external_networks_attached": False,
+            "side_effects_neutralized": True,
             "persistent_staging_touched": False,
             "production_secrets_modified": False,
             "runtime_ledger_used_for_restore": False,
+            "perimeter_sha256": digest,
         },
         "started_at": "2026-09-04T04:00:00Z",
         "completed_at": "2026-09-04T04:10:00Z",
+        "duration_seconds": 600.0,
+        "max_duration_seconds": RECOVERY_PROOF_MAX_SECONDS,
         "status": "passed",
     })
 
@@ -141,7 +216,10 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertEqual(arguments.failure_after, "materialized")
         self.assertEqual(
             set(RECOVERY_PROOF_FAILURE_STAGES),
-            {"backup-qualified", "resources-created", "materialized", "validated"},
+            {
+                "backup-qualified", "resources-created", "materialized",
+                "runtime-started", "validated", "cleanup", "cas-verified", "final-write",
+            },
         )
 
     def test_evidence_perimeter_cannot_overlap_runtime_storage_or_secrets(self) -> None:
@@ -179,6 +257,15 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertEqual(cleanup["status"], "clean")
         self.assertFalse(runner.resources)
         self.assertFalse(any("compose" in command for command in runner.commands))
+        network_create = next(
+            command for command in runner.commands
+            if command[:3] == ["docker", "network", "create"]
+        )
+        self.assertIn("--internal", network_create)
+        self.assertEqual(
+            set(names["containers"]),
+            {"odoo_db", "paperless_db", *RECOVERY_PROOF_RUNTIME_ROLES},
+        )
 
     def test_retry_cleanup_refuses_a_foreign_name_collision(self) -> None:
         runner = ResourceRunner()
@@ -195,6 +282,20 @@ class RecoveryProofContractTests(unittest.TestCase):
             )
         self.assertIn(("volume", names["volumes"]["odoo_postgres"]), runner.resources)
 
+    def test_runtime_container_has_only_internal_network_and_no_host_publication(self) -> None:
+        runner = ResourceRunner()
+        names = _recovery_proof_names(self.target, PROOF_ID)
+        _run_recovery_proof_container(
+            runner, PROOF_ID, names, "odoo", "odoo@sha256:" + "a" * 64,
+            alias="odoo", env_file="/proof/odoo.env",
+            volumes=[f"{names['volumes']['odoo_filestore']}:/var/lib/odoo"],
+        )
+        command = runner.commands[-1]
+        self.assertNotIn("--publish", command)
+        self.assertNotIn("-p", command)
+        self.assertEqual(command[command.index("--network") + 1], names["network"])
+        self.assertNotIn(self.target.value["secrets"]["env_file"], command)
+
     def test_receipts_are_digest_bound_and_fail_closed_on_tampering(self) -> None:
         receipt = completion_receipt()
         self.assertEqual(_validate_recovery_proof_receipt(receipt, PROOF_ID), receipt)
@@ -207,6 +308,25 @@ class RecoveryProofContractTests(unittest.TestCase):
             {key: value for key, value in receipt.items() if key != "sha256"}
         )["sha256"]
         with self.assertRaisesRegex(RuntimeError, "completion receipt is invalid"):
+            _validate_recovery_proof_receipt(receipt, PROOF_ID)
+
+    def test_receipt_rejects_recomputed_nested_status_and_duration_tampering(self) -> None:
+        receipt = completion_receipt()
+        receipt["health"]["status"] = "ready"
+        receipt = _digested_document({key: value for key, value in receipt.items() if key != "sha256"})
+        with self.assertRaisesRegex(RuntimeError, "completion receipt is invalid"):
+            _validate_recovery_proof_receipt(receipt, PROOF_ID)
+
+        receipt = completion_receipt()
+        receipt["duration_seconds"] = RECOVERY_PROOF_MAX_SECONDS
+        receipt = _digested_document({key: value for key, value in receipt.items() if key != "sha256"})
+        with self.assertRaisesRegex(RuntimeError, "completion receipt is invalid"):
+            _validate_recovery_proof_receipt(receipt, PROOF_ID)
+
+        receipt = completion_receipt()
+        receipt["completed_at"] = "2026-09-04T03:59:59Z"
+        receipt = _digested_document({key: value for key, value in receipt.items() if key != "sha256"})
+        with self.assertRaisesRegex(RuntimeError, "completion duration is invalid"):
             _validate_recovery_proof_receipt(receipt, PROOF_ID)
 
     def test_completed_retry_returns_receipt_without_inspecting_or_mutating_runtime(self) -> None:
@@ -290,7 +410,7 @@ class RecoveryProofContractTests(unittest.TestCase):
 
     def test_state_evidence_rejects_recomputed_unknown_fields(self) -> None:
         state = _digested_document({
-            "schema": "usl-disposable-recovery-proof-state/v1",
+            "schema": "usl-disposable-recovery-proof-state/v2",
             "proof_id": PROOF_ID,
             "source": "production",
             "phase": "backup-qualified",
@@ -298,16 +418,38 @@ class RecoveryProofContractTests(unittest.TestCase):
             "release_manifest_sha256": "b" * 64,
             "runtime_sha256": "c" * 64,
             "backup": None,
+            "started_at": "2026-09-04T04:00:00Z",
+            "deadline_at": "2026-09-04T04:30:00Z",
             "updated_at": "2026-09-04T04:00:00Z",
+            "duration_seconds": 0.0,
         })
         state["unexpected"] = True
         state = _digested_document({key: value for key, value in state.items() if key != "sha256"})
         with self.assertRaisesRegex(RuntimeError, "fields differ"):
             _validate_digested_document(
                 state,
-                schema="usl-disposable-recovery-proof-state/v1",
+                schema="usl-disposable-recovery-proof-state/v2",
                 proof_id=PROOF_ID,
             )
+
+    def test_failure_evidence_is_atomic_digest_bound_and_records_cleanup_failure(self) -> None:
+        runner = ResourceRunner()
+        root = f"/var/lib/usl-recovery-proofs/{PROOF_ID}"
+        cleanup = {
+            "schema": "usl-recovery-proof-cleanup/v1", "status": "failed",
+            "error_sha256": "b" * 64,
+        }
+        evidence = _write_recovery_proof_failure(
+            self.target, runner, root, PROOF_ID, "cleanup",
+            RuntimeError("injected cleanup failure"), cleanup, "a" * 64,
+            "2026-09-04T04:00:00Z", 0.0,
+        )
+        self.assertEqual(evidence["stage"], "cleanup")
+        self.assertEqual(evidence["cleanup"]["status"], "failed")
+        self.assertEqual(
+            json.loads(runner.files[f"{root}/failure.json"]),
+            evidence,
+        )
 
 
 if __name__ == "__main__":

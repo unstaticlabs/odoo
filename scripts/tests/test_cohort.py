@@ -121,6 +121,16 @@ def manifest(durable: dict, cache: dict) -> dict:
                 "path": "durable/sign-secrets",
                 "identity": durable,
             },
+            "mcp_secrets": {
+                "class": "durable",
+                "path": "durable/mcp-secrets",
+                "identity": durable,
+            },
+            "renderer_secrets": {
+                "class": "durable",
+                "path": "durable/renderer-secrets",
+                "identity": durable,
+            },
         },
         "cache_snapshot_id": None,
     }
@@ -1689,6 +1699,8 @@ class CohortContractTests(unittest.TestCase):
         value["target"] = "staging"
         value["cache_snapshot_id"] = "c" * 64
         value["release"].pop("identity", None)
+        value["resources"].pop("mcp_secrets")
+        value["resources"].pop("renderer_secrets")
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1748,7 +1760,38 @@ class CohortContractTests(unittest.TestCase):
         ):
             self.assertIn(target.value["volumes"][role]["name"], joined)
         self.assertIn(target.value["paths"]["sign_secrets"]["path"] + ":/source/sign-secrets:ro", joined)
-        self.assertGreaterEqual(joined.count(":ro"), 7)
+        self.assertIn(target.value["paths"]["mcp_secrets"]["path"] + ":/source/mcp-secrets:ro", joined)
+        self.assertIn(
+            target.value["paths"]["renderer_secrets"]["path"]
+            + ":/source/renderer-secrets:ro",
+            joined,
+        )
+        self.assertGreaterEqual(joined.count(":ro"), 9)
+
+    def test_mcp_and_renderer_recovery_secrets_are_complete_and_private(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mcp = root / "mcp"
+            mcp.mkdir(mode=0o700)
+            for name in cohort.MCP_SECRET_FILES:
+                path = mcp / name
+                path.write_text("x" * 32)
+                path.chmod(0o600)
+            self.assertEqual(cohort.validate_mcp_secrets(mcp)["files"], 2)
+            (mcp / cohort.MCP_SECRET_FILES[0]).chmod(0o640)
+            with self.assertRaisesRegex(cohort.CohortError, "unsafe permissions"):
+                cohort.validate_mcp_secrets(mcp)
+
+            renderer = root / "renderer"
+            renderer.mkdir(mode=0o700)
+            for name in cohort.RENDERER_SECRET_FILES:
+                path = renderer / name
+                path.write_text("certificate-or-key")
+                path.chmod(0o600 if name.endswith(".key") else 0o644)
+            self.assertEqual(cohort.validate_renderer_secrets(renderer)["files"], 5)
+            (renderer / "renderer.key").chmod(0o644)
+            with self.assertRaisesRegex(cohort.CohortError, "unsafe permissions"):
+                cohort.validate_renderer_secrets(renderer)
 
     def test_backup_pause_perimeter_includes_step_ca(self) -> None:
         target = load_target("production", TARGETS)
@@ -3048,6 +3091,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn(source.value["backup"]["cache_repository"], joined)
         self.assertIn(names["odoo_filestore"] + ":/target/odoo-data", joined)
         self.assertIn("/sign-secrets:/target/sign-secrets", joined)
+        self.assertIn("/mcp-secrets:/target/mcp-secrets", joined)
+        self.assertIn("/renderer-secrets:/target/renderer-secrets", joined)
         self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
         self.assertIn("--env-file /run/usl/source-backup.env", joined)
