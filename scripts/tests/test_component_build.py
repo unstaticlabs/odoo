@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 import tempfile
 import unittest
@@ -84,6 +85,13 @@ class ComponentBuildTests(unittest.TestCase):
         self.assertIn("operations/**", inclusions)
         self.assertIn("scripts/cohort-runtime", inclusions)
         self.assertNotIn("custom-addons/**", inclusions)
+
+    def test_backup_tool_installs_the_runtime_health_probe_client(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        dockerfile = (root / "docker/backup.Dockerfile").read_text(encoding="utf-8")
+        install = re.search(r"apt-get install -y --no-install-recommends ([^\n]+)", dockerfile)
+        self.assertIsNotNone(install)
+        self.assertIn("curl", install.group(1).split())
 
 
 if __name__ == "__main__":
