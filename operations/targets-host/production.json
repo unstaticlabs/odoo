@@ -9,7 +9,12 @@
     "anchor_service": "odoo",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-production-main_default",
-    "resource_overlay": "compose.resources.production.json"
+    "resource_overlay": "compose.resources.production.json",
+    "canonical": {
+      "working_directory": "komodo/stacks/prod-odoo-nbg1-2/usl-odoo-production",
+      "compose_files": ["compose.yaml", "compose.resources.json"],
+      "environment_file": "/opt/usl-odoo/production.env"
+    }
   },
   "services": {
     "odoo": "odoo",

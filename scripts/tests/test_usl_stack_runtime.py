@@ -3,10 +3,15 @@ from __future__ import annotations
 import copy
 import json
 import subprocess
+import time
+import tempfile
+import shutil
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from operations.runtime import (
+    CommandRunner,
     RuntimeError,
     compose_command,
     compose_identity,
@@ -19,6 +24,7 @@ from operations.stack import (
     _cleanup_adoption_candidate_anchor,
     _validate_mcp_readiness,
     _validate_sign_readiness,
+    runtime_command,
 )
 from scripts.tests.test_release_manifest import manifest as v3_release_manifest
 
@@ -26,6 +32,63 @@ from scripts.tests.test_release_manifest import manifest as v3_release_manifest
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ROOT / "operations/targets"
 HOST_TARGETS = ROOT / "operations/targets-host"
+
+
+class CommandRunnerSecretTests(unittest.TestCase):
+    def test_stdin_content_is_absent_from_local_and_ssh_failure_errors(self) -> None:
+        secret = "stdin-only-secret-sentinel"
+        failed = subprocess.CompletedProcess([], 9, "", f"writer echoed {secret}")
+        for prefix in ((), ("ssh", "production", "--")):
+            with self.subTest(prefix=prefix), patch(
+                "operations.runtime.subprocess.run", return_value=failed,
+            ) as run:
+                with self.assertRaises(RuntimeError) as caught:
+                    CommandRunner(prefix).run(
+                        ["python3", "-c", "raise SystemExit(9)", "/proof/secret", "0600"],
+                        input_text=secret,
+                    )
+                self.assertNotIn(secret, str(caught.exception))
+                self.assertNotIn(secret, " ".join(run.call_args.args[0]))
+                self.assertEqual(run.call_args.kwargs["input"], secret)
+
+    def test_deadline_interrupts_a_blocking_command_without_echoing_stdin(self) -> None:
+        secret = "deadline-secret-sentinel"
+        runner = CommandRunner(deadline_monotonic=time.monotonic() + 1)
+        with patch(
+            "operations.runtime.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(["writer"], 1),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "operation deadline") as caught:
+                runner.run(["writer", "/proof/secret"], input_text=secret)
+        self.assertNotIn(secret, str(caught.exception))
+
+    def test_runtime_status_does_not_install_recovery_deadline(self) -> None:
+        target = load_target("local", TARGETS)
+        runner = target.runner()
+        target = type("TargetWithRunner", (), {
+            "runner": lambda _self: runner, "name": target.name, "value": target.value,
+        })()
+        arguments = type("Arguments", (), {
+            "target": "local", "targets": TARGETS, "action": "status", "json": True,
+        })()
+        with (
+            patch("operations.stack.load_target", return_value=target),
+            patch("operations.stack.inspect_runtime", return_value={}),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(runtime_command(arguments), 0)
+        self.assertIsNone(runner.deadline_monotonic)
+
+    @unittest.skipUnless(shutil.which("flock"), "host does not provide flock")
+    def test_advisory_lock_is_released_when_owner_exits(self) -> None:
+        path = str(Path(tempfile.mkdtemp()) / "proof.lock")
+        runner = CommandRunner()
+        with runner.advisory_lock(path):
+            with self.assertRaisesRegex(RuntimeError, "another operation"):
+                with CommandRunner().advisory_lock(path):
+                    pass
+        with CommandRunner().advisory_lock(path):
+            pass
 
 
 class FakeRunner:

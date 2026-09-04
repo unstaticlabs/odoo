@@ -35,9 +35,17 @@ The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
 
 After the candidate passes staging health and read-only control checks,
-staging signs that exact plan with a dedicated Ed25519 key. Production holds
-only the public key and rejects unsigned, modified, cross-release or
-non-staging-qualified plans.
+staging signs that exact plan with a dedicated Ed25519 key. A production merge
+creates a different release identity because its source ref and commit differ.
+Staging therefore signs a second promotion envelope that preserves the original
+staging signature and binds both release identities to the same distribution
+input, immutable component images, module inventory, foundation, MCP contract,
+renderer, and Ollama contract. User-facing release notes may describe the
+branch-specific promotion and do not affect the qualified runtime tree.
+Production holds only the public
+key and rejects unsigned, modified, cross-release, wrong-branch, or unequal
+promotion inputs. The bridge changes only the plan's candidate identity; it
+cannot change its active release, installed modules, upgrade closure, or reasons.
 
 Qualification derives its test plan from the same owned-module dependency
 graph. A changed module runs its suite and the suites of owned modules that
@@ -61,16 +69,49 @@ scripts/usl-stack --target production release plan \
   --candidate-release /path/to/candidate.json \
   --output /path/to/upgrade-plan.json
 
-scripts/usl-stack --target staging release reconcile \
-  --source production \
-  --snapshot <qualified-production-snapshot> \
+scripts/usl-stack --target staging backup create \
+  --run-id <unique-attempt-id> --leave-quiesced --json
+
+scripts/usl-stack --target staging release staging-checkpoint \
+  --attempt-id <unique-attempt-id> \
   --candidate-release /path/to/candidate.json \
-  --upgrade-plan /path/to/upgrade-plan.json
+  --upgrade-plan /path/to/upgrade-plan.json \
+  --prepare-receipt /path/to/prepare.json \
+  --maintenance-receipt /path/to/maintenance.json \
+  --backup-receipt /path/to/qualified-staging-backup.json \
+  --output /path/to/staging-checkpoint.json
+
+scripts/usl-stack --target staging release reconcile-staging \
+  --source staging \
+  --attempt-id <unique-attempt-id> \
+  --candidate-release /path/to/candidate.json \
+  --upgrade-plan /path/to/upgrade-plan.json \
+  --prepare-receipt /path/to/prepare.json \
+  --maintenance-receipt /path/to/maintenance.json \
+  --checkpoint-receipt /path/to/staging-checkpoint.json
+
+# Run from the fixed launcher's failure handler before any successful cutover.
+scripts/usl-stack --target staging release resume-staging \
+  --attempt-id <unique-attempt-id> \
+  --quiescence-receipt \
+  /var/lib/usl-odoo/runtime/staging/backup-runs/<unique-attempt-id>/quiesced.json
+
+scripts/usl-stack --target staging release plan --promote \
+  --upgrade-plan /path/to/signed-staging-plan.json \
+  --staging-release /path/to/staging-release.json \
+  --candidate-release /path/to/production-release.json \
+  --output /path/to/production-promotion.json
+
+scripts/usl-stack --target production release prepare \
+  --attempt-id <unique-attempt-id> \
+  --candidate-release /path/to/production-release.json \
+  --upgrade-plan /path/to/production-promotion.json
 
 scripts/usl-stack --target production release status
-scripts/usl-stack --target production release abort
+scripts/usl-stack --target production release abort --attempt-id <attempt>
 scripts/usl-stack --target production backup create
 scripts/usl-stack --target production backup list
+scripts/usl-stack --target production backup select
 scripts/usl-stack --target production backup verify --snapshot <snapshot>
 scripts/usl-stack --target staging health
 scripts/usl-stack --target staging smoke
@@ -79,6 +120,24 @@ scripts/usl-stack --target production storage plan \
   --generation gactive --rollback-generation grollback --snapshot <snapshot>
 scripts/usl-stack --target production storage status
 ```
+
+The first upgrade from the historical `usl-release/v2` staging runtime is the
+one exception to the generic preflight commands above. Candidate `health` and
+`smoke` require the new MCP readiness and Agent tables, so they cannot describe
+the unchanged legacy runtime. Before that upgrade, use the version-locked,
+read-only baseline gate instead:
+
+```bash
+scripts/usl-stack --target staging release baseline-check --json
+```
+
+It accepts only an active staging v2 release, requires every owned container to
+be running and healthy, checks the Odoo, Paperless and legacy MCP endpoints,
+and proves basic business counts plus a balanced posted ledger. The ordinary
+qualified backup remains the durable pre-change checkpoint. After the v3
+candidate starts, the controller always runs the full current `health` and
+`smoke` admission; rollback selects the v2 baseline gate only when the restored
+release manifest is v2.
 
 The fixed controller additionally uses a release-bound internal notification
 operation after production admission. It can announce only the exact active
@@ -111,9 +170,123 @@ policy through Odoo's ORM. Production receives its explicitly gated set and
 staging receives no active jobs. Unknown, missing or ambiguously identified
 jobs stop the candidate before the active generation is touched.
 
+An ordinary `19-usl-staging` release never selects a production snapshot. It
+takes an attempt-bound staging checkpoint, clones the current staging database,
+filestore, Paperless state, staging Sign material, MCP OAuth vault and reusable
+OCR/vector caches, then upgrades that clone. `reconcile-staging` performs the
+neutralized cutover, internal admission and durable receipt atomically. The
+gateway remains in maintenance until the control plane completes its public
+checks. If those checks fail, the same attempt may restore the exact previous
+staging generation while maintenance remains continuously proven.
+
+A production-derived staging refresh is a different operation. Before the
+production attempt, `staging-reset-intent` captures the full current staging
+runtime identity. Only after production admission and a newer qualified
+production backup may `staging-reset-from-production` consume that backup. A
+changed staging identity returns a content-digested
+`usl-staging-reset-deferred/v1` receipt with the intended and observed
+generation, release and runtime CAS values. The reset does not touch staging or
+fail the successful production release; CI reports the receipt as a warning.
+Production runtime secrets, Sign keys and
+MCP OAuth data never cross environments; the reset preserves the paused,
+environment-owned staging OAuth vault and records non-secret source and
+destination tree identities. A daily run with no production change performs a
+backup and disposable recovery proof only—it does not reset persistent staging.
+The GitOps launcher invokes the public interface with a stable attempt ID and a
+dedicated evidence root:
+
+```bash
+scripts/usl-stack recovery-proof run \
+  --target production \
+  --proof-id "$DAILY_ATTEMPT_ID" \
+  --evidence-directory /var/lib/usl-recovery-proofs \
+  --json
+```
+
+The command qualifies the production backup before it creates a proof resource.
+It then performs a candidate-independent same-release restore using only
+proof-labelled volumes, a private network and database-only containers. It
+never invokes staging reset, release reconciliation, activation, gateway or
+runtime-ledger restore paths. The retained completion receipt binds the release
+manifest, backup receipt, durable and cache snapshot IDs, restored controls,
+owned-resource inventory digest, cleanup result and unchanged production
+runtime identity.
+
+Backups that deliberately leave writers stopped persist a canonical
+`usl-backup-quiescence/v2` receipt before stopping and advance it immediately
+after the stop. The fixed launcher holds its kernel lock across the complete
+operation. Its failure handler can therefore use `resume-staging` to remove
+only an exact crash-left inner backup lock and restart only the receipt-bound
+writer set. Wrong owners, missing host-side receipts and changed runtime
+content fail closed.
+
 Production Sign secrets are restored only to a production generation. Staging
 keeps its own Pocket ID, Sign and runtime secrets and never mounts production
 Sign PKI or MCP OAuth grants.
+
+`release prepare` is the mandatory pre-downtime gate. It validates the target
+secret contract, storage paths and external networks, pulls every immutable
+image, measures candidate capacity, verifies the signed plan, and renders the
+exact target Compose topology with release images, resource limits, generation
+volumes, Sign mounts, and production quarantine settings. It returns a
+content-addressed render receipt and does not stop, recreate, or reconfigure a
+running service. `release reconcile` repeats this gate so a caller cannot skip
+it accidentally. Host releases must supply an immutable GitOps archive root
+and its exact 40-character commit. The archive marker, Compose paths, rendered
+services, and commit are validated and bound into the preparation receipt;
+neither a mutable checkout nor the currently running container labels can
+silently select a different topology later in the attempt.
+
+Every rollout attempt has an identity distinct from the desired release. The
+controller binds preparation, observed public HTTP 503 evidence, generation,
+backup and final admission to that attempt. `release reconcile` requires a
+digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
+with exact 503 coverage of Odoo HTTP and WebSocket plus every public Paperless
+and MCP writer ingress affected by the release,
+then consumes the attempt exactly once. Its immutable attempt claim binds the
+source snapshot, candidate release, exact signed upgrade plan, archived GitOps
+commit and Compose render, preparation and maintenance receipts, baseline, and
+new generation into one operation-bundle digest. Quarantine and admission
+receipts must carry that same digest; mixing evidence from retries or concurrent
+promotions fails closed. In production reconciliation stops at an immutable
+`usl-release-quarantine/v2` receipt. The controller must complete every
+rollback-eligible check and candidate backup before it calls `release activate`
+with that exact receipt. A failed or interrupted attempt is
+terminal: after verified recovery, automation must create a fresh attempt and
+fresh backup/generation identities. It may never reuse an old pre-release
+snapshot merely because the desired release is unchanged. Only the immutable
+`usl-release-admission/v2` receipt written after final health, smoke,
+preservation, and side-effect checks proves admission; an active image plus a
+healthy endpoint is not sufficient. Historical v1 boundary receipts remain
+readable for exact rollback and audit only; they do not claim the v2 runtime
+evidence binding.
+
+Production candidates remain quarantined behind maintenance until activation.
+Odoo starts with zero cron threads, a closed SMTP endpoint, disabled regulatory
+flags, and a neutralization marker. The candidate database records and disables
+the exact active incoming-mail server, while the versioned cron policy may be
+checked without any scheduler thread executing it. Paperless starts with every
+scheduled external or destructive task disabled. After health, smoke, business
+preservation, release-owned controls, and the candidate backup pass, the
+controller crosses the irreversible boundary with `release activate`. That
+command writes an immutable, attempt-bound forward-only receipt immediately
+before its first database activation mutation. A killed invocation resumes the
+same idempotent activation, but automatic rollback is permanently refused once
+that receipt exists—even if the process stopped before it could write final
+admission. The command then explicitly clears
+the matching quarantine identity, restores only the recorded approved incoming
+server, replaces the quarantine overlay with the admitted environment, recreates
+the affected services, and repeats health and smoke. The side-effect admission
+check runs while the quarantine overlay is still active, so an invalid SMTP,
+inbound-mail, cron, or regulatory contract cannot race a newly started worker.
+Any failure before `release activate` rolls back while public ingress remains
+closed. Once activation begins, recovery is forward-only because an external
+worker may have observed the new state.
+
+Backup evidence records the wall-clock instants immediately before writers are
+stopped and after they are healthy again. A capture that deliberately leaves
+writers stopped has no synthetic completion time or SLA result; the release
+controller must close that interval only when the admitted generation starts.
 
 Admission compares captured before/after controls rather than merely checking
 that tables are non-empty. Controls are deliberately separated into three
@@ -151,34 +324,66 @@ The fixed controller therefore runs with host networking and must not use a
 public route as pre-reopen evidence. Public HTTPS and websocket checks are a
 separate post-reopen control-plane gate.
 
+The first v3 staging release has one additional, automated ingress-adoption
+step. After the controller creates the maintenance marker and before it pauses
+writers, it runs `scripts/usl-stack --target staging runtime adopt-gateway
+--json`. The command validates the recorded legacy Compose runtime and the
+canonical GitOps gateway, transfers the single `odoo-staging` Cloudflare alias,
+and requires public HTTP and websocket probes to return the maintenance 503.
+If any transfer or gateway check fails, it removes only the proven gateway and
+restores the exact legacy aliases. Repeating the command after interruption is
+safe.
+
 One operation lock is held per exact target, and a second host-wide lock
 serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence
 and support bounded resume. Interrupted partial capture workspaces are safely
 recreated, while completed uploads are reused instead of taking a second
 snapshot. The fixed launcher persists every canonical release stage as an
-atomic, checksummed JSON record and resumes only the first incomplete stage.
-It rejects tampered evidence and will not resume a post-reopen failure as a
-rollback. Candidate generation names and pre/post-release backup run IDs are
-release-derived, so retrying cannot silently create parallel candidates.
+atomic, checksummed JSON record and resumes only where the same attempt has
+remained continuously closed and its active baseline is unchanged. It rejects
+tampered evidence and will not resume a post-reopen failure as a rollback.
+Candidate generation names and pre/post-release backup run IDs are
+attempt-derived, so a rollback followed by reopen terminally invalidates them
+instead of reusing an older database snapshot for the same desired release.
 
 Public status and abort operations reject malformed state instead of rewriting
 it. A release backup can leave all cohort writers stopped after successful
 capture; capture failure always restarts them. If an interruption leaves an
-unadmitted candidate active, the controller restores the previous generation,
-truncates only the candidate-stage evidence, and can safely rematerialize it on
-the next invocation. Full live interruption drills remain an activation gate.
+unadmitted candidate active, the controller restores and validates the previous
+generation. If it reopens access, the attempt becomes terminal and the next run
+must prepare a fresh attempt, capture fresh backup identities, and create a new
+generation. Full live interruption drills remain an activation gate.
 
 ## Failure boundary
 
 Before user access reopens, a failed candidate is stopped and the untouched
-previous generation is restored. `release abort` is permitted only while the
-target gateway already has its maintenance marker. It reconstructs the one
+previous generation is restored. `release abort` requires the exact consumed
+attempt and is permitted only while the target gateway retains the valid,
+digested maintenance marker for that same target and attempt. Production
+refuses every generation with an activation or final admission receipt.
+Staging may roll back after internal admission but before public acceptance
+only when the exact admission receipt matches the attempt and fresh read-only
+checks prove the database, crons, inbound/outbound queues, regulatory flags and
+Paperless external tasks remain neutralized. It otherwise fails closed.
+The abort path
+recognizes an already-restored attempt idempotently, and reconstructs the one
 recorded rollback generation from validated state, starts it, and runs both
 health and read-only smoke admission. The fixed production launcher removes
 maintenance only after that proof; failed or ambiguous recovery leaves the
 HTTP 503 in place. After access has reopened, automation must never discard
 current data by restoring an older database; recovery requires a forward fix
 or explicit incident approval.
+
+During the one-time staging v2-to-v3 transition, `active.previous` also carries
+the stable fields of the captured legacy Compose identity. Admission accepts
+only the staging validation directory, exact generation overlays, approved
+staging environment file and expected service perimeter. This lets failures
+after activation restore the real legacy `odoo` service without turning the
+state file into an arbitrary host-path execution surface. That service is
+recreated with its recorded volumes, detached from Cloudflare before it starts,
+and exposed only through `odoo-staging-app` behind the stable gateway. Rollback
+therefore cannot reintroduce duplicate public aliases; an incomplete rollback
+keeps maintenance closed.
 
 Persistent resources declare one of three storage tiers. On production hosts,
 `bulk` is the Hetzner EXT4 Volume mounted at `/srv/storage`, `database` is the
@@ -218,8 +423,23 @@ The desired GitHub branch protection is versioned in two payloads. The common
 `USL Distribution` ruleset protects both permanent branches and requires the
 aggregate qualification. The additional `USL Production Admission` ruleset
 targets only `19-usl`; it separately requires the source-policy and Odoo–MCP
-compatibility jobs plus a successful `staging-release` deployment for the
-exact candidate commit. A repository administrator applies them after both
+compatibility jobs, the signed `USL production promotion` check, and a
+successful `staging-release` deployment for the exact candidate commit. The
+source policy accepts a production pull request only when it comes from
+`unstaticlabs/odoo:19-usl-staging` or an `unstaticlabs/odoo:urgent/**` branch;
+a fork cannot pass by reusing one of those branch names.
+
+For a production pull request, the promotion check records and attests the
+pull-request number, source repository and branch, source tree, and exact tree
+that passed qualification. GitHub's merge-group event does not carry the
+original pull-request source fields, so the merge-queue run resolves the pull
+request through the GitHub commit API and rejects an absent or ambiguous
+result. It also proves that the source tree is an ancestor of the tested merge
+tree, then attests and independently verifies evidence binding the same source
+identity to the exact production merge-group tree. Queue production pull
+requests separately: a grouped or ambiguous production promotion fails closed.
+
+A repository administrator applies the rulesets after both
 permanent branches and the `staging-release` environment exist:
 
 ```bash

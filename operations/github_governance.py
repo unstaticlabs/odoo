@@ -72,8 +72,12 @@ def validate_production(value: dict[str, Any]) -> dict[str, Any]:
     if checks.get("strict_required_status_checks_policy") is not True:
         raise GovernanceError("production required checks must be strict")
     contexts = {item.get("context") for item in checks.get("required_status_checks", [])}
-    if contexts != {"USL source policy", "USL compatibility"}:
-        raise GovernanceError("production source and compatibility checks differ")
+    if contexts != {
+        "USL source policy",
+        "USL compatibility",
+        "USL production promotion",
+    }:
+        raise GovernanceError("production source, compatibility and promotion checks differ")
     deployments = rules["required_deployments"].get("parameters", {})
     if deployments.get("required_deployment_environments") != ["staging-release"]:
         raise GovernanceError("production must require the staging-release deployment")

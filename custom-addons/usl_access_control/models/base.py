@@ -551,7 +551,7 @@ class Base(models.AbstractModel):
             records._usl_record_agent_mutation("create", values=vals_list)
         return records
 
-    def write(self, values):
+    def write(self, vals):
         self._usl_reject_readonly_agent_mutation("write")
         self._usl_reject_agent_identity_mutation("modify")
         policy_entry = (
@@ -569,10 +569,10 @@ class Base(models.AbstractModel):
                 exact_policy_key=True,
             )
         audit_enabled = self._usl_agent_audit_enabled()
-        before = self._usl_audit_before_values(values) if audit_enabled else None
-        result = super().write(values)
+        before = self._usl_audit_before_values(vals) if audit_enabled else None
+        result = super().write(vals)
         if audit_enabled:
-            self._usl_record_agent_mutation("write", values=values, before=before)
+            self._usl_record_agent_mutation("write", values=vals, before=before)
         return result
 
     def unlink(self):

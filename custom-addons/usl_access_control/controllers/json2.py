@@ -1,9 +1,11 @@
+import inspect
 import json
 import uuid
 
 from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
+from odoo.models import get_public_method
 
 from ..exceptions import AgentPolicyAccessError
 from ..models.agent_policy_tokens import (
@@ -19,8 +21,19 @@ from odoo.addons.rpc.controllers.json2 import WebJson2Controller
 
 
 class UslAgentJson2Controller(WebJson2Controller):
+    _ORM_PAYLOAD_PARAMETERS = {
+        "create": "vals_list",
+        "write": "vals",
+    }
+
     @http.route()
     def web_json_2_rpc(self, __model__, __method__, ids=(), context=None, **kwargs):
+        kwargs = self._normalize_orm_payload_kwargs(
+            env=request.env,
+            model_name=__model__,
+            method_name=__method__,
+            kwargs=kwargs,
+        )
         agent = request.env["usl.agent"].sudo().search(
             [("user_id", "=", request.env.uid)],
             limit=1,
@@ -81,6 +94,53 @@ class UslAgentJson2Controller(WebJson2Controller):
                     request_id=request_id,
                     correlation_id=correlation_id,
                 )
+
+    @classmethod
+    def _normalize_orm_payload_kwargs(
+        cls,
+        *,
+        env,
+        model_name,
+        method_name,
+        kwargs,
+    ):
+        """Adapt canonical ORM payload names to legacy override signatures."""
+        canonical_name = cls._ORM_PAYLOAD_PARAMETERS.get(method_name)
+        if canonical_name not in kwargs:
+            return kwargs
+
+        try:
+            method = get_public_method(env[model_name], method_name)
+        except (AccessError, AttributeError, KeyError):
+            # Preserve the base JSON-2 controller's canonical error response.
+            return kwargs
+        parameters = list(inspect.signature(method).parameters.values())
+        if parameters and parameters[0].name in {"self", "cls"}:
+            parameters = parameters[1:]
+        if canonical_name in {parameter.name for parameter in parameters}:
+            return kwargs
+        if any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters):
+            return kwargs
+
+        payload_parameters = [
+            parameter
+            for parameter in parameters
+            if parameter.kind
+            in {
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            }
+        ]
+        if len(payload_parameters) != 1:
+            return kwargs
+        actual_name = payload_parameters[0].name
+        if actual_name in kwargs or actual_name in {"ids", "context"}:
+            return kwargs
+
+        normalized = dict(kwargs)
+        normalized[actual_name] = normalized.pop(canonical_name)
+        return normalized
 
     @staticmethod
     def _check_agent_call(*, agent, model_name, method_name, kwargs):
