@@ -429,6 +429,8 @@ class UslAgent(models.Model):
     def _api_method_access(self, model_name, method_name):
         """Return the effective Agent policy classification for one JSON-2 call."""
         self.ensure_one()
+        if model_name == "usl.agent" and method_name == "submit_mcp_feedback":
+            return "collaboration" if self.state == "active" else None
         try:
             access = load_agent_readonly_policy().access_for(model_name, method_name)
         except ActionPolicyConfigurationError:
