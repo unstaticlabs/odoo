@@ -145,11 +145,19 @@ The runtime uses generated or restored proof-local secrets and least-privilege
 environment files; it cannot send mail, run cron, contact regulatory services,
 or use production identity providers.
 
+Restic materialization runs first on a separately labelled, short-lived egress
+network so it can reach the backup repository. No application or database
+container joins that network, and the command removes it before starting the
+restored runtime. Secret-bearing environment and evidence content is delivered
+to atomic host writers over standard input; it is never placed in process
+arguments or command-failure text.
+
 The materializer restores the exact qualified durable and cache snapshots,
 including the Odoo filestore, Paperless originals, OCR archive, thumbnails,
 Tantivy and vector indexes, the MCP OAuth vault, and Sign recovery material.
 The production cohort also carries the OAuth vault's matching Better Auth and
-credential-encryption keys and the renderer's CA, server and client credentials.
+credential-encryption keys, the Paperless Personal-AI keyring, and the
+renderer's CA, server and client credentials.
 The proof rejects a cohort that restores either state without its matching key
 material; those credentials remain inside the encrypted backup and disposable
 proof workspace and are removed during exact cleanup.
@@ -161,6 +169,11 @@ Accounting, Documents, access, queue, cron, and release controls with the
 quiesced capture manifest and sample durable files and the OAuth SQLite
 database. The proof never writes `active.json`, uses a release candidate, reads
 staging configuration, or attaches the production gateway.
+For a non-empty OAuth vault, the MCP `prepare` operation decrypts every active
+enrollment with the restored key and the receipt requires refreshed plus cached
+principals to equal the active SQLite row count with zero unavailable entries.
+An empty vault is recorded explicitly. Durable samples require at least one
+file and hash its bytes rather than its pathname.
 
 The command has a hard 1,800-second total deadline. Cleanup runs after success
 and failure. Before final cleanup it enters a durable `finalizing` phase and

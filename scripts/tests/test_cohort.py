@@ -131,6 +131,11 @@ def manifest(durable: dict, cache: dict) -> dict:
                 "path": "durable/renderer-secrets",
                 "identity": durable,
             },
+            "paperless_personal_ai_keys": {
+                "class": "durable",
+                "path": "durable/paperless-secrets",
+                "identity": durable,
+            },
         },
         "cache_snapshot_id": None,
     }
@@ -283,7 +288,7 @@ class CohortContractTests(unittest.TestCase):
                 self.mode = mode
                 self.text = text
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 if command[0] == "readlink":
                     return subprocess.CompletedProcess(command, 0, path + "\n", "")
                 if command[0] == "stat":
@@ -1701,6 +1706,7 @@ class CohortContractTests(unittest.TestCase):
         value["release"].pop("identity", None)
         value["resources"].pop("mcp_secrets")
         value["resources"].pop("renderer_secrets")
+        value["resources"].pop("paperless_personal_ai_keys")
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1811,7 +1817,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 
@@ -1840,7 +1846,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 
@@ -2725,7 +2731,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 

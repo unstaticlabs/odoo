@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import re
+import select
 import shlex
 import subprocess
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -61,6 +64,40 @@ class Runner(Protocol):
 @dataclass
 class CommandRunner:
     prefix: tuple[str, ...] = ()
+    deadline_monotonic: float | None = None
+
+    @contextmanager
+    def advisory_lock(self, path: str, timeout: float = 30.0):
+        command = [
+            "flock", "--nonblock", path, "sh", "-c", "printf 'locked\\n'; cat >/dev/null",
+        ]
+        invocation = [*self.prefix, *command]
+        if self.prefix and self.prefix[0] == "ssh":
+            invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
+        process = subprocess.Popen(
+            invocation, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True,
+        )
+        readable, _, _ = select.select([process.stdout], [], [], timeout)
+        if not readable:
+            process.terminate()
+            process.wait(timeout=10)
+            raise RuntimeError(f"advisory lock acquisition timed out: {path}")
+        ready = process.stdout.readline().strip() if process.stdout is not None else ""
+        if ready != "locked":
+            stderr = process.stderr.read().strip() if process.stderr is not None else ""
+            process.wait()
+            raise RuntimeError(f"another operation owns advisory lock: {path}: {stderr}")
+        try:
+            yield
+        finally:
+            if process.stdin is not None:
+                process.stdin.close()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                process.wait(timeout=10)
 
     def run(
         self,
@@ -72,15 +109,27 @@ class CommandRunner:
         invocation = [*self.prefix, *command]
         if self.prefix and self.prefix[0] == "ssh":
             invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
-        process = subprocess.run(
-            invocation,
-            check=False,
-            capture_output=True,
-            text=True,
-            input=input_text,
-        )
+        timeout = None
+        if self.deadline_monotonic is not None:
+            timeout = self.deadline_monotonic - time.monotonic()
+            if timeout <= 0:
+                raise RuntimeError("command refused: operation deadline expired")
+        try:
+            process = subprocess.run(
+                invocation,
+                check=False,
+                capture_output=True,
+                text=True,
+                input=input_text,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("command exceeded the operation deadline") from error
         if check and process.returncode:
-            detail = (process.stderr or process.stdout).strip()
+            detail = (
+                "subprocess output redacted because standard input was sensitive"
+                if input_text is not None else (process.stderr or process.stdout).strip()
+            )
             raise RuntimeError(f"command failed ({' '.join(command)}): {detail}")
         return process
 

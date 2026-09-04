@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import io
 import json
 import subprocess
 import unittest
 from contextlib import redirect_stdout
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,12 +20,16 @@ from operations.stack import (
     _backup_quiescence_receipt,
     _create_recovery_proof_resources,
     _digested_document,
+    _materialize_command,
     _recovery_proof_names,
+    _recovery_proof_environment,
     _recovery_proof_root,
     _run_recovery_proof_container,
+    _start_recovery_proof_database,
     _recover_recovery_proof_backup,
     _validate_digested_document,
     _validate_recovery_proof_receipt,
+    _write_remote,
     _write_recovery_proof_failure,
     build_parser,
     recovery_proof_command,
@@ -54,10 +58,14 @@ class ResourceRunner:
             return self.completed(command, value or "", 0 if value is not None else 1)
         if command[:2] == ["install", "-d"]:
             return self.completed(command)
+        if command[0] in {"mkdir", "rmdir"}:
+            return self.completed(command)
         if command[:2] == ["python3", "-c"]:
-            self.files[command[3]] = base64.b64decode(command[4]).decode()
+            self.files[command[3]] = input_text or ""
             return self.completed(command)
         if command[:2] == ["test", "-e"]:
+            return self.completed(command, returncode=1)
+        if command[:2] == ["test", "-L"]:
             return self.completed(command, returncode=1)
         if command[:2] == ["docker", "inspect"]:
             resource_type = "container"
@@ -68,6 +76,10 @@ class ResourceRunner:
                 json.dumps(labels) if labels is not None else "",
                 0 if labels is not None else 1,
             )
+        if command[:3] == ["docker", "ps", "--all"]:
+            return self.completed(command)
+        if command[:3] in (["docker", "volume", "ls"], ["docker", "network", "ls"]):
+            return self.completed(command)
         if command[:3] in (["docker", "volume", "inspect"], ["docker", "network", "inspect"]):
             resource_type = command[1]
             name = command[3]
@@ -96,6 +108,8 @@ class ResourceRunner:
             }
             self.resources[("container", name)] = labels
             return self.completed(command, name + "\n")
+        if command[:2] == ["docker", "exec"]:
+            return self.completed(command)
         if command[:3] in (["docker", "volume", "rm"], ["docker", "network", "rm"]):
             self.resources.pop((command[1], command[3]), None)
             return self.completed(command)
@@ -110,6 +124,11 @@ class ResourceRunner:
         if "compose" in command and "up" in command:
             return self.completed(command)
         raise AssertionError(command)
+
+    @contextmanager
+    def advisory_lock(self, path: str):
+        self.commands.append(["flock", "--nonblock", path])
+        yield
 
 
 def completion_receipt(proof_id: str = PROOF_ID) -> dict:
@@ -126,8 +145,16 @@ def completion_receipt(proof_id: str = PROOF_ID) -> dict:
             "cache_snapshot_id": digest,
         },
         "materialization": {
+            "cohort_schema": "usl-recovery-cohort/v2",
+            "capacity": {
+                "schema": "usl-recovery-proof-capacity/v1", "source": "/dev/disk",
+                "available_bytes": 3, "candidate_bytes": 1, "reserve_bytes": 1,
+                "required_bytes": 2, "status": "passed",
+            },
+            "controls_sha256": digest,
             "sign_secrets_restored": True, "mcp_secrets_restored": True,
-            "renderer_secrets_restored": True, "status": "materialized",
+            "renderer_secrets_restored": True,
+            "paperless_personal_ai_keys_restored": True, "status": "materialized",
         },
         "runtime": {
             "network": "internal",
@@ -154,8 +181,30 @@ def completion_receipt(proof_id: str = PROOF_ID) -> dict:
             },
             "status": "passed",
         },
-        "health": {"checked_at": "2026-09-04T04:09:00Z", "status": "passed"},
-        "smoke": {"status": "passed"},
+        "health": {
+            "checks": {
+                **{f"{role}_running": True for role in RECOVERY_PROOF_RUNTIME_ROLES},
+                "odoo_http": True, "paperless_http": True, "gotenberg_http": True,
+                "tika_http": True, "paperless_redis": True, "mcp_ready": True,
+                "mcp_unauthenticated_boundary": True, "mcp_vault_decrypt": True, "step_ca": True,
+                "renderer_mtls_health": True, "sign_cryptographic_transaction": True,
+            },
+            "databases": {"odoo": True, "paperless": True},
+            "checked_at": "2026-09-04T04:09:00Z", "status": "passed",
+        },
+        "smoke": {
+            "runtime": {
+                "http": {"odoo": "passed", "paperless": "passed", "gotenberg": "passed", "tika": "passed"},
+                "oauth": {
+                    "readiness": "passed", "unauthenticated_boundary": "passed", "schema_version": 1,
+                    "active_enrollments": 1, "refreshed": 1, "cached": 0,
+                    "unavailable": 0, "vault_readability": "decrypted",
+                },
+                "signing": {"step_ca": "passed", "cryptographic_transaction": "passed", "renderer_mtls": "passed"},
+                "status": "passed",
+            },
+            "controls": {"status": "passed"}, "status": "passed",
+        },
         "durable_state": {
             "checked_at": "2026-09-04T04:09:30Z",
             "mcp_oauth": {
@@ -164,11 +213,23 @@ def completion_receipt(proof_id: str = PROOF_ID) -> dict:
                 "vault_key_binding_sha256": digest,
                 "migration": "passed", "readability": "passed", "status": "passed",
             },
+            "odoo": {"attachment_records": 1, "status": "passed"},
+            "paperless": {"document_records": 1, "status": "passed"},
+            "samples": {
+                role: {"file_count": 1, "sample_content_sha256": digest, "status": "passed"}
+                for role in (
+                    "odoo_filestore", "paperless_media", "paperless_archive",
+                    "paperless_thumbnails", "paperless_tantivy", "paperless_vectors",
+                )
+            },
             "status": "passed",
         },
         "reusable_cache": {
             **{
-                role: {"capture_identity_sha256": digest, "status": "passed"}
+                role: {
+                    "capture_identity_sha256": digest, "file_count": 1,
+                    "sample_content_sha256": digest, "status": "passed",
+                }
                 for role in (
                     "paperless_archive", "paperless_thumbnails",
                     "paperless_tantivy", "paperless_vectors",
@@ -190,6 +251,7 @@ def completion_receipt(proof_id: str = PROOF_ID) -> dict:
             "side_effects_neutralized": True,
             "persistent_staging_touched": False,
             "production_secrets_modified": False,
+            "production_secrets_sha256": digest,
             "runtime_ledger_used_for_restore": False,
             "perimeter_sha256": digest,
         },
@@ -264,7 +326,7 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertIn("--internal", network_create)
         self.assertEqual(
             set(names["containers"]),
-            {"odoo_db", "paperless_db", *RECOVERY_PROOF_RUNTIME_ROLES},
+            {"odoo_db", "paperless_db", "materializer", *RECOVERY_PROOF_RUNTIME_ROLES},
         )
 
     def test_retry_cleanup_refuses_a_foreign_name_collision(self) -> None:
@@ -294,6 +356,36 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertNotIn("--publish", command)
         self.assertNotIn("-p", command)
         self.assertEqual(command[command.index("--network") + 1], names["network"])
+        self.assertNotIn(self.target.value["secrets"]["env_file"], command)
+
+    def test_database_uses_exact_database_role_name_for_start_and_readiness(self) -> None:
+        runner = ResourceRunner()
+        names = _recovery_proof_names(self.target, PROOF_ID)
+        runner.resources[("container", names["containers"]["odoo_db"])] = {}
+        images = {self.target.value["services"]["odoo_db"]: "postgres@sha256:" + "a" * 64}
+        _start_recovery_proof_database(
+            self.target, runner, PROOF_ID, names, images, "odoo", "/proof/database.env",
+        )
+        start = next(command for command in runner.commands if command[:3] == ["docker", "run", "--detach"])
+        self.assertEqual(start[start.index("--name") + 1], names["containers"]["odoo_db"])
+        ready = next(command for command in runner.commands if command[:2] == ["docker", "exec"])
+        self.assertEqual(ready[2], names["containers"]["odoo_db"])
+
+    def test_materializer_has_repository_egress_and_internal_database_dns(self) -> None:
+        names = _recovery_proof_names(self.target, PROOF_ID)
+        command = _materialize_command(
+            self.target, self.target, "backup@sha256:" + "a" * 64, "b" * 64,
+            "gproof", [names["materialization_network"], names["network"]],
+            names["volumes"], "/proof/source.env", "/proof/database.env",
+            (PROOF_ID, names["containers"]["materializer"]),
+        )
+        networks = [command[index + 1] for index, item in enumerate(command) if item == "--network"]
+        self.assertEqual(networks, [names["materialization_network"], names["network"]])
+        self.assertEqual(command[command.index("--name") + 1], names["containers"]["materializer"])
+        self.assertIn(f"ODOO_DB_HOST={self.target.value['databases']['odoo']['service']}", command)
+        self.assertIn(
+            f"PAPERLESS_DB_HOST={self.target.value['databases']['paperless']['service']}", command,
+        )
         self.assertNotIn(self.target.value["secrets"]["env_file"], command)
 
     def test_receipts_are_digest_bound_and_fail_closed_on_tampering(self) -> None:
@@ -355,10 +447,7 @@ class RecoveryProofContractTests(unittest.TestCase):
         ):
             self.assertEqual(recovery_proof_command(arguments), 0)
         self.assertEqual(json.loads(output.getvalue())["status"], "passed")
-        self.assertEqual(
-            [command for command in runner.commands if command[0] not in {"cat", "install"}],
-            [],
-        )
+        self.assertFalse(any(command[0] == "docker" for command in runner.commands))
 
     def test_interrupted_backup_retry_resumes_exact_writers_and_capture(self) -> None:
         runner = ResourceRunner()
@@ -450,6 +539,50 @@ class RecoveryProofContractTests(unittest.TestCase):
             json.loads(runner.files[f"{root}/failure.json"]),
             evidence,
         )
+
+    def test_remote_atomic_write_never_places_secret_content_in_argv(self) -> None:
+        runner = ResourceRunner()
+        secret = "DB_PASSWORD=argv-leak-sentinel"
+        _write_remote(self.target, runner, "/proof/secret.env", secret)
+        command = runner.commands[-1]
+        joined = " ".join(command)
+        self.assertNotIn(secret, joined)
+        self.assertNotIn("YXJndi1sZWFrLXNlbnRpbmVs", joined)
+        self.assertEqual(runner.files["/proof/secret.env"], secret)
+
+    def test_paperless_database_password_is_bound_from_rendered_compose_key(self) -> None:
+        runner = ResourceRunner()
+        secret = "paperless-db-sentinel"
+        rendered = {"services": {
+            "odoo": {"environment": {"ODOO_DB_PASSWORD": "odoo-secret"}},
+            "paperless-webserver": {"environment": {
+                "PAPERLESS_DBPASS": secret, "PAPERLESS_SECRET_KEY": "paperless-secret",
+            }},
+            "odoo-mcp": {"environment": {}},
+            "usl-sign-dss": {"environment": {}},
+        }}
+        paths, receipt = _recovery_proof_environment(
+            self.target, runner, f"/var/lib/usl-recovery-proofs/{PROOF_ID}",
+            rendered, "a" * 64,
+            "b" * 64,
+        )
+        self.assertIn(f"PAPERLESS_DBPASS={secret}\n", runner.files[paths["database"]])
+        self.assertIn(f"PAPERLESS_DB_PASSWORD={secret}\n", runner.files[paths["database"]])
+        self.assertIn(f"PAPERLESS_DBPASS={secret}\n", runner.files[paths["paperless"]])
+        self.assertNotIn(secret, json.dumps(receipt))
+        self.assertNotIn(secret, " ".join(part for command in runner.commands for part in command))
+
+    def test_failure_receipt_hashes_error_without_persisting_secret(self) -> None:
+        runner = ResourceRunner()
+        root = f"/var/lib/usl-recovery-proofs/{PROOF_ID}"
+        secret = "argv-leak-sentinel"
+        evidence = _write_recovery_proof_failure(
+            self.target, runner, root, PROOF_ID, "cleanup",
+            RuntimeError(secret), {"schema": "usl-recovery-proof-cleanup/v1", "status": "clean"},
+            "a" * 64, "2026-09-04T04:00:00Z", 0.0,
+        )
+        self.assertNotIn(secret, json.dumps(evidence))
+        self.assertNotIn(secret, " ".join(part for command in runner.commands for part in command))
 
 
 if __name__ == "__main__":
