@@ -9,7 +9,20 @@
     "anchor_service": "odoo-staging",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-staging-main_default",
-    "resource_overlay": "compose.resources.staging.json"
+    "resource_overlay": "compose.resources.staging.json",
+    "adoption": {
+      "schema": "usl-compose-adoption/v1",
+      "legacy_anchor_service": "odoo",
+      "legacy_release_schema": "usl-release/v2",
+      "candidate": {
+        "working_directory": "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging",
+        "compose_files": [
+          "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml",
+          "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.resources.json"
+        ],
+        "environment_file": "/opt/usl-odoo/staging/staging.env"
+      }
+    }
   },
   "services": {
     "odoo": "odoo-staging",

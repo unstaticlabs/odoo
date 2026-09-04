@@ -19,6 +19,8 @@ from operations.stack import (
     _apply_generation_cron_policy,
     _active_generation_identity,
     _abort_to_previous_generation,
+    _activate_generation,
+    _candidate_compose_identity,
     _generation_overlay,
     _ensure_image,
     _materialize_command,
@@ -26,6 +28,7 @@ from operations.stack import (
     _previous_generation_identity,
     _release_images,
     _remove_materialization_workspace,
+    _resource_overlay,
     _require_restore_capacity,
     _measure_candidate_bytes,
     _notify_release,
@@ -44,6 +47,7 @@ from operations.stack import (
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ROOT / "operations/targets"
+HOST_TARGETS = ROOT / "operations/targets-host"
 
 
 def manifest(durable: dict, cache: dict) -> dict:
@@ -162,6 +166,7 @@ class CohortContractTests(unittest.TestCase):
             "state_directory": "/var/lib/usl-odoo/runtime/staging",
             "compose": {"resource_overlay": None},
             "ingress": {},
+            "services": {"odoo": "odoo-staging"},
         })
         runner = mock.Mock()
         runner.run.return_value = subprocess.CompletedProcess(
@@ -356,6 +361,54 @@ class CohortContractTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(RuntimeError, "manifest path"):
             _previous_generation_identity(target, mock.Mock(), current)
+
+    def test_staging_abort_preserves_but_refuses_the_legacy_v2_generation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260903-storage-a"
+        root = f"{target.value['state_directory']}/generations/{generation}"
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/runtime/staging.env",
+                "profiles": [],
+                "anchor_service": "odoo-staging",
+                "compose_files": ["/gitops/staging/compose.yaml"],
+            },
+            "active_state": {
+                "generation": "g20260904-v3",
+                "previous": {
+                    "generation": generation,
+                    "volumes": {
+                        role: f"legacy-{role}"
+                        for role in target.value["volumes"]
+                    },
+                    "network": "legacy-network",
+                    "release_manifest": f"{root}/usl-release.json",
+                    "snapshot": "b" * 64,
+                },
+            },
+        }
+
+        class LegacyReleaseRunner:
+            release = {"schema": "usl-release/v2"}
+
+            def run(self, command, *, check=True):
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(self.release), "",
+                    )
+                raise AssertionError(command)
+
+        with self.assertRaisesRegex(RuntimeError, "legacy v2 topology is disabled"):
+            _previous_generation_identity(target, LegacyReleaseRunner(), current)
+
+        malformed = LegacyReleaseRunner()
+        malformed.release = {"schema": "usl-release/v3"}
+        with self.assertRaisesRegex(RuntimeError, "rollback release manifest is invalid"):
+            _previous_generation_identity(target, malformed, current)
 
     def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
         target = mock.Mock()
@@ -1216,6 +1269,160 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+
+    def test_host_staging_overlays_use_the_canonical_odoo_service(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        resources = json.loads(_resource_overlay(target))
+        self.assertIn("odoo-staging", resources["services"])
+        self.assertNotIn("odoo", resources["services"])
+
+        digest = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": digest},
+                "paperless": {"digest_reference": digest},
+                "sign-dss": {"digest_reference": digest},
+            },
+            "mcp": {"image": digest},
+            "renderer": {"image": digest},
+        }
+        overlay = json.loads(
+            _generation_overlay(
+                generation_volume_names(target, "g20260904-canonical"),
+                release,
+                {"odoo", "odoo-staging"},
+                target.value["ingress"],
+                service_names=target.value["services"],
+            ),
+        )
+        self.assertIn("odoo-staging", overlay["services"])
+        self.assertNotIn("odoo", overlay["services"])
+        self.assertEqual(
+            overlay["services"]["odoo-staging"]["environment"]["ODOO_DB_FILTER"],
+            "^odoo_staging$",
+        )
+
+    def test_production_resource_overlay_service_is_unchanged(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        resources = json.loads(_resource_overlay(target))
+        self.assertIn("odoo", resources["services"])
+        self.assertNotIn("odoo-staging", resources["services"])
+
+    def test_first_staging_activation_stops_and_rolls_back_the_legacy_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v2.json"],
+        }
+        candidate = {
+            **legacy,
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3.json"],
+        }
+
+        class FailingCandidateRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if "/runtime/v3.json" in command:
+                    raise RuntimeError("candidate failed")
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "candidate-id\n", "")
+                if command[:3] == ["docker", "inspect", "candidate-id"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({
+                            "com.docker.compose.project": target.project,
+                            "com.docker.compose.service": "odoo-staging",
+                        }),
+                        "",
+                    )
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = FailingCandidateRunner()
+        with self.assertRaisesRegex(RuntimeError, "candidate failed"):
+            _activate_generation(target, runner, legacy, candidate)
+
+        stop = runner.commands[0]
+        failed_up = runner.commands[1]
+        rollback = runner.commands[-1]
+        self.assertEqual(stop[-14:-10], ["stop", "--timeout", "60", "db"])
+        self.assertIn("odoo", stop)
+        self.assertNotIn("odoo-staging", stop)
+        self.assertIn("/runtime/v3.json", failed_up)
+        self.assertIn("/runtime/v2.json", rollback)
+        self.assertEqual(rollback[-3:], ["up", "--detach", "--wait"])
+        self.assertIn(["docker", "rm", "--force", "candidate-id"], runner.commands)
+
+    def test_first_staging_candidate_uses_only_the_allowlisted_gitops_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project,
+            "working_directory": "/var/lib/usl-odoo/runtime/staging/validation-v2",
+            "environment_file": "/var/lib/usl-odoo/runtime/staging/validation-v2/site.env",
+            "profiles": [],
+            "anchor_service": "odoo",
+            "compose_files": [
+                "/var/lib/usl-odoo/runtime/staging/validation-v2/compose.yaml",
+            ],
+        }
+
+        class CandidateRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:2] in (["test", "-f"], ["test", "-d"]):
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["readlink", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
+                if command[-2:] == ["config", "--services"]:
+                    services = "".join(
+                        f"{service}\n"
+                        for service in sorted(set(target.value["services"].values()))
+                    )
+                    return subprocess.CompletedProcess(command, 0, services, "")
+                raise AssertionError(command)
+
+        runner = CandidateRunner()
+        candidate = _candidate_compose_identity(target, runner, legacy)
+        contract = target.value["compose"]["adoption"]["candidate"]
+        self.assertEqual(candidate["working_directory"], contract["working_directory"])
+        self.assertEqual(candidate["compose_files"], contract["compose_files"])
+        self.assertEqual(candidate["environment_file"], contract["environment_file"])
+        self.assertNotIn(legacy["compose_files"][0], candidate["compose_files"])
+        config_command = runner.commands[-1]
+        self.assertIn(contract["compose_files"][0], config_command)
+        self.assertNotIn(legacy["compose_files"][0], config_command)
+
+    def test_second_staging_activation_uses_only_the_canonical_service(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        current = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3-active.json"],
+        }
+        candidate = {**current, "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3-next.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        _activate_generation(target, runner, current, candidate)
+
+        stop = runner.run.call_args_list[0].args[0]
+        self.assertIn("odoo-staging", stop)
+        self.assertNotIn("odoo", stop)
+        self.assertIn("/runtime/v3-next.json", runner.run.call_args_list[1].args[0])
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)
