@@ -7,13 +7,39 @@ import base64
 import hashlib
 import io
 import json
+import re
 import sys
 import time
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime
 from pathlib import Path
 
+from operations.control_manifest import (
+    ODOO_CONTROL_SQL,
+    PAPERLESS_CONTROL_SQL,
+    ControlManifestError,
+    validate_restore,
+)
+from operations.cron_policy import (
+    INVENTORY_SQL as CRON_INVENTORY_SQL,
+    CronPolicyError,
+    parse as parse_cron_policy,
+    render_odoo_apply_script,
+    validate_runtime as validate_cron_runtime,
+)
+from operations.release_controller import (
+    ReleaseControllerError,
+    abort as abort_release_state,
+    parse as parse_release_state,
+)
 from operations.release_manifest import validate as validate_release
+from operations.module_release import (
+    ModuleReleaseError,
+    derive_legacy_upgrade_plan,
+    derive_upgrade_plan,
+    validate_upgrade_plan,
+)
+from operations.plan_evidence import PlanEvidenceError, sign as sign_upgrade_plan, verify as verify_upgrade_plan
 from operations.runtime import (
     RuntimeError,
     compose_command,
@@ -39,6 +65,18 @@ VOLUME_LOGICAL_NAMES = {
     "paperless_export": "paperless-export",
     "mcp_oauth": "odoo-mcp-oauth-data",
 }
+VOLUME_RUNTIME_SERVICE_KEYS = {
+    "odoo_postgres": "odoo_db",
+    "odoo_filestore": "odoo",
+    "paperless_postgres": "paperless_db",
+    "paperless_broker": "paperless_broker",
+    "paperless_media": "paperless",
+    "paperless_data": "paperless",
+    "paperless_trash": "paperless",
+    "paperless_consume": "paperless",
+    "paperless_export": "paperless",
+    "mcp_oauth": "mcp",
+}
 RELEASE_IMAGE_SERVICES = {
     "distribution": ("odoo", "init-db"),
     "paperless": (
@@ -60,6 +98,7 @@ RELEASE_RUNTIME_SERVICES = {
 }
 MINIMUM_FREE_BYTES = 2 * 1024**3
 CAPACITY_WARNING_BYTES = 8 * 1024**3
+RESTORE_SAFETY_RESERVE_BYTES = 15 * 1024**3
 RESOURCE_FIELDS = {
     "cpus",
     "cpu_shares",
@@ -71,6 +110,7 @@ RESOURCE_FIELDS = {
     "pids_limit",
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
+GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -94,12 +134,323 @@ def runtime_command(arguments: argparse.Namespace) -> int:
     if arguments.action == "status":
         result = inspect_runtime(target, runner)
     else:
-        identity = compose_identity(target, runner)
+        current = inspect_runtime(target, runner)
+        identity = current["compose"]
         if arguments.action == "start":
+            identity = _active_generation_identity(target, runner, current)
             runner.run(compose_command(identity, ["up", "--detach", "--wait"]))
         else:
             runner.run(compose_command(identity, ["stop"]))
         result = inspect_runtime(target, runner)
+    print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
+    return 0
+
+
+def _volume_inspect(runner, name: str) -> dict:
+    raw = runner.run(
+        ["docker", "volume", "inspect", name, "--format", "{{json .}}"],
+    ).stdout
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"volume inspection is invalid: {name}") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"volume inspection is invalid: {name}")
+    return value
+
+
+def _volume_source_path(runner, name: str) -> str:
+    value = _volume_inspect(runner, name)
+    options = value.get("Options") or {}
+    path = options.get("device") if options.get("type") == "none" and options.get("o") == "bind" else value.get("Mountpoint")
+    if not isinstance(path, str) or not path.startswith("/"):
+        raise RuntimeError(f"volume source path is invalid: {name}")
+    return path
+
+
+def _storage_inventory(target, runner, runtime: dict) -> tuple[list[dict], dict[str, int]]:
+    inventory = []
+    totals = {tier: 0 for tier in target.value["storage"]["tiers"]}
+    for role, definition in sorted(runtime["volumes"].items()):
+        source = _volume_source_path(runner, definition["name"])
+        measured = runner.run(["du", "-sb", "--", source]).stdout.split()
+        try:
+            size = int(measured[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent volume: {definition['name']}") from error
+        totals[definition["tier"]] += size
+        inventory.append(
+            {
+                "role": role,
+                "name": definition["name"],
+                "tier": definition["tier"],
+                "source": source,
+                "bytes": size,
+            },
+        )
+    return inventory, totals
+
+
+def _storage_status(target, runner, runtime: dict) -> dict:
+    failures = []
+    tiers = {}
+    for tier, definition in sorted(target.value["storage"]["tiers"].items()):
+        probe = runner.run(
+            ["findmnt", "--target", definition["path"], "--noheadings", "--output", "SOURCE,FSTYPE,UUID,TARGET"],
+            check=False,
+        )
+        fields = probe.stdout.split()
+        if probe.returncode or len(fields) < 4:
+            failures.append(f"storage tier is not mounted: {tier} ({definition['path']})")
+            tiers[tier] = {"path": definition["path"], "status": "missing"}
+            continue
+        tiers[tier] = {
+            "path": definition["path"],
+            "source": fields[0],
+            "fstype": fields[1],
+            "uuid": fields[2],
+            "mountpoint": fields[3],
+            "status": "mounted",
+        }
+    if tiers.get("bulk", {}).get("source") == tiers.get("database", {}).get("source"):
+        failures.append("bulk and database tiers resolve to the same filesystem")
+    generation = runtime["generation"]
+    running = {
+        item.get("Service"): item
+        for item in runtime.get("containers", [])
+        if item.get("State") == "running" and item.get("Service") and item.get("Name")
+    }
+    volumes = {}
+    for role, definition in sorted(runtime["volumes"].items()):
+        value = _volume_inspect(runner, definition["name"])
+        options = value.get("Options") or {}
+        actual = _volume_source_path(runner, definition["name"])
+        status = "valid"
+        if definition["tier"] == "database":
+            if generation == "adopted":
+                status = "legacy"
+                failures.append(f"database volume is not generation-backed: {role}")
+            else:
+                expected = generation_volume_path(target, generation, role)
+                if options != {"device": expected, "o": "bind", "type": "none"}:
+                    status = "wrong-device"
+                    failures.append(f"database volume is not bound to its generation path: {role}")
+        service_key = VOLUME_RUNTIME_SERVICE_KEYS[role]
+        service = target.value["services"][service_key]
+        container = running.get(service)
+        runtime_status = "not-running"
+        if container is not None:
+            inspected = runner.run(
+                ["docker", "inspect", container["Name"], "--format", "{{json .Mounts}}"],
+                check=False,
+            )
+            try:
+                mounts = json.loads(inspected.stdout) if inspected.returncode == 0 else None
+            except json.JSONDecodeError:
+                mounts = None
+            mounted_names = {
+                item.get("Name")
+                for item in mounts or []
+                if isinstance(item, dict) and item.get("Type") == "volume"
+            }
+            if not isinstance(mounts, list):
+                runtime_status = "inspect-failed"
+                failures.append(f"running service mount inspection failed: {service}")
+            elif definition["name"] not in mounted_names:
+                runtime_status = "wrong-runtime-volume"
+                failures.append(
+                    f"running service does not mount the active volume: {service}/{role}",
+                )
+            else:
+                runtime_status = "valid"
+        volumes[role] = {
+            "name": definition["name"],
+            "tier": definition["tier"],
+            "source": actual,
+            "status": status,
+            "runtime_service": service,
+            "runtime_status": runtime_status,
+        }
+    docker_root = runner.run(["docker", "info", "--format", "{{.DockerRootDir}}"], check=False).stdout.strip()
+    containerd_root = ""
+    if target.value["environment"] != "local":
+        containerd_config = runner.run(["containerd", "config", "dump"], check=False)
+        match = re.search(r"(?m)^root\s*=\s*['\"]([^'\"]+)['\"]\s*$", containerd_config.stdout)
+        containerd_root = match.group(1) if match else ""
+        if containerd_config.returncode or containerd_root != "/srv/storage/containerd":
+            failures.append(f"containerd root differs: {containerd_root or 'unavailable'}")
+    if target.value["environment"] != "local" and docker_root != "/srv/storage/docker":
+        failures.append(f"Docker root differs: {docker_root or 'unavailable'}")
+    return {
+        "schema": "usl-storage-status/v1",
+        "target": target.name,
+        "generation": generation,
+        "docker_root": docker_root,
+        "containerd_root": containerd_root,
+        "tiers": tiers,
+        "volumes": volumes,
+        "failures": failures,
+        "status": "passed" if not failures else "failed",
+    }
+
+
+def _write_adopt_generation(
+    target,
+    runner,
+    identity: dict,
+    generation: str,
+    volumes: dict[str, str],
+    network: str,
+    snapshot: str,
+    source_release_manifest: str,
+) -> str:
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    runner.run(["install", "-d", "-m", "0700", "--", generation_root])
+    release_raw = runner.run(["cat", source_release_manifest]).stdout
+    try:
+        release = json.loads(release_raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("adopted release manifest is invalid JSON") from error
+    release_path = f"{generation_root}/usl-release.json"
+    _write_remote(target, runner, release_path, json.dumps(release, indent=2, sort_keys=True) + "\n")
+    resource_path = None
+    resource = _resource_overlay(target)
+    if resource is not None:
+        resource_path = f"{generation_root}/compose.resources.json"
+        _write_remote(target, runner, resource_path, resource, "0644")
+    services = set(_runtime_images(runner, identity))
+    overlay_path = f"{generation_root}/compose.generation.json"
+    _write_remote(
+        target,
+        runner,
+        overlay_path,
+        _generation_overlay(volumes, release, services, target.value["ingress"]),
+        "0644",
+    )
+    return release_path
+
+
+def storage_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    runner = target.runner()
+    runtime = inspect_runtime(target, runner)
+    if arguments.action == "status":
+        result = _storage_status(target, runner, runtime)
+        print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
+        return 0 if result["status"] == "passed" else 2
+    inventory, totals = _storage_inventory(target, runner, runtime)
+    capacity = _require_restore_capacity(
+        target,
+        runner,
+        "storage-adoption",
+        candidate_bytes={tier: size * 2 for tier, size in totals.items()},
+    )
+    plan = {
+        "schema": "usl-storage-adoption-plan/v1",
+        "target": target.name,
+        "source_generation": runtime["generation"],
+        "active_generation": arguments.generation,
+        "rollback_generation": arguments.rollback_generation,
+        "snapshot": arguments.snapshot,
+        "volumes": inventory,
+        "candidate_bytes": totals,
+        "materialization_bytes": {tier: size * 2 for tier, size in totals.items()},
+        "capacity": capacity,
+        "confirmation": (
+            f"{target.name}:{arguments.generation}:{arguments.rollback_generation}:{arguments.snapshot}"
+            if arguments.generation and arguments.rollback_generation and arguments.snapshot
+            else None
+        ),
+        "status": "planned",
+    }
+    if arguments.action == "plan":
+        print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if not all((arguments.generation, arguments.rollback_generation, arguments.snapshot)):
+        raise RuntimeError("storage adopt requires both generations and a snapshot")
+    if arguments.generation == arguments.rollback_generation:
+        raise RuntimeError("active and rollback generations must differ")
+    if not re.fullmatch(r"[0-9a-f]{64}", arguments.snapshot):
+        raise RuntimeError("storage adoption snapshot is invalid")
+    if arguments.confirm != plan["confirmation"]:
+        raise RuntimeError("storage adopt requires the exact target/generations/snapshot confirmation")
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("storage adoption requires the persistent maintenance marker")
+    cohort = set(target.value["services"].values())
+    running = sorted(
+        item.get("Service") for item in runtime["containers"]
+        if item.get("Service") in cohort and item.get("State") == "running"
+    )
+    if running:
+        raise RuntimeError(f"storage adoption requires stopped cohort services: {running}")
+    identity = runtime["compose"]
+    source_release_manifest = (
+        (runtime.get("active_state") or {}).get("release_manifest")
+        or target.value["release_manifest"]
+    )
+    created = {}
+    releases = {}
+    networks = {}
+    for generation in (arguments.rollback_generation, arguments.generation):
+        volumes, network = _create_generation_resources(target, runner, generation)
+        created[generation] = volumes
+        networks[generation] = network
+        for role, source in runtime["volumes"].items():
+            source_path = _volume_source_path(runner, source["name"])
+            destination_path = _volume_source_path(runner, volumes[role])
+            runner.run(
+                [
+                    "rsync", "-aHAXS", "--numeric-ids", "--sparse", "--",
+                    source_path.rstrip("/") + "/", destination_path.rstrip("/") + "/",
+                ],
+            )
+            verified = runner.run(
+                [
+                    "rsync", "-aHAXScn", "--numeric-ids", "--sparse", "--itemize-changes", "--",
+                    source_path.rstrip("/") + "/", destination_path.rstrip("/") + "/",
+                ],
+            )
+            if verified.stdout.strip():
+                raise RuntimeError(f"storage adoption copy differs: {generation}/{role}")
+        releases[generation] = _write_adopt_generation(
+            target,
+            runner,
+            identity,
+            generation,
+            volumes,
+            network,
+            arguments.snapshot,
+            source_release_manifest,
+        )
+    previous = {
+        "generation": arguments.rollback_generation,
+        "volumes": created[arguments.rollback_generation],
+        "network": networks[arguments.rollback_generation],
+        "release_manifest": releases[arguments.rollback_generation],
+        "snapshot": arguments.snapshot,
+    }
+    active_path = f"{target.value['state_directory']}/active.json"
+    _write_remote(
+        target,
+        runner,
+        active_path,
+        _active_generation_state(
+            target,
+            arguments.generation,
+            created[arguments.generation],
+            networks[arguments.generation],
+            arguments.snapshot,
+            releases[arguments.generation],
+            previous,
+        ),
+    )
+    result = {
+        **plan,
+        "active_volumes": created[arguments.generation],
+        "rollback_volumes": created[arguments.rollback_generation],
+        "status": "adopted",
+    }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -224,17 +575,28 @@ def _run_cohort(
         raise RuntimeError(f"cohort {action} returned invalid JSON") from error
 
 
-def with_writers_paused(runner, identity: dict, services: list[str], callback):
+def with_writers_paused(
+    runner,
+    identity: dict,
+    services: list[str],
+    callback,
+    *,
+    resume_after_success: bool = True,
+):
     runner.run(compose_command(identity, ["stop", "--timeout", "30", *services]))
+    succeeded = False
     try:
-        return callback()
+        result = callback()
+        succeeded = True
+        return result
     finally:
-        runner.run(
-            compose_command(
-                identity,
-                ["up", "--detach", "--wait", "--no-recreate", *services],
-            ),
-        )
+        if resume_after_success or not succeeded:
+            runner.run(
+                compose_command(
+                    identity,
+                    ["up", "--detach", "--wait", "--no-recreate", *services],
+                ),
+            )
 
 
 def _ensure_image(runner, image: str) -> None:
@@ -298,25 +660,111 @@ def _validate_runtime_release_images(target, runner, runtime: dict, release: dic
     return verified
 
 
-def _available_bytes(runner, path: str) -> int:
-    result = runner.run(["df", "--output=avail", "--block-size=1", path])
+def _filesystem_capacity(runner, path: str) -> tuple[str, int]:
+    result = runner.run(["df", "--output=source,avail", "--block-size=1", path])
     try:
-        return int(result.stdout.splitlines()[-1].strip())
+        fields = result.stdout.splitlines()[-1].split()
+        return fields[0], int(fields[-1])
     except (IndexError, ValueError) as error:
         raise RuntimeError(f"disk capacity probe returned invalid output for {path}") from error
 
 
-def _require_restore_capacity(target, runner, phase: str) -> dict:
-    available = _available_bytes(runner, target.value["state_directory"])
-    if available < MINIMUM_FREE_BYTES:
-        raise RuntimeError(
-            f"restore {phase} refused: {_capacity_detail(available)}",
+def _require_restore_capacity(
+    target,
+    runner,
+    phase: str,
+    *,
+    candidate_bytes: dict[str, int] | None = None,
+) -> dict:
+    candidate_bytes = candidate_bytes or {}
+    filesystems: dict[str, dict] = {}
+    for tier, definition in target.value["storage"]["tiers"].items():
+        source, available = _filesystem_capacity(runner, definition["path"])
+        item = filesystems.setdefault(
+            source,
+            {
+                "source": source,
+                "tiers": [],
+                "paths": [],
+                "available_bytes": available,
+                "candidate_bytes": 0,
+                "reserve_bytes": 0,
+            },
         )
-    _report("restore", phase, "capacity checked", _capacity_detail(available))
+        item["tiers"].append(tier)
+        item["paths"].append(definition["path"])
+        item["available_bytes"] = min(item["available_bytes"], available)
+        item["candidate_bytes"] += candidate_bytes.get(tier, 0)
+        item["reserve_bytes"] = max(item["reserve_bytes"], definition["reserve_bytes"])
+    warning = False
+    for source, item in filesystems.items():
+        available = item["available_bytes"]
+        warning = warning or available < CAPACITY_WARNING_BYTES
+        if available < MINIMUM_FREE_BYTES:
+            raise RuntimeError(
+                f"restore {phase} refused on {source}: {_capacity_detail(available)}",
+            )
+        required = item["candidate_bytes"] + item["reserve_bytes"]
+        item["required_bytes"] = required
+        item["tiers"].sort()
+        item["paths"].sort()
+        if available < required:
+            deficit = required - available
+            raise RuntimeError(
+                "restore capacity refused on "
+                f"{source}: {available / 1024**3:.1f} GiB free, "
+                f"{item['candidate_bytes'] / 1024**3:.1f} GiB measured candidate, "
+                f"{item['reserve_bytes'] / 1024**3:.1f} GiB reserve, "
+                f"{deficit / 1024**3:.1f} GiB deficit",
+            )
+        _report(
+            "restore",
+            phase,
+            "capacity checked",
+            f"{source} ({', '.join(item['tiers'])}): {_capacity_detail(available)}",
+        )
     return {
-        "available_bytes": available,
-        "warning": available < CAPACITY_WARNING_BYTES,
+        "schema": "usl-storage-capacity/v2",
+        "filesystems": {source: filesystems[source] for source in sorted(filesystems)},
+        "warning": warning,
     }
+
+
+def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> dict[str, int]:
+    """Measure the additional persistent state a fresh generation must hold.
+
+    Existing active and rollback generations are already reflected in free
+    space, so they must not be added again. The estimate intentionally sums
+    allocated file bytes rather than Docker volume metadata.
+    """
+    totals = {tier: 0 for tier in target.value["storage"]["tiers"]}
+    seen: set[str] = set()
+    for item in runtime["volumes"].values():
+        name = item["name"]
+        if name in seen:
+            continue
+        seen.add(name)
+        measured = runner.run([
+            "docker", "run", "--rm", "--volume", f"{name}:/source:ro",
+            "--entrypoint", "du", tool_image, "-sb", "/source",
+        ]).stdout.split()
+        try:
+            totals[item["tier"]] += int(measured[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent volume: {name}") from error
+    for item in target.value["paths"].values():
+        if not item.get("required") and item.get("class") != "durable":
+            continue
+        result = runner.run(["du", "-sb", item["path"]], check=False)
+        if result.returncode:
+            if item.get("required"):
+                raise RuntimeError(f"cannot measure required persistent path: {item['path']}")
+            continue
+        try:
+            totals[item["tier"]] += int(result.stdout.split()[0])
+        except (IndexError, ValueError) as error:
+            raise RuntimeError(f"cannot measure persistent path: {item['path']}") from error
+    return totals
 
 
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
@@ -349,7 +797,7 @@ def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[st
 def _rollback_after_failure(runner, identity: dict, error: Exception) -> None:
     _report("restore", "rollback", "started", f"activation failed: {error}")
     rollback = runner.run(
-        compose_command(identity, ["up", "--detach", "--wait", "--force-recreate"]),
+        compose_command(identity, ["up", "--detach", "--wait"]),
         check=False,
     )
     if rollback.returncode:
@@ -414,6 +862,11 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
 
 def backup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
+    leave_quiesced = bool(getattr(arguments, "leave_quiesced", False))
+    if leave_quiesced and arguments.action != "create":
+        raise RuntimeError("--leave-quiesced is valid only for backup create")
+    if leave_quiesced and arguments.resume:
+        raise RuntimeError("a resumed backup cannot establish writer quiescence")
     runner = target.runner()
     runtime = inspect_runtime(target, runner)
     release, release_sha, release_raw = _release(target, runner, arguments.release)
@@ -487,6 +940,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     identity,
                     writer_services,
                     capture_phase,
+                    resume_after_success=not leave_quiesced,
                 )
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
                 _record_event(
@@ -554,6 +1008,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
+                "writers_quiesced": leave_quiesced,
                 "status": "qualified",
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -594,6 +1049,97 @@ def _python_probe(target, runner, identity, service_key: str, program: str) -> d
     if not isinstance(value, dict):
         raise RuntimeError(f"{service} storage probe did not return an object")
     return value
+
+
+def _validate_mcp_readiness(value: object, *, require_oauth: bool) -> dict:
+    if not isinstance(value, dict) or value.get("schema") != "usl-odoo-mcp-readiness/v1":
+        raise RuntimeError("MCP readiness evidence schema differs")
+    version = value.get("server_version")
+    if not isinstance(version, str) or not re.fullmatch(r"1\.[0-9]+\.[0-9]+", version):
+        raise RuntimeError("MCP readiness reports an unsupported server version")
+    oauth = value.get("oauth")
+    if not isinstance(oauth, dict) or oauth.get("schema_version") != 1:
+        raise RuntimeError("MCP readiness reports an unsupported OAuth-vault schema")
+    allowed_oauth = {"ready"} if require_oauth else {"ready", "disabled"}
+    if oauth.get("status") not in allowed_oauth:
+        raise RuntimeError("MCP OAuth vault is not ready")
+    if value.get("status") != "ready" or not isinstance(value.get("targets"), int) or value["targets"] < 1:
+        raise RuntimeError("MCP runtime is not ready")
+    return {
+        "schema": value["schema"],
+        "server_version": version,
+        "oauth": {
+            "schema_version": oauth["schema_version"],
+            "status": oauth["status"],
+        },
+        "targets": value["targets"],
+        "status": value["status"],
+    }
+
+
+def _mcp_readiness(target, runner) -> dict:
+    url = target.value["endpoints"]["mcp"].rstrip("/") + "/readyz"
+    result = runner.run(
+        ["curl", "--silent", "--show-error", "--fail", "--max-time", "10", url],
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError("MCP readiness endpoint is unavailable")
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("MCP readiness endpoint did not return JSON") from error
+    return _validate_mcp_readiness(
+        value,
+        require_oauth=target.value["environment"] in {"production", "staging"},
+    )
+
+
+def _sign_readiness(target, runner, identity) -> dict:
+    # This probe performs only trusted health reads. It records public trust
+    # material identities, never provisioner keys, keystore values or secrets.
+    program = (
+        "import hashlib,json,os,pathlib,ssl,urllib.request;"
+        "ca_url=os.environ['USL_SIGN_STEP_CA_URL'].rstrip('/');"
+        "ca_bundle=os.environ['USL_SIGN_STEP_CA_CA_BUNDLE'];"
+        "ca_ctx=ssl.create_default_context(cafile=ca_bundle);"
+        "ca=json.load(urllib.request.urlopen(ca_url+'/health',context=ca_ctx,timeout=10));"
+        "dss_url=os.environ['USL_SIGN_DSS_URL'].rstrip('/');"
+        "dss_bundle=os.environ['USL_SIGN_DSS_CA_BUNDLE'];"
+        "dss_ctx=ssl.create_default_context(cafile=dss_bundle);"
+        "dss_ctx.load_cert_chain(os.environ['USL_SIGN_DSS_CLIENT_CERT'],os.environ['USL_SIGN_DSS_CLIENT_KEY']);"
+        "req=urllib.request.Request(dss_url+'/v1/health',data=b'{}',headers={'Content-Type':'application/json','Accept':'application/json'});"
+        "dss=json.load(urllib.request.urlopen(req,context=dss_ctx,timeout=10));"
+        "assert ca.get('status')=='ok' and dss.get('ok') is True and dss.get('engineVersion')=='6.4';"
+        "print(json.dumps({'schema':'usl-sign-readiness/v1','status':'ready',"
+        "'step_ca':{'status':'ok','trust_sha256':hashlib.sha256(pathlib.Path(ca_bundle).read_bytes()).hexdigest()},"
+        "'dss':{'status':'ok','engine_version':dss['engineVersion'],'trust_sha256':hashlib.sha256(pathlib.Path(dss_bundle).read_bytes()).hexdigest()}}))"
+    )
+    return _python_probe(target, runner, identity, "odoo", program)
+
+
+def _validate_sign_readiness(value: object) -> dict:
+    if (
+        not isinstance(value, dict)
+        or value.get("schema") != "usl-sign-readiness/v1"
+        or value.get("status") != "ready"
+        or not isinstance(value.get("step_ca"), dict)
+        or not isinstance(value.get("dss"), dict)
+        or value["step_ca"].get("status") != "ok"
+        or value["dss"].get("status") != "ok"
+        or value["dss"].get("engine_version") != "6.4"
+    ):
+        raise RuntimeError("Sign readiness evidence differs")
+    for service in ("step_ca", "dss"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(value[service].get("trust_sha256", ""))):
+            raise RuntimeError("Sign public trust identity is invalid")
+    return value
+
+
+def _runtime_admission_evidence(target, runner, identity) -> dict:
+    mcp = _mcp_readiness(target, runner)
+    sign = _validate_sign_readiness(_sign_readiness(target, runner, identity))
+    return {"mcp": mcp, "sign": sign}
 
 
 def health_command(arguments: argparse.Namespace) -> int:
@@ -720,6 +1266,11 @@ def health_command(arguments: argparse.Namespace) -> int:
         ollama_status = None
     else:
         ollama_status = json.loads(ollama_result.stdout)
+    try:
+        service_evidence = _runtime_admission_evidence(target, runner, identity)
+    except RuntimeError as error:
+        failures.append("cohort:readiness-evidence")
+        service_evidence = {"error": str(error)}
     result = {
         "schema": "usl-runtime-health/v1",
         "target": target.name,
@@ -729,6 +1280,7 @@ def health_command(arguments: argparse.Namespace) -> int:
         "odoo_config": odoo_config,
         "websocket": websocket_status,
         "ollama": ollama_status,
+        "services": service_evidence,
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0 if not failures else 2
@@ -739,34 +1291,14 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     runner = target.runner()
     status = inspect_runtime(target, runner)
     identity = status["compose"]
-    odoo_query = """
-SELECT json_build_object(
-  'companies', (SELECT count(*) FROM res_company),
-  'users', (SELECT count(*) FROM res_users),
-  'moves', (SELECT count(*) FROM account_move),
-  'move_lines', (SELECT count(*) FROM account_move_line),
-  'attachments', (SELECT count(*) FROM ir_attachment),
-  'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
-  'projects', (SELECT count(*) FROM project_project),
-  'tasks', (SELECT count(*) FROM project_task),
-  'expenses', (SELECT count(*) FROM hr_expense),
-  'ledger_delta', (SELECT coalesce(sum(debit-credit), 0) FROM account_move_line),
-  'queued_mail', (SELECT count(*) FROM mail_mail WHERE state IN ('outgoing','exception')),
-  'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','failed','duplicate')),
-  'bank_unsettled', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing','failed')),
-  'payment_unsettled', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized','error')),
-  'sign_archive_unsettled', (SELECT count(*) FROM sign_oca_request WHERE archive_status IN ('pending','processing','failed')),
-  'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active)
-);""".strip()
-    paperless_query = """
-SELECT json_build_object(
-  'documents', count(*),
-  'with_ocr', count(*) FILTER (WHERE coalesce(content, '') <> ''),
-  'missing_original_name', count(*) FILTER (WHERE coalesce(filename, '') = '')
-) FROM documents_document;""".strip()
+    odoo_query = ODOO_CONTROL_SQL
+    paperless_query = PAPERLESS_CONTROL_SQL
     try:
         odoo = json.loads(_psql(target, runner, identity, "odoo", odoo_query))
         paperless = json.loads(_psql(target, runner, identity, "paperless", paperless_query))
+        cron_inventory = json.loads(
+            _psql(target, runner, identity, "odoo", CRON_INVENTORY_SQL),
+        )
         odoo_storage = _python_probe(
             target,
             runner,
@@ -789,24 +1321,45 @@ SELECT json_build_object(
             "'vectors':'/usr/src/paperless/data/llm_index'};"
             "print(json.dumps({k:sum(1 for x in pathlib.Path(v).rglob('*') if x.is_file()) for k,v in roots.items()}))",
         )
+        service_evidence = _runtime_admission_evidence(target, runner, identity)
     except (RuntimeError, json.JSONDecodeError) as error:
         raise RuntimeError(f"read-only database smoke failed: {error}") from error
     failures = []
+    cron_target = target.value["cron_policy"]
+    try:
+        cron_policy = (
+            None
+            if cron_target["mode"] == "unmanaged"
+            else parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
+        )
+        cron_status = validate_cron_runtime(
+            cron_policy,
+            mode=cron_target["mode"],
+            gates=cron_target["gates"],
+            installed=cron_inventory["installed"],
+            active=cron_inventory["active"],
+            invalid_identity_count=cron_inventory["invalid_identity_count"],
+        )
+    except (CronPolicyError, KeyError, TypeError) as error:
+        cron_status = {"status": "failed", "error": str(error)}
+        failures.append("odoo:cron-policy")
     if float(odoo["ledger_delta"]) != 0:
         failures.append("accounting:unbalanced")
     if min(odoo["companies"], odoo["users"], odoo["moves"], odoo["attachments"]) < 1:
         failures.append("odoo:empty-control")
-    queue_keys = (
-        "queued_mail",
-        "pending_documents",
-        "bank_unsettled",
-        "payment_unsettled",
-        "sign_archive_unsettled",
+    failed_queue_keys = (
+        "failed_mail",
+        "failed_documents",
+        "bank_failed",
+        "payment_failed",
+        "sign_archive_failed",
     )
-    if any(odoo[key] for key in queue_keys):
-        failures.append("odoo:pending-queue")
+    if any(odoo[key] for key in failed_queue_keys):
+        failures.append("odoo:failed-queue")
     if odoo["cron_failures"]:
         failures.append("odoo:cron-failures")
+    if odoo.get("cron_lag"):
+        failures.append("odoo:cron-lag")
     if odoo_storage["files"] < odoo["stored_attachments"]:
         failures.append("odoo:filestore-coverage")
     if paperless["documents"] < 1 or paperless["with_ocr"] < 1:
@@ -824,6 +1377,8 @@ SELECT json_build_object(
         "status": "passed" if not failures else "failed",
         "failures": failures,
         "controls": {"odoo": odoo, "paperless": paperless},
+        "cron_policy": cron_status,
+        "services": service_evidence,
         "storage": {"odoo": odoo_storage, "paperless": paperless_storage},
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -837,6 +1392,22 @@ def generation_volume_names(target, generation: str) -> dict[str, str]:
     }
 
 
+def generation_volume_path(target, generation: str, role: str) -> str:
+    if not GENERATION_NAME.fullmatch(str(generation)):
+        raise RuntimeError("generation name is invalid")
+    if role not in target.value["volumes"]:
+        raise RuntimeError("generation volume role is invalid")
+    definition = target.value["volumes"][role]
+    if definition["tier"] != "database":
+        raise RuntimeError("only database-tier volumes have host paths")
+    root = Path(target.value["storage"]["tiers"]["database"]["path"])
+    generation_root = root / "usl-odoo" / target.name / "generations" / generation
+    candidate = generation_root / role
+    if candidate.parent != generation_root:
+        raise RuntimeError("generation volume path escaped its generation root")
+    return str(candidate)
+
+
 def _create_generation_resources(target, runner, generation: str) -> tuple[dict[str, str], str]:
     volumes = generation_volume_names(target, generation)
     network = f"{target.project}-{generation}-recovery"
@@ -844,22 +1415,39 @@ def _create_generation_resources(target, runner, generation: str) -> tuple[dict[
         probe = runner.run(["docker", "volume", "inspect", name], check=False)
         if probe.returncode == 0:
             raise RuntimeError(f"generation volume already exists: {name}")
-        runner.run(
-            [
-                "docker",
-                "volume",
-                "create",
-                "--label",
-                f"com.unstaticlabs.runtime.project={target.project}",
-                "--label",
-                f"com.unstaticlabs.runtime.target={target.name}",
-                "--label",
-                f"com.unstaticlabs.runtime.generation={generation}",
-                "--label",
-                f"com.unstaticlabs.runtime.role={role}",
-                name,
-            ],
-        )
+        tier = target.value["volumes"][role]["tier"]
+        command = [
+            "docker",
+            "volume",
+            "create",
+            "--label",
+            f"com.unstaticlabs.runtime.project={target.project}",
+            "--label",
+            f"com.unstaticlabs.runtime.target={target.name}",
+            "--label",
+            f"com.unstaticlabs.runtime.generation={generation}",
+            "--label",
+            f"com.unstaticlabs.runtime.role={role}",
+            "--label",
+            f"com.unstaticlabs.runtime.storage-tier={tier}",
+        ]
+        if tier == "database":
+            device = generation_volume_path(target, generation, role)
+            runner.run(["install", "-d", "-m", "0700", "--", device])
+            command.extend(
+                [
+                    "--driver",
+                    "local",
+                    "--opt",
+                    "type=none",
+                    "--opt",
+                    "o=bind",
+                    "--opt",
+                    f"device={device}",
+                ],
+            )
+        command.append(name)
+        runner.run(command)
     probe = runner.run(["docker", "network", "inspect", network], check=False)
     if probe.returncode == 0:
         raise RuntimeError(f"generation network already exists: {network}")
@@ -1195,6 +1783,138 @@ def _active_generation_state(
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _base_compose_identity(target, identity: dict) -> dict:
+    generated_prefix = target.value["state_directory"] + "/generations/"
+    compose_files = [
+        path
+        for path in identity["compose_files"]
+        if not (
+            path.startswith(generated_prefix)
+            and path.endswith(("/compose.generation.json", "/compose.resources.json"))
+        )
+    ]
+    if not compose_files:
+        raise RuntimeError("base Compose identity is unavailable")
+    return {**identity, "compose_files": compose_files}
+
+
+def _active_generation_identity(target, runner, current: dict) -> dict:
+    """Resolve the recorded active generation even when the anchor is still legacy."""
+    active = current["active_state"]
+    if active is None:
+        return current["compose"]
+    identity = _base_compose_identity(target, current["compose"])
+    generation = active["generation"]
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    release_manifest = f"{generation_root}/usl-release.json"
+    if active["release_manifest"] != release_manifest:
+        raise RuntimeError("active release manifest path is invalid")
+    overlay = f"{generation_root}/compose.generation.json"
+    required = [release_manifest, overlay]
+    if target.value["compose"]["resource_overlay"] is not None:
+        resource = f"{generation_root}/compose.resources.json"
+        required.append(resource)
+        identity["compose_files"].append(resource)
+    identity["compose_files"].append(overlay)
+    for path in required:
+        if runner.run(["test", "-f", path], check=False).returncode:
+            raise RuntimeError(f"active generation file is missing: {path}")
+    return identity
+
+
+def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, str | None]:
+    """Resolve only the one rollback generation recorded by active state."""
+    identity = _base_compose_identity(target, current["compose"])
+    active = current["active_state"]
+    if active is None:
+        return identity, None
+    previous = active.get("previous")
+    if not isinstance(previous, dict) or set(previous) != {
+        "generation", "volumes", "network", "release_manifest", "snapshot",
+    }:
+        raise RuntimeError("rollback generation state is incomplete")
+    if previous["release_manifest"] is None:
+        if previous["network"] is not None or previous["snapshot"] is not None:
+            raise RuntimeError("adopted rollback state is inconsistent")
+        return identity, None
+    generation = previous["generation"]
+    if not isinstance(generation, str) or not generation.startswith("g") or len(generation) > 32:
+        raise RuntimeError("rollback generation name is invalid")
+    volumes = previous["volumes"]
+    if (
+        not isinstance(volumes, dict)
+        or set(volumes) != set(target.value["volumes"])
+        or not all(isinstance(value, str) and value for value in volumes.values())
+    ):
+        raise RuntimeError("rollback generation volume perimeter differs")
+    if not isinstance(previous["network"], str) or not previous["network"]:
+        raise RuntimeError("rollback generation network is invalid")
+    if not re.fullmatch(r"[0-9a-f]{64}", str(previous["snapshot"])):
+        raise RuntimeError("rollback generation snapshot is invalid")
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    release_manifest = f"{generation_root}/usl-release.json"
+    if previous["release_manifest"] != release_manifest:
+        raise RuntimeError("rollback release manifest path is invalid")
+    overlay = f"{generation_root}/compose.generation.json"
+    required = [release_manifest, overlay]
+    if target.value["compose"]["resource_overlay"] is not None:
+        resource = f"{generation_root}/compose.resources.json"
+        required.append(resource)
+        identity["compose_files"].append(resource)
+    identity["compose_files"].append(overlay)
+    for path in required:
+        if runner.run(["test", "-f", path], check=False).returncode:
+            raise RuntimeError(f"rollback generation file is missing: {path}")
+    state = _active_generation_state(
+        target,
+        generation,
+        volumes,
+        previous["network"],
+        previous["snapshot"],
+        release_manifest,
+        {},
+    )
+    return identity, state
+
+
+def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
+    """Restore and prove the untouched pre-reopen runtime generation."""
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "-f", marker], check=False).returncode:
+        raise RuntimeError("runtime rollback is allowed only while the gateway is in maintenance")
+    current = inspect_runtime(target, runner)
+    previous_identity, previous_state = _previous_generation_identity(target, runner, current)
+    cohort_services = sorted(set(target.value["services"].values()))
+    runner.run(
+        compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
+        check=False,
+    )
+    rollback = runner.run(
+        compose_command(previous_identity, ["up", "--detach", "--wait"]),
+        check=False,
+    )
+    if rollback.returncode:
+        detail = (rollback.stderr or rollback.stdout).strip()
+        raise RuntimeError(f"previous generation did not start: {detail}")
+    active_path = f"{target.value['state_directory']}/active.json"
+    if previous_state is None:
+        runner.run(["rm", "-f", active_path])
+        generation = "adopted"
+    else:
+        _write_remote(target, runner, active_path, previous_state)
+        generation = json.loads(previous_state)["generation"]
+    health = _gate(health_command, target, targets)
+    smoke = _gate(smoke_command, target, targets)
+    return {
+        "schema": "usl-release-abort/v1",
+        "target": target.name,
+        "generation": generation,
+        "health": health,
+        "smoke": smoke,
+        "status": "rolled-back",
+    }
+
+
 def _validate_materialized_release(
     materialized: dict,
     release: dict,
@@ -1203,12 +1923,200 @@ def _validate_materialized_release(
     require_sign_secrets: bool = False,
 ) -> None:
     embedded = materialized.get("release", {})
-    if embedded.get("manifest_sha256") != release_sha:
-        raise RuntimeError("selected release differs from the cohort release")
-    if embedded.get("commit") != release["source"]["commit"]:
-        raise RuntimeError("selected release commit differs from the cohort release")
+    if not isinstance(embedded.get("manifest_sha256"), str) or len(embedded["manifest_sha256"]) != 64:
+        raise RuntimeError("cohort has no verified original release identity")
+    if not isinstance(embedded.get("commit"), str) or len(embedded["commit"]) != 40:
+        raise RuntimeError("cohort has no verified original release commit")
+    if release.get("schema") == "usl-release/v2" and embedded.get("manifest_sha256") != release_sha:
+        raise RuntimeError("legacy restore release differs from the cohort release")
     if require_sign_secrets and not materialized.get("sign_secrets_restored"):
         raise RuntimeError("production recovery lacks complete Sign secret material")
+
+
+def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> None:
+    modules = validate_upgrade_plan(plan)["upgrade_modules"]
+    if not modules:
+        return
+    if plan["candidate_release"] != release.get("identity"):
+        raise RuntimeError("upgrade plan is not bound to the candidate release")
+    database = target.value["databases"]["odoo"]
+    runner.run(
+        [
+            "docker", "run", "--rm", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}",
+            f"--update={','.join(modules)}",
+            "--stop-after-init", "--no-http", "--max-cron-threads=0",
+        ],
+    )
+
+
+def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
+    """Converge the isolated candidate before any production worker can run."""
+    cron_target = target.value["cron_policy"]
+    mode = cron_target["mode"]
+    if mode == "unmanaged":
+        return {"schema": "usl-cron-policy-application/v1", "status": "unmanaged"}
+    policy = parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
+    program = render_odoo_apply_script(policy, mode=mode, gates=cron_target["gates"])
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=program,
+    )
+    prefix = "USL_CRON_POLICY_RESULT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                applied = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("candidate cron policy returned invalid evidence") from error
+            if applied.get("status") != "applied":
+                raise RuntimeError("candidate cron policy did not converge")
+            return applied
+    raise RuntimeError("candidate cron policy returned no evidence")
+
+
+def _notify_release(target, runner, release_id: str) -> dict:
+    """Post one persistent OdooBot note in the distribution update channel."""
+    if target.value["environment"] != "production":
+        raise RuntimeError("release notifications are production-only")
+    if not re.fullmatch(r"[0-9a-f]{64}", release_id):
+        raise RuntimeError("release notification identity is invalid")
+    runtime = inspect_runtime(target, runner)
+    release, _release_sha, _release_raw = _release(target, runner, None)
+    if release.get("identity") != release_id:
+        raise RuntimeError("release notification does not match the active release")
+    active = runtime.get("active_state")
+    if active is not None and active.get("release_manifest"):
+        active_release = json.loads(_read_path(target, runner, active["release_manifest"]))
+        if active_release.get("identity") != release_id:
+            raise RuntimeError("active generation differs from the release notification")
+    network = active["network"] if active else target.value["compose"]["default_network"]
+    volumes = runtime["volumes"]
+    database = target.value["databases"]["odoo"]
+    program = """
+import json
+from markupsafe import Markup, escape
+from odoo import fields
+release_id = env.context.get("usl_release_notification_id")
+notes = json.loads(env.context.get("usl_release_notification_notes"))
+evidence_url = env.context.get("usl_release_notification_evidence_url")
+channel = env.ref("usl_home.channel_distribution_updates").sudo()
+odoobot = env.ref("base.partner_root").sudo()
+external_message_id = "<usl-release-%s@unstaticlabs.com>" % release_id
+message = env["mail.message"].sudo().search([
+    ("model", "=", channel._name),
+    ("res_id", "=", channel.id),
+    ("message_id", "=", external_message_id),
+], limit=1)
+status = "already_posted"
+if not message:
+    items = Markup("").join(
+        Markup("<li>%s</li>") % escape(item)
+        for item in notes["changes"]
+    )
+    action = Markup("")
+    if notes.get("action_required"):
+        action = Markup("<p><strong>Action required:</strong> %s</p>") % escape(
+            notes["action_required"]
+        )
+    body = (
+        Markup("<h3>%s</h3><p>%s</p><ul>%s</ul>%s")
+        % (escape(notes["title"]), escape(notes["summary"]), items, action)
+        + Markup(
+            "<p>Deployed %s · release <code>%s</code> · "
+            '<a href="%s">technical evidence</a></p>'
+        )
+        % (
+            escape(fields.Datetime.now()),
+            escape(release_id[:12]),
+            escape(evidence_url),
+        )
+    )
+    message = channel.message_post(
+        author_id=odoobot.id,
+        body=body,
+        email_add_signature=False,
+        message_id=external_message_id,
+        message_type="comment",
+        subtype_xmlid="mail.mt_comment",
+    )
+    status = "posted"
+print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
+    "channel": "usl_home.channel_distribution_updates",
+    "message_id": message.id,
+    "release": release_id,
+    "status": status,
+}, sort_keys=True))
+"""
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']['name']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(
+            "env = env(context=dict(env.context, usl_release_notification_id="
+            + repr(release_id)
+            + ", usl_release_notification_notes="
+            + repr(json.dumps(release["release_notes"], sort_keys=True))
+            + ", usl_release_notification_evidence_url="
+            + repr(release["build"]["workflow_url"])
+            + "))\n"
+            + program
+        ),
+    )
+    prefix = "USL_RELEASE_NOTIFICATION_RESULT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                value = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("release notification returned invalid evidence") from error
+            if (
+                value.get("status") not in {"posted", "already_posted"}
+                or value.get("release") != release_id
+                or value.get("channel") != "usl_home.channel_distribution_updates"
+                or not isinstance(value.get("message_id"), int)
+            ):
+                raise RuntimeError("release notification evidence differs")
+            return value
+    raise RuntimeError("release notification returned no evidence")
 
 
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
@@ -1223,7 +2131,31 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("source and target must be reachable through the same runtime host")
     current = inspect_runtime(target, target_runner)
     _secret_file(target, target_runner)
-    release, release_sha, release_raw = _release(source, target_runner, arguments.release)
+    release_override = getattr(arguments, "target_release", None) or arguments.release
+    release, release_sha, release_raw = _release(source, target_runner, release_override)
+    upgrade_plan = None
+    signed_plan_evidence = None
+    cron_policy_application = None
+    if getattr(arguments, "upgrade_plan", None):
+        try:
+            plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
+            if not isinstance(plan_value, dict):
+                raise PlanEvidenceError("upgrade plan must be a JSON object")
+            if target.value["environment"] == "production":
+                upgrade_plan = verify_upgrade_plan(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+                signed_plan_evidence = plan_value
+            elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
+                upgrade_plan = verify_upgrade_plan(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+            else:
+                upgrade_plan = validate_upgrade_plan(plan_value)
+        except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
+            raise RuntimeError("upgrade plan is invalid") from error
     tool_image = release["components"]["backup-tool"]["digest_reference"]
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
     if len(generation) > 32 or not generation.startswith("g"):
@@ -1235,7 +2167,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
     for image in _release_images(release):
         _ensure_image(target_runner, image)
-    capacity_after_pull = _require_restore_capacity(target, target_runner, "image pre-pull")
+    candidate_bytes = _measure_candidate_bytes(target, target_runner, tool_image, current)
+    capacity_after_pull = _require_restore_capacity(
+        target,
+        target_runner,
+        "image pre-pull",
+        candidate_bytes=candidate_bytes,
+    )
     _record_event(
         target,
         target_runner,
@@ -1295,7 +2233,23 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             release_sha,
             require_sign_secrets=target.value["environment"] == "production",
         )
+        snapshot_release = materialize_state["release"]
+        candidate_differs = snapshot_release["manifest_sha256"] != release_sha
+        if candidate_differs and upgrade_plan is None:
+            raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+        if upgrade_plan is not None:
+            snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
+            if upgrade_plan["active_release"] != snapshot_identity:
+                raise RuntimeError("upgrade plan is not bound to the snapshot release")
+            _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
+        cron_policy_application = _apply_generation_cron_policy(
+            target,
+            target_runner,
+            release,
+            network,
+            volumes,
+        )
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     finally:
         for container in database_containers:
@@ -1360,9 +2314,15 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "activation", "started")
     try:
-        target_runner.run(compose_command(identity, ["stop", "--timeout", "60"]))
+        # A stable ingress gateway is intentionally outside this service
+        # perimeter. It must keep serving the maintenance response while the
+        # stateful cohort is replaced.
+        cohort_services = sorted(set(target.value["services"].values()))
         target_runner.run(
-            compose_command(generation_identity, ["up", "--detach", "--wait", "--force-recreate"]),
+            compose_command(identity, ["stop", "--timeout", "60", *cohort_services]),
+        )
+        target_runner.run(
+            compose_command(generation_identity, ["up", "--detach", "--wait"]),
         )
     except Exception as error:
         _rollback_after_failure(target_runner, identity, error)
@@ -1396,8 +2356,20 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        if smoke["controls"] != materialize_state["controls"]:
-            raise RuntimeError("restored business controls differ from the source cohort")
+        expected_release_sha256 = None
+        if signed_plan_evidence is not None:
+            expected_release_sha256 = signed_plan_evidence["staging"][
+                "release_controls_sha256"
+            ]
+        try:
+            control_validation = validate_restore(
+                materialize_state["controls"],
+                smoke["controls"],
+                expected_release_sha256=expected_release_sha256,
+                require_unchanged_release=not candidate_differs,
+            )
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
     except Exception as error:
         target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
         if current["active_state"] is None:
@@ -1429,6 +2401,8 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "materialize": materialize_state,
         "health": health,
         "smoke": smoke,
+        "cron_policy_application": cron_policy_application,
+        "control_validation": control_validation,
         "capacity": {
             "before_pull": capacity_before_pull,
             "after_pull": capacity_after_pull,
@@ -1486,6 +2460,20 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     current = inspect_runtime(target, runner)
+    retention_plan = None
+    retention_image = None
+    if target.value["environment"] == "production" and not getattr(arguments, "runtime_only", False):
+        release, _release_sha, _release_raw = _release(target, runner, None)
+        _secret_file(target, runner)
+        retention_image = release["components"]["backup-tool"]["digest_reference"]
+        retention_plan = _run_cohort(
+            target,
+            runner,
+            retention_image,
+            "retention-plan",
+            [],
+            volumes=current["volumes"],
+        )
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
     state_result = runner.run(["cat", state_path], check=False)
@@ -1535,28 +2523,67 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
         "protected_networks": sorted(protected_networks),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
+        "backup_retention": retention_plan,
     }
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
-        for name in candidates:
-            labels = json.loads(
-                runner.run(
-                    ["docker", "volume", "inspect", name, "--format", "{{json .Labels}}"],
-                ).stdout,
-            )
-            if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                raise RuntimeError(f"cleanup candidate became foreign: {name}")
-            runner.run(["docker", "volume", "rm", name])
-        for name in network_candidates:
-            labels = json.loads(
-                runner.run(
-                    ["docker", "network", "inspect", name, "--format", "{{json .Labels}}"],
-                ).stdout,
-            )
-            if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                raise RuntimeError(f"cleanup candidate became foreign: {name}")
-            runner.run(["docker", "network", "rm", name])
+        run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+        with runtime_lock(target, runner, "cleanup", run_id):
+            for name in candidates:
+                volume = json.loads(
+                    runner.run(
+                        ["docker", "volume", "inspect", name, "--format", "{{json .}}"],
+                    ).stdout,
+                )
+                labels = volume.get("Labels") or {}
+                if labels.get("com.unstaticlabs.runtime.target") != target.name:
+                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
+                role = labels.get("com.unstaticlabs.runtime.role")
+                generation = labels.get("com.unstaticlabs.runtime.generation")
+                if role not in target.value["volumes"]:
+                    raise RuntimeError(f"cleanup candidate has an invalid role: {name}")
+                tier = target.value["volumes"][role]["tier"]
+                database_path = None
+                if tier == "database":
+                    database_path = generation_volume_path(target, generation, role)
+                    options = volume.get("Options") or {}
+                    if options != {"device": database_path, "o": "bind", "type": "none"}:
+                        raise RuntimeError(f"cleanup database volume path differs: {name}")
+                    database_source, _available = _filesystem_capacity(
+                        runner,
+                        target.value["storage"]["tiers"]["database"]["path"],
+                    )
+                    bulk_source, _available = _filesystem_capacity(
+                        runner,
+                        target.value["storage"]["tiers"]["bulk"]["path"],
+                    )
+                    if database_source == bulk_source:
+                        raise RuntimeError("cleanup database tier is not local NVMe")
+                runner.run(["docker", "volume", "rm", name])
+                if database_path is not None:
+                    runner.run(
+                        ["find", database_path, "-xdev", "-mindepth", "1", "-delete"],
+                    )
+                    runner.run(["rmdir", "--", database_path])
+            for name in network_candidates:
+                labels = json.loads(
+                    runner.run(
+                        ["docker", "network", "inspect", name, "--format", "{{json .Labels}}"],
+                    ).stdout,
+                )
+                if labels.get("com.unstaticlabs.runtime.target") != target.name:
+                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
+                runner.run(["docker", "network", "rm", name])
+            if retention_image is not None:
+                plan["backup_retention"] = _run_cohort(
+                    target,
+                    runner,
+                    retention_image,
+                    "retention-apply",
+                    [],
+                    volumes=current["volumes"],
+                )
         plan["status"] = "applied"
     else:
         plan["status"] = "planned"
@@ -1564,38 +2591,189 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def release_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    runner = target.runner()
+    state_path = f"{target.value['state_directory']}/release-state.json"
+    if arguments.action == "status":
+        state = runner.run(["cat", state_path], check=False)
+        if state.returncode == 0:
+            try:
+                value = parse_release_state(state.stdout)
+            except ReleaseControllerError as error:
+                raise RuntimeError(str(error)) from error
+        else:
+            value = {
+                "schema": "usl-release-run/v1",
+                "target": target.name,
+                "status": "idle",
+            }
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "abort":
+        state = runner.run(["cat", state_path], check=False)
+        controller_state = None
+        if state.returncode == 0:
+            try:
+                controller_state = abort_release_state(parse_release_state(state.stdout))
+            except ReleaseControllerError as error:
+                raise RuntimeError(str(error)) from error
+            _write_remote(
+                target,
+                runner,
+                state_path,
+                json.dumps(controller_state, indent=2, sort_keys=True) + "\n",
+            )
+        run_id = f"abort-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+        with runtime_lock(target, runner, "release-abort", run_id):
+            rollback = _abort_to_previous_generation(target, runner, arguments.targets)
+        value = {**rollback, "controller_state": controller_state}
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "notify":
+        value = _notify_release(target, runner, arguments.release_id or "")
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "plan":
+        if arguments.attest:
+            if target.value["environment"] != "staging":
+                raise RuntimeError("only staging may attest an upgrade plan")
+            if not arguments.upgrade_plan or not arguments.snapshot or not arguments.candidate_release:
+                raise RuntimeError("plan attestation requires upgrade plan, snapshot, and candidate release")
+            try:
+                plan = validate_upgrade_plan(json.loads(_read_path(target, runner, arguments.upgrade_plan)))
+            except (json.JSONDecodeError, ModuleReleaseError) as error:
+                raise RuntimeError("unsigned staging upgrade plan is invalid") from error
+            candidate_raw = _read_path(target, runner, arguments.candidate_release)
+            try:
+                candidate = validate_release(json.loads(candidate_raw))
+            except (ValueError, json.JSONDecodeError) as error:
+                raise RuntimeError("candidate release manifest is invalid") from error
+            if candidate.get("identity") != plan["candidate_release"]:
+                raise RuntimeError("staging plan targets another candidate release")
+            runtime = inspect_runtime(target, runner)
+            generation = runtime.get("generation")
+            if not isinstance(generation, str) or not generation.startswith("g"):
+                raise RuntimeError("staging has no admitted generation to attest")
+            health = _gate(health_command, target, arguments.targets)
+            smoke = _gate(smoke_command, target, arguments.targets)
+            evidence = sign_upgrade_plan(
+                plan,
+                Path(target.value["plan_signing"]["private_key"]),
+                snapshot=arguments.snapshot,
+                generation=generation,
+                health=health,
+                smoke=smoke,
+            )
+            output = arguments.output or arguments.upgrade_plan
+            _write_remote(target, runner, str(output), json.dumps(evidence, indent=2, sort_keys=True) + "\n", "0644")
+            print(json.dumps({"schema": evidence["schema"], "path": str(output), "plan_sha256": plan["sha256"], "generation": generation, "status": "signed"}, indent=None if arguments.json else 2, sort_keys=True))
+            return 0
+        current, _current_sha, _current_raw = _release(target, runner, arguments.active_release)
+        candidate_raw = _read_path(target, runner, arguments.candidate_release)
+        try:
+            candidate = validate_release(json.loads(candidate_raw))
+        except (ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("candidate release manifest is invalid") from error
+        if candidate.get("schema") != "usl-release/v3":
+            raise RuntimeError("upgrade planning requires a v3 candidate release")
+        runtime = inspect_runtime(target, runner)
+        installed_raw = _psql(
+            target,
+            runner,
+            runtime["compose"],
+            "odoo",
+            "SELECT coalesce(json_agg(name ORDER BY name), '[]'::json) FROM ir_module_module WHERE state = 'installed' AND name LIKE 'usl_%' OR state = 'installed' AND name = 'rebuild_account_migration';",
+        )
+        installed = set(json.loads(installed_raw))
+        try:
+            if current.get("schema") == "usl-release/v2":
+                plan = derive_legacy_upgrade_plan(
+                    candidate,
+                    installed,
+                    active_identity=hashlib.sha256(_current_raw.encode()).hexdigest(),
+                )
+            elif current.get("schema") == "usl-release/v3":
+                plan = derive_upgrade_plan(current, candidate, installed)
+            else:
+                raise RuntimeError("active release schema cannot be upgraded")
+        except ModuleReleaseError as error:
+            raise RuntimeError(str(error)) from error
+        output = arguments.output or Path(
+            f"{target.value['state_directory']}/plans/{plan['sha256']}.json",
+        )
+        _write_remote(target, runner, str(output), json.dumps(plan, indent=2, sort_keys=True) + "\n", "0644")
+        print(json.dumps({**plan, "path": str(output)}, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+    if arguments.action == "reconcile":
+        if not arguments.snapshot or not arguments.candidate_release or not arguments.upgrade_plan:
+            raise RuntimeError("release reconcile requires snapshot, candidate release, and upgrade plan")
+        restore_arguments = argparse.Namespace(
+            targets=arguments.targets,
+            source=arguments.source,
+            target=arguments.target,
+            snapshot=arguments.snapshot,
+            release=None,
+            target_release=arguments.candidate_release,
+            upgrade_plan=arguments.upgrade_plan,
+            generation=arguments.generation,
+            replace=arguments.replace,
+            confirm=arguments.confirm,
+            json=arguments.json,
+        )
+        return restore_command(restore_arguments)
+    raise RuntimeError(f"unsupported release action: {arguments.action}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--targets", type=Path, default=DEFAULT_TARGETS)
+    parser.add_argument("--target")
     commands = parser.add_subparsers(dest="command", required=True)
     runtime = commands.add_parser("runtime")
     runtime.add_argument("action", choices=("status", "start", "stop"))
-    runtime.add_argument("--target", required=True)
+    runtime.add_argument("--target", dest="command_target")
     runtime.add_argument("--json", action="store_true")
     runtime.set_defaults(handler=runtime_command)
+    storage = commands.add_parser("storage")
+    storage.add_argument("action", choices=("plan", "adopt", "status"))
+    storage.add_argument("--target", dest="command_target")
+    storage.add_argument("--generation")
+    storage.add_argument("--rollback-generation")
+    storage.add_argument("--snapshot")
+    storage.add_argument("--confirm")
+    storage.add_argument("--json", action="store_true")
+    storage.set_defaults(handler=storage_command)
     backup = commands.add_parser("backup")
     backup.add_argument("action", choices=("create", "list", "verify"))
-    backup.add_argument("--target", required=True)
+    backup.add_argument("--target", dest="command_target")
     backup.add_argument("--release", type=Path)
     backup.add_argument("--run-id")
     backup.add_argument("--resume")
+    backup.add_argument(
+        "--leave-quiesced",
+        action="store_true",
+        help="leave cohort writers stopped after a successful capture",
+    )
     backup.add_argument("--snapshot")
     backup.add_argument("--json", action="store_true")
     backup.set_defaults(handler=backup_command)
     health = commands.add_parser("health")
-    health.add_argument("--target", required=True)
+    health.add_argument("--target", dest="command_target")
     health.add_argument("--json", action="store_true")
     health.set_defaults(handler=health_command)
     smoke = commands.add_parser("smoke")
-    smoke.add_argument("--target", required=True)
+    smoke.add_argument("--target", dest="command_target")
     smoke.add_argument("--json", action="store_true")
     smoke.set_defaults(handler=smoke_command)
     restore = commands.add_parser("restore")
     restore.add_argument("action", choices=("run",))
     restore.add_argument("--source", required=True)
-    restore.add_argument("--target", required=True)
+    restore.add_argument("--target", dest="command_target")
     restore.add_argument("--snapshot", required=True)
     restore.add_argument("--release", type=Path)
+    restore.add_argument("--target-release", type=Path)
+    restore.add_argument("--upgrade-plan", type=Path)
     restore.add_argument("--generation")
     restore.add_argument("--replace", action="store_true")
     restore.add_argument("--confirm")
@@ -1603,15 +2781,40 @@ def build_parser() -> argparse.ArgumentParser:
     restore.set_defaults(handler=restore_command)
     cleanup = commands.add_parser("cleanup")
     cleanup.add_argument("action", choices=("plan", "apply"))
-    cleanup.add_argument("--target", required=True)
+    cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
+    cleanup.add_argument(
+        "--runtime-only",
+        action="store_true",
+        help="remove only obsolete generation-owned Docker resources",
+    )
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
+    release = commands.add_parser("release")
+    release.add_argument("action", choices=("plan", "reconcile", "status", "abort", "notify"))
+    release.add_argument("--target", dest="command_target")
+    release.add_argument("--source", default="production")
+    release.add_argument("--active-release", type=Path)
+    release.add_argument("--candidate-release", type=Path)
+    release.add_argument("--upgrade-plan", type=Path)
+    release.add_argument("--attest", action="store_true")
+    release.add_argument("--snapshot")
+    release.add_argument("--generation")
+    release.add_argument("--output", type=Path)
+    release.add_argument("--replace", action="store_true")
+    release.add_argument("--confirm")
+    release.add_argument("--release-id")
+    release.add_argument("--json", action="store_true")
+    release.set_defaults(handler=release_command)
     return parser
 
 
 def main() -> int:
     arguments = build_parser().parse_args()
+    arguments.target = getattr(arguments, "command_target", None) or arguments.target
+    if not arguments.target:
+        print("usl-stack: --target is required", file=sys.stderr)
+        return 2
     try:
         return arguments.handler(arguments)
     except RuntimeError as error:

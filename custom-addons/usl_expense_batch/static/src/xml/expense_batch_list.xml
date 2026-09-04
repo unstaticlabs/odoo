@@ -6,7 +6,7 @@
         <xpath expr="//button[@t-if='this.displaySubmit()']" position="before">
             <button t-if="this.displayCreateExpenseBatch()"
                     t-att-class="{'btn-primary': this.batchActionIsPrimary(), 'btn-secondary': !this.batchActionIsPrimary()}"
-                    class="d-none d-md-block btn text-nowrap"
+                    class="btn text-nowrap"
                     t-on-click="() => this.onOpenExpenseBatchWizard()">
                 Add to a Batch
             </button>

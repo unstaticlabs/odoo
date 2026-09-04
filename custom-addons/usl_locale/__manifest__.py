@@ -1,7 +1,7 @@
 {
     "name": "USL Locale",
     "summary": "Shared locale and company-context presentation defaults",
-    "version": "saas~19.3.1.3.4",
+    "version": "saas~19.3.1.3.6",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -9,12 +9,14 @@
     "data": [
         "data/european_date_format.xml",
         "views/res_company_views.xml",
+        "views/res_users_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "usl_locale/static/src/js/european_date_format.js",
             "usl_locale/static/src/js/multi_company_list_columns.js",
             "usl_locale/static/src/js/company_theme.js",
+            "usl_locale/static/src/js/company_color_field.js",
             "usl_locale/static/src/js/named_color_badges.js",
             "usl_locale/static/src/xml/company_theme.xml",
             "usl_locale/static/src/xml/named_color_badges.xml",
@@ -24,6 +26,7 @@
             "usl_locale/static/tests/european_date_format.test.js",
             "usl_locale/static/tests/multi_company_list_columns.test.js",
             "usl_locale/static/tests/company_theme.test.js",
+            "usl_locale/static/tests/company_color_field.test.js",
             "usl_locale/static/tests/named_color_badges.test.js",
         ],
     },

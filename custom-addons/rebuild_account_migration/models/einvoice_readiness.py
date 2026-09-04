@@ -378,6 +378,7 @@ class ResCompany(models.Model):
             ("not_verified", "Ready to test"),
             ("ready_inactive", "Ready for production"),
             ("activation_required", "Activation required"),
+            ("registration_in_progress", "Registration in progress"),
             ("active", "Receiving"),
             ("needs_attention", "Needs attention"),
         ],
@@ -482,7 +483,12 @@ class ResCompany(models.Model):
 
     @api.model
     def _rebuild_apply_default_einvoice_provider(self):
-        """Seed missing reception defaults without rewriting governed settings."""
+        """Seed reception defaults without rewriting governed onboarding state.
+
+        Runtime guards prevent external traffic during upgrades and restores. They
+        must not turn that temporary process constraint into a persistent company
+        deactivation; explicit product actions govern that state.
+        """
         companies = self.sudo().search([
             ("account_fiscal_country_id.code", "=", "FR"),
         ])
@@ -515,13 +521,6 @@ class ResCompany(models.Model):
                 })
             if not company._rebuild_einvoice_runtime_guard_enabled():
                 values.update({
-                    "rebuild_einvoice_environment": "development",
-                    "rebuild_einvoice_production_prepared_by_id": False,
-                    "rebuild_einvoice_production_prepared_at": False,
-                    "rebuild_einvoice_activation_approved": False,
-                    "rebuild_einvoice_approved_by_id": False,
-                    "rebuild_einvoice_approved_at": False,
-                    "rebuild_einvoice_exchange_enabled": False,
                     "l10n_fr_pdp_send_to_ppf": False,
                     "l10n_fr_pdp_pilot_phase": False,
                 })
@@ -811,8 +810,14 @@ class ResCompany(models.Model):
             )
         if connection_status == "registration_pending":
             return (
-                _("Complete platform registration"),
-                [_("Finish registration and verify the French directory effective date.")],
+                _("Registration in progress"),
+                [
+                    _(
+                        "Odoo's Approved Platform is registering this company in "
+                        "the French directory. Reception can be enabled after the "
+                        "native status becomes Receiver.",
+                    ),
+                ],
             )
         if connection_status == "inactive":
             return (
@@ -927,6 +932,10 @@ class ResCompany(models.Model):
                 or not test_current
             ):
                 company.rebuild_einvoice_readiness_status = "not_verified"
+            elif raw_state == "smp_registration":
+                company.rebuild_einvoice_readiness_status = (
+                    "registration_in_progress"
+                )
             elif company.rebuild_einvoice_environment == "production":
                 company.rebuild_einvoice_readiness_status = "activation_required"
             else:

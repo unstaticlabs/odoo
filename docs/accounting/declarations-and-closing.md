@@ -148,7 +148,7 @@ decision while leaving a controlled superseding-review path.
 ## Roles and review gates
 
 - Accounting Manager can refresh, prepare, post permitted corrections, record external filing/payment state and apply standard locks.
-- Accountant Reviewer inherits Odoo accounting read-only access and may create and record an audited `declaration_review` decision for a declaration in an allowed company. It cannot alter the declaration directly, file, pay, refresh ledger values, approve closings, change lock dates, supersede decisions or cross a company boundary. Prosper receives this role with Unstatic Labs and USL MEDIA as his only allowed companies.
+- Accountant Reviewer may perform reversible Accounting work in unlocked periods and may create and record an audited `declaration_review` decision for a declaration in an allowed company. Declaration and closing controls remain narrower: the reviewer cannot alter the declaration directly, file, pay, refresh ledger values, approve closings, change lock dates, supersede decisions or cross a company boundary. Prosper receives this role with Unstatic Labs and USL MEDIA as his only allowed companies.
 - Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration decisions require an evidence summary; accepted closing decisions also require a generated package and create immutable snapshots.
 - A closing acceptance does not override automated blockers. A close with blockers remains blocked.
 - Future finance agents should receive company-scoped read access or purpose-specific manager authority; they must not receive unrestricted cross-company accounting access.

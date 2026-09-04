@@ -14,6 +14,8 @@ from odoo.tools.pdf import PdfWriter
 
 from odoo.addons.usl_sign.services import field_content, field_value
 
+from .test_sign import FakeDSS, _renderer_result
+
 
 @tagged("post_install", "-at_install")
 class TestSignBrowserJourneys(HttpCase):
@@ -1113,6 +1115,16 @@ class TestSignBrowserJourneys(HttpCase):
 
         with (
             patch.object(ChromeBrowser, "navigate_to", new=navigate_on_localhost),
+            patch.object(
+                type(sign_request),
+                "_sign_dss_client",
+                return_value=FakeDSS(),
+            ),
+            patch.object(
+                type(sign_request),
+                "_completion_certificate_render",
+                return_value=_renderer_result(self._pdf()),
+            ),
             patch.object(
                 ChromeBrowser,
                 "_handle_request_paused",

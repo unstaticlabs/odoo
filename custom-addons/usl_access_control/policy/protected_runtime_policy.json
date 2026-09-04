@@ -1976,8 +1976,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "4d5790ceef763d50e43e9014769f5daeed367a28c08f119cad4696ad425a6a14",
-  "runtime_policy_sha256": "51a20e077bb77c2de3a4d0c604a7dbc034acba3bd7955e6df74e41ff3b835cea",
+  "qualified_policy_digest": "ca96cbaac4125f89b32e75fc88206e057fa8b04c0a08d54346f050f40cbf77e6",
+  "runtime_policy_sha256": "53e5594e892809ebbe16643a870bd2c8359224e3160cdf82f501e98351473c1d",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2578,6 +2578,10 @@
     },
     {
       "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server",
       "classification": "operational"
     },
     {

@@ -504,7 +504,7 @@ class AccountImmediateSettlement(models.Model):
             statement_line.with_context(
                 immediate_settlement_internal_token=_INTERNAL_SETTLEMENT_TOKEN,
                 rebuild_skip_partner_inference=True,
-            ).write(
+            )._write_reconciliation_metadata(
                 {
                     "foreign_currency_id": (
                         settlement.original_statement_foreign_currency_id.id
@@ -741,6 +741,13 @@ class AccountBankStatementLine(models.Model):
 
     def _has_internal_settlement_token(self):
         return _has_internal_settlement_token(self.env)
+
+    def _certified_reconciliation_metadata_fields(self):
+        return super()._certified_reconciliation_metadata_fields() | {
+            "immediate_settlement_foreign_amount_source",
+            "immediate_settlement_document_id",
+            "active_immediate_settlement_id",
+        }
 
     def _reconcile_move_line_vals(self, line, move_id=False):
         vals = super()._reconcile_move_line_vals(line, move_id=move_id)
@@ -2114,7 +2121,7 @@ class AccountMove(models.Model):
         statement_line.with_context(
             immediate_settlement_internal_token=_INTERNAL_SETTLEMENT_TOKEN,
             rebuild_skip_partner_inference=True,
-        ).write(statement_values)
+        )._write_reconciliation_metadata(statement_values)
         reconcile_data = self._prepare_exact_settlement_reconcile_data(
             statement_line,
             reconcile_eligibility,

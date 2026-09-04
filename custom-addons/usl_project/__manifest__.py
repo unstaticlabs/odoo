@@ -7,6 +7,7 @@
     "license": "LGPL-3",
     "depends": ["mail_tracking", "project"],
     "data": [
+        "data/project_task_cron.xml",
         "views/project_project_views.xml",
         "views/project_task_views.xml",
     ],
@@ -20,4 +21,5 @@
     },
     "application": False,
     "installable": True,
+    "post_init_hook": "post_init_hook",
 }

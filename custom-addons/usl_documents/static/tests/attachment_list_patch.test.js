@@ -89,11 +89,27 @@ async function openChatterAttachment({
         expect.step("opened");
         return { type: "ir.actions.act_window_close" };
     });
+    onRpc("ir.attachment", "action_remove_archived_from_record", ({ args }) => {
+        expect(args[0]).toEqual([attachmentId]);
+        expect(["unlink", "trash"]).toInclude(args[1]);
+        expect.step(`removed:${args[1]}`);
+        return {
+            removed: true,
+            message:
+                args[1] === "trash"
+                    ? "The document was unlinked and moved to Documents Trash."
+                    : "The document was unlinked and remains in Documents.",
+        };
+    });
     mockService("notification", {
         add(message, options) {
-            expect(message).toMatch(/The original stays attached here/);
-            expect(options).toEqual({ type: "success" });
-            expect.step("notified");
+            if (message.includes("The original stays attached here")) {
+                expect(options).toEqual({ type: "success" });
+                expect.step("notified");
+            } else if (message.includes("was unlinked")) {
+                expect(options).toEqual({ type: "success" });
+                expect.step("removal-notified");
+            }
         },
     });
     await start();
@@ -154,4 +170,52 @@ test("native chatter attachment shows its real Documents processing phase", asyn
     await contains(
         ".o_usl_archiving_document[title='Documents is indexing this file']"
     );
+});
+
+test.tags("desktop");
+test("record attachment removal offers unlink and Documents Trash", async () => {
+    await openChatterAttachment({
+        initialDetail: {
+            state: "archived",
+            status_label: "Open in Documents",
+            operation_id: 41,
+            document_id: 73,
+            can_remove_from_record: true,
+            can_move_to_trash: true,
+        },
+    });
+
+    await contains(".o_usl_open_document");
+    await click(".o-mail-Attachment-unlink");
+    await contains(".modal-title", { text: "Remove document from this record?" });
+    await contains(".o_usl_unlink_document", {
+        text: "Unlink Document from Record",
+    });
+    await contains(".o_usl_unlink_trash_document", {
+        text: "Unlink and Move to Trash",
+    });
+    await click(".o_usl_unlink_document");
+
+    await contains(".o-mail-AttachmentList", { count: 0 });
+    await expect.waitForSteps(["removed:unlink", "removal-notified"]);
+});
+
+test.tags("desktop");
+test("shared archived attachment cannot be moved to Trash from one record", async () => {
+    await openChatterAttachment({
+        initialDetail: {
+            state: "archived",
+            status_label: "Open in Documents",
+            operation_id: 41,
+            document_id: 73,
+            can_remove_from_record: true,
+            can_move_to_trash: false,
+        },
+    });
+
+    await contains(".o_usl_open_document");
+    await click(".o-mail-Attachment-unlink");
+    await contains(".modal-title", { text: "Remove document from this record?" });
+    expect(".modal").toHaveText(/shared with another record/);
+    await contains(".o_usl_unlink_trash_document:disabled");
 });

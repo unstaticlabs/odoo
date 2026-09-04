@@ -142,6 +142,13 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         action = self.env.ref(
             "usl_platform_billing.action_platform_billing_sessions",
         )
+        # Keep the parent-form calendar navigation deterministic across
+        # execution dates.  The inline payout picker selects its year and month
+        # explicitly in the browser journey.
+        action.context = (
+            "{'default_period_month': '2026-07-01', "
+            "'default_invoice_date': '2026-07-31'}"
+        )
 
         self.start_tour(
             f"/odoo/action-{action.id}",

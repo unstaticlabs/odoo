@@ -14,6 +14,7 @@ from operations.runtime import (
     validate_target,
     validate_secret_text,
 )
+from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -67,6 +68,43 @@ class FakeRunner:
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
+        value = {
+            "schema": "usl-odoo-mcp-readiness/v1",
+            "status": "ready",
+            "server_version": "1.4.2",
+            "targets": 1,
+            "oauth": {"status": "ready", "schema_version": 1},
+        }
+        self.assertEqual(_validate_mcp_readiness(value, require_oauth=True)["oauth"]["status"], "ready")
+        value["oauth"]["schema_version"] = 2
+        with self.assertRaisesRegex(RuntimeError, "OAuth-vault schema"):
+            _validate_mcp_readiness(value, require_oauth=True)
+
+    def test_production_mcp_requires_ready_oauth(self) -> None:
+        value = {
+            "schema": "usl-odoo-mcp-readiness/v1",
+            "status": "ready",
+            "server_version": "1.0.0",
+            "targets": 1,
+            "oauth": {"status": "disabled", "schema_version": 1},
+        }
+        with self.assertRaisesRegex(RuntimeError, "OAuth vault"):
+            _validate_mcp_readiness(value, require_oauth=True)
+        self.assertEqual(_validate_mcp_readiness(value, require_oauth=False)["status"], "ready")
+
+    def test_sign_readiness_binds_public_trust_and_dss_engine(self) -> None:
+        value = {
+            "schema": "usl-sign-readiness/v1",
+            "status": "ready",
+            "step_ca": {"status": "ok", "trust_sha256": "a" * 64},
+            "dss": {"status": "ok", "engine_version": "6.4", "trust_sha256": "b" * 64},
+        }
+        self.assertEqual(_validate_sign_readiness(value), value)
+        value["dss"]["trust_sha256"] = "unsafe"
+        with self.assertRaisesRegex(RuntimeError, "trust identity"):
+            _validate_sign_readiness(value)
+
     def test_all_versioned_targets_validate(self) -> None:
         for name in ("production", "staging", "local"):
             target = load_target(name, TARGETS)
@@ -108,6 +146,29 @@ class RuntimeContractTests(unittest.TestCase):
         value["paths"]["sign_evidence"]["path"] = value["paths"]["sign_secrets"]["path"] + "/evidence"
         with self.assertRaisesRegex(RuntimeError, "must not overlap"):
             validate_target(value)
+
+    def test_target_requires_a_tier_for_every_persistent_resource(self) -> None:
+        target = load_target("local", TARGETS)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        del value["volumes"]["odoo_postgres"]["tier"]
+        with self.assertRaisesRegex(RuntimeError, "volumes.odoo_postgres fields differ"):
+            validate_target(value)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        value["paths"]["sign_secrets"]["tier"] = "foreign"
+        with self.assertRaisesRegex(RuntimeError, "paths.sign_secrets.tier is invalid"):
+            validate_target(value)
+
+    def test_host_targets_split_bulk_and_database_tiers(self) -> None:
+        for name in ("production", "staging"):
+            target = load_target(name, TARGETS)
+            tiers = target.value["storage"]["tiers"]
+            self.assertEqual(tiers["bulk"]["path"], "/srv/storage")
+            self.assertEqual(tiers["database"]["path"], "/srv/db")
+            self.assertEqual(tiers["bulk"]["reserve_bytes"], 15 * 1024**3)
+            self.assertEqual(tiers["database"]["reserve_bytes"], 2 * 1024**3)
+            self.assertEqual(target.value["volumes"]["odoo_postgres"]["tier"], "database")
+            self.assertEqual(target.value["volumes"]["mcp_oauth"]["tier"], "database")
+            self.assertEqual(target.value["volumes"]["odoo_filestore"]["tier"], "bulk")
 
     def test_secret_file_rejects_unapproved_secret(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "not allowlisted"):

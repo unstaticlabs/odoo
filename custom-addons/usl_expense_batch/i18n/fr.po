@@ -739,11 +739,12 @@ msgstr "Soumettre le lot"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid ""
-"Send only the draft expenses in this batch for manager approval. This does "
-"not post or pay them."
+"Submit every eligible draft expense in this Batch for manager approval. "
+"Posted, paid, refused, and already-submitted expenses remain unchanged."
 msgstr ""
-"Envoie uniquement les dépenses en brouillon de cette note pour approbation. "
-"Elles ne sont ni comptabilisées ni payées."
+"Soumet toutes les dépenses en brouillon éligibles de ce lot à l’approbation "
+"d’un responsable. Les dépenses déjà soumises, comptabilisées, payées ou "
+"refusées restent inchangées."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__submitted_by_id
@@ -857,13 +858,13 @@ msgstr "justificatif"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
-msgid "Approve the submitted expenses in this batch. Nothing is posted or paid."
-msgstr "Approuve les dépenses soumises de cette note. Rien n’est comptabilisé ni payé."
+msgid "Approve every submitted expense in this Batch. This does not post accounting entries or make payments."
+msgstr "Approuve toutes les dépenses soumises de ce lot, sans comptabiliser d’écriture ni effectuer de paiement."
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
-msgid "Post the approved expenses in this batch to Accounting."
-msgstr "Comptabilise les dépenses approuvées de cette note."
+msgid "Post every approved expense in this Batch to Accounting. This does not pay the expenses or change expenses already posted."
+msgstr "Comptabilise toutes les dépenses approuvées de ce lot, sans les payer ni modifier celles déjà comptabilisées."
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
@@ -1176,8 +1177,12 @@ msgid "Accounting is preserved because this expense is no longer a draft."
 msgstr "La comptabilité est conservée car cette dépense n’est plus en brouillon."
 
 #. module: usl_expense_batch
-msgid "Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-msgstr "Prévisualisez les changements sur les brouillons. Les choix propres à une dépense restent inchangés sauf remplacement explicite par un responsable."
+msgid "Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
+msgstr "Prévisualise puis applique le compte de charge et la répartition analytique communs du lot aux brouillons éligibles. Les choix propres à une dépense restent inchangés sauf remplacement explicite dans la prévisualisation."
+
+#. module: usl_expense_batch
+msgid "Select unbatched draft, approved, or posted expenses for this employee and company. Existing accounting entries and expense states remain unchanged."
+msgstr "Sélectionne des dépenses non regroupées, en brouillon, approuvées ou comptabilisées, pour cet employé et cette société. Les écritures et les états existants restent inchangés."
 
 #. module: usl_expense_batch
 msgid "What are these expenses for?"
@@ -1198,10 +1203,6 @@ msgstr "Payé par l’employé / la société"
 #. module: usl_expense_batch
 msgid "Some expenses need attention. Point to the warning indicator on a line for details."
 msgstr "Certaines dépenses sont à vérifier. Survolez leur indicateur pour afficher le détail."
-
-#. module: usl_expense_batch
-msgid "Expense types:"
-msgstr "Types de dépenses :"
 
 #. module: usl_expense_batch
 msgid "Remove from Batch"
@@ -1294,3 +1295,162 @@ msgstr "L’employé et la société ne peuvent plus être modifiés après l’
 #: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
 msgid "%(count)s selected expense(s) fall outside this Batch's intended dates. You can still add and process them."
 msgstr "%(count)s dépense(s) sélectionnée(s) se trouve(nt) hors de la période prévue du lot. Vous pouvez tout de même les ajouter et les traiter."
+
+#. module: usl_expense_batch
+msgid "Progress breakdown"
+msgstr "Répartition de l’avancement"
+
+#. module: usl_expense_batch
+msgid "Progress segments"
+msgstr "Segments d’avancement"
+
+#. module: usl_expense_batch
+msgid "Batch state"
+msgstr "État du lot"
+
+#. module: usl_expense_batch
+msgid "My batches"
+msgstr "Mes lots"
+
+#. module: usl_expense_batch
+msgid "Exceptions"
+msgstr "Exceptions"
+
+#. module: usl_expense_batch
+msgid "Apply context"
+msgstr "Appliquer le contexte"
+
+#. module: usl_expense_batch
+msgid "Receipt"
+msgstr "Justificatif"
+
+#. module: usl_expense_batch
+msgid "Some expenses need attention."
+msgstr "Certaines dépenses sont à vérifier."
+
+#. module: usl_expense_batch
+msgid "Point to a line warning for details."
+msgstr "Survolez l’avertissement d’une ligne pour afficher le détail."
+
+#. module: usl_expense_batch
+msgid "draft"
+msgstr "brouillon"
+
+#. module: usl_expense_batch
+msgid "submitted"
+msgstr "soumise"
+
+#. module: usl_expense_batch
+msgid "approved"
+msgstr "approuvée"
+
+#. module: usl_expense_batch
+msgid "posted"
+msgstr "comptabilisée"
+
+#. module: usl_expense_batch
+msgid "in payment"
+msgstr "en paiement"
+
+#. module: usl_expense_batch
+msgid "paid"
+msgstr "payée"
+
+#. module: usl_expense_batch
+msgid "refused"
+msgstr "refusée"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "%(count)s %(state)s"
+msgstr "%(count)s %(state)s"
+
+#. module: usl_expense_batch
+msgid "Expense Progress"
+msgstr "Avancement des dépenses"
+
+#. module: usl_expense_batch
+msgid "Readiness"
+msgstr "État de préparation"
+
+#. module: usl_expense_batch
+msgid "Expenses needing attention"
+msgstr "Dépenses à vérifier"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Needs attention · %(count)s"
+msgstr "Attention requise · %(count)s"
+
+#. module: usl_expense_batch
+msgid "Review the marked expense lines for details."
+msgstr "Consultez les dépenses signalées pour plus de détails."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Exception filtering expects a true or false value."
+msgstr "Le filtre des exceptions attend une valeur vraie ou fausse."
+
+#. module: usl_expense_batch
+msgid "All"
+msgstr "Tous"
+
+#. module: usl_expense_batch
+msgid "Period"
+msgstr "Période"
+
+#. module: usl_expense_batch
+msgid "Issues"
+msgstr "Anomalies"
+
+#. module: usl_expense_batch
+msgid "Add expenses"
+msgstr "Ajouter des dépenses"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "%s expense(s) added to this Batch."
+msgstr "%s dépense(s) ajoutée(s) à cette note de frais."
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "%s expenses: %s"
+msgstr "%s notes de frais : %s"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Apply context to %(count)s expenses"
+msgstr "Appliquer le contexte à %(count)s notes de frais"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "Add expenses to %s"
+msgstr "Ajouter des dépenses à %s"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "Add selected expenses"
+msgstr "Ajouter les dépenses sélectionnées"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_candidate_list
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_candidate_search
+msgid "Available expenses"
+msgstr "Dépenses disponibles"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+msgid "No unbatched draft, approved, or posted expenses are available for this employee and company."
+msgstr "Aucune dépense non regroupée au statut brouillon, approuvé ou comptabilisé n’est disponible pour cet employé et cette société."
+
+#. module: usl_expense_batch
+msgid "Select at least one expense to add."
+msgstr "Sélectionnez au moins une dépense à ajouter."
+
+#. module: usl_expense_batch
+msgid "Add Expenses to Batch"
+msgstr "Ajouter des dépenses au lot"

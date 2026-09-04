@@ -1,6 +1,7 @@
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
+from odoo.tools import format_date
 
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -712,6 +713,59 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(wizard._create_batch(), existing)
         self.assertEqual(expense.expense_batch_id, existing)
 
+    def test_batch_presentation_summarizes_progress_without_changing_lifecycle(self):
+        draft = self._expense("Draft receipt")
+        approved = self._expense("Approved receipt")
+        incomplete = self._expense("Missing receipt", with_receipt=False)
+        approved.sudo().approval_state = "approved"
+        batch = self._batch(draft + approved + incomplete, "Mixed progress")
+
+        self.assertEqual(batch.batch_state, "open")
+        self.assertEqual(batch.expense_progress, "draft")
+        self.assertEqual(batch.expense_progress_summary, "2 draft · 1 approved")
+        self.assertEqual(
+            batch.expense_progress_breakdown,
+            '{"draft":2,"approved":1}',
+        )
+        self.assertEqual(batch.attention_count, 3)
+        self.assertEqual(batch.readiness_summary, "Needs attention · 3")
+        self.assertEqual(
+            batch.period_summary,
+            format_date(self.env, batch.date_from),
+        )
+
+        dashboard = self.env["usl.expense.batch"].get_batch_dashboard_counts()
+        self.assertGreaterEqual(dashboard["all"], 1)
+        self.assertGreaterEqual(dashboard["open_batches"], 1)
+        self.assertGreaterEqual(dashboard["needs_information"], 1)
+        self.assertIn(
+            batch,
+            self.env["usl.expense.batch"].search([
+                ("has_incomplete_expenses", "=", True),
+            ]),
+        )
+        self.assertEqual(
+            set(dashboard),
+            {"all", "open_batches", "needs_information", "my_batches", "exceptions"},
+        )
+
+        batch.active = False
+        self.assertEqual(batch.batch_state, "archived")
+
+    def test_add_expenses_action_uses_eligible_same_employee_records(self):
+        batch = self._batch(self._expense("Existing expense"), "Open batch")
+        candidate = self._expense("Later expense")
+
+        action = batch.action_open_add_expenses_wizard()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(wizard.batch_id, batch)
+        wizard.expense_ids = candidate
+        self.assertEqual(
+            wizard.action_add(),
+            {"type": "ir.actions.act_window_close"},
+        )
+        self.assertEqual(candidate.expense_batch_id, batch)
+
     def test_mixed_payer_posting_keeps_one_batch_and_remaining_action(self):
         employee_paid = self._expense("Canada hotel", amount=215)
         company_paid = self._expense(
@@ -938,8 +992,26 @@ class TestExpenseBatch(TestExpenseCommon):
             missing_information[0].get("string"),
             "Missing information",
         )
-        self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
-        self.assertTrue(batch_form.xpath("//field[@name='expense_progress']"))
+        self.assertFalse(batch_form.xpath("//field[@name='readiness_state']"))
+        self.assertFalse(
+            batch_form.xpath("//field[@name='expense_progress_summary']"),
+        )
+        self.assertFalse(batch_form.xpath("//field[@name='product_summary']"))
+        self.assertTrue(batch_form.xpath("//field[@name='readiness_summary']"))
+        self.assertFalse(
+            batch_form.xpath("//div[contains(@class, 'alert-warning')]"),
+        )
+        self.assertTrue(
+            batch_form.xpath(
+                "//div[contains(@class, 'o_usl_batch_attention_summary')]"
+                "//field[@name='attention_count']",
+            ),
+        )
+        self.assertTrue(
+            batch_form.xpath(
+                "//button[@name='action_open_add_expenses_wizard']",
+            ),
+        )
         self.assertFalse(batch_form.xpath("/form/header/field[@name='state']"))
         self.assertTrue(
             batch_form.xpath("//widget[@name='web_ribbon'][@text='Archived']"),
@@ -947,13 +1019,13 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertFalse(batch_form.xpath("//page[@name='review']"))
         self.assertTrue(batch_form.xpath("//page[@name='accounting_history']"))
         analytic_fields = batch_form.xpath(
-            "//group[@string='Shared context']/field[@name='analytic_distribution']",
+            "//group[@string='Shared context']//field[@name='analytic_distribution']",
         )
         self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
         self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
         self.assertEqual(analytic_fields[0].get("readonly"), "not active")
         context_period = batch_form.xpath(
-            "//group[@string='Shared context']/div[@name='context_period']",
+            "//group[@string='Shared context']//div[@name='context_period']",
         )
         self.assertEqual(
             context_period[0].xpath("./field/@name"),
@@ -969,18 +1041,99 @@ class TestExpenseBatch(TestExpenseCommon):
         apply_context = batch_form.xpath(
             "//button[@name='action_open_context_wizard']",
         )[0]
-        self.assertIn("Line-specific choices", apply_context.get("title"))
+        self.assertIn("shared expense account", apply_context.get("title"))
+        self.assertIn("preview", apply_context.get("title").lower())
         self.assertIn("draft_expense_count == 0", apply_context.get("invisible"))
+        add_expenses = batch_form.xpath(
+            "//button[@name='action_open_add_expenses_wizard']",
+        )[0]
+        self.assertIn("Existing accounting entries", add_expenses.get("title"))
+        self.assertIn("expense states remain unchanged", add_expenses.get("title"))
         submit = batch_form.xpath("//button[@name='action_submit']")[0]
-        self.assertIn("only the draft expenses", submit.get("title"))
-        self.assertIn("does not post", submit.get("title").lower())
+        self.assertIn("eligible draft expense", submit.get("title"))
+        self.assertIn("remain unchanged", submit.get("title").lower())
         self.assertIn("draft_expense_count == 0", submit.get("invisible"))
 
         batch_search = self.env.ref(
             "usl_expense_batch.view_expense_batch_search",
         )._get_combined_arch()
+        for filter_name in (
+            "open_batches",
+            "needs_information",
+            "my_batches",
+            "exceptions",
+        ):
+            self.assertTrue(
+                batch_search.xpath(f"//filter[@name='{filter_name}']"),
+            )
         archived = batch_search.xpath("//filter[@name='inactive']")[0]
         self.assertEqual(archived.get("domain"), "[('active', '=', False)]")
+
+        batch_list = self.env.ref(
+            "usl_expense_batch.view_expense_batch_list",
+        )._get_combined_arch()
+        self.assertFalse(batch_list.xpath("/list[@decoration-info]"))
+        self.assertEqual(batch_list.get("js_class"), "usl_expense_batch_list")
+        self.assertTrue(batch_list.xpath("//field[@name='period_summary']"))
+        self.assertFalse(batch_list.xpath("//field[@name='date_from']"))
+        self.assertFalse(batch_list.xpath("//field[@name='date_to']"))
+        self.assertFalse(batch_list.xpath("//field[@name='expense_count']"))
+        self.assertFalse(batch_list.xpath("//field[@name='exception_count']"))
+        self.assertTrue(
+            batch_list.xpath("//field[@name='expense_progress_summary']"),
+        )
+        progress_summary = batch_list.xpath(
+            "//field[@name='expense_progress_summary']",
+        )[0]
+        self.assertIn("o_usl_progress_summary", progress_summary.get("class"))
+        self.assertEqual(
+            progress_summary.get("widget"),
+            "expense_batch_progress",
+        )
+        self.assertTrue(
+            batch_list.xpath(
+                "//field[@name='expense_progress_breakdown']"
+                "[@column_invisible='True']",
+            ),
+        )
+        readiness = batch_list.xpath(
+            "//field[@name='readiness_summary']",
+        )[0]
+        self.assertEqual(readiness.get("widget"), "badge")
+        self.assertIn("attention_count", readiness.get("decoration-warning"))
+        self.assertTrue(batch_list.xpath("//field[@name='batch_state']"))
+
+        self.assertEqual(batch_form.get("js_class"), "usl_expense_batch_form")
+        line_state = expense_lines.xpath("./field[@name='state']")[0]
+        self.assertIn("submitted", line_state.get("decoration-warning"))
+        self.assertIn("in_payment", line_state.get("decoration-primary"))
+        self.assertIn("paid", line_state.get("decoration-success"))
+        self.assertIn("refused", line_state.get("decoration-danger"))
+
+        candidate_list = self.env.ref(
+            "usl_expense_batch.view_expense_batch_add_candidate_list",
+        )._get_combined_arch()
+        self.assertEqual(
+            candidate_list.get("js_class"),
+            "usl_expense_batch_candidate_list",
+        )
+        self.assertEqual(candidate_list.get("create"), "false")
+        self.assertEqual(candidate_list.get("edit"), "false")
+        self.assertEqual(candidate_list.get("delete"), "false")
+        candidate_state = candidate_list.xpath("//field[@name='state']")[0]
+        self.assertIn("approved", candidate_state.get("decoration-info"))
+        self.assertIn("posted", candidate_state.get("decoration-primary"))
+
+        candidate_search = self.env.ref(
+            "usl_expense_batch.view_expense_batch_add_candidate_search",
+        )._get_combined_arch()
+        self.assertEqual(
+            {
+                item.get("name")
+                for item in candidate_search.xpath("//filter")
+            },
+            {"draft", "approved", "posted", "date", "group_state", "group_product"},
+        )
 
         context_wizard = self.env.ref(
             "usl_expense_batch.view_expense_batch_context_apply_wizard_form",

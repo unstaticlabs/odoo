@@ -38,21 +38,26 @@
       "password_key": "PAPERLESS_DB_PASSWORD"
     }
   },
+  "storage": {"tiers": {
+    "bulk": {"path": "/tmp/usl-odoo-local/bulk", "reserve_bytes": 16106127360},
+    "database": {"path": "/tmp/usl-odoo-local/db", "reserve_bytes": 2147483648},
+    "local": {"path": "/tmp/usl-odoo-local/runtime", "reserve_bytes": 2147483648}
+  }},
   "volumes": {
-    "odoo_postgres": {"name": "usl-odoo-local_postgres-data", "class": "transient"},
-    "odoo_filestore": {"name": "usl-odoo-local_odoo-data", "class": "durable"},
-    "paperless_postgres": {"name": "usl-odoo-local_paperless-postgres-data", "class": "transient"},
-    "paperless_broker": {"name": "usl-odoo-local_paperless-broker-data", "class": "transient"},
-    "paperless_media": {"name": "usl-odoo-local_paperless-media", "class": "durable"},
-    "paperless_data": {"name": "usl-odoo-local_paperless-data", "class": "cache"},
-    "paperless_trash": {"name": "usl-odoo-local_paperless-trash", "class": "durable"},
-    "paperless_consume": {"name": "usl-odoo-local_paperless-consume", "class": "durable"},
-    "paperless_export": {"name": "usl-odoo-local_paperless-export", "class": "transient"},
-    "mcp_oauth": {"name": "usl-odoo-local_odoo-mcp-oauth-data", "class": "durable"}
+    "odoo_postgres": {"name": "usl-odoo-local_postgres-data", "class": "transient", "tier": "database"},
+    "odoo_filestore": {"name": "usl-odoo-local_odoo-data", "class": "durable", "tier": "bulk"},
+    "paperless_postgres": {"name": "usl-odoo-local_paperless-postgres-data", "class": "transient", "tier": "database"},
+    "paperless_broker": {"name": "usl-odoo-local_paperless-broker-data", "class": "transient", "tier": "database"},
+    "paperless_media": {"name": "usl-odoo-local_paperless-media", "class": "durable", "tier": "bulk"},
+    "paperless_data": {"name": "usl-odoo-local_paperless-data", "class": "cache", "tier": "bulk"},
+    "paperless_trash": {"name": "usl-odoo-local_paperless-trash", "class": "durable", "tier": "bulk"},
+    "paperless_consume": {"name": "usl-odoo-local_paperless-consume", "class": "durable", "tier": "bulk"},
+    "paperless_export": {"name": "usl-odoo-local_paperless-export", "class": "transient", "tier": "bulk"},
+    "mcp_oauth": {"name": "usl-odoo-local_odoo-mcp-oauth-data", "class": "durable", "tier": "database"}
   },
   "paths": {
-    "sign_secrets": {"path": "/tmp/usl-odoo-local/sign", "class": "durable", "required": true},
-    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign-evidence", "class": "durable", "required": false}
+    "sign_secrets": {"path": "/tmp/usl-odoo-local/sign", "class": "durable", "required": true, "tier": "local"},
+    "sign_evidence": {"path": "/tmp/usl-odoo-local/sign-evidence", "class": "durable", "required": false, "tier": "local"}
   },
   "external_networks": {},
   "endpoints": {
@@ -80,6 +85,8 @@
     "cache_repository": "rest:/tmp/usl-odoo-local/restic/cache"
   },
   "release_manifest": "/tmp/usl-odoo-local/usl-release.json",
+  "plan_signing": {"private_key": null, "public_key": null},
+  "cron_policy": {"mode": "unmanaged", "path": null, "gates": {}},
   "secrets": {
     "env_file": "/tmp/usl-odoo-local/operations.env",
     "allowed_keys": [

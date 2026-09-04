@@ -191,6 +191,26 @@ class TestBankStatementIngestion(TransactionCase):
             banking_view.sudo().with_context(
                 usl_documents_archive_view_sync=True,
             ).write({"tag_ids": [Command.set(banking_tags.ids)]})
+        statement_tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .search([("name", "=ilike", "Bank statement")], limit=1)
+        )
+        if not statement_tag:
+            statement_tag = (
+                self.env["usl.paperless.tag"]
+                .sudo()
+                .with_context(usl_documents_cache_write=True)
+                .create(
+                    {
+                        "name": "Bank statement",
+                        "paperless_id": 975_000_000 + evidence.id,
+                        "matching_algorithm": "6",
+                        "active": True,
+                    },
+                )
+            )
+        required_tags = banking_tags | statement_tag
 
         Link = self.env["usl.document.link"].sudo()
         link = Link.search([
@@ -211,7 +231,7 @@ class TestBankStatementIngestion(TransactionCase):
                 "availability_state": "available",
                 "permission_sync_state": "synchronized",
                 "checksum": evidence.sha256,
-                "tag_ids": [Command.set(banking_tags.ids)],
+                "tag_ids": [Command.set(required_tags.ids)],
             })
         else:
             document.version_ids.sudo().write({"is_current": False})
@@ -220,7 +240,7 @@ class TestBankStatementIngestion(TransactionCase):
             ).write({
                 "checksum": evidence.sha256,
                 "permission_sync_state": "synchronized",
-                "tag_ids": [Command.set(banking_tags.ids)],
+                "tag_ids": [Command.set(required_tags.ids)],
             })
             document.sudo().write({"review_state": "reviewed"})
 
@@ -1260,6 +1280,44 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(statement.certification_state, "reopened")
         self.assertEqual(len(statement.certification_ids), 2)
         self.assertEqual(statement.certification_ids[0].event_type, "reopen")
+
+    def test_certified_statement_accepts_only_invariant_reconciliation_metadata(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids.filtered(lambda line: line.amount > 0)[:1]
+        foreign_currency = self.env["res.currency"].create(
+            {"name": "CRM", "symbol": "$C", "rounding": 0.01},
+        )
+        foreign_amount = foreign_currency.round(bank_line.amount * 1.2)
+        certified_fingerprint = bank_line._certified_reconciliation_fingerprint()
+
+        with self.assertRaises(UserError):
+            bank_line.write(
+                {
+                    "foreign_currency_id": foreign_currency.id,
+                    "amount_currency": foreign_amount,
+                },
+            )
+
+        bank_line._write_reconciliation_metadata(
+            {
+                "partner_id": self.company.partner_id.id,
+                "foreign_currency_id": foreign_currency.id,
+                "amount_currency": foreign_amount,
+            },
+        )
+
+        self.assertEqual(statement.certification_state, "certified")
+        self.assertEqual(bank_line.foreign_currency_id, foreign_currency)
+        self.assertEqual(bank_line.amount_currency, foreign_amount)
+        self.assertEqual(
+            bank_line._certified_reconciliation_fingerprint(),
+            certified_fingerprint,
+        )
+        with self.assertRaises(ValidationError):
+            bank_line._write_reconciliation_metadata(
+                {"amount": bank_line.amount + 1},
+            )
 
     def test_balance_mismatch_is_saved_and_blocks_certification(self):
         _ingestion, statement = self._process_complete_month()

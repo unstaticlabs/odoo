@@ -5,6 +5,8 @@ from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.usl_documents.models.paperless_client import PaperlessError
 
+BANK_STATEMENT_TAG_NAME = "Bank statement"
+
 
 class AccountBankStatement(models.Model):
     _name = "account.bank.statement"
@@ -54,6 +56,20 @@ class AccountBankStatement(models.Model):
                 },
             )
         return policy
+
+    def _document_archive_context(self, attachment=None):
+        self.ensure_one()
+        values = super()._document_archive_context(attachment)
+        values["tags"] = list(
+            dict.fromkeys(
+                [
+                    *(values.get("tags") or []),
+                    "Banking",
+                    BANK_STATEMENT_TAG_NAME,
+                ],
+            ),
+        )
+        return values
 
     @api.depends(
         "accepted_evidence_id.paperless_archive_state",
@@ -324,6 +340,18 @@ class AccountBankIngestionFile(models.Model):
                     ),
                 )
             else:
+                banking_tags = self._paperless_banking_tags()
+                if not banking_tags:
+                    raise UserError(
+                        _(
+                            "Documents has no Banking classification. Synchronize "
+                            "its Paperless catalogs before retrying the archive.",
+                        ),
+                    )
+                required_tags = (
+                    banking_tags
+                    | self._paperless_bank_statement_tag(ensure=True)
+                )
                 result = (
                     self.env["usl.document"]
                     .sudo()
@@ -334,6 +362,7 @@ class AccountBankIngestionFile(models.Model):
                         company_id=self.company_id.id,
                         confidentiality="accounting",
                         source="odoo_attachment",
+                        tag_ids=required_tags.ids,
                     )
                 )
         except (PaperlessError, AccessError, UserError) as error:
@@ -492,10 +521,16 @@ class AccountBankIngestionFile(models.Model):
             return _(
                 "Configure the Documents Banking classification before certification.",
             )
-        if banking_tags - document.tag_ids:
+        statement_tag = self._paperless_bank_statement_tag()
+        if not statement_tag:
             return _(
-                "Classify the original in Documents as a Banking document before "
-                "certification.",
+                "Documents has no Bank statement classification. Synchronize its "
+                "Paperless catalogs before certification.",
+            )
+        if (banking_tags | statement_tag) - document.tag_ids:
+            return _(
+                "Apply the Banking and Bank statement tags to the original in "
+                "Documents before certification.",
             )
         link = self.env["usl.document.link"].sudo().search(
             [
@@ -527,6 +562,26 @@ class AccountBankIngestionFile(models.Model):
             )
         )
         return banking_view.tag_ids.filtered("active")
+
+    def _paperless_bank_statement_tag(self, *, ensure=False):
+        """Return the specific statement tag, creating it in Paperless when needed."""
+        self.ensure_one()
+        tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .search(
+                [
+                    ("name", "=ilike", BANK_STATEMENT_TAG_NAME),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+        )
+        if not tag and ensure:
+            tag = self.env["usl.document"]._ensure_context_tag(
+                BANK_STATEMENT_TAG_NAME,
+            )
+        return tag
 
     def _pin_paperless_version(self, document):
         self.ensure_one()
@@ -566,9 +621,10 @@ class AccountBankIngestionFile(models.Model):
                     "Paperless catalogs before retrying the archive.",
                 ),
             )
-        if banking_tags - document.tag_ids:
+        required_tags = banking_tags | self._paperless_bank_statement_tag(ensure=True)
+        if required_tags - document.tag_ids:
             document.with_user(self.env.ref("base.user_root")).update_archive_metadata(
-                {"tag_ids": (document.tag_ids | banking_tags).ids},
+                {"tag_ids": (document.tag_ids | required_tags).ids},
             )
             document.invalidate_recordset(["tag_ids"])
         Link = self.env["usl.document.link"].sudo()

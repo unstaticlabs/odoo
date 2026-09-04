@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_users_form_company_color_dots" model="ir.ui.view">
+        <field name="name">res.users.form.company.color.dots</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <field name="company_ids" position="attributes">
+                <attribute name="widget">many2many_tags_color_dot</attribute>
+                <attribute name="options">{'no_create': True, 'color_field': 'usl_resolved_ui_theme_color'}</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

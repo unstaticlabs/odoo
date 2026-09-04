@@ -69,6 +69,35 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def odoo_core_sha256() -> str:
+    """Digest the exact tracked Odoo core shipped by this checkout."""
+    tracked = run(
+        "git",
+        "ls-files",
+        "-z",
+        "--",
+        "odoo",
+        "addons",
+        "setup",
+        "setup.py",
+        "MANIFEST.in",
+    ).split("\0")
+    digest = hashlib.sha256()
+    found = False
+    for relative in sorted(item for item in tracked if item):
+        path = ROOT / relative
+        if not path.is_file():
+            raise ReleaseIdentityError(f"Tracked Odoo core file is missing: {relative}")
+        found = True
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    if not found:
+        raise ReleaseIdentityError("The tracked Odoo core inventory is empty")
+    return digest.hexdigest()
+
+
 def action_risk_policy_sha256() -> str:
     """Return the canonical digest of the reviewed action surface and policy."""
     payload = {}

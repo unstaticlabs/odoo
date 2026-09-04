@@ -5,6 +5,7 @@ access_expense_batch_manager,usl.expense.batch.manager,model_usl_expense_batch,h
 access_expense_batch_accountant,usl.expense.batch.accountant,model_usl_expense_batch,account.group_account_invoice,1,1,1,0
 access_expense_batch_readonly,usl.expense.batch.readonly,model_usl_expense_batch,account.group_account_readonly,1,0,0,0
 access_expense_batch_create_wizard,usl.expense.batch.create.wizard,model_usl_expense_batch_create_wizard,base.group_user,1,1,1,0
+access_expense_batch_add_wizard,usl.expense.batch.add.wizard,model_usl_expense_batch_add_wizard,base.group_user,1,1,1,0
 access_expense_batch_context_apply_wizard,usl.expense.batch.context.apply.wizard,model_usl_expense_batch_context_apply_wizard,base.group_user,1,1,1,0
 access_hr_expense_batch_readonly,hr.expense.batch.readonly,hr_expense.model_hr_expense,account.group_account_readonly,1,0,0,0
 access_expense_batch_analytic_plan_employee,account.analytic.plan.expense.batch.employee,analytic.model_account_analytic_plan,base.group_user,1,0,0,0

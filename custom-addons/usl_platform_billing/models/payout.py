@@ -709,6 +709,42 @@ class UslPlatformBillingPayout(models.Model):
     def _workflow_write(self, values):
         return super().write(values)
 
+    def _accounting_is_settled(self):
+        """Return whether this payout's required native Accounting is settled."""
+        self.ensure_one()
+
+        def document_is_settled(move):
+            if not move or move.state != "posted":
+                return False
+            currency = move.currency_id or move.company_id.currency_id
+            settlement_lines = move.line_ids.filtered(
+                lambda line: line.account_id.account_type
+                in {"asset_receivable", "liability_payable"},
+            )
+            return (
+                move.payment_state in {"paid", "reversed"}
+                or currency.is_zero(move.amount_residual)
+                or (
+                    bool(settlement_lines)
+                    and all(settlement_lines.mapped("reconciled"))
+                )
+            )
+
+        if not document_is_settled(
+            self.customer_invoice_id,
+        ) or not document_is_settled(self.vendor_bill_id):
+            return False
+        compensation = self.compensation_move_id
+        if not compensation:
+            return True
+        if compensation.state != "posted":
+            return False
+        settlement_lines = compensation.line_ids.filtered(
+            lambda line: line.account_id.account_type
+            in {"asset_receivable", "liability_payable"},
+        )
+        return bool(settlement_lines) and all(settlement_lines.mapped("reconciled"))
+
     def unlink(self):
         if self.filtered(lambda payout: payout.state not in {"draft", "cancelled"}):
             raise UserError(_("Only draft or cancelled payouts can be deleted."))

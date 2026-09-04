@@ -4,18 +4,19 @@ import uuid
 from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
-from odoo.addons.rpc.controllers.json2 import WebJson2Controller
 
 from ..exceptions import AgentPolicyAccessError
-from ..models.action_policy import (
-    ActionPolicyConfigurationError,
-    load_agent_readonly_policy,
+from ..models.agent_policy_tokens import (
+    AGENT_OPERATION_SCOPE_CONTEXT_KEY,
+    create_agent_operation_scope,
 )
 from ..models.agent_secrets import (
     AGENT_HIDDEN_API_MODELS,
     is_agent_secret_field,
     sanitize_agent_payload,
 )
+from odoo.addons.rpc.controllers.json2 import WebJson2Controller
+
 
 class UslAgentJson2Controller(WebJson2Controller):
     @http.route()
@@ -41,17 +42,24 @@ class UslAgentJson2Controller(WebJson2Controller):
         )
         outcome = "succeeded"
         try:
-            self._check_agent_call(
+            access = self._check_agent_call(
                 agent=agent,
                 model_name=__model__,
                 method_name=__method__,
                 kwargs=kwargs,
             )
+            call_context = self._agent_call_context(
+                context=context,
+                agent=agent,
+                model_name=__model__,
+                method_name=__method__,
+                access=access,
+            )
             result = super().web_json_2_rpc(
                 __model__,
                 __method__,
                 ids=ids,
-                context=context or {},
+                context=call_context,
                 **kwargs,
             )
             return (
@@ -94,19 +102,8 @@ class UslAgentJson2Controller(WebJson2Controller):
                 _("Secret fields are not available to Agents."),
                 "agent_read_only_action_denied",
             )
-        try:
-            access = load_agent_readonly_policy().access_for(model_name, method_name)
-        except ActionPolicyConfigurationError as error:
-            raise AgentPolicyAccessError(
-                _(
-                    "The Agent read-only policy is invalid. Contact an administrator.",
-                ),
-                "agent_read_only_action_denied",
-            ) from error
-        if access not in {"read_only", "collaboration"}:
-            operation = method_name if method_name in {"create", "write", "unlink"} else "write"
-            if access == "write" and agent._allows_model_operation(model_name, operation):
-                return
+        access = agent._api_method_access(model_name, method_name)
+        if not access:
             raise AgentPolicyAccessError(
                 _(
                     "This Agent has no approved application access for %(model)s.%(method)s.",
@@ -115,6 +112,22 @@ class UslAgentJson2Controller(WebJson2Controller):
                 ),
                 "agent_read_only_action_denied",
             )
+        return access
+
+    @staticmethod
+    def _agent_call_context(*, context, agent, model_name, method_name, access):
+        call_context = dict(context or {})
+        call_context.pop(AGENT_OPERATION_SCOPE_CONTEXT_KEY, None)
+        if access in {"collaboration", "write"}:
+            call_context[AGENT_OPERATION_SCOPE_CONTEXT_KEY] = (
+                create_agent_operation_scope(
+                    agent_user_id=agent.user_id.id,
+                    root_model=model_name,
+                    root_method=method_name,
+                    access=access,
+                )
+            )
+        return call_context
 
     def _record_agent_api_call(
         self,

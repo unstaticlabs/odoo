@@ -57,6 +57,53 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
+        self.assertIn("--release-notes operations/release-notes.json", self.workflow)
+        notes = json.loads(
+            (ROOT / "operations/release-notes.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(notes["schema"], "usl-release-notes/v1")
+        self.assertTrue(notes["changes"])
+
+    def test_release_is_only_published_from_permanent_release_branches(self) -> None:
+        self.assertIn("- 19-usl-staging", self.workflow)
+        self.assertIn("- 19-usl", self.workflow)
+        self.assertNotIn("- codex/chore-post-migration-continuous-operations", self.workflow)
+        self.assertIn("usl-odoo-release", self.workflow)
+        self.assertIn("actions/attest@", self.workflow)
+
+    def test_release_requires_exact_successful_qualification_or_recovery_tag(self) -> None:
+        self.assertIn('.name == "USL qualification"', self.workflow)
+        self.assertIn('.head_sha == env.GITHUB_SHA', self.workflow)
+        self.assertIn('if [ "$conclusion" = success ]', self.workflow)
+        self.assertIn("for attempt in $(seq 1 240)", self.workflow)
+        self.assertIn("timeout-minutes: 45", self.workflow)
+        self.assertIn("workflow_dispatch:refs/tags/recovery-*", self.workflow)
+        self.assertIn('test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"', self.workflow)
+
+    def test_stable_required_gate_includes_clean_database_qualification(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("pull_request:", qualification)
+        self.assertIn("merge_group:", qualification)
+        self.assertIn("push:", qualification)
+        self.assertIn("branches: [19-usl, 19-usl-staging]", qualification)
+        self.assertIn("name: USL qualification", qualification)
+        self.assertIn("scripts/ci-product-database", qualification)
+        self.assertIn("test \"$DATABASE\" = success", qualification)
+        self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
+        database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
+        self.assertIn("fetch-depth: 0", database_job)
+
+    def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
+        database_gate = (ROOT / "scripts/ci-product-database").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("static/tests", database_gate)
+        self.assertIn("*.test.js", database_gate)
+        self.assertIn("WebSuite.test_unit_desktop", database_gate)
+        self.assertIn("MobileWebSuite.test_unit_mobile", database_gate)
+        self.assertIn('--update="$module"', database_gate)
 
     def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
         self.assertIn(
@@ -106,6 +153,10 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         self.assertIn("build: !reset null", overlay)
         self.assertNotIn("./custom-addons", overlay)
+
+    def test_release_image_can_load_installed_oca_tests(self) -> None:
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+        self.assertRegex(requirements, r"(?m)^responses==0\.26\.2\b")
 
     def test_external_ingress_alias_is_explicit(self) -> None:
         overlay = (ROOT / "compose.odoo-ingress.yaml").read_text(encoding="utf-8")

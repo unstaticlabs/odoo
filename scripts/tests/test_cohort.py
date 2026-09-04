@@ -5,6 +5,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -14,18 +15,28 @@ from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
     _cohort_command,
+    _create_generation_resources,
+    _apply_generation_cron_policy,
+    _active_generation_identity,
+    _abort_to_previous_generation,
     _generation_overlay,
     _ensure_image,
     _materialize_command,
     _prepare_generation_volume_ownership,
+    _previous_generation_identity,
     _release_images,
     _remove_materialization_workspace,
     _require_restore_capacity,
+    _measure_candidate_bytes,
+    _notify_release,
     _rollback_after_failure,
     _restore_unlocked,
+    _storage_status,
+    _write_adopt_generation,
     _validate_materialized_release,
     _validate_runtime_release_images,
     generation_volume_names,
+    generation_volume_path,
     runtime_lock,
     with_writers_paused,
 )
@@ -74,6 +85,393 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_storage_status_rejects_running_service_on_legacy_volume(self) -> None:
+        target = mock.Mock(
+            name="production",
+            value={
+                "environment": "local",
+                "services": {"odoo_db": "db"},
+                "storage": {
+                    "tiers": {
+                        "bulk": {"path": "/srv/storage"},
+                        "database": {"path": "/srv/db"},
+                    },
+                },
+                "volumes": {
+                    "odoo_postgres": {"tier": "database"},
+                },
+            },
+        )
+        target.name = "production"
+        expected = "/srv/db/usl-odoo/production/generations/g20260903-a/odoo_postgres"
+
+        class StatusRunner:
+            def run(self, command, *, check=True):
+                if command[0] == "findmnt":
+                    source = "/dev/volume" if command[2] == "/srv/storage" else "/dev/root"
+                    return subprocess.CompletedProcess(
+                        command, 0, f"{source} ext4 uuid {command[2]}\n", "",
+                    )
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps(
+                            {
+                                "Options": {"device": expected, "o": "bind", "type": "none"},
+                                "Mountpoint": "/srv/storage/docker/volumes/active/_data",
+                            },
+                        ),
+                        "",
+                    )
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps(
+                            [
+                                {
+                                    "Type": "volume",
+                                    "Name": "usl-odoo-production-main-postgres",
+                                },
+                            ],
+                        ),
+                        "",
+                    )
+                if command[:2] == ["docker", "info"]:
+                    return subprocess.CompletedProcess(command, 0, "/var/lib/docker\n", "")
+                raise AssertionError(command)
+
+        result = _storage_status(
+            target,
+            StatusRunner(),
+            {
+                "generation": "g20260903-a",
+                "containers": [{"Service": "db", "Name": "db-1", "State": "running"}],
+                "volumes": {
+                    "odoo_postgres": {"name": "active", "tier": "database"},
+                },
+            },
+        )
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["volumes"]["odoo_postgres"]["runtime_status"], "wrong-runtime-volume")
+        self.assertIn("running service does not mount the active volume: db/odoo_postgres", result["failures"])
+
+    def test_adoption_reads_the_recorded_active_release_manifest(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/staging",
+            "compose": {"resource_overlay": None},
+            "ingress": {},
+        })
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps({"schema": "usl-release/v3"}), "",
+        )
+        with mock.patch("operations.stack._write_remote"), mock.patch(
+            "operations.stack._runtime_images", return_value={}
+        ), mock.patch("operations.stack._generation_overlay", return_value="{}"):
+            _write_adopt_generation(
+                target,
+                runner,
+                {"compose_files": ["/compose.yaml"]},
+                "gstorage-active",
+                {},
+                "generation-network",
+                "a" * 64,
+                "/var/lib/usl-odoo/runtime/staging/generations/glegacy/usl-release.json",
+            )
+        self.assertIn(
+            mock.call([
+                "cat",
+                "/var/lib/usl-odoo/runtime/staging/generations/glegacy/usl-release.json",
+            ]),
+            runner.run.call_args_list,
+        )
+
+    def test_active_generation_identity_uses_recorded_overlays_after_adoption(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"resource_overlay": "compose.resources.production.json"},
+        })
+        generation = "gstorage-active"
+        root = f"/var/lib/usl-odoo/runtime/production/generations/{generation}"
+        current = {
+            "compose": {
+                "compose_files": [
+                    "/gitops/compose.yaml",
+                    "/var/lib/usl-odoo/runtime/production/generations/glegacy/compose.generation.json",
+                ],
+            },
+            "active_state": {
+                "generation": generation,
+                "release_manifest": f"{root}/usl-release.json",
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        identity = _active_generation_identity(target, runner, current)
+        self.assertEqual(
+            identity["compose_files"],
+            [
+                "/gitops/compose.yaml",
+                f"{root}/compose.resources.json",
+                f"{root}/compose.generation.json",
+            ],
+        )
+        self.assertEqual(runner.run.call_count, 3)
+
+    def test_release_notification_is_bound_to_active_release_and_persistent_channel(self) -> None:
+        release_id = "a" * 64
+        target = mock.Mock(value={
+            "environment": "production",
+            "compose": {"default_network": "production-network"},
+            "databases": {"odoo": {"service": "db", "name": "odoo", "user": "odoo"}},
+            "secrets": {"env_file": "/secrets.env"},
+        })
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0,
+            'USL_RELEASE_NOTIFICATION_RESULT={"channel": "usl_home.channel_distribution_updates", "message_id": 42, "release": "' + release_id + '", "status": "posted"}\n',
+            "",
+        )
+        runtime = {
+            "active_state": None,
+            "volumes": {"odoo_filestore": {"name": "odoo-data"}},
+        }
+        release = {
+            "identity": release_id,
+            "build": {"workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/1"},
+            "components": {"distribution": {"digest_reference": "odoo@sha256:" + "b" * 64}},
+            "release_notes": {
+                "schema": "usl-release-notes/v1",
+                "title": "Safer releases",
+                "summary": "The release is active.",
+                "changes": ["Improved recovery."],
+                "action_required": None,
+            },
+        }
+        with mock.patch("operations.stack.inspect_runtime", return_value=runtime), mock.patch(
+            "operations.stack._release", return_value=(release, "c" * 64, "{}")
+        ):
+            result = _notify_release(target, runner, release_id)
+        self.assertEqual(result["message_id"], 42)
+        program = runner.run.call_args.kwargs["input_text"]
+        self.assertIn("usl_home.channel_distribution_updates", program)
+        self.assertIn("base.partner_root", program)
+        self.assertIn("message_post", program)
+        self.assertNotIn("_bus_send", program)
+
+    def test_release_notification_rejects_untrusted_identity(self) -> None:
+        target = mock.Mock(value={"environment": "production"})
+        with self.assertRaisesRegex(RuntimeError, "identity"):
+            _notify_release(target, mock.Mock(), "../release")
+
+    def test_retention_keeps_latest_daily_weekly_monthly_and_yearly_points(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        snapshots = [
+            {
+                "id": f"{index:064x}",
+                "time": (now - timedelta(days=index)).isoformat(),
+                "tags": ["usl-cohort", "durable", "recovery-eligible", "target-production"],
+            }
+            for index in range(500)
+        ]
+        retained = cohort.select_retained_snapshots(snapshots)
+        self.assertIn(f"{0:064x}", retained)
+        self.assertIn(f"{13:064x}", retained)
+        self.assertNotIn(f"{499:064x}", retained)
+        self.assertGreaterEqual(len(retained), 14)
+
+    def test_retention_keeps_cache_for_every_retained_durable_run(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        release = "release-" + "a" * 64
+
+        def item(index, classification, age):
+            return {
+                "id": f"{index:064x}",
+                "time": (now - timedelta(days=age)).isoformat(),
+                "tags": [
+                    "usl-cohort", classification, "target-production",
+                    "recovery-eligible" if classification == "durable" else release,
+                    f"run-2026-run-{index:02d}",
+                ],
+            }
+
+        durable = [item(1, "durable", 0), item(2, "durable", 1000)]
+        cache = [item(11, "cache", 0), item(12, "cache", 1000)]
+        cache[0]["tags"][-1] = durable[0]["tags"][-1]
+        cache[1]["tags"][-1] = durable[1]["tags"][-1]
+        environments = [durable, cache]
+        with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
+            cohort, "_inventory", side_effect=environments
+        ):
+            plan = cohort.plan_retention(now)
+        self.assertIn(durable[0]["id"], plan["retain_durable"])
+        self.assertIn(cache[0]["id"], plan["retain_cache"])
+        self.assertNotIn(cache[0]["id"], plan["delete_cache"])
+
+    def test_retention_refuses_orphaned_retained_durable_snapshot(self) -> None:
+        now = datetime(2026, 9, 3, 12, tzinfo=UTC)
+        durable = [{
+            "id": "a" * 64,
+            "time": now.isoformat(),
+            "tags": [
+                "usl-cohort", "durable", "target-production", "recovery-eligible",
+                "run-20260903t120000z-deadbeef",
+            ],
+        }]
+        with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
+            cohort, "_inventory", side_effect=[durable, []]
+        ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
+            cohort.plan_retention(now)
+
+    def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
+        target = mock.Mock(value={
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"resource_overlay": None},
+            "volumes": {"odoo_postgres": {}},
+        })
+        active = {
+            "generation": "gcandidate",
+            "volumes": {"odoo_postgres": "candidate-db"},
+            "network": "candidate-network",
+            "release_manifest": "/var/lib/usl-odoo/runtime/production/generations/gcandidate/usl-release.json",
+            "snapshot": "a" * 64,
+            "previous": {
+                "generation": "gprevious",
+                "volumes": {"odoo_postgres": "previous-db"},
+                "network": "previous-network",
+                "release_manifest": "/tmp/untrusted.json",
+                "snapshot": "b" * 64,
+            },
+        }
+        current = {
+            "compose": {
+                "compose_files": [
+                    "/gitops/compose.yaml",
+                    "/var/lib/usl-odoo/runtime/production/generations/gcandidate/compose.generation.json",
+                ],
+            },
+            "active_state": active,
+        }
+        with self.assertRaisesRegex(RuntimeError, "manifest path"):
+            _previous_generation_identity(target, mock.Mock(), current)
+
+    def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {
+                "state_directory": "/var/lib/usl-odoo/runtime/production",
+                "compose": {"resource_overlay": None},
+                "volumes": {"odoo_postgres": {}},
+                "services": {"odoo": "odoo", "odoo_db": "db"},
+            }
+        candidate_file = "/var/lib/usl-odoo/runtime/production/generations/gcandidate/compose.generation.json"
+        current = {
+            "compose": {
+                "project": "usl-odoo-production-main",
+                "working_directory": "/gitops",
+                "environment_file": "/run/prod.env",
+                "profiles": [],
+                "compose_files": ["/gitops/compose.yaml", candidate_file],
+            },
+            "active_state": {
+                "generation": "gcandidate",
+                "volumes": {"odoo_postgres": "candidate-db"},
+                "network": "candidate-network",
+                "release_manifest": "/var/lib/usl-odoo/runtime/production/generations/gcandidate/usl-release.json",
+                "snapshot": "a" * 64,
+                "previous": {
+                    "generation": "adopted",
+                    "volumes": {"odoo_postgres": "legacy-db"},
+                    "network": None,
+                    "release_manifest": None,
+                    "snapshot": None,
+                },
+            },
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
+            "operations.stack._gate",
+            side_effect=[{"status": "passed"}, {"status": "passed"}],
+        ):
+            result = _abort_to_previous_generation(target, runner, TARGETS)
+        self.assertEqual(result["status"], "rolled-back")
+        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
+        self.assertNotIn(candidate_file, up)
+        self.assertIn(
+            ["rm", "-f", "/var/lib/usl-odoo/runtime/production/active.json"],
+            runner.commands,
+        )
+
+    def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
+        policy_path = "/opt/usl/deploy/production.cron-policy.json"
+        policy_raw = json.dumps({
+                "schema": "usl-production-cron-policy-v1",
+                "gates": ["always"],
+                "crons": {
+                    "base.autovacuum_job": {
+                        "gate": "always",
+                        "reason": "maintenance",
+                    },
+                },
+            })
+        target = mock.Mock(value={
+                "cron_policy": {
+                    "mode": "managed",
+                    "path": policy_path,
+                    "gates": {"always": True},
+                },
+                "databases": {
+                    "odoo": {
+                        "service": "candidate-db",
+                        "user": "odoo",
+                        "name": "candidate",
+                    },
+                },
+                "secrets": {"env_file": "/run/secrets/operations.env"},
+        })
+
+        class Runner:
+            command = None
+            input_text = None
+
+            def run(self, command, *, check=True, input_text=None):
+                if command == ["cat", policy_path]:
+                    return subprocess.CompletedProcess(
+                        command, 0, policy_raw, "",
+                    )
+                self.command = command
+                self.input_text = input_text
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    'USL_CRON_POLICY_RESULT={"schema":"usl-cron-policy-application/v1","status":"applied"}\n',
+                    "",
+                )
+
+        runner = Runner()
+        result = _apply_generation_cron_policy(
+            target,
+            runner,
+            {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "a" * 64}}},
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+        )
+        self.assertEqual(result["status"], "applied")
+        self.assertIn("--interactive", runner.command)
+        self.assertIn("odoo", runner.command)
+        self.assertIn("base.autovacuum_job", runner.input_text)
+
     def _sign_secrets(self, root: Path) -> Path:
         for relative in cohort.SIGN_SECRET_FILES:
             path = root / relative
@@ -114,7 +512,7 @@ class CohortContractTests(unittest.TestCase):
         initialize.assert_called_once_with(["restic", "init"], environment={}, capture=True)
 
     def test_restore_refuses_a_release_that_differs_from_the_cohort(self) -> None:
-        release = {"source": {"commit": "a" * 40}}
+        release = {"schema": "usl-release/v2", "source": {"commit": "a" * 40}}
         materialized = {
             "release": {"commit": "a" * 40, "manifest_sha256": "b" * 64},
         }
@@ -122,6 +520,13 @@ class CohortContractTests(unittest.TestCase):
         materialized["release"]["manifest_sha256"] = "c" * 64
         with self.assertRaisesRegex(RuntimeError, "differs from the cohort"):
             _validate_materialized_release(materialized, release, "b" * 64)
+
+    def test_v3_candidate_may_differ_from_verified_snapshot_release(self) -> None:
+        release = {"schema": "usl-release/v3", "source": {"commit": "b" * 40}}
+        materialized = {
+            "release": {"commit": "a" * 40, "manifest_sha256": "c" * 64},
+        }
+        _validate_materialized_release(materialized, release, "d" * 64)
 
     def test_production_restore_requires_complete_sign_secrets(self) -> None:
         release = {"source": {"commit": "a" * 40}}
@@ -385,6 +790,34 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("up", runner.commands[-1])
         self.assertIn("--no-recreate", runner.commands[-1])
 
+    def test_successful_release_capture_can_leave_writers_quiesced(self) -> None:
+        identity = {
+            "project": "safe-project",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml"],
+        }
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        result = with_writers_paused(
+            runner,
+            identity,
+            ["odoo", "paperless"],
+            lambda: {"status": "captured"},
+            resume_after_success=False,
+        )
+        self.assertEqual(result["status"], "captured")
+        self.assertIn("stop", runner.commands[0])
+        self.assertEqual(len(runner.commands), 1)
+
     def test_backup_image_is_pulled_only_when_missing(self) -> None:
         image = "backup@sha256:" + "a" * 64
 
@@ -505,10 +938,84 @@ class CohortContractTests(unittest.TestCase):
 
         class CapacityRunner:
             def run(self, command, *, check=True):
-                return subprocess.CompletedProcess(command, 0, "Avail\n1073741824\n", "")
+                return subprocess.CompletedProcess(command, 0, "Filesystem Avail\n/dev/root 1073741824\n", "")
 
         with self.assertRaisesRegex(RuntimeError, "below the 2 GiB safety floor"):
             _require_restore_capacity(target, CapacityRunner(), "preflight")
+
+    def test_restore_capacity_uses_measured_candidate_and_reserve(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class CapacityRunner:
+            def __init__(self, available):
+                self.available = available
+
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(
+                    command, 0, f"Filesystem Avail\n/dev/root {self.available}\n", "",
+                )
+
+        gib = 1024**3
+        with self.assertRaisesRegex(RuntimeError, "2.0 GiB deficit"):
+            _require_restore_capacity(
+                target,
+                CapacityRunner(17 * gib),
+                "preflight",
+                candidate_bytes={"bulk": 4 * gib},
+            )
+        admitted = _require_restore_capacity(
+            target,
+            CapacityRunner(19 * gib),
+            "preflight",
+            candidate_bytes={"bulk": 4 * gib},
+        )
+        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 19 * gib)
+
+    def test_restore_capacity_groups_tiers_on_their_actual_filesystems(self) -> None:
+        target = load_target("staging", TARGETS)
+        gib = 1024**3
+
+        class SplitRunner:
+            def run(self, command, *, check=True):
+                path = command[-1]
+                source = "/dev/volume" if path == "/srv/storage" else "/dev/root"
+                available = 30 * gib if source == "/dev/volume" else 10 * gib
+                return subprocess.CompletedProcess(
+                    command, 0, f"Filesystem Avail\n{source} {available}\n", "",
+                )
+
+        result = _require_restore_capacity(
+            target,
+            SplitRunner(),
+            "preflight",
+            candidate_bytes={"bulk": 3 * gib, "database": 2 * gib, "local": 1 * gib},
+        )
+        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 18 * gib)
+        self.assertEqual(result["filesystems"]["/dev/root"]["candidate_bytes"], 3 * gib)
+        self.assertEqual(result["filesystems"]["/dev/root"]["reserve_bytes"], 2 * gib)
+
+    def test_candidate_measurement_counts_unique_volumes_and_required_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+        runtime = {
+            "volumes": {
+                "one": {"name": "volume-a", "tier": "bulk"},
+                "duplicate": {"name": "volume-a", "tier": "bulk"},
+                "two": {"name": "volume-b", "tier": "database"},
+            },
+        }
+
+        class MeasurementRunner:
+            def run(self, command, *, check=True):
+                if command[:2] == ["docker", "run"]:
+                    return subprocess.CompletedProcess(command, 0, "1024\t/source\n", "")
+                return subprocess.CompletedProcess(command, 0, "512\t/path\n", "")
+
+        # Two unique volumes plus both durable Sign paths. A missing optional
+        # path is ignored by the real runner; this fixture reports both.
+        self.assertEqual(
+            _measure_candidate_bytes(target, MeasurementRunner(), "tool@sha256:" + "a" * 64, runtime),
+            {"bulk": 1024, "database": 1024, "local": 1024},
+        )
 
     def test_materialization_workspace_cleanup_is_exactly_scoped(self) -> None:
         target = load_target("staging", TARGETS)
@@ -597,7 +1104,8 @@ class CohortContractTests(unittest.TestCase):
             "/runtime/generations/g-previous/compose.generation.json",
             command,
         )
-        self.assertEqual(command[-4:], ["up", "--detach", "--wait", "--force-recreate"])
+        self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
+        self.assertNotIn("--force-recreate", command)
 
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
@@ -636,6 +1144,43 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(_generation_overlay(names))
         self.assertEqual(set(overlay["volumes"]), set(VOLUME_LOGICAL_NAMES.values()))
         self.assertTrue(all(value["external"] for value in overlay["volumes"].values()))
+
+    def test_generation_database_volumes_bind_to_exact_nvme_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                status = 1 if command[:3] in (["docker", "volume", "inspect"], ["docker", "network", "inspect"]) else 0
+                return subprocess.CompletedProcess(command, status, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260903-storage"
+        _create_generation_resources(target, runner, generation)
+        path = generation_volume_path(target, generation, "odoo_postgres")
+        creates = [command for command in runner.commands if command[:3] == ["docker", "volume", "create"]]
+        database = next(command for command in creates if command[-1].endswith("odoo-postgres"))
+        filestore = next(command for command in creates if command[-1].endswith("odoo-filestore"))
+        self.assertIn(f"device={path}", database)
+        self.assertIn("com.unstaticlabs.runtime.storage-tier=database", " ".join(database))
+        self.assertNotIn("type=none", filestore)
+
+    def test_generation_database_path_rejects_traversal(self) -> None:
+        target = load_target("staging", TARGETS)
+        with self.assertRaisesRegex(RuntimeError, "generation name is invalid"):
+            generation_volume_path(target, "g../../root", "odoo_postgres")
+
+    def test_active_candidate_and_rollback_database_paths_are_distinct(self) -> None:
+        target = load_target("production", TARGETS)
+        paths = {
+            generation_volume_path(target, generation, "odoo_postgres")
+            for generation in ("gactive", "gcandidate", "grollback")
+        }
+        self.assertEqual(len(paths), 3)
+        self.assertTrue(all(path.startswith("/srv/db/usl-odoo/production/generations/") for path in paths))
 
     def test_generation_pins_every_release_owned_runtime_image(self) -> None:
         digest = "sha256:" + "a" * 64

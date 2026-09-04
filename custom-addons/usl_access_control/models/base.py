@@ -8,10 +8,17 @@ from odoo import SUPERUSER_ID, api, models
 from odoo.exceptions import AccessError
 from odoo.fields import Domain
 
-from .action_policy import ActionPolicyConfigurationError, load_action_policy
-from .agent_policy_tokens import has_agent_collaboration_token
-from .agent_secrets import is_agent_secret_field
 from ..exceptions import AgentPolicyAccessError
+from .action_policy import (
+    ActionPolicyConfigurationError,
+    load_action_policy,
+    load_agent_readonly_policy,
+)
+from .agent_policy_tokens import (
+    get_agent_operation_scope,
+    has_agent_collaboration_token,
+)
+from .agent_secrets import is_agent_secret_field
 
 _logger = logging.getLogger(__name__)
 
@@ -22,6 +29,18 @@ _AGENT_AUDIT_EXCLUDED_MODELS = frozenset(
         "mail.mail",
         "mail.notification",
         "usl.audit.event",
+    },
+)
+
+_AGENT_GOVERNED_SIDE_EFFECT_MODELS = frozenset(
+    {
+        "bus.bus",
+        "ir.attachment",
+        "mail.activity",
+        "mail.followers",
+        "mail.mail",
+        "mail.message",
+        "mail.notification",
     },
 )
 
@@ -77,12 +96,64 @@ class Base(models.AbstractModel):
         )
 
     @api.model
+    def _api_doc_access(self):
+        access = super()._api_doc_access()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return access
+        return {
+            operation: bool(access[operation] and agent._api_method_access(self._name, operation))
+            for operation in access
+        }
+
+    @api.model
+    def _api_doc_public_method_allowed(self, method_name):
+        if not super()._api_doc_public_method_allowed(method_name):
+            return False
+        agent = self._usl_managed_agent()
+        return not agent or bool(agent._api_method_access(self._name, method_name))
+
+    @api.model
+    def _api_doc_cache_vary(self):
+        vary = super()._api_doc_cache_vary()
+        agent = self._usl_managed_agent()
+        if not agent:
+            return vary
+        try:
+            policy_digest = load_agent_readonly_policy().qualified_policy_digest
+        except ActionPolicyConfigurationError:
+            policy_digest = "invalid"
+        return (*vary, {
+            "agent_policy": policy_digest,
+            "read_only_group_ids": sorted(agent.read_only_group_ids.ids),
+            "company_ids": sorted(
+                set(agent.company_ids.ids) & set(agent.owner_id.company_ids.ids),
+            ),
+        })
+
+    @api.model
+    def _usl_agent_operation_scope(self, agent=None):
+        agent = agent or self._usl_managed_agent()
+        if not agent:
+            return None
+        return get_agent_operation_scope(
+            self.env.context,
+            agent_user_id=agent.user_id.id,
+        )
+
+    @api.model
+    def _usl_scoped_agent_sudo(self, agent=None):
+        return bool(self.env.su and self._usl_agent_operation_scope(agent))
+
+    @api.model
     def _access_domain(self, operation):
         agent = self._usl_managed_agent()
         if not agent:
             return super()._access_domain(operation)
         if self._name in _AGENT_HIDDEN_MODELS:
             return Domain.FALSE
+        if self._usl_scoped_agent_sudo(agent):
+            return super()._access_domain(operation)
         if (
             operation != "read"
             and not agent._allows_model_operation(self._name, operation)
@@ -125,6 +196,8 @@ class Base(models.AbstractModel):
         agent = self._usl_managed_agent()
         if not agent:
             return True
+        if self._usl_scoped_agent_sudo(agent):
+            return True
         owner_context = dict(self.env.context)
         requested_companies = set(
             owner_context.get("allowed_company_ids") or agent.company_ids.ids,
@@ -148,11 +221,29 @@ class Base(models.AbstractModel):
             "unlink": self.env._("delete"),
         }
         agent = self._usl_managed_agent()
+        scoped_sudo = self._usl_scoped_agent_sudo(agent)
         if (
             agent
-            and not agent._allows_model_operation(self._name, operation)
+            and (
+                self.env.su
+                or self._name in _AGENT_GOVERNED_SIDE_EFFECT_MODELS
+                or not agent._allows_model_operation(self._name, operation)
+            )
             and not has_agent_collaboration_token(self.env.context)
+            and not scoped_sudo
         ):
+            scope = self._usl_agent_operation_scope(agent)
+            _logger.warning(
+                "Agent policy denied mutation root=%s.%s access=%s "
+                "target=%s operation=%s scoped=%s sudo=%s",
+                scope.root_model if scope else "-",
+                scope.root_method if scope else "-",
+                scope.access if scope else "-",
+                self._name,
+                operation,
+                bool(scope),
+                self.env.su,
+            )
             raise AgentPolicyAccessError(
                 self.env._(
                     "This Agent has no read/write access for %(model)s and cannot %(operation)s records.",
@@ -217,8 +308,13 @@ class Base(models.AbstractModel):
 
     @api.model
     def _usl_actor_is_agent(self):
-        group = self._usl_access_group("usl_access_control.group_ai_agent")
-        return bool(group and group in self.env.user.all_group_ids)
+        # ``has_group`` uses Odoo's membership cache without computing the
+        # complete Distribution access summary on every cold ORM read. API-key
+        # authentication begins before Odoo installs a request user, so that
+        # unauthenticated environment must remain an ordinary non-Agent actor.
+        if not self.env.uid:
+            return False
+        return self.env.user.has_group("usl_access_control.group_ai_agent")
 
     @api.model
     def _usl_actor_may_perform_irreversible_actions(self):

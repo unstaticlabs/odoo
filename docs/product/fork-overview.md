@@ -13,7 +13,7 @@ production-admission work.
 
 | Capability | Technical owner | Main entry points | State |
 | --- | --- | --- | --- |
-| Multi-company Accounting cockpit, Hygiene, controls, French reports, declarations, closing and FEC | `rebuild_account_migration`, `usl_accounting`, native Accounting and pinned OCA modules | **Accounting** | Operational locally; final statutory and professional sign-off remains |
+| Multi-company Accounting cockpit, Hygiene, controls, French reports, declarations, closing and FEC | `rebuild_account_migration`, `usl_accounting`, native Accounting and pinned OCA modules | **Accounting** | Operational in production; final statutory and professional sign-off remains |
 | Customer invoices, supplier bills, expenses, payments, assets, deferrals, bank matching, reconciliation and analytics | native Accounting, `usl_accounting` | **Accounting**, **Expenses** | Operational |
 | Company-aware personal Home and attention summaries | `usl_home` | **Home** | Operational |
 | Expense Batches with shared business and analytic context | `usl_expense_batch`, `usl_accounting` | **Expenses > Expense Batches** | Operational |
@@ -22,13 +22,13 @@ production-admission work.
 | Projects and tasks with dependencies, chatter, attachments and stage history | native Projects, `usl_project` | **Projects** | Operational |
 | Paperless-backed Documents, OCR, previews, metadata, versions, Trash, search and business links | `usl_documents`, `usl_documents_accounting`, `usl_documents_b2c` | **Documents** and record smart buttons | Operational |
 | Governed official PDFs and correspondence | `usl_document_templates`, document renderer | Native print actions, **Official Documents** | Operational |
-| Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational locally; production certificate and ingress configuration remain |
-| Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational locally; production issuer configuration remains |
+| Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational in production with server-managed certificate material |
+| Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational in production |
 | Company-scoped roles, owned autonomous Agents, irreversible-action controls and immutable audit events | `usl_access_control` | **My Agents**, access rights and protected actions | Operational |
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
-| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | Governed Agent rollout in qualification |
+| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for coordinated release |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
 operations documents rather than in this inventory.
@@ -89,11 +89,13 @@ architecture decision, upgrade analysis and regression evidence.
 
 ## Runtime and release cohort
 
-Odoo, PostgreSQL, Paperless, its broker and archive state, Ollama/BGE, the
-document renderer, Sign services and the separately built MCP image form one
-coordinated release and recovery cohort. A release records exact source
-commits, image digests, modules, configuration identity and backup identity.
-Tags alone are not deployment authority.
+Odoo, PostgreSQL, Paperless, its broker and archive state, the document
+renderer, Sign services and the separately built MCP image form one coordinated
+release and recovery cohort. The shared MsgVault-owned Ollama service is an
+external dependency: releases record and validate the required BGE model,
+manifest and embedding dimension without managing or restoring that service.
+A release records exact source commits, image digests, modules, configuration
+identity and backup identity. Tags alone are not deployment authority.
 
 Production changes use the procedures in
 [`docs/operations/production.md`](../operations/production.md). Live mail,

@@ -6,7 +6,7 @@ import math
 import os
 from datetime import UTC, datetime, timedelta
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 
@@ -2956,11 +2956,21 @@ class UslDocument(models.Model):
             raise ValidationError(_("The archived document no longer exists."))
         document.check_access("read")
         archive_available = True
+        paperless_suggestions = []
         if check_archive:
             try:
                 document._paperless().compatibility()
             except PaperlessError:
                 archive_available = False
+            if archive_available:
+                try:
+                    paperless_suggestions = document._paperless_suggestion_values()
+                except PaperlessError as error:
+                    _logger.info(
+                        "Paperless suggestions are unavailable for document %s: %s",
+                        document.paperless_id,
+                        error,
+                    )
         try:
             document.check_access("write")
             can_write = True
@@ -3038,6 +3048,7 @@ class UslDocument(models.Model):
                 "retention_until": document.retention_until,
                 "retention_hold": document.retention_hold,
                 "archive_available": archive_available,
+                "paperless_suggestions": paperless_suggestions,
                 "custom_fields": custom_field_values,
                 "can_edit": can_write and document.availability_state == "available",
                 "can_change_company": (
@@ -3141,6 +3152,68 @@ class UslDocument(models.Model):
             },
         )
         return values
+
+    def _paperless_suggestion_values(self):
+        """Return accessible classifier proposals without applying any metadata."""
+        self.ensure_one()
+        payload = self._paperless().get_document_suggestions(self.paperless_id) or {}
+        suggestions = []
+        definitions = (
+            (
+                "document_type",
+                "document_type_id",
+                "document_types",
+                "usl.paperless.document.type",
+                self.document_type_id,
+            ),
+            (
+                "correspondent",
+                "correspondent_id",
+                "correspondents",
+                "usl.paperless.correspondent",
+                self.correspondent_id,
+            ),
+            ("tag", "tag_ids", "tags", "usl.paperless.tag", self.tag_ids),
+        )
+        for kind, field_name, payload_key, model_name, current in definitions:
+            remote_ids = []
+            for value in payload.get(payload_key) or []:
+                try:
+                    remote_ids.append(int(value))
+                except (TypeError, ValueError):
+                    continue
+            records = self.env[model_name].search(
+                [("paperless_id", "in", remote_ids), ("active", "=", True)],
+            )
+            records_by_remote_id = {record.paperless_id: record for record in records}
+            current_ids = set(current.ids)
+            for remote_id in remote_ids:
+                record = records_by_remote_id.get(remote_id)
+                if not record or record.id in current_ids:
+                    continue
+                suggestions.append(
+                    {
+                        "kind": kind,
+                        "field": field_name,
+                        "record_id": record.id,
+                        "label": record.display_name,
+                    },
+                )
+        for raw_date in payload.get("dates") or []:
+            try:
+                suggested_date = fields.Date.to_date(raw_date)
+            except (TypeError, ValueError):
+                continue
+            if suggested_date and suggested_date != self.document_date:
+                suggestions.append(
+                    {
+                        "kind": "date",
+                        "field": "document_date",
+                        "value": fields.Date.to_string(suggested_date),
+                        "label": fields.Date.to_string(suggested_date),
+                    },
+                )
+        return suggestions
 
     def action_set_starred(self, starred):
         self.ensure_one()
@@ -4245,7 +4318,7 @@ class UslDocument(models.Model):
         record = self.env[res_model].browse(int(res_id)).exists()
         if not record:
             raise ValidationError(_("The linked Odoo record no longer exists."))
-        record.check_access("read")
+        record.check_access("write")
         links = self.env["usl.document.link"].sudo().search(
             [
                 ("document_id", "=", self.id),
@@ -4256,7 +4329,12 @@ class UslDocument(models.Model):
         )
         if not links:
             return False
-        links.unlink()
+        # The caller and target record were authorized above. Removing this
+        # recoverable relationship can cascade to technical chatter metadata,
+        # so execute that narrow cleanup as Odoo's service identity instead of
+        # requiring the human-only permanent-deletion capability.
+        links.with_user(SUPERUSER_ID).unlink()
+        self._recompute_linked_record_access(sync_permissions=True)
         return True
 
     def action_open_linked_record(self, link_id):

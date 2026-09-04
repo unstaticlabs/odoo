@@ -12,17 +12,27 @@ from .agent_policy_tokens import (
 class MailThread(models.AbstractModel):
     _inherit = "mail.thread"
 
-    def _usl_readonly_agent_collaboration(self):
+    def _usl_agent_collaboration(self, operation="read"):
         agent = self._usl_managed_agent()
-        if not agent or not agent._model_is_read_only(self._name):
+        if not agent:
             return self
-        self.check_access("read")
+        if not agent._allows_model_operation(self._name, operation):
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "This Agent has no approved application access for "
+                    "%(model)s.%(operation)s.",
+                    model=self._name,
+                    operation=operation,
+                ),
+                "agent_read_only_action_denied",
+            )
+        self.check_access(operation)
         return self.with_context(
             **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
         )
 
     def message_post(self, *args, **kwargs):
-        records = self._usl_readonly_agent_collaboration()
+        records = self._usl_agent_collaboration()
         agent = self._usl_managed_agent()
         if agent and agent._model_is_read_only(self._name):
             message_type = kwargs.get("message_type", "notification")
@@ -42,6 +52,10 @@ class MailThread(models.AbstractModel):
                 )
         return super(MailThread, records).message_post(*args, **kwargs)
 
+    def message_notify(self, *args, **kwargs):
+        records = self._usl_agent_collaboration(operation="write")
+        return super(MailThread, records).message_notify(*args, **kwargs)
+
     def _message_log_batch(self, *args, **kwargs):
         """Allow Odoo's private Chatter log created by an authorized business write."""
         agent = self._usl_managed_agent()
@@ -56,24 +70,34 @@ class MailThread(models.AbstractModel):
         return super(MailThread, records)._message_log_batch(*args, **kwargs)
 
     def message_subscribe(self, partner_ids=None, subtype_ids=None):
-        records = self._usl_readonly_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent._model_is_read_only(self._name):
+        writable = bool(
+            agent and agent._allows_model_operation(self._name, "write"),
+        )
+        if agent and not writable:
             requested = set(partner_ids or ())
             if requested - {agent.user_id.partner_id.id}:
                 raise AccessError(self.env._("A read-only Agent may follow only itself."))
+        records = self._usl_agent_collaboration(
+            operation="write" if writable else "read",
+        )
         return super(MailThread, records).message_subscribe(
             partner_ids=partner_ids,
             subtype_ids=subtype_ids,
         )
 
     def message_unsubscribe(self, partner_ids=None):
-        records = self._usl_readonly_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent._model_is_read_only(self._name):
+        writable = bool(
+            agent and agent._allows_model_operation(self._name, "write"),
+        )
+        if agent and not writable:
             requested = set(partner_ids or ())
             if requested - {agent.user_id.partner_id.id}:
                 raise AccessError(self.env._("A read-only Agent may unfollow only itself."))
+        records = self._usl_agent_collaboration(
+            operation="write" if writable else "read",
+        )
         return super(MailThread, records).message_unsubscribe(partner_ids=partner_ids)
 
 
@@ -83,7 +107,15 @@ class MailActivityMixin(models.AbstractModel):
     def activity_schedule(self, *args, **kwargs):
         agent = self._usl_managed_agent()
         records = self
-        if agent and agent._model_is_read_only(self._name):
+        if agent:
+            if not agent._allows_model_operation(self._name, "read"):
+                raise AgentPolicyAccessError(
+                    self.env._(
+                        "This Agent has no approved application access for %(model)s.read.",
+                        model=self._name,
+                    ),
+                    "agent_read_only_action_denied",
+                )
             self.check_access("read")
             records = self.with_context(
                 **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
@@ -94,16 +126,25 @@ class MailActivityMixin(models.AbstractModel):
 class UslDocument(models.Model):
     _inherit = "usl.document"
 
-    def _usl_readonly_agent_download_context(self):
+    def _usl_agent_download_context(self):
         agent = self._usl_managed_agent()
-        if not agent or not agent._model_is_read_only(self._name):
+        if not agent:
             return self
+        if not agent._allows_model_operation(self._name, "read"):
+            raise AgentPolicyAccessError(
+                self.env._(
+                    "This Agent has no approved application access for %(model)s.read.",
+                    model=self._name,
+                ),
+                "agent_read_only_action_denied",
+            )
+        self.check_access("read")
         return self.with_context(
             **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
         )
 
     def mcp_create_download_grant(self, *args, **kwargs):
-        records = self._usl_readonly_agent_download_context()
+        records = self._usl_agent_download_context()
         return super(UslDocument, records).mcp_create_download_grant(*args, **kwargs)
 
     def mcp_revoke_download_grant(self, *args, **kwargs):
@@ -118,5 +159,5 @@ class UslDocument(models.Model):
                 raise AccessError(
                     self.env._("A read-only Agent may revoke only its own download grants."),
                 )
-        records = self._usl_readonly_agent_download_context()
+        records = self._usl_agent_download_context()
         return super(UslDocument, records).mcp_revoke_download_grant(*args, **kwargs)

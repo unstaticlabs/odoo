@@ -316,7 +316,7 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             "Montant estimé dû par",
             "à USL",
             "Trésorerie",
-            "Qualité comptable",
+            "Hygiène comptable",
             "Espace de clôture en cours",
             "Cette estimation de gestion",
         ):
@@ -325,7 +325,7 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             "Projets de loi",
             ">correspondre<",
             "Montant estimé qu'USL doit",
-            "Hygiène comptable",
+            "Qualité comptable",
             "devis prévisionnel",
         ):
             self.assertNotIn(rejected, accounting_home.arch_db)

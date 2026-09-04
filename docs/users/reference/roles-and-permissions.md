@@ -94,13 +94,15 @@ companies granted on their user record. The highlighted company is where new
 accounting records are created; selecting several companies is for combined
 reading and does not turn a write into a cross-company operation.
 
-With one company selected, the top navigation uses its configured interface
-color. A colored dot identifies each company inside the switcher. With several
-companies selected, the navigation uses Odoo's neutral default theme and `+N`
-shows how many additional companies are selected for viewing.
-Administrators configure the color from **Settings > Users & Companies >
-Companies**; leaving it empty assigns a stable automatic color. This interface
-color does not change financial statements or external documents.
+With one company selected, the top navigation uses its configured color. A
+colored dot identifies the company in the switcher and on user access forms.
+With several companies selected, the navigation uses Odoo's neutral `#714B67`
+purple theme and `+N` shows how many additional companies are selected for viewing.
+Administrators configure **Color** from **Settings > Users & Companies >
+Companies**. A root company left empty receives a stable color from the
+approved palette according to its database ID. A branch left empty follows its
+parent's color until an administrator customizes it. This interface color does
+not change financial statements or external documents.
 
 Interactive Accounting reports have a visible **Companies** selector. Summary
 statements combine same-currency companies and show each company's

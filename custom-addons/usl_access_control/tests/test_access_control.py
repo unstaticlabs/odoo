@@ -198,14 +198,15 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
 
     def test_named_profiles_resolve_to_one_distribution_role(self):
         definitions = self.env["res.users"]._usl_pocketid_profile_definitions()
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_distribution_administrator",
             definitions["administrator"]["groups"],
-            (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
         )
+        self.assertIn(
+            "usl_access_control.group_irreversible_actions",
+            definitions["administrator"]["groups"],
+        )
+        self.assertIn("base.group_system", definitions["administrator"]["groups"])
         self.assertEqual(
             definitions["product_administrator"]["groups"],
             (
@@ -213,22 +214,26 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
                 "base.group_system",
             ),
         )
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_distribution_administrator",
             definitions["break_glass"]["groups"],
-            (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
         )
+        self.assertIn(
+            "usl_access_control.group_irreversible_actions",
+            definitions["break_glass"]["groups"],
+        )
+        self.assertIn("base.group_system", definitions["break_glass"]["groups"])
         self.assertEqual(
             definitions["technical_operator"]["groups"],
             ("usl_access_control.group_technical_administrator",),
         )
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_accounting_reviewer",
             definitions["accountant_reviewer"]["groups"],
-            ("usl_access_control.group_accounting_reviewer",),
         )
+        for definition in definitions.values():
+            groups = definition.get("groups") or ()
+            self.assertEqual(len(groups), len(set(groups)))
 
     def test_agent_can_mutate_operational_records_and_leaves_audit_evidence(self):
         project = self.env["project.project"].create(

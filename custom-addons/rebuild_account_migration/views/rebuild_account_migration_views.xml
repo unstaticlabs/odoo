@@ -2481,6 +2481,7 @@
                     decoration-warning="severity == '2_warning'"
                     decoration-info="severity in ['3_attention', '4_information']"/>
                 <field name="title"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="issue_type" optional="show"/>
                 <field name="issue_date" string="Detected"/>
                 <field name="amount" string="Amount" optional="show" sum="Total amount affected"/>

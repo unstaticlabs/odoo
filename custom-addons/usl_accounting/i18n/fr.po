@@ -5399,3 +5399,21 @@ msgstr "Conserver l’accès à ces sociétés sans créer de profil employé po
 #: code:addons/usl_accounting/models/multi_company_expenses.py:0
 msgid "Each selected company has its own employee profile. Switch the active company before creating an expense."
 msgstr "Chaque société sélectionnée possède son propre profil employé. Changez de société active avant de créer une note de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Certified reconciliation metadata cannot update: %(fields)s"
+msgstr "Les métadonnées de rapprochement certifiées ne peuvent pas modifier : %(fields)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Reconciliation attempted to change certified bank-statement facts. No changes were saved."
+msgstr "Le rapprochement a tenté de modifier les données certifiées du relevé bancaire. Aucune modification n’a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_review.py:0
+msgid "Bank matching attempted to change certified bank-statement facts. No changes were saved."
+msgstr "Le rapprochement bancaire a tenté de modifier les données certifiées du relevé bancaire. Aucune modification n’a été enregistrée."
