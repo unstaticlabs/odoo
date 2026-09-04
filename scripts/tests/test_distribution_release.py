@@ -118,7 +118,8 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("test \"$DATABASE\" = success", qualification)
         self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
         database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
-        self.assertIn("fetch-depth: 0", database_job)
+        self.assertIn('git fetch --no-tags --depth=1 origin "$BASE_SHA"', database_job)
+        self.assertNotIn("fetch-depth: 0", database_job)
 
     def test_production_promotion_is_a_signed_event_bound_check(self) -> None:
         qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
