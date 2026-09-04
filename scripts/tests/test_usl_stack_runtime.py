@@ -301,6 +301,34 @@ class RuntimeContractTests(unittest.TestCase):
             self.assertEqual(target.value["volumes"]["mcp_oauth"]["tier"], "database")
             self.assertEqual(target.value["volumes"]["odoo_filestore"]["tier"], "bulk")
 
+    def test_remote_targets_use_host_loopback_for_admission(self) -> None:
+        expected = {
+            "production": {
+                "odoo": "http://127.0.0.1:18069",
+                "odoo_websocket": "http://127.0.0.1:18072",
+                "paperless": "http://127.0.0.1:18010",
+                "mcp": "http://127.0.0.1:18000",
+            },
+            "staging": {
+                "odoo": "http://127.0.0.1:19069",
+                "odoo_websocket": "http://127.0.0.1:19072",
+                "paperless": "http://127.0.0.1:19010",
+                "mcp": "http://127.0.0.1:19000",
+            },
+        }
+        for directory in (TARGETS, HOST_TARGETS):
+            for name, endpoints in expected.items():
+                with self.subTest(directory=directory.name, target=name):
+                    target = load_target(name, directory)
+                    self.assertEqual(target.value["admission_endpoints"], endpoints)
+
+    def test_remote_target_rejects_public_admission_endpoint(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        value["admission_endpoints"]["odoo"] = value["endpoints"]["odoo"]
+        with self.assertRaisesRegex(RuntimeError, "target-host loopback"):
+            validate_target(value)
+
     def test_secret_file_rejects_unapproved_secret(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "not allowlisted"):
             validate_secret_text("UNKNOWN_TOKEN=secret\n", ["RESTIC_PASSWORD"])

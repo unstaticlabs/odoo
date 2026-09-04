@@ -69,6 +69,12 @@
     "paperless": "https://papers.unstaticlabs.com",
     "mcp": "https://odoo-mcp.unstaticlabs.com"
   },
+  "admission_endpoints": {
+    "odoo": "http://127.0.0.1:18069",
+    "odoo_websocket": "http://127.0.0.1:18072",
+    "paperless": "http://127.0.0.1:18010",
+    "mcp": "http://127.0.0.1:18000"
+  },
   "ingress": {
     "proxy_mode": true,
     "list_db": false,

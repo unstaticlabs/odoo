@@ -51,6 +51,7 @@
   },
   "external_networks": {"identity": "usl-identity", "ingress": "cloudflare", "ollama": "ollama"},
   "endpoints": {"odoo": "https://odoo.unstaticlabs.com", "paperless": "https://papers.unstaticlabs.com", "mcp": "https://odoo-mcp.unstaticlabs.com"},
+  "admission_endpoints": {"odoo": "http://127.0.0.1:18069", "odoo_websocket": "http://127.0.0.1:18072", "paperless": "http://127.0.0.1:18010", "mcp": "http://127.0.0.1:18000"},
   "ingress": {"proxy_mode": true, "list_db": false, "dbfilter": "^odoo_production$", "websocket": true},
   "ollama": {"mode": "external", "container": "ollama", "network": "ollama", "url": "http://ollama:11434", "model": "bge-m3:latest", "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab", "dimension": 1024},
   "backup": {

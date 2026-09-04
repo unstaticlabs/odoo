@@ -1095,7 +1095,7 @@ def _validate_mcp_readiness(value: object, *, require_oauth: bool) -> dict:
 
 
 def _mcp_readiness(target, runner) -> dict:
-    url = target.value["endpoints"]["mcp"].rstrip("/") + "/readyz"
+    url = target.value["admission_endpoints"]["mcp"].rstrip("/") + "/readyz"
     result = runner.run(
         ["curl", "--silent", "--show-error", "--fail", "--max-time", "10", url],
         check=False,
@@ -1174,7 +1174,9 @@ def health_command(arguments: argparse.Namespace) -> int:
             failures.append(f"{service}:{item.get('Health')}")
     endpoints = {}
     paths = {"odoo": "/web/health?db_server_status=1", "paperless": "/api/", "mcp": "/readyz"}
-    for name, origin in target.value["endpoints"].items():
+    admission = target.value["admission_endpoints"]
+    for name in ("odoo", "paperless", "mcp"):
+        origin = admission[name]
         url = origin.rstrip("/") + paths[name]
         process = runner.run(
             [
@@ -1230,7 +1232,8 @@ def health_command(arguments: argparse.Namespace) -> int:
                 failures.append("odoo:config-mismatch")
     websocket_status = {"required": ingress["websocket"], "status_code": None, "ok": True}
     if ingress["websocket"]:
-        origin = target.value["endpoints"]["odoo"].rstrip("/")
+        origin = admission["odoo_websocket"].rstrip("/")
+        public_origin = target.value["endpoints"]["odoo"].rstrip("/")
         websocket_result = runner.run(
             [
                 "curl",
@@ -1246,7 +1249,7 @@ def health_command(arguments: argparse.Namespace) -> int:
                 "--header",
                 "Upgrade: websocket",
                 "--header",
-                f"Origin: {origin}",
+                f"Origin: {public_origin}",
                 "--header",
                 "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
                 "--header",
@@ -1294,6 +1297,7 @@ def health_command(arguments: argparse.Namespace) -> int:
         "status": "passed" if not failures else "failed",
         "failures": failures,
         "endpoints": endpoints,
+        "configured_endpoints": target.value["endpoints"],
         "odoo_config": odoo_config,
         "websocket": websocket_status,
         "ollama": ollama_status,
