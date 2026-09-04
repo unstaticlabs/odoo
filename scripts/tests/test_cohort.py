@@ -35,7 +35,9 @@ from operations.stack import (
     _prepare_release_candidate,
     _prepare_receipt,
     _release_attempt,
+    _release_attempt_claim,
     _release_boundary_receipt,
+    _require_same_attempt_boundary,
     _require_same_preparation,
     _previous_generation_identity,
     _release_images,
@@ -144,6 +146,75 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "missing or invalid"):
             _release_attempt("bad", "a" * 64)
 
+    def test_release_attempt_claim_binds_the_complete_operation(self) -> None:
+        target = load_target("production", TARGETS)
+        operation = {
+            "target": "production",
+            "attempt": "attempt-20260904-a1b2c3d4",
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
+            "baseline_generation": "gprevious-a1b2c3d4",
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+
+        self.assertEqual(
+            _release_attempt_claim(
+                claim,
+                target=target,
+                attempt=operation["attempt"],
+                release=operation["candidate_release"],
+            ),
+            claim,
+        )
+        changed = dict(claim)
+        changed["snapshot"] = "f" * 64
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _release_attempt_claim(
+                changed,
+                target=target,
+                attempt=operation["attempt"],
+                release=operation["candidate_release"],
+            )
+
+    def test_release_boundary_rejects_a_different_operation_bundle(self) -> None:
+        claim = {
+            "operation_bundle_sha256": "a" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "snapshot": "b" * 64,
+        }
+        boundary = dict(claim)
+        _require_same_attempt_boundary(
+            claim,
+            boundary,
+            generation=claim["generation"],
+            snapshot=claim["snapshot"],
+        )
+        boundary["operation_bundle_sha256"] = "c" * 64
+        with self.assertRaisesRegex(RuntimeError, "operation bundle differs"):
+            _require_same_attempt_boundary(
+                claim,
+                boundary,
+                generation=claim["generation"],
+                snapshot=claim["snapshot"],
+            )
+
     def test_quarantine_receipt_binds_attempt_release_and_generation(self) -> None:
         target = load_target("production", TARGETS)
         receipt = _release_boundary_receipt(
@@ -157,6 +228,7 @@ class CohortContractTests(unittest.TestCase):
             health={"status": "passed"},
             smoke={"status": "passed"},
             control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
         )
 
         validated = _validate_release_boundary_receipt(
@@ -184,6 +256,7 @@ class CohortContractTests(unittest.TestCase):
             health={"status": "passed"},
             smoke={"status": "passed"},
             control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
         )
 
         with self.assertRaisesRegex(RuntimeError, "identity differs"):
@@ -246,6 +319,7 @@ class CohortContractTests(unittest.TestCase):
             "attempt": "attempt-20260904-0001",
             "prepared_at": "2026-09-04T11:59:00Z",
             "gitops_commit": None,
+            "upgrade_plan_sha256": "f" * 64,
             "compose_sha256": "c" * 64,
             "services": ["odoo"],
             "images": ["ghcr.io/unstaticlabs/odoo@sha256:" + "d" * 64],
@@ -277,6 +351,7 @@ class CohortContractTests(unittest.TestCase):
             "target": "production",
             "release": "a" * 64,
             "gitops_commit": "e" * 40,
+            "upgrade_plan_sha256": "f" * 64,
             "compose_sha256": "b" * 64,
             "services": ["odoo"],
             "images": ["image@sha256:" + "c" * 64],
@@ -291,6 +366,10 @@ class CohortContractTests(unittest.TestCase):
         changed = dict(prepared)
         changed["gitops_commit"] = "f" * 40
         with self.assertRaisesRegex(RuntimeError, "gitops_commit"):
+            _require_same_preparation(changed, prepared)
+        changed = dict(prepared)
+        changed["upgrade_plan_sha256"] = "a" * 64
+        with self.assertRaisesRegex(RuntimeError, "upgrade_plan_sha256"):
             _require_same_preparation(changed, prepared)
 
     def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:

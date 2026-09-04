@@ -154,7 +154,12 @@ Every rollout attempt has an identity distinct from the desired release. The
 controller binds preparation, observed public HTTP 503 evidence, generation,
 backup and final admission to that attempt. `release reconcile` requires a
 digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
-then consumes the attempt exactly once. In production it stops at an immutable
+then consumes the attempt exactly once. Its immutable attempt claim binds the
+source snapshot, candidate release, exact signed upgrade plan, archived GitOps
+commit and Compose render, preparation and maintenance receipts, baseline, and
+new generation into one operation-bundle digest. Quarantine and admission
+receipts must carry that same digest; mixing evidence from retries or concurrent
+promotions fails closed. In production reconciliation stops at an immutable
 `usl-release-quarantine/v1` receipt. The controller must complete every
 rollback-eligible check and candidate backup before it calls `release activate`
 with that exact receipt. A failed or interrupted attempt is

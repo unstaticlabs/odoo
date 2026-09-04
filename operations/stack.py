@@ -807,7 +807,14 @@ def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> 
     return totals
 
 
-def _prepare_release_candidate(target, runner, release: dict, current: dict) -> dict:
+def _prepare_release_candidate(
+    target,
+    runner,
+    release: dict,
+    current: dict,
+    *,
+    upgrade_plan_sha256: str | None = None,
+) -> dict:
     """Validate and cache a candidate without changing application runtime state."""
     _prepare_secret_contract(target, runner)
     candidate_identity = _candidate_compose_identity(target, runner, current["compose"])
@@ -894,6 +901,7 @@ def _prepare_release_candidate(target, runner, release: dict, current: dict) -> 
         "target": target.name,
         "release": release["identity"],
         "gitops_commit": candidate_identity.get("gitops_commit"),
+        "upgrade_plan_sha256": upgrade_plan_sha256,
         "compose_sha256": hashlib.sha256(canonical.encode()).hexdigest(),
         "services": sorted(rendered_services),
         "images": sorted(_release_images(release)),
@@ -955,7 +963,8 @@ def _maintenance_receipt(value: object, *, target: str, attempt: str) -> dict:
 def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) -> dict:
     expected = {
         "schema", "target", "release", "attempt", "prepared_at", "compose_sha256",
-        "gitops_commit", "services", "images", "capacity", "runtime_changed", "status", "sha256",
+        "gitops_commit", "upgrade_plan_sha256", "services", "images", "capacity",
+        "runtime_changed", "status", "sha256",
     }
     if not isinstance(value, dict) or set(value) != expected:
         raise RuntimeError("release prepare receipt fields differ")
@@ -969,6 +978,8 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["compose_sha256"]))
         or value["gitops_commit"] is not None
         and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
+        or value["upgrade_plan_sha256"] is not None
+        and not re.fullmatch(r"[0-9a-f]{64}", str(value["upgrade_plan_sha256"]))
     ):
         raise RuntimeError("release prepare receipt identity differs")
     try:
@@ -987,11 +998,36 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
 
 def _require_same_preparation(current: dict, receipt: dict) -> None:
     for field in (
-        "target", "release", "gitops_commit", "compose_sha256", "services", "images",
+        "target", "release", "gitops_commit", "upgrade_plan_sha256", "compose_sha256", "services", "images",
         "runtime_changed", "status",
     ):
         if current.get(field) != receipt.get(field):
             raise RuntimeError(f"release preparation changed after maintenance: {field}")
+
+
+def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
+    if not isinstance(value, dict):
+        raise PlanEvidenceError("upgrade plan must be a JSON object")
+    if target.value["environment"] == "production":
+        if value.get("schema") != PROMOTION_SCHEMA:
+            raise PlanEvidenceError(
+                "production requires a staging-signed production promotion",
+            )
+        plan = verify_upgrade_plan_promotion(
+            value,
+            Path(target.value["plan_signing"]["public_key"]),
+            release,
+        )
+    elif value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
+        plan = verify_upgrade_plan(
+            value,
+            Path(target.value["plan_signing"]["public_key"]),
+        )
+    else:
+        plan = validate_upgrade_plan(value)
+    if plan["candidate_release"] != release["identity"]:
+        raise ModuleReleaseError("upgrade plan targets another candidate")
+    return plan
 
 
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
@@ -2121,6 +2157,87 @@ def _admit_production_side_effects(target, runner, release, network, volumes) ->
     return value
 
 
+def _release_attempt_claim(value: object, *, target, attempt: str, release: str) -> dict:
+    """Validate the immutable, attempt-scoped operation bundle."""
+    expected = {
+        "schema", "attempt", "target", "candidate_release", "source", "snapshot",
+        "generation", "gitops_commit", "upgrade_plan_sha256", "prepare_receipt_sha256",
+        "maintenance_receipt_sha256", "baseline_generation", "operation_bundle_sha256",
+        "claimed_at", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise RuntimeError("release attempt claim fields differ")
+    operation = {
+        key: value[key]
+        for key in (
+            "target", "attempt", "source", "candidate_release", "snapshot", "generation",
+            "gitops_commit", "upgrade_plan_sha256", "prepare_receipt_sha256",
+            "maintenance_receipt_sha256",
+        )
+    }
+    if (
+        value["schema"] != "usl-release-attempt/v2"
+        or value["target"] != target.name
+        or value["attempt"] != attempt
+        or value["candidate_release"] != release
+        or value["status"] != "claimed"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
+        or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
+        or (
+            not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
+            if target.value["compose"].get("canonical") is not None
+            else value["gitops_commit"] is not None
+        )
+        or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
+        or not all(
+            re.fullmatch(r"[0-9a-f]{64}", str(value[field]))
+            for field in (
+                "upgrade_plan_sha256", "prepare_receipt_sha256",
+                "maintenance_receipt_sha256", "operation_bundle_sha256",
+            )
+        )
+        or value["operation_bundle_sha256"] != hashlib.sha256(
+            json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        or value["baseline_generation"] is not None
+        and not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["baseline_generation"]))
+    ):
+        raise RuntimeError("release attempt claim identity differs")
+    try:
+        claimed_at = datetime.fromisoformat(str(value["claimed_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("release attempt claim timestamp is invalid") from error
+    if claimed_at.tzinfo is None:
+        raise RuntimeError("release attempt claim timestamp is invalid")
+    digest = hashlib.sha256(
+        json.dumps(
+            {key: item for key, item in value.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode(),
+    ).hexdigest()
+    if value["sha256"] != digest:
+        raise RuntimeError("release attempt claim digest differs")
+    return value
+
+
+def _require_same_attempt_boundary(
+    claim: dict,
+    receipt: dict,
+    *,
+    generation: str,
+    snapshot: str,
+) -> None:
+    if (
+        receipt["operation_bundle_sha256"] != claim["operation_bundle_sha256"]
+        or receipt["generation"] != generation
+        or receipt["snapshot"] != snapshot
+        or claim["generation"] != generation
+        or claim["snapshot"] != snapshot
+    ):
+        raise RuntimeError("release boundary operation bundle differs")
+
+
 def _release_boundary_receipt(
     *,
     schema: str,
@@ -2133,6 +2250,7 @@ def _release_boundary_receipt(
     health: dict,
     smoke: dict,
     control_validation: dict,
+    operation_bundle_sha256: str,
 ) -> dict:
     """Bind a runtime boundary to the exact candidate and its validation."""
     timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
@@ -2143,6 +2261,7 @@ def _release_boundary_receipt(
         "release": release,
         "snapshot": snapshot,
         "generation": generation,
+        "operation_bundle_sha256": operation_bundle_sha256,
         "health_sha256": hashlib.sha256(
             json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest(),
@@ -2173,6 +2292,7 @@ def _validate_release_boundary_receipt(
     timestamp_key = "admitted_at" if status == "admitted" else "quarantined_at"
     required = {
         "schema", "target", "attempt", "release", "snapshot", "generation",
+        "operation_bundle_sha256",
         "health_sha256", "smoke_sha256", "control_validation_sha256",
         timestamp_key, "status", "sha256",
     }
@@ -2186,6 +2306,7 @@ def _validate_release_boundary_receipt(
         or value["release"] != release
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["operation_bundle_sha256"]))
     ):
         raise RuntimeError("release boundary receipt identity differs")
     digest = hashlib.sha256(
@@ -2787,26 +2908,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
-            if not isinstance(plan_value, dict):
-                raise PlanEvidenceError("upgrade plan must be a JSON object")
+            upgrade_plan = _validated_release_upgrade_plan(target, plan_value, release)
             if target.value["environment"] == "production":
-                if plan_value.get("schema") != PROMOTION_SCHEMA:
-                    raise PlanEvidenceError(
-                        "production requires a staging-signed production promotion",
-                    )
-                upgrade_plan = verify_upgrade_plan_promotion(
-                    plan_value,
-                    Path(target.value["plan_signing"]["public_key"]),
-                    release,
-                )
                 signed_plan_evidence = plan_value
-            elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
-                upgrade_plan = verify_upgrade_plan(
-                    plan_value,
-                    Path(target.value["plan_signing"]["public_key"]),
-                )
-            else:
-                upgrade_plan = validate_upgrade_plan(plan_value)
         except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("upgrade plan is invalid") from error
     tool_image = release["components"]["backup-tool"]["digest_reference"]
@@ -2818,7 +2922,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     images = _runtime_images(target_runner, candidate_identity)
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "image-preparation", "started")
-    preparation = _prepare_release_candidate(target, target_runner, release, current)
+    preparation = _prepare_release_candidate(
+        target,
+        target_runner,
+        release,
+        current,
+        upgrade_plan_sha256=(upgrade_plan or {}).get("sha256"),
+    )
     if prepared_before_downtime is not None:
         _require_same_preparation(preparation, prepared_before_downtime)
     capacity_before_pull = preparation["capacity"]["before_pull"]
@@ -3096,6 +3206,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     admission_receipt = None
     quarantine_receipt = None
     if attempt is not None:
+        operation_bundle_sha256 = getattr(arguments, "operation_bundle_sha256", None)
+        if not isinstance(operation_bundle_sha256, str):
+            raise RuntimeError("release operation bundle identity is missing")
         production = target.value["environment"] == "production"
         receipt_body = _release_boundary_receipt(
             schema=(
@@ -3111,6 +3224,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             health=health,
             smoke=smoke,
             control_validation=control_validation,
+            operation_bundle_sha256=operation_bundle_sha256,
         )
         receipt_path = f"{generation_root}/{'quarantine' if production else 'admission'}.json"
         _write_remote(
@@ -3552,6 +3666,16 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
     if active_release.get("identity") != release["identity"]:
         raise RuntimeError("production activation release differs")
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    attempt_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
+    try:
+        claim = _release_attempt_claim(
+            json.loads(_read_path(target, runner, Path(attempt_path))),
+            target=target,
+            attempt=attempt,
+            release=release["identity"],
+        )
+    except json.JSONDecodeError as error:
+        raise RuntimeError("release attempt claim is invalid") from error
     quarantine_path = f"{generation_root}/quarantine.json"
     if str(arguments.quarantine_receipt) != quarantine_path:
         raise RuntimeError("production quarantine receipt path differs")
@@ -3563,11 +3687,12 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         attempt=attempt,
         release=release["identity"],
     )
-    if (
-        quarantine["generation"] != generation
-        or quarantine["snapshot"] != arguments.snapshot
-    ):
-        raise RuntimeError("production quarantine receipt runtime differs")
+    _require_same_attempt_boundary(
+        claim,
+        quarantine,
+        generation=generation,
+        snapshot=arguments.snapshot,
+    )
     maintenance = _maintenance_receipt(
         json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
         target=target.name,
@@ -3588,6 +3713,12 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
             target=target,
             attempt=attempt,
             release=release["identity"],
+        )
+        _require_same_attempt_boundary(
+            claim,
+            admission,
+            generation=generation,
+            snapshot=arguments.snapshot,
         )
         return {
             "schema": "usl-production-release-activation/v1",
@@ -3650,7 +3781,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
     receipt = {
         **{key: quarantine[key] for key in (
             "target", "attempt", "release", "snapshot", "generation",
-            "control_validation_sha256",
+            "control_validation_sha256", "operation_bundle_sha256",
         )},
         "schema": "usl-release-admission/v1",
         "health_sha256": hashlib.sha256(
@@ -3703,25 +3834,17 @@ def release_command(arguments: argparse.Namespace) -> int:
             raise RuntimeError("release prepare requires an exact upgrade plan")
         try:
             plan_value = json.loads(_read_path(target, runner, arguments.upgrade_plan))
-            if target.value["environment"] == "production":
-                prepared_plan = verify_upgrade_plan_promotion(
-                    plan_value,
-                    Path(target.value["plan_signing"]["public_key"]),
-                    release,
-                )
-            elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
-                prepared_plan = verify_upgrade_plan(
-                    plan_value,
-                    Path(target.value["plan_signing"]["public_key"]),
-                )
-            else:
-                prepared_plan = validate_upgrade_plan(plan_value)
-            if prepared_plan["candidate_release"] != release["identity"]:
-                raise ModuleReleaseError("release prepare plan targets another candidate")
+            prepared_plan = _validated_release_upgrade_plan(target, plan_value, release)
         except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("release prepare upgrade plan is invalid") from error
         current = inspect_runtime(target, runner)
-        value = _prepare_release_candidate(target, runner, release, current)
+        value = _prepare_release_candidate(
+            target,
+            runner,
+            release,
+            current,
+            upgrade_plan_sha256=prepared_plan["sha256"],
+        )
         value["attempt"] = attempt
         value["prepared_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         value["sha256"] = hashlib.sha256(
@@ -3928,6 +4051,17 @@ def release_command(arguments: argparse.Namespace) -> int:
         maintenance_at = datetime.fromisoformat(maintenance_receipt["observed_at"].replace("Z", "+00:00"))
         if maintenance_at < prepared_at:
             raise RuntimeError("maintenance was observed before release preparation")
+        try:
+            plan_value = json.loads(_read_path(target, runner, arguments.upgrade_plan))
+            exact_plan = _validated_release_upgrade_plan(target, plan_value, release_value)
+        except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
+            raise RuntimeError("release reconcile upgrade plan is invalid") from error
+        if prepare_receipt["upgrade_plan_sha256"] != exact_plan["sha256"]:
+            raise RuntimeError("release upgrade plan changed after preparation")
+        generation = arguments.generation or (
+            "g" + datetime.now(UTC).strftime("%Y%m%dt%H%M-")
+            + hashlib.sha256(attempt.encode()).hexdigest()[:8]
+        )
         attempt_root = f"{target.value['state_directory']}/attempts/{attempt}"
         if runner.run(["mkdir", attempt_root], check=False).returncode != 0:
             raise RuntimeError(
@@ -3935,12 +4069,26 @@ def release_command(arguments: argparse.Namespace) -> int:
             )
         attempt_path = f"{attempt_root}/claim.json"
         baseline = inspect_runtime(target, runner)
-        claim = {
-            "schema": "usl-release-attempt/v1",
-            "attempt": attempt,
+        operation = {
             "target": target.name,
+            "attempt": attempt,
+            "source": arguments.source,
             "candidate_release": release_value["identity"],
+            "snapshot": arguments.snapshot,
+            "generation": generation,
+            "gitops_commit": prepare_receipt["gitops_commit"],
+            "upgrade_plan_sha256": exact_plan["sha256"],
+            "prepare_receipt_sha256": prepare_receipt["sha256"],
+            "maintenance_receipt_sha256": maintenance_receipt["sha256"],
+        }
+        operation_bundle_sha256 = hashlib.sha256(
+            json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
             "baseline_generation": baseline.get("generation"),
+            "operation_bundle_sha256": operation_bundle_sha256,
             "claimed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "status": "claimed",
         }
@@ -3950,10 +4098,6 @@ def release_command(arguments: argparse.Namespace) -> int:
         _write_remote(
             target, runner, attempt_path,
             json.dumps(claim, indent=2, sort_keys=True) + "\n", "0444",
-        )
-        generation = arguments.generation or (
-            "g" + datetime.now(UTC).strftime("%Y%m%dt%H%M-")
-            + hashlib.sha256(attempt.encode()).hexdigest()[:8]
         )
         restore_arguments = argparse.Namespace(
             targets=arguments.targets,
@@ -3967,6 +4111,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             attempt_id=attempt,
             maintenance_receipt=maintenance_receipt,
             prepare_receipt=prepare_receipt,
+            operation_bundle_sha256=operation_bundle_sha256,
             replace=arguments.replace,
             confirm=arguments.confirm,
             json=arguments.json,
