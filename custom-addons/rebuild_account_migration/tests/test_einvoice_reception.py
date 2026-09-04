@@ -1429,6 +1429,14 @@ class TestFrenchEinvoiceReception(
         ]))
 
     def test_participant_status_cron_does_not_retry_unapproved_registration(self):
+        proxy_users = self.env["account_edi_proxy_client.user"].sudo().search([
+            ("proxy_type", "in", self.env[
+                "account_edi_proxy_client.user"
+            ]._get_peppol_proxy_types()),
+        ])
+        proxy_users.company_id.write({
+            "rebuild_einvoice_activation_approved": False,
+        })
         self.company.write({
             "rebuild_einvoice_activation_approved": False,
             "account_peppol_proxy_state": "smp_registration",
