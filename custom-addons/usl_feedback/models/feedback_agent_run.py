@@ -20,6 +20,7 @@ _logger = logging.getLogger(__name__)
 ACTIVE_STATES = ("queued", "submitted")
 ALLOWED_MODELS = {"gemini-3.7-flash", "gemini-3.6-flash"}
 LOCAL_MODEL = "odoo-local"
+RELEASE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ERROR_CONFIGURATION = "configuration"
 ERROR_INVALID_RESPONSE = "invalid_response"
 ERROR_STATE_EXPIRED = "state_expired"
@@ -433,7 +434,11 @@ class FeedbackAgentRun(models.Model):
             full=force_full or not bool(self.previous_interaction_id),
         )
         board = self._board_summary(task)
-        release_url = f"https://github.com/unstaticlabs/odoo/tree/{task.usl_feedback_release_sha}"
+        release_url = (
+            f"https://github.com/unstaticlabs/odoo/tree/{task.usl_feedback_release_sha}"
+            if RELEASE_SHA_RE.fullmatch(task.usl_feedback_release_sha or "")
+            else "Unknown"
+        )
         instructions = (
             "You are the Product Feedback Assistant in Odoo. Your only job is to turn a reporter's "
             "message into clear, actionable product feedback. Preserve the reporter's facts and "
@@ -461,6 +466,8 @@ class FeedbackAgentRun(models.Model):
                 "to inspect relevant existing feedback. Never call a write tool."
             )
         prompt = (
+            f"Trusted deployment identity (do not author or alter it): "
+            f"{task._usl_feedback_identity_html()}\n\n"
             f"Exact running release source: {release_url}\n\n"
             f"Sanitized submission context:\n{self._context_summary(task)}\n\n"
             f"Current shared feedback board summary:\n{board}\n\n"

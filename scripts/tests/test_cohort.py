@@ -1230,6 +1230,24 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+        mapped = json.loads(
+            _generation_overlay(
+                names,
+                release,
+                {"odoo-staging"},
+                target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "USL_RELEASE_COMMIT": "a" * 40,
+                    "USL_GITOPS_COMMIT": "b" * 40,
+                    "USL_DEPLOYMENT_GENERATION": "g20260901-a1b2c3d4",
+                    "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+                },
+            ),
+        )
+        self.assertEqual(set(mapped["services"]), {"odoo-staging"})
+        self.assertEqual(mapped["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "b" * 40)
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)

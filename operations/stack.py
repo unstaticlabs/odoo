@@ -117,6 +117,7 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -1800,6 +1801,7 @@ def _generation_overlay(
     ingress: dict | None = None,
     sign_secret_root: str | None = None,
     service_names: dict[str, str] | None = None,
+    deployment_identity: dict[str, str] | None = None,
 ) -> str:
     value = {
         "volumes": {
@@ -1808,6 +1810,7 @@ def _generation_overlay(
         },
     }
     if release is not None:
+        service_names = service_names or {}
         images = {
             "distribution": release["components"]["distribution"]["digest_reference"],
             "paperless": release["components"]["paperless"]["digest_reference"],
@@ -1818,17 +1821,24 @@ def _generation_overlay(
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
-            service: {"image": images[component]}
+            service_names.get(service, service): {"image": images[component]}
             for component, services in RELEASE_IMAGE_SERVICES.items()
             for service in services
-            if available_services is None or service in available_services
+            if available_services is None
+            or service in available_services
+            or service_names.get(service, service) in available_services
         }
-        if ingress is not None and "odoo" in value["services"]:
-            value["services"]["odoo"]["environment"] = {
+        odoo_service = service_names.get("odoo", "odoo")
+        init_db_service = service_names.get("init-db", "init-db")
+        if ingress is not None and odoo_service in value["services"]:
+            value["services"][odoo_service]["environment"] = {
                 "ODOO_PROXY_MODE": "True" if ingress["proxy_mode"] else "False",
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
+                **(deployment_identity or {}),
             }
+            if init_db_service in value["services"]:
+                value["services"][init_db_service]["environment"] = dict(deployment_identity or {})
     if sign_secret_root is not None:
         if not service_names:
             raise RuntimeError("Sign secret activation requires service names")
@@ -2031,13 +2041,47 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     return identity, state
 
 
-def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
+def _abort_to_previous_generation(target, runner, targets: Path, gitops_commit: str | None = None) -> dict:
     """Restore and prove the untouched pre-reopen runtime generation."""
     marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
     if runner.run(["test", "-f", marker], check=False).returncode:
         raise RuntimeError("runtime rollback is allowed only while the gateway is in maintenance")
     current = inspect_runtime(target, runner)
     previous_identity, previous_state = _previous_generation_identity(target, runner, current)
+    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
+        raise RuntimeError("release abort GitOps commit is invalid")
+    if previous_state is not None:
+        previous = json.loads(previous_state)
+        release_path = previous["release_manifest"]
+        release_raw = _read_path(target, runner, release_path)
+        try:
+            release = validate_release(json.loads(release_raw))
+        except (ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("rollback release manifest is invalid") from error
+        generation = previous["generation"]
+        overlay = f"{target.value['state_directory']}/generations/{generation}/compose.generation.json"
+        _write_remote(
+            target,
+            runner,
+            overlay,
+            _generation_overlay(
+                previous["volumes"], release, set(target.value["services"].values()), target.value["ingress"],
+                sign_secret_root=(
+                    f"{target.value['state_directory']}/generations/{generation}/sign-secrets"
+                    if target.value["environment"] == "production" else None
+                ),
+                service_names=target.value["services"],
+                deployment_identity={
+                    "USL_DEPLOYMENT_ENV": target.value["environment"],
+                    "USL_RELEASE_COMMIT": release["source"]["commit"],
+                    "USL_GITOPS_COMMIT": gitops_commit if GIT_COMMIT.fullmatch(gitops_commit or "") else "Unknown",
+                    "USL_DEPLOYMENT_GENERATION": generation,
+                    "USL_RELEASE_MANIFEST_SHA256": hashlib.sha256(
+                        json.dumps(release, separators=(",", ":"), sort_keys=True).encode(),
+                    ).hexdigest(),
+                },
+            ),
+        )
     cohort_services = sorted(set(target.value["services"].values()))
     runner.run(
         compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
@@ -2056,7 +2100,6 @@ def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
         generation = "adopted"
     else:
         _write_remote(target, runner, active_path, previous_state)
-        generation = json.loads(previous_state)["generation"]
     health = _gate(health_command, target, targets)
     smoke = _gate(smoke_command, target, targets)
     return {
@@ -2287,6 +2330,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     _secret_file(target, target_runner)
     release_override = getattr(arguments, "target_release", None) or arguments.release
     release, release_sha, release_raw = _release(source, target_runner, release_override)
+    gitops_commit = getattr(arguments, "gitops_commit", None)
+    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
+        raise RuntimeError("release activation GitOps commit is invalid")
     upgrade_plan = None
     signed_plan_evidence = None
     cron_policy_application = None
@@ -2443,6 +2489,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 else None
             ),
             service_names=target.value["services"],
+            deployment_identity={
+                "USL_DEPLOYMENT_ENV": target.value["environment"],
+                "USL_RELEASE_COMMIT": release["source"]["commit"],
+                "USL_GITOPS_COMMIT": gitops_commit if GIT_COMMIT.fullmatch(gitops_commit or "") else "Unknown",
+                "USL_DEPLOYMENT_GENERATION": generation,
+                "USL_RELEASE_MANIFEST_SHA256": release_sha,
+            },
         ),
     )
     generated_prefix = target.value["state_directory"] + "/generations/"
@@ -2780,7 +2833,9 @@ def release_command(arguments: argparse.Namespace) -> int:
             )
         run_id = f"abort-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "release-abort", run_id):
-            rollback = _abort_to_previous_generation(target, runner, arguments.targets)
+            rollback = _abort_to_previous_generation(
+                target, runner, arguments.targets, getattr(arguments, "gitops_commit", None),
+            )
         value = {**rollback, "controller_state": controller_state}
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
@@ -2874,6 +2929,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             replace=arguments.replace,
             confirm=arguments.confirm,
             json=arguments.json,
+            gitops_commit=getattr(arguments, "gitops_commit", None),
         )
         return restore_command(restore_arguments)
     raise RuntimeError(f"unsupported release action: {arguments.action}")
@@ -2958,6 +3014,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--replace", action="store_true")
     release.add_argument("--confirm")
     release.add_argument("--release-id")
+    release.add_argument("--gitops-commit")
     release.add_argument("--json", action="store_true")
     release.set_defaults(handler=release_command)
     return parser

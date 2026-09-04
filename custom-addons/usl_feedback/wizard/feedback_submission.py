@@ -166,13 +166,9 @@ class FeedbackSubmission(models.TransientModel):
             for value in (parameter_sha, environment_sha)
             if value and RELEASE_SHA_RE.fullmatch(value)
         }
-        if len(valid_values) > 1:
-            raise UserError(
-                _("Feedback is unavailable because the running release identity is inconsistent."),
-            )
-        if not valid_values:
-            raise UserError(_("Feedback is unavailable because this release has no verified identity."))
-        return valid_values.pop()
+        # Feedback remains available when a local or recovering runtime cannot
+        # prove its release. The description records that fact as Unknown.
+        return valid_values.pop() if len(valid_values) == 1 else "Unknown"
 
     def _validated_settings_section(self, model):
         key = (self.source_settings_section or "").strip()
@@ -271,8 +267,9 @@ class FeedbackSubmission(models.TransientModel):
             .create(
                 {
                     "name": message.splitlines()[0][:120],
-                    "description": Markup("<p>%s</p>") % escape(message).replace(
-                        "\n", Markup("<br>"),
+                    "description": Markup("<p>%s</p>%s") % (
+                        escape(message).replace("\n", Markup("<br>")),
+                        self.env["project.task"]._usl_feedback_identity_html(),
                     ),
                     "project_id": project.id,
                     "stage_id": stage.id,

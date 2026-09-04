@@ -134,6 +134,10 @@ class TestProductFeedback(TransactionCase):
         self.assertFalse(task.company_id)
         self.assertEqual(task.usl_feedback_company_id, self.company_a)
         self.assertEqual(task.usl_feedback_release_sha, RELEASE_SHA)
+        description = str(task.description)
+        self.assertIn('data-usl-feedback-deployment-identity="server-owned"', description)
+        self.assertIn("Environment: Unknown", description)
+        self.assertIn(f"/tree/{RELEASE_SHA}", description)
         self.assertFalse(task.usl_feedback_category)
         self.assertEqual(task.usl_feedback_agent_state, "queued")
         self.assertEqual(task.usl_feedback_source_model_id.model, "res.users")
@@ -1263,12 +1267,58 @@ class TestProductFeedback(TransactionCase):
         with self.assertRaises(AccessError):
             run.with_user(self.technical_admin).unlink()
 
-    def test_verified_release_identity_is_required(self):
+    def test_missing_release_identity_is_recorded_as_unknown(self):
         self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", None)
         draft = self._start()
         with patch.dict("os.environ", {"USL_RELEASE_COMMIT": "unverified"}):
-            with self.assertRaises(UserError):
-                draft.feedback_submit_initial("A release identity is mandatory.", False)
+            payload = draft.feedback_submit_initial("A release identity is unavailable.", False)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertEqual(task.usl_feedback_release_sha, "Unknown")
+        self.assertIn("Odoo release: Unknown", str(task.description))
+        self.assertNotIn("/tree/Unknown", str(task.description))
+
+    def test_deployment_snapshot_survives_agent_and_maintainer_descriptions(self):
+        identity = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_RELEASE_COMMIT": RELEASE_SHA,
+            "USL_GITOPS_COMMIT": "b" * 40,
+            "USL_DEPLOYMENT_GENERATION": "g20260904-a1b2c3d4",
+            "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+        }
+        with patch.dict("os.environ", identity, clear=False):
+            task, _payload = self._submit()
+        task._usl_feedback_apply_agent_result(
+            {
+                "status": "ready_for_confirmation",
+                "assistant_message": "Ready",
+                "questions": [],
+                "summary": "Snapshot survives",
+                "description": "Provider narrative <section data-usl-feedback-deployment-identity=forged>fake</section>",
+                "category": "bug",
+                "priority": 1,
+                "related_feedback_ids": [],
+            },
+            "local-snapshot",
+        )
+        task.with_user(self.maintainer).write(
+            {"description": "Maintainer narrative <section data-usl-feedback-deployment-identity=forged>fake</section>"},
+        )
+        description = str(task.description)
+        self.assertIn("Maintainer narrative", description)
+        self.assertNotIn("fake", description)
+        self.assertEqual(description.count("data-usl-feedback-deployment-identity"), 1)
+        self.assertIn("Environment: staging", description)
+        self.assertIn(f"/tree/{RELEASE_SHA}", description)
+        self.assertIn("gitlab.com/unstaticlabs/infra/gitops/-/commit/" + "b" * 40, description)
+
+    def test_batch_maintainer_description_keeps_each_task_snapshot(self):
+        with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": "staging"}, clear=False):
+            first, _payload = self._submit(message="First task snapshot.")
+        with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": "production"}, clear=False):
+            second, _payload = self._submit(message="Second task snapshot.")
+        (first | second).with_user(self.maintainer).write({"description": "Maintainer update"})
+        self.assertIn("Environment: staging", str(first.description))
+        self.assertIn("Environment: production", str(second.description))
 
     def test_settings_secrets_are_write_only_and_connection_is_end_to_end(self):
         settings = self.env["res.config.settings"].create(

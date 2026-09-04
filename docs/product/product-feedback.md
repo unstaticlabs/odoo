@@ -76,7 +76,12 @@ Page context is selected by default when the current Odoo page has useful
 details. The browser constructs only typed candidates
 for the action, model, record identifier and viewport. The server retains the
 model and identifier only when the reporter can still read that record. The
-company and exact 40-character release SHA are resolved server-side. URLs,
+company and deployment identity are resolved server-side. Each submitted task
+keeps its original environment, Odoo commit, GitOps commit, deployment generation
+and release-manifest digest in a non-editable description block. Missing or invalid
+runtime values are shown as **Unknown**; valid Odoo and GitOps commits link to their
+respective immutable source revisions. Neither browser input, a maintainer's prose,
+nor an assistant result can replace this snapshot. URLs,
 queries, fragments, tokens, local storage, form contents and arbitrary browser
 state are never collected.
 
