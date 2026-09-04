@@ -159,10 +159,9 @@ registry
     });
 
 // Top Menu → Project Form  Make Breadcrumbs
-registry.category("actions").add("project_top_menu_overview", (env, action) => {
+registry.category("actions").add("project_top_menu_overview", async (env, action) => {
     const params = action || {};
-    console.log(params);
-    showProjectForm(env, {
+    await showProjectForm(env, {
         model: "project.project",
         recordId: action.res_id,
     });

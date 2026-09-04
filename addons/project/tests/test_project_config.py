@@ -21,6 +21,39 @@ class TestProjectConfig(TestProjectCommon):
         menu_loaded = set(self.env['ir.ui.menu']._load_menus_blacklist())
         self.assertTrue(menu_ids.issubset(menu_loaded), "The menu project and menu projects config should be loaded")
 
+    def test_favorite_projects_are_project_menu_entries(self):
+        favorite = self.env['project.project'].create({
+            'name': 'Favorite project',
+            'privacy_visibility': 'employees',
+            'sequence': 5,
+        })
+        hidden = self.env['project.project'].create({
+            'name': 'Hidden favorite project',
+            'privacy_visibility': 'followers',
+        })
+        archived = self.env['project.project'].create({
+            'name': 'Archived favorite project',
+            'privacy_visibility': 'employees',
+            'active': False,
+        })
+        self.user_projectuser.favorite_project_ids = favorite | hidden | archived
+
+        menus = self.env['ir.ui.menu'].with_user(self.user_projectuser).load_web_menus(False)
+        project_menu = menus[self.env.ref('project.menu_main_pm').id]
+
+        self.assertEqual(project_menu['actionID'], self.env.ref('project.open_view_project_all').id)
+        self.assertEqual(project_menu['children'][0], f'project-{favorite.id}')
+        self.assertNotIn(f'project-{hidden.id}', project_menu['children'])
+        self.assertNotIn(f'project-{archived.id}', project_menu['children'])
+        self.assertNotIn(self.env.ref('project.menu_projects').id, project_menu['children'])
+        self.assertNotIn(self.env.ref('project.menu_projects_group_stage').id, project_menu['children'])
+        self.assertEqual(menus[f'project-{favorite.id}']['actionID'], {
+            'type': 'ir.actions.client',
+            'tag': 'project_top_menu_overview',
+            'name': favorite.name,
+            'res_id': favorite.id,
+        })
+
     def test_copy_project_manager_embedded_config_as_default(self):
         """
         Test that when a user gets the embedded actions configs of a projet, he gets the configs of

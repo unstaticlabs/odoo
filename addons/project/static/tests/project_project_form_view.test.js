@@ -1,5 +1,6 @@
 import { expect, test, beforeEach } from "@odoo/hoot";
 import { click } from "@odoo/hoot-dom";
+import { animationFrame } from "@odoo/hoot-mock";
 import {
     mountView,
     contains,
@@ -55,6 +56,30 @@ test("project.project (form)", async () => {
         `,
     });
     expect(".o_form_view").toHaveCount(1);
+});
+
+test("project favorite refreshes the menu when the form is saved", async () => {
+    mockService("menu", {
+        reload() {
+            expect.step("menu_reload");
+        },
+    });
+    await mountView({
+        resModel: "project.project",
+        resId: 1,
+        type: "form",
+        arch: `
+            <form js_class="project_project_form">
+                <field name="name"/>
+                <field name="is_favorite" widget="project_is_favorite" options="{'autosave': False}"/>
+            </form>
+        `,
+    });
+
+    await click("div[name=is_favorite] .o_favorite");
+    await animationFrame();
+    await clickSave();
+    expect.verifySteps(["check_features_enabled", "web_save", "menu_reload"]);
 });
 
 const formViewParams = {

@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "@odoo/hoot";
 import { click } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 
-import { mountView, onRpc } from "@web/../tests/web_test_helpers";
+import { mockService, mountView, onRpc } from "@web/../tests/web_test_helpers";
 
 import { defineProjectModels, ProjectProject } from "./project_models";
 
@@ -26,6 +26,11 @@ beforeEach(() => {
             </kanban>
         `,
     };
+    mockService("menu", {
+        reload() {
+            expect.step("menu_reload");
+        },
+    });
 });
 
 test("Check is_favorite field is still editable even if the record/view is in readonly.", async () => {
@@ -45,7 +50,7 @@ test("Check is_favorite field is still editable even if the record/view is in re
     expect.verifySteps([]);
     await click("div[name=is_favorite] .o_favorite");
     await animationFrame();
-    expect.verifySteps(["web_save"]);
+    expect.verifySteps(["web_save", "menu_reload"]);
 });
 
 test("Check is_favorite field is readonly if the field is readonly", async () => {

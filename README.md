@@ -54,6 +54,43 @@ make dev
 make status
 ```
 
+### Linked worktrees
+
+The canonical Compose project belongs to the main checkout. A linked worktree
+must use its own Compose project, database, and ports; `make doctor` refuses
+the canonical project to prevent an accidental shared-runtime mutation.
+
+```bash
+COMPOSE_PROJECT=usl-<task> \
+ODOO_DEV_DB=odoo_<task>_qa \
+ODOO_HTTP_PORT=<free-http-port> \
+ODOO_GEVENT_PORT=<free-gevent-port> \
+make doctor
+
+COMPOSE_PROJECT=usl-<task> \
+ODOO_DEV_DB=odoo_<task>_qa \
+ODOO_HTTP_PORT=<free-http-port> \
+ODOO_GEVENT_PORT=<free-gevent-port> \
+make dev
+```
+
+When running `scripts/odoo-dev` directly, set `COMPOSE_PROJECT_NAME` rather
+than the Make-only `COMPOSE_PROJECT` variable. To initialize a clean,
+task-specific database, set `ODOO_INIT_MODULES` explicitly; otherwise the
+distribution migration initializer is selected by default:
+
+```bash
+COMPOSE_PROJECT_NAME=usl-<task> \
+ODOO_INIT_DB=odoo_<task>_qa \
+ODOO_INIT_MODULES=<module> \
+ODOO_DB_FILTER='^odoo_<task>_qa$' \
+docker compose -p usl-<task> --profile init run --rm init-db
+```
+
+Choose unused ports before starting the stack. If Docker reports a port
+collision, retain the owned Compose project and restart it with a new free
+port set; do not reuse another worktree's project or volumes.
+
 Open <http://localhost:8069/web/login?db=odoo_dev>. A clean local installation
 uses `admin` / `admin`; production-derived runtimes use Pocket ID instead.
 

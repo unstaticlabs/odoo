@@ -1,4 +1,5 @@
 import { useLayoutEffect } from "@web/owl2/utils";
+import { useService } from "@web/core/utils/hooks";
 import { onWillStart } from "@odoo/owl";
 import { user } from "@web/core/user";
 import { FormControllerWithHTMLExpander } from '@resource/views/form_with_html_expander/form_controller_with_html_expander'
@@ -23,6 +24,7 @@ export class ProjectProjectFormController extends FormControllerWithHTMLExpander
 
     setup() {
         super.setup();
+        this.menu = useService("menu");
         onWillStart(async () => {
             this.isProjectManager = await user.hasGroup('project.group_project_manager');
             this.featuresToObserve = await this.orm.call(
@@ -60,6 +62,9 @@ export class ProjectProjectFormController extends FormControllerWithHTMLExpander
      */
     async onRecordSaved(record, changes) {
         await super.onRecordSaved(...arguments);
+        if ("is_favorite" in changes) {
+            await this.menu.reload();
+        }
         const updatedFields = Object.keys(this.featuresToObserve).filter(
             (fName) => fName in changes
         );
