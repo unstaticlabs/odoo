@@ -1,6 +1,7 @@
 import ast
 import json
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -23,6 +24,24 @@ EREPORTING_CRONS = {
 INBOUND_MAIL_CRONS = {"mail.ir_cron_mail_gateway_action"}
 
 
+def custom_addon_crons():
+    cron_xmlids = set()
+    for manifest_path in sorted((ROOT / "custom-addons").glob("*/__manifest__.py")):
+        manifest = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("installable", True) is False:
+            continue
+        for relative_path in manifest.get("data", []):
+            data_path = manifest_path.parent / relative_path
+            if data_path.suffix != ".xml":
+                continue
+            root = ET.parse(data_path).getroot()
+            for record in root.findall(".//record[@model='ir.cron']"):
+                record_id = record.get("id")
+                if record_id:
+                    cron_xmlids.add(f"{manifest_path.parent.name}.{record_id}")
+    return cron_xmlids
+
+
 def load_script_function(name):
     module = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     function = next(
@@ -37,6 +56,19 @@ def load_script_function(name):
 
 
 class ProductionCronPolicyTest(unittest.TestCase):
+    def test_every_owned_scheduled_action_has_a_versioned_policy_rule(self):
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        owned_modules = {
+            path.name for path in (ROOT / "custom-addons").iterdir() if path.is_dir()
+        }
+        declared_owned_crons = {
+            xmlid
+            for xmlid in policy["crons"]
+            if xmlid.partition(".")[0] in owned_modules
+        }
+
+        self.assertEqual(declared_owned_crons, custom_addon_crons())
+
     def test_reception_and_ereporting_have_independent_cron_gates(self):
         policy = json.loads(POLICY.read_text(encoding="utf-8"))
         rules = policy["crons"]
