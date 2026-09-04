@@ -182,6 +182,47 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
     return tree_identity(root)
 
 
+def validate_mcp_secrets(root: Path) -> dict[str, Any]:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+        raise CohortError("complete MCP secret root is missing or unsafe")
+    for relative in MCP_SECRET_FILES:
+        path = root / relative
+        if not path.is_file() or path.is_symlink() or path.stat().st_size < 32:
+            raise CohortError(f"required MCP recovery material is missing: {relative}")
+        if path.stat().st_mode & 0o077:
+            raise CohortError(f"private MCP recovery material has unsafe permissions: {relative}")
+    return tree_identity(root)
+
+
+def validate_renderer_secrets(root: Path) -> dict[str, Any]:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+        raise CohortError("complete renderer secret root is missing or unsafe")
+    for relative in RENDERER_SECRET_FILES:
+        path = root / relative
+        if not path.is_file() or path.is_symlink() or path.stat().st_size < 1:
+            raise CohortError(f"required renderer recovery material is missing: {relative}")
+        if relative.endswith(".key") and path.stat().st_mode & 0o077:
+            raise CohortError(f"private renderer recovery material has unsafe permissions: {relative}")
+    return tree_identity(root)
+
+
+def validate_paperless_personal_ai_keys(path: Path) -> None:
+    if not path.is_file() or path.is_symlink() or path.stat().st_size < 1:
+        raise CohortError("Paperless Personal-AI keyring is missing or unsafe")
+    if path.stat().st_mode & 0o077:
+        raise CohortError("Paperless Personal-AI keyring has unsafe permissions")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise CohortError("Paperless Personal-AI keyring is invalid JSON") from error
+    if (
+        not isinstance(value, dict)
+        or value.get("format") != "usl-paperless-personal-ai-keys-v1"
+        or not isinstance(value.get("keys"), list) or not value["keys"]
+    ):
+        raise CohortError("Paperless Personal-AI keyring contract differs")
+
+
 def database_environment(prefix: str) -> tuple[list[str], dict[str, str]]:
     keys = {
         "host": f"{prefix}_DB_HOST",
@@ -306,6 +347,12 @@ def validate_manifest(value: object) -> dict[str, Any]:
             raise CohortError(f"resource {role} identity is invalid")
     if value["schema"] == SCHEMA and "sign_secrets" not in resources:
         raise CohortError("complete Sign recovery material is missing")
+    if value["schema"] == SCHEMA and value["target"] == "production" and "mcp_secrets" not in resources:
+        raise CohortError("complete MCP recovery material is missing")
+    if value["schema"] == SCHEMA and value["target"] == "production" and "renderer_secrets" not in resources:
+        raise CohortError("complete renderer recovery material is missing")
+    if value["schema"] == SCHEMA and value["target"] == "production" and "paperless_personal_ai_keys" not in resources:
+        raise CohortError("Paperless Personal-AI recovery material is missing")
     cache_snapshot = value["cache_snapshot_id"]
     if cache_snapshot is not None and not SNAPSHOT.fullmatch(str(cache_snapshot)):
         raise CohortError("cache snapshot ID is invalid")
@@ -360,6 +407,30 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
         copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
         copy_tree(Path("/source/mcp-oauth"), durable / "mcp-oauth")
+        mcp_secrets_source = Path("/source/mcp-secrets")
+        mcp_secrets_identity = None
+        if mcp_secrets_source.exists():
+            mcp_secrets_identity = validate_mcp_secrets(mcp_secrets_source)
+            copy_tree(mcp_secrets_source, durable / "mcp-secrets")
+        elif _required_environment("USL_TARGET") == "production":
+            raise CohortError("complete MCP recovery material is missing")
+        renderer_secrets_source = Path("/source/renderer-secrets")
+        renderer_secrets_identity = None
+        if renderer_secrets_source.exists():
+            renderer_secrets_identity = validate_renderer_secrets(renderer_secrets_source)
+            copy_tree(renderer_secrets_source, durable / "renderer-secrets")
+        elif _required_environment("USL_TARGET") == "production":
+            raise CohortError("complete renderer recovery material is missing")
+        paperless_keys_source = Path("/source/paperless-personal-ai-keys.json")
+        paperless_keys_identity = None
+        if paperless_keys_source.exists():
+            validate_paperless_personal_ai_keys(paperless_keys_source)
+            destination = durable / "paperless-secrets"
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(paperless_keys_source, destination / "personal-ai-keys.json")
+            paperless_keys_identity = tree_identity(destination)
+        elif _required_environment("USL_TARGET") == "production":
+            raise CohortError("Paperless Personal-AI recovery material is missing")
         sign_secrets_identity = validate_sign_secrets(Path("/source/sign-secrets"))
         copy_tree(Path("/source/sign-secrets"), durable / "sign-secrets")
         copy_tree(Path("/source/sign-evidence"), durable / "sign-evidence", required=False)
@@ -386,6 +457,14 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "paperless_tantivy": ("cache", cache / "paperless-data/index"),
             "paperless_vectors": ("cache", cache / "paperless-data/llm_index"),
         }
+        if mcp_secrets_identity is not None:
+            resource_paths["mcp_secrets"] = ("durable", durable / "mcp-secrets")
+        if renderer_secrets_identity is not None:
+            resource_paths["renderer_secrets"] = ("durable", durable / "renderer-secrets")
+        if paperless_keys_identity is not None:
+            resource_paths["paperless_personal_ai_keys"] = (
+                "durable", durable / "paperless-secrets",
+            )
         resources = {
             role: {
                 "class": classification,
@@ -396,6 +475,18 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         }
         if resources["sign_secrets"]["identity"] != sign_secrets_identity:
             raise CohortError("Sign recovery material changed during capture")
+        if mcp_secrets_identity is not None and resources["mcp_secrets"]["identity"] != mcp_secrets_identity:
+            raise CohortError("MCP recovery material changed during capture")
+        if (
+            renderer_secrets_identity is not None
+            and resources["renderer_secrets"]["identity"] != renderer_secrets_identity
+        ):
+            raise CohortError("renderer recovery material changed during capture")
+        if (
+            paperless_keys_identity is not None
+            and resources["paperless_personal_ai_keys"]["identity"] != paperless_keys_identity
+        ):
+            raise CohortError("Paperless Personal-AI recovery material changed during capture")
         manifest = {
             "schema": SCHEMA,
             "run_id": arguments.run_id,
@@ -905,6 +996,19 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
             sign_identity = validate_sign_secrets(cohort_root / "durable/sign-secrets")
             if sign_identity != manifest["resources"]["sign_secrets"]["identity"]:
                 raise CohortError("restored Sign recovery material differs from its manifest")
+            if manifest["target"] == "production":
+                mcp_identity = validate_mcp_secrets(cohort_root / "durable/mcp-secrets")
+                if mcp_identity != manifest["resources"]["mcp_secrets"]["identity"]:
+                    raise CohortError("restored MCP recovery material differs from its manifest")
+                renderer_identity = validate_renderer_secrets(
+                    cohort_root / "durable/renderer-secrets",
+                )
+                if renderer_identity != manifest["resources"]["renderer_secrets"]["identity"]:
+                    raise CohortError("restored renderer recovery material differs from its manifest")
+                personal_ai_root = cohort_root / "durable/paperless-secrets"
+                validate_paperless_personal_ai_keys(personal_ai_root / "personal-ai-keys.json")
+                if tree_identity(personal_ai_root) != manifest["resources"]["paperless_personal_ai_keys"]["identity"]:
+                    raise CohortError("restored Paperless Personal-AI recovery material differs")
         cache_snapshot = manifest["cache_snapshot_id"]
         if not cache_snapshot:
             raise CohortError("durable snapshot does not bind a cache snapshot")
@@ -996,7 +1100,10 @@ def should_restore_resource(
     target_environment: str,
     source_environment: str | None = None,
 ) -> bool:
-    production_only = {"mcp_oauth", "sign_ca", "sign_secrets"}
+    production_only = {
+        "mcp_oauth", "mcp_secrets", "renderer_secrets", "paperless_personal_ai_keys",
+        "sign_ca", "sign_secrets",
+    }
     if role not in production_only:
         return True
     # Environment-owned credentials and signing material may be carried only
@@ -1073,6 +1180,9 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "paperless_trash": Path("/target/paperless-trash"),
         "paperless_consume": Path("/target/paperless-consume"),
         "mcp_oauth": Path("/target/mcp-oauth"),
+        "mcp_secrets": Path("/target/mcp-secrets"),
+        "renderer_secrets": Path("/target/renderer-secrets"),
+        "paperless_personal_ai_keys": Path("/target/paperless-secrets"),
         "sign_ca": Path("/target/sign-secrets/step-ca"),
         "sign_secrets": Path("/target/sign-secrets"),
         "sign_evidence": Path("/target/sign-evidence"),
@@ -1102,6 +1212,27 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         identity = validate_sign_secrets(destinations["sign_secrets"])
         if identity != manifest["resources"]["sign_secrets"]["identity"]:
             raise CohortError("materialized Sign recovery material differs")
+    mcp_secrets_restored = source_environment == target_environment and "mcp_secrets" in manifest["resources"]
+    if mcp_secrets_restored:
+        identity = validate_mcp_secrets(destinations["mcp_secrets"])
+        if identity != manifest["resources"]["mcp_secrets"]["identity"]:
+            raise CohortError("materialized MCP recovery material differs")
+    renderer_secrets_restored = (
+        source_environment == target_environment and "renderer_secrets" in manifest["resources"]
+    )
+    if renderer_secrets_restored:
+        identity = validate_renderer_secrets(destinations["renderer_secrets"])
+        if identity != manifest["resources"]["renderer_secrets"]["identity"]:
+            raise CohortError("materialized renderer recovery material differs")
+    paperless_personal_ai_keys_restored = (
+        source_environment == target_environment
+        and "paperless_personal_ai_keys" in manifest["resources"]
+    )
+    if paperless_personal_ai_keys_restored:
+        root = destinations["paperless_personal_ai_keys"]
+        validate_paperless_personal_ai_keys(root / "personal-ai-keys.json")
+        if tree_identity(root) != manifest["resources"]["paperless_personal_ai_keys"]["identity"]:
+            raise CohortError("materialized Paperless Personal-AI recovery material differs")
 
     for name in DATABASES:
         dump = cohort_root / "durable/databases" / f"{name}.dump"
@@ -1126,6 +1257,9 @@ def materialize(arguments: argparse.Namespace) -> dict[str, Any]:
         "controls": manifest["controls"],
         "transformations": transformations,
         "sign_secrets_restored": sign_secrets_restored,
+        "mcp_secrets_restored": mcp_secrets_restored,
+        "renderer_secrets_restored": renderer_secrets_restored,
+        "paperless_personal_ai_keys_restored": paperless_personal_ai_keys_restored,
         "status": "materialized",
     }
 

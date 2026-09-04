@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import copy
 import hashlib
 import io
@@ -134,7 +133,17 @@ RECOVERY_PROOF_FAILURE_STAGES = (
     "backup-qualified",
     "resources-created",
     "materialized",
+    "runtime-started",
     "validated",
+    "cleanup",
+    "cas-verified",
+    "final-write",
+)
+RECOVERY_PROOF_MAX_SECONDS = 1800
+RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS = 120
+RECOVERY_PROOF_RUNTIME_ROLES = (
+    "odoo", "paperless", "paperless_broker", "paperless_gotenberg",
+    "paperless_tika", "mcp", "renderer", "sign", "sign_ca",
 )
 
 
@@ -816,6 +825,22 @@ def _cohort_command(
         action,
         *arguments,
     ]
+    if "mcp_secrets" in paths:
+        insertion = command.index(image)
+        command[insertion:insertion] = [
+            "--volume", f"{paths['mcp_secrets']['path']}:/source/mcp-secrets:ro",
+        ]
+    if "renderer_secrets" in paths:
+        insertion = command.index(image)
+        command[insertion:insertion] = [
+            "--volume", f"{paths['renderer_secrets']['path']}:/source/renderer-secrets:ro",
+        ]
+    if "paperless_personal_ai_keys" in paths:
+        insertion = command.index(image)
+        command[insertion:insertion] = [
+            "--volume",
+            f"{paths['paperless_personal_ai_keys']['path']}:/source/paperless-personal-ai-keys.json:ro",
+        ]
     if paths["sign_evidence"]["required"]:
         insertion = command.index(image)
         command[insertion:insertion] = [
@@ -1902,13 +1927,14 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
         **details,
     }
     path = f"{target.value['state_directory']}/runs/{run_id}.jsonl"
-    encoded = base64.b64encode((json.dumps(event, sort_keys=True) + "\n").encode()).decode()
+    content = json.dumps(event, sort_keys=True) + "\n"
     program = (
-        "import base64,os,pathlib,sys;"
+        "import os,pathlib,sys;"
         "p=pathlib.Path(sys.argv[1]);p.parent.mkdir(parents=True,exist_ok=True);"
-        "f=p.open('ab');f.write(base64.b64decode(sys.argv[2]));f.close();os.chmod(p,0o600)"
+        "f=p.open('ab');f.write(sys.stdin.buffer.read());f.flush();os.fsync(f.fileno());"
+        "f.close();os.chmod(p,0o600)"
     )
-    runner.run(["python3", "-c", program, path, encoded])
+    runner.run(["python3", "-c", program, path], input_text=content)
     if phase != "operation" or status != "started":
         detail = ""
         if "duration_seconds" in details:
@@ -2833,19 +2859,19 @@ def _materialize_command(
     image: str,
     snapshot: str,
     generation: str,
-    network: str,
+    network: str | list[str],
     volumes: dict[str, str],
     source_backup_env: str,
+    target_environment_file: str | None = None,
+    proof_identity: tuple[str, str] | None = None,
 ) -> list[str]:
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     command = [
         "docker",
         "run",
         "--rm",
-        "--network",
-        network,
         "--env-file",
-        target.value["secrets"]["env_file"],
+        target_environment_file or target.value["secrets"]["env_file"],
         "--env-file",
         source_backup_env,
         "--env",
@@ -2876,6 +2902,12 @@ def _materialize_command(
         "--volume",
         f"{volumes['mcp_oauth']}:/target/mcp-oauth",
         "--volume",
+        f"{generation_root}/mcp-secrets:/target/mcp-secrets",
+        "--volume",
+        f"{generation_root}/renderer-secrets:/target/renderer-secrets",
+        "--volume",
+        f"{generation_root}/paperless-secrets:/target/paperless-secrets",
+        "--volume",
         f"{generation_root}/sign-secrets:/target/sign-secrets",
         "--volume",
         f"{generation_root}/sign-evidence:/target/sign-evidence",
@@ -2884,6 +2916,14 @@ def _materialize_command(
         "--durable-snapshot",
         snapshot,
     ]
+    if proof_identity is not None:
+        proof_id, container_name = proof_identity
+        owned = ["--name", container_name, "--log-driver", "none"]
+        for key, value in _recovery_proof_labels(proof_id, role="materializer").items():
+            owned.extend(["--label", f"{key}={value}"])
+        command[3:3] = owned
+    for network_name in reversed([network] if isinstance(network, str) else network):
+        command[3:3] = ["--network", network_name]
     return command
 
 
@@ -2905,12 +2945,7 @@ def _write_source_backup_environment(source, source_runner, target, target_runne
     if set(selected) != allowed or any(not value for value in selected.values()):
         raise RuntimeError("source backup credential contract is incomplete")
     text = "".join(f"{key}={selected[key]}\n" for key in sorted(selected))
-    program = (
-        "import os,pathlib,sys;"
-        "p=pathlib.Path(sys.argv[1]);p.parent.mkdir(parents=True,exist_ok=True);"
-        "p.write_bytes(sys.stdin.buffer.read());os.chmod(p,0o600)"
-    )
-    target_runner.run(["python3", "-c", program, path], input_text=text)
+    _write_remote(target, target_runner, path, text)
     return path
 
 
@@ -2960,13 +2995,16 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
 
 
 def _write_remote(target, runner, path: str, content: str, mode: str = "0600") -> None:
-    encoded = base64.b64encode(content.encode()).decode()
     program = (
-        "import base64,os,pathlib,sys;"
+        "import os,pathlib,sys,tempfile;"
         "p=pathlib.Path(sys.argv[1]);p.parent.mkdir(parents=True,exist_ok=True);"
-        "p.write_bytes(base64.b64decode(sys.argv[2]));os.chmod(p,int(sys.argv[3],8))"
+        "fd,t=tempfile.mkstemp(prefix='.'+p.name+'.',dir=p.parent);"
+        "exec(\"try:\\n f=os.fdopen(fd,'wb');fd=-1;os.fchmod(f.fileno(),int(sys.argv[2],8));"
+        "f.write(sys.stdin.buffer.read());f.flush();os.fsync(f.fileno());f.close();"
+        "os.replace(t,p);t=None;d=os.open(p.parent,os.O_RDONLY);os.fsync(d);os.close(d)"
+        "\\nfinally:\\n os.close(fd) if fd>=0 else None\\n pathlib.Path(t).unlink(missing_ok=True) if t else None\")"
     )
-    runner.run(["python3", "-c", program, path, encoded, mode])
+    runner.run(["python3", "-c", program, path, mode], input_text=content)
 
 
 def _resource_overlay(target) -> str | None:
@@ -5500,18 +5538,21 @@ def _validate_digested_document(value: object, *, schema: str, proof_id: str) ->
     if not isinstance(value, dict) or value.get("schema") != schema:
         raise RuntimeError("recovery proof evidence schema differs")
     fields = {
-        "usl-disposable-recovery-proof-state/v1": {
+        "usl-disposable-recovery-proof-state/v2": {
             "schema", "proof_id", "source", "phase", "release_identity",
-            "release_manifest_sha256", "runtime_sha256", "backup", "updated_at", "sha256",
+            "release_manifest_sha256", "runtime_sha256", "backup", "started_at",
+            "deadline_at", "updated_at", "duration_seconds", "sha256",
         },
-        "usl-disposable-recovery-proof/v1": {
+        "usl-disposable-recovery-proof/v2": {
             "schema", "proof_id", "source", "release", "backup", "materialization",
-            "health", "smoke", "reusable_cache", "ownership", "cleanup", "isolation",
-            "started_at", "completed_at", "status", "sha256",
+            "runtime", "health", "smoke", "durable_state", "reusable_cache",
+            "ownership", "cleanup", "isolation", "started_at", "completed_at",
+            "duration_seconds", "max_duration_seconds", "status", "sha256",
         },
-        "usl-disposable-recovery-proof-failure/v1": {
-            "schema", "proof_id", "source", "stage", "error_type", "cleanup",
-            "failed_at", "status", "sha256",
+        "usl-disposable-recovery-proof-failure/v2": {
+            "schema", "proof_id", "source", "stage", "error_type", "error_sha256",
+            "cleanup", "runtime_sha256", "started_at", "failed_at",
+            "duration_seconds", "status", "sha256",
         },
     }.get(schema)
     if fields is None or set(value) != fields:
@@ -5527,15 +5568,154 @@ def _validate_digested_document(value: object, *, schema: str, proof_id: str) ->
     return value
 
 
+def _recovery_proof_timestamp(value: object, field: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError(f"recovery proof {field} timestamp is invalid") from error
+    if parsed.tzinfo is None:
+        raise RuntimeError(f"recovery proof {field} timestamp is invalid")
+    return parsed
+
+
+def _validate_recovery_proof_nested(value: object, path: str = "receipt") -> None:
+    """Reject malformed status, digest and timestamp leaves at every nesting depth."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            nested = f"{path}.{key}"
+            if key == "status" and item not in {
+                "passed", "clean", "healthy", "ready", "materialized", "verified",
+                "reused", "internal", "failed", "armed",
+            }:
+                raise RuntimeError(f"recovery proof nested status is invalid: {nested}")
+            if key.endswith("sha256") and not isinstance(item, dict) and not re.fullmatch(
+                r"[0-9a-f]{64}", str(item),
+            ):
+                raise RuntimeError(f"recovery proof nested digest is invalid: {nested}")
+            if key.endswith("_at"):
+                _recovery_proof_timestamp(item, nested)
+            _validate_recovery_proof_nested(item, nested)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            _validate_recovery_proof_nested(item, f"{path}[{index}]")
+
+
 def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
     receipt = _validate_digested_document(
         value,
-        schema="usl-disposable-recovery-proof/v1",
+        schema="usl-disposable-recovery-proof/v2",
         proof_id=proof_id,
     )
+    _validate_recovery_proof_nested(receipt)
     release = receipt["release"]
     backup = receipt["backup"]
     isolation = receipt["isolation"]
+    runtime = receipt["runtime"]
+    materialization = receipt["materialization"]
+    health = receipt["health"]
+    smoke = receipt["smoke"]
+    durable = receipt["durable_state"]
+    reusable_cache = receipt["reusable_cache"]
+    cleanup = receipt["cleanup"]
+    ownership = receipt["ownership"]
+    sample_roles = {
+        "odoo_filestore", "paperless_media", "paperless_archive",
+        "paperless_thumbnails", "paperless_tantivy", "paperless_vectors",
+    }
+    cache_roles = {
+        "paperless_archive", "paperless_thumbnails", "paperless_tantivy", "paperless_vectors",
+    }
+    expected_health_checks = {
+        *(f"{role}_running" for role in RECOVERY_PROOF_RUNTIME_ROLES),
+        "odoo_http", "paperless_http", "gotenberg_http", "tika_http", "paperless_redis",
+        "mcp_ready", "mcp_unauthenticated_boundary", "step_ca",
+        "mcp_vault_decrypt", "renderer_mtls_health", "sign_cryptographic_transaction",
+    }
+    samples = durable.get("samples", {}) if isinstance(durable, dict) else {}
+    if (
+        not isinstance(materialization, dict)
+        or set(materialization) != {
+            "cohort_schema", "capacity", "controls_sha256", "sign_secrets_restored",
+            "mcp_secrets_restored", "renderer_secrets_restored",
+            "paperless_personal_ai_keys_restored", "status",
+        }
+        or materialization.get("cohort_schema") != RECOVERY_COHORT_SCHEMA
+        or not isinstance(materialization.get("capacity"), dict)
+        or set(materialization["capacity"]) != {
+            "schema", "source", "available_bytes", "candidate_bytes", "reserve_bytes",
+            "required_bytes", "status",
+        }
+        or materialization["capacity"].get("schema") != "usl-recovery-proof-capacity/v1"
+        or materialization["capacity"].get("status") != "passed"
+        or any(
+            not isinstance(materialization["capacity"].get(key), int)
+            or materialization["capacity"].get(key) < 0
+            for key in ("available_bytes", "candidate_bytes", "reserve_bytes", "required_bytes")
+        )
+        or materialization["capacity"].get("required_bytes")
+        != materialization["capacity"].get("candidate_bytes") + materialization["capacity"].get("reserve_bytes")
+        or materialization["capacity"].get("available_bytes") < materialization["capacity"].get("required_bytes")
+        or not isinstance(health, dict) or set(health) != {"checks", "databases", "checked_at", "status"}
+        or health.get("databases") != {"odoo": True, "paperless": True}
+        or set(health.get("checks", {})) != expected_health_checks
+        or any(item is not True for item in health.get("checks", {}).values())
+        or not isinstance(smoke, dict) or set(smoke) != {"runtime", "controls", "status"}
+        or not isinstance(smoke.get("runtime"), dict)
+        or set(smoke["runtime"]) != {"http", "oauth", "signing", "status"}
+        or smoke["runtime"].get("http") != {
+            "odoo": "passed", "paperless": "passed", "gotenberg": "passed", "tika": "passed",
+        }
+        or smoke["runtime"].get("signing") != {
+            "step_ca": "passed", "cryptographic_transaction": "passed",
+            "renderer_mtls": "passed",
+        }
+        or set(smoke["runtime"].get("oauth", {})) != {
+            "readiness", "unauthenticated_boundary", "schema_version", "active_enrollments",
+            "refreshed", "cached", "unavailable", "vault_readability",
+        }
+        or smoke["runtime"]["oauth"].get("readiness") != "passed"
+        or smoke["runtime"]["oauth"].get("unauthenticated_boundary") != "passed"
+        or smoke["runtime"]["oauth"].get("unavailable") != 0
+        or smoke["runtime"]["oauth"].get("vault_readability") not in {"empty", "decrypted"}
+        or any(
+            not isinstance(smoke["runtime"]["oauth"].get(key), int)
+            or smoke["runtime"]["oauth"].get(key) < 0
+            for key in ("active_enrollments", "refreshed", "cached")
+        )
+        or smoke["runtime"]["oauth"].get("refreshed", -1)
+        + smoke["runtime"]["oauth"].get("cached", -1)
+        != smoke["runtime"]["oauth"].get("active_enrollments")
+        or not isinstance(durable, dict)
+        or set(durable) != {"odoo", "paperless", "mcp_oauth", "samples", "checked_at", "status"}
+        or set(durable.get("mcp_oauth", {})) != {
+            "schema_version", "vault_identity_sha256", "recovered_key_material_sha256",
+            "vault_key_binding_sha256", "migration", "readability", "status",
+        }
+        or durable.get("odoo", {}).get("status") != "passed"
+        or not isinstance(durable.get("odoo", {}).get("attachment_records"), int)
+        or durable.get("odoo", {}).get("attachment_records") < 1
+        or durable.get("paperless", {}).get("status") != "passed"
+        or not isinstance(durable.get("paperless", {}).get("document_records"), int)
+        or durable.get("paperless", {}).get("document_records") < 1
+        or durable.get("mcp_oauth", {}).get("schema_version") != 1
+        or set(samples) != sample_roles
+        or any(
+            not isinstance(sample, dict)
+            or set(sample) != {"file_count", "sample_content_sha256", "status"}
+            or not isinstance(sample["file_count"], int) or sample["file_count"] < 1
+            or sample["status"] != "passed"
+            for sample in samples.values()
+        )
+        or not isinstance(reusable_cache, dict)
+        or set(reusable_cache) != {*cache_roles, "status"}
+        or any(
+            set(reusable_cache[role]) != {
+                "file_count", "sample_content_sha256", "capture_identity_sha256", "status",
+            }
+            for role in cache_roles
+        )
+    ):
+        raise RuntimeError("recovery proof completion receipt nested contract is invalid")
     if (
         receipt["source"] != "production"
         or receipt["status"] != "passed"
@@ -5551,34 +5731,113 @@ def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
             re.fullmatch(r"[0-9a-f]{64}", str(backup[key]))
             for key in ("receipt_sha256", "durable_snapshot_id", "cache_snapshot_id")
         )
-        or not isinstance(receipt["cleanup"], dict)
-        or receipt["cleanup"].get("status") != "clean"
+        or not isinstance(materialization, dict)
+        or materialization.get("status") != "materialized"
+        or materialization.get("sign_secrets_restored") is not True
+        or materialization.get("mcp_secrets_restored") is not True
+        or materialization.get("renderer_secrets_restored") is not True
+        or materialization.get("paperless_personal_ai_keys_restored") is not True
+        or not isinstance(runtime, dict)
+        or set(runtime) != {"network", "services", "environment", "quarantine", "status"}
+        or runtime["status"] != "passed"
+        or runtime["network"] != "internal"
+        or set(runtime["services"]) != set(RECOVERY_PROOF_RUNTIME_ROLES)
+        or any(
+            not isinstance(service, dict)
+            or set(service) != {"container_name_sha256", "status"}
+            or service["status"] != "ready"
+            for service in runtime["services"].values()
+        )
+        or not isinstance(runtime["environment"], dict)
+        or runtime["environment"].get("status") != "passed"
+        or set(runtime["environment"].get("environment_sha256", {})) != {
+            "database", "odoo", "paperless", "mcp", "dss",
+            "better-auth", "credential-encryption-key", "personal-ai",
+        }
+        or not all(
+            re.fullmatch(r"[0-9a-f]{64}", str(item))
+            for item in runtime["environment"]["environment_sha256"].values()
+        )
+        or not isinstance(runtime["quarantine"], dict)
+        or set(runtime["quarantine"]) != {
+            "candidate_fingerprint", "cron_count", "database_neutralized",
+            "fetchmail_count", "status",
+        }
+        or runtime["quarantine"].get("status") != "passed"
+        or runtime["quarantine"].get("database_neutralized") is not True
+        or runtime["quarantine"].get("cron_count") != 0
+        or runtime["quarantine"].get("fetchmail_count") != 0
+        or not isinstance(health, dict) or health.get("status") != "passed"
+        or not isinstance(smoke, dict) or smoke.get("status") != "passed"
+        or not isinstance(durable, dict) or durable.get("status") != "passed"
+        or not isinstance(durable.get("mcp_oauth"), dict)
+        or durable["mcp_oauth"].get("migration") != "passed"
+        or durable["mcp_oauth"].get("readability") != "passed"
+        or durable["mcp_oauth"].get("status") != "passed"
+        or not isinstance(reusable_cache, dict) or reusable_cache.get("status") != "reused"
+        or any(
+            not isinstance(reusable_cache.get(role), dict)
+            or reusable_cache[role].get("status") != "passed"
+            for role in (
+                "paperless_archive", "paperless_thumbnails",
+                "paperless_tantivy", "paperless_vectors",
+            )
+        )
+        or not isinstance(cleanup, dict)
+        or set(cleanup) != {
+            "schema", "containers", "volumes", "networks", "workspaces", "status",
+        }
+        or cleanup["schema"] != "usl-recovery-proof-cleanup/v1"
+        or cleanup["status"] != "clean"
+        or not isinstance(ownership, dict)
+        or set(ownership) != {"label", "resource_names_sha256"}
+        or ownership["label"] != RECOVERY_PROOF_OWNER
         or not isinstance(isolation, dict)
         or isolation != {
             "active_runtime_sha256": isolation.get("active_runtime_sha256"),
             "active_runtime_unchanged": True,
             "gateway_attached": False,
-            "application_workers_started": False,
+            "host_ports_published": False,
+            "external_networks_attached": False,
+            "side_effects_neutralized": True,
             "persistent_staging_touched": False,
             "production_secrets_modified": False,
+            "production_secrets_sha256": isolation.get("production_secrets_sha256"),
             "runtime_ledger_used_for_restore": False,
+            "perimeter_sha256": isolation.get("perimeter_sha256"),
         }
         or not re.fullmatch(r"[0-9a-f]{64}", str(isolation["active_runtime_sha256"]))
+        or receipt["max_duration_seconds"] != RECOVERY_PROOF_MAX_SECONDS
+        or not isinstance(receipt["duration_seconds"], (int, float))
+        or not 0 <= receipt["duration_seconds"] < RECOVERY_PROOF_MAX_SECONDS
     ):
         raise RuntimeError("recovery proof completion receipt is invalid")
+    started = _recovery_proof_timestamp(receipt["started_at"], "started_at")
+    completed = _recovery_proof_timestamp(receipt["completed_at"], "completed_at")
+    nested_times = [
+        _recovery_proof_timestamp(health.get("checked_at"), "health.checked_at"),
+        _recovery_proof_timestamp(durable.get("checked_at"), "durable_state.checked_at"),
+    ]
+    if (
+        completed < started
+        or (completed - started).total_seconds() >= RECOVERY_PROOF_MAX_SECONDS
+        or any(not started <= item <= completed for item in nested_times)
+    ):
+        raise RuntimeError("recovery proof completion duration is invalid")
     return receipt
 
 
 def _validate_recovery_proof_state(value: object, proof_id: str) -> dict:
     state = _validate_digested_document(
         value,
-        schema="usl-disposable-recovery-proof-state/v1",
+        schema="usl-disposable-recovery-proof-state/v2",
         proof_id=proof_id,
     )
     if (
         state["source"] != "production"
         or state["phase"] not in {
-            "backup-started", "backup-qualified", "resources-created", "materialized", "validated",
+            "backup-started", "backup-qualified", "resources-created", "materialized",
+            "runtime-started", "validated", "finalizing",
         }
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_identity"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_manifest_sha256"]))
@@ -5586,11 +5845,12 @@ def _validate_recovery_proof_state(value: object, proof_id: str) -> dict:
         or state["backup"] is not None and not isinstance(state["backup"], dict)
     ):
         raise RuntimeError("recovery proof state is invalid")
-    try:
-        updated = datetime.fromisoformat(str(state["updated_at"]).replace("Z", "+00:00"))
-    except ValueError as error:
-        raise RuntimeError("recovery proof state timestamp is invalid") from error
-    if updated.tzinfo is None:
+    started = _recovery_proof_timestamp(state["started_at"], "state.started_at")
+    deadline = _recovery_proof_timestamp(state["deadline_at"], "state.deadline_at")
+    updated = _recovery_proof_timestamp(state["updated_at"], "state.updated_at")
+    if not started <= updated < deadline or not isinstance(
+        state["duration_seconds"], (int, float),
+    ) or not 0 <= state["duration_seconds"] < RECOVERY_PROOF_MAX_SECONDS:
         raise RuntimeError("recovery proof state timestamp is invalid")
     return state
 
@@ -5645,19 +5905,61 @@ def _recovery_proof_root(target, evidence_directory: Path, proof_id: str) -> str
     return str(path / proof_id)
 
 
+def _prepare_recovery_proof_root(runner, proof_root: str) -> None:
+    program = (
+        "import os,pathlib,stat,sys;"
+        "p=pathlib.Path(sys.argv[1]);"
+        "exec(\"for a in [*reversed(p.parents),p]:\\n"
+        " if a==pathlib.Path('/') or not a.exists(): continue\\n"
+        " s=a.lstat()\\n if stat.S_ISLNK(s.st_mode): raise SystemExit('symlink')\");"
+        "p.mkdir(parents=True,exist_ok=True);os.chmod(p,0o700);"
+        "s=p.lstat();"
+        "assert stat.S_ISDIR(s.st_mode) and stat.S_IMODE(s.st_mode)==0o700 and s.st_uid==os.geteuid()"
+    )
+    runner.run(["python3", "-c", program, proof_root])
+
+
+def _recovery_proof_protected_secrets_sha256(target, runner) -> str:
+    paths = [
+        target.value["secrets"]["env_file"],
+        *(
+            item["path"] for name, item in sorted(target.value["paths"].items())
+            if "secret" in name or name.endswith("_keys")
+        ),
+    ]
+    program = (
+        "import hashlib,json,pathlib,stat,sys;h=hashlib.sha256();"
+        "exec(\"for root in map(pathlib.Path,sys.argv[1:]):\\n"
+        " if not root.exists(): raise SystemExit('missing protected secret')\\n"
+        " ps=[root] if root.is_file() else sorted(root.rglob('*'))\\n"
+        " for p in ps:\\n  s=p.lstat();h.update(json.dumps([str(p),stat.S_IMODE(s.st_mode),s.st_size],separators=(',',':')).encode())\\n"
+        "  h.update(p.read_bytes()) if p.is_file() else None\");print(h.hexdigest())"
+    )
+    digest = runner.run(["python3", "-c", program, *paths]).stdout.strip()
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise RuntimeError("recovery proof protected secret identity is invalid")
+    return digest
+
+
 def _recovery_proof_names(target, proof_id: str) -> dict:
     token = hashlib.sha256(proof_id.encode()).hexdigest()[:16]
     prefix = f"usl-recovery-proof-{token}"
     return {
         "containers": {
-            "odoo": f"{prefix}-odoo-db",
-            "paperless": f"{prefix}-paperless-db",
+            "odoo_db": f"{prefix}-odoo-db",
+            "paperless_db": f"{prefix}-paperless-db",
+            "materializer": f"{prefix}-materializer",
+            **{
+                role: f"{prefix}-{role.replace('_', '-')}"
+                for role in RECOVERY_PROOF_RUNTIME_ROLES
+            },
         },
         "volumes": {
             role: f"{prefix}-{role.replace('_', '-')}"
             for role in target.value["volumes"]
         },
         "network": f"{prefix}-network",
+        "materialization_network": f"{prefix}-materialization-egress",
     }
 
 
@@ -5713,7 +6015,7 @@ def _cleanup_recovery_proof_resources(target, runner, proof_id: str, proof_root:
     names = _recovery_proof_names(target, proof_id)
     removed = {"containers": [], "volumes": [], "networks": [], "workspaces": []}
     for role, name in names["containers"].items():
-        if _require_recovery_proof_owner(runner, "container", name, proof_id, f"{role}-db"):
+        if _require_recovery_proof_owner(runner, "container", name, proof_id, role):
             result = runner.run(["docker", "rm", "--force", name], check=False)
             if result.returncode:
                 raise RuntimeError(f"recovery proof container cleanup failed: {name}")
@@ -5730,13 +6032,34 @@ def _cleanup_recovery_proof_resources(target, runner, proof_id: str, proof_root:
         if result.returncode:
             raise RuntimeError(f"recovery proof network cleanup failed: {network}")
         removed["networks"].append(network)
+    egress = names["materialization_network"]
+    if _require_recovery_proof_owner(runner, "network", egress, proof_id, "materialization-egress"):
+        result = runner.run(["docker", "network", "rm", egress], check=False)
+        if result.returncode:
+            raise RuntimeError(f"recovery proof network cleanup failed: {egress}")
+        removed["networks"].append(egress)
     generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
     workspace = f"{proof_root}/generations/{generation}"
     if not workspace.startswith(proof_root.rstrip("/") + "/generations/gproof-"):
         raise RuntimeError("recovery proof workspace escaped its evidence root")
     if runner.run(["test", "-e", workspace], check=False).returncode == 0:
+        if runner.run(["test", "-L", workspace], check=False).returncode == 0:
+            raise RuntimeError("recovery proof workspace is a symlink")
         runner.run(["rm", "-rf", "--", workspace])
         removed["workspaces"].append(workspace)
+    label = f"com.unstaticlabs.recovery-proof.id={proof_id}"
+    owner_label = f"com.unstaticlabs.recovery-proof.owner={RECOVERY_PROOF_OWNER}"
+    survivors = {}
+    for resource_type, command in {
+        "containers": ["docker", "ps", "--all", "--filter", f"label={owner_label}", "--filter", f"label={label}", "--format", "{{.Names}}"],
+        "volumes": ["docker", "volume", "ls", "--filter", f"label={owner_label}", "--filter", f"label={label}", "--format", "{{.Name}}"],
+        "networks": ["docker", "network", "ls", "--filter", f"label={owner_label}", "--filter", f"label={label}", "--format", "{{.Name}}"],
+    }.items():
+        names_left = [item for item in runner.run(command).stdout.splitlines() if item]
+        if names_left:
+            survivors[resource_type] = names_left
+    if survivors:
+        raise RuntimeError("recovery proof owned resources survived cleanup")
     return {
         "schema": "usl-recovery-proof-cleanup/v1",
         **removed,
@@ -5765,7 +6088,7 @@ def _create_recovery_proof_resources(target, runner, proof_id: str) -> dict:
             proof_id, role="private-network",
         ).items():
             command.extend(["--label", f"{key}={value}"])
-        command.append(network)
+        command.extend(["--internal", network])
         runner.run(command)
         created.append(("network", "private-network", network))
     except Exception:
@@ -5778,6 +6101,18 @@ def _create_recovery_proof_resources(target, runner, proof_id: str) -> dict:
     return names
 
 
+def _create_recovery_proof_materialization_network(runner, proof_id: str, names: dict) -> str:
+    network = names["materialization_network"]
+    if _docker_labels(runner, "network", network) is not None:
+        raise RuntimeError(f"recovery proof materialization network already exists: {network}")
+    command = ["docker", "network", "create"]
+    for key, value in _recovery_proof_labels(proof_id, role="materialization-egress").items():
+        command.extend(["--label", f"{key}={value}"])
+    command.append(network)
+    runner.run(command)
+    return network
+
+
 def _start_recovery_proof_database(
     target,
     runner,
@@ -5785,19 +6120,22 @@ def _start_recovery_proof_database(
     names: dict,
     images: dict[str, str],
     database_key: str,
+    runtime_env: str,
 ) -> str:
-    role = f"{database_key}-db"
+    role = f"{database_key}_db"
     database = target.value["databases"][database_key]
     service_role = "odoo_db" if database_key == "odoo" else "paperless_db"
     alias = database["service"]
     command = [
-        "docker", "run", "--detach", "--name", names["containers"][database_key],
+        "docker", "run", "--detach", "--name", names["containers"][role],
+        "--log-driver", "none",
+        "--security-opt", "no-new-privileges:true",
     ]
     for key, value in _recovery_proof_labels(proof_id, role=role).items():
         command.extend(["--label", f"{key}={value}"])
     command.extend([
         "--network", names["network"], "--network-alias", alias,
-        "--env-file", target.value["secrets"]["env_file"],
+        "--env-file", runtime_env,
         "--env", f"POSTGRES_USER={database['user']}",
         "--env", "POSTGRES_DB=postgres",
         "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
@@ -5807,7 +6145,7 @@ def _start_recovery_proof_database(
         "exec /usr/local/bin/docker-entrypoint.sh postgres",
     ])
     runner.run(command)
-    name = names["containers"][database_key]
+    name = names["containers"][role]
     for _attempt in range(60):
         ready = runner.run(
             [
@@ -5820,6 +6158,179 @@ def _start_recovery_proof_database(
             return name
         time.sleep(1)
     raise RuntimeError(f"recovery proof database did not become ready: {database_key}")
+
+
+def _recovery_proof_runtime_config(runner, identity: dict) -> dict:
+    try:
+        rendered = json.loads(
+            runner.run(compose_command(identity, ["config", "--format", "json"])).stdout,
+        )
+    except json.JSONDecodeError as error:
+        raise RuntimeError("recovery proof Compose configuration is invalid") from error
+    if not isinstance(rendered.get("services"), dict):
+        raise RuntimeError("recovery proof Compose service configuration is invalid")
+    return rendered
+
+
+def _recovery_proof_environment(
+    target,
+    runner,
+    proof_root: str,
+    rendered: dict,
+    mcp_secrets_sha256: str,
+    paperless_keys_sha256: str,
+) -> tuple[dict[str, str], dict]:
+    """Write least-privilege, disposable service environments outside the receipt tree."""
+    proof_id = proof_root.rstrip("/").rsplit("/", 1)[-1]
+    workspace = f"{proof_root}/generations/gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
+    services = rendered["services"]
+    selected: dict[str, dict[str, str]] = {}
+    allow = {
+        "database": {"ODOO_DB_PASSWORD", "PAPERLESS_DBPASS"},
+        "odoo": {
+            "ODOO_ADMIN_PASSWORD", "ODOO_DB_PASSWORD", "ODOO_ADDONS_PATH",
+            "USL_USER_DOCS_PATH", "USL_RELEASE_COMMIT",
+        },
+        "paperless": {
+            "PAPERLESS_DBPASS", "PAPERLESS_SECRET_KEY", "PAPERLESS_TIME_ZONE",
+            "PAPERLESS_OCR_LANGUAGE", "PAPERLESS_APPS", "USL_PERSONAL_AI_MASTER_KEYS_PATH",
+        },
+        "mcp": {
+            "MCP_TARGET_CONCURRENCY", "MCP_MAX_REQUEST_BYTES", "MCP_MAX_RESPONSE_BYTES",
+        },
+        "dss": {
+            key for key in services[target.value["services"]["sign"]].get("environment", {})
+            if key.endswith("_PASSWORD")
+        },
+    }
+    database_environment = services[target.value["services"]["odoo"]].get("environment", {})
+    database_environment = {
+        **database_environment,
+        **services[target.value["services"]["paperless"]].get("environment", {}),
+    }
+    selected["database"] = {
+        key: str(value) for key, value in database_environment.items() if key in allow["database"]
+    }
+    paperless_dbpass = services[target.value["services"]["paperless"]].get(
+        "environment", {},
+    ).get("PAPERLESS_DBPASS")
+    if not paperless_dbpass:
+        raise RuntimeError("recovery proof Paperless database password is missing")
+    selected["database"]["PAPERLESS_DB_PASSWORD"] = str(paperless_dbpass)
+    selected["odoo"] = {
+        key: str(value)
+        for key, value in services[target.value["services"]["odoo"]].get("environment", {}).items()
+        if key in allow["odoo"]
+        or key.startswith("USL_SIGN_") and not key.endswith("PASSWORD")
+        or key.startswith("USL_DOCUMENT_RENDERER_")
+    }
+    selected["odoo"].update({
+        "ODOO_DB_HOST": target.value["databases"]["odoo"]["service"],
+        "ODOO_DB_PORT": "5432",
+        "ODOO_DB_USER": target.value["databases"]["odoo"]["user"],
+        "ODOO_DB_NAME": target.value["databases"]["odoo"]["name"],
+        "ODOO_DB_FILTER": f"^{target.value['databases']['odoo']['name']}$",
+        "ODOO_HTTP_INTERFACE": "0.0.0.0",
+        "ODOO_LIST_DB": "False",
+        "ODOO_PROXY_MODE": "False",
+        "ODOO_WORKERS": "0",
+        "ODOO_MAX_CRON_THREADS": "0",
+        "ODOO_SMTP_SERVER": "127.0.0.1",
+        "ODOO_SMTP_PORT": "1",
+        "ODOO_SMTP_USER": "",
+        "ODOO_SMTP_PASSWORD": "",
+        "USL_DEPLOYMENT_ENV": "recovery-proof",
+        "USL_EINVOICE_LIVE_ENABLED": "0",
+        "USL_EREPORTING_LIVE_ENABLED": "0",
+        "USL_POCKET_ID_ENABLED": "0",
+        "USL_SIGN_ADDONS_PATH": "/opt/odoo/custom-addons",
+        "PAPERLESS_INTERNAL_URL": "http://paperless-webserver:8000",
+    })
+    selected["paperless"] = {
+        key: str(value)
+        for key, value in services[target.value["services"]["paperless"]].get("environment", {}).items()
+        if key in allow["paperless"] or key.startswith("PAPERLESS_")
+    }
+    selected["paperless"].update({
+        "PAPERLESS_REDIS": "redis://paperless-broker:6379",
+        "PAPERLESS_DBHOST": target.value["databases"]["paperless"]["service"],
+        "PAPERLESS_DBNAME": target.value["databases"]["paperless"]["name"],
+        "PAPERLESS_DBUSER": target.value["databases"]["paperless"]["user"],
+        "PAPERLESS_URL": "http://paperless-webserver:8000",
+        "PAPERLESS_PUBLIC_URL": "http://paperless-webserver:8000",
+        "PAPERLESS_PUBLIC_BASE_URL": "http://paperless-webserver:8000",
+        "PAPERLESS_ALLOWED_HOSTS": "paperless-webserver",
+        "PAPERLESS_CORS_ALLOWED_HOSTS": "http://paperless-webserver:8000",
+        "PAPERLESS_CSRF_TRUSTED_ORIGINS": "http://paperless-webserver:8000",
+        "PAPERLESS_AI_ENABLED": "false",
+        "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://127.0.0.1:1",
+        "PAPERLESS_USL_DEFER_SEMANTIC_INDEX": "true",
+        "PAPERLESS_OIDC_ENABLED": "0",
+        "PAPERLESS_DISABLE_REGULAR_LOGIN": "false",
+        "PAPERLESS_APPS": "paperless_personal_ai",
+        "PAPERLESS_EMAIL_TASK_CRON": "disable",
+        "PAPERLESS_TRAIN_TASK_CRON": "disable",
+        "PAPERLESS_SANITY_TASK_CRON": "disable",
+        "PAPERLESS_EMPTY_TRASH_TASK_CRON": "disable",
+        "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON": "disable",
+        "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON": "disable",
+        "PAPERLESS_LLM_INDEX_TASK_CRON": "disable",
+    })
+    selected["mcp"] = {
+        key: str(value)
+        for key, value in services[target.value["services"]["mcp"]].get("environment", {}).items()
+        if key in allow["mcp"]
+    }
+    selected["mcp"].update({
+        "MCP_HOST": "0.0.0.0", "MCP_PORT": "3000",
+        "MCP_PUBLIC_ORIGIN": "http://odoo-mcp:3000",
+        "MCP_ALLOWED_HOSTS": "odoo-mcp", "MCP_HEALTHCHECK_HOST": "odoo-mcp",
+        "MCP_ALLOWED_ORIGINS": "http://odoo-mcp:3000",
+        "MCP_ALLOW_LOCAL_HTTP_ODOO": "true",
+        "ODOO_PUBLIC_ORIGIN": "http://odoo:8069",
+        "ODOO_INTERNAL_ORIGIN": "http://odoo:8069",
+        "ODOO_DATABASE": target.value["databases"]["odoo"]["name"],
+        "MCP_OAUTH_ENABLED": "true", "MCP_OAUTH_DATABASE": "/data/oauth.sqlite",
+        "BETTER_AUTH_SECRET_FILE": "/run/secrets/better-auth.secret",
+        "MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": "/run/secrets/credential-encryption-key.secret",
+        "MCP_OAUTH_TRUSTED_ORIGINS": "http://odoo-mcp:3000",
+    })
+    selected["dss"] = {
+        key: str(value)
+        for key, value in services[target.value["services"]["sign"]].get("environment", {}).items()
+        if key in allow["dss"] or key.startswith("USL_DSS_") and not key.endswith("_URL")
+    }
+    selected["dss"].update({
+        "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
+        "USL_DSS_TSA_URL": "", "USL_DSS_PLATFORM_KEYSTORE": "/run/usl-sign-dss/platform.p12",
+        "USL_DSS_MANIFEST_KEYSTORE": "/run/usl-sign-dss/manifest.p12",
+        "USL_DSS_TLS_KEYSTORE": "/run/usl-sign-dss/server.p12",
+        "USL_DSS_CLIENT_TRUSTSTORE": "/run/usl-sign-dss/client-trust.p12",
+        "USL_DSS_LOCAL_TRUSTSTORE": "/run/usl-sign-dss/local-trust.p12",
+    })
+    paths: dict[str, str] = {}
+    digests: dict[str, str] = {}
+    for role, environment in selected.items():
+        if any("\n" in key or "\n" in value for key, value in environment.items()):
+            raise RuntimeError("recovery proof environment contains a newline")
+        text = "".join(f"{key}={environment[key]}\n" for key in sorted(environment))
+        path = f"{workspace}/{role}.env"
+        _write_remote(target, runner, path, text)
+        paths[role] = path
+        digests[role] = hashlib.sha256(text.encode()).hexdigest()
+    if not re.fullmatch(r"[0-9a-f]{64}", str(mcp_secrets_sha256)):
+        raise RuntimeError("recovery proof MCP secret identity is invalid")
+    paths["better-auth"] = f"{workspace}/mcp-secrets/better-auth.secret"
+    paths["credential-encryption-key"] = (
+        f"{workspace}/mcp-secrets/credential-encryption-key.secret"
+    )
+    digests["better-auth"] = mcp_secrets_sha256
+    digests["credential-encryption-key"] = mcp_secrets_sha256
+    if not re.fullmatch(r"[0-9a-f]{64}", str(paperless_keys_sha256)):
+        raise RuntimeError("recovery proof Paperless keyring identity is invalid")
+    paths["personal-ai"] = f"{workspace}/paperless-secrets/personal-ai-keys.json"
+    digests["personal-ai"] = paperless_keys_sha256
+    return paths, {"environment_sha256": digests, "status": "passed"}
 
 
 def _recovery_proof_query(target, runner, container: str, database_key: str, query: str) -> dict:
@@ -5838,15 +6349,509 @@ def _recovery_proof_query(target, runner, container: str, database_key: str, que
     return value
 
 
+def _run_recovery_proof_container(
+    runner,
+    proof_id: str,
+    names: dict,
+    role: str,
+    image: str,
+    *,
+    alias: str,
+    arguments: list[str] | None = None,
+    env_file: str | list[str] | None = None,
+    environment: dict[str, str] | None = None,
+    volumes: list[str] | None = None,
+    cap_add: list[str] | None = None,
+) -> str:
+    command = [
+        "docker", "run", "--detach", "--name", names["containers"][role],
+        "--log-driver", "none",
+        "--security-opt", "no-new-privileges:true",
+    ]
+    for key, value in _recovery_proof_labels(proof_id, role=role).items():
+        command.extend(["--label", f"{key}={value}"])
+    command.extend(["--network", names["network"], "--network-alias", alias])
+    if env_file:
+        for path in [env_file] if isinstance(env_file, str) else env_file:
+            command.extend(["--env-file", path])
+    for key, value in sorted((environment or {}).items()):
+        command.extend(["--env", f"{key}={value}"])
+    for volume in volumes or []:
+        command.extend(["--volume", volume])
+    for capability in cap_add or []:
+        command.extend(["--cap-add", capability])
+    command.append(image)
+    command.extend(arguments or [])
+    runner.run(command)
+    return names["containers"][role]
+
+
+def _start_recovery_proof_runtime(
+    target,
+    runner,
+    proof_id: str,
+    proof_root: str,
+    names: dict,
+    release: dict,
+    images: dict[str, str],
+    env: dict[str, str],
+) -> dict:
+    """Start only restored services on the proof's Docker-internal network."""
+    generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
+    secrets = f"{proof_root}/generations/{generation}/sign-secrets"
+    renderer_secrets = f"{proof_root}/generations/{generation}/renderer-secrets"
+    volumes = names["volumes"]
+    started: dict[str, str] = {}
+    started["paperless_broker"] = _run_recovery_proof_container(
+        runner, proof_id, names, "paperless_broker",
+        images[target.value["services"]["paperless_broker"]], alias="paperless-broker",
+        arguments=["valkey-server", "--save", "", "--appendonly", "no"],
+    )
+    started["paperless_gotenberg"] = _run_recovery_proof_container(
+        runner, proof_id, names, "paperless_gotenberg",
+        images[target.value["services"]["paperless_gotenberg"]], alias="paperless-gotenberg",
+        arguments=["gotenberg", "--chromium-disable-javascript=true"],
+    )
+    started["paperless_tika"] = _run_recovery_proof_container(
+        runner, proof_id, names, "paperless_tika",
+        images[target.value["services"]["paperless_tika"]], alias="paperless-tika",
+    )
+    started["sign_ca"] = _run_recovery_proof_container(
+        runner, proof_id, names, "sign_ca", images[target.value["services"]["sign_ca"]],
+        alias="usl-sign-step-ca",
+        arguments=[
+            "step-ca", "/home/step/config/ca.json", "--password-file", "/home/step/password",
+        ],
+        volumes=[f"{secrets}/step-ca:/home/step"],
+        cap_add=["NET_BIND_SERVICE"],
+    )
+    started["sign"] = _run_recovery_proof_container(
+        runner, proof_id, names, "sign", release["components"]["sign-dss"]["digest_reference"],
+        alias="usl-sign-dss", env_file=f"{secrets}/dss.env",
+        environment={
+            "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
+            "USL_DSS_TSA_URL": "",
+        },
+        volumes=[f"{secrets}/dss:/run/usl-sign-dss:ro"],
+    )
+    started["renderer"] = _run_recovery_proof_container(
+        runner, proof_id, names, "renderer", release["renderer"]["image"],
+        alias="usl-document-renderer",
+        environment={
+            "USL_RENDERER_TLS_CERT": "/run/renderer/server.crt",
+            "USL_RENDERER_TLS_KEY": "/run/renderer/server.key",
+            "USL_RENDERER_TLS_CLIENT_CA": "/run/renderer/client-ca.crt",
+            "USL_RENDER_CONCURRENCY": "1", "USL_RENDER_TIMEOUT_SECONDS": "30",
+        },
+        volumes=[
+            f"{renderer_secrets}/renderer.crt:/run/renderer/server.crt:ro",
+            f"{renderer_secrets}/renderer.key:/run/renderer/server.key:ro",
+            f"{renderer_secrets}/ca.crt:/run/renderer/client-ca.crt:ro",
+        ],
+    )
+    started["odoo"] = _run_recovery_proof_container(
+        runner, proof_id, names, "odoo", release["components"]["distribution"]["digest_reference"],
+        alias="odoo", env_file=[f"{secrets}/odoo.env", env["odoo"]],
+        volumes=[
+            f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            f"{secrets}/odoo:/run/usl-sign:ro",
+            f"{renderer_secrets}/ca.crt:/run/secrets/document-renderer/ca.crt:ro",
+            f"{renderer_secrets}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro",
+            f"{renderer_secrets}/odoo.key:/run/secrets/document-renderer/odoo.key:ro",
+        ],
+    )
+    started["paperless"] = _run_recovery_proof_container(
+        runner, proof_id, names, "paperless", release["components"]["paperless"]["digest_reference"],
+        alias="paperless-webserver", env_file=env["paperless"],
+        volumes=[
+            f"{volumes['paperless_data']}:/usr/src/paperless/data",
+            f"{volumes['paperless_media']}:/usr/src/paperless/media",
+            f"{volumes['paperless_export']}:/usr/src/paperless/export",
+            f"{volumes['paperless_consume']}:/usr/src/paperless/consume",
+            f"{volumes['paperless_trash']}:/usr/src/paperless/trash",
+            f"{env['personal-ai']}:/run/secrets/usl_personal_ai_master_keys:ro",
+        ],
+    )
+    mcp_common = {
+        "alias": "odoo-mcp", "env_file": env["mcp"],
+        "volumes": [
+            f"{volumes['mcp_oauth']}:/data",
+            f"{env['better-auth']}:/run/secrets/better-auth.secret:ro",
+            f"{env['credential-encryption-key']}:/run/secrets/credential-encryption-key.secret:ro",
+        ],
+    }
+    runner.run([
+        "docker", "run", "--rm", "--network", names["network"],
+        "--env-file", env["mcp"],
+        "--volume", f"{volumes['mcp_oauth']}:/data",
+        "--volume", f"{env['better-auth']}:/run/secrets/better-auth.secret:ro",
+        "--volume", f"{env['credential-encryption-key']}:/run/secrets/credential-encryption-key.secret:ro",
+        release["mcp"]["image"], "node", "dist/auth/cli.js", "migrate",
+    ])
+    started["mcp"] = _run_recovery_proof_container(
+        runner, proof_id, names, "mcp", release["mcp"]["image"], **mcp_common,
+    )
+    if set(started) != set(RECOVERY_PROOF_RUNTIME_ROLES):
+        raise RuntimeError("recovery proof runtime service perimeter differs")
+    return {
+        "network": "internal",
+        "services": {
+            role: {
+                "container_name_sha256": hashlib.sha256(name.encode()).hexdigest(),
+                "status": "ready",
+            }
+            for role, name in started.items()
+        },
+        "status": "passed",
+    }
+
+
+def _recovery_proof_runtime_health_once(target, runner, names: dict, release: dict) -> tuple[dict, dict]:
+    checks: dict[str, bool] = {}
+    for role in RECOVERY_PROOF_RUNTIME_ROLES:
+        state = runner.run([
+            "docker", "inspect", names["containers"][role],
+            "--format", "{{.State.Running}}",
+        ], check=False)
+        checks[f"{role}_running"] = state.returncode == 0 and state.stdout.strip() == "true"
+    commands = {
+        "odoo_http": [
+            "python", "-c",
+            "import urllib.request;"
+            "urllib.request.urlopen('http://odoo:8069/web/health?db_server_status=1',"
+            "timeout=10).read()",
+        ],
+        "paperless_http": [
+            "python", "-c",
+            "import urllib.request;urllib.request.urlopen('http://paperless-webserver:8000/api/',timeout=10).read()",
+        ],
+        "gotenberg_http": [
+            "python", "-c",
+            "import urllib.request;urllib.request.urlopen('http://paperless-gotenberg:3000/health',timeout=10).read()",
+        ],
+        "tika_http": [
+            "python", "-c",
+            "import urllib.request;urllib.request.urlopen('http://paperless-tika:9998/version',timeout=10).read()",
+        ],
+    }
+    for name, command in commands.items():
+        result = runner.run([
+            "docker", "run", "--rm", "--network", names["network"], "--entrypoint",
+            command[0], release["components"]["distribution"]["digest_reference"], *command[1:],
+        ], check=False)
+        checks[name] = result.returncode == 0
+    checks["paperless_redis"] = runner.run([
+        "docker", "exec", names["containers"]["paperless_broker"], "redis-cli", "ping",
+    ], check=False).stdout.strip() == "PONG"
+    mcp_ready = runner.run([
+        "docker", "exec", names["containers"]["mcp"], "node", "-e",
+        "require('http').get({host:'127.0.0.1',port:3000,path:'/readyz',"
+        "headers:{host:'odoo-mcp'}},r=>{let b='';r.on('data',c=>b+=c);"
+        "r.on('end',()=>{if(r.statusCode!==200)process.exit(1);process.stdout.write(b)})})"
+        ".on('error',()=>process.exit(1))",
+    ], check=False)
+    try:
+        mcp_readiness = _validate_mcp_readiness(
+            json.loads(mcp_ready.stdout), require_oauth=True,
+        )
+    except (json.JSONDecodeError, RuntimeError):
+        mcp_readiness = None
+    checks["mcp_ready"] = mcp_ready.returncode == 0 and mcp_readiness is not None
+    checks["mcp_unauthenticated_boundary"] = runner.run([
+        "docker", "exec", names["containers"]["mcp"], "node", "-e",
+        "require('http').get({host:'127.0.0.1',port:3000,path:'/mcp',"
+        "headers:{host:'odoo-mcp'}},r=>process.exit(r.statusCode===401?0:1))"
+        ".on('error',()=>process.exit(1))",
+    ], check=False).returncode == 0
+    active_vault = runner.run([
+        "docker", "exec", names["containers"]["mcp"], "node", "-e",
+        "const D=require('better-sqlite3');const d=new D('/data/oauth.sqlite',{readonly:true});"
+        "const n=d.prepare('SELECT count(*) n FROM odoo_enrollment WHERE grant_expires_at > ?')"
+        ".get(Math.floor(Date.now()/1000)).n;process.stdout.write(String(n))",
+    ], check=False)
+    prepared_vault = runner.run([
+        "docker", "exec", names["containers"]["mcp"], "node", "dist/auth/cli.js", "prepare",
+    ], check=False)
+    match = re.fullmatch(
+        r"OAuth schema is current; access snapshots: ([0-9]+) refreshed, "
+        r"([0-9]+) cached, ([0-9]+) unavailable\.\n?",
+        prepared_vault.stdout,
+    )
+    try:
+        active_count = int(active_vault.stdout.strip())
+        refreshed, cached, unavailable = (int(item) for item in match.groups()) if match else (-1, -1, -1)
+    except ValueError:
+        active_count, refreshed, cached, unavailable = -1, -1, -1, -1
+    checks["mcp_vault_decrypt"] = (
+        active_vault.returncode == 0 and prepared_vault.returncode == 0
+        and active_count >= 0 and unavailable == 0 and refreshed + cached == active_count
+    )
+    checks["step_ca"] = runner.run([
+        "docker", "exec", names["containers"]["sign_ca"], "step", "ca", "health",
+        "--ca-url", "https://localhost:9000", "--root", "/home/step/certs/root_ca.crt",
+    ], check=False).returncode == 0
+    renderer = runner.run([
+        "docker", "exec", names["containers"]["odoo"], "python", "-c",
+        "import requests;u='https://usl-document-renderer:8443/health';"
+        "r=requests.get(u,cert=('/run/secrets/document-renderer/odoo.crt','/run/secrets/document-renderer/odoo.key'),"
+        "verify='/run/secrets/document-renderer/ca.crt',timeout=15);r.raise_for_status();"
+        "v=r.json();assert v.get('status')=='ok' and v.get('template_revision')==__import__('sys').argv[1]",
+        release["renderer"]["commit"],
+    ], check=False)
+    checks["renderer_mtls_health"] = renderer.returncode == 0
+    if not all(checks.values()):
+        raise RuntimeError(
+            "recovery proof runtime health failed: "
+            + ", ".join(name for name, passed in checks.items() if not passed),
+        )
+    sign_transaction = runner.run(
+        ["docker", "exec", "--interactive", names["containers"]["odoo"], "python", "-"],
+        check=False,
+        input_text=(ROOT / "scripts/sign-services-smoke.py").read_text(encoding="utf-8"),
+    )
+    checks["sign_cryptographic_transaction"] = (
+        sign_transaction.returncode == 0
+        and "alteration checks passed" in sign_transaction.stdout
+    )
+    if not all(checks.values()):
+        raise RuntimeError(
+            "recovery proof runtime health failed: "
+            + ", ".join(name for name, passed in checks.items() if not passed),
+        )
+    health = {"checks": checks, "checked_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"), "status": "passed"}
+    smoke = {
+        "http": {
+            "odoo": "passed", "paperless": "passed",
+            "gotenberg": "passed", "tika": "passed",
+        },
+        "oauth": {
+            "readiness": "passed", "unauthenticated_boundary": "passed",
+            "schema_version": mcp_readiness["oauth"]["schema_version"],
+            "active_enrollments": active_count, "refreshed": refreshed, "cached": cached,
+            "unavailable": unavailable,
+            "vault_readability": "empty" if active_count == 0 else "decrypted",
+        },
+        "signing": {
+            "step_ca": "passed", "cryptographic_transaction": "passed",
+            "renderer_mtls": "passed",
+        },
+        "status": "passed",
+    }
+    return health, smoke
+
+
+def _recovery_proof_runtime_health(
+    target,
+    runner,
+    names: dict,
+    release: dict,
+    *,
+    started: float,
+    deadline_at: str,
+) -> tuple[dict, dict]:
+    last_error: RuntimeError | None = None
+    for attempt in range(60):
+        _require_recovery_proof_deadline(started, deadline_at)
+        try:
+            return _recovery_proof_runtime_health_once(target, runner, names, release)
+        except RuntimeError as error:
+            last_error = error
+            if attempt < 59:
+                time.sleep(5)
+    raise RuntimeError("recovery proof runtime did not become ready") from last_error
+
+
+def _recovery_proof_isolation(runner, names: dict) -> str:
+    network = runner.run([
+        "docker", "network", "inspect", names["network"],
+        "--format", "{{json .Internal}}",
+    ])
+    try:
+        internal = json.loads(network.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("recovery proof network isolation evidence is invalid") from error
+    perimeter: dict[str, dict] = {}
+    for role, name in names["containers"].items():
+        if role == "materializer":
+            if _docker_labels(runner, "container", name) is not None:
+                raise RuntimeError("recovery proof materializer survived into runtime phase")
+            continue
+        result = runner.run([
+            "docker", "inspect", name, "--format",
+            "{{json .HostConfig.PortBindings}}|{{json .NetworkSettings.Networks}}",
+        ])
+        try:
+            raw_ports, raw_networks = result.stdout.strip().split("|", 1)
+            ports = json.loads(raw_ports)
+            networks = json.loads(raw_networks)
+        except (ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("recovery proof container isolation evidence is invalid") from error
+        if ports not in (None, {}) or not isinstance(networks, dict) or set(networks) != {names["network"]}:
+            raise RuntimeError(f"recovery proof container escaped its private perimeter: {role}")
+        perimeter[role] = {"networks": sorted(networks), "ports": {}}
+    if internal is not True:
+        raise RuntimeError("recovery proof network is not Docker-internal")
+    return hashlib.sha256(json.dumps(
+        {"internal": internal, "containers": perimeter},
+        sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+
+
+def _recovery_proof_durable_state(
+    target, runner, names: dict, release: dict, backup: dict, proof_root: str,
+) -> tuple[dict, dict]:
+    odoo = _recovery_proof_query(
+        target, runner, names["containers"]["odoo_db"], "odoo",
+        """
+        SELECT json_build_object(
+            'records', (SELECT count(*) FROM ir_attachment WHERE store_fname IS NOT NULL),
+            'sample', COALESCE((SELECT min(store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL), '')
+        )::text
+        """,
+    )
+    paperless = _recovery_proof_query(
+        target, runner, names["containers"]["paperless_db"], "paperless",
+        "SELECT json_build_object('documents', (SELECT count(*) FROM documents_document))::text",
+    )
+    sample = str(odoo.get("sample", ""))
+    if sample and not re.fullmatch(r"[0-9a-f]{2}/[0-9a-f]{38}", sample):
+        raise RuntimeError("recovery proof Odoo filestore sample path is unsafe")
+    file_checks = {
+        "odoo_filestore": (
+            f"/sample/filestore/{target.value['databases']['odoo']['name']}/{sample}"
+            if sample else "/sample/filestore"
+        ),
+        "paperless_media": "/sample/documents/originals",
+        "paperless_archive": "/sample/documents/archive",
+        "paperless_thumbnails": "/sample/documents/thumbnails",
+        "paperless_tantivy": "/sample/index",
+        "paperless_vectors": "/sample/llm_index",
+    }
+    volume_for = {
+        "odoo_filestore": names["volumes"]["odoo_filestore"],
+        "paperless_media": names["volumes"]["paperless_media"],
+        "paperless_archive": names["volumes"]["paperless_media"],
+        "paperless_thumbnails": names["volumes"]["paperless_media"],
+        "paperless_tantivy": names["volumes"]["paperless_data"],
+        "paperless_vectors": names["volumes"]["paperless_data"],
+    }
+    samples: dict[str, dict] = {}
+    for role, path in file_checks.items():
+        result = runner.run([
+            "docker", "run", "--rm", "--network", "none",
+            "--volume", f"{volume_for[role]}:/sample:ro", "--entrypoint", "/bin/sh",
+            release["components"]["paperless"]["digest_reference"], "-ec",
+            'p="$1"; [ -e "$p" ]; n=$(find "$p" -type f 2>/dev/null | sort | head -n 1); '
+            '[ -n "$n" ]; c=$(find "$p" -type f 2>/dev/null | wc -l | tr -d " "); '
+            'printf "%s:" "$c"; sha256sum "$n" | cut -d" " -f1', "proof", path,
+        ], check=False)
+        if result.returncode:
+            raise RuntimeError(f"recovery proof durable sample is missing: {role}")
+        try:
+            count_text, digest = result.stdout.strip().split(":", 1)
+            count = int(count_text)
+        except (ValueError, TypeError) as error:
+            raise RuntimeError(f"recovery proof durable sample count is invalid: {role}") from error
+        if count < 1:
+            raise RuntimeError(f"recovery proof durable sample is empty: {role}")
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise RuntimeError(f"recovery proof durable sample digest is invalid: {role}")
+        samples[role] = {"file_count": count, "sample_content_sha256": digest, "status": "passed"}
+    oauth = runner.run([
+        "docker", "run", "--rm", "--network", "none",
+        "--volume", f"{names['volumes']['mcp_oauth']}:/data:ro", release["mcp"]["image"],
+        "node", "-e",
+        "const D=require('better-sqlite3');const d=new D('/data/oauth.sqlite',{readonly:true});"
+        "const ok=d.pragma('integrity_check',{simple:true});const v=d.pragma('schema_version',{simple:true});"
+        "if(ok!=='ok'||!Number.isInteger(v)||v<1)process.exit(1);process.stdout.write(String(v))",
+    ], check=False)
+    if oauth.returncode or not oauth.stdout.strip().isdigit():
+        raise RuntimeError("recovery proof MCP OAuth database integrity failed")
+    try:
+        oauth_identity = backup["capture"]["resources"]["mcp_oauth"]["identity"]["sha256"]
+        backup["capture"]["resources"]["mcp_secrets"]["identity"]["sha256"]
+    except (KeyError, TypeError) as error:
+        raise RuntimeError("recovery proof MCP OAuth key binding is incomplete") from error
+    generation = f"gproof-{hashlib.sha256(proof_root.rstrip('/').rsplit('/', 1)[-1].encode()).hexdigest()[:16]}"
+    key_path = f"{proof_root}/generations/{generation}/mcp-secrets/credential-encryption-key.secret"
+    key_identity = runner.run(["sha256sum", key_path]).stdout.split()[0]
+    if not re.fullmatch(r"[0-9a-f]{64}", key_identity):
+        raise RuntimeError("recovery proof MCP recovered key digest is invalid")
+    vault_binding = hashlib.sha256(f"{oauth_identity}:{key_identity}".encode()).hexdigest()
+    durable = {
+        "odoo": {"attachment_records": int(odoo.get("records", -1)), "status": "passed"},
+        "paperless": {"document_records": int(paperless.get("documents", -1)), "status": "passed"},
+        "mcp_oauth": {
+            "schema_version": int(oauth.stdout.strip()),
+            "vault_identity_sha256": oauth_identity,
+            "recovered_key_material_sha256": key_identity,
+            "vault_key_binding_sha256": vault_binding,
+            "migration": "passed", "readability": "passed", "status": "passed",
+        },
+        "samples": samples,
+        "checked_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "passed",
+    }
+    cache = {
+        role: {
+            **samples[role],
+            "capture_identity_sha256": hashlib.sha256(json.dumps(
+                target.value["volumes"][
+                    "paperless_media" if role in {"paperless_archive", "paperless_thumbnails"}
+                    else "paperless_data"
+                ], sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest(),
+        }
+        for role in ("paperless_archive", "paperless_thumbnails", "paperless_tantivy", "paperless_vectors")
+    }
+    cache["status"] = "reused"
+    return durable, cache
+
+
+def _require_recovery_proof_deadline(started: float, deadline_at: str | None = None) -> float:
+    elapsed = time.monotonic() - started
+    if elapsed >= RECOVERY_PROOF_MAX_SECONDS or deadline_at is not None and (
+        datetime.now(UTC) >= _recovery_proof_timestamp(deadline_at, "deadline_at")
+    ):
+        raise RuntimeError("recovery proof exceeded its 1800-second hard deadline")
+    return round(elapsed, 3)
+
+
+def _write_recovery_proof_failure(
+    target,
+    runner,
+    proof_root: str,
+    proof_id: str,
+    stage: str,
+    error: BaseException,
+    cleanup: dict,
+    runtime_sha: str,
+    started_at: str,
+    started_monotonic: float,
+) -> dict:
+    return _write_recovery_proof_evidence(
+        target, runner, f"{proof_root}/failure.json",
+        {
+            "schema": "usl-disposable-recovery-proof-failure/v2",
+            "proof_id": proof_id, "source": "production", "stage": stage,
+            "error_type": type(error).__name__,
+            "error_sha256": hashlib.sha256(str(error).encode()).hexdigest(),
+            "cleanup": cleanup, "runtime_sha256": runtime_sha,
+            "started_at": started_at,
+            "failed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "duration_seconds": round(time.monotonic() - started_monotonic, 3),
+            "status": "failed",
+        },
+    )
+
+
 def _write_recovery_proof_evidence(target, runner, path: str, value: dict, mode: str = "0600") -> dict:
     document = _digested_document(value)
-    _write_remote(
-        target,
-        runner,
-        path,
-        json.dumps(document, indent=2, sort_keys=True) + "\n",
-        mode,
-    )
+    content = json.dumps(document, indent=2, sort_keys=True) + "\n"
+    _write_remote(target, runner, path, content, mode)
+    persisted = runner.run(["cat", path]).stdout
+    if persisted != content:
+        raise RuntimeError("recovery proof durable evidence read-back differs")
     return document
 
 
@@ -5901,16 +6906,21 @@ def _run_recovery_proof_backup(arguments, release: dict) -> dict:
     return receipt
 
 
-def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str) -> None:
+def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str) -> bool:
     root = f"{target.value['state_directory']}/backup-runs/{run_id}"
-    try:
-        captured = json.loads(_read_path(target, runner, Path(f"{root}/capture.json")))
-        validate_cohort_manifest(captured)
-        quiescence = json.loads(_read_path(target, runner, Path(f"{root}/quiesced.json")))
-    except (json.JSONDecodeError, ValueError, KeyError) as error:
+    quiescence = None
+    for filename in ("quiesced.json", "prepared.json"):
+        result = runner.run(["cat", f"{root}/{filename}"], check=False)
+        if not result.returncode:
+            try:
+                quiescence = json.loads(result.stdout)
+            except json.JSONDecodeError as error:
+                raise RuntimeError("interrupted recovery proof quiescence receipt is invalid") from error
+            break
+    if quiescence is None:
         raise RuntimeError(
-            "interrupted recovery proof backup has no resumable captured cohort",
-        ) from error
+            "interrupted recovery proof backup has no quiescence receipt",
+        )
     services = [target.value["services"][name] for name in BACKUP_WRITER_SERVICE_ROLES]
     quiescence = _validate_backup_quiescence_receipt(
         quiescence,
@@ -5919,9 +6929,7 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
         services=services,
     )
     if (
-        captured.get("run_id") != run_id
-        or captured.get("target") != "production"
-        or quiescence["status"] != "quiesced"
+        quiescence["status"] not in {"prepared", "quiesced"}
         or quiescence["baseline_runtime_sha256"] != runtime_sha
     ):
         raise RuntimeError("interrupted recovery proof backup identity differs")
@@ -5938,16 +6946,48 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
     ))
     if _runtime_cas_sha256(target, runner, inspect_runtime(target, runner)) != runtime_sha:
         raise RuntimeError("recovery proof writer resumption changed the production baseline")
+    if quiescence["status"] == "prepared":
+        return False
+    captured_result = runner.run(["cat", f"{root}/capture.json"], check=False)
+    if captured_result.returncode:
+        return False
+    try:
+        captured = json.loads(captured_result.stdout)
+        validate_cohort_manifest(captured)
+    except (json.JSONDecodeError, ValueError, KeyError) as error:
+        raise RuntimeError("interrupted recovery proof captured cohort is invalid") from error
+    if captured.get("run_id") != run_id or captured.get("target") != "production":
+        raise RuntimeError("interrupted recovery proof capture identity differs")
+    return True
 
 
 def recovery_proof_command(arguments: argparse.Namespace) -> int:
+    command_started_monotonic = time.monotonic()
+    target = load_target(arguments.target, arguments.targets)
+    _recovery_proof_root(target, arguments.evidence_directory, arguments.proof_id)
+    runner = target.runner()
+    lock_root = str(arguments.evidence_directory / ".locks")
+    _prepare_recovery_proof_root(runner, lock_root)
+    lock = f"{lock_root}/{arguments.proof_id}.lock"
+    with runner.advisory_lock(lock):
+        return _recovery_proof_command_locked(arguments, command_started_monotonic)
+
+
+def _recovery_proof_command_locked(
+    arguments: argparse.Namespace,
+    started_monotonic: float | None = None,
+) -> int:
+    started_monotonic = started_monotonic or time.monotonic()
     target = load_target(arguments.target, arguments.targets)
     if target.name != "production" or target.value["environment"] != "production":
         raise RuntimeError("daily recovery proof is production-source only")
     proof_id = arguments.proof_id
     proof_root = _recovery_proof_root(target, arguments.evidence_directory, proof_id)
     runner = target.runner()
-    runner.run(["install", "-d", "-m", "0700", proof_root])
+    runner.deadline_monotonic = (
+        started_monotonic + RECOVERY_PROOF_MAX_SECONDS - RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS
+    )
+    _prepare_recovery_proof_root(runner, proof_root)
     receipt_path = f"{proof_root}/receipt.json"
     state_path = f"{proof_root}/state.json"
     existing_receipt = _read_recovery_proof_evidence(target, runner, receipt_path)
@@ -5956,12 +6996,17 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
         return 0
 
+    protected_secrets_sha = _recovery_proof_protected_secrets_sha256(target, runner)
     current = inspect_runtime(target, runner)
     release, release_sha, _release_raw = _release(target, runner, arguments.release)
     observed_runtime_sha = _runtime_cas_sha256(target, runner, current)
     runtime_sha = observed_runtime_sha
     existing_state = _read_recovery_proof_evidence(target, runner, state_path)
     backup = None
+    started_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    deadline_at = (
+        datetime.now(UTC) + timedelta(seconds=RECOVERY_PROOF_MAX_SECONDS)
+    ).isoformat().replace("+00:00", "Z")
     if existing_state is not None:
         state = _validate_recovery_proof_state(existing_state, proof_id)
         backup_interrupted = state.get("phase") == "backup-started" and state.get("backup") is None
@@ -5975,19 +7020,51 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
         runtime_sha = state["runtime_sha256"]
         backup = state.get("backup")
         arguments.resume_backup = backup_interrupted
+        started_at = state["started_at"]
+        deadline_at = state["deadline_at"]
+        remaining = (_recovery_proof_timestamp(deadline_at, "deadline_at") - datetime.now(UTC)).total_seconds()
+        runner.deadline_monotonic = time.monotonic() + max(
+            0.0, remaining - RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS,
+        )
+        if datetime.now(UTC) >= _recovery_proof_timestamp(deadline_at, "deadline_at"):
+            error = RuntimeError("recovery proof retry exceeded its 1800-second hard deadline")
+            recovery_runner = target.runner()
+            recovery_runner.deadline_monotonic = (
+                time.monotonic() + RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS
+            )
+            cleanup = _cleanup_recovery_proof_resources(
+                target, recovery_runner, proof_id, proof_root,
+            )
+            _write_recovery_proof_failure(
+                target, recovery_runner, proof_root, proof_id, "cleanup", error, cleanup,
+                runtime_sha, started_at, started_monotonic,
+            )
+            raise error
     else:
         arguments.resume_backup = False
 
-    cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
-    started_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
+    try:
+        cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
+    except Exception as error:
+        recovery_runner = target.runner()
+        recovery_runner.deadline_monotonic = time.monotonic() + RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS
+        cleanup = {
+            "schema": "usl-recovery-proof-cleanup/v1", "status": "failed",
+            "error_sha256": hashlib.sha256(str(error).encode()).hexdigest(),
+        }
+        _write_recovery_proof_failure(
+            target, recovery_runner, proof_root, proof_id, "cleanup", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise
     def write_state(phase: str, backup_receipt: dict | None) -> dict:
+        elapsed = _require_recovery_proof_deadline(started_monotonic, deadline_at)
         return _write_recovery_proof_evidence(
             target,
             runner,
             state_path,
             {
-                "schema": "usl-disposable-recovery-proof-state/v1",
+                "schema": "usl-disposable-recovery-proof-state/v2",
                 "proof_id": proof_id,
                 "source": "production",
                 "phase": phase,
@@ -5995,7 +7072,10 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
                 "release_manifest_sha256": release_sha,
                 "runtime_sha256": runtime_sha,
                 "backup": backup_receipt,
+                "started_at": started_at,
+                "deadline_at": deadline_at,
                 "updated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                "duration_seconds": elapsed,
             },
         )
 
@@ -6003,6 +7083,14 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
     names = None
     materialized = None
     control_validation = None
+    runtime = None
+    runtime_environment = None
+    health = None
+    smoke = None
+    durable_state = None
+    cache_roles = None
+    perimeter_sha = None
+    failure_armed = False
     try:
         if backup is None:
             backup_run_id = f"proof-{proof_id}"
@@ -6022,7 +7110,7 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
                 )
             else:
                 if arguments.resume_backup:
-                    _recover_recovery_proof_backup(
+                    arguments.resume_backup = _recover_recovery_proof_backup(
                         target, runner, backup_run_id, runtime_sha,
                     )
                 write_state("backup-started", None)
@@ -6042,7 +7130,8 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
         if _runtime_cas_sha256(target, runner, current_after_backup) != runtime_sha:
             raise RuntimeError("production runtime changed while taking recovery proof backup")
         identity = current_after_backup["compose"]
-        images = _runtime_images(runner, identity)
+        rendered = _recovery_proof_runtime_config(runner, identity)
+        images = {name: value["image"] for name, value in rendered["services"].items()}
         tool_image = release["components"]["backup-tool"]["digest_reference"]
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
@@ -6051,14 +7140,19 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
         generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
         generation_root = f"{proof_root}/generations/{generation}"
         runner.run(["install", "-d", "-m", "0700", f"{generation_root}/work"])
+        env, runtime_environment = _recovery_proof_environment(
+            target, runner, proof_root, rendered,
+            backup["capture"]["resources"]["mcp_secrets"]["identity"]["sha256"],
+            backup["capture"]["resources"]["paperless_personal_ai_keys"]["identity"]["sha256"],
+        )
         proof_value = copy.deepcopy(target.value)
         proof_value["state_directory"] = proof_root
         proof_target = Target(target.path, proof_value)
         _start_recovery_proof_database(
-            target, runner, proof_id, names, images, "odoo",
+            target, runner, proof_id, names, images, "odoo", env["database"],
         )
         _start_recovery_proof_database(
-            target, runner, proof_id, names, images, "paperless",
+            target, runner, proof_id, names, images, "paperless", env["database"],
         )
         stage = "resources-created"
         write_state(stage, backup)
@@ -6072,18 +7166,34 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
             runner,
             f"{generation_root}/work/source-backup.env",
         )
-        materialize_result = runner.run(
-            _materialize_command(
-                target,
-                proof_target,
-                tool_image,
-                backup["upload"]["durable_snapshot_id"],
-                generation,
-                names["network"],
-                names["volumes"],
-                source_backup_env,
-            ),
+        materialization_network = _create_recovery_proof_materialization_network(
+            runner, proof_id, names,
         )
+        try:
+            materialize_result = runner.run(
+                _materialize_command(
+                    target,
+                    proof_target,
+                    tool_image,
+                    backup["upload"]["durable_snapshot_id"],
+                    generation,
+                    [materialization_network, names["network"]],
+                    names["volumes"],
+                    source_backup_env,
+                    env["database"],
+                    (proof_id, names["containers"]["materializer"]),
+                ),
+            )
+        finally:
+            runner.run(["rm", "-f", "--", source_backup_env], check=False)
+            if _require_recovery_proof_owner(
+                runner, "network", materialization_network, proof_id, "materialization-egress",
+            ):
+                removed = runner.run(
+                    ["docker", "network", "rm", materialization_network], check=False,
+                )
+                if removed.returncode:
+                    raise RuntimeError("recovery proof materialization network cleanup failed")
         try:
             materialized = json.loads(materialize_result.stdout.splitlines()[-1])
         except (IndexError, json.JSONDecodeError) as error:
@@ -6103,31 +7213,70 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
             or materialized.get("release", {}).get("identity") != release["identity"]
             or materialized.get("release", {}).get("manifest_sha256") != release_sha
             or materialized.get("transformations") != []
+            or materialized.get("mcp_secrets_restored") is not True
+            or materialized.get("renderer_secrets_restored") is not True
+            or materialized.get("paperless_personal_ai_keys_restored") is not True
         ):
             raise RuntimeError("recovery proof is not an exact same-release materialization")
+        for role in ("better-auth", "credential-encryption-key", "personal-ai"):
+            digest = runner.run(["sha256sum", env[role]]).stdout.split()[0]
+            if not re.fullmatch(r"[0-9a-f]{64}", digest):
+                raise RuntimeError(f"recovery proof restored MCP secret digest is invalid: {role}")
+            runtime_environment["environment_sha256"][role] = digest
+        restored_dss = runner.run([
+            "sha256sum", f"{generation_root}/sign-secrets/dss.env",
+        ]).stdout.split()[0]
+        restored_odoo = runner.run([
+            "sha256sum", f"{generation_root}/sign-secrets/odoo.env",
+        ]).stdout.split()[0]
+        if not all(re.fullmatch(r"[0-9a-f]{64}", item) for item in (restored_dss, restored_odoo)):
+            raise RuntimeError("recovery proof restored Sign environment digest is invalid")
+        runtime_environment["environment_sha256"]["dss"] = restored_dss
+        runtime_environment["environment_sha256"]["odoo"] = hashlib.sha256(
+            f"{runtime_environment['environment_sha256']['odoo']}:{restored_odoo}".encode(),
+        ).hexdigest()
         stage = "materialized"
         write_state(stage, backup)
         if arguments.failure_after == stage:
             raise RuntimeError(f"injected recovery proof failure after {stage}")
 
-        health = {}
+        quarantine = _run_production_boundary_script(
+            target, runner, release, names["network"], names["volumes"],
+            "production_quarantine.py", release["identity"], "USL_PRODUCTION_QUARANTINE=",
+            environment_file=env["database"],
+        )
+        runtime = _start_recovery_proof_runtime(
+            target, runner, proof_id, proof_root, names, release, images, env,
+        )
+        runtime["environment"] = runtime_environment
+        runtime["quarantine"] = quarantine
+        perimeter_sha = _recovery_proof_isolation(runner, names)
+        stage = "runtime-started"
+        write_state(stage, backup)
+        if arguments.failure_after == stage:
+            raise RuntimeError(f"injected recovery proof failure after {stage}")
+
+        database_health = {}
         for database_key, container in names["containers"].items():
-            database = target.value["databases"][database_key]
+            if database_key not in {"odoo_db", "paperless_db"}:
+                continue
+            logical_database_key = database_key.removesuffix("_db")
+            database = target.value["databases"][logical_database_key]
             ready = runner.run([
                 "docker", "exec", container, "pg_isready", "--username", database["user"],
                 "--dbname", database["name"],
             ], check=False)
-            health[database_key] = ready.returncode == 0
-        if not all(health.values()):
+            database_health[logical_database_key] = ready.returncode == 0
+        if not all(database_health.values()):
             raise RuntimeError("recovery proof restored database is not ready")
         restored_controls = {
             "odoo": _recovery_proof_query(
-                target, runner, names["containers"]["odoo"], "odoo", ODOO_CONTROL_SQL,
+                target, runner, names["containers"]["odoo_db"], "odoo", ODOO_CONTROL_SQL,
             ),
             "paperless": _recovery_proof_query(
                 target,
                 runner,
-                names["containers"]["paperless"],
+                names["containers"]["paperless_db"],
                 "paperless",
                 PAPERLESS_CONTROL_SQL,
             ),
@@ -6147,7 +7296,7 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
             "paperless_vectors",
         )
         try:
-            cache_roles = {
+            captured_cache = {
                 role: backup["capture"]["resources"][role]["identity"]
                 for role in cache_role_names
             }
@@ -6158,46 +7307,130 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
             for role in cache_role_names
         ):
             raise RuntimeError("recovery proof reusable cache classification differs")
+        health, smoke = _recovery_proof_runtime_health(
+            target, runner, names, release,
+            started=started_monotonic, deadline_at=deadline_at,
+        )
+        health["databases"] = database_health
+        durable_state, cache_roles = _recovery_proof_durable_state(
+            target, runner, names, release, backup, proof_root,
+        )
+        for role, identity in captured_cache.items():
+            cache_roles[role]["capture_identity_sha256"] = hashlib.sha256(json.dumps(
+                identity, sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest()
         stage = "validated"
         write_state(stage, backup)
         if arguments.failure_after == stage:
             raise RuntimeError(f"injected recovery proof failure after {stage}")
     except BaseException as error:
+        recovery_runner = target.runner()
+        recovery_runner.deadline_monotonic = time.monotonic() + max(
+            0.0,
+            (_recovery_proof_timestamp(deadline_at, "deadline_at") - datetime.now(UTC)).total_seconds(),
+        )
         try:
             cleanup = _cleanup_recovery_proof_resources(
-                target, runner, proof_id, proof_root,
+                target, recovery_runner, proof_id, proof_root,
             )
         except Exception as cleanup_error:
-            raise RuntimeError(
-                f"recovery proof failed at {stage}; owned-resource cleanup also failed",
-            ) from cleanup_error
-        _write_recovery_proof_evidence(
-            target,
-            runner,
-            f"{proof_root}/failure.json",
-            {
-                "schema": "usl-disposable-recovery-proof-failure/v1",
-                "proof_id": proof_id,
-                "source": "production",
-                "stage": stage,
-                "error_type": type(error).__name__,
-                "cleanup": cleanup,
-                "failed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-                "status": "failed",
-            },
-        )
+            cleanup = {
+                "schema": "usl-recovery-proof-cleanup/v1", "status": "failed",
+                "error_sha256": hashlib.sha256(str(cleanup_error).encode()).hexdigest(),
+            }
+        try:
+            _write_recovery_proof_failure(
+                target, recovery_runner, proof_root, proof_id, stage, error, cleanup,
+                runtime_sha, started_at, started_monotonic,
+            )
+        except Exception:
+            if not failure_armed:
+                raise
         raise
 
-    cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
-    final_runtime = inspect_runtime(target, runner)
-    if _runtime_cas_sha256(target, runner, final_runtime) != runtime_sha:
-        raise RuntimeError("production runtime changed during disposable recovery proof")
-    receipt = _write_recovery_proof_evidence(
+    stage = "finalizing"
+    runner.deadline_monotonic = time.monotonic() + max(
+        0.0,
+        (_recovery_proof_timestamp(deadline_at, "deadline_at") - datetime.now(UTC)).total_seconds(),
+    )
+    final_failure_runner = target.runner()
+    final_failure_runner.deadline_monotonic = time.monotonic() + RECOVERY_PROOF_CLEANUP_RESERVE_SECONDS
+    try:
+        _write_recovery_proof_evidence(
+            target, runner, f"{proof_root}/failure.json",
+            {
+                "schema": "usl-disposable-recovery-proof-failure/v2",
+                "proof_id": proof_id, "source": "production", "stage": stage,
+                "error_type": "FinalizationPending",
+                "error_sha256": hashlib.sha256(b"finalization pending").hexdigest(),
+                "cleanup": cleanup, "runtime_sha256": runtime_sha,
+                "started_at": started_at,
+                "failed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                "duration_seconds": _require_recovery_proof_deadline(started_monotonic, deadline_at),
+                "status": "armed",
+            },
+        )
+        failure_armed = True
+        write_state(stage, backup)
+    except Exception as error:
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise
+    try:
+        cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
+    except Exception as error:
+        cleanup = {
+            "schema": "usl-recovery-proof-cleanup/v1", "status": "failed",
+            "error_sha256": hashlib.sha256(str(error).encode()).hexdigest(),
+        }
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "cleanup", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise
+    if arguments.failure_after == "cleanup":
+        error = RuntimeError("injected recovery proof failure after cleanup")
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "cleanup", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise error
+    try:
+        final_runtime = inspect_runtime(target, runner)
+        if _runtime_cas_sha256(target, runner, final_runtime) != runtime_sha:
+            raise RuntimeError("production runtime changed during disposable recovery proof")
+        if _recovery_proof_protected_secrets_sha256(target, runner) != protected_secrets_sha:
+            raise RuntimeError("production protected secrets changed during recovery proof")
+    except Exception as error:
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "runtime-cas", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise
+    if arguments.failure_after == "cas-verified":
+        error = RuntimeError("injected recovery proof failure after cas-verified")
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "cas-verified", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise error
+    duration_seconds = _require_recovery_proof_deadline(started_monotonic, deadline_at)
+    if arguments.failure_after == "final-write":
+        error = RuntimeError("injected recovery proof failure at final-write")
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise error
+    try:
+        receipt = _write_recovery_proof_evidence(
         target,
         runner,
         receipt_path,
         {
-            "schema": "usl-disposable-recovery-proof/v1",
+            "schema": "usl-disposable-recovery-proof/v2",
             "proof_id": proof_id,
             "source": "production",
             "release": {
@@ -6217,13 +7450,15 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
                     materialized["controls"], sort_keys=True, separators=(",", ":"),
                 ).encode()).hexdigest(),
                 "sign_secrets_restored": materialized["sign_secrets_restored"],
+                "mcp_secrets_restored": materialized["mcp_secrets_restored"],
+                "renderer_secrets_restored": materialized["renderer_secrets_restored"],
+                "paperless_personal_ai_keys_restored": materialized["paperless_personal_ai_keys_restored"],
                 "status": materialized["status"],
             },
-            "health": {
-                "databases": health,
-                "status": "passed",
-            },
-            "smoke": control_validation,
+            "runtime": runtime,
+            "health": health,
+            "smoke": {"runtime": smoke, "controls": control_validation, "status": "passed"},
+            "durable_state": durable_state,
             "reusable_cache": cache_roles,
             "ownership": {
                 "label": RECOVERY_PROOF_OWNER,
@@ -6236,17 +7471,35 @@ def recovery_proof_command(arguments: argparse.Namespace) -> int:
                 "active_runtime_sha256": runtime_sha,
                 "active_runtime_unchanged": True,
                 "gateway_attached": False,
-                "application_workers_started": False,
+                "host_ports_published": False,
+                "external_networks_attached": False,
+                "side_effects_neutralized": True,
                 "persistent_staging_touched": False,
                 "production_secrets_modified": False,
+                "production_secrets_sha256": protected_secrets_sha,
                 "runtime_ledger_used_for_restore": False,
+                "perimeter_sha256": perimeter_sha,
             },
             "started_at": started_at,
             "completed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "duration_seconds": duration_seconds,
+            "max_duration_seconds": RECOVERY_PROOF_MAX_SECONDS,
             "status": "passed",
         },
-        "0444",
-    )
+            "0444",
+        )
+        persisted = _validate_recovery_proof_receipt(
+            _read_recovery_proof_evidence(target, runner, receipt_path), proof_id,
+        )
+        if persisted != receipt:
+            raise RuntimeError("recovery proof final receipt read-back differs")
+    except Exception as error:
+        _write_recovery_proof_failure(
+            target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
+            runtime_sha, started_at, started_monotonic,
+        )
+        raise
+    runner.run(["rm", "-f", "--", f"{proof_root}/failure.json"])
     print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 

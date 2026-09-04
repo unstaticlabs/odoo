@@ -189,9 +189,43 @@ vector indexes. It then queries the restored databases independently and
 compares Accounting, Documents, access, queue, cron and release controls with
 the quiesced capture manifest.
 
-Cleanup runs after success and ordinary failure. A process crash leaves a
-digest-bound state receipt; the retry validates ownership before removing only
-the named proof resources. A missing label or name collision fails closed.
+Restic materialization runs first on a separately labelled, short-lived egress
+network so it can reach the backup repository. No application or database
+container joins that network, and the command removes it before starting the
+restored runtime. Secret-bearing environment and evidence content is delivered
+to atomic host writers over standard input; it is never placed in process
+arguments or command-failure text.
+
+The materializer restores the exact qualified durable and cache snapshots,
+including the Odoo filestore, Paperless originals, OCR archive, thumbnails,
+Tantivy and vector indexes, the MCP OAuth vault, and Sign recovery material.
+The production cohort also carries the OAuth vault's matching Better Auth and
+credential-encryption keys, the Paperless Personal-AI keyring, and the
+renderer's CA, server and client credentials.
+The proof rejects a cohort that restores either state without its matching key
+material; those credentials remain inside the encrypted backup and disposable
+proof workspace and are removed during exact cleanup.
+Before any application worker starts, the proof neutralizes the disposable
+Odoo database. It then starts and probes Odoo HTTP, Paperless web and Redis,
+MCP OAuth readiness and its unauthenticated boundary, Step CA, DSS, the document
+renderer, Gotenberg, and Tika. Read-only smoke checks compare the restored
+Accounting, Documents, access, queue, cron, and release controls with the
+quiesced capture manifest and sample durable files and the OAuth SQLite
+database. The proof never writes `active.json`, uses a release candidate, reads
+staging configuration, or attaches the production gateway.
+For a non-empty OAuth vault, the MCP `prepare` operation decrypts every active
+enrollment with the restored key and the receipt requires refreshed plus cached
+principals to equal the active SQLite row count with zero unavailable entries.
+An empty vault is recorded explicitly. Durable samples require at least one
+file and hash its bytes rather than its pathname.
+
+The command has a hard 1,800-second total deadline. Cleanup runs after success
+and failure. Before final cleanup it enters a durable `finalizing` phase and
+arms a failure receipt, so cleanup, production runtime-CAS, or final receipt
+write failures retain evidence even if the final write itself fails. A process
+crash leaves a digest-bound state receipt; the retry validates ownership before
+removing only the named proof resources. A missing label or name collision
+fails closed.
 Operators can exercise each durable boundary without changing the algorithm:
 
 ```bash
